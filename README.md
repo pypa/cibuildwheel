@@ -65,7 +65,7 @@ Usage
 
 All being well, you should get wheels delivered to you in a few minutes. 
 
-> Got an error? Check the [checklist](#it-didnt-work) below.
+> ⚠️ Got an error? Check the [checklist](#it-didnt-work) below.
 
 
 Options
@@ -171,8 +171,8 @@ It didn't work!
 
 If your wheel didn't compile, check the list below for some debugging tips.
 
-- A mistake in your config. To quickly test your config without doing a git push and waiting for your code, you can run the Linux build in a Docker container. Try `cibuildwheel --platform linux`.
-- Missing dependency. You might need to install something inside on the build machine. You can do this in `.travis.yml` or `appveyor.yml`, with apt-get, brew or whatever Windows uses :P . Given how the Linux build works, we'll probably have to build something into `cibuildwheel`. Let's chat about that over in the issues!
+- A mistake in your config. To quickly test your config without doing a git push and waiting for your code to build on CI, you can run the Linux build in a Docker container. Try `cibuildwheel --platform linux`. You'll have to bring your config into the current environment first.
+- Missing dependency. You might need to install something on the build machine. You can do this in `.travis.yml` or `appveyor.yml`, with apt-get, brew or whatever Windows uses :P . Given how the Linux build works, we'll probably have to build something into `cibuildwheel`. Let's chat about that over in the issues!
 - Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
 
 Legal note
