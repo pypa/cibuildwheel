@@ -208,11 +208,11 @@ Credits
 
 `cibuildwheel` stands on the shoulders of giants. Massive props to-
 
-- ⭐️ @matthew-brett for matthew-brett/multibuild and matthew-brett/delocate
-- @PyPA for the manylinux Docker images pypa/manylinux
-- @ogrisel for wheelhouse-uploader and `run_with_env.cmd`
+- ⭐️ @matthew-brett for [matthew-brett/multibuild](http://github.com/matthew-brett/multibuild) and [matthew-brett/delocate](http://github.com/matthew-brett/delocate)
+- @PyPA for the manylinux Docker images [pypa/manylinux](https://github.com/pypa/manylinux)
+- @ogrisel for [wheelhouse-uploader](https://github.com/ogrisel/wheelhouse-uploader) and `run_with_env.cmd`
 
 See also
 --------
 
-If `cibuildwheel` is too limited for your needs, consider matthew-brett/multibuild. `multibuild` is a toolbox for building a wheel on various platforms. It can do a lot more than this project - it's used to build SciPy!
+If `cibuildwheel` is too limited for your needs, consider [matthew-brett/multibuild](http://github.com/matthew-brett/multibuild). `multibuild` is a toolbox for building a wheel on various platforms. It can do a lot more than this project - it's used to build SciPy!
