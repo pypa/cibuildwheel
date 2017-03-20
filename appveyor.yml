@@ -1,0 +1,3 @@
+build_script:
+  - pip install .
+  - python ./run_tests.py

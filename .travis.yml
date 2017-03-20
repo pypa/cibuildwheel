@@ -1,0 +1,10 @@
+matrix:
+  include:
+    - sudo: required
+      services:
+        - docker
+    - os: osx
+
+script:
+  - pip install .
+  - python ./run_tests.py
