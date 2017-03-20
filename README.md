@@ -166,14 +166,52 @@ Example: `cp34-*`  (don't build on Python 3.4)
 </code></pre></td>
 </tr></table>
 
+Delivering to PyPI
+------------------
+
+After you've built your wheels, you'll probably want to deliver them to PyPI.
+
+### Manual method
+
+On your development machine, do the following...
+
+```bash
+# Clear out your 'dist' folder. 
+rm -rf dist
+# Make a source distribution
+python setup.py sdist
+
+# 🏃🏻
+# Go and download your wheel files from wherever you put them. Put 
+# them all into the 'dist' folder.
+
+# Upload using 'twine' (you may need to 'pip install twine')
+twine upload dist/*
+```
+
+### Semi-automatic method using wheelhouse-uploader
+
+Obviously, manual steps are for chumps, so we can automate this a little by using [wheelhouse-uploader](https://github.com/ogrisel/wheelhouse-uploader).
+
+> Quick note from me - using S3 as a storage didn't work due to a [bug](https://issues.apache.org/jira/browse/LIBCLOUD-792) in libcloud. Feel free to use my fork of that package that fixes the bug `pip install https://github.com/joerick/libcloud/archive/v1.5.0-s3fix.zip`
+
 It didn't work!
 ---------------
 
 If your wheel didn't compile, check the list below for some debugging tips.
 
-- A mistake in your config. To quickly test your config without doing a git push and waiting for your code to build on CI, you can run the Linux build in a Docker container. Try `cibuildwheel --platform linux`. You'll have to bring your config into the current environment first.
+- A mistake in your config. To quickly test your config without doing a git push and waiting for your code to build on CI, you can run the Linux build in a Docker container. On Mac or Linux, with Docker running, try `cibuildwheel --platform linux`. You'll have to bring your config into the current environment first.
 - Missing dependency. You might need to install something on the build machine. You can do this in `.travis.yml` or `appveyor.yml`, with apt-get, brew or whatever Windows uses :P . Given how the Linux build works, we'll probably have to build something into `cibuildwheel`. Let's chat about that over in the issues!
 - Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
+
+Working examples
+----------------
+
+Here are some repos that use cibuildwheel. 
+
+- [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext)
+
+> Add repo here! Send a PR.
 
 Legal note
 ----------
