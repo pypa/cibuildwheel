@@ -34,7 +34,7 @@ static PyMethodDef module_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-MOD_INIT(pyinstrument_cext)
+MOD_INIT(spam)
 {
     PyObject* m;
 
