@@ -1,0 +1,4 @@
+{
+    "CIBW_TEST_REQUIRES": "nose",
+    "CIBW_TEST_COMMAND": "nosetests {project}/test"
+}
