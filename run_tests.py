@@ -15,18 +15,22 @@ print('Testing projects:', test_projects)
 
 for project_path in test_projects:
     # load project settings into environment
-    env = os.environ.copy()
     env_file = os.path.join(project_path, 'environment.json')
+    project_env = {}
     if os.path.exists(env_file):
         with open(env_file) as f:
-            env.update(json.load(f))
+            project_env = json.load(f)
 
     # run the build
+    env = os.environ.copy()
+    project_env = {str(k): str(v) for k, v in project_env.items()} # unicode not allowed in env
+    env.update(project_env)
+    print('Building %s with environment %s' % (project_path, project_env))
     subprocess.check_call(['cibuildwheel', project_path], env=env)
     wheels = glob('wheelhouse/*.whl')
     print('%s built successfully. %i wheels built.' % (project_path, len(wheels)))
 
-    # check wheels were actually built
+    # check some wheels were actually built
     assert len(wheels) >= 4
 
     # clean up
