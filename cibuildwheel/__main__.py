@@ -11,7 +11,7 @@ def main():
 
     parser.add_argument('--platform',
                         choices=['auto', 'linux', 'macos', 'windows'],
-                        default='auto',
+                        default=os.environ.get('CIBW_PLATFORM', 'auto'),
                         help=('Platform to build for. For "linux" you need docker running, on Mac '
                               'or Linux. For "macos", you need a Mac machine, and note that this '
                               'script is going to automatically install MacPython on your system, '
