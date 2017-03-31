@@ -43,7 +43,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
 
         # install pip & wheel
         shell([python, '-m', 'ensurepip', '--upgrade'], env=env)
-        shell(['which', pip], env=env)  # todo: remove
         shell([pip, '--version'])
         shell([pip, 'install', 'wheel'], env=env)
         shell([pip, 'install', 'delocate'], env=env)
@@ -63,15 +62,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
 
         # test the wheel
         if test_requires:
-            shell([pip, '-v', 'install'] + test_requires, env=env)
+            shell([pip, 'install'] + test_requires, env=env)
         if test_command:
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
             abs_project_dir = os.path.abspath(project_dir)
             test_command_absolute = test_command.format(project=abs_project_dir)
-            shell(['which', 'nosetests'], env=env)  # todo: remove
-            shell(['which', 'nosetests'], cwd=os.environ['HOME'], env=env)  # todo: remove
-            shell(['nosetests', '-v'], env=env)  # todo: remove
-            shell(['nosetests', '-v'], cwd=os.environ['HOME'], env=env)  # todo: remove
             shell(shlex.split(test_command_absolute), cwd=os.environ['HOME'], env=env)
