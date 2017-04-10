@@ -43,7 +43,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
 
         # install pip & wheel
         shell([python, '-m', 'ensurepip', '--upgrade'], env=env)
-        shell([pip, '--version'])
+        shell([pip, '--version'], env=env)
         shell([pip, 'install', 'wheel'], env=env)
         shell([pip, 'install', 'delocate'], env=env)
 
