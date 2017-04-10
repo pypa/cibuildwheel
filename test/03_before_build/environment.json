@@ -1,0 +1,3 @@
+{
+    "CIBW_BEFORE_BUILD": "{python} -c \"import sys; open('version.txt', 'w').write(sys.version)\""
+}

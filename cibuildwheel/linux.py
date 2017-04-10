@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os, subprocess
+from .util import prepare_command
 
 try:
     from shlex import quote as shlex_quote
@@ -7,7 +8,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build):
     for docker_image in ['quay.io/pypa/manylinux1_x86_64', 'quay.io/pypa/manylinux1_i686']:
         bash_script = '''
             set -o errexit
@@ -15,6 +16,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
             cd /project
 
             for PYBIN in /opt/python/*/bin; do
+                if [ ! -z {before_build} ]; then
+                    PATH=$PYBIN:$PATH sh -c {before_build}
+                fi
+
                 "$PYBIN/pip" wheel . -w /tmp/linux_wheels
             done
 
@@ -42,7 +47,12 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
         '''.format(
             package_name=package_name,
             test_requires=' '.join(test_requires),
-            test_command=shlex_quote(test_command.format(project='/project') if test_command else ''),
+            test_command=shlex_quote(
+                test_command.format(project='/project') if test_command else ''
+            ),
+            before_build=shlex_quote(
+                prepare_command(before_build, python='python', pip='pip') if before_build else ''
+            ),
         )
 
         docker_process = subprocess.Popen([
