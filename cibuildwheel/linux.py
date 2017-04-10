@@ -34,7 +34,9 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
 
                 # Run the tests from a different directory
                 if [ ! -z {test_command} ]; then
-                    (cd "$HOME" && export PATH=$PYBIN:$PATH && sh -c {test_command})
+                    pushd $HOME
+                    PATH=$PYBIN:$PATH sh -c {test_command}
+                    popd
                 fi
             done
         '''.format(
