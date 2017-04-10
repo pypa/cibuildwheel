@@ -132,7 +132,7 @@ Space-separated list of dependencies required for running the tests.
 Example: `pytest`  
 Example: `nose==1.3.7 moto==0.4.31`
 
-| Environment variable: `CIBW_SKIP` | 🔶 coming soon 🔶
+| Environment variable: `CIBW_SKIP` | 🔶 [coming soon](https://github.com/joerick/cibuildwheel/issues/3) 🔶
 | --- | ---
 
 Optional.
@@ -149,7 +149,7 @@ You can also use shell-style globbing syntax (as per `fnmatch`)
 
 Example: `cp27-macosx_10_6_intel `  (don't build on Python 2 on Mac)  
 Example: `cp27-win*`  (don't build on Python 2.7 on Windows)  
-Example: `cp34-*`  (don't build on Python 3.4)  
+Example: `cp34-* cp35-*`  (don't build on Python 3.4 or Python 3.5)  
 
 --
 
