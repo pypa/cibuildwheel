@@ -7,7 +7,8 @@ sys.stderr.write('sys.argv \n' + str(sys.argv))
 if sys.argv[-1] != '--name':
     with open('version.txt') as f:
         stored_version = f.read()
-    print('version is', stored_version)
+    print('stored_version', stored_version)
+    print('sys.version', sys.version)
     assert stored_version == sys.version
 
 setup(
