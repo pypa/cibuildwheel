@@ -1,3 +1,4 @@
 {
-    "CIBW_BEFORE_BUILD": "{python} -c \"import sys; open('pythonversion.txt', 'w').write(sys.version)\""
+    "CIBW_BEFORE_BUILD": "{python} -c \"import sys; open('pythonversion.txt', 'w').write(sys.version)\"",
+    "CIBW_BEFORE_BUILD_WINDOWS": "{python} -c \"import sys; open('c:\\pythonversion.txt', 'w').write(sys.version)\""
 }
