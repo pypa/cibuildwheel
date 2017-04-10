@@ -4,7 +4,7 @@ import sys
 # here we assert that the Python version as written to version.txt in the CIBW_BEFORE_BUILD step
 # is the same one as is currently running.
 if sys.argv[-1] != '--name':
-    with open('version.txt') as f:
+    with open('pythonversion.txt') as f:
         stored_version = f.read()
     print('stored_version', stored_version)
     print('sys.version', sys.version)
