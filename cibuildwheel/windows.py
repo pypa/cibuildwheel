@@ -5,7 +5,7 @@ from collections import namedtuple
 from .util import prepare_command
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
     # run_with_env is a cmd file that sets the right environment variables to
     run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
     if not os.path.exists(run_with_env):
@@ -19,21 +19,25 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
         return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
 
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'path'])
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
     python_configurations = [
-        PythonConfiguration(version='2.7.x', arch="32", path='C:\Python27'),
-        PythonConfiguration(version='2.7.x', arch="64", path='C:\Python27-x64'),
-        PythonConfiguration(version='3.3.x', arch="32", path='C:\Python33'),
-        PythonConfiguration(version='3.3.x', arch="64", path='C:\Python33-x64'),
-        PythonConfiguration(version='3.4.x', arch="32", path='C:\Python34'),
-        PythonConfiguration(version='3.4.x', arch="64", path='C:\Python34-x64'),
-        PythonConfiguration(version='3.5.x', arch="32", path='C:\Python35'),
-        PythonConfiguration(version='3.5.x', arch="64", path='C:\Python35-x64'),
-        PythonConfiguration(version='3.6.x', arch="32", path='C:\Python36'),
-        PythonConfiguration(version='3.6.x', arch="64", path='C:\Python36-x64'),
+        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27'),
+        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64'),
+        PythonConfiguration(version='3.3.x', arch="32", identifier='cp33-win32', path='C:\Python33'),
+        PythonConfiguration(version='3.3.x', arch="64", identifier='cp33-win_amd64', path='C:\Python33-x64'),
+        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34'),
+        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64'),
+        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35'),
+        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64'),
+        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36'),
+        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64'),
     ]
 
     for config in python_configurations:
+        if skip(config.identifier):
+            print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
+            continue
+
         env = os.environ.copy()
         # set up environment variables for run_with_env
         env['PYTHON_VERSION'] = config.version

@@ -10,13 +10,13 @@ except ImportError:
 from .util import prepare_command
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'url'])
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', url='https://www.python.org/ftp/python/2.7.13/python-2.7.13-macosx10.6.pkg'),
-        PythonConfiguration(version='3.4', url='https://www.python.org/ftp/python/3.4.4/python-3.4.4-macosx10.6.pkg'),
-        PythonConfiguration(version='3.5', url='https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg'),
-        PythonConfiguration(version='3.6', url='https://www.python.org/ftp/python/3.6.0/python-3.6.0-macosx10.6.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.13/python-2.7.13-macosx10.6.pkg'),
+        PythonConfiguration(version='3.4', identifier='cp34-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.4.4/python-3.4.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg'),
+        PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.0/python-3.6.0-macosx10.6.pkg'),
     ]
 
     def shell(args, env=None, cwd=None):
@@ -25,6 +25,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         return subprocess.check_call(args, env=env, cwd=cwd)
 
     for config in python_configurations:
+        if skip(config.identifier):
+            print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
+            continue
+
         # download the pkg
         shell(['curl', '-L', '-o', '/tmp/Python.pkg', config.url])
         # install
