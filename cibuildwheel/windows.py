@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, tempfile, subprocess, urllib2
+import os, tempfile, subprocess, urllib2, sys
 from collections import namedtuple
 
 from .util import prepare_command
