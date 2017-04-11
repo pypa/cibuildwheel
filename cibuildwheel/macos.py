@@ -7,8 +7,10 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
+from .util import prepare_command
 
-def build(project_dir, package_name, output_dir, test_command, test_requires):
+
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'url'])
     python_configurations = [
         PythonConfiguration(version='2.7', url='https://www.python.org/ftp/python/2.7.13/python-2.7.13-macosx10.6.pkg'),
@@ -43,9 +45,14 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
 
         # install pip & wheel
         shell([python, '-m', 'ensurepip', '--upgrade'], env=env)
-        shell([pip, '--version'])
+        shell([pip, '--version'], env=env)
         shell([pip, 'install', 'wheel'], env=env)
         shell([pip, 'install', 'delocate'], env=env)
+
+        # run the before_build command
+        if before_build:
+            before_build_prepared = prepare_command(before_build, python=python, pip=pip)
+            shell(shlex.split(before_build_prepared), env=env)
 
         # build the wheel to temp dir
         temp_wheel_dir = '/tmp/tmpwheel%s' % config.version

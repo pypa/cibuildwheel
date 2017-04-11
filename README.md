@@ -132,6 +132,20 @@ Space-separated list of dependencies required for running the tests.
 Example: `pytest`  
 Example: `nose==1.3.7 moto==0.4.31`
 
+| Environment variable: `CIBW_BEFORE_BUILD`
+| ---
+
+Optional.
+
+Shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
+
+The active Python binary can be accessed using `{python}`, and pip with `{pip}`. These are useful when you need to write `python3` or `pip3` on a Python 3.x build.
+
+Example: `{pip} install pybind11`
+
+Platform-specific variants also available:  
+ `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
+
 | Environment variable: `CIBW_SKIP` | 🔶 [coming soon](https://github.com/joerick/cibuildwheel/issues/3) 🔶
 | --- | ---
 

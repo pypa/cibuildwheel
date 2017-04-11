@@ -2,8 +2,10 @@ from __future__ import print_function
 import os, tempfile, subprocess, urllib2
 from collections import namedtuple
 
+from .util import prepare_command
 
-def build(project_dir, package_name, output_dir, test_command, test_requires):
+
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build):
     # run_with_env is a cmd file that sets the right environment variables to
     run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
     if not os.path.exists(run_with_env):
@@ -50,6 +52,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires):
         shell(['pip', 'install', '--disable-pip-version-check', '--user', '--upgrade', 'pip'],
               env=env)
         shell(['pip', 'install', 'wheel'], env=env)
+
+        # run the before_build command
+        if before_build:
+            before_build_prepared = prepare_command(before_build, python='python', pip='pip')
+            shell([before_build_prepared], env=env)
 
         # build the wheel
         shell(['pip', 'wheel', project_dir, '-w', output_dir], env=env)

@@ -3,6 +3,24 @@ import argparse, os, subprocess, sys
 
 from cibuildwheel import linux, windows, macos
 
+def get_option_from_environment(option_name, platform=None):
+    '''
+    Returns an option from the environment, optionally scoped by the platform.
+
+    Example:
+      get_option_from_environment('CIBW_COLOR', platform='macos')
+
+      This will return the value of CIBW_COLOR_MACOS if it exists, otherwise the value of
+      CIBW_COLOR.
+    '''
+    if platform:
+        option = os.environ.get('%s_%s' % (option_name, platform.upper()))
+        if option is not None:
+            return option
+
+    return os.environ.get(option_name)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
@@ -29,10 +47,28 @@ def main():
 
     args = parser.parse_args()
 
+    if args.platform != 'auto':
+        platform = args.platform
+    else:
+        if os.environ.get('TRAVIS_OS_NAME') == 'linux':
+            platform = 'linux'
+        elif os.environ.get('TRAVIS_OS_NAME') == 'osx':
+            platform = 'macos'
+        elif 'APPVEYOR' in os.environ:
+            platform = 'windows'
+        else:
+            print('Unable to detect platform. cibuildwheel should run on your CI server, '
+                  'Travis CI and Appveyor are supported. You can run on your development '
+                  'machine using the --platform argument. Check --help output for more '
+                  'information.',
+                  file=sys.stderr)
+            exit(2)
+
     output_dir = args.output_dir
     test_command = os.environ.get('CIBW_TEST_COMMAND', None)
     test_requires = os.environ.get('CIBW_TEST_REQUIRES', '').split()
     project_dir = args.project_dir
+    before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
 
     try:
         project_setup_py = os.path.join(project_dir, 'setup.py')
@@ -58,25 +94,9 @@ def main():
         package_name=package_name,
         output_dir=output_dir,
         test_command=test_command,
-        test_requires=test_requires
+        test_requires=test_requires,
+        before_build=before_build,
     )
-
-    if args.platform != 'auto':
-        platform = args.platform
-    else:
-        if os.environ.get('TRAVIS_OS_NAME') == 'linux':
-            platform = 'linux'
-        elif os.environ.get('TRAVIS_OS_NAME') == 'osx':
-            platform = 'macos'
-        elif 'APPVEYOR' in os.environ:
-            platform = 'windows'
-        else:
-            print('Unable to detect platform. cibuildwheel should run on your CI server, '
-                  'Travis CI and Appveyor are supported. You can run on your development '
-                  'machine using the --platform argument. Check --help output for more '
-                  'information.',
-                  file=sys.stderr)
-            exit(2)
 
     if platform == 'linux':
         linux.build(**build_args)
