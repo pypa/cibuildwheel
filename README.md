@@ -146,8 +146,8 @@ Example: `{pip} install pybind11`
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
-| Environment variable: `CIBW_SKIP` | 🔶 [coming soon](https://github.com/joerick/cibuildwheel/issues/3) 🔶
-| --- | ---
+| Environment variable: `CIBW_SKIP`
+| ---
 
 Optional.
 
