@@ -151,13 +151,13 @@ Platform-specific variants also available:
 
 Optional.
 
-Space-separated list of builds to skip. Each build has an identifier like `cp27-linux_x86_64` or `cp34-macosx_10_6_intel` - you can list ones to skip here and `cibuildwheel` won't try to build them.
+Space-separated list of builds to skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list ones to skip here and `cibuildwheel` won't try to build them.
 
 The format is `python_tag-platform_tag`. The tags are as defined in [PEP 0425](https://www.python.org/dev/peps/pep-0425/#details).
 
 Python tags look like `cp27` `cp34` `cp35` `cp36`
 
-Platform tags look like `macosx_10_6_intel` `linux_x86_64` `linux_i386` `win32` `win_amd64`
+Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i386` `win32` `win_amd64`
 
 You can also use shell-style globbing syntax (as per `fnmatch`) 
 

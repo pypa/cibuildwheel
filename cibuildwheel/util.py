@@ -1,3 +1,5 @@
+from fnmatch import fnmatch
+
 
 def prepare_command(command, python, pip):
     '''
@@ -9,3 +11,11 @@ def prepare_command(command, python, pip):
     it out to python2 or python3 as appropriate.
     '''
     return command.format(python=python, pip=pip)
+
+
+class BuildSkipper(object):
+    def __init__(self, skip_config):
+        self.patterns = skip_config.split()
+
+    def __call__(self, build_id):
+        return any(fnmatch(build_id, pattern) for pattern in self.patterns)

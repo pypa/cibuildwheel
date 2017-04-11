@@ -2,6 +2,7 @@ from __future__ import print_function
 import argparse, os, subprocess, sys
 
 from cibuildwheel import linux, windows, macos
+from cibuildwheel.util import BuildSkipper
 
 def get_option_from_environment(option_name, platform=None):
     '''
@@ -69,6 +70,9 @@ def main():
     test_requires = os.environ.get('CIBW_TEST_REQUIRES', '').split()
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
+    skip_config = os.environ.get('CIBW_SKIP', '')
+
+    skip = BuildSkipper(skip_config)
 
     try:
         project_setup_py = os.path.join(project_dir, 'setup.py')
@@ -96,6 +100,7 @@ def main():
         test_command=test_command,
         test_requires=test_requires,
         before_build=before_build,
+        skip=skip,
     )
 
     if platform == 'linux':
