@@ -265,6 +265,7 @@ Credits
 - ⭐️ @matthew-brett for [matthew-brett/multibuild](http://github.com/matthew-brett/multibuild) and [matthew-brett/delocate](http://github.com/matthew-brett/delocate)
 - @PyPA for the manylinux Docker images [pypa/manylinux](https://github.com/pypa/manylinux)
 - @ogrisel for [wheelhouse-uploader](https://github.com/ogrisel/wheelhouse-uploader) and `run_with_env.cmd`
+- @zfrenchee for [help debugging many issues](https://github.com/joerick/cibuildwheel/issues/2)
 
 See also
 --------
