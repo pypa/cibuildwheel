@@ -54,7 +54,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 "$PYBIN/pip" wheel . -w /tmp/linux_wheels
             done
 
-            for whl in /tmp/linux_wheels/*.whl; do
+            for whl in /tmp/linux_wheels/{package_name}-*.whl; do
                 auditwheel repair "$whl" -w /output
             done
 

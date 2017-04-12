@@ -61,7 +61,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         # build the wheel to temp dir
         temp_wheel_dir = '/tmp/tmpwheel%s' % config.version
         shell([pip, 'wheel', project_dir, '-w', temp_wheel_dir], env=env)
-        temp_wheel = glob(temp_wheel_dir+'/*.whl')[0]
+        temp_wheel = glob('%s/%s-*.whl' % (temp_wheel_dir, package_name))[0]
 
         # list the dependencies
         shell(['delocate-listdeps', temp_wheel], env=env)
