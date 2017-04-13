@@ -19,3 +19,6 @@ class BuildSkipper(object):
 
     def __call__(self, build_id):
         return any(fnmatch(build_id, pattern) for pattern in self.patterns)
+
+    def __repr__(self):
+        return 'BuildSkipper(%r)' % ' '.join(self.patterns)

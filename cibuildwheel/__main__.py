@@ -1,7 +1,8 @@
 from __future__ import print_function
-import argparse, os, subprocess, sys
+import argparse, os, subprocess, sys, textwrap
 
-from cibuildwheel import linux, windows, macos
+import cibuildwheel
+import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
 from cibuildwheel.util import BuildSkipper
 
 def get_option_from_environment(option_name, platform=None):
@@ -93,7 +94,7 @@ def main():
               file=sys.stderr)
         exit(2)
 
-    build_args = dict(
+    build_options = dict(
         project_dir=project_dir,
         package_name=package_name,
         output_dir=output_dir,
@@ -103,14 +104,34 @@ def main():
         skip=skip,
     )
 
+    print_preamble(platform, build_options)
+
     if platform == 'linux':
-        linux.build(**build_args)
+        cibuildwheel.linux.build(**build_options)
     elif platform == 'windows':
-        windows.build(**build_args)
+        cibuildwheel.windows.build(**build_options)
     elif platform == 'macos':
-        macos.build(**build_args)
+        cibuildwheel.macos.build(**build_options)
     else:
         raise Exception('Unsupported platform')
+
+def print_preamble(platform, build_options):
+    print(textwrap.dedent('''
+             _ _       _ _   _       _           _
+         ___|_| |_ _ _|_| |_| |_ _ _| |_ ___ ___| |
+        |  _| | . | | | | | . | | | |   | -_| -_| |
+        |___|_|___|___|_|_|___|_____|_|_|___|___|_|
+        '''))
+
+    print('cibuildwheel version %s\n' % cibuildwheel.__version__)
+
+
+    print('Build options:')
+    print('  platform: %r' % platform)
+    for option, value in build_options.items():
+        print('  %s: %r' % (option, value))
+
+    print('\nHere we go!\n')
 
 if __name__ == '__main__':
     main()
