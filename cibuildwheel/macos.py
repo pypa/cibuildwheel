@@ -61,12 +61,16 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         # build the wheel to temp dir
         temp_wheel_dir = '/tmp/tmpwheel%s' % config.version
         shell([pip, 'wheel', project_dir, '-w', temp_wheel_dir], env=env)
-        temp_wheel = glob('%s/%s-*.whl' % (temp_wheel_dir, package_name))[0]
+        temp_wheel = glob(temp_wheel_dir+'/*.whl')[0]
 
-        # list the dependencies
-        shell(['delocate-listdeps', temp_wheel], env=env)
-        # rebuild the wheel with shared libraries included and place in output dir
-        shell(['delocate-wheel', '-w', output_dir, temp_wheel], env=env)
+        if temp_wheel.endswith('none-any.whl'):
+            # pure python wheel - just copy to output_dir
+            shell(['cp', temp_wheel, output_dir], env=env)
+        else:
+            # list the dependencies
+            shell(['delocate-listdeps', temp_wheel], env=env)
+            # rebuild the wheel with shared libraries included and place in output dir
+            shell(['delocate-wheel', '-w', output_dir, temp_wheel], env=env)
 
         # install the wheel
         shell([pip, 'install', package_name, '--no-index', '--find-links', output_dir], env=env)

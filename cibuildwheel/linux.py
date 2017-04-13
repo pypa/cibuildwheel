@@ -54,8 +54,13 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 "$PYBIN/pip" wheel . -w /tmp/linux_wheels
             done
 
-            for whl in /tmp/linux_wheels/{package_name}-*.whl; do
-                auditwheel repair "$whl" -w /output
+            for whl in /tmp/linux_wheels/*.whl; do
+                if [[ "$whl" == *none-any.whl ]]; then
+                    # pure python wheel - just copy to the output
+                    cp "$whl" /output
+                else
+                    auditwheel repair "$whl" -w /output
+                fi
             done
 
             # Install packages and test
