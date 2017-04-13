@@ -76,7 +76,9 @@ def main():
 
     try:
         project_setup_py = os.path.join(project_dir, 'setup.py')
-        package_name = subprocess.check_output([sys.executable, project_setup_py, '--name'])
+        name_output = subprocess.check_output([sys.executable, project_setup_py, '--name'])
+        # the last line of output is the name
+        package_name = name_output.strip().splitlines()[-1]
     except subprocess.CalledProcessError as err:
         if not os.path.exists(project_setup_py):
             print('cibuildwheel: Could not find setup.py at root of project', file=sys.stderr)
@@ -85,8 +87,6 @@ def main():
             print('cibuildwheel: Failed to get name of the package. Command was %s' % err.cmd,
                   file=sys.stderr)
             exit(2)
-
-    package_name = package_name.strip()
 
     if package_name == '' or package_name == 'UNKNOWN':
         print('cibuildwheel: Invalid package name "%s". Check your setup.py' % package_name,
