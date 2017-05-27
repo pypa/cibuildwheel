@@ -1,5 +1,9 @@
 from __future__ import print_function
-import os, tempfile, subprocess, urllib2, sys
+import os, tempfile, subprocess, sys
+try:
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen
 from collections import namedtuple
 
 from .util import prepare_command
@@ -10,7 +14,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
     run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
     if not os.path.exists(run_with_env):
         with open(run_with_env, 'wb') as f:
-            request = urllib2.urlopen('https://github.com/ogrisel/python-appveyor-demo/raw/09a1c8672e5015a74d8f69d07add6ee803c176ec/appveyor/run_with_env.cmd')
+            request = urlopen('https://github.com/ogrisel/python-appveyor-demo/raw/09a1c8672e5015a74d8f69d07add6ee803c176ec/appveyor/run_with_env.cmd')
             f.write(request.read())
 
     def shell(args, env=None, cwd=None):
