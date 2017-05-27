@@ -101,7 +101,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 '-v', '%s:/output' % os.path.abspath(output_dir),
                 docker_image,
                 '/bin/bash'],
-            stdin=subprocess.PIPE)
+            stdin=subprocess.PIPE, universal_newlines=True)
 
         docker_process.communicate(bash_script)
 
