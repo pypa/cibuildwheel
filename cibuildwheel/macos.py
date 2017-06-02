@@ -58,9 +58,12 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             before_build_prepared = prepare_command(before_build, python=python, pip=pip)
             shell(shlex.split(before_build_prepared), env=env)
 
+        # install the package first to take care of dependencies
+        shell([pip, 'install', project_dir], env=env)
+
         # build the wheel to temp dir
         temp_wheel_dir = '/tmp/tmpwheel%s' % config.version
-        shell([pip, 'wheel', project_dir, '-w', temp_wheel_dir], env=env)
+        shell([pip, 'wheel', project_dir, '-w', temp_wheel_dir, '--no-deps'], env=env)
         temp_wheel = glob(temp_wheel_dir+'/*.whl')[0]
 
         if temp_wheel.endswith('none-any.whl'):
@@ -72,8 +75,9 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # rebuild the wheel with shared libraries included and place in output dir
             shell(['delocate-wheel', '-w', output_dir, temp_wheel], env=env)
 
-        # install the wheel
-        shell([pip, 'install', package_name, '--no-index', '--find-links', output_dir], env=env)
+        # now install the package from the generated wheel
+        shell([pip, 'install', package_name, '--upgrade', '--force-reinstall',
+               '--no-deps', '--no-index', '--find-links', output_dir], env=env)
 
         # test the wheel
         if test_requires:
