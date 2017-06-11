@@ -240,6 +240,28 @@ Legal note
 
 Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will automatically bundle library dependencies. This is similar to static linking - it might have some licence implications. Check the license for any code you're pulling in to make sure that's allowed.
 
+Changelog
+=========
+
+### 0.2.1
+
+11 June 2017
+
+- Changed the build process to install the package before building the wheel - this allows direct dependencies to be installed first (#9, thanks @tgarc!)
+- Added Python 3 support for the main process, for systems where Python 3 is the default (#8, thanks @tgarc).
+
+### 0.2.0
+
+13 April 2017
+
+- Added `CIBW_SKIP` option, letting users explicitly skip a build 
+- Added `CIBW_BEFORE_BUILD` option, letting users run a shell command before the build starts
+
+### 0.1.3
+
+31 March 2017
+
+- First public release!
 
 Contributing
 ============
