@@ -51,7 +51,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                     PATH=$PYBIN:$PATH sh -c {before_build}
                 fi
 
-                "$PYBIN/pip" wheel . -w /tmp/linux_wheels
+                # install the package first to take care of dependencies
+                "$PYBIN/pip" install .
+
+                "$PYBIN/pip" wheel --no-deps . -w /tmp/linux_wheels
             done
 
             for whl in /tmp/linux_wheels/*.whl; do
@@ -66,7 +69,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # Install packages and test
             for PYBIN in {pybin_paths}; do
                 # Install the wheel we just built
-                "$PYBIN/pip" install {package_name} --no-index -f /output
+                "$PYBIN/pip" install {package_name} \
+                    --upgrade --force-reinstall --no-deps --no-index -f /output
 
                 # Install any requirements to run the tests
                 if [ ! -z "{test_requires}" ]; then
