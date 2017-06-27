@@ -48,7 +48,7 @@ Usage
       - cibuildwheel --output-dir wheelhouse
     ```
 
-  Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/).
+  Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
 
 - Create an `appveyor.yml` file in your repo.
 
@@ -61,7 +61,7 @@ Usage
         name: Wheels
     ```
     
-  Appveyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [Appveyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info.
+  Appveyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [Appveyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
     
 - Commit those files, enable building of your repo on Travis CI and Appveyor, and push.
 
