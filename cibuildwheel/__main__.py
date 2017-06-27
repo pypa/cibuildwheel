@@ -59,7 +59,7 @@ def main():
         elif 'APPVEYOR' in os.environ:
             platform = 'windows'
         else:
-            print('Unable to detect platform. cibuildwheel should run on your CI server, '
+            print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
                   'Travis CI and Appveyor are supported. You can run on your development '
                   'machine using the --platform argument. Check --help output for more '
                   'information.',

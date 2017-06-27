@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, subprocess
+import os, subprocess, sys
 from collections import namedtuple
 from .util import prepare_command
 
@@ -10,6 +10,14 @@ except ImportError:
 
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
+    try:
+        subprocess.check_call(['docker', '--version'])
+    except:
+        print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
+              'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.',
+              file=sys.stderr)
+        exit(2)
+
     PythonConfiguration = namedtuple('PythonConfiguration', ['identifier', 'path'])
     python_configurations = [
         PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27m'),
