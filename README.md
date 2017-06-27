@@ -243,6 +243,10 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.3.0
+
+- Removed Python 2.6 support on Linux (#12)
+
 ### 0.2.1
 
 11 June 2017
