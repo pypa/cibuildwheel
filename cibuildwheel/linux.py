@@ -12,8 +12,6 @@ except ImportError:
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
     PythonConfiguration = namedtuple('PythonConfiguration', ['identifier', 'path'])
     python_configurations = [
-        PythonConfiguration(identifier='cp26-manylinux1_x86_64', path='/opt/python/cp26-cp26m'),
-        PythonConfiguration(identifier='cp26-manylinux1_x86_64', path='/opt/python/cp26-cp26mu'),
         PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27mu'),
         PythonConfiguration(identifier='cp33-manylinux1_x86_64', path='/opt/python/cp33-cp33m'),
