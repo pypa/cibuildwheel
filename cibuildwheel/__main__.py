@@ -107,6 +107,9 @@ def main():
 
     print_preamble(platform, build_options)
 
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     if platform == 'linux':
         cibuildwheel.linux.build(**build_options)
     elif platform == 'windows':
