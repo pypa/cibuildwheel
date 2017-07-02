@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, subprocess, shlex, sys
+import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
 from glob import glob
 try:
@@ -53,31 +53,35 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         shell([pip, 'install', 'wheel'], env=env)
         shell([pip, 'install', 'delocate'], env=env)
 
+        # setup dirs
+        if os.path.exists('/tmp/built_wheel'):
+            shutil.rmtree('/tmp/built_wheel')
+        os.makedirs('/tmp/built_wheel')
+        if os.path.exists('/tmp/delocated_wheel'):
+            shutil.rmtree('/tmp/delocated_wheel')
+        os.makedirs('/tmp/delocated_wheel')
+
         # run the before_build command
         if before_build:
             before_build_prepared = prepare_command(before_build, python=python, pip=pip)
             shell(shlex.split(before_build_prepared), env=env)
 
-        # install the package first to take care of dependencies
-        shell([pip, 'install', project_dir], env=env)
+        # build the wheel
+        shell([pip, 'wheel', project_dir, '-w', '/tmp/built_wheel', '--no-deps'], env=env)
+        built_wheel = glob('/tmp/built_wheel/*.whl')[0]
 
-        # build the wheel to temp dir
-        temp_wheel_dir = '/tmp/tmpwheel%s' % config.version
-        shell([pip, 'wheel', project_dir, '-w', temp_wheel_dir, '--no-deps'], env=env)
-        temp_wheel = glob(temp_wheel_dir+'/*.whl')[0]
-
-        if temp_wheel.endswith('none-any.whl'):
-            # pure python wheel - just copy to output_dir
-            shell(['cp', temp_wheel, output_dir], env=env)
+        if built_wheel.endswith('none-any.whl'):
+            # pure python wheel - just move
+            shutil.move(built_wheel, '/tmp/delocated_wheel')
         else:
             # list the dependencies
-            shell(['delocate-listdeps', temp_wheel], env=env)
+            shell(['delocate-listdeps', built_wheel], env=env)
             # rebuild the wheel with shared libraries included and place in output dir
-            shell(['delocate-wheel', '-w', output_dir, temp_wheel], env=env)
+            shell(['delocate-wheel', '-w', '/tmp/delocated_wheel', built_wheel], env=env)
+        delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
-        # now install the package from the generated wheel
-        shell([pip, 'install', package_name, '--upgrade', '--force-reinstall',
-               '--no-deps', '--no-index', '--find-links', output_dir], env=env)
+        # install the wheel
+        shell([pip, 'install', delocated_wheel], env=env)
 
         # test the wheel
         if test_requires:
@@ -89,3 +93,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             abs_project_dir = os.path.abspath(project_dir)
             test_command_absolute = test_command.format(project=abs_project_dir)
             shell(shlex.split(test_command_absolute), cwd=os.environ['HOME'], env=env)
+
+        # we're all done here; move it to output
+        shutil.move(delocated_wheel, output_dir)

@@ -53,30 +53,33 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             cd /project
 
             for PYBIN in {pybin_paths}; do
+                # Setup
+                rm -rf /tmp/built_wheel
+                rm -rf /tmp/delocated_wheel
+                mkdir /tmp/built_wheel
+                mkdir /tmp/delocated_wheel
+
                 if [ ! -z {before_build} ]; then
                     PATH=$PYBIN:$PATH sh -c {before_build}
                 fi
 
-                # install the package first to take care of dependencies
-                "$PYBIN/pip" install .
+                # Build that wheel
+                "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps
+                built_wheel=(/tmp/built_wheel/*.whl)
 
-                "$PYBIN/pip" wheel --no-deps . -w /tmp/linux_wheels
-            done
-
-            for whl in /tmp/linux_wheels/*.whl; do
-                if [[ "$whl" == *none-any.whl ]]; then
-                    # pure python wheel - just copy to the output
-                    cp "$whl" /output
+                # Delocate the wheel
+                # NOTE: 'built_wheel' here is a bash array of glob matches; "$built_wheel" returns
+                # the first element
+                if [[ "$built_wheel" == *none-any.whl ]]; then
+                    # pure python wheel - just copy
+                    mv "$built_wheel" /tmp/delocated_wheel
                 else
-                    auditwheel repair "$whl" -w /output
+                    auditwheel repair "$built_wheel" -w /tmp/delocated_wheel
                 fi
-            done
+                delocated_wheel=(/tmp/delocated_wheel/*.whl)
 
-            # Install packages and test
-            for PYBIN in {pybin_paths}; do
                 # Install the wheel we just built
-                "$PYBIN/pip" install {package_name} \
-                    --upgrade --force-reinstall --no-deps --no-index -f /output
+                "$PYBIN/pip" install "$delocated_wheel"
 
                 # Install any requirements to run the tests
                 if [ ! -z "{test_requires}" ]; then
@@ -89,6 +92,9 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                     PATH=$PYBIN:$PATH sh -c {test_command}
                     popd
                 fi
+
+                # we're all done here; move it to output
+                mv "$delocated_wheel" /output
             done
         '''.format(
             package_name=package_name,

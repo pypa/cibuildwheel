@@ -1,10 +1,11 @@
 from __future__ import print_function
-import os, tempfile, subprocess, sys
+import os, tempfile, subprocess, sys, shutil
 try:
     from urllib2 import urlopen
 except ImportError:
     from urllib.request import urlopen
 from collections import namedtuple
+from glob import glob
 
 from .util import prepare_command
 
@@ -21,7 +22,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         # print the command executing for the logs
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
-        return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+        return subprocess.check_output(' '.join(args), env=env, cwd=cwd)
 
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
     python_configurations = [
@@ -37,10 +38,18 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64'),
     ]
 
+    temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
+    built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
+
     for config in python_configurations:
         if skip(config.identifier):
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
             continue
+
+        # setup dirs
+        if os.path.exists(built_wheel_dir):
+            shutil.rmtree(built_wheel_dir)
+        os.makedirs(built_wheel_dir)
 
         env = os.environ.copy()
         # set up environment variables for run_with_env
@@ -66,16 +75,12 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             before_build_prepared = prepare_command(before_build, python='python', pip='pip')
             shell([before_build_prepared], env=env)
 
-        # install the package first to take care of dependencies
-        shell(['pip', 'install', project_dir], env=env)
-
         # build the wheel
-        shell(['pip', 'wheel', project_dir, '-w', output_dir, '--no-deps'], env=env)
+        shell(['pip', 'wheel', project_dir, '-w', built_wheel_dir, '--no-deps'], env=env)
+        built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
         # install the wheel
-        shell(['pip', 'install', package_name, '--upgrade',
-               '--force-reinstall', '--no-deps', '--no-index', '-f',
-               output_dir], env=env)
+        shell(['pip', 'install', built_wheel], env=env)
 
         # test the wheel
         if test_requires:
@@ -87,3 +92,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             abs_project_dir = os.path.abspath(project_dir)
             test_command_absolute = test_command.format(project=abs_project_dir)
             shell([test_command_absolute], cwd='c:\\', env=env)
+
+        # we're all done here; move it to output
+        shutil.move(built_wheel, output_dir)
