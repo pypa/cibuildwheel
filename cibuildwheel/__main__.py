@@ -77,7 +77,8 @@ def main():
 
     try:
         project_setup_py = os.path.join(project_dir, 'setup.py')
-        name_output = subprocess.check_output([sys.executable, project_setup_py, '--name'])
+        name_output = subprocess.check_output([sys.executable, project_setup_py, '--name'],
+                                              universal_newlines=True)
         # the last line of output is the name
         package_name = name_output.strip().splitlines()[-1]
     except subprocess.CalledProcessError as err:
