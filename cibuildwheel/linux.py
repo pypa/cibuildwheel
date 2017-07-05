@@ -46,6 +46,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
     for platform_tag, docker_image in platforms:
         platform_configs = [c for c in python_configurations if c.identifier.endswith(platform_tag)]
+        if not platform_configs:
+            continue
 
         bash_script = '''
             set -o errexit
@@ -113,7 +115,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 '/bin/bash'],
             stdin=subprocess.PIPE, universal_newlines=True)
 
-        docker_process.communicate(bash_script)
+        try:
+            docker_process.communicate(bash_script)
+        except KeyboardInterrupt:
+            docker_process.kill()
+            docker_process.wait()
 
         if docker_process.returncode != 0:
             exit(1)
