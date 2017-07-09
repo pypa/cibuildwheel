@@ -55,14 +55,15 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             cd /project
 
             for PYBIN in {pybin_paths}; do
-                if [ ! -z {before_build} ]; then
-                    PATH=$PYBIN:$PATH sh -c {before_build}
-                fi
+                # Put quoted string in 'ordinary' environment variable
+                CIBW_BEFORE_BUILD_={before_build}
 
-                # install the package first to take care of dependencies
-                "$PYBIN/pip" install .
+                PATH=$PYBIN:$PATH sh -c "$CIBW_BEFORE_BUILD_
 
-                "$PYBIN/pip" wheel --no-deps . -w /tmp/linux_wheels
+                    # install the package first to take care of dependencies
+                    pip install .
+
+                    pip wheel --no-deps . -w /tmp/linux_wheels"
             done
 
             for whl in /tmp/linux_wheels/*.whl; do
