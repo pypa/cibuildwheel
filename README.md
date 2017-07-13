@@ -292,8 +292,8 @@ Other notes:
 Maintainers
 -----------
 
-- @joerick
-- @tgarc
+- Joe Rickerby [@joerick](https://github.com/joerick)
+- Tomas Garcia [@tgarc](https://github.com/tgarc)
 
 Credits
 -------
