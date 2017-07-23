@@ -241,10 +241,14 @@ Here are some repos that use cibuildwheel.
 Legal note
 ----------
 
-Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will automatically bundle library dependencies. This is similar to static linking - it might have some licence implications. Check the license for any code you're pulling in to make sure that's allowed.
+Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will automatically bundle library dependencies. This is similar to static linking, so it might have some licence implications. Check the license for any code you're pulling in to make sure that's allowed.
 
 Changelog
 =========
+
+### 0.4.0
+
+- Fixed a bug that was increasing the build time by building the wheel twice. This was a problem for large projects that have a long build time. If you're upgrading and you need the old behaviour, use `CIBW_BEFORE_BUILD={pip} install .`, or install exactly the dependencies you need in `CIBW_BEFORE_BUILD`. See #18.
 
 ### 0.3.0
 
