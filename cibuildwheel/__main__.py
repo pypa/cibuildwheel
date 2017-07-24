@@ -1,5 +1,5 @@
 from __future__ import print_function
-import argparse, os, subprocess, sys, textwrap
+import argparse, os, subprocess, sys, textwrap, shlex
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
@@ -72,6 +72,16 @@ def main():
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     skip_config = os.environ.get('CIBW_SKIP', '')
+    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform) or ''
+
+    environment = {}
+    for key_value in shlex.split(environment_config):
+        try:
+            key, value = key_value.split('=')
+            environment[key] = value
+        except:
+            print('cibuildwheel: Malformed environment option "%s"' % key_value, file=sys.stderr)
+            exit(2)
 
     skip = BuildSkipper(skip_config)
 
@@ -103,6 +113,7 @@ def main():
         test_requires=test_requires,
         before_build=before_build,
         skip=skip,
+        environment=environment,
     )
 
     print_preamble(platform, build_options)

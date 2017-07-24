@@ -9,7 +9,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -51,6 +51,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             set -o errexit
             set -o xtrace
             cd /project
+
+            {environment_exports}
 
             for PYBIN in {pybin_paths}; do
                 # Setup
@@ -105,6 +107,9 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             ),
             before_build=shlex_quote(
                 prepare_command(before_build, python='python', pip='pip') if before_build else ''
+            ),
+            environment_exports=' '.join(
+                ('export %s=%s\n' % (key, shlex_quote(value)) for key, value in environment.items())
             ),
         )
 
