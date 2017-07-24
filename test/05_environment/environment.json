@@ -1,0 +1,3 @@
+{
+    "CIBW_ENVIRONMENT": "CIBW_TEST_VAR=\"a b c\" CIBW_TEST_VAR_2=1"
+}

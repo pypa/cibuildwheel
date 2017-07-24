@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"
+cd ..
+
+CIBW_PLATFORM=linux ./bin/run_test.py $1

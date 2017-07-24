@@ -1,9 +1,11 @@
+#!/usr/bin/python
+
 from __future__ import print_function
 import os, sys, subprocess, shutil, json
 from glob import glob
 
 # move cwd to the project root
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 test_projects = glob('test/??_*')
 
