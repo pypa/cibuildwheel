@@ -9,7 +9,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -64,7 +64,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 fi
 
                 # Build that wheel
-                "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps
+                EXTRA_ENV={environment}
+                env $EXTRA_ENV "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps
                 built_wheel=(/tmp/built_wheel/*.whl)
 
                 # Delocate the wheel
@@ -106,6 +107,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             before_build=shlex_quote(
                 prepare_command(before_build, python='python', pip='pip') if before_build else ''
             ),
+            environment=environment,
         )
 
         docker_process = subprocess.Popen([

@@ -1,0 +1,5 @@
+{
+    "CIBW_ENVIRONMENT": "SPAM_DEFINES='EXPORT_SPAM_PYTHON_MODULE:;SPAM_SYSTEM_NAME:shell' SPAM_VERSION=0.1.1",
+    "CIBW_TEST_REQUIRES": "nose",
+    "CIBW_TEST_COMMAND": "nosetests {project}/test"
+}

@@ -72,6 +72,7 @@ def main():
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     skip_config = os.environ.get('CIBW_SKIP', '')
+    environment = os.environ.get('CIBW_ENVIRONMENT', '')
 
     skip = BuildSkipper(skip_config)
 
@@ -103,6 +104,7 @@ def main():
         test_requires=test_requires,
         before_build=before_build,
         skip=skip,
+	environment=environment,
     )
 
     print_preamble(platform, build_options)
