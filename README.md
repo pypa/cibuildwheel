@@ -246,6 +246,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.4.1
+
+- Fixed a bug on Windows where subprocess' output was hidden (#23)
+- Fixed a bug on Appveyor where logs would appear in the wrong order due to output buffering (#24, thanks @YannickJadoul!)
+
 ### 0.4.0
 
 - Fixed a bug that was increasing the build time by building the wheel twice. This was a problem for large projects that have a long build time. If you're upgrading and you need the old behaviour, use `CIBW_BEFORE_BUILD={pip} install .`, or install exactly the dependencies you need in `CIBW_BEFORE_BUILD`. See #18.
