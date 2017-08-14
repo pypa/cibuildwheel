@@ -12,6 +12,7 @@ from .util import prepare_command
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
     # Python under AppVeyor/Windows seems to be buffering by default, giving problems interleaving subprocess call output with unflushed calls to 'print'
+    sys.stdout.flush()
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
     # run_with_env is a cmd file that sets the right environment variables to

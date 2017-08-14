@@ -136,7 +136,6 @@ def print_preamble(platform, build_options):
         print('  %s: %r' % (option, value))
 
     print('\nHere we go!\n')
-    sys.stdout.flush()
 
 if __name__ == '__main__':
     main()
