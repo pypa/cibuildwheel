@@ -7,4 +7,4 @@ build_script:
   - "%PYTHON% -m pip install ."
   # the '-u' flag is required so the output is in the correct order. 
   # See https://github.com/joerick/cibuildwheel/pull/24 for more info.
-  - "%PYTHON% -u ./run_tests.py'"
+  - "%PYTHON% -u ./run_tests.py"
