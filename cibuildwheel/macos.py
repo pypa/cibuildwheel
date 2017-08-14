@@ -10,7 +10,7 @@ except ImportError:
 from .util import prepare_command
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.13/python-2.7.13-macosx10.6.pkg'),

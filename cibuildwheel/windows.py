@@ -10,7 +10,7 @@ from glob import glob
 from .util import prepare_command
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     # run_with_env is a cmd file that sets the right environment variables to
     run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
     if not os.path.exists(run_with_env):
