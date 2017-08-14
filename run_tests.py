@@ -26,7 +26,7 @@ for project_path in test_projects:
     project_env = {str(k): str(v) for k, v in project_env.items()} # unicode not allowed in env
     env.update(project_env)
     print('Building %s with environment %s' % (project_path, project_env))
-    subprocess.check_call(['cibuildwheel', project_path], env=env)
+    subprocess.check_call([sys.executable, '-m', 'cibuildwheel', project_path], env=env)
     wheels = glob('wheelhouse/*.whl')
     print('%s built successfully. %i wheels built.' % (project_path, len(wheels)))
 
