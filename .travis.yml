@@ -1,17 +1,31 @@
 matrix:
   include:
+    # Linux
     - sudo: required
       services:
         - docker
+      env:
+        - "PYTHON=python2"
+    - sudo: required
+      services:
+        - docker
+      env:
+        - "PYTHON=python3"
+    # macOS
     - os: osx
+      env:
+        - "PYTHON=python2"
+    - os: osx
+      env:
+        - "PYTHON=python3"
 
 script:
   - |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      pip install .
-      python ./run_tests.py
+      $PYTHON -m pip install .
+      $PYTHON ./run_tests.py
     else
       # linux test requires root to clean up the wheelhouse (docker runs as root)
-      sudo pip install .
-      sudo python ./run_tests.py
+      sudo $PYTHON -m pip install .
+      sudo $PYTHON ./run_tests.py
     fi
