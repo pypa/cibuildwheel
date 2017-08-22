@@ -111,6 +111,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         docker_process = subprocess.Popen([
                 'docker',
                 'run',
+                '--env',
+                'CIBUILDWHEEL',
                 '--rm',
                 '-i',
                 '-v', '%s:/project' % os.path.abspath(project_dir),
