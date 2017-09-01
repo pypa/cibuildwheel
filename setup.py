@@ -9,6 +9,7 @@ except ImportError:
 setup(
     name='cibuildwheel',
     version='0.4.0',
+    install_requires=['bashlex'],
     description="Build Python wheels on CI with minimal configuration.",
     long_description='For readme please see http://github.com/joerick/cibuildwheel',
     author="Joe Rickerby",
