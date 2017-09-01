@@ -39,6 +39,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             '/Library/Frameworks/Python.framework/Versions/%s/bin' % config.version,
             env['PATH'],
         ])
+        env = environment.as_dictionary(prev_environment=env)
 
         python = 'python3' if config.version[0] == '3' else 'python2'
         pip = 'pip3' if config.version[0] == '3' else 'pip2'

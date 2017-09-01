@@ -55,6 +55,9 @@ class EnvironmentAssignment(object):
     def as_shell_assignment(self):
         return 'export %s=%s' % (self.name, self.value)
 
+    def __repr__(self):
+        return '%s=%s' % (self.name, self.value)
+
 
 class ParsedEnvironment(object):
     def __init__(self, assignments):
@@ -71,3 +74,6 @@ class ParsedEnvironment(object):
 
     def as_shell_commands(self):
         return [a.as_shell_assignment() for a in self.assignments]
+
+    def __repr__(self):
+        return 'ParsedEnvironment(%r)' % [repr(a) for a in self.assignments]

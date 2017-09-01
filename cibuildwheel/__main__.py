@@ -3,6 +3,7 @@ import argparse, os, subprocess, sys, textwrap, shlex
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
+from cibuildwheel.environment import parse_environment, EnvironmentParseError
 from cibuildwheel.util import BuildSkipper
 
 def get_option_from_environment(option_name, platform=None):
@@ -74,14 +75,13 @@ def main():
     skip_config = os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform) or ''
 
-    environment = {}
-    for key_value in shlex.split(environment_config):
-        try:
-            key, value = key_value.split('=')
-            environment[key] = value
-        except:
-            print('cibuildwheel: Malformed environment option "%s"' % key_value, file=sys.stderr)
-            exit(2)
+    try:
+        environment = parse_environment(environment_config)
+    except (EnvironmentParseError, ValueError) as e:
+        print('cibuildwheel: Malformed environment option "%s"' % key_value, file=sys.stderr)
+        import traceback
+        traceback.print_exc(None, sys.stderr)
+        exit(2)
 
     skip = BuildSkipper(skip_config)
 

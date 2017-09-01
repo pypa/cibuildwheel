@@ -108,9 +108,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             before_build=shlex_quote(
                 prepare_command(before_build, python='python', pip='pip') if before_build else ''
             ),
-            environment_exports=' '.join(
-                ('export %s=%s\n' % (key, shlex_quote(value)) for key, value in environment.items())
-            ),
+            environment_exports='\n'.join(environment.as_shell_commands()),
         )
 
         docker_process = subprocess.Popen([

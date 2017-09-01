@@ -60,6 +60,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             os.path.join(config.path, 'Scripts'),
             env['PATH']
         ])
+        env = environment.as_dictionary(prev_environment=env)
 
         # for the logs - check we're running the right version of python
         shell(['python', '--version'], env=env)
