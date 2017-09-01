@@ -7,6 +7,12 @@ from glob import glob
 # move cwd to the project root
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+### run the unit tests
+
+subprocess.check_call(['python', '-m', 'pytest', 'unit_test'])
+
+### run the integration tests
+
 test_projects = glob('test/??_*')
 
 if len(test_projects) == 0:
