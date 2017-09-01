@@ -44,7 +44,7 @@ Usage
         - os: osx
 
     script:
-      - pip install cibuildwheel==0.4.0
+      - pip install cibuildwheel==0.4.1
       - cibuildwheel --output-dir wheelhouse
     ```
 
@@ -54,7 +54,7 @@ Usage
 
     ```
     build_script:
-      - pip install cibuildwheel==0.4.0
+      - pip install cibuildwheel==0.4.1
       - cibuildwheel --output-dir wheelhouse
     artifacts:
       - path: "wheelhouse\\*.whl"
@@ -235,6 +235,7 @@ Working examples
 Here are some repos that use cibuildwheel. 
 
 - [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext)
+- [websockets](https://github.com/aaugustin/websockets)
 
 > Add repo here! Send a PR.
 
@@ -245,6 +246,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 
 Changelog
 =========
+
+### 0.4.1
+
+- Fixed a bug on Windows where subprocess' output was hidden (#23)
+- Fixed a bug on Appveyor where logs would appear in the wrong order due to output buffering (#24, thanks @YannickJadoul!)
 
 ### 0.4.0
 
