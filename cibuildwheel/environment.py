@@ -35,22 +35,9 @@ class EnvironmentAssignment(object):
         self.name = name
         self.value = value
 
-        if value:
-            command_node = bashlex.parsesingle(value)
-
-            if len(command_node.parts) != 1:
-                raise ValueError('"%s" has too many parts' % value)
-
-            self.value_word_node = command_node.parts[0]
-        else:
-            self.value_word_node = None
-
     def evaluated_value(self, environment):
         '''Returns the value of this assignment, as evaluated in the environment'''
-        if self.value_word_node:
-            return bashlex_eval.evaluate_node(self.value_word_node, environment=environment)
-        else:
-            return ''
+        return bashlex_eval.evaluate(self.value, environment=environment)
 
     def as_shell_assignment(self):
         return 'export %s=%s' % (self.name, self.value)

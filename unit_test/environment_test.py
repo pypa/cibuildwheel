@@ -34,6 +34,28 @@ def test_inheritance():
     assert environment_dict == {'PATH': '/usr/bin:/usr/local/bin'}
     assert environment_cmds == ['export PATH=$PATH:/usr/local/bin']
 
+def test_shell_eval():
+    environment_recipe = parse_environment('VAR="$(echo "a test" string)"')
+
+    environment_dict = environment_recipe.as_dictionary(
+        prev_environment={}
+    )
+    environment_cmds = environment_recipe.as_shell_commands()
+
+    assert environment_dict == {'VAR': 'a test string'}
+    assert environment_cmds == ['export VAR="$(echo "a test" string)"']
+
+def test_shell_eval_and_env():
+    environment_recipe = parse_environment('VAR="$(echo "$PREV_VAR" string)"')
+
+    environment_dict = environment_recipe.as_dictionary(
+        prev_environment={'PREV_VAR': '1 2 3'}
+    )
+    environment_cmds = environment_recipe.as_shell_commands()
+
+    assert environment_dict == {'PREV_VAR': '1 2 3', 'VAR': '1 2 3 string'}
+    assert environment_cmds == ['export VAR="$(echo "$PREV_VAR" string)"']
+
 def test_empty_var():
     environment_recipe = parse_environment('CFLAGS=')
 
