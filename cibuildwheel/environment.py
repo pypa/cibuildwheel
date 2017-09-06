@@ -23,8 +23,19 @@ def split_env_items(env_string):
     ['VAR="a string"', 'THING=\\'single "quotes"\\'']
     >>> split_env_items('VAR="dont \\\\"forget\\\\" about backslashes"')
     ['VAR="dont \\\\"forget\\\\" about backslashes"']
+    >>> split_env_items('PATH="$PATH;/opt/cibw_test_path"')
+    ['PATH="$PATH;/opt/cibw_test_path"']
+    >>> split_env_items('PATH2="something with spaces"')
+    ['PATH2="something with spaces"']
     '''
-    return list(bashlex.split(env_string))
+    command_node = bashlex.parsesingle(env_string)
+    result = []
+
+    for word_node in command_node.parts:
+        part_string = env_string[word_node.pos[0]:word_node.pos[1]]
+        result.append(part_string)
+
+    return result
 
 
 class EnvironmentAssignment(object):
