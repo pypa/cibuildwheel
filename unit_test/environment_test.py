@@ -66,3 +66,19 @@ def test_empty_var():
 
     assert environment_dict == {'CFLAGS': ''}
     assert environment_cmds == ['export CFLAGS=']
+
+def test_no_vars():
+    environment_recipe = parse_environment('')
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={})
+    environment_cmds = environment_recipe.as_shell_commands()
+
+    assert environment_dict == {}
+    assert environment_cmds == []
+
+def test_no_vars_pass_through():
+    environment_recipe = parse_environment('')
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={'CIBUILDWHEEL': 'awesome'})
+
+    assert environment_dict == {'CIBUILDWHEEL': 'awesome'}

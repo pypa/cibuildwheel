@@ -28,6 +28,9 @@ def split_env_items(env_string):
     >>> split_env_items('PATH2="something with spaces"')
     ['PATH2="something with spaces"']
     '''
+    if not env_string:
+        return []
+
     command_node = bashlex.parsesingle(env_string)
     result = []
 
