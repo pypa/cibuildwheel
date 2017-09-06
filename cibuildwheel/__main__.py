@@ -1,5 +1,5 @@
 from __future__ import print_function
-import argparse, os, subprocess, sys, textwrap, shlex
+import argparse, os, subprocess, sys, textwrap
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
@@ -78,7 +78,7 @@ def main():
     try:
         environment = parse_environment(environment_config)
     except (EnvironmentParseError, ValueError) as e:
-        print('cibuildwheel: Malformed environment option "%s"' % key_value, file=sys.stderr)
+        print('cibuildwheel: Malformed environment option "%s"' % environment_config, file=sys.stderr)
         import traceback
         traceback.print_exc(None, sys.stderr)
         exit(2)
