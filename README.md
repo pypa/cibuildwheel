@@ -113,24 +113,43 @@ Default: `auto`
 
 For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
 
-| Environment variable: `CIBW_TEST_COMMAND`
+| Environment variable: `CIBW_SKIP`
 | ---
 
 Optional.
 
-Shell command to run the tests. The project root should be included in the command as "{project}". The wheel will be installed automatically and available for import from the tests.
+Space-separated list of builds to skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list ones to skip here and `cibuildwheel` won't try to build them.
 
-Example: `nosetests {project}/tests`
+The format is `python_tag-platform_tag`. The tags are as defined in [PEP 0425](https://www.python.org/dev/peps/pep-0425/#details).
 
-| Environment variable: `CIBW_TEST_REQUIRES`
+Python tags look like `cp27` `cp34` `cp35` `cp36`
+
+Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i386` `win32` `win_amd64`
+
+You can also use shell-style globbing syntax (as per `fnmatch`) 
+
+Example: `cp27-macosx_10_6_intel`  (don't build on Python 2 on Mac)  
+Example: `cp27-win*`  (don't build on Python 2.7 on Windows)  
+Example: `cp34-* cp35-*`  (don't build on Python 3.4 or Python 3.5)  
+
+| Environment variable: `CIBW_ENVIRONMENT`
 | ---
 
 Optional.
 
-Space-separated list of dependencies required for running the tests.
+A space-separated list of environment variables to set during the build. Bash syntax should be used (even on Windows!).
 
-Example: `pytest`  
-Example: `nose==1.3.7 moto==0.4.31`
+You must set this variable to pass variables to Linux builds (since they execute in a Docker container). It also works for the other platforms.
+
+You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
+
+Example: `CFLAGS="-g -Wall" CXXFLAGS="-Wall"`  
+Example: `PATH=$PATH:/usr/local/bin`  
+Example: `BUILD_TIME="$(date)"`  
+Example: `PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple"`  
+
+Platform-specific variants also available:
+`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
 
 | Environment variable: `CIBW_BEFORE_BUILD`
 | ---
@@ -149,24 +168,24 @@ Example: `{pip} install pybind11`
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
-| Environment variable: `CIBW_SKIP`
+| Environment variable: `CIBW_TEST_COMMAND`
 | ---
 
 Optional.
 
-Space-separated list of builds to skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list ones to skip here and `cibuildwheel` won't try to build them.
+Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. The project root should be included in the command as "{project}".
 
-The format is `python_tag-platform_tag`. The tags are as defined in [PEP 0425](https://www.python.org/dev/peps/pep-0425/#details).
+Example: `nosetests {project}/tests`
 
-Python tags look like `cp27` `cp34` `cp35` `cp36`
+| Environment variable: `CIBW_TEST_REQUIRES`
+| ---
 
-Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i386` `win32` `win_amd64`
+Optional.
 
-You can also use shell-style globbing syntax (as per `fnmatch`) 
+Space-separated list of dependencies required for running the tests.
 
-Example: `cp27-macosx_10_6_intel `  (don't build on Python 2 on Mac)  
-Example: `cp27-win*`  (don't build on Python 2.7 on Windows)  
-Example: `cp34-* cp35-*`  (don't build on Python 3.4 or Python 3.5)  
+Example: `pytest`  
+Example: `nose==1.3.7 moto==0.4.31`
 
 --
 
