@@ -4,44 +4,27 @@ from __future__ import print_function
 import os, sys, subprocess, shutil, json
 from glob import glob
 
-# move cwd to the project root
-os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from . import run_test
 
-### run the unit tests
+if __name__ == '__main__':
+    # move cwd to the project root
+    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-subprocess.check_call(['python', '-m', 'pytest', 'unit_test'])
+    ### run the unit tests
 
-### run the integration tests
+    subprocess.check_call(['python', '-m', 'pytest', 'unit_test'])
 
-test_projects = glob('test/??_*')
+    ### run the integration tests
 
-if len(test_projects) == 0:
-    print('No test projects found. Aborting.', file=sys.stderr)
-    exit(2)
+    test_projects = glob('test/??_*')
 
-print('Testing projects:', test_projects)
+    if len(test_projects) == 0:
+        print('No test projects found. Aborting.', file=sys.stderr)
+        exit(2)
 
-for project_path in test_projects:
-    # load project settings into environment
-    env_file = os.path.join(project_path, 'environment.json')
-    project_env = {}
-    if os.path.exists(env_file):
-        with open(env_file) as f:
-            project_env = json.load(f)
+    print('Testing projects:', test_projects)
 
-    # run the build
-    env = os.environ.copy()
-    project_env = {str(k): str(v) for k, v in project_env.items()} # unicode not allowed in env
-    env.update(project_env)
-    print('Building %s with environment %s' % (project_path, project_env))
-    subprocess.check_call(['cibuildwheel', project_path], env=env)
-    wheels = glob('wheelhouse/*.whl')
-    print('%s built successfully. %i wheels built.' % (project_path, len(wheels)))
+    for project_path in test_projects:
+        run_test.single_run(project_path)
 
-    # check some wheels were actually built
-    assert len(wheels) >= 4
-
-    # clean up
-    shutil.rmtree('wheelhouse')
-
-print('%d projects built successfully.' % len(test_projects))
+    print('%d projects built successfully.' % len(test_projects))

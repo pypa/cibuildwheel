@@ -1,23 +1,10 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import os, sys, subprocess, shutil, json, argparse
+import os, sys, subprocess, shutil, json
 from glob import glob
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("test_project_dir")
-    args = parser.parse_args()
-
-    test_project = os.path.abspath(args.test_project_dir)
-
-    # move cwd to the project root
-    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-    if not os.path.exists(test_project):
-        print('No test project not found.', file=sys.stderr)
-        exit(2)
-
+def single_run(test_project):
     # load project settings into environment
     env_file = os.path.join(test_project, 'environment.json')
     project_env = {}
@@ -40,6 +27,22 @@ def main():
     # clean up
     shutil.rmtree('wheelhouse')
 
-    print('Project built successfully.')
+if __name__ == '__main__':
+    import argparse
 
-main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("test_project_dir")
+    args = parser.parse_args()
+
+    project_path = os.path.abspath(args.test_project_dir)
+
+    # move cwd to the project root
+    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    if not os.path.exists(project_path):
+        print('No test project not found.', file=sys.stderr)
+        exit(2)
+
+    single_run(project_path)
+
+    print('Project built successfully.')
