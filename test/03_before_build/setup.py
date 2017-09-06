@@ -17,7 +17,8 @@ if sys.argv[-1] != '--name':
         stored_executable = f.read()
     print('stored_executable', stored_executable)
     print('sys.executable', sys.executable)
-    assert os.path.samefile(stored_executable, sys.executable)
+    # windows/mac are case insensitive
+    assert os.path.realpath(stored_executable).lower() == os.path.realpath(sys.executable).lower()
 
 setup(
     name="spam",
