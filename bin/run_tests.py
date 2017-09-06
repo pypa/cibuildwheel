@@ -4,7 +4,7 @@ from __future__ import print_function
 import os, sys, subprocess, shutil, json
 from glob import glob
 
-from . import run_test
+import run_test
 
 if __name__ == '__main__':
     # move cwd to the project root
