@@ -4,8 +4,6 @@ from __future__ import print_function
 import os, sys, subprocess, shutil, json
 from glob import glob
 
-import run_test
-
 if __name__ == '__main__':
     # move cwd to the project root
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,7 +22,8 @@ if __name__ == '__main__':
 
     print('Testing projects:', test_projects)
 
+    run_test_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'run_test.py')
     for project_path in test_projects:
-        run_test.single_run(project_path)
+        subprocess.check_call([sys.executable, run_test_path, project_path])
 
     print('%d projects built successfully.' % len(test_projects))

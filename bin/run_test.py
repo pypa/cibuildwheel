@@ -35,10 +35,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     project_path = os.path.abspath(args.test_project_dir)
-
-    # move cwd to the project root
-    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+    
     if not os.path.exists(project_path):
         print('No test project not found.', file=sys.stderr)
         exit(2)
