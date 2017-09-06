@@ -15,15 +15,9 @@ if sys.argv[-1] != '--name':
     executable_file = 'c:\\pythonexecutable.txt' if sys.platform == 'win32' else '/tmp/pythonexecutable.txt'
     with open(executable_file) as f:
         stored_executable = f.read()
-
-    stored_executable_real = os.path.realpath(stored_executable)
-    sys_executable_real = os.path.realpath(sys.executable)
-    
-    print('stored_executable_real', stored_executable_real)
-    print('sys_executable_real', sys_executable_real)
-    assert stored_executable_real == sys_executable_real
-
-    print('PATH', os.environ['PATH'])
+    print('stored_executable', stored_executable)
+    print('sys.executable', sys.executable)
+    assert os.path.samefile(stored_executable, sys.executable)
 
 setup(
     name="spam",
