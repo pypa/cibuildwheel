@@ -137,14 +137,15 @@ Example: `nose==1.3.7 moto==0.4.31`
 
 Optional.
 
-Shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
+A shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
 
 If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `{pip} install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
 
 The active Python binary can be accessed using `{python}`, and pip with `{pip}`. These are useful when you need to write `python3` or `pip3` on a Python 3.x build.
 
 Example: `{pip} install .`  
-Example: `{pip} install pybind11`
+Example: `{pip} install pybind11`  
+Example: `yum install -y libffi-dev && {pip} install .`
 
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
