@@ -27,9 +27,11 @@ script:
       $PYTHON -m pip install -r requirements-dev.txt
       $PYTHON ./bin/run_tests.py
     else
+      if [[ "$PYTHON" == python3 ]]; then
+        sudo apt-get -qq update
+        sudo apt-get install -y python3-pip
+      fi
       # linux test requires root to clean up the wheelhouse (docker runs as root)
-      sudo apt-get -qq update
-      sudo apt-get install -y python3-pip
       sudo $PYTHON -m pip install -r requirements-dev.txt
       sudo $PYTHON ./bin/run_tests.py
     fi
