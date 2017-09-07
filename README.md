@@ -69,6 +69,21 @@ All being well, you should get wheels delivered to you in a few minutes.
 
 > ⚠️ Got an error? Check the [checklist](#it-didnt-work) below.
 
+### Configuration overview
+
+`cibuildwheel` allows for easy customization of the various phases of the build process demonstrated above:
+
+|   | Option |   |
+|---|---|---|
+| **Target wheels** | `CIBW_PLATFORM` | Override the auto-detected target platform |
+|   | `CIBW_SKIP` | Skip certain Python versions |
+| **Build environment** | `CIBW_ENVIRONMENT` | Set environment variables needed during the build |
+|   | `CIBW_BEFORE_BUILD` | Execute a shell command preparing each wheel's build |
+| **Tests** | `CIBW_TEST_COMMAND` | Execute a shell command to test all built wheels |
+|   | `CIBW_TEST_REQUIRES` | Install Python dependencies before running the tests |
+
+A more detailed description of the options, the allowed values, and some examples can be found in the [Options](#options) section.
+
 
 Options
 -------
