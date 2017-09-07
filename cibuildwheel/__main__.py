@@ -3,6 +3,7 @@ import argparse, os, subprocess, sys, textwrap
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
+from cibuildwheel.environment import parse_environment, EnvironmentParseError
 from cibuildwheel.util import BuildSkipper
 
 def get_option_from_environment(option_name, platform=None):
@@ -72,8 +73,21 @@ def main():
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     skip_config = os.environ.get('CIBW_SKIP', '')
+    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform) or ''
+
+    try:
+        environment = parse_environment(environment_config)
+    except (EnvironmentParseError, ValueError) as e:
+        print('cibuildwheel: Malformed environment option "%s"' % environment_config, file=sys.stderr)
+        import traceback
+        traceback.print_exc(None, sys.stderr)
+        exit(2)
 
     skip = BuildSkipper(skip_config)
+
+    # Add CIBUILDWHEEL environment variable
+    # This needs to be passed on to the docker container in linux.py
+    os.environ['CIBUILDWHEEL'] = '1'
 
     try:
         project_setup_py = os.path.join(project_dir, 'setup.py')
@@ -103,12 +117,13 @@ def main():
         test_requires=test_requires,
         before_build=before_build,
         skip=skip,
+        environment=environment,
     )
 
     print_preamble(platform, build_options)
 
     if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
+        os.makedirs(output_dir)
 
     if platform == 'linux':
         cibuildwheel.linux.build(**build_options)
