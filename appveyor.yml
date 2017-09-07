@@ -1,5 +1,5 @@
 build_script:
-  - pip install .
+  - pip install -r requirements-dev.txt
   # the '-u' flag is required so the output is in the correct order. 
   # See https://github.com/joerick/cibuildwheel/pull/24 for more info.
-  - python -u ./run_tests.py
+  - python -u ./bin/run_tests.py

@@ -8,10 +8,10 @@ matrix:
 script:
   - |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      pip install .
-      python ./run_tests.py
+      pip install -r requirements-dev.txt
+      python ./bin/run_tests.py
     else
       # linux test requires root to clean up the wheelhouse (docker runs as root)
-      sudo pip install .
-      sudo python ./run_tests.py
+      sudo pip install -r requirements-dev.txt
+      sudo python ./bin/run_tests.py
     fi

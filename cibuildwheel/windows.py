@@ -10,7 +10,7 @@ from glob import glob
 from .util import prepare_command
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     # Python under AppVeyor/Windows seems to be buffering by default, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout.flush()
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -64,6 +64,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             os.path.join(config.path, 'Scripts'),
             env['PATH']
         ])
+        env = environment.as_dictionary(prev_environment=env)
 
         # for the logs - check we're running the right version of python
         shell(['python', '--version'], env=env)
