@@ -269,6 +269,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.5.0
+
+- `CIBW_ENVIRONMENT` added. You can now set environment variables for each build, even within the Docker container on Linux. This is a big one! (#21)
+- `CIBW_BEFORE_BUILD` now runs in a system shell on all platforms. You can now do things like `CIBW_BEFORE_BUILD="cmd1 && cmd2"`. (#32)
+
 ### 0.4.1
 
 - Fixed a bug on Windows where subprocess' output was hidden (#23)
