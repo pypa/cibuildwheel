@@ -28,6 +28,7 @@ script:
       $PYTHON ./bin/run_tests.py
     else
       # linux test requires root to clean up the wheelhouse (docker runs as root)
+      sudo $PYTHON -m ensurepip
       sudo $PYTHON -m pip install -r requirements-dev.txt
       sudo $PYTHON ./bin/run_tests.py
     fi
