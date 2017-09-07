@@ -85,6 +85,10 @@ def main():
 
     skip = BuildSkipper(skip_config)
 
+    # Add CIBUILDWHEEL environment variable
+    # This needs to be passed on to the docker container in linux.py
+    os.environ['CIBUILDWHEEL'] = '1'
+
     try:
         project_setup_py = os.path.join(project_dir, 'setup.py')
         name_output = subprocess.check_output([sys.executable, project_setup_py, '--name'],
