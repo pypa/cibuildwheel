@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     ### run the unit tests
 
-    subprocess.check_call(['python', '-m', 'pytest', 'unit_test'])
+    subprocess.check_call([sys.executable, '-m', 'pytest', 'unit_test'])
 
     ### run the integration tests
 
