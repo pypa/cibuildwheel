@@ -31,17 +31,6 @@ Usage
 
 `cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI and Appveyor run their builds in isolated environments, so are ideal for this kind of script.
 
-`cibuildwheel` defines the environment variable `CIBUILDWHEEL` to the value `1` allowing projects for which the C extension is optional to make it mandatory when building wheels.
-An easy way to do it in Python 3 is through the `optional` named argument of `Extension` constructor in your `setup.py`:
-```python
-myextension = Extension(
-    "myextension",
-    ["myextension.c"],
-    optional=os.environ.get('CIBUILDWHEEL', '0') != '1',
-)
-```
-
-
 ### Minimal setup
 
 - Create a `.travis.yml` file in your repo.
@@ -161,6 +150,8 @@ Example: `PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple"`
 
 Platform-specific variants also available:
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
+
+In addition to the above, `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](https://github.com/joerick/cibuildwheel/wiki/Building-packages-with-optional-C-extensions).
 
 | Environment variable: `CIBW_BEFORE_BUILD`
 | ---
