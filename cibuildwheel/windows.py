@@ -7,13 +7,13 @@ except ImportError:
 from collections import namedtuple
 from glob import glob
 
-from .util import prepare_command
+from .util import prepare_command, Unbuffered
 
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     # Python under AppVeyor/Windows seems to be buffering by default, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout.flush()
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+    sys.stdout = Unbuffered(sys.stdout)
 
     # run_with_env is a cmd file that sets the right environment variables to
     run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')

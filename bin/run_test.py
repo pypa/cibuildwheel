@@ -17,7 +17,7 @@ def single_run(test_project):
     project_env = {str(k): str(v) for k, v in project_env.items()} # unicode not allowed in env
     env.update(project_env)
     print('Building %s with environment %s' % (test_project, project_env))
-    subprocess.check_call(['cibuildwheel', test_project], env=env)
+    subprocess.check_call([sys.executable, '-m', 'cibuildwheel', test_project], env=env)
     wheels = glob('wheelhouse/*.whl')
     print('%s built successfully. %i wheels built.' % (test_project, len(wheels)))
 

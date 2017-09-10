@@ -59,6 +59,8 @@ def main():
             platform = 'macos'
         elif 'APPVEYOR' in os.environ:
             platform = 'windows'
+        elif 'BITRISE_BUILD_NUMBER' in os.environ:
+            platform = 'macos'
         else:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
                   'Travis CI and Appveyor are supported. You can run on your development '

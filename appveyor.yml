@@ -1,5 +1,10 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27\\python.exe"
+    - PYTHON: "C:\\Python35\\python.exe"
+
 build_script:
-  - pip install -r requirements-dev.txt
+  - "%PYTHON% -m pip install -r requirements-dev.txt"
   # the '-u' flag is required so the output is in the correct order. 
   # See https://github.com/joerick/cibuildwheel/pull/24 for more info.
-  - python -u ./bin/run_tests.py
+  - "%PYTHON% -u ./bin/run_tests.py"
