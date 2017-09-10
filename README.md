@@ -284,6 +284,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.5.1
+
+- Fixed a couple of bugs on Python 3.
+- Added experimental support for Mac builds on [Bitrise.io](https://www.bitrise.io)
+
 ### 0.5.0
 
 - `CIBW_ENVIRONMENT` added. You can now set environment variables for each build, even within the Docker container on Linux. This is a big one! (#21)
