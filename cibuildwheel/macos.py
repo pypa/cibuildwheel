@@ -19,8 +19,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.0/python-3.6.0-macosx10.6.pkg'),
     ]
 
-    installed_system_packages = subprocess.check_output(['pkgutil',  '--pkgs']).splitlines()
-    
+    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
+    if sys.version_info[0] >= 3:
+        pkgs_output = pkgs_output.decode('utf8')
+    installed_system_packages = pkgs_output.splitlines()
+
     def call(args, env=None, cwd=None, shell=False):
         # print the command executing for the logs
         if shell:
