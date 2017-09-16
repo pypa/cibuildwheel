@@ -62,11 +62,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 mkdir /tmp/delocated_wheel
 
                 if [ ! -z {before_build} ]; then
-                    PATH=$PYBIN:$PATH sh -c {before_build}
+                    PATH="$PYBIN:$PATH" sh -c {before_build}
                 fi
 
                 # Build that wheel
-                "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps
+                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps
                 built_wheel=(/tmp/built_wheel/*.whl)
 
                 # Delocate the wheel
@@ -91,7 +91,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 # Run the tests from a different directory
                 if [ ! -z {test_command} ]; then
                     pushd $HOME
-                    PATH=$PYBIN:$PATH sh -c {test_command}
+                    PATH="$PYBIN:$PATH" sh -c {test_command}
                     popd
                 fi
 
