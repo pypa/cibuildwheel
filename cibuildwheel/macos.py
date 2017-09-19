@@ -19,6 +19,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.0/python-3.6.0-macosx10.6.pkg'),
     ]
 
+    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
+    if sys.version_info[0] >= 3:
+        pkgs_output = pkgs_output.decode('utf8')
+    installed_system_packages = pkgs_output.splitlines()
+
     def call(args, env=None, cwd=None, shell=False):
         # print the command executing for the logs
         if shell:
@@ -33,10 +38,13 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
             continue
 
-        # download the pkg
-        call(['curl', '-L', '-o', '/tmp/Python.pkg', config.url])
-        # install
-        call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
+        # if this version of python isn't installed, get it from python.org and install
+        python_package_identifier = 'org.python.Python.PythonFramework-%s' % config.version
+        if python_package_identifier not in installed_system_packages:
+            # download the pkg
+            call(['curl', '-L', '-o', '/tmp/Python.pkg', config.url])
+            # install
+            call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
 
         env = os.environ.copy()
         env['PATH'] = os.pathsep.join([
