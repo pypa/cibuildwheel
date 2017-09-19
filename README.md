@@ -139,7 +139,7 @@ The format is `python_tag-platform_tag`. The tags are as defined in [PEP 0425](h
 
 Python tags look like `cp27` `cp34` `cp35` `cp36`
 
-Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i386` `win32` `win_amd64`
+Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i686` `win32` `win_amd64`
 
 You can also use shell-style globbing syntax (as per `fnmatch`) 
 
