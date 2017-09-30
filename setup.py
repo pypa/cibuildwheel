@@ -34,4 +34,7 @@ setup(
             'cibuildwheel = cibuildwheel.__main__:main',
         ],
     },
+    install_requires=[
+        'bashlex',
+    ],
 )
