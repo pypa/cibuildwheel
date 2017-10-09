@@ -292,6 +292,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.6.0
+
+- On the Linux build, the host filesystem is now accessible via `/host` (#36)
+- Fixed a bug where setup.py scripts would run the wrong version of Python when running subprocesses on Linux (#35)
+
 ### 0.5.1
 
 - Fixed a couple of bugs on Python 3.
