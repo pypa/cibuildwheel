@@ -280,6 +280,7 @@ Here are some repos that use cibuildwheel.
 - [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext)
 - [websockets](https://github.com/aaugustin/websockets)
 - [Parselmouth](https://github.com/YannickJadoul/Parselmouth)
+- [python-admesh](https://github.com/admesh/python-admesh)
 
 > Add repo here! Send a PR.
 
