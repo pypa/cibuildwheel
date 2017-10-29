@@ -76,6 +76,8 @@ def main():
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     skip_config = os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform) or ''
+    manylinux1_x86_64_image = os.environ.get('CIBW_MANYLINUX1_X86_64_IMAGE', None)
+    manylinux1_i686_image = os.environ.get('CIBW_MANYLINUX1_I686_IMAGE', None)
 
     try:
         environment = parse_environment(environment_config)
@@ -128,7 +130,7 @@ def main():
         os.makedirs(output_dir)
 
     if platform == 'linux':
-        cibuildwheel.linux.build(**build_options)
+        cibuildwheel.linux.build(manylinux1_x86_64_image=manylinux1_x86_64_image, manylinux1_i686_image=manylinux1_i686_image, **build_options)
     elif platform == 'windows':
         cibuildwheel.windows.build(**build_options)
     elif platform == 'macos':
