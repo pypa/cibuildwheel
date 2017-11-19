@@ -79,6 +79,8 @@ All being well, you should get wheels delivered to you in a few minutes.
 |   | `CIBW_SKIP` | Skip certain Python versions |
 | **Build environment** | `CIBW_ENVIRONMENT` | Set environment variables needed during the build |
 |   | `CIBW_BEFORE_BUILD` | Execute a shell command preparing each wheel's build |
+|   | `CIBW_MANYLINUX1_X86_64_IMAGE` | Specify an alternative manylinx1 x86_64 docker image |
+|   | `CIBW_MANYLINUX1_I686_IMAGE` | Specify an alternative manylinux1 i686 docker image |
 | **Tests** | `CIBW_TEST_COMMAND` | Execute a shell command to test all built wheels |
 |   | `CIBW_TEST_REQUIRES` | Install Python dependencies before running the tests |
 
@@ -89,6 +91,7 @@ A more detailed description of the options, the allowed values, and some example
 Linux wheels are built in the [`manylinux1` docker images](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 513](https://www.python.org/dev/peps/pep-0513/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
 - Progams and libraries cannot be installed on the Travis CI Ubuntu host with `apt-get`, but can be installed inside of the Docker image using `yum` or manually. The same goes for environment variables that are potentially needed to customize the wheel building. `cibuildwheel` supports this by providing the `CIBW_ENVIRONMENT` and `CIBW_BEFORE_BUILD` options to setup the build environment inside the running Docker image. See [below](#options) for details on these options.
 - The project directory is mounted in the running Docker instance as `/project`, the output directory for the wheels as `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.
+- Alternative dockers images can be specified with the `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [below](#options) for more details.
 
 
 Options
@@ -191,6 +194,15 @@ Example: `yum install -y libffi-dev && {pip} install .`
 
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
+
+| Environment variables: `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE`
+| ---
+
+Optional.
+
+An alternative docker image to be used for building [`manylinux1`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the official images, [`quay.io/pypa/manylinux1_x86_64`](https://quay.io/pypa/manylinux1_i686) and [`quay.io/pypa/manylinux1_i686`](https://quay.io/pypa/manylinux1_i686).
+
+Beware to specify a valid docker image that can be used the same as the official, default docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-compatible in order to produce valid `manylinux1` wheels (see https://github.com/pypa/manylinux and [PEP 513](https://www.python.org/dev/peps/pep-0513/) for more details).
 
 | Environment variable: `CIBW_TEST_COMMAND`
 | ---
