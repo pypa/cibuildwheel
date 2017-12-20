@@ -153,6 +153,9 @@ Example: `cp27-macosx_10_6_intel`  (don't build on Python 2 on Mac)
 Example: `cp27-win*`  (don't build on Python 2.7 on Windows)  
 Example: `cp34-* cp35-*`  (don't build on Python 3.4 or Python 3.5)  
 
+Platform-specific variants also available:
+`CIBW_SKIP_MACOS` | `CIBW_SKIP_WINDOWS` | `CIBW_SKIP_LINUX`
+
 | Environment variable: `CIBW_ENVIRONMENT`
 | ---
 

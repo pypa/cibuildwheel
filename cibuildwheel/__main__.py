@@ -74,7 +74,7 @@ def main():
     test_requires = os.environ.get('CIBW_TEST_REQUIRES', '').split()
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
-    skip_config = os.environ.get('CIBW_SKIP', '')
+    skip_config = get_option_from_environment('CIBW_SKIP', platform=platform) or ''
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform) or ''
 
     try:
