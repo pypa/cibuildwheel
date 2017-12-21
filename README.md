@@ -149,9 +149,14 @@ Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i686
 
 You can also use shell-style globbing syntax (as per `fnmatch`) 
 
-Example: `cp27-macosx_10_6_intel`  (don't build on Python 2 on Mac)  
-Example: `cp27-win*`  (don't build on Python 2.7 on Windows)  
-Example: `cp34-* cp35-*`  (don't build on Python 3.4 or Python 3.5)  
+Examples:
+- Skip building on Python 2.7 on the Mac: `cp27-macosx_10_6_intel`  
+- Skip building on Python 2.7 on all platforms: `cp27-*`  
+- Skip Python 2.7 on Windows: `cp27-win*`  
+- Skip Python 2.7 on 32bit Windows: `cp27-win32`  
+- Skip Python 3.4 and Python 3.5: `cp34-* cp35-*`
+- Skip Python 3.6 on Linux: `cp36-manylinux*`
+- Only build on Python 3.6: `cp27-* cp34-* cp35-*`
 
 | Environment variable: `CIBW_ENVIRONMENT`
 | ---
