@@ -1,9 +1,12 @@
-import os
+import os, sys
 
 from setuptools import setup, Extension
 
-if os.environ.get('CIBUILDWHEEL', '0') != '1':
-    raise Exception('CIBUILDWHEEL environment variable is not set to 1')
+if sys.argv[-1] != '--name':
+    # check that we're running in the correct docker image as specified in the
+    # environment options CIBW_MANYLINUX1_*_IMAGE
+    if not os.path.exists('/dockcross'):
+        raise Exception('/dockcross directory not found. Is this test running in the correct docker image?')
 
 setup(
     name="spam",
