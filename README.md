@@ -44,7 +44,7 @@ Usage
         - os: osx
 
     script:
-      - pip install cibuildwheel==0.6.0
+      - python -m pip install cibuildwheel==0.6.0
       - cibuildwheel --output-dir wheelhouse
     ```
 
