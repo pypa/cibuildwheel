@@ -33,6 +33,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
+    abs_project_dir = os.path.abspath(project_dir)
+
     for config in python_configurations:
         if skip(config.identifier):
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
@@ -80,7 +82,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
-        call([pip, 'wheel', project_dir, '-w', '/tmp/built_wheel', '--no-deps'], env=env)
+        call([pip, 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'], env=env)
         built_wheel = glob('/tmp/built_wheel/*.whl')[0]
 
         if built_wheel.endswith('none-any.whl'):
@@ -103,7 +105,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
-            abs_project_dir = os.path.abspath(project_dir)
             test_command_absolute = test_command.format(project=abs_project_dir)
             call(shlex.split(test_command_absolute), cwd=os.environ['HOME'], env=env)
 

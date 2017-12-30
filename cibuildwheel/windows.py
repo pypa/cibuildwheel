@@ -42,6 +42,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64'),
     ]
 
+    abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
@@ -81,7 +82,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             shell([before_build_prepared], env=env)
 
         # build the wheel
-        shell(['pip', 'wheel', project_dir, '-w', built_wheel_dir, '--no-deps'], env=env)
+        shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'], env=env)
         built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
         # install the wheel
@@ -94,7 +95,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # run the tests from c:\, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
-            abs_project_dir = os.path.abspath(project_dir)
             test_command_absolute = test_command.format(project=abs_project_dir)
             shell([test_command_absolute], cwd='c:\\', env=env)
 
