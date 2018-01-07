@@ -122,6 +122,18 @@ def main():
         environment=environment,
     )
 
+    if platform == 'linux':
+        manylinux1_x86_64_image = os.environ.get('CIBW_MANYLINUX1_X86_64_IMAGE', None)
+        manylinux1_i686_image = os.environ.get('CIBW_MANYLINUX1_I686_IMAGE', None)
+
+        build_options.update(
+            manylinux1_images={'x86_64': manylinux1_x86_64_image, 'i686': manylinux1_i686_image},
+        )
+    elif platform == 'macos':
+        pass
+    elif platform == 'windows':
+        pass
+
     print_preamble(platform, build_options)
 
     if not os.path.exists(output_dir):
