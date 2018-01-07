@@ -36,15 +36,20 @@ Usage
 - Create a `.travis.yml` file in your repo.
 
     ```
+    language: python
+    
     matrix:
       include:
         - sudo: required
           services:
             - docker
+          env: PIP=pip
         - os: osx
+          language: generic
+          env: PIP=pip2
 
     script:
-      - pip install cibuildwheel==0.6.0
+      - $PIP install cibuildwheel==0.6.0
       - cibuildwheel --output-dir wheelhouse
     ```
 
