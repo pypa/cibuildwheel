@@ -214,6 +214,9 @@ An alternative docker image to be used for building [`manylinux1`](https://githu
 
 Beware to specify a valid docker image that can be used the same as the official, default docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-compatible in order to produce valid `manylinux1` wheels (see https://github.com/pypa/manylinux and [PEP 513](https://www.python.org/dev/peps/pep-0513/) for more details).
 
+Example: `dockcross/manylinux-x64`  
+Example: `dockcross/manylinux-x86`
+
 | Environment variable: `CIBW_TEST_COMMAND`
 | ---
 
@@ -313,6 +316,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 
 Changelog
 =========
+
+### 0.7.0
+
+- You can now specify a custom docker image using the `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE` options. (#46)
+- Fixed a bug where cibuildwheel would download and build a package from PyPI(!) instead of building the package on the local machine. (#51)
 
 ### 0.6.0
 
