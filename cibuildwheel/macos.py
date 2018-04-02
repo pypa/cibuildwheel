@@ -13,11 +13,13 @@ from .util import prepare_command
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.13/python-2.7.13-macosx10.6.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.14/python-2.7.14-macosx10.6.pkg'),
         PythonConfiguration(version='3.4', identifier='cp34-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.4.4/python-3.4.4-macosx10.6.pkg'),
-        PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.3/python-3.5.3-macosx10.6.pkg'),
-        PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.0/python-3.6.0-macosx10.6.pkg'),
+        PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.5/python-3.6.5-macosx10.6.pkg'),
     ]
+    get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
+    get_pip_script = '/tmp/get-pip.py'
 
     pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
     if sys.version_info[0] >= 3:
@@ -34,6 +36,9 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
     abs_project_dir = os.path.abspath(project_dir)
+
+    # get latest pip once and for all
+    call(['curl', '-L', '-o', get_pip_script, get_pip_url])
 
     for config in python_configurations:
         if skip(config.identifier):
@@ -63,7 +68,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         call([python, '--version'], env=env)
 
         # install pip & wheel
-        call([python, '-m', 'ensurepip', '--upgrade'], env=env)
+        call([python, get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
         call([pip, '--version'], env=env)
         call([pip, 'install', 'wheel'], env=env)
         call([pip, 'install', 'delocate'], env=env)
