@@ -317,6 +317,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.7.1
+
+- macOS: Fix Pip bugs resulting from PyPI TLS 1.2 enforcement
+- macOS: Fix brew Python3 version problems in the CI
+
 ### 0.7.0
 
 - You can now specify a custom docker image using the `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE` options. (#46)
