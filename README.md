@@ -196,7 +196,7 @@ A shell command to run before building the wheel. This option allows you to run 
 
 If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `{pip} install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
 
-The active Python binary can be accessed using `{python}`, and pip with `{pip}`. These are useful when you need to write `python3` or `pip3` on a Python 3.x build.
+The active Python binary can be accessed using `{python}`, and pip with `{pip}`. These are useful when you need to write `python3` or `pip3` on a Python 3.x build. `{project}` can be used as a placeholder for the absolute path to the project's root.
 
 Example: `{pip} install .`  
 Example: `{pip} install pybind11`  
@@ -222,7 +222,7 @@ Example: `dockcross/manylinux-x86`
 
 Optional.
 
-Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. The project root should be included in the command as "{project}".
+Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. Just like in the `CIBW_BEFORE_BUILD` option, `{python}`, `{pip}`, and `{project}` will respectively be replaced by the Python executable, the pip executable, and the absolute project directory.
 
 Example: `nosetests {project}/tests`
 
