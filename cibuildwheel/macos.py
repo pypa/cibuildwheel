@@ -7,8 +7,6 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
-from .util import prepare_command
-
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
@@ -60,18 +58,15 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         ])
         env = environment.as_dictionary(prev_environment=env)
 
-        python = 'python3' if config.version[0] == '3' else 'python2'
-        pip = 'pip3' if config.version[0] == '3' else 'pip2'
-
         # check what version we're on
-        call(['which', python], env=env)
-        call([python, '--version'], env=env)
+        call(['which', 'python'], env=env)
+        call(['python', '--version'], env=env)
 
         # install pip & wheel
-        call([python, get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
-        call([pip, '--version'], env=env)
-        call([pip, 'install', 'wheel'], env=env)
-        call([pip, 'install', 'delocate'], env=env)
+        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
+        call(['pip', '--version'], env=env)
+        call(['pip', 'install', 'wheel'], env=env)
+        call(['pip', 'install', 'delocate'], env=env)
 
         # setup dirs
         if os.path.exists('/tmp/built_wheel'):
@@ -83,11 +78,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         # run the before_build command
         if before_build:
-            before_build_prepared = prepare_command(before_build, python=python, pip=pip)
-            call(before_build_prepared, env=env, shell=True)
+            call(before_build, env=env, shell=True)
 
         # build the wheel
-        call([pip, 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'], env=env)
+        call(['pip', 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'], env=env)
         built_wheel = glob('/tmp/built_wheel/*.whl')[0]
 
         if built_wheel.endswith('none-any.whl'):
@@ -101,11 +95,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
         # install the wheel
-        call([pip, 'install', delocated_wheel], env=env)
+        call(['pip', 'install', delocated_wheel], env=env)
 
         # test the wheel
         if test_requires:
-            call([pip, 'install'] + test_requires, env=env)
+            call(['pip', 'install'] + test_requires, env=env)
         if test_command:
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel

@@ -1,7 +1,6 @@
 from __future__ import print_function
 import os, subprocess, sys
 from collections import namedtuple
-from .util import prepare_command
 
 try:
     from shlex import quote as shlex_quote
@@ -105,9 +104,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             test_command=shlex_quote(
                 test_command.format(project='/project') if test_command else ''
             ),
-            before_build=shlex_quote(
-                prepare_command(before_build, python='python', pip='pip') if before_build else ''
-            ),
+            before_build=shlex_quote(before_build or ''),
             environment_exports='\n'.join(environment.as_shell_commands()),
         )
 

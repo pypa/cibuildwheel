@@ -7,7 +7,7 @@ except ImportError:
 from collections import namedtuple
 from glob import glob
 
-from .util import prepare_command, Unbuffered
+from .util import Unbuffered
 
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
@@ -78,8 +78,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         # run the before_build command
         if before_build:
-            before_build_prepared = prepare_command(before_build, python='python', pip='pip')
-            shell([before_build_prepared], env=env)
+            shell([before_build], env=env)
 
         # build the wheel
         shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'], env=env)
