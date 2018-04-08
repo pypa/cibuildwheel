@@ -51,9 +51,14 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # install
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
 
+        installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
+        if config.version[0] == '3':
+        	os.symlink(os.path.join(installation_bin_path, 'python3'), os.path.join(installation_bin_path, 'python'))
+        	os.symlink(os.path.join(installation_bin_path, 'pip3'), os.path.join(installation_bin_path, 'pip'))
+
         env = os.environ.copy()
         env['PATH'] = os.pathsep.join([
-            '/Library/Frameworks/Python.framework/Versions/%s/bin' % config.version,
+            installation_bin_path,
             env['PATH'],
         ])
         env = environment.as_dictionary(prev_environment=env)
