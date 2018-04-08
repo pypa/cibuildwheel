@@ -6,10 +6,8 @@ def prepare_command(command, project):
     '''
     Preprocesses a command by expanding variables like {project}.
 
-    For example, used for the before_build option, where the user would
-    like to run a command like `python setup.py test`. If the command should run on
-    Python 3, the user could write `{python} setup.py test`. This command would expand
-    it out to python2 or python3 as appropriate.
+    For example, used in the test_command option, to specify the path to the
+    tests directory.
     '''
     if '{python}' in command or '{pip}' in command:
         warnings.warn("'{python}' and '{pip}' are no longer needed, and have been deprecated. Simply use 'python' or 'pip' instead.",
