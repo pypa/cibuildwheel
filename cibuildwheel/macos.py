@@ -7,6 +7,8 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
+from .util import prepare_command
+
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
@@ -83,7 +85,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         # run the before_build command
         if before_build:
-            call(before_build, env=env, shell=True)
+            before_build_prepared = prepare_command(before_build, python='python', pip='pip')
+            call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
         call(['pip', 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'], env=env)
