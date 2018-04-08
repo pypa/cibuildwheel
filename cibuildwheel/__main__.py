@@ -1,5 +1,5 @@
 from __future__ import print_function
-import argparse, os, subprocess, sys, textwrap
+import argparse, os, subprocess, sys, textwrap, warnings
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
@@ -25,6 +25,9 @@ def get_option_from_environment(option_name, platform=None):
 
 
 def main():
+    # enable deprecation warnings
+    warnings.filterwarnings("once", ".*", DeprecationWarning)
+
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
         epilog=('Most options are supplied via environment variables. '

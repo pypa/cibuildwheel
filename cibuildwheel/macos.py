@@ -93,7 +93,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         # run the before_build command
         if before_build:
-            before_build_prepared = prepare_command(before_build, python=python, pip=pip, project=abs_project_dir)
+            before_build_prepared = prepare_command(before_build, project=abs_project_dir)
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
@@ -120,7 +120,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
-            test_command_prepared = prepare_command(test_command, python=python, pip=pip, project=abs_project_dir)
+            test_command_prepared = prepare_command(test_command, project=abs_project_dir)
             call(shlex.split(test_command_prepared), cwd=os.environ['HOME'], env=env)
 
         # we're all done here; move it to output

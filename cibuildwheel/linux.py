@@ -103,10 +103,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
             test_requires=' '.join(test_requires),
             test_command=shlex_quote(
-                prepare_command(test_command, python='python', pip='pip', project='/project') if test_command else ''
+                prepare_command(test_command, project='/project') if test_command else ''
             ),
             before_build=shlex_quote(
-                prepare_command(before_build, python='python', pip='pip', project='/project') if before_build else ''
+                prepare_command(before_build, project='/project') if before_build else ''
             ),
             environment_exports='\n'.join(environment.as_shell_commands()),
         )
