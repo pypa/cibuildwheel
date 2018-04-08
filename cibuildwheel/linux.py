@@ -1,7 +1,7 @@
 from __future__ import print_function
 import os, subprocess, sys
 from collections import namedtuple
-from .util import prepare_command
+from .util import prepare_command, get_build_verbosity_flag
 
 try:
     from shlex import quote as shlex_quote
@@ -9,7 +9,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment, manylinux1_images):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -66,7 +66,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 fi
 
                 # Build that wheel
-                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps
+                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
 
                 # Delocate the wheel
@@ -108,6 +108,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             before_build=shlex_quote(
                 prepare_command(before_build, python='python', pip='pip', project='/project') if before_build else ''
             ),
+            build_verbosity_flag=get_build_verbosity_flag(build_verbosity),
             environment_exports='\n'.join(environment.as_shell_commands()),
         )
 
