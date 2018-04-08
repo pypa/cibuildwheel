@@ -9,10 +9,6 @@ def prepare_command(command, project):
     For example, used in the test_command option, to specify the path to the
     tests directory.
     '''
-    if '{python}' in command or '{pip}' in command:
-        warnings.warn("'{python}' and '{pip}' are no longer needed, and have been deprecated. Simply use 'python' or 'pip' instead.",
-            DeprecationWarning)
-
     return command.format(python='python', pip='pip', project=project)
 
 

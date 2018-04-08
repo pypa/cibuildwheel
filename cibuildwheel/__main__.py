@@ -167,7 +167,27 @@ def print_preamble(platform, build_options):
     for option, value in build_options.items():
         print('  %s: %r' % (option, value))
 
+    warnings = detect_warnings(platform, build_options)
+    if warnings:
+        print('\nWarnings:')
+        for warning in warnings:
+            print('  ' + warning)
+
     print('\nHere we go!\n')
+
+def detect_warnings(platform, build_options):
+    warnings = []
+
+    # warn about deprecated {python} and {pip}
+    for option_name in ['test_command', 'before_build']:
+        option_value = build_options.get(option_name)
+
+        if option_value:
+            if '{python}' in option_value or '{pip}' in option_value:
+                warnings.append(option_name + ": '{python}' and '{pip}' are no longer needed, and will be removed in a future release. Simply use 'python' or 'pip' instead.")
+
+    return warnings
+
 
 if __name__ == '__main__':
     main()
