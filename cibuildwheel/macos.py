@@ -54,12 +54,20 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # install
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
 
-            if config.version[0] == '3':
-                os.symlink(os.path.join(installation_bin_path, 'python3'), os.path.join(installation_bin_path, 'python'))
-                os.symlink(os.path.join(installation_bin_path, 'pip3'), os.path.join(installation_bin_path, 'pip'))
+        # Python bin folders on Mac don't symlink python3 to python, so we do that
+        # so `python` and `pip` always point to the active configuration.
+        if os.path.exists('/tmp/cibw_bin'):
+            shutil.rmtree('/tmp/cibw_bin')
+        os.makedirs('/tmp/cibw_bin')
+
+        if config.version[0] == '3':
+            os.symlink(os.path.join(installation_bin_path, 'python3'), '/tmp/cibw_bin/python')
+            os.symlink(os.path.join(installation_bin_path, 'python3-config'), '/tmp/cibw_bin/python-config')
+            os.symlink(os.path.join(installation_bin_path, 'pip3'), '/tmp/cibw_bin/pip')
 
         env = os.environ.copy()
         env['PATH'] = os.pathsep.join([
+            '/tmp/cibw_bin',
             installation_bin_path,
             env['PATH'],
         ])
