@@ -1,7 +1,7 @@
 from fnmatch import fnmatch
 
 
-def prepare_command(command, python, pip):
+def prepare_command(command, python, pip, project):
     '''
     Preprocesses a command by expanding variables like {python} or {pip}.
 
@@ -10,7 +10,7 @@ def prepare_command(command, python, pip):
     Python 3, the user could write `{python} setup.py test`. This command would expand
     it out to python2 or python3 as appropriate.
     '''
-    return command.format(python=python, pip=pip)
+    return command.format(python=python, pip=pip, project=project)
 
 
 class BuildSkipper(object):

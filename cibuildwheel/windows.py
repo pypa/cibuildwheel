@@ -78,7 +78,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         # run the before_build command
         if before_build:
-            before_build_prepared = prepare_command(before_build, python='python', pip='pip')
+            before_build_prepared = prepare_command(before_build, python='python', pip='pip', project=abs_project_dir)
             shell([before_build_prepared], env=env)
 
         # build the wheel
@@ -95,8 +95,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # run the tests from c:\, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
-            test_command_absolute = test_command.format(project=abs_project_dir)
-            shell([test_command_absolute], cwd='c:\\', env=env)
+            test_command_prepared = prepare_command(test_command, python='python', pip='pip', project=abs_project_dir)
+            shell([test_command_prepared], cwd='c:\\', env=env)
 
         # we're all done here; move it to output
         shutil.move(built_wheel, output_dir)
