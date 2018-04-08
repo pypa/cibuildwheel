@@ -47,12 +47,13 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         # if this version of python isn't installed, get it from python.org and install
         python_package_identifier = 'org.python.Python.PythonFramework-%s' % config.version
-        installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
         if python_package_identifier not in installed_system_packages:
             # download the pkg
             call(['curl', '-L', '-o', '/tmp/Python.pkg', config.url])
             # install
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
+
+        installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
 
         # Python bin folders on Mac don't symlink python3 to python, so we do that
         # so `python` and `pip` always point to the active configuration.
