@@ -72,7 +72,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
 
         # prepare the Python environment
-        shell(['pip', 'install', '--disable-pip-version-check', '--user', '--upgrade', 'pip'],
+        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'],
               env=env)
         shell(['pip', 'install', 'wheel'], env=env)
 
