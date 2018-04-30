@@ -7,7 +7,7 @@ except ImportError:
 from collections import namedtuple
 from glob import glob
 
-from .util import prepare_command, get_build_verbosity_flag, Unbuffered
+from .util import prepare_command, get_build_verbosity_extra_flags, Unbuffered
 
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment):
@@ -82,8 +82,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             shell([before_build_prepared], env=env)
 
         # build the wheel
-        build_verbosity_flag = get_build_verbosity_flag(build_verbosity)
-        shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + ([build_verbosity_flag] if build_verbosity_flag else []), env=env)
+        shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
         # install the wheel

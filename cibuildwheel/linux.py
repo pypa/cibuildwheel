@@ -1,7 +1,7 @@
 from __future__ import print_function
 import os, subprocess, sys
 from collections import namedtuple
-from .util import prepare_command, get_build_verbosity_flag
+from .util import prepare_command, get_build_verbosity_extra_flags
 
 try:
     from shlex import quote as shlex_quote
@@ -108,7 +108,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             before_build=shlex_quote(
                 prepare_command(before_build, python='python', pip='pip', project='/project') if before_build else ''
             ),
-            build_verbosity_flag=get_build_verbosity_flag(build_verbosity),
+            build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
             environment_exports='\n'.join(environment.as_shell_commands()),
         )
 

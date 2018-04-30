@@ -7,7 +7,7 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
-from .util import prepare_command, get_build_verbosity_flag
+from .util import prepare_command, get_build_verbosity_extra_flags
 
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment):
@@ -87,8 +87,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
-        build_verbosity_flag = get_build_verbosity_flag(build_verbosity)
-        call([pip, 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + ([build_verbosity_flag] if build_verbosity_flag else []), env=env)
+        call([pip, 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob('/tmp/built_wheel/*.whl')[0]
 
         if built_wheel.endswith('none-any.whl'):

@@ -13,13 +13,13 @@ def prepare_command(command, python, pip, project):
     return command.format(python=python, pip=pip, project=project)
 
 
-def get_build_verbosity_flag(level):
+def get_build_verbosity_extra_flags(level):
     if level > 0:
-        return '-' + level * 'v'
+        return ['-' + level * 'v']
     elif level < 0:
-        return '-' + -level * 'q'
+        return ['-' + -level * 'q']
     else:
-        return ''
+        return []
 
 
 class BuildSkipper(object):
