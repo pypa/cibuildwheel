@@ -82,6 +82,7 @@ All being well, you should get wheels delivered to you in a few minutes.
 |---|---|---|
 | **Target wheels** | `CIBW_PLATFORM` | Override the auto-detected target platform |
 |   | `CIBW_SKIP` | Skip certain Python versions |
+| **Build parameters** | `CIBW_BUILD_VERBOSITY` | Increase or decrease the output of `pip wheel` |
 | **Build environment** | `CIBW_ENVIRONMENT` | Set environment variables needed during the build |
 |   | `CIBW_BEFORE_BUILD` | Execute a shell command preparing each wheel's build |
 |   | `CIBW_MANYLINUX1_X86_64_IMAGE` | Specify an alternative manylinx1 x86_64 docker image |
@@ -165,6 +166,16 @@ Examples:
 - Skip Python 3.4 and Python 3.5: `cp34-* cp35-*`
 - Skip Python 3.6 on Linux: `cp36-manylinux*`
 - Only build on Python 3.6: `cp27-* cp34-* cp35-*`
+
+| Environment variable: `CIBW_BUILD_VERBOSITY`
+| ---
+
+Optional.
+
+An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
+
+Platform-specific variants also available:
+`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
 
 | Environment variable: `CIBW_ENVIRONMENT`
 | ---
