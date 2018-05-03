@@ -74,6 +74,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         # prepare the Python environment
         shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'],
               env=env)
+        shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
         shell(['pip', 'install', 'wheel'], env=env)
 
         # run the before_build command
