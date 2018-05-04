@@ -15,7 +15,7 @@ What does it do?
 |   | macOS 10.6+ | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
 |---|---|---|---|---|---|
 | Python 2.7 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python 3.3 |    | ✅ | ✅ | ✅ | ✅ |
+| Python 3.3 |    |    |    | ✅ | ✅ |
 | Python 3.4 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Python 3.5 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Python 3.6 | ✅ | ✅ | ✅ | ✅ | ✅ |
