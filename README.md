@@ -328,6 +328,11 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.8.0
+
+- Drop support for Python 3.3 on Linux (#67)
+- Fix TLS by updating setuptools (#69)
+
 ### 0.7.1
 
 - macOS: Fix Pip bugs resulting from PyPI TLS 1.2 enforcement
