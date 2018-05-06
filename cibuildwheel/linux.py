@@ -95,6 +95,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
                 # we're all done here; move it to output
                 mv "$delocated_wheel" /output
+                chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"
             done
         '''.format(
             package_name=package_name,
@@ -108,6 +109,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
             environment_exports='\n'.join(environment.as_shell_commands()),
+            uid=os.getuid(),
+            gid=os.getgid(),
         )
 
         docker_process = subprocess.Popen([
