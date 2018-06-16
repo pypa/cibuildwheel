@@ -31,7 +31,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         PythonConfiguration(identifier='cp34-manylinux1_i686', path='/opt/python/cp34-cp34m'),
         PythonConfiguration(identifier='cp35-manylinux1_i686', path='/opt/python/cp35-cp35m'),
         PythonConfiguration(identifier='cp36-manylinux1_i686', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(identifier='cp37-manylinux1_i686', path='/opt/python/cp37-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux1_i686', path='/opt/python/cp37-cp37m'),
     ]
 
     # skip builds as required
