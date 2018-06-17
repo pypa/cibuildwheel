@@ -74,8 +74,14 @@ def main():
     test_requires = os.environ.get('CIBW_TEST_REQUIRES', '').split()
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
+    build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform) or ''
     skip_config = os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform) or ''
+
+    try:
+        build_verbosity = min(3, max(-3, int(build_verbosity)))
+    except ValueError:
+        build_verbosity = 0
 
     try:
         environment = parse_environment(environment_config)
@@ -118,6 +124,7 @@ def main():
         test_command=test_command,
         test_requires=test_requires,
         before_build=before_build,
+        build_verbosity=build_verbosity,
         skip=skip,
         environment=environment,
     )

@@ -5,42 +5,28 @@ matrix:
     # Linux Python 2
     - sudo: required
       language: python
-      services:
-        - docker
-      env:
-        - "PYTHON=python2"
+      python: 2.7
+      services: docker
+      env: PYTHON=python
 
     # Linux Python 3
     - sudo: required
       language: python
-      services:
-        - docker
-      env:
-        - "PYTHON=python3"
-      before_install:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3-pip
+      python: 3.4
+      services: docker
+      env: PYTHON=python
 
     # macOS Python 2
     - os: osx
-      env:
-        - "PYTHON=python2"
+      env: PYTHON=python2
 
     # macOS Python 3
     - os: osx
-      env:
-        - "PYTHON=python3"
+      env: PYTHON=python3
       before_install:
         - brew update
         - brew outdated python || brew upgrade python
 
-script:
-  - |
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      $PYTHON -m pip install -r requirements-dev.txt
-      $PYTHON ./bin/run_tests.py
-    else
-      # linux test requires root to clean up the wheelhouse (docker runs as root)
-      sudo $PYTHON -m pip install -r requirements-dev.txt
-      sudo $PYTHON ./bin/run_tests.py
-    fi
+install: $PYTHON -m pip install -r requirements-dev.txt
+
+script: $PYTHON ./bin/run_tests.py

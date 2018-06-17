@@ -7,13 +7,13 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
-from .util import prepare_command
+from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.14/python-2.7.14-macosx10.6.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.15/python-2.7.15-macosx10.6.pkg'),
         PythonConfiguration(version='3.4', identifier='cp34-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.4.4/python-3.4.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.5/python-3.6.5-macosx10.6.pkg'),
@@ -81,6 +81,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         # install pip & wheel
         call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
         call(['pip', '--version'], env=env)
+        call(['pip', 'install', '--upgrade', 'setuptools'], env=env)
         call(['pip', 'install', 'wheel'], env=env)
         call(['pip', 'install', 'delocate'], env=env)
 
@@ -98,7 +99,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
-        call(['pip', 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'], env=env)
+        call([pip, 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob('/tmp/built_wheel/*.whl')[0]
 
         if built_wheel.endswith('none-any.whl'):

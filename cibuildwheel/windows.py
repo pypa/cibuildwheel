@@ -7,10 +7,10 @@ except ImportError:
 from collections import namedtuple
 from glob import glob
 
-from .util import prepare_command, Unbuffered
+from .util import prepare_command, get_build_verbosity_extra_flags, Unbuffered
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment):
     # Python under AppVeyor/Windows seems to be buffering by default, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout.flush()
     sys.stdout = Unbuffered(sys.stdout)
@@ -72,8 +72,9 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
 
         # prepare the Python environment
-        shell(['pip', 'install', '--disable-pip-version-check', '--user', '--upgrade', 'pip'],
+        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'],
               env=env)
+        shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
         shell(['pip', 'install', 'wheel'], env=env)
 
         # run the before_build command
@@ -82,7 +83,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             shell([before_build_prepared], env=env)
 
         # build the wheel
-        shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'], env=env)
+        shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
         # install the wheel

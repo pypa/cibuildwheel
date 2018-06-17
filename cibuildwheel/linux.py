@@ -1,7 +1,7 @@
 from __future__ import print_function
 import os, subprocess, sys
 from collections import namedtuple
-from .util import prepare_command
+from .util import prepare_command, get_build_verbosity_extra_flags
 
 try:
     from shlex import quote as shlex_quote
@@ -9,7 +9,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, skip, environment, manylinux1_images):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -22,13 +22,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
     python_configurations = [
         PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp33-manylinux1_x86_64', path='/opt/python/cp33-cp33m'),
         PythonConfiguration(identifier='cp34-manylinux1_x86_64', path='/opt/python/cp34-cp34m'),
         PythonConfiguration(identifier='cp35-manylinux1_x86_64', path='/opt/python/cp35-cp35m'),
         PythonConfiguration(identifier='cp36-manylinux1_x86_64', path='/opt/python/cp36-cp36m'),
         PythonConfiguration(identifier='cp27-manylinux1_i686', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(identifier='cp27-manylinux1_i686', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp33-manylinux1_i686', path='/opt/python/cp33-cp33m'),
         PythonConfiguration(identifier='cp34-manylinux1_i686', path='/opt/python/cp34-cp34m'),
         PythonConfiguration(identifier='cp35-manylinux1_i686', path='/opt/python/cp35-cp35m'),
         PythonConfiguration(identifier='cp36-manylinux1_i686', path='/opt/python/cp36-cp36m'),
@@ -66,7 +64,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 fi
 
                 # Build that wheel
-                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps
+                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
 
                 # Delocate the wheel
@@ -97,6 +95,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
                 # we're all done here; move it to output
                 mv "$delocated_wheel" /output
+                chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"
             done
         '''.format(
             package_name=package_name,
@@ -108,7 +107,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             before_build=shlex_quote(
                 prepare_command(before_build, project='/project') if before_build else ''
             ),
+            build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
             environment_exports='\n'.join(environment.as_shell_commands()),
+            uid=os.getuid(),
+            gid=os.getgid(),
         )
 
         docker_process = subprocess.Popen([
