@@ -19,6 +19,7 @@ What does it do?
 | Python 3.4 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Python 3.5 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Python 3.6 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Python 3.7 | ✅ | ✅ | ✅ |    |    |
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Travis CI and Appveyor
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
