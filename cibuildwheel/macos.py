@@ -99,7 +99,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
-        call([pip, 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
+        call(['pip', 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob('/tmp/built_wheel/*.whl')[0]
 
         if built_wheel.endswith('none-any.whl'):
