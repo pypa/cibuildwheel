@@ -50,7 +50,7 @@ Usage
           env: PIP=pip2
 
     script:
-      - $PIP install cibuildwheel==0.9.0
+      - $PIP install cibuildwheel==0.9.1
       - cibuildwheel --output-dir wheelhouse
     ```
 
@@ -60,7 +60,7 @@ Usage
 
     ```
     build_script:
-      - pip install cibuildwheel==0.9.0
+      - pip install cibuildwheel==0.9.1
       - cibuildwheel --output-dir wheelhouse
     artifacts:
       - path: "wheelhouse\\*.whl"
