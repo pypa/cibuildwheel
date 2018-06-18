@@ -54,26 +54,37 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # install
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
 
+        installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
+
+        # Python bin folders on Mac don't symlink python3 to python, so we do that
+        # so `python` and `pip` always point to the active configuration.
+        if os.path.exists('/tmp/cibw_bin'):
+            shutil.rmtree('/tmp/cibw_bin')
+        os.makedirs('/tmp/cibw_bin')
+
+        if config.version[0] == '3':
+            os.symlink(os.path.join(installation_bin_path, 'python3'), '/tmp/cibw_bin/python')
+            os.symlink(os.path.join(installation_bin_path, 'python3-config'), '/tmp/cibw_bin/python-config')
+            os.symlink(os.path.join(installation_bin_path, 'pip3'), '/tmp/cibw_bin/pip')
+
         env = os.environ.copy()
         env['PATH'] = os.pathsep.join([
-            '/Library/Frameworks/Python.framework/Versions/%s/bin' % config.version,
+            '/tmp/cibw_bin',
+            installation_bin_path,
             env['PATH'],
         ])
         env = environment.as_dictionary(prev_environment=env)
 
-        python = 'python3' if config.version[0] == '3' else 'python2'
-        pip = 'pip3' if config.version[0] == '3' else 'pip2'
-
         # check what version we're on
-        call(['which', python], env=env)
-        call([python, '--version'], env=env)
+        call(['which', 'python'], env=env)
+        call(['python', '--version'], env=env)
 
         # install pip & wheel
-        call([python, get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
-        call([pip, '--version'], env=env)
-        call([pip, 'install', '--upgrade', 'setuptools'], env=env)
-        call([pip, 'install', 'wheel'], env=env)
-        call([pip, 'install', 'delocate'], env=env)
+        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
+        call(['pip', '--version'], env=env)
+        call(['pip', 'install', '--upgrade', 'setuptools'], env=env)
+        call(['pip', 'install', 'wheel'], env=env)
+        call(['pip', 'install', 'delocate'], env=env)
 
         # setup dirs
         if os.path.exists('/tmp/built_wheel'):
@@ -85,11 +96,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         # run the before_build command
         if before_build:
-            before_build_prepared = prepare_command(before_build, python=python, pip=pip, project=abs_project_dir)
+            before_build_prepared = prepare_command(before_build, project=abs_project_dir)
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
-        call([pip, 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
+        call(['pip', 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob('/tmp/built_wheel/*.whl')[0]
 
         if built_wheel.endswith('none-any.whl'):
@@ -103,16 +114,16 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
         # install the wheel
-        call([pip, 'install', delocated_wheel], env=env)
+        call(['pip', 'install', delocated_wheel], env=env)
 
         # test the wheel
         if test_requires:
-            call([pip, 'install'] + test_requires, env=env)
+            call(['pip', 'install'] + test_requires, env=env)
         if test_command:
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
-            test_command_prepared = prepare_command(test_command, python=python, pip=pip, project=abs_project_dir)
+            test_command_prepared = prepare_command(test_command, project=abs_project_dir)
             call(shlex.split(test_command_prepared), cwd=os.environ['HOME'], env=env)
 
         # we're all done here; move it to output
