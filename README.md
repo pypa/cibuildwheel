@@ -329,72 +329,77 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.9.1
+
+- 🛠 Removed the need to use `{python}` and `{pip}` in `CIBW_BEFORE_BUILD` statements, by ensuring the correct version is always on the path at `python` and `pip` instead. (#60)
+- 🛠 We now patch the _ssl module on Python 3.4 and 3.5 so these versions can still make SSL web requests using TLS 1.2 while building. (#71)
+
 ### 0.9.0
 
-- Add support for Python 3.7 (#73)
+- ✨ Add support for Python 3.7 (#73)
 
 ### 0.8.0
 
-- Drop support for Python 3.3 on Linux (#67)
-- Fix TLS by updating setuptools (#69)
+- ⚠️ Drop support for Python 3.3 on Linux (#67)
+- 🐛 Fix TLS by updating setuptools (#69)
 
 ### 0.7.1
 
-- macOS: Fix Pip bugs resulting from PyPI TLS 1.2 enforcement
-- macOS: Fix brew Python3 version problems in the CI
+- 🐛 macOS: Fix Pip bugs resulting from PyPI TLS 1.2 enforcement
+- 🐛 macOS: Fix brew Python3 version problems in the CI
 
 ### 0.7.0
 
-- You can now specify a custom docker image using the `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE` options. (#46)
-- Fixed a bug where cibuildwheel would download and build a package from PyPI(!) instead of building the package on the local machine. (#51)
+- ✨ You can now specify a custom docker image using the `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE` options. (#46)
+- 🐛 Fixed a bug where cibuildwheel would download and build a package from PyPI(!) instead of building the package on the local machine. (#51)
 
 ### 0.6.0
 
-- On the Linux build, the host filesystem is now accessible via `/host` (#36)
-- Fixed a bug where setup.py scripts would run the wrong version of Python when running subprocesses on Linux (#35)
+- ✨ On the Linux build, the host filesystem is now accessible via `/host` (#36)
+- 🐛 Fixed a bug where setup.py scripts would run the wrong version of Python when running subprocesses on Linux (#35)
 
 ### 0.5.1
 
-- Fixed a couple of bugs on Python 3.
-- Added experimental support for Mac builds on [Bitrise.io](https://www.bitrise.io)
+- 🐛 Fixed a couple of bugs on Python 3.
+- ✨ Added experimental support for Mac builds on [Bitrise.io](https://www.bitrise.io)
 
 ### 0.5.0
 
-- `CIBW_ENVIRONMENT` added. You can now set environment variables for each build, even within the Docker container on Linux. This is a big one! (#21)
-- `CIBW_BEFORE_BUILD` now runs in a system shell on all platforms. You can now do things like `CIBW_BEFORE_BUILD="cmd1 && cmd2"`. (#32)
+- ✨ `CIBW_ENVIRONMENT` added. You can now set environment variables for each build, even within the Docker container on Linux. This is a big one! (#21)
+- ✨ `CIBW_BEFORE_BUILD` now runs in a system shell on all platforms. You can now do things like `CIBW_BEFORE_BUILD="cmd1 && cmd2"`. (#32)
 
 ### 0.4.1
 
-- Fixed a bug on Windows where subprocess' output was hidden (#23)
-- Fixed a bug on Appveyor where logs would appear in the wrong order due to output buffering (#24, thanks @YannickJadoul!)
+- 🐛 Fixed a bug on Windows where subprocess' output was hidden (#23)
+- 🐛 Fixed a bug on Appveyor where logs would appear in the wrong order due to output buffering (#24, thanks @YannickJadoul!)
 
 ### 0.4.0
 
-- Fixed a bug that was increasing the build time by building the wheel twice. This was a problem for large projects that have a long build time. If you're upgrading and you need the old behaviour, use `CIBW_BEFORE_BUILD={pip} install .`, or install exactly the dependencies you need in `CIBW_BEFORE_BUILD`. See #18.
+- 🐛 Fixed a bug that was increasing the build time by building the wheel twice. This was a problem for large projects that have a long build time. If you're upgrading and you need the old behaviour, use `CIBW_BEFORE_BUILD={pip} install .`, or install exactly the dependencies you need in `CIBW_BEFORE_BUILD`. See #18.
 
 ### 0.3.0
 
-- Removed Python 2.6 support on Linux (#12)
+- ⚠️ Removed Python 2.6 support on Linux (#12)
 
 ### 0.2.1
 
 11 June 2017
 
-- Changed the build process to install the package before building the wheel - this allows direct dependencies to be installed first (#9, thanks @tgarc!)
-- Added Python 3 support for the main process, for systems where Python 3 is the default (#8, thanks @tgarc).
+- 🛠 Changed the build process to install the package before building the wheel - this allows direct dependencies to be installed first (#9, thanks @tgarc!)
+- ✨ Added Python 3 support for the main process, for systems where Python 3 is the default (#8, thanks @tgarc).
 
 ### 0.2.0
 
 13 April 2017
 
-- Added `CIBW_SKIP` option, letting users explicitly skip a build 
-- Added `CIBW_BEFORE_BUILD` option, letting users run a shell command before the build starts
+- ✨ Added `CIBW_SKIP` option, letting users explicitly skip a build 
+- ✨ Added `CIBW_BEFORE_BUILD` option, letting users run a shell command before the build starts
 
 ### 0.1.3
 
 31 March 2017
 
-- First public release!
+- 🌟 First public release!
 
 Contributing
 ============
@@ -434,10 +439,11 @@ Credits
 - @PyPA for the manylinux Docker images [pypa/manylinux](https://github.com/pypa/manylinux)
 - @ogrisel for [wheelhouse-uploader](https://github.com/ogrisel/wheelhouse-uploader) and `run_with_env.cmd`
 
-Massive props to-
+Massive props also to-
 
 - @zfrenchee for [help debugging many issues](https://github.com/joerick/cibuildwheel/issues/2)
 - @lelit for some great bug reports and [contributions](https://github.com/joerick/cibuildwheel/pull/73)
+- @mayeut for a [phenomenal PR](https://github.com/joerick/cibuildwheel/pull/71) patching Python itself for better compatibility!
 
 See also
 --------
