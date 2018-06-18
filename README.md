@@ -329,6 +329,10 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.9.0
+
+- Add support for Python 3.7 (#73)
+
 ### 0.8.0
 
 - Drop support for Python 3.3 on Linux (#67)
@@ -424,12 +428,16 @@ Maintainers
 Credits
 -------
 
-`cibuildwheel` stands on the shoulders of giants. Massive props to-
+`cibuildwheel` stands on the shoulders of giants. 
 
 - ⭐️ @matthew-brett for [matthew-brett/multibuild](http://github.com/matthew-brett/multibuild) and [matthew-brett/delocate](http://github.com/matthew-brett/delocate)
 - @PyPA for the manylinux Docker images [pypa/manylinux](https://github.com/pypa/manylinux)
 - @ogrisel for [wheelhouse-uploader](https://github.com/ogrisel/wheelhouse-uploader) and `run_with_env.cmd`
+
+Massive props to-
+
 - @zfrenchee for [help debugging many issues](https://github.com/joerick/cibuildwheel/issues/2)
+- @lelit for some great bug reports and [contributions](https://github.com/joerick/cibuildwheel/pull/73)
 
 See also
 --------
