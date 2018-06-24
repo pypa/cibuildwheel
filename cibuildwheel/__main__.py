@@ -3,6 +3,7 @@ import argparse, os, subprocess, sys, textwrap
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
+from cibuildwheel.quick_build import quick_build
 from cibuildwheel.environment import parse_environment, EnvironmentParseError
 from cibuildwheel.util import BuildSkipper
 
@@ -48,7 +49,22 @@ def main():
                         help=('Path to the project that you want wheels for. Default: the current '
                               'directory.'))
 
+    subparsers = parser.add_subparsers(title='Commands', dest="action")
+
+    subparsers.add_parser(
+        'quick-build',
+        help=('Run a test build by pushing the current working copy of the repo to the origin. '
+              'This works by making a snapshot of the repo using `git stash` and pushing that to '
+              'a branch called `cibuildwheel-test` at the `origin` remote. It\'s useful for '
+              'testing small configuration changes without having to commit each one. Note that '
+              'files must be tracked by git before running this - a quick `git add .` will do the '
+              'trick.'))
+
     args = parser.parse_args()
+
+    if args.action == 'quick-build':
+        quick_build()
+        return
 
     if args.platform != 'auto':
         platform = args.platform
