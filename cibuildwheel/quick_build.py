@@ -1,5 +1,6 @@
 import os, subprocess, shlex, sys, shutil, re
 
+
 def quick_build():
     stash_id = subprocess.check_output([
         'git', 'stash',
@@ -43,6 +44,7 @@ def get_github_username_and_repo():
         return extract_github_username_and_repo_from_url(url)
 
     return None, None
+
 
 def extract_github_username_and_repo_from_url(remote_url):
     patterns = [

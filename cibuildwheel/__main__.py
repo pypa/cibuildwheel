@@ -43,16 +43,9 @@ def main():
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
-    parser.add_argument('project_dir',
-                        default='.',
-                        nargs='?',
-                        help=('Path to the project that you want wheels for. Default: the current '
-                              'directory.'))
 
-    subparsers = parser.add_subparsers(title='Commands', dest="action")
-
-    subparsers.add_parser(
-        'quick-build',
+    parser.add_argument('--quick-build',
+        action='store_true',
         help=('Run a test build by pushing the current working copy of the repo to the origin. '
               'This works by making a snapshot of the repo using `git stash` and pushing that to '
               'a branch called `cibuildwheel-test` at the `origin` remote. It\'s useful for '
@@ -60,9 +53,15 @@ def main():
               'files must be tracked by git before running this - a quick `git add .` will do the '
               'trick.'))
 
+    parser.add_argument('project_dir',
+                        default='.',
+                        nargs='?',
+                        help=('Path to the project that you want wheels for. Default: the current '
+                              'directory.'))
+
     args = parser.parse_args()
 
-    if args.action == 'quick-build':
+    if args.quick_build:
         quick_build()
         return
 
