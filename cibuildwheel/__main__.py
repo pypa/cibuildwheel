@@ -56,7 +56,7 @@ def main():
         help=('Run a test build by pushing the current working copy of the repo to the origin. '
               'This works by making a snapshot of the repo using `git stash` and pushing that to '
               'a branch called `cibuildwheel-test` at the `origin` remote. It\'s useful for '
-              'testing small configuration changes without having to commit each one. Note that '
+              'testing small configuration changes *before* committing the change. Note that '
               'files must be tracked by git before running this - a quick `git add .` will do the '
               'trick.'))
 

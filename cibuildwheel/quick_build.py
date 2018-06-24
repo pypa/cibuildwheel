@@ -1,7 +1,11 @@
 import os, subprocess, shlex, sys, shutil, re
 
 def quick_build():
-    stash_id = subprocess.check_output(['git', 'stash', 'create']).strip()
+    stash_id = subprocess.check_output([
+        'git', 'stash',
+        'create', 
+        'cibuildwheel quick-build'
+    ]).strip()
 
     subprocess.check_call([
         'git', 'push', 
@@ -10,7 +14,7 @@ def quick_build():
         '%s:refs/heads/cibuildwheel-test' % stash_id
     ])
 
-    print('Test branch updated.')
+    print('\nTest branch updated.\n')
 
     configured_services = []
 
@@ -26,6 +30,8 @@ def quick_build():
             print('Travis build: https://travis-ci.org/%s/%s/branches' % (username, repo))
         if 'appveyor' in configured_services:
             print('Appveyor build: https://ci.appveyor.com/project/%s/%s' % (username, repo))
+    
+    print('')
 
 
 def get_github_username_and_repo():
