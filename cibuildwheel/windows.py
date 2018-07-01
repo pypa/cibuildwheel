@@ -52,6 +52,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         if skip(config.identifier):
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
             continue
+        
+        # check python & pip exist for this configuration
+        assert os.path.exists(os.path.join(config.path, 'python.exe'))
+        assert os.path.exists(os.path.join(config.path, 'Scripts', 'pip.exe'))
 
         # setup dirs
         if os.path.exists(built_wheel_dir):
