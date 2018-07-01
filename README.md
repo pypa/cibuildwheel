@@ -329,6 +329,10 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.9.2
+
+- 🛠  Update Python 3.7.0rc1 to 3.7.0 on macOS (#79)
+
 ### 0.9.1
 
 - 🛠 Removed the need to use `{python}` and `{pip}` in `CIBW_BEFORE_BUILD` statements, by ensuring the correct version is always on the path at `python` and `pip` instead. (#60)
