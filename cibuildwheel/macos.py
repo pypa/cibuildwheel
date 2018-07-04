@@ -128,7 +128,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
             test_command_prepared = prepare_command(test_command, project=abs_project_dir)
-            call(shlex.split(test_command_prepared), cwd=os.environ['HOME'], env=env)
+            call(test_command_prepared, cwd=os.environ['HOME'], env=env, shell=True)
 
         # we're all done here; move it to output
         shutil.move(delocated_wheel, output_dir)
