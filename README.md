@@ -320,6 +320,7 @@ Here are some repos that use cibuildwheel.
 - [websockets](https://github.com/aaugustin/websockets)
 - [Parselmouth](https://github.com/YannickJadoul/Parselmouth)
 - [python-admesh](https://github.com/admesh/python-admesh)
+- [pybase64](https://github.com/mayeut/pybase64)
 
 > Add repo here! Send a PR.
 
