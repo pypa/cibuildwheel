@@ -40,6 +40,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64'),
         PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36'),
         PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64'),
+        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\Python37'),
+        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64'),
     ]
 
     abs_project_dir = os.path.abspath(project_dir)
@@ -50,6 +52,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         if skip(config.identifier):
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
             continue
+        
+        # check python & pip exist for this configuration
+        assert os.path.exists(os.path.join(config.path, 'python.exe'))
+        assert os.path.exists(os.path.join(config.path, 'Scripts', 'pip.exe'))
 
         # setup dirs
         if os.path.exists(built_wheel_dir):
