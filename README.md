@@ -15,11 +15,13 @@ What does it do?
 |   | macOS 10.6+ | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
 |---|---|---|---|---|---|
 | Python 2.7 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python 3.3 |    |    |    | ✅ | ✅ |
+| Python 3.3 |    |    |    | ⚠️ | ⚠️ |
 | Python 3.4 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Python 3.5 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Python 3.6 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python 3.7 | ✅ | ✅ | ✅ |    |    |
+| Python 3.7 | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+<small>[⚠️=deprecated]</small>
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Travis CI and Appveyor
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -328,6 +330,12 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 
 Changelog
 =========
+
+### 0.9.3
+
+- 🛠 Update to Python 3.6.6 on macOS (#82)
+- ✨ Add support for building Python 3.7 wheels on Windows (#76)
+- ⚠️ Deprecated support for Python 3.3 on Windows.
 
 ### 0.9.2
 
