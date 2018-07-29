@@ -238,7 +238,12 @@ Optional.
 
 Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
+On Linux and Mac, the command runs in a shell, so you can write things like `cmd1 && cmd2`. 
+
 Example: `nosetests {project}/tests`
+
+Platform-specific variants also available:
+`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
 
 | Environment variable: `CIBW_TEST_REQUIRES`
 | ---
@@ -249,6 +254,9 @@ Space-separated list of dependencies required for running the tests.
 
 Example: `pytest`  
 Example: `nose==1.3.7 moto==0.4.31`
+
+Platform-specific variants also available:
+`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
 --
 

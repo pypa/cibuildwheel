@@ -6,7 +6,7 @@ import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
 from cibuildwheel.environment import parse_environment, EnvironmentParseError
 from cibuildwheel.util import BuildSkipper
 
-def get_option_from_environment(option_name, platform=None):
+def get_option_from_environment(option_name, platform=None, default=None):
     '''
     Returns an option from the environment, optionally scoped by the platform.
 
@@ -21,7 +21,7 @@ def get_option_from_environment(option_name, platform=None):
         if option is not None:
             return option
 
-    return os.environ.get(option_name)
+    return os.environ.get(option_name, default)
 
 
 def main():
@@ -70,13 +70,13 @@ def main():
             exit(2)
 
     output_dir = args.output_dir
-    test_command = os.environ.get('CIBW_TEST_COMMAND', None)
-    test_requires = os.environ.get('CIBW_TEST_REQUIRES', '').split()
+    test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
+    test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
-    build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform) or ''
+    build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     skip_config = os.environ.get('CIBW_SKIP', '')
-    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform) or ''
+    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
 
     try:
         build_verbosity = min(3, max(-3, int(build_verbosity)))

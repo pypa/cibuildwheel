@@ -1,4 +1,6 @@
 {
     "CIBW_TEST_REQUIRES": "nose",
-    "CIBW_TEST_COMMAND": "nosetests {project}/test"
+    "CIBW_TEST_COMMAND": "false || nosetests {project}/test",
+    "comment": "The 'false ||' bit is to ensure this command runs in a shell on Mac and Linux",
+    "CIBW_TEST_COMMAND_WINDOWS": "nosetests {project}/test"
 }
