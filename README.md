@@ -340,6 +340,10 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### 0.9.4
+
+- 🛠 CIBW_TEST_COMMAND now runs in a shell on Mac (as well as Linux) (#81)
+
 ### 0.9.3
 
 - 🛠 Update to Python 3.6.6 on macOS (#82)
