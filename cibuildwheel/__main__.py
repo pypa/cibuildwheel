@@ -4,7 +4,7 @@ import argparse, os, subprocess, sys, textwrap
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
 from cibuildwheel.environment import parse_environment, EnvironmentParseError
-from cibuildwheel.util import BuildSkipper
+from cibuildwheel.util import BuildSkipper, Unbuffered
 
 def get_option_from_environment(option_name, platform=None, default=None):
     '''
@@ -140,6 +140,9 @@ def main():
         pass
     elif platform == 'windows':
         pass
+
+    # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
+    sys.stdout = Unbuffered(sys.stdout)
 
     print_preamble(platform, build_options)
 
