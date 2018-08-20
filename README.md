@@ -135,6 +135,8 @@ optional arguments:
 
 Most of the config is via environment variables. These go into `.travis.yml` and `appveyor.yml` nicely.
 
+***
+
 | Environment variable: `CIBW_PLATFORM` | Command line argument: `--platform`
 | --- | ---
 
@@ -145,6 +147,8 @@ Default: `auto`
 `auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`.
 
 For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
+
+***
 
 | Environment variable: `CIBW_SKIP`
 | ---
@@ -170,6 +174,8 @@ Examples:
 - Skip Python 3.6 on Linux: `cp36-manylinux*`
 - Only build on Python 3.6: `cp27-* cp34-* cp35-*`
 
+***
+
 | Environment variable: `CIBW_BUILD_VERBOSITY`
 | ---
 
@@ -179,6 +185,8 @@ An number from 1 to 3 to increase the level of verbosity (corresponding to invok
 
 Platform-specific variants also available:
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
+
+***
 
 | Environment variable: `CIBW_ENVIRONMENT`
 | ---
@@ -201,6 +209,8 @@ Platform-specific variants also available:
 
 In addition to the above, `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](https://github.com/joerick/cibuildwheel/wiki/Building-packages-with-optional-C-extensions).
 
+***
+
 | Environment variable: `CIBW_BEFORE_BUILD`
 | ---
 
@@ -219,6 +229,8 @@ Example: `yum install -y libffi-dev && pip install .`
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
+***
+
 | Environment variables: `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE`
 | ---
 
@@ -230,6 +242,8 @@ Beware to specify a valid docker image that can be used the same as the official
 
 Example: `dockcross/manylinux-x64`  
 Example: `dockcross/manylinux-x86`
+
+***
 
 | Environment variable: `CIBW_TEST_COMMAND`
 | ---
@@ -245,6 +259,8 @@ Example: `nosetests {project}/tests`
 Platform-specific variants also available:
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
 
+***
+
 | Environment variable: `CIBW_TEST_REQUIRES`
 | ---
 
@@ -258,9 +274,8 @@ Example: `nose==1.3.7 moto==0.4.31`
 Platform-specific variants also available:
 `CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
---
 
-#### Example YML syntax
+### Example YML syntax
 
 <table>
 <tr><td><i>example .travis.yml environment variables</i><pre><code>env:
