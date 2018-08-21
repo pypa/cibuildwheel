@@ -108,9 +108,10 @@ def main():
             print('cibuildwheel: Could not find setup.py at root of project', file=sys.stderr)
             exit(2)
         else:
+            print(err.output)
             print('cibuildwheel: Failed to get name of the package. Command was %s' % err.cmd,
                   file=sys.stderr)
-            exit(2)
+            exit(err.returncode)
 
     if package_name == '' or package_name == 'UNKNOWN':
         print('cibuildwheel: Invalid package name "%s". Check your setup.py' % package_name,
