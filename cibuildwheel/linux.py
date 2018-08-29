@@ -116,19 +116,23 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             gid=os.getgid(),
         )
 
-        docker_process = subprocess.Popen([
-                'docker',
-                'run',
-                '--env',
-                'CIBUILDWHEEL',
-                '--rm',
-                '-i',
-                '-v', '%s:/project' % os.path.abspath(project_dir),
-                '-v', '%s:/output' % os.path.abspath(output_dir),
-                '-v', '/:/host',
-                docker_image,
-                '/bin/bash'],
-            stdin=subprocess.PIPE, universal_newlines=True)
+        command = [
+            'docker',
+            'run',
+            '--env',
+            'CIBUILDWHEEL',
+            '--rm',
+            '-i',
+            '-v', '%s:/project' % os.path.abspath(project_dir),
+            '-v', '%s:/output' % os.path.abspath(output_dir),
+            '-v', '/:/host',
+            docker_image,
+            '/bin/bash',
+        ]
+
+        print('docker command: {}'.format(command))
+
+        docker_process = subprocess.Popen(command, stdin=subprocess.PIPE, universal_newlines=True)
 
         try:
             docker_process.communicate(bash_script)
