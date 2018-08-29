@@ -14,7 +14,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         subprocess.check_call(['docker', '--version'])
     except:
         print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
-              'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.',
+              'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
+              'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
               file=sys.stderr)
         exit(2)
 
