@@ -66,6 +66,12 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                     PATH="$PYBIN:$PATH" sh -c {before_build}
                 fi
 
+                pwd
+                ls -l .
+                ls -l /project
+                ls -l /output
+                ls -l /host
+
                 # Build that wheel
                 PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
