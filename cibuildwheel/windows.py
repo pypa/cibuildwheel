@@ -10,7 +10,7 @@ from glob import glob
 from .util import prepare_command, get_build_verbosity_extra_flags, Unbuffered
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, host):
     # Python under AppVeyor/Windows seems to be buffering by default, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout.flush()
     sys.stdout = Unbuffered(sys.stdout)

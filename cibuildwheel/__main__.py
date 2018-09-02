@@ -3,7 +3,11 @@ import argparse, os, subprocess, sys, textwrap
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
-from cibuildwheel.environment import parse_environment, EnvironmentParseError
+from cibuildwheel.environment import (
+    parse_environment,
+    EnvironmentParseError,
+    get_host,
+)
 from cibuildwheel.util import BuildSkipper
 
 def get_option_from_environment(option_name, platform=None, default=None):
@@ -77,6 +81,8 @@ def main():
                   file=sys.stderr)
             exit(2)
 
+    host = get_host(os.environ)
+
     output_dir = args.output_dir
     test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
@@ -136,6 +142,7 @@ def main():
         build_verbosity=build_verbosity,
         skip=skip,
         environment=environment,
+        host=host,
     )
 
     if platform == 'linux':

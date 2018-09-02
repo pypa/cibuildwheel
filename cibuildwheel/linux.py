@@ -1,7 +1,8 @@
 from __future__ import print_function
-import os, subprocess, sys
+import os, subprocess, sys, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
+from .environment import Hosts
 
 try:
     from shlex import quote as shlex_quote
@@ -9,7 +10,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images, host):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -122,22 +123,40 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             gid=os.getgid(),
         )
 
+        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+
         command = [
             'docker',
-            'run',
-            '--env',
-            'CIBUILDWHEEL',
-            '--rm',
+            'exec',
+            '--name', container_name,
+            '-d',
             '-i',
             '-v', '%s:/project' % os.path.abspath(project_dir),
             '-v', '%s:/output' % os.path.abspath(output_dir),
             '-v', '/:/host',
             docker_image,
-            '/bin/bash',
         ]
-
         print('docker command: {}'.format(command))
+        subprocess.check_call(command)
 
+        if host == Hosts.Circle:
+            command = [
+                'docker',
+                'cp',
+                './.',
+                '{}:'.format(container_name),
+            ]
+            print('docker command: {}'.format(command))
+            subprocess.check_call(command)
+
+        command = [
+            'docker',
+            'run',
+            '--env',
+            'CIBUILDWHEEL',
+            container_name,
+        ]
+        print('docker command: {}'.format(command))
         docker_process = subprocess.Popen(command, stdin=subprocess.PIPE, universal_newlines=True)
 
         try:
