@@ -2,7 +2,7 @@ from __future__ import print_function
 import os, subprocess, sys, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
-from .environment import Hosts
+from .environment import Host
 
 try:
     from shlex import quote as shlex_quote
@@ -139,7 +139,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         print('docker command: {}'.format(command))
         subprocess.check_call(command)
 
-        if host == Hosts.Circle:
+        if host == Host.Circle:
             command = [
                 'docker',
                 'cp',
