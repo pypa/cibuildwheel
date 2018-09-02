@@ -181,7 +181,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         command = [
             'docker',
             'cp',
-            '{}:/output'.format(container_name),
+            '{}:/output/.'.format(container_name),
             os.path.abspath(output_dir),
         ]
         print('docker command: {}'.format(command))
