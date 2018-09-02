@@ -146,7 +146,25 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             universal_newlines=True,
         )
 
+        command = [
+            'docker',
+            'container',
+            'list'
+            '--all',
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
+
         if host == Host.Circle:
+            command = [
+                'docker',
+                'cp',
+                './.',
+                '{}:'.format(container_name),
+            ]
+            print('docker command: {}'.format(command))
+            subprocess.check_call(command)
+
             command = [
                 'docker',
                 'cp',
