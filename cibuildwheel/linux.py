@@ -133,7 +133,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             '--name', container_name,
             '--rm',
             '-i',
-            '-v', '%s:/project' % os.path.abspath(project_dir),
             '-v', '%s:/output' % os.path.abspath(output_dir),
             '-v', '/:/host',
             docker_image,
@@ -160,7 +159,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 'docker',
                 'cp',
                 './.',
-                '{}:'.format(container_name),
+                '{}:/project'.format(container_name),
             ]
             print('docker command: {}'.format(command))
             subprocess.check_call(command)
