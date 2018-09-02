@@ -34,3 +34,10 @@ jobs:
           name: Test.
           command: |
             $PYTHON ./bin/run_tests.py
+
+workflows:
+  version: 2
+  all-tests:
+    jobs:
+      - linux
+      - osx
