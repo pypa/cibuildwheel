@@ -149,7 +149,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         command = [
             'docker',
             'container',
-            'list'
+            'list',
             '--all',
         ]
         print('docker command: {}'.format(command))
