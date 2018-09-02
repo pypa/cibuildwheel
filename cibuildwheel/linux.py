@@ -156,11 +156,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 container_name,
             ]
             print('docker command: {}'.format(command))
-            output = subprocess.check_output(command)
-            print('len(output.splitlines())', len(output.splitlines()))
+            if subprocess.call(command) == 0:
+                break
 
-            now = time.monotonic()
-            if now - start > 30:
+            if time.monotonic() - start > 30:
                 break
 
         time.sleep(10)
@@ -171,15 +170,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 'cp',
                 './.',
                 '{}:/project'.format(container_name),
-            ]
-            print('docker command: {}'.format(command))
-            subprocess.check_call(command)
-
-            command = [
-                'docker',
-                'cp',
-                './.',
-                '{}:.'.format(container_name),
             ]
             print('docker command: {}'.format(command))
             subprocess.check_call(command)
