@@ -27,7 +27,6 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            virtualenv
             python3 --version
             python3 -m pip --version
             python3 -m pip install -q --user --ignore-installed --upgrade virtualenv
