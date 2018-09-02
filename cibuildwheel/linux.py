@@ -127,7 +127,9 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         command = [
             'docker',
-            'exec',
+            'run',
+            '--env',
+            'CIBUILDWHEEL',
             '--name', container_name,
             '-d',
             '-i',
@@ -151,10 +153,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         command = [
             'docker',
-            'run',
+            'exec',
             '--env',
             'CIBUILDWHEEL',
             container_name,
+            '/bin/sh',
         ]
         print('docker command: {}'.format(command))
         docker_process = subprocess.Popen(command, stdin=subprocess.PIPE, universal_newlines=True)
