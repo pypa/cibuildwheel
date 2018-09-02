@@ -27,12 +27,16 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
+            virtualenv
             python3 --version
-            python3 -m pip install -r requirements-dev.txt
+            python3 -m pip --version
+            python3 -m pip install -q --user --ignore-installed --upgrade virtualenv
+            python3 -m virtualenv venv
+            venv/bin/python -m pip install -r requirements-dev.txt
       - run:
           name: Test.
           command: |
-            python3 ./bin/run_tests.py
+            venv/bin/python ./bin/run_tests.py
 
 workflows:
   version: 2
