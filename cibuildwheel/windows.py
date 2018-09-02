@@ -10,7 +10,7 @@ from glob import glob
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, from_pypi):
     # run_with_env is a cmd file that sets the right environment variables to
     run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
     if not os.path.exists(run_with_env):
@@ -85,7 +85,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             shell([before_build_prepared], env=env)
 
         # build the wheel
-        shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
+        shell(['pip', 'wheel', from_pypi or abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
         # install the wheel

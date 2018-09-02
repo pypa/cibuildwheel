@@ -15,7 +15,7 @@ class DockerRunTimeoutError(Exception):
     pass
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images, from_pypi):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -80,7 +80,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 ls -l /host
 
                 # Build that wheel
-                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
+                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel {pypi_or_dir} -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
 
                 # Delocate the wheel
@@ -125,6 +125,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
             environment_exports='\n'.join(environment.as_shell_commands()),
+            pypi_or_dir=from_pypi or '.',
             uid=os.getuid(),
             gid=os.getgid(),
         )
