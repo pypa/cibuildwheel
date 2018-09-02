@@ -131,9 +131,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             '--env',
             'CIBUILDWHEEL',
             '--name', container_name,
-            '--rm',
             '-i',
-            '-v', '%s:/output' % os.path.abspath(output_dir),
             '-v', '/:/host',
             docker_image,
             '/bin/bash',
@@ -164,21 +162,32 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         time.sleep(10)
 
-        if host == Host.Circle:
-            command = [
-                'docker',
-                'cp',
-                './.',
-                '{}:/project'.format(container_name),
-            ]
-            print('docker command: {}'.format(command))
-            subprocess.check_call(command)
+        command = [
+            'docker',
+            'cp',
+            './.',
+            '{}:/project'.format(container_name),
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
 
         try:
             docker_process.communicate(bash_script)
         except KeyboardInterrupt:
             docker_process.kill()
             docker_process.wait()
+
+        command = [
+            'docker',
+            'cp',
+            './.',
+            '{}:/output'.format(container_name),
+            os.path.abspath(output_dir),
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
+
+        # TODO: dropped -rm above so cleanup here
 
         if docker_process.returncode != 0:
             exit(1)
