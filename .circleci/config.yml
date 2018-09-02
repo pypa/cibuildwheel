@@ -23,6 +23,7 @@ jobs:
       - image: circleci/python:3.6
     steps:
       - checkout
+      - setup_remote_docker
 
       - run:
           name: Prepare the environment.
