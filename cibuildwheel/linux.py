@@ -151,7 +151,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 'docker',
                 'cp',
                 './.',
-                '{}:'.format(container_name),
+                '{}:.'.format(container_name),
             ]
             print('docker command: {}'.format(command))
             subprocess.check_call(command)
