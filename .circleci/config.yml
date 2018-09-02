@@ -28,7 +28,7 @@ jobs:
           name: Prepare the environment.
           command: |
             python3 --version
-            python3 -m pip install pip install -r requirements-dev.txt
+            python3 -m pip install -r requirements-dev.txt
       - run:
           name: Test.
           command: |
