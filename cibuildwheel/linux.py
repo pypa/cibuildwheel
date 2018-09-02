@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, subprocess, sys, uuid
+import os, subprocess, sys, time, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
 from .environment import Host
@@ -145,14 +145,25 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             universal_newlines=True,
         )
 
-        command = [
-            'docker',
-            'container',
-            'list',
-            '--all',
-        ]
-        print('docker command: {}'.format(command))
-        subprocess.check_call(command)
+        start = time.monotonic()
+
+        while True:
+            time.sleep(1)
+            command = [
+                'docker',
+                'container',
+                'inspect',
+                container_name,
+            ]
+            print('docker command: {}'.format(command))
+            output = subprocess.check_output(command)
+            print('len(output.splitlines())', len(output.splitlines()))
+
+            now = time.monotonic()
+            if now - start > 30:
+                break
+
+        time.sleep(10)
 
         if host == Host.Circle:
             command = [
