@@ -27,13 +27,12 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            echo 'export PYTHON=python3' >> $BASH_ENV
-            $PYTHON --version
-            $PYTHON -m pip install pip install -r requirements-dev.txt
+            python3 --version
+            python3 -m pip install pip install -r requirements-dev.txt
       - run:
           name: Test.
           command: |
-            $PYTHON ./bin/run_tests.py
+            python3 ./bin/run_tests.py
 
 workflows:
   version: 2
