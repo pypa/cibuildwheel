@@ -104,6 +104,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 fi
 
                 # we're all done here; move it to output
+                mkdir /output
                 mv "$delocated_wheel" /output
                 chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"
             done
