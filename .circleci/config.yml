@@ -1,0 +1,36 @@
+version: 2
+
+jobs:
+  osx:
+    macos:
+      xcode: "10.0.0"
+    steps:
+      - checkout
+
+      - run:
+          name: Prepare the environment.
+          command: |
+            echo 'export PYTHON=python3' >> $BASH_ENV
+            $PYTHON --version
+            $PYTHON -m pip install pip install -r requirements-dev.txt
+      - run:
+          name: Test.
+          command: |
+            $PYTHON ./bin/run_tests.py
+
+  linux-wheels:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+
+      - run:
+          name: Prepare the environment.
+          command: |
+            echo 'export PYTHON=python3' >> $BASH_ENV
+            $PYTHON --version
+            $PYTHON -m pip install pip install -r requirements-dev.txt
+      - run:
+          name: Test.
+          command: |
+            $PYTHON ./bin/run_tests.py
