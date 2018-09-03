@@ -147,7 +147,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         )
 
         start = monotonic.monotonic()
-
         while True:
             time.sleep(1)
             command = [
@@ -160,19 +159,23 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             if subprocess.call(command) == 0:
                 break
 
-            if monotonic.monotonic() - start > 30:
+            if monotonic.monotonic() - start > 60:
                 break
 
-        time.sleep(10)
+        start = monotonic.monotonic()
+        while True:
+            command = [
+                'docker',
+                'cp',
+                '{}/.'.format(os.path.abspath(project_dir)),
+                '{}:/project'.format(container_name),
+            ]
+            print('docker command: {}'.format(command))
+            if subprocess.call(command) == 0:
+                break
 
-        command = [
-            'docker',
-            'cp',
-            '{}/.'.format(os.path.abspath(project_dir)),
-            '{}:/project'.format(container_name),
-        ]
-        print('docker command: {}'.format(command))
-        subprocess.check_call(command)
+            if monotonic.monotonic() - start > 60:
+                break
 
         try:
             docker_process.communicate(bash_script)
