@@ -164,6 +164,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
 
         start = monotonic.monotonic()
         while True:
+            time.sleep(1)
             command = [
                 'docker',
                 'cp',
