@@ -35,7 +35,7 @@ jobs:
 
   linux-python2:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:2.7
     steps:
       - checkout
       - setup_remote_docker
