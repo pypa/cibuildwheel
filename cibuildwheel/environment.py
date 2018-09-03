@@ -7,33 +7,33 @@ class EnvironmentParseError(Exception):
     pass
 
 
-class Host(enum.Enum):
-    Travis = 0
-    AppVeyor = 1
-    Bitrise = 2
-    Circle = 3
-
-
-host_environment_identifier = {
-    'TRAVIS': Host.Travis,
-    'APPVEYOR': Host.AppVeyor,
-    'BITRISE_IO': Host.Bitrise,
-    'CIRCLECI': Host.Circle,
-}
-
-
-def get_host(environ):
-    hosts = [
-        host
-        for variable, host in host_environment_identifier.items()
-        if environ.get(variable, False)
-    ]
-
-    if len(hosts) == 0:
-        return None
-
-    host, = hosts
-    return host
+# class Host(enum.Enum):
+#     Travis = 0
+#     AppVeyor = 1
+#     Bitrise = 2
+#     Circle = 3
+#
+#
+# host_environment_identifier = {
+#     'TRAVIS': Host.Travis,
+#     'APPVEYOR': Host.AppVeyor,
+#     'BITRISE_IO': Host.Bitrise,
+#     'CIRCLECI': Host.Circle,
+# }
+#
+#
+# def get_host(environ):
+#     hosts = [
+#         host
+#         for variable, host in host_environment_identifier.items()
+#         if environ.get(variable, False)
+#     ]
+#
+#     if len(hosts) == 0:
+#         return None
+#
+#     host, = hosts
+#     return host
 
 
 def parse_environment(env_string):

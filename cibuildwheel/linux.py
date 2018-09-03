@@ -2,7 +2,6 @@ from __future__ import print_function
 import os, subprocess, sys, time, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
-from .environment import Host
 
 import monotonic
 
@@ -12,7 +11,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images, host):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:

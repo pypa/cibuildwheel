@@ -11,7 +11,7 @@ setup(
     version='0.9.4',
     install_requires=[
         'bashlex',
-        'enum34;python_version<"3.4"',
+        # 'enum34;python_version<"3.4"',
         'monotonic',
     ],
     description="Build Python wheels on CI with minimal configuration.",
