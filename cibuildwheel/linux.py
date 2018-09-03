@@ -4,6 +4,8 @@ from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
 from .environment import Host
 
+import monotonic
+
 try:
     from shlex import quote as shlex_quote
 except ImportError:
@@ -144,7 +146,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             universal_newlines=True,
         )
 
-        start = time.monotonic()
+        start = monotonic.monotonic()
 
         while True:
             time.sleep(1)
@@ -158,7 +160,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             if subprocess.call(command) == 0:
                 break
 
-            if time.monotonic() - start > 30:
+            if monotonic.monotonic() - start > 30:
                 break
 
         time.sleep(10)
