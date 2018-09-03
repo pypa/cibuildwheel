@@ -10,10 +10,10 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            python3 --version
-            python3 -m pip --version
-            python3 -m pip install -q --user --ignore-installed --upgrade virtualenv
-            python3 -m virtualenv -p python3 venv
+            python --version
+            python -m pip --version
+            python -m pip install -q --user --ignore-installed --upgrade virtualenv
+            python -m virtualenv -p python venv
             venv/bin/python -m pip install -r requirements-dev.txt
       - run:
           name: Test.
@@ -30,10 +30,10 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            python3 --version
-            python3 -m pip --version
-            python3 -m pip install -q --user --ignore-installed --upgrade virtualenv
-            python3 -m virtualenv -p python3 venv
+            python --version
+            python -m pip --version
+            python -m pip install -q --user --ignore-installed --upgrade virtualenv
+            python -m virtualenv -p python venv
             venv/bin/python -m pip install -r requirements-dev.txt
       - run:
           name: Test.
@@ -45,4 +45,4 @@ workflows:
   all-tests:
     jobs:
       - linux
-#      - osx
+      - osx
