@@ -71,5 +71,7 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      - linux
-      - osx
+      - osx-python2
+      - osx-python3
+      - linux-python2
+      - linux-python3
