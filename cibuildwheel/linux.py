@@ -150,22 +150,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             time.sleep(1)
             command = [
                 'docker',
-                'container',
-                'inspect',
-                container_name,
-            ]
-            print('docker command: {}'.format(command))
-            if subprocess.call(command) == 0:
-                break
-
-            if monotonic.monotonic() - start > 60:
-                break
-
-        start = monotonic.monotonic()
-        while True:
-            time.sleep(1)
-            command = [
-                'docker',
                 'cp',
                 '{}/.'.format(os.path.abspath(project_dir)),
                 '{}:/project'.format(container_name),
