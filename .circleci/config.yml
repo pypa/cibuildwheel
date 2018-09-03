@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  osx:
+  osx-python2:
     macos:
       xcode: "10.0.0"
     steps:
@@ -10,17 +10,30 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            python --version
-            python -m pip --version
-            python -m pip install -q --user --ignore-installed --upgrade virtualenv
-            python -m virtualenv -p python venv
-            venv/bin/python -m pip install -r requirements-dev.txt
+            echo 'export PYTHON=python2' >> $BASH_ENV
+            bash .circleci/prepare.sh
       - run:
           name: Test.
           command: |
             venv/bin/python ./bin/run_tests.py
 
-  linux:
+  osx-python3:
+    macos:
+      xcode: "10.0.0"
+    steps:
+      - checkout
+
+      - run:
+          name: Prepare the environment.
+          command: |
+            echo 'export PYTHON=python3' >> $BASH_ENV
+            bash .circleci/prepare.sh
+      - run:
+          name: Test.
+          command: |
+            venv/bin/python ./bin/run_tests.py
+
+  linux-python2:
     docker:
       - image: circleci/python:3.6
     steps:
@@ -30,11 +43,25 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            python --version
-            python -m pip --version
-            python -m pip install -q --user --ignore-installed --upgrade virtualenv
-            python -m virtualenv -p python venv
-            venv/bin/python -m pip install -r requirements-dev.txt
+            echo 'export PYTHON=python2' >> $BASH_ENV
+            bash .circleci/prepare.sh
+      - run:
+          name: Test.
+          command: |
+            venv/bin/python ./bin/run_tests.py
+
+  linux-python3:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - setup_remote_docker
+
+      - run:
+          name: Prepare the environment.
+          command: |
+            echo 'export PYTHON=python3' >> $BASH_ENV
+            bash .circleci/prepare.sh
       - run:
           name: Test.
           command: |
