@@ -1,22 +1,24 @@
 version: 2
 
 jobs:
-#  osx:
-#    macos:
-#      xcode: "10.0.0"
-#    steps:
-#      - checkout
-#
-#      - run:
-#          name: Prepare the environment.
-#          command: |
-#            echo 'export PYTHON=python3' >> $BASH_ENV
-#            $PYTHON --version
-#            $PYTHON -m pip install pip install -r requirements-dev.txt
-#      - run:
-#          name: Test.
-#          command: |
-#            $PYTHON ./bin/run_tests.py
+  osx:
+    macos:
+      xcode: "10.0.0"
+    steps:
+      - checkout
+
+      - run:
+          name: Prepare the environment.
+          command: |
+            python3 --version
+            python3 -m pip --version
+            python3 -m pip install -q --user --ignore-installed --upgrade virtualenv
+            python3 -m virtualenv -p python3 venv
+            venv/bin/python -m pip install -r requirements-dev.txt
+      - run:
+          name: Test.
+          command: |
+            venv/bin/python ./bin/run_tests.py
 
   linux:
     docker:
