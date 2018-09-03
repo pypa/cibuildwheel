@@ -176,7 +176,13 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         print('docker command: {}'.format(command))
         subprocess.check_call(command)
 
-        # TODO: dropped -rm above so cleanup here
+        command = [
+            'docker',
+            'rm',
+            '-v', container_name,
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
 
         if docker_process.returncode != 0:
             exit(1)
