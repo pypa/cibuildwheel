@@ -4,13 +4,14 @@ jobs:
   osx-python2:
     macos:
       xcode: "10.0.0"
+    environment:
+      PYTHON: python2
     steps:
       - checkout
 
       - run:
           name: Prepare the environment.
           command: |
-            echo 'export PYTHON=python2' >> $BASH_ENV
             bash .circleci/prepare.sh
       - run:
           name: Test.
@@ -20,13 +21,14 @@ jobs:
   osx-python3:
     macos:
       xcode: "10.0.0"
+    environment:
+      PYTHON: python3
     steps:
       - checkout
 
       - run:
           name: Prepare the environment.
           command: |
-            echo 'export PYTHON=python3' >> $BASH_ENV
             bash .circleci/prepare.sh
       - run:
           name: Test.
@@ -36,6 +38,8 @@ jobs:
   linux-python2:
     docker:
       - image: circleci/python:2.7
+    environment:
+      PYTHON: python2
     steps:
       - checkout
       - setup_remote_docker
@@ -43,7 +47,6 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            echo 'export PYTHON=python2' >> $BASH_ENV
             bash .circleci/prepare.sh
       - run:
           name: Test.
@@ -53,6 +56,8 @@ jobs:
   linux-python3:
     docker:
       - image: circleci/python:3.6
+    environment:
+      PYTHON: python3
     steps:
       - checkout
       - setup_remote_docker
@@ -60,7 +65,6 @@ jobs:
       - run:
           name: Prepare the environment.
           command: |
-            echo 'export PYTHON=python3' >> $BASH_ENV
             bash .circleci/prepare.sh
       - run:
           name: Test.

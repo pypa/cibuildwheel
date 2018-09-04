@@ -11,6 +11,10 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
+class DockerRunTimeoutError(Exception):
+    pass
+
+
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
     try:
         subprocess.check_call(['docker', '--version'])
@@ -134,7 +138,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             'CIBUILDWHEEL',
             '--name', container_name,
             '-i',
-            '-v', '/:/host',
+            '-v', '/:/host', # ignored on Circle
             docker_image,
             '/bin/bash',
         ]
@@ -145,6 +149,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             universal_newlines=True,
         )
 
+        # It will take a bit for docker to get the container up and
+        # running.  Keep trying to copy in the project directory until
+        # it succeeds.  There is a timeout to avoid spinning forever.
+
+        timeout = 180
         start = monotonic.monotonic()
         while True:
             time.sleep(1)
@@ -158,8 +167,11 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             if subprocess.call(command) == 0:
                 break
 
-            if monotonic.monotonic() - start > 60:
-                break
+            if monotonic.monotonic() - start > timeout:
+                raise DockerRunTimeoutError(
+                    'Unable to successfully copy project directory'
+                    ' within {} seconds'.format(timeout)
+                )
 
         try:
             docker_process.communicate(bash_script)
