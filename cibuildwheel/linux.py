@@ -1,7 +1,9 @@
 from __future__ import print_function
-import os, subprocess, sys
+import os, subprocess, sys, time, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
+
+import monotonic
 
 try:
     from shlex import quote as shlex_quote
@@ -9,12 +11,17 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
+class DockerRunTimeoutError(Exception):
+    pass
+
+
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
         print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
-              'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.',
+              'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
+              'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
               file=sys.stderr)
         exit(2)
 
@@ -50,6 +57,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         bash_script = '''
             set -o errexit
             set -o xtrace
+            mkdir /output
             cd /project
 
             {environment_exports}
@@ -64,6 +72,12 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 if [ ! -z {before_build} ]; then
                     PATH="$PYBIN:$PATH" sh -c {before_build}
                 fi
+
+                pwd
+                ls -l .
+                ls -l /project
+                ls -l /output
+                ls -l /host
 
                 # Build that wheel
                 PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
@@ -115,25 +129,72 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             gid=os.getgid(),
         )
 
-        docker_process = subprocess.Popen([
+        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+
+        command = [
+            'docker',
+            'run',
+            '--env',
+            'CIBUILDWHEEL',
+            '--name', container_name,
+            '-i',
+            '-v', '/:/host', # ignored on Circle
+            docker_image,
+            '/bin/bash',
+        ]
+        print('docker command: {}'.format(command))
+        docker_process = subprocess.Popen(
+            command,
+            stdin=subprocess.PIPE,
+            universal_newlines=True,
+        )
+
+        # It will take a bit for docker to get the container up and
+        # running.  Keep trying to copy in the project directory until
+        # it succeeds.  There is a timeout to avoid spinning forever.
+
+        timeout = 180
+        start = monotonic.monotonic()
+        while True:
+            time.sleep(1)
+            command = [
                 'docker',
-                'run',
-                '--env',
-                'CIBUILDWHEEL',
-                '--rm',
-                '-i',
-                '-v', '%s:/project' % os.path.abspath(project_dir),
-                '-v', '%s:/output' % os.path.abspath(output_dir),
-                '-v', '/:/host',
-                docker_image,
-                '/bin/bash'],
-            stdin=subprocess.PIPE, universal_newlines=True)
+                'cp',
+                '{}/.'.format(os.path.abspath(project_dir)),
+                '{}:/project'.format(container_name),
+            ]
+            print('docker command: {}'.format(command))
+            if subprocess.call(command) == 0:
+                break
+
+            if monotonic.monotonic() - start > timeout:
+                raise DockerRunTimeoutError(
+                    'Unable to successfully copy project directory'
+                    ' within {} seconds'.format(timeout)
+                )
 
         try:
             docker_process.communicate(bash_script)
         except KeyboardInterrupt:
             docker_process.kill()
             docker_process.wait()
+
+        command = [
+            'docker',
+            'cp',
+            '{}:/output/.'.format(container_name),
+            os.path.abspath(output_dir),
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
+
+        command = [
+            'docker',
+            'rm',
+            '-v', container_name,
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
 
         if docker_process.returncode != 0:
             exit(1)

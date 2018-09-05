@@ -1,11 +1,11 @@
 cibuildwheel
 ============
 
-[![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel) [![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch=master)](https://travis-ci.org/joerick/cibuildwheel) [![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master)
+[![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel) [![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch=master)](https://travis-ci.org/joerick/cibuildwheel) [![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master) [![CircleCI](https://circleci.com/gh/joerick/cibuildwheel.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel)
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Travis CI and Appveyor - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Travis CI, Appveyor, and Circle CI - and it builds and tests your wheels across all of your platforms.
 
 **`cibuildwheel` is in beta**. It's brand new - I'd love for you to try it and help make it better!
 
@@ -23,16 +23,16 @@ What does it do?
 
 <small>[⚠️=deprecated]</small>
 
-- Builds manylinux, macOS and Windows (32 and 64bit) wheels using Travis CI and Appveyor
+- Builds manylinux, macOS and Windows (32 and 64bit) wheels using Travis CI, Appveyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs the library test suite against the wheel-installed version of your library
 
 Usage
 -----
 
-`cibuildwheel` currently works on **Travis CI** to build Linux and Mac wheels, and **Appveyor** to build Windows wheels.
+`cibuildwheel` currently works on **Travis CI** and **Circle CI** to build Linux and Mac wheels, and **Appveyor** to build Windows wheels.
 
-`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI and Appveyor run their builds in isolated environments, so are ideal for this kind of script.
+`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, Circle CI, and Appveyor run their builds in isolated environments, so are ideal for this kind of script.
 
 ### Minimal setup
 
@@ -57,6 +57,55 @@ Usage
     ```
 
   Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
+
+- Create a `.circleci/config.yml` file in your repo,
+
+  ```
+  version: 2
+
+  jobs:
+    linux-wheels:
+      working_directory: ~/linux-wheels
+      docker:
+        - image: circleci/python:3.6
+      steps:
+        - checkout
+        - setup_remote_docker
+
+        - run:
+            name: Build the Linux wheels.
+            command: |
+              pip install --user cibuildwheel
+              cibuildwheel --output-dir wheelhouse
+
+        - store_artifacts:
+            path: wheelhouse/
+
+    osx-wheels:
+      working_directory: ~/osx-wheels
+      macos:
+        xcode: "10.0.0"
+      steps:
+        - checkout
+
+        - run:
+            name: Build the OS X wheels.
+            command: |
+              pip install --user cibuildwheel
+              cibuildwheel --output-dir wheelhouse
+
+        - store_artifacts:
+            path: wheelhouse/
+
+  workflows:
+    version: 2
+    all-tests:
+      jobs:
+        - linux-wheels
+        - osx-wheels
+  ```
+
+  Circle CI will store the built wheels for you - you can access them from the project console.
 
 - Create an `appveyor.yml` file in your repo.
 
@@ -99,7 +148,7 @@ A more detailed description of the options, the allowed values, and some example
 
 Linux wheels are built in the [`manylinux1` docker images](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 513](https://www.python.org/dev/peps/pep-0513/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
 - Programs and libraries cannot be installed on the Travis CI Ubuntu host with `apt-get`, but can be installed inside of the Docker image using `yum` or manually. The same goes for environment variables that are potentially needed to customize the wheel building. `cibuildwheel` supports this by providing the `CIBW_ENVIRONMENT` and `CIBW_BEFORE_BUILD` options to setup the build environment inside the running Docker image. See [below](#options) for details on these options.
-- The project directory is mounted in the running Docker instance as `/project`, the output directory for the wheels as `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.
+- The project directory is mounted in the running Docker instance as `/project`, the output directory for the wheels as `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that this is not available on CircleCI due to their Docker policies.
 - Alternative dockers images can be specified with the `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [below](#options) for more details.
 
 
@@ -133,7 +182,7 @@ optional arguments:
 
 ```
 
-Most of the config is via environment variables. These go into `.travis.yml` and `appveyor.yml` nicely.
+Most of the config is via environment variables. These go into `.travis.yml`, `appveyor.yml`, and `.circleci/config.yml` nicely.
 
 ***
 
@@ -144,7 +193,7 @@ Options: `auto` `linux` `macos` `windows`
 
 Default: `auto`
 
-`auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`.
+`auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
 
 For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
 
@@ -331,7 +380,7 @@ It didn't work!
 If your wheel didn't compile, check the list below for some debugging tips.
 
 - A mistake in your config. To quickly test your config without doing a git push and waiting for your code to build on CI, you can run the Linux build in a Docker container. On Mac or Linux, with Docker running, try `cibuildwheel --platform linux`. You'll have to bring your config into the current environment first.
-- Missing dependency. You might need to install something on the build machine. You can do this in `.travis.yml` or `appveyor.yml`, with apt-get, brew or whatever Windows uses :P . Given how the Linux build works, we'll probably have to build something into `cibuildwheel`. Let's chat about that over in the issues!
+- Missing dependency. You might need to install something on the build machine. You can do this in `.travis.yml`, `appveyor.yml`, or `.circleci/config.yml`, with apt-get, brew or whatever Windows uses :P . Given how the Linux build works, we'll probably have to build something into `cibuildwheel`. Let's chat about that over in the issues!
 - Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
 
 Working examples

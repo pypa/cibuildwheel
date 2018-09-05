@@ -53,6 +53,8 @@ def main():
     if args.platform != 'auto':
         platform = args.platform
     else:
+        platform = None
+
         if os.environ.get('TRAVIS_OS_NAME') == 'linux':
             platform = 'linux'
         elif os.environ.get('TRAVIS_OS_NAME') == 'osx':
@@ -61,9 +63,15 @@ def main():
             platform = 'windows'
         elif 'BITRISE_BUILD_NUMBER' in os.environ:
             platform = 'macos'
-        else:
+        elif os.environ.get('CIRCLECI'):
+            if sys.platform.startswith('linux'):
+                platform = 'linux'
+            elif sys.platform.startswith('darwin'):
+                platform = 'macos'
+
+        if platform is None:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
-                  'Travis CI and Appveyor are supported. You can run on your development '
+                  'Travis CI, Appveyor, and CircleCI are supported. You can run on your development '
                   'machine using the --platform argument. Check --help output for more '
                   'information.',
                   file=sys.stderr)
