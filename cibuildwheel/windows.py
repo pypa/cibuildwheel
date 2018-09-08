@@ -28,8 +28,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
     python_configurations = [
         PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27'),
         PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64'),
-        PythonConfiguration(version='3.3.x', arch="32", identifier='cp33-win32', path='C:\Python33'),
-        PythonConfiguration(version='3.3.x', arch="64", identifier='cp33-win_amd64', path='C:\Python33-x64'),
         PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34'),
         PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64'),
         PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35'),

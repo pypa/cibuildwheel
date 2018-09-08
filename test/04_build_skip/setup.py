@@ -2,7 +2,7 @@ from setuptools import setup, Extension
 import sys
 
 if sys.argv[-1] != '--name':
-    # explode if run on Python 2.7 or Python 3.3 (these should be skipped)
+    # explode if run on Python 2.7 or Python 3.4 (these should be skipped)
     if sys.version_info[0:2] == (2, 7):
         raise Exception('Python 2.7 should not be built')
     if sys.version_info[0:2] == (3, 4):
