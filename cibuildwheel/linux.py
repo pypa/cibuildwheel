@@ -129,8 +129,18 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             gid=os.getgid(),
         )
 
-        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+        # Pull the image so container startup timing is more predictable
+        command = [
+            'docker',
+            'image',
+            'pull',
+            docker_image,
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
 
+        # Start the Docker container
+        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         command = [
             'docker',
             'run',
@@ -148,53 +158,60 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             stdin=subprocess.PIPE,
             universal_newlines=True,
         )
+        try:
+            # Copy the project into the Docker container
+            #
+            # It will take a bit for docker to get the container up and
+            # running.  Keep trying to copy in the project directory until
+            # it succeeds.  There is a timeout to avoid spinning forever.
+            timeout = 30
+            start = monotonic.monotonic()
+            while True:
+                time.sleep(1)
+                command = [
+                    'docker',
+                    'cp',
+                    '{}/.'.format(os.path.abspath(project_dir)),
+                    '{}:/project'.format(container_name),
+                ]
+                print('docker command: {}'.format(command))
+                if subprocess.call(command) == 0:
+                    break
 
-        # It will take a bit for docker to get the container up and
-        # running.  Keep trying to copy in the project directory until
-        # it succeeds.  There is a timeout to avoid spinning forever.
+                if monotonic.monotonic() - start > timeout:
+                    raise DockerRunTimeoutError(
+                        'Unable to successfully copy project directory'
+                        ' within {} seconds'.format(timeout)
+                    )
 
-        timeout = 180
-        start = monotonic.monotonic()
-        while True:
-            time.sleep(1)
+            # Run the bash script
+            try:
+                docker_process.communicate(bash_script)
+            except KeyboardInterrupt:
+                docker_process.kill()
+                docker_process.wait()
+                raise
+
+            if docker_process.returncode != 0:
+                exit(1)
+
+            # Build done. Pull the wheels from the container.
             command = [
                 'docker',
                 'cp',
-                '{}/.'.format(os.path.abspath(project_dir)),
-                '{}:/project'.format(container_name),
+                '{}:/output/.'.format(container_name),
+                os.path.abspath(output_dir),
             ]
             print('docker command: {}'.format(command))
-            if subprocess.call(command) == 0:
-                break
+            subprocess.check_call(command)
+        finally:
+            # Cleanup: remove the docker container and its volumes
+            command = [
+                'docker',
+                'rm',
+                '--force',
+                '-v', container_name,
+            ]
+            print('docker command: {}'.format(command))
+            subprocess.check_call(command)
 
-            if monotonic.monotonic() - start > timeout:
-                raise DockerRunTimeoutError(
-                    'Unable to successfully copy project directory'
-                    ' within {} seconds'.format(timeout)
-                )
-
-        try:
-            docker_process.communicate(bash_script)
-        except KeyboardInterrupt:
-            docker_process.kill()
-            docker_process.wait()
-
-        command = [
-            'docker',
-            'cp',
-            '{}:/output/.'.format(container_name),
-            os.path.abspath(output_dir),
-        ]
-        print('docker command: {}'.format(command))
-        subprocess.check_call(command)
-
-        command = [
-            'docker',
-            'rm',
-            '-v', container_name,
-        ]
-        print('docker command: {}'.format(command))
-        subprocess.check_call(command)
-
-        if docker_process.returncode != 0:
-            exit(1)
