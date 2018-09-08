@@ -405,6 +405,13 @@ Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will auto
 Changelog
 =========
 
+### Next version
+
+- ✨ Add support for building Mac and Linux on CircleCI (#91)
+- 🛠 Ensure log output is unbuffered and therefore in the correct order (#92)
+- 🛠 Improved error reporting for errors that occur inside a package's setup.py (#88)
+- ⚠️ Removed support for Python 3.3 on Windows.
+
 ### 0.9.4
 
 - 🛠 CIBW_TEST_COMMAND now runs in a shell on Mac (as well as Linux) (#81)
