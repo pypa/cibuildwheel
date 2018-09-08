@@ -129,8 +129,18 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             gid=os.getgid(),
         )
 
-        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+        # Pull the image so container startup timing is more predictable
+        command = [
+            'docker',
+            'image',
+            'pull',
+            docker_image,
+        ]
+        print('docker command: {}'.format(command))
+        subprocess.check_call(command)
 
+        # Start the Docker container
+        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         command = [
             'docker',
             'run',
