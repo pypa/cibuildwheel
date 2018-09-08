@@ -164,7 +164,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             # It will take a bit for docker to get the container up and
             # running.  Keep trying to copy in the project directory until
             # it succeeds.  There is a timeout to avoid spinning forever.
-            timeout = 60
+            timeout = 30
             start = monotonic.monotonic()
             while True:
                 time.sleep(1)
