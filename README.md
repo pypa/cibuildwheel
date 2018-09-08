@@ -5,7 +5,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Travis CI, Appveyor, and Circle CI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Travis CI, Appveyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
 
 **`cibuildwheel` is in beta**. It's brand new - I'd love for you to try it and help make it better!
 
@@ -30,13 +30,13 @@ What does it do?
 Usage
 -----
 
-`cibuildwheel` currently works on **Travis CI** and **Circle CI** to build Linux and Mac wheels, and **Appveyor** to build Windows wheels.
+`cibuildwheel` currently works on **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **Appveyor** to build Windows wheels.
 
-`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, Circle CI, and Appveyor run their builds in isolated environments, so are ideal for this kind of script.
+`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and Appveyor run their builds in isolated environments, so are ideal for this kind of script.
 
 ### Minimal setup
 
-- Create a `.travis.yml` file in your repo.
+- To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
 
     ```
     language: python
@@ -58,7 +58,7 @@ Usage
 
   Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
 
-- Create a `.circleci/config.yml` file in your repo,
+- To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
   ```
   version: 2
@@ -71,13 +71,11 @@ Usage
       steps:
         - checkout
         - setup_remote_docker
-
         - run:
             name: Build the Linux wheels.
             command: |
               pip install --user cibuildwheel
               cibuildwheel --output-dir wheelhouse
-
         - store_artifacts:
             path: wheelhouse/
 
@@ -87,13 +85,11 @@ Usage
         xcode: "10.0.0"
       steps:
         - checkout
-
         - run:
             name: Build the OS X wheels.
             command: |
               pip install --user cibuildwheel
               cibuildwheel --output-dir wheelhouse
-
         - store_artifacts:
             path: wheelhouse/
 
@@ -105,9 +101,11 @@ Usage
         - osx-wheels
   ```
 
-  Circle CI will store the built wheels for you - you can access them from the project console.
+  Note: CircleCI doesn't enable free macOS containers for open source by default, but you can ask for access. See [here](https://circleci.com/docs/2.0/oss/#overview) for more information.
 
-- Create an `appveyor.yml` file in your repo.
+  CircleCI will store the built wheels for you - you can access them from the project console.
+
+- To build Windows wheels on Appveyor, create an `appveyor.yml` file in your repo.
 
     ```
     build_script:
