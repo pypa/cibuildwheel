@@ -1,18 +1,12 @@
 from __future__ import print_function
-import os, subprocess, sys, time, uuid
+import os, subprocess, sys, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
-
-import monotonic
 
 try:
     from shlex import quote as shlex_quote
 except ImportError:
     from pipes import quote as shlex_quote
-
-
-class DockerRunTimeoutError(Exception):
-    pass
 
 
 def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
@@ -129,72 +123,33 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             gid=os.getgid(),
         )
 
+        def run_docker(*args):
+            print('docker command: docker {}'.format(' '.join(map(shlex_quote, args))))
+            return subprocess.check_call(['docker'] + list(args))
+
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+        run_docker('create',
+                   '--env', 'CIBUILDWHEEL',
+                   '--name', container_name,
+                   '-i',
+                   '-v', '/:/host', # ignored on Circle
+                   docker_image, '/bin/bash')
 
-        command = [
-            'docker',
-            'run',
-            '--env',
-            'CIBUILDWHEEL',
-            '--name', container_name,
-            '-i',
-            '-v', '/:/host', # ignored on Circle
-            docker_image,
-            '/bin/bash',
-        ]
-        print('docker command: {}'.format(command))
-        docker_process = subprocess.Popen(
-            command,
-            stdin=subprocess.PIPE,
-            universal_newlines=True,
-        )
+        abs_project_dir = os.path.abspath(project_dir)
+        run_docker('cp', abs_project_dir + '/.', container_name + ':/project')
 
-        # It will take a bit for docker to get the container up and
-        # running.  Keep trying to copy in the project directory until
-        # it succeeds.  There is a timeout to avoid spinning forever.
-
-        timeout = 180
-        start = monotonic.monotonic()
-        while True:
-            time.sleep(1)
-            command = [
-                'docker',
-                'cp',
-                '{}/.'.format(os.path.abspath(project_dir)),
-                '{}:/project'.format(container_name),
-            ]
-            print('docker command: {}'.format(command))
-            if subprocess.call(command) == 0:
-                break
-
-            if monotonic.monotonic() - start > timeout:
-                raise DockerRunTimeoutError(
-                    'Unable to successfully copy project directory'
-                    ' within {} seconds'.format(timeout)
-                )
-
+        docker_process = subprocess.Popen(['docker', 'start', '-i', '-a', container_name],
+                                          stdin=subprocess.PIPE, universal_newlines=True)
         try:
             docker_process.communicate(bash_script)
         except KeyboardInterrupt:
             docker_process.kill()
             docker_process.wait()
 
-        command = [
-            'docker',
-            'cp',
-            '{}:/output/.'.format(container_name),
-            os.path.abspath(output_dir),
-        ]
-        print('docker command: {}'.format(command))
-        subprocess.check_call(command)
+        abs_output_dir = os.path.abspath(output_dir)
+        run_docker('cp', container_name + ':/output/.', abs_output_dir)
 
-        command = [
-            'docker',
-            'rm',
-            '-v', container_name,
-        ]
-        print('docker command: {}'.format(command))
-        subprocess.check_call(command)
+        run_docker('rm', '-v', container_name)
 
         if docker_process.returncode != 0:
             exit(1)
