@@ -123,9 +123,19 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             gid=os.getgid(),
         )
 
-        def run_docker(*args):
+        def run_docker(*args, stdin_str=None):
             print('docker command: docker {}'.format(' '.join(map(shlex_quote, args))))
-            return subprocess.check_call(['docker'] + list(args))
+            if stdin_str is None:
+                return subprocess.check_call(['docker'] + list(args))
+            else:
+                process = subprocess.Popen(['docker'] + list(args),
+                                           stdin=subprocess.PIPE, universal_newlines=True)
+                try:
+                    process.communicate(stdin_str)
+                except KeyboardInterrupt:
+                    process.kill()
+                    process.wait()
+                return process.returncode
 
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         run_docker('create',
@@ -134,22 +144,10 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                    '-i',
                    '-v', '/:/host', # ignored on Circle
                    docker_image, '/bin/bash')
-
-        abs_project_dir = os.path.abspath(project_dir)
-        run_docker('cp', abs_project_dir + '/.', container_name + ':/project')
-
-        docker_process = subprocess.Popen(['docker', 'start', '-i', '-a', container_name],
-                                          stdin=subprocess.PIPE, universal_newlines=True)
-        try:
-            docker_process.communicate(bash_script)
-        except KeyboardInterrupt:
-            docker_process.kill()
-            docker_process.wait()
-
-        abs_output_dir = os.path.abspath(output_dir)
-        run_docker('cp', container_name + ':/output/.', abs_output_dir)
-
+        run_docker('cp', os.path.abspath(project_dir) + '/.', container_name + ':/project')
+        script_returncode = run_docker('start', '-i', '-a', container_name, stdin_str=bash_script)
+        run_docker('cp', container_name + ':/output/.', os.path.abspath(output_dir))
         run_docker('rm', '-v', container_name)
 
-        if docker_process.returncode != 0:
+        if script_returncode != 0:
             exit(1)
