@@ -67,12 +67,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                     PATH="$PYBIN:$PATH" sh -c {before_build}
                 fi
 
-                pwd
-                ls -l .
-                ls -l /project
-                ls -l /output
-                ls -l /host
-
                 # Build that wheel
                 PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
@@ -126,7 +120,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         def run_docker(command, stdin_str=None):
             print('docker command: docker {}'.format(' '.join(map(shlex_quote, command))))
             if stdin_str is None:
-                return subprocess.check_call(['docker'] + command)
+                subprocess.check_call(['docker'] + command)
             else:
                 process = subprocess.Popen(['docker'] + command,
                                            stdin=subprocess.PIPE, universal_newlines=True)
@@ -135,19 +129,22 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
                 except KeyboardInterrupt:
                     process.kill()
                     process.wait()
-                return process.returncode
+                if process.returncode != 0:
+                    raise subprocess.CalledProcessError(process.returncode, process.args)
 
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
-        run_docker(['create',
-                    '--env', 'CIBUILDWHEEL',
-                    '--name', container_name,
-                    '-i',
-                    '-v', '/:/host', # ignored on Circle
-                    docker_image, '/bin/bash'])
-        run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
-        script_returncode = run_docker(['start', '-i', '-a', container_name], stdin_str=bash_script)
-        run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
-        run_docker(['rm', '-v', container_name])
-
-        if script_returncode != 0:
+        try:
+            run_docker(['create',
+                        '--env', 'CIBUILDWHEEL',
+                        '--name', container_name,
+                        '-i',
+                        '-v', '/:/host', # ignored on Circle
+                        docker_image, '/bin/bash'])
+            run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
+            run_docker(['start', '-i', '-a', container_name], stdin_str=bash_script)
+            run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
+        except subprocess.CalledProcessError:
             exit(1)
+        finally:
+            # Still gets executed, even when 'exit(1)' gets called
+            run_docker(['rm', '-v', container_name])
