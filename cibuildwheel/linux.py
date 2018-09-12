@@ -147,4 +147,4 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
-            run_docker(['rm', '-v', container_name])
+            run_docker(['rm', '--force', '-v', container_name])
