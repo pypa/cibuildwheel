@@ -392,6 +392,7 @@ Here are some repos that use cibuildwheel.
 - [python-admesh](https://github.com/admesh/python-admesh)
 - [pybase64](https://github.com/mayeut/pybase64)
 - [KDEpy](https://github.com/tommyod/KDEpy)
+- [AutoPy](https://github.com/autopilot-rs/autopy)
 
 > Add repo here! Send a PR.
 
