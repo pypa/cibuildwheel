@@ -85,6 +85,7 @@ def main():
     build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     skip_config = os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+    from_pypi = os.environ.get('CIBW_FROM_PYPI', '')
 
     try:
         build_verbosity = min(3, max(-3, int(build_verbosity)))
@@ -136,6 +137,7 @@ def main():
         build_verbosity=build_verbosity,
         skip=skip,
         environment=environment,
+        from_pypi=from_pypi,
     )
 
     if platform == 'linux':
