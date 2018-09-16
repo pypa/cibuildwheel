@@ -1,4 +1,4 @@
 {
     "CIBW_BUILD": "cp3?-*",
-    "CIBW_SKIP": "cp33-*"
+    "CIBW_SKIP": "cp34-*"
 }

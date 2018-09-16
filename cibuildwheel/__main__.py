@@ -99,7 +99,7 @@ def main():
         traceback.print_exc(None, sys.stderr)
         exit(2)
 
-    selection = BuildSelector(build_config, skip_config)
+    build_selector = BuildSelector(build_config, skip_config)
 
     # Add CIBUILDWHEEL environment variable
     # This needs to be passed on to the docker container in linux.py
@@ -134,7 +134,7 @@ def main():
         test_requires=test_requires,
         before_build=before_build,
         build_verbosity=build_verbosity,
-        selection=selection,
+        build_selector=build_selector,
         environment=environment,
     )
 

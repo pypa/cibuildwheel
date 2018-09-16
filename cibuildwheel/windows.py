@@ -10,7 +10,7 @@ from glob import glob
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, selection, environment):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
     # run_with_env is a cmd file that sets the right environment variables to
     run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
     if not os.path.exists(run_with_env):
@@ -45,7 +45,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
     for config in python_configurations:
-        if not selection(config.identifier):
+        if not build_selector(config.identifier):
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
             continue
         
