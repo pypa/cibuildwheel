@@ -130,5 +130,6 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             test_command_prepared = prepare_command(test_command, project=abs_project_dir)
             call(test_command_prepared, cwd=os.environ['HOME'], env=env, shell=True)
 
-        # we're all done here; move it to output
-        shutil.move(delocated_wheel, output_dir)
+        # we're all done here; move it to output (overwrite existing)
+        dst = os.path.join(output_dir, os.path.basename(delocated_wheel))
+        shutil.move(delocated_wheel, dst)

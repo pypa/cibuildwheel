@@ -101,5 +101,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             test_command_prepared = prepare_command(test_command, project=abs_project_dir)
             shell([test_command_prepared], cwd='c:\\', env=env)
 
-        # we're all done here; move it to output
-        shutil.move(built_wheel, output_dir)
+        # we're all done here; move it to output (remove if already exists)
+        dst = os.path.join(output_dir, os.path.basename(built_wheel))
+        if os.path.isfile(dst):
+            os.remove(dst)
+        shutil.move(built_wheel, dst)
