@@ -4,7 +4,7 @@ import argparse, os, subprocess, sys, textwrap
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
 from cibuildwheel.environment import parse_environment, EnvironmentParseError
-from cibuildwheel.util import BuildSkipper, Unbuffered
+from cibuildwheel.util import BuildSelector, Unbuffered
 
 def get_option_from_environment(option_name, platform=None, default=None):
     '''
@@ -83,7 +83,7 @@ def main():
     project_dir = args.project_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
-    skip_config = os.environ.get('CIBW_SKIP', '')
+    build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
 
     try:
@@ -99,7 +99,7 @@ def main():
         traceback.print_exc(None, sys.stderr)
         exit(2)
 
-    skip = BuildSkipper(skip_config)
+    selection = BuildSelector(build_config, skip_config)
 
     # Add CIBUILDWHEEL environment variable
     # This needs to be passed on to the docker container in linux.py
@@ -134,7 +134,7 @@ def main():
         test_requires=test_requires,
         before_build=before_build,
         build_verbosity=build_verbosity,
-        skip=skip,
+        selection=selection,
         environment=environment,
     )
 
