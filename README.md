@@ -131,6 +131,7 @@ All being well, you should get wheels delivered to you in a few minutes.
 |   | Option |   |
 |---|---|---|
 | **Target wheels** | `CIBW_PLATFORM` | Override the auto-detected target platform |
+|   | `CIBW_BUILD` | Build only certain Python versions |
 |   | `CIBW_SKIP` | Skip certain Python versions |
 | **Build parameters** | `CIBW_BUILD_VERBOSITY` | Increase or decrease the output of `pip wheel` |
 | **Build environment** | `CIBW_ENVIRONMENT` | Set environment variables needed during the build |
@@ -197,12 +198,14 @@ For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Ma
 
 ***
 
-| Environment variable: `CIBW_SKIP`
+| Environment variables: `CIBW_BUILD` and `CIBW_SKIP`
 | ---
 
 Optional.
 
-Space-separated list of builds to skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list ones to skip here and `cibuildwheel` won't try to build them.
+Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
+
+When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
 The format is `python_tag-platform_tag`. The tags are as defined in [PEP 0425](https://www.python.org/dev/peps/pep-0425/#details).
 
@@ -213,15 +216,16 @@ Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i686
 You can also use shell-style globbing syntax (as per `fnmatch`) 
 
 Examples:
-- Skip building on Python 2.7 on the Mac: `cp27-macosx_10_6_intel`  
-- Skip building on Python 2.7 on all platforms: `cp27-*`  
-- Skip Python 2.7 on Windows: `cp27-win*`  
-- Skip Python 2.7 on 32bit Windows: `cp27-win32`  
-- Skip Python 3.4 and Python 3.5: `cp34-* cp35-*`
-- Skip Python 3.6 on Linux: `cp36-manylinux*`
-- Only build on Python 3.6: `cp27-* cp34-* cp35-*`
+- Only build on Python 3.6: `CIBW_BUILD`:`cp36-*`
+- Skip building on Python 2.7 on the Mac: `CIBW_SKIP`:`cp27-macosx_10_6_intel`
+- Skip building on Python 2.7 on all platforms: `CIBW_SKIP`:`cp27-*`
+- Skip Python 2.7 on Windows: `CIBW_SKIP`:`cp27-win*`
+- Skip Python 2.7 on 32-bit Windows: `CIBW_SKIP`:`cp27-win32`
+- Skip Python 3.4 and Python 3.5: `CIBW_SKIP`:`cp34-* cp35-*`
+- Skip Python 3.6 on Linux: `CIBW_SKIP`:`cp36-manylinux*`
+- Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD`:`cp3?-*` and `CIBW_SKIP`:`*-win32 *-manylinux1_i686`
 
-***
+**
 
 | Environment variable: `CIBW_BUILD_VERBOSITY`
 | ---
