@@ -22,7 +22,7 @@ def single_run(test_project):
     print('%s built successfully. %i wheels built.' % (test_project, len(wheels)))
 
     # check some wheels were actually built
-    assert len(wheels) >= 4
+    assert len(wheels) >= 3
 
     # clean up
     shutil.rmtree('wheelhouse')
