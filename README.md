@@ -400,7 +400,11 @@ Here are some repos that use cibuildwheel.
 Legal note
 ----------
 
-Since `cibuildwheel` runs the wheel through delocate or auditwheel, it will automatically bundle library dependencies. This is similar to static linking, so it might have some licence implications. Check the license for any code you're pulling in to make sure that's allowed.
+Since `cibuildwheel` runs the wheel through delocate or auditwheel, it might automatically bundle dynamically linked libraries from the build machine. 
+
+It helps ensure that the library can run without any dependencies outside of the pip toolchain.
+
+This is similar to static linking, so it might have some licence implications. Check the license for any code you're pulling in to make sure that's allowed.
 
 Changelog
 =========
