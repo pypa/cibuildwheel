@@ -9,7 +9,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, skip, environment, manylinux1_images):
+def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment, manylinux1_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -36,7 +36,7 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
     ]
 
     # skip builds as required
-    python_configurations = [c for c in python_configurations if not skip(c.identifier)]
+    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
 
     platforms = [
         ('manylinux1_x86_64', manylinux1_images.get('x86_64') or 'quay.io/pypa/manylinux1_x86_64'),

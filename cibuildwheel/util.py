@@ -21,15 +21,18 @@ def get_build_verbosity_extra_flags(level):
         return []
 
 
-class BuildSkipper(object):
-    def __init__(self, skip_config):
-        self.patterns = skip_config.split()
+class BuildSelector(object):
+    def __init__(self, build_config, skip_config):
+        self.build_patterns = build_config.split()
+        self.skip_patterns = skip_config.split()
 
     def __call__(self, build_id):
-        return any(fnmatch(build_id, pattern) for pattern in self.patterns)
+        def match_any(patterns):
+            return any(fnmatch(build_id, pattern) for pattern in patterns)
+        return match_any(self.build_patterns) and not match_any(self.skip_patterns)
 
     def __repr__(self):
-        return 'BuildSkipper(%r)' % ' '.join(self.patterns)
+        return 'BuildSelector({!r} - {!r})'.format(' '.join(self.build_patterns), ' '.join(self.skip_patterns))
 
 
 # Taken from https://stackoverflow.com/a/107717
