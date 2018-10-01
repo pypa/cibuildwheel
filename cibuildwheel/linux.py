@@ -122,15 +122,15 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             if stdin_str is None:
                 subprocess.check_call(['docker'] + command)
             else:
-                process = subprocess.Popen(['docker'] + command,
-                                           stdin=subprocess.PIPE, universal_newlines=True)
+                args = ['docker'] + command
+                process = subprocess.Popen(args, stdin=subprocess.PIPE, universal_newlines=True)
                 try:
                     process.communicate(stdin_str)
                 except KeyboardInterrupt:
                     process.kill()
                     process.wait()
                 if process.returncode != 0:
-                    raise subprocess.CalledProcessError(process.returncode, process.args)
+                    raise subprocess.CalledProcessError(process.returncode, args)
 
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         try:
