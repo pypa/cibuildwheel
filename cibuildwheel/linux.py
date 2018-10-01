@@ -54,6 +54,12 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
             mkdir /output
             cd /project
 
+            # Fix for changes in Wheel API, until auditwheel updates (see #106)
+            # Note: The global auditwheel is used (rather thatn the one in $PYBIN, during the loop),
+            # so we need to pin this version just once, in the version of Python where auditwheel is installed
+            # See https://github.com/pypa/manylinux/blob/master/docker/build_scripts/build.sh#L123-L126
+            /opt/python/cp36-cp36m/bin/pip install wheel==0.31.1
+
             {environment_exports}
 
             for PYBIN in {pybin_paths}; do
