@@ -87,7 +87,8 @@ def build(project_dir, package_name, output_dir, test_command, test_requires, be
         call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
         call(['pip', '--version'], env=env)
         call(['pip', 'install', '--upgrade', 'setuptools'], env=env)
-        call(['pip', 'install', 'wheel'], env=env)
+        # Fix for changes in Wheel API, until delocate updates (see #106)
+        call(['pip', 'install', 'wheel==0.31.1'], env=env)
         call(['pip', 'install', 'delocate'], env=env)
 
         # setup dirs
