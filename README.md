@@ -394,6 +394,7 @@ Here are some repos that use cibuildwheel.
 - [pybase64](https://github.com/mayeut/pybase64)
 - [KDEpy](https://github.com/tommyod/KDEpy)
 - [AutoPy](https://github.com/autopilot-rs/autopy)
+- [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
 
 > Add repo here! Send a PR.
 
