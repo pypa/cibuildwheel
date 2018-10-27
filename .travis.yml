@@ -25,6 +25,7 @@ matrix:
       env: PYTHON=python3
       before_install:
         - brew update
+        - brew cask uninstall oclint # Workaround for upgrading gcc, see https://github.com/travis-ci/travis-ci/issues/8826
         - brew outdated python || brew upgrade python
 
 install: $PYTHON -m pip install -r requirements-dev.txt
