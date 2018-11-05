@@ -10,7 +10,7 @@ except ImportError:
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-def build(project_dir, package_name, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.15/python-2.7.15-macosx10.6.pkg'),
