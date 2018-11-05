@@ -107,7 +107,7 @@ def main():
 
     try:
         project_setup_py = os.path.join(project_dir, 'setup.py')
-        name_output = subprocess.check_output([sys.executable, project_setup_py, '--name'],
+        name_output = subprocess.check_output([sys.executable, project_setup_py],
                                               universal_newlines=True)
     except subprocess.CalledProcessError as err:
         if not os.path.exists(project_setup_py):
