@@ -105,20 +105,6 @@ def main():
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    try:
-        project_setup_py = os.path.join(project_dir, 'setup.py')
-        name_output = subprocess.check_output([sys.executable, project_setup_py],
-                                              universal_newlines=True)
-    except subprocess.CalledProcessError as err:
-        if not os.path.exists(project_setup_py):
-            print('cibuildwheel: Could not find setup.py at root of project', file=sys.stderr)
-            exit(2)
-        else:
-            print(err.output)
-            print('cibuildwheel: Failed to get name of the package. Command was %s' % err.cmd,
-                  file=sys.stderr)
-            exit(err.returncode)
-
     build_options = dict(
         project_dir=project_dir,
         output_dir=output_dir,
