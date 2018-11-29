@@ -5,6 +5,7 @@ import sys, os
 CIBW_TEST_VAR = os.environ.get('CIBW_TEST_VAR')
 CIBW_TEST_VAR_2 = os.environ.get('CIBW_TEST_VAR_2')
 PATH = os.environ.get('PATH')
+
 if CIBW_TEST_VAR != 'a b c':
     raise Exception('CIBW_TEST_VAR should equal "a b c". It was "%s"' % CIBW_TEST_VAR)
 if CIBW_TEST_VAR_2 != '1':
@@ -13,6 +14,7 @@ if '/opt/cibw_test_path' not in PATH:
     raise Exception('PATH should contain "/opt/cibw_test_path". It was "%s"' % PATH)
 if '$PATH' in PATH:
     raise Exception('$PATH should be expanded in PATH. It was "%s"' % PATH)
+
 
 setup(
     name="spam",

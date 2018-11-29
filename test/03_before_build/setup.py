@@ -9,6 +9,7 @@ with open(version_file) as f:
 print('stored_version', stored_version)
 print('sys.version', sys.version)
 assert stored_version == sys.version
+
 # check that the executable also was written
 executable_file = 'c:\\pythonexecutable.txt' if sys.platform == 'win32' else '/tmp/pythonexecutable.txt'
 with open(executable_file) as f:
