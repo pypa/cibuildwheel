@@ -135,6 +135,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         try:
             run_docker(['create',
                         '--env', 'CIBUILDWHEEL',
+                        '--name', container_name,
                         '-i',
                         '-v', '/:/host', # ignored on Circle
                         docker_image, '/bin/bash'])
