@@ -162,7 +162,7 @@ def print_preamble(platform, build_options):
 
     print('Build options:')
     print('  platform: %r' % platform)
-    for option, value in build_options.items():
+    for option, value in sorted(build_options.items()):
         print('  %s: %r' % (option, value))
 
     warnings = detect_warnings(platform, build_options)
