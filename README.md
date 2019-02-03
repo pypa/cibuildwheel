@@ -410,6 +410,14 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 0.10.1
+
+- 🐛 Fix build stalling on macOS (that was introduced in pip 19) (#122)
+- 🐛 Fix "AttributeError: 'Popen' object has no attribute 'args'" on Python 2.7 for Linux builds (#108)
+- 🛠 Update Python from 3.6.7, 3.7.1 to 3.6.8, 3.7.2 on macOS
+- 🛠 Update openssl patch from 1.0.2p to 1.0.2q on macOS
+- 🛠 Sorting build options dict items when printing preamble (#114)
+
 ### 0.10.0
 
 _23 September 2018_
