@@ -412,6 +412,8 @@ Changelog
 
 ### 0.10.1
 
+_3 February 2019_
+
 - 🐛 Fix build stalling on macOS (that was introduced in pip 19) (#122)
 - 🐛 Fix "AttributeError: 'Popen' object has no attribute 'args'" on Python 2.7 for Linux builds (#108)
 - 🛠 Update Python from 3.6.7, 3.7.1 to 3.6.8, 3.7.2 on macOS
