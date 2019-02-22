@@ -25,17 +25,45 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
 
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
+
+    # At this point, we need to check if we are running on Azure, because if
+    # so Python is not located in the usual place. We recognize Azure by
+    # checking for a C:\hostedtoolcache directory - there aren't any nice
+    # environment variables we can use as on some other CI frameworks.
+
+    if os.path.exists('C:\hostedtoolcache'):
+
+        # We can't hard-code the paths because on Azure, we don't know which
+        # bugfix release of Python we are getting so we need to check which
+        # ones exist. We just use the first one that is found since there should
+        # only be one.
+
+        def python_path(version, arch):
+            major, minor = version.split('.')[:2]
+            suffix = 'x86' if arch == '32' else 'x64'
+            path = glob("C:\\hostedtoolcache\\windows\\Python\\" + version.replace('x', '*') + "\\" + suffix)[0]
+            return path
+
+    else:
+
+        def python_path(version, arch):
+            major, minor = version.split('.')[:2]
+            path = 'C:\\Python' + major + minor
+            if arch == '64':
+                path += '-x64'
+            return path
+
     python_configurations = [
-        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27'),
-        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64'),
-        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34'),
-        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64'),
-        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35'),
-        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64'),
-        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36'),
-        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64'),
-        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\Python37'),
-        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64'),
+        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path=python_path('2.7.x', '32')),
+        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path=python_path('2.7.x', '64')),
+        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path=python_path('3.4.x', '32')),
+        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path=python_path('3.4.x', '64')),
+        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path=python_path('3.5.x', '32')),
+        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path=python_path('3.5.x', '64')),
+        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path=python_path('3.6.x', '32')),
+        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path=python_path('3.6.x', '64')),
+        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path=python_path('3.7.x', '32')),
+        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path=python_path('3.7.x', '64')),
     ]
 
     abs_project_dir = os.path.abspath(project_dir)
@@ -46,7 +74,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         if not build_selector(config.identifier):
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
             continue
-        
+
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config.path, 'python.exe'))
         assert os.path.exists(os.path.join(config.path, 'Scripts', 'pip.exe'))
