@@ -11,27 +11,7 @@ from .util import prepare_command, get_build_verbosity_extra_flags
 
 
 def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
-    # run_with_env is a cmd file that sets the right environment variables to
-    run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
-    if not os.path.exists(run_with_env):
-        with open(run_with_env, 'wb') as f:
-            request = urlopen('https://github.com/ogrisel/python-appveyor-demo/raw/09a1c8672e5015a74d8f69d07add6ee803c176ec/appveyor/run_with_env.cmd')
-            f.write(request.read())
-
-    def shell(args, env=None, cwd=None):
-        # print the command executing for the logs
-        print('+ ' + ' '.join(args))
-        args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
-        return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
-
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
-
-    # At this point, we need to check if we are running on Azure, because if
-    # so Python is not located in the usual place. We recognize Azure by
-    # checking for a C:\hostedtoolcache directory - there aren't any nice
-    # environment variables we can use as on some other CI frameworks.
-
-    if os.path.exists('C:\hostedtoolcache'):
+    if os.path.exists('C:\\hostedtoolcache'):
 
         # We can't hard-code the paths because on Azure, we don't know which
         # bugfix release of Python we are getting so we need to check which
@@ -44,6 +24,10 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
             path = glob("C:\\hostedtoolcache\\windows\\Python\\" + version.replace('x', '*') + "\\" + suffix)[0]
             return path
 
+        def shell(args, env=None, cwd=None):
+            print('+ ' + ' '.join(args))
+            args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
+            return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
     else:
 
         def python_path(version, arch):
@@ -52,6 +36,24 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
             if arch == '64':
                 path += '-x64'
             return path
+
+        run_with_env = os.path.join(os.path.dirname(__file__), 'resources', 'appveyor_run_with_env.cmd')
+    
+        # run_with_env is a cmd file that sets the right environment variables to
+
+        def shell(args, env=None, cwd=None):
+            # print the command executing for the logs
+            print('+ ' + ' '.join(args))
+            args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
+            return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
+
+    # At this point, we need to check if we are running on Azure, because if
+    # so Python is not located in the usual place. We recognize Azure by
+    # checking for a C:\hostedtoolcache directory - there aren't any nice
+    # environment variables we can use as on some other CI frameworks.
+
 
     python_configurations = [
         PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path=python_path('2.7.x', '32')),
