@@ -73,7 +73,7 @@ def main():
                 platform = 'linux'
             elif os.environ['AGENT_OS'] == 'Darwin':
                 platform = 'macos'
-            elif os.environ['AGENT_OD'] == 'Windows_NT':
+            elif os.environ['AGENT_OS'] == 'Windows_NT':
                 platform = 'windows'
 
         if platform is None:
