@@ -10,62 +10,61 @@ from glob import glob
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
-    if os.path.exists('C:\\hostedtoolcache'):
+IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 
+def get_python_path(config):
+    if IS_RUNNING_ON_AZURE:
         # We can't hard-code the paths because on Azure, we don't know which
         # bugfix release of Python we are getting so we need to check which
         # ones exist. We just use the first one that is found since there should
         # only be one.
+        path_pattern = 'C:\\hostedtoolcache\\windows\\Python\\{version}\\{arch}'.format(
+            version=config.version.replace('x', '*'),
+            arch='x86' if config.arch == '32' else 'x64'
+        )
+        try:
+            return glob(path_pattern)[0]
+        except IndexError:
+            raise Exception('Could not find a Python install at ' + path_pattern)
+    else:
+        major, minor = config.version.split('.')[:2]
+        return 'C:\\Python{major}{minor}{arch}'.format(
+            major=major,
+            minor=minor,
+            arch = '-x64' if config.arch == '64' else ''
+        )
 
-        def python_path(version, arch):
-            major, minor = version.split('.')[:2]
-            suffix = 'x86' if arch == '32' else 'x64'
-            path = glob("C:\\hostedtoolcache\\windows\\Python\\" + version.replace('x', '*') + "\\" + suffix)[0]
-            return path
 
+def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+    if IS_RUNNING_ON_AZURE:
         def shell(args, env=None, cwd=None):
             print('+ ' + ' '.join(args))
             args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
             return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
     else:
+        run_with_env = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'appveyor_run_with_env.cmd'))
 
-        def python_path(version, arch):
-            major, minor = version.split('.')[:2]
-            path = 'C:\\Python' + major + minor
-            if arch == '64':
-                path += '-x64'
-            return path
-
-        run_with_env = os.path.join(os.path.dirname(__file__), 'resources', 'appveyor_run_with_env.cmd')
-    
-        # run_with_env is a cmd file that sets the right environment variables to
-
+        # run_with_env is a cmd file that sets the right environment variables
+        # to build on Appveyor.
         def shell(args, env=None, cwd=None):
             # print the command executing for the logs
             print('+ ' + ' '.join(args))
             args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
             return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
 
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
-
-    # At this point, we need to check if we are running on Azure, because if
-    # so Python is not located in the usual place. We recognize Azure by
-    # checking for a C:\hostedtoolcache directory - there aren't any nice
-    # environment variables we can use as on some other CI frameworks.
-
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier'])
 
     python_configurations = [
-        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path=python_path('2.7.x', '32')),
-        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path=python_path('2.7.x', '64')),
-        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path=python_path('3.4.x', '32')),
-        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path=python_path('3.4.x', '64')),
-        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path=python_path('3.5.x', '32')),
-        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path=python_path('3.5.x', '64')),
-        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path=python_path('3.6.x', '32')),
-        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path=python_path('3.6.x', '64')),
-        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path=python_path('3.7.x', '32')),
-        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path=python_path('3.7.x', '64')),
+        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32'),
+        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64'),
+        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32'),
+        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64'),
+        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32'),
+        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64'),
+        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32'),
+        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64'),
+        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32'),
+        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64'),
     ]
 
     abs_project_dir = os.path.abspath(project_dir)
@@ -76,10 +75,12 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         if not build_selector(config.identifier):
             print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
             continue
+        
+        config_python_path = get_python_path(config)
 
         # check python & pip exist for this configuration
-        assert os.path.exists(os.path.join(config.path, 'python.exe'))
-        assert os.path.exists(os.path.join(config.path, 'Scripts', 'pip.exe'))
+        assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
+        assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # setup dirs
         if os.path.exists(built_wheel_dir):
@@ -91,8 +92,8 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         env['PYTHON_VERSION'] = config.version
         env['PYTHON_ARCH'] = config.arch
         env['PATH'] = os.pathsep.join([
-            config.path,
-            os.path.join(config.path, 'Scripts'),
+            config_python_path,
+            os.path.join(config_python_path, 'Scripts'),
             env['PATH']
         ])
         env = environment.as_dictionary(prev_environment=env)
