@@ -33,6 +33,69 @@ Usage
 
 ### Minimal setup
 
+<details>
+    <summary><b>Azure Pipelines</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
+    </summary>
+
+- Using Azure pipelines, you can build all three platforms on the same service. Create a `azure-pipelines.yml` file in your repo.
+
+**azure-pipelines.yml**
+```yaml
+jobs:
+- job: linux
+  pool: {vmImage: 'Ubuntu-16.04'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        pip install cibuildwheel==0.10.1
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+- job: macos
+  pool: {vmImage: 'macOS-10.13'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        pip install cibuildwheel==0.10.1
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+- job: windows
+  pool: {vmImage: 'vs2017-win2016'}
+  steps: 
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.4', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.4', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - script: choco install vcpython27 -f -y
+      displayName: Install Visual C++ for Python 2.7
+    - bash: |
+        python -m pip install --upgrade pip
+        pip install cibuildwheel==0.10.1
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+```
+
+</details>
+
+<details>
+    <summary><b>Travis CI</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
+    </summary>
+
 - To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
 
     ```
@@ -55,6 +118,14 @@ Usage
 
   Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
 
+</details>
+
+<details>
+    <summary><b>CircleCI</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
+    </summary>
+    
 - To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
   ```
@@ -102,6 +173,14 @@ Usage
 
   CircleCI will store the built wheels for you - you can access them from the project console.
 
+</details>
+
+
+<details>
+    <summary><b>Appveyor</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
+    </summary>
+
 - To build Windows wheels on Appveyor, create an `appveyor.yml` file in your repo.
 
     ```
@@ -115,6 +194,8 @@ Usage
     
   Appveyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [Appveyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
     
+</details>
+
 - Commit those files, enable building of your repo on Travis CI and Appveyor, and push.
 
 All being well, you should get wheels delivered to you in a few minutes. 
