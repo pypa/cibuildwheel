@@ -27,6 +27,7 @@ def get_python_path(config):
         except IndexError:
             raise Exception('Could not find a Python install at ' + path_pattern)
     else:
+        # Assume we're running on Appveyor
         major, minor = config.version.split('.')[:2]
         return 'C:\\Python{major}{minor}{arch}'.format(
             major=major,
@@ -66,6 +67,11 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32'),
         PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64'),
     ]
+
+    if IS_RUNNING_ON_AZURE:
+        # Python 3.4 isn't supported on Azure.
+        # See https://github.com/Microsoft/azure-pipelines-tasks/issues/9674
+        python_configurations = [c for c in python_configurations if c.version != '3.4.x']
 
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
