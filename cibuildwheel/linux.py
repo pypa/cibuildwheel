@@ -24,13 +24,19 @@ def get_python_configurations(build_selector):
         PythonConfiguration(identifier='cp35-manylinux1_i686', path='/opt/python/cp35-cp35m'),
         PythonConfiguration(identifier='cp36-manylinux1_i686', path='/opt/python/cp36-cp36m'),
         PythonConfiguration(identifier='cp37-manylinux1_i686', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp27-manylinux2010_x86_64', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(identifier='cp27-manylinux2010_x86_64', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(identifier='cp34-manylinux2010_x86_64', path='/opt/python/cp34-cp34m'),
+        PythonConfiguration(identifier='cp35-manylinux2010_x86_64', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux2010_x86_64', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux2010_x86_64', path='/opt/python/cp37-cp37m'),
     ]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment, manylinux1_images):
+def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment, manylinux_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -42,8 +48,9 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
 
     python_configurations = get_python_configurations(build_selector)
     platforms = [
-        ('manylinux1_x86_64', manylinux1_images.get('x86_64') or 'quay.io/pypa/manylinux1_x86_64'),
-        ('manylinux1_i686', manylinux1_images.get('i686') or 'quay.io/pypa/manylinux1_i686'),
+        ('manylinux1_x86_64', manylinux_images.get('manylinux1_x86_64') or 'quay.io/pypa/manylinux1_x86_64'),
+        ('manylinux1_i686', manylinux_images.get('manylinux1_i686') or 'quay.io/pypa/manylinux1_i686'),
+        ('manylinux2010_x86_64', manylinux_images.get('manylinux2010_x86_64') or 'quay.io/pypa/manylinux2010_x86_64'),
     ]
 
     for platform_tag, docker_image in platforms:
@@ -81,7 +88,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
                     # pure python wheel - just copy
                     mv "$built_wheel" /tmp/delocated_wheel
                 else
-                    auditwheel repair "$built_wheel" -w /tmp/delocated_wheel
+                    auditwheel repair --plat {platform_tag} "$built_wheel" -w /tmp/delocated_wheel
                 fi
                 delocated_wheel=(/tmp/delocated_wheel/*.whl)
 
@@ -115,6 +122,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
             environment_exports='\n'.join(environment.as_shell_commands()),
+            platform_tag=platform_tag,
             uid=os.getuid(),
             gid=os.getgid(),
         )

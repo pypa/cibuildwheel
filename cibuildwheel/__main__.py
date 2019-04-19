@@ -129,11 +129,10 @@ def main():
     )
 
     if platform == 'linux':
-        manylinux1_x86_64_image = os.environ.get('CIBW_MANYLINUX1_X86_64_IMAGE', None)
-        manylinux1_i686_image = os.environ.get('CIBW_MANYLINUX1_I686_IMAGE', None)
-
         build_options.update(
-            manylinux1_images={'x86_64': manylinux1_x86_64_image, 'i686': manylinux1_i686_image},
+            manylinux_images={'manylinux1_x86_64': os.environ.get('CIBW_MANYLINUX1_X86_64_IMAGE', None),
+                              'manylinux1_i686': os.environ.get('CIBW_MANYLINUX1_I686_IMAGE', None),
+                              'manylinux2010_x86_64': os.environ.get('CIBW_MANYLINUX2010_X86_64_IMAGE', None)},
         )
     elif platform == 'macos':
         pass
