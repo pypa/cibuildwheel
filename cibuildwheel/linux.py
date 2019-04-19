@@ -87,10 +87,11 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
                 if [[ "$built_wheel" == *none-any.whl ]]; then
                     # pure python wheel - just copy
                     mv "$built_wheel" /tmp/delocated_wheel
+                    delocated_wheel=(/tmp/delocated_wheel/*.whl)
                 else
                     auditwheel repair --plat {platform_tag} "$built_wheel" -w /tmp/delocated_wheel
+                    delocated_wheel=(/tmp/delocated_wheel/*-{platform_tag}.whl)
                 fi
-                delocated_wheel=(/tmp/delocated_wheel/*.whl)
 
                 # Install the wheel we just built
                 "$PYBIN/pip" install "$delocated_wheel"
