@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     ### run the integration tests
 
-    test_projects = glob('test/??_*')
+    test_projects = sorted(glob('test/??_*'))
 
     if len(test_projects) == 0:
         print('No test projects found. Aborting.', file=sys.stderr)

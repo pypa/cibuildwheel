@@ -22,7 +22,7 @@ def single_run(test_project):
     print('%s built successfully. %i wheels built.' % (test_project, len(wheels)))
 
     # check some wheels were actually built
-    assert len(wheels) >= 3
+    subprocess.check_call([sys.executable, os.path.join(test_project, 'check.py')])
 
     # clean up
     shutil.rmtree('wheelhouse')
