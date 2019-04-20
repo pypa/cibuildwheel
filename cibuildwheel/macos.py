@@ -10,7 +10,7 @@ except ImportError:
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.16/python-2.7.16-macosx10.6.pkg'),
@@ -19,6 +19,13 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.2/python-3.7.2-macosx10.6.pkg'),
     ]
+
+    # skip builds as required
+    return [c for c in python_configurations if build_selector(c.identifier)]
+
+
+def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+    python_configurations = get_python_configurations(build_selector)
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
 
@@ -42,10 +49,6 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
     call(['curl', '-L', '-o', get_pip_script, get_pip_url])
 
     for config in python_configurations:
-        if not build_selector(config.identifier):
-            print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
-            continue
-
         # if this version of python isn't installed, get it from python.org and install
         python_package_identifier = 'org.python.Python.PythonFramework-%s' % config.version
         if python_package_identifier not in installed_system_packages:
