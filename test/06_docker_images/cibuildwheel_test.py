@@ -1,10 +1,9 @@
 import subprocess, sys, os, pytest
 from glob import glob
-project_dir = os.path.dirname(__file__)
-sys.path.append(os.path.join(os.path.dirname(project_dir), 'shared'))
 import utils
 
 def test():
+    project_dir = os.path.dirname(__file__)
     if not sys.platform.startswith('linux'):
         pytest.skip('the docker test is only relevant to the linux build')
 

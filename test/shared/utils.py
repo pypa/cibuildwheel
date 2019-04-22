@@ -1,3 +1,9 @@
+'''
+Utility functions used by the cibuildwheel tests.
+
+This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
+'''
+
 import subprocess, sys
 
 def cibuildwheel_get_build_identifiers(project_path, env=None):

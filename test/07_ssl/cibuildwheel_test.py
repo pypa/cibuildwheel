@@ -1,10 +1,9 @@
 import subprocess, sys, os
 from glob import glob
-project_dir = os.path.dirname(__file__)
-sys.path.append(os.path.join(os.path.dirname(project_dir), 'shared'))
 import utils
 
 def test():
+    project_dir = os.path.dirname(__file__)
     # this test checks that SSL is working in the build environment using
     # some checks in setup.py.
 

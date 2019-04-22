@@ -1,11 +1,9 @@
 import subprocess, sys, os
 from glob import glob
-project_dir = os.path.dirname(__file__)
-sys.path.append(os.path.join(os.path.dirname(project_dir), 'shared'))
-
 import utils
 
 def test():
+    project_dir = os.path.dirname(__file__)
     # set up the environment
     env = os.environ.copy()
     # write python version information to a temporary file, this is checked

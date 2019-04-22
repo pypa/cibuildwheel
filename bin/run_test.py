@@ -3,10 +3,20 @@
 from __future__ import print_function
 import os, sys, subprocess, shutil
 
+project_root = os.path.dirname(os.path.dirname(__file__))
+test_utils_dir = os.path.join(project_root, 'test', 'shared')
+
 def single_run(test_project):
+    # set up an environment that gives access to the test utils
+    env = os.environ.copy()
+    env.update({
+        'PYTHONPATH': test_utils_dir,
+    })
+
     # run the test
     subprocess.check_call(
-        [sys.executable, '-m', 'pytest', '-v', os.path.join(test_project, 'cibuildwheel_test.py')]
+        [sys.executable, '-m', 'pytest', '-v', os.path.join(test_project, 'cibuildwheel_test.py')],
+        env=env,
     )
 
     # clean up
