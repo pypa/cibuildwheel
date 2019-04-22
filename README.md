@@ -20,7 +20,7 @@ What does it do?
 | Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
-> * Not supported on Azure Pipelines
+> \* Not supported on Azure Pipelines
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, Appveyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -310,7 +310,7 @@ Examples:
 - Skip Python 3.6 on Linux: `CIBW_SKIP`:`cp36-manylinux*`
 - Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD`:`cp3?-*` and `CIBW_SKIP`:`*-win32 *-manylinux1_i686`
 
-**
+***
 
 | Environment variable: `CIBW_BUILD_VERBOSITY`
 | ---
