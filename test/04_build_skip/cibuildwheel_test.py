@@ -7,8 +7,10 @@ def test():
     
     # set up the environment
     env = os.environ.copy()
-    env['CIBW_BUILD'] = 'cp3?-*'
-    env['CIBW_SKIP'] = 'cp34-*'
+    env.update({
+        'CIBW_BUILD': 'cp3?-*',
+        'CIBW_SKIP': 'cp34-*',
+    })
 
     # build the wheels
     subprocess.check_call([sys.executable, '-m', 'cibuildwheel', project_dir], env=env)
