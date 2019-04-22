@@ -4,7 +4,8 @@ import utils
 
 def test():
     project_dir = os.path.dirname(__file__)
-    if not sys.platform.startswith('linux'):
+
+    if utils.platform != 'linux':
         pytest.skip('the docker test is only relevant to the linux build')
 
     # set up the environment
