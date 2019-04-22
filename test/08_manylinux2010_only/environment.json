@@ -1,4 +1,4 @@
 {
     "CIBW_ENVIRONMENT": "CFLAGS=\"$CFLAGS -Werror=implicit-function-declaration\"",
-    "CIBW_TEST_COMMAND": "python -c \"import spam\""
+    "CIBW_SKIP": "*-manylinux1_*"
 }
