@@ -8,7 +8,7 @@ import utils
 def test():
     # set up the environment
     env = os.environ.copy()
-    env["CIBW_BUILD"] = "cp3?-*",
+    env["CIBW_BUILD"] = "cp3?-*"
     env["CIBW_SKIP"] = "cp34-*"
 
     # build the wheels
