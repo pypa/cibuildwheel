@@ -10,7 +10,8 @@ def single_run(test_project):
     )
 
     # clean up
-    shutil.rmtree('wheelhouse')
+    if os.path.exists('wheelhouse'):
+        shutil.rmtree('wheelhouse')
 
 if __name__ == '__main__':
     import argparse
