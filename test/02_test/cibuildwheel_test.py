@@ -8,7 +8,7 @@ import utils
 def test():
     # set up the environment
     env = os.environ.copy()
-    env['CIBW_TEST_REQUIRES'] = 'nose',
+    env['CIBW_TEST_REQUIRES'] = 'nose'
     # the 'false ||' bit is to ensure this command runs in a shell on
     # mac/linux.
     env['CIBW_TEST_COMMAND'] = 'false || nosetests {project}/test'
