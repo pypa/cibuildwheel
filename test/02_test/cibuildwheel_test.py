@@ -1,23 +1,19 @@
-import subprocess, sys, os
-from glob import glob
+import os
 import utils
 
 def test():
     project_dir = os.path.dirname(__file__)
-    # set up the environment
-    env = os.environ.copy()
-    env.update({
+
+    # build and test the wheels
+    utils.run_cibuildwheel(project_dir, add_env={
         'CIBW_TEST_REQUIRES': 'nose',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
         'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
         'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
     })
-
-    # build & test the wheels
-    subprocess.check_call([sys.executable, '-m', 'cibuildwheel', project_dir], env=env)
     
-    # also check that we got the right number of built wheels
-    expected_identifiers = utils.cibuildwheel_get_build_identifiers(project_dir)
-    built_wheels = glob('wheelhouse/*.whl')
-    assert len(built_wheels) == len(expected_identifiers)
+    # also check that we got the right wheels
+    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    actual_wheels = os.listdir('wheelhouse')
+    assert set(actual_wheels) == set(expected_wheels)
