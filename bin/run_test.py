@@ -9,9 +9,11 @@ test_utils_dir = os.path.join(project_root, 'test', 'shared')
 def single_run(test_project):
     # set up an environment that gives access to the test utils
     env = os.environ.copy()
-    env.update({
-        'PYTHONPATH': test_utils_dir,
-    })
+
+    if 'PYTHONPATH' in env:
+        env['PYTHONPATH'] += os.pathsep + test_utils_dir
+    else:
+        env['PYTHONPATH'] = test_utils_dir
 
     # run the test
     subprocess.check_call(
