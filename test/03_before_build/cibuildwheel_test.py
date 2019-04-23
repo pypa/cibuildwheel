@@ -5,7 +5,7 @@ def test():
     project_dir = os.path.dirname(__file__)
 
     # build the wheels
-    utils.run_cibuildwheel(project_dir, add_env={
+    utils.cibuildwheel_run(project_dir, add_env={
         # write python version information to a temporary file, this is
         # checked in setup.py
         'CIBW_BEFORE_BUILD': '''python -c "import sys; open('/tmp/pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('/tmp/pythonexecutable.txt', 'w').write(sys.executable)"''',

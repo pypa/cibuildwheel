@@ -5,7 +5,7 @@ def test():
     project_dir = os.path.dirname(__file__)
 
     # build the wheels
-    utils.run_cibuildwheel(project_dir, add_env={
+    utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_BUILD': 'cp3?-*',
         'CIBW_SKIP': 'cp34-*',
     })

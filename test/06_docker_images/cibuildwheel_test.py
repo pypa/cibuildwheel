@@ -7,7 +7,7 @@ def test():
     if utils.platform != 'linux':
         pytest.skip('the docker test is only relevant to the linux build')
 
-    utils.run_cibuildwheel(project_dir, add_env={
+    utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_MANYLINUX1_X86_64_IMAGE': 'dockcross/manylinux-x64',
         'CIBW_MANYLINUX1_I686_IMAGE': 'dockcross/manylinux-x86',
     })

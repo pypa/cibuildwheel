@@ -5,7 +5,7 @@ def test():
     project_dir = os.path.dirname(__file__)
 
     # build and test the wheels
-    utils.run_cibuildwheel(project_dir, add_env={
+    utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_TEST_REQUIRES': 'nose',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
