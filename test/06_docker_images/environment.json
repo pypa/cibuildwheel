@@ -1,5 +1,0 @@
-{
-    "CIBW_MANYLINUX1_X86_64_IMAGE": "dockcross/manylinux-x64",
-    "CIBW_MANYLINUX1_I686_IMAGE": "dockcross/manylinux-x86",
-    "CIBW_SKIP": "cp37-manylinux*"
-}

@@ -10,20 +10,7 @@ from glob import glob
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
-    # run_with_env is a cmd file that sets the right environment variables to
-    run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
-    if not os.path.exists(run_with_env):
-        with open(run_with_env, 'wb') as f:
-            request = urlopen('https://github.com/ogrisel/python-appveyor-demo/raw/09a1c8672e5015a74d8f69d07add6ee803c176ec/appveyor/run_with_env.cmd')
-            f.write(request.read())
-
-    def shell(args, env=None, cwd=None):
-        # print the command executing for the logs
-        print('+ ' + ' '.join(args))
-        args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
-        return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
-
+def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
     python_configurations = [
         PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27'),
@@ -38,15 +25,31 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64'),
     ]
 
+    # skip builds as required
+    return [c for c in python_configurations if build_selector(c.identifier)]
+
+
+def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+    # run_with_env is a cmd file that sets the right environment variables to
+    run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
+    if not os.path.exists(run_with_env):
+        with open(run_with_env, 'wb') as f:
+            request = urlopen('https://github.com/ogrisel/python-appveyor-demo/raw/09a1c8672e5015a74d8f69d07add6ee803c176ec/appveyor/run_with_env.cmd')
+            f.write(request.read())
+
+    def shell(args, env=None, cwd=None):
+        # print the command executing for the logs
+        print('+ ' + ' '.join(args))
+        args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
+        return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+
+    python_configurations = get_python_configurations(build_selector)
+
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
     for config in python_configurations:
-        if not build_selector(config.identifier):
-            print('cibuildwheel: Skipping build %s' % config.identifier, file=sys.stderr)
-            continue
-        
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config.path, 'python.exe'))
         assert os.path.exists(os.path.join(config.path, 'Scripts', 'pip.exe'))

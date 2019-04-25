@@ -48,6 +48,10 @@ def main():
                         help=('Path to the project that you want wheels for. Default: the current '
                               'directory.'))
 
+    parser.add_argument('--print-build-identifiers',
+                        action='store_true',
+                        help='Print the build identifiers matched by the current invocation and exit.')
+
     args = parser.parse_args()
 
     if args.platform != 'auto':
@@ -109,6 +113,10 @@ def main():
         print('cibuildwheel: Could not find setup.py at root of project', file=sys.stderr)
         exit(2)
 
+    if args.print_build_identifiers:
+        print_build_identifiers(platform, build_selector)
+        exit(0)
+
     build_options = dict(
         project_dir=project_dir,
         output_dir=output_dir,
@@ -149,6 +157,7 @@ def main():
     else:
         raise Exception('Unsupported platform')
 
+
 def print_preamble(platform, build_options):
     print(textwrap.dedent('''
              _ _       _ _   _       _           _
@@ -172,6 +181,21 @@ def print_preamble(platform, build_options):
             print('  ' + warning)
 
     print('\nHere we go!\n')
+
+
+def print_build_identifiers(platform, build_selector):
+    if platform == 'linux':
+        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector)
+    elif platform == 'windows':
+        python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
+    elif platform == 'macos':
+        python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
+    else:
+        python_configurations = []
+
+    for config in python_configurations:
+        print(config.identifier)
+
 
 def detect_warnings(platform, build_options):
     warnings = []

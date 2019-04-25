@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from __future__ import print_function
 import os, sys, subprocess, shutil, json
@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     ### run the integration tests
 
-    test_projects = glob('test/??_*')
+    test_projects = sorted(glob('test/??_*'))
 
     if len(test_projects) == 0:
         print('No test projects found. Aborting.', file=sys.stderr)

@@ -152,9 +152,8 @@ Options
 -------
 
 ```
-usage: cibuildwheel [-h]
-                    [--output-dir OUTPUT_DIR]
-                    [--platform PLATFORM]
+usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
+                    [--output-dir OUTPUT_DIR] [--print-build-identifiers]
                     [project_dir]
     
 Build wheels for all the platforms.
@@ -174,7 +173,10 @@ optional arguments:
                         you need to run in Windows, and it will build and test
                         for all versions of Python at C:\PythonXX[-x64].
   --output-dir OUTPUT_DIR
-                        Destination folder for the wheels. 
+                        Destination folder for the wheels.
+  --print-build-identifiers
+                        Print the build identifiers matched by the current
+                        invocation and exit.
 
 ```
 
