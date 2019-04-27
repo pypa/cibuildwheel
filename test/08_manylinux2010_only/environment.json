@@ -1,4 +1,0 @@
-{
-    "CIBW_ENVIRONMENT": "CFLAGS=\"$CFLAGS -Werror=implicit-function-declaration\"",
-    "CIBW_SKIP": "*-manylinux1_*"
-}

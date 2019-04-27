@@ -7,14 +7,16 @@ def test():
     if utils.platform != 'linux':
         pytest.skip('the docker test is only relevant to the linux build')
 
+    # build the wheels
+    # CFLAGS environment veriable is ecessary to fail on 'malloc_info' (on manylinux1) during compilation/linking,
+    # rather than when dynamically loading the Python 
     utils.cibuildwheel_run(project_dir, add_env={
-        'CIBW_MANYLINUX1_X86_64_IMAGE': 'dockcross/manylinux-x64',
-        'CIBW_MANYLINUX1_I686_IMAGE': 'dockcross/manylinux-x86',
-        'CIBW_SKIP': '*-manylinux2010_*',  # No dockcross image for manylinux2010 (yet)
+        'CIBW_ENVIRONMENT': 'CFLAGS="$CFLAGS -Werror=implicit-function-declaration"',
+        'CIBW_SKIP': '*-manylinux1_*',
     })
-
-    # also check that we got the right wheels built
+    
+    # also check that we got the right wheels
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                       if '-manylinux2010' not in w]
+                       if '-manylinux1_' not in w]
     actual_wheels = os.listdir('wheelhouse')
     assert set(actual_wheels) == set(expected_wheels)
