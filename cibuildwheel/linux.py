@@ -9,16 +9,7 @@ except ImportError:
     from pipes import quote as shlex_quote
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment, manylinux1_images):
-    try:
-        subprocess.check_call(['docker', '--version'])
-    except:
-        print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
-              'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
-              'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
-              file=sys.stderr)
-        exit(2)
-
+def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['identifier', 'path'])
     python_configurations = [
         PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27m'),
@@ -36,8 +27,20 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
     ]
 
     # skip builds as required
-    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
+    return [c for c in python_configurations if build_selector(c.identifier)]
 
+
+def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment, manylinux1_images):
+    try:
+        subprocess.check_call(['docker', '--version'])
+    except:
+        print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
+              'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
+              'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
+              file=sys.stderr)
+        exit(2)
+
+    python_configurations = get_python_configurations(build_selector)
     platforms = [
         ('manylinux1_x86_64', manylinux1_images.get('x86_64') or 'quay.io/pypa/manylinux1_x86_64'),
         ('manylinux1_i686', manylinux1_images.get('i686') or 'quay.io/pypa/manylinux1_i686'),

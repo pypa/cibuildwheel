@@ -1,31 +1,29 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from __future__ import print_function
-import os, sys, subprocess, shutil, json
-from glob import glob
+import os, sys, subprocess, shutil
+
+project_root = os.path.dirname(os.path.dirname(__file__))
+test_utils_dir = os.path.join(project_root, 'test', 'shared')
 
 def single_run(test_project):
-    # load project settings into environment
-    env_file = os.path.join(test_project, 'environment.json')
-    project_env = {}
-    if os.path.exists(env_file):
-        with open(env_file) as f:
-            project_env = json.load(f)
-
-    # run the build
+    # set up an environment that gives access to the test utils
     env = os.environ.copy()
-    project_env = {str(k): str(v) for k, v in project_env.items()} # unicode not allowed in env
-    env.update(project_env)
-    print('Building %s with environment %s' % (test_project, project_env))
-    subprocess.check_call([sys.executable, '-m', 'cibuildwheel', test_project], env=env)
-    wheels = glob('wheelhouse/*.whl')
-    print('%s built successfully. %i wheels built.' % (test_project, len(wheels)))
 
-    # check some wheels were actually built
-    assert len(wheels) >= 3
+    if 'PYTHONPATH' in env:
+        env['PYTHONPATH'] += os.pathsep + test_utils_dir
+    else:
+        env['PYTHONPATH'] = test_utils_dir
+
+    # run the test
+    subprocess.check_call(
+        [sys.executable, '-m', 'pytest', '-vv', os.path.join(test_project, 'cibuildwheel_test.py')],
+        env=env,
+    )
 
     # clean up
-    shutil.rmtree('wheelhouse')
+    if os.path.exists('wheelhouse'):
+        shutil.rmtree('wheelhouse')
 
 if __name__ == '__main__':
     import argparse
@@ -41,5 +39,3 @@ if __name__ == '__main__':
         exit(2)
 
     single_run(project_path)
-
-    print('Project built successfully.')
