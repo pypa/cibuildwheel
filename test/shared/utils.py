@@ -6,6 +6,8 @@ This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 
 import subprocess, sys, os
 
+IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+
 
 def cibuildwheel_get_build_identifiers(project_path, env=None):
     '''
@@ -82,6 +84,10 @@ def expected_wheels(package_name, package_version):
         ]
     else:
         raise Exception('unsupported platform')
+    
+    if IS_RUNNING_ON_AZURE:
+        # Python 3.4 isn't supported on Azure.
+        templates = [t for t in templates if '-cp34-' not in t]
     
     return [filename.format(package_name=package_name, package_version=package_version)
             for filename in templates]
