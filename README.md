@@ -119,7 +119,7 @@ jobs:
           env: PIP=pip2
 
     script:
-      - $PIP install cibuildwheel==0.10.1
+      - $PIP install cibuildwheel==0.10.2
       - cibuildwheel --output-dir wheelhouse
     ```
 
@@ -192,7 +192,7 @@ jobs:
 
     ```
     build_script:
-      - pip install cibuildwheel==0.10.1
+      - pip install cibuildwheel==0.10.2
       - cibuildwheel --output-dir wheelhouse
     artifacts:
       - path: "wheelhouse\\*.whl"
@@ -497,6 +497,14 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 0.10.2
+
+_10 March 2019_
+
+- 🛠 Revert temporary fix in macOS, that was working around a bug in pip 19 (#129)
+- 🛠 Update Python to 2.7.16 on macOS
+- 🛠 Update OpenSSL patch to 1.0.2r on macOS
 
 ### 0.10.1
 
