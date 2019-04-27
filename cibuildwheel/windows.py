@@ -1,9 +1,5 @@
 from __future__ import print_function
-import os, tempfile, subprocess, sys, shutil
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen
+import os, tempfile, subprocess, shutil
 from collections import namedtuple
 from glob import glob
 
