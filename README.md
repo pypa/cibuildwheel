@@ -119,7 +119,7 @@ jobs:
           env: PIP=pip2
 
     script:
-      - $PIP install cibuildwheel==0.10.2
+      - $PIP install cibuildwheel==0.11.0
       - cibuildwheel --output-dir wheelhouse
     ```
 
@@ -192,7 +192,7 @@ jobs:
 
     ```
     build_script:
-      - pip install cibuildwheel==0.10.2
+      - pip install cibuildwheel==0.11.0
       - cibuildwheel --output-dir wheelhouse
     artifacts:
       - path: "wheelhouse\\*.whl"
