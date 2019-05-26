@@ -1,13 +1,35 @@
 from __future__ import print_function
-import os, tempfile, subprocess, sys, shutil
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen
+import os, tempfile, subprocess, shutil
 from collections import namedtuple
 from glob import glob
 
 from .util import prepare_command, get_build_verbosity_extra_flags
+
+
+IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+
+def get_python_path(config):
+    if IS_RUNNING_ON_AZURE:
+        # We can't hard-code the paths because on Azure, we don't know which
+        # bugfix release of Python we are getting so we need to check which
+        # ones exist. We just use the first one that is found since there should
+        # only be one.
+        path_pattern = 'C:\\hostedtoolcache\\windows\\Python\\{version}\\{arch}'.format(
+            version=config.version.replace('x', '*'),
+            arch='x86' if config.arch == '32' else 'x64'
+        )
+        try:
+            return glob(path_pattern)[0]
+        except IndexError:
+            raise Exception('Could not find a Python install at ' + path_pattern)
+    else:
+        # Assume we're running on Appveyor
+        major, minor = config.version.split('.')[:2]
+        return 'C:\\Python{major}{minor}{arch}'.format(
+            major=major,
+            minor=minor,
+            arch = '-x64' if config.arch == '64' else ''
+        )
 
 
 def get_python_configurations(build_selector):
@@ -25,34 +47,44 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64'),
     ]
 
+    if IS_RUNNING_ON_AZURE:
+        # Python 3.4 isn't supported on Azure.
+        # See https://github.com/Microsoft/azure-pipelines-tasks/issues/9674
+        python_configurations = [c for c in python_configurations if c.version != '3.4.x']
+
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
 def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
-    # run_with_env is a cmd file that sets the right environment variables to
-    run_with_env = os.path.join(tempfile.gettempdir(), 'appveyor_run_with_env.cmd')
-    if not os.path.exists(run_with_env):
-        with open(run_with_env, 'wb') as f:
-            request = urlopen('https://github.com/ogrisel/python-appveyor-demo/raw/09a1c8672e5015a74d8f69d07add6ee803c176ec/appveyor/run_with_env.cmd')
-            f.write(request.read())
+    if IS_RUNNING_ON_AZURE:
+        def shell(args, env=None, cwd=None):
+            print('+ ' + ' '.join(args))
+            args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
+            return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+    else:
+        run_with_env = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'appveyor_run_with_env.cmd'))
 
-    def shell(args, env=None, cwd=None):
-        # print the command executing for the logs
-        print('+ ' + ' '.join(args))
-        args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
-        return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
-
-    python_configurations = get_python_configurations(build_selector)
+        # run_with_env is a cmd file that sets the right environment variables
+        # to build on Appveyor.
+        def shell(args, env=None, cwd=None):
+            # print the command executing for the logs
+            print('+ ' + ' '.join(args))
+            args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
+            return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
 
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
+    python_configurations = get_python_configurations(build_selector)
+
     for config in python_configurations:
+        config_python_path = get_python_path(config)
+
         # check python & pip exist for this configuration
-        assert os.path.exists(os.path.join(config.path, 'python.exe'))
-        assert os.path.exists(os.path.join(config.path, 'Scripts', 'pip.exe'))
+        assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
+        assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # setup dirs
         if os.path.exists(built_wheel_dir):
@@ -64,8 +96,8 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         env['PYTHON_VERSION'] = config.version
         env['PYTHON_ARCH'] = config.arch
         env['PATH'] = os.pathsep.join([
-            config.path,
-            os.path.join(config.path, 'Scripts'),
+            config_python_path,
+            os.path.join(config_python_path, 'Scripts'),
             env['PATH']
         ])
         env = environment.as_dictionary(prev_environment=env)

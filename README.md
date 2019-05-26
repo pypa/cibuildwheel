@@ -5,7 +5,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Travis CI, Appveyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, Appveyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
 
 **`cibuildwheel` is in beta**. It's brand new - I'd love for you to try it and help make it better!
 
@@ -14,24 +14,94 @@ What does it do?
 
 |   | macOS 10.6+ | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
 |---|---|---|---|---|---|
-| Python 2.7 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python 3.4 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python 3.5 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python 3.6 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python 3.7 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Python 2.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.4 | ✅ | ✅ | ✅ | ✅* | ✅* |
+| Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
-- Builds manylinux, macOS and Windows (32 and 64bit) wheels using Travis CI, Appveyor, and CircleCI
+> \* Not supported on Azure Pipelines
+
+- Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, Appveyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs the library test suite against the wheel-installed version of your library
 
 Usage
 -----
 
-`cibuildwheel` currently works on **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **Appveyor** to build Windows wheels.
+`cibuildwheel` currently works  **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **Appveyor** to build Windows wheels. **Azure Pipelines** supports all three.
+
+|                 | Linux | macOS | Windows |
+|-----------------|-------|-------|---------|
+| Azure Pipelines | ✅    | ✅    | ✅      |
+| Travis CI       | ✅    | ✅    |         |
+| Appveyor        |       |       | ✅      |
+| CircleCI        | ✅    | ✅    |         |
 
 `cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and Appveyor run their builds in isolated environments, so are ideal for this kind of script.
 
 ### Minimal setup
+
+<details>
+    <summary><b>Azure Pipelines</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
+    </summary>
+
+- Using Azure pipelines, you can build all three platforms on the same service. Create a `azure-pipelines.yml` file in your repo.
+
+**azure-pipelines.yml**
+```yaml
+jobs:
+- job: linux
+  pool: {vmImage: 'Ubuntu-16.04'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        pip install cibuildwheel==0.10.1
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+- job: macos
+  pool: {vmImage: 'macOS-10.13'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        pip install cibuildwheel==0.10.1
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+- job: windows
+  pool: {vmImage: 'vs2017-win2016'}
+  steps: 
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - script: choco install vcpython27 -f -y
+      displayName: Install Visual C++ for Python 2.7
+    - bash: |
+        python -m pip install --upgrade pip
+        pip install cibuildwheel==0.10.1
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+```
+
+</details>
+
+<details>
+    <summary><b>Travis CI</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
+    </summary>
 
 - To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
 
@@ -55,6 +125,14 @@ Usage
 
   Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
 
+</details>
+
+<details>
+    <summary><b>CircleCI</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
+    </summary>
+    
 - To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
   ```
@@ -102,6 +180,14 @@ Usage
 
   CircleCI will store the built wheels for you - you can access them from the project console.
 
+</details>
+
+
+<details>
+    <summary><b>Appveyor</b>
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
+    </summary>
+
 - To build Windows wheels on Appveyor, create an `appveyor.yml` file in your repo.
 
     ```
@@ -115,6 +201,8 @@ Usage
     
   Appveyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [Appveyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
     
+</details>
+
 - Commit those files, enable building of your repo on Travis CI and Appveyor, and push.
 
 All being well, you should get wheels delivered to you in a few minutes. 
@@ -224,7 +312,7 @@ Examples:
 - Skip Python 3.6 on Linux: `CIBW_SKIP`:`cp36-manylinux*`
 - Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD`:`cp3?-*` and `CIBW_SKIP`:`*-win32 *-manylinux1_i686`
 
-**
+***
 
 | Environment variable: `CIBW_BUILD_VERBOSITY`
 | ---

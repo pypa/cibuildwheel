@@ -72,6 +72,13 @@ def main():
                 platform = 'linux'
             elif sys.platform.startswith('darwin'):
                 platform = 'macos'
+        elif 'AZURE_HTTP_USER_AGENT' in os.environ:
+            if os.environ['AGENT_OS'] == 'Linux':
+                platform = 'linux'
+            elif os.environ['AGENT_OS'] == 'Darwin':
+                platform = 'macos'
+            elif os.environ['AGENT_OS'] == 'Windows_NT':
+                platform = 'windows'
 
         if platform is None:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
