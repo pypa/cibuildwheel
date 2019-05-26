@@ -501,6 +501,18 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 0.11.0
+
+_26 May 2019_
+
+- ✨ Add support for building on Azure pipelines! This lets you build all
+  Linux, Mac and Windows wheels on one service, so it promises to be the
+  easiest to set up! Check out the quickstart in the docs, or 
+  [cibuildwheel-azure-example](https://github.com/joerick/cibuildwheel-azure-example)
+  for an example project. (#126, #132)
+- 🛠 Internal change - the end-to-end test projects format was updated, so we
+  can more precisely assert what should be produced for each one. (#136, #137).
+
 ### 0.10.2
 
 _10 March 2019_
