@@ -501,6 +501,13 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 0.11.1
+
+_28 May 2019_
+
+- 🐛 Fix missing file in the release tarball, that was causing problems with
+  Windows builds (#141)
+
 ### 0.11.0
 
 _26 May 2019_
