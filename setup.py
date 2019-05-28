@@ -18,6 +18,9 @@ setup(
     packages=['cibuildwheel',],
     license="BSD",
     zip_safe=False,
+    package_data={
+        'cibuildwheel': ['resources/*'],
+    },
     keywords='ci wheel packaging pypi travis appveyor macos linux windows',
     classifiers=[
         'Intended Audience :: Developers',
