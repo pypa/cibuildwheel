@@ -60,7 +60,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.10.1
+        pip install cibuildwheel==0.11.1
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -70,7 +70,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.10.1
+        pip install cibuildwheel==0.11.1
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -89,7 +89,7 @@ jobs:
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.10.1
+        pip install cibuildwheel==0.11.1
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
