@@ -82,7 +82,7 @@ def main():
 
         if platform is None:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
-                  'Travis CI, Appveyor, and CircleCI are supported. You can run on your development '
+                  'Travis CI, AppVeyor, and CircleCI are supported. You can run on your development '
                   'machine using the --platform argument. Check --help output for more '
                   'information.',
                   file=sys.stderr)
