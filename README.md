@@ -486,6 +486,7 @@ Here are some repos that use cibuildwheel.
 - [KDEpy](https://github.com/tommyod/KDEpy)
 - [AutoPy](https://github.com/autopilot-rs/autopy)
 - [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
+- [TgCrypto](https://github.com/pyrogram/tgcrypto)
 
 > Add repo here! Send a PR.
 
