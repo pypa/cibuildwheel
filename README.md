@@ -5,7 +5,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, Appveyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
 
 **`cibuildwheel` is in beta**. It's brand new - I'd love for you to try it and help make it better!
 
@@ -22,23 +22,23 @@ What does it do?
 
 > \* Not supported on Azure Pipelines
 
-- Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, Appveyor, and CircleCI
+- Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs the library test suite against the wheel-installed version of your library
 
 Usage
 -----
 
-`cibuildwheel` currently works  **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **Appveyor** to build Windows wheels. **Azure Pipelines** supports all three.
+`cibuildwheel` currently works  **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **AppVeyor** to build Windows wheels. **Azure Pipelines** supports all three.
 
 |                 | Linux | macOS | Windows |
 |-----------------|-------|-------|---------|
 | Azure Pipelines | ✅    | ✅    | ✅      |
 | Travis CI       | ✅    | ✅    |         |
-| Appveyor        |       |       | ✅      |
+| AppVeyor        |       |       | ✅      |
 | CircleCI        | ✅    | ✅    |         |
 
-`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and Appveyor run their builds in isolated environments, so are ideal for this kind of script.
+`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and AppVeyor run their builds in isolated environments, so are ideal for this kind of script.
 
 ### Minimal setup
 
@@ -184,11 +184,11 @@ jobs:
 
 
 <details>
-    <summary><b>Appveyor</b>
+    <summary><b>AppVeyor</b>
         <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
     </summary>
 
-- To build Windows wheels on Appveyor, create an `appveyor.yml` file in your repo.
+- To build Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
 
     ```
     build_script:
@@ -199,11 +199,11 @@ jobs:
         name: Wheels
     ```
     
-  Appveyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [Appveyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
+  AppVeyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [AppVeyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
     
 </details>
 
-- Commit those files, enable building of your repo on Travis CI and Appveyor, and push.
+- Commit those files, enable building of your repo on Travis CI and AppVeyor, and push.
 
 All being well, you should get wheels delivered to you in a few minutes. 
 
@@ -630,7 +630,7 @@ _7 September 2017_
 _14 August 2017_
 
 - 🐛 Fixed a bug on Windows where subprocess' output was hidden (#23)
-- 🐛 Fixed a bug on Appveyor where logs would appear in the wrong order due to output buffering (#24, thanks @YannickJadoul!)
+- 🐛 Fixed a bug on AppVeyor where logs would appear in the wrong order due to output buffering (#24, thanks @YannickJadoul!)
 
 ### 0.4.0
 

@@ -23,7 +23,7 @@ def get_python_path(config):
         except IndexError:
             raise Exception('Could not find a Python install at ' + path_pattern)
     else:
-        # Assume we're running on Appveyor
+        # Assume we're running on AppVeyor
         major, minor = config.version.split('.')[:2]
         return 'C:\\Python{major}{minor}{arch}'.format(
             major=major,
@@ -66,7 +66,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         run_with_env = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'appveyor_run_with_env.cmd'))
 
         # run_with_env is a cmd file that sets the right environment variables
-        # to build on Appveyor.
+        # to build on AppVeyor.
         def shell(args, env=None, cwd=None):
             # print the command executing for the logs
             print('+ ' + ' '.join(args))
