@@ -426,6 +426,11 @@ Platform-specific variants also available:
     CIBW_TEST_REQUIRES: nose
     CIBW_TEST_COMMAND: "nosetests {project}\\tests"
 </code></pre></td>
+<td><i>example using pytest requirements.txt</i><pre><code>environment:
+  global:
+    CIBW_TEST_REQUIRES: "-r requirements.txt"
+    CIBW_TEST_COMMAND: "pytest {project}/tests"
+</code></pre></td>
 </tr></table>
 
 Delivering to PyPI
