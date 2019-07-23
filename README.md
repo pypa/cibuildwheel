@@ -362,7 +362,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; `ci
 
 Example: `pip install .`  
 Example: `pip install pybind11`  
-Example: `yum install -y libffi-dev && pip install .`
+Example: `cd depedency && ./configure && make install && cd .. && pip install .`
 
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
