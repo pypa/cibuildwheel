@@ -12,25 +12,25 @@ except ImportError:
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['identifier', 'path'])
     python_configurations = [
-        PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp34-manylinux1_x86_64', path='/opt/python/cp34-cp34m'),
-        PythonConfiguration(identifier='cp35-manylinux1_x86_64', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(identifier='cp36-manylinux1_x86_64', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(identifier='cp37-manylinux1_x86_64', path='/opt/python/cp37-cp37m'),
-        PythonConfiguration(identifier='cp27-manylinux1_i686', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(identifier='cp27-manylinux1_i686', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp34-manylinux1_i686', path='/opt/python/cp34-cp34m'),
-        PythonConfiguration(identifier='cp35-manylinux1_i686', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(identifier='cp36-manylinux1_i686', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(identifier='cp37-manylinux1_i686', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(identifier='cp34-manylinux_x86_64', path='/opt/python/cp34-cp34m'),
+        PythonConfiguration(identifier='cp35-manylinux_x86_64', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_x86_64', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_x86_64', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(identifier='cp34-manylinux_i686', path='/opt/python/cp34-cp34m'),
+        PythonConfiguration(identifier='cp35-manylinux_i686', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
     ]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment, manylinux1_images):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment, manylinux_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -42,11 +42,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     platforms = [
-        ('manylinux1_x86_64', manylinux1_images.get('x86_64') or 'quay.io/pypa/manylinux1_x86_64'),
-        ('manylinux1_i686', manylinux1_images.get('i686') or 'quay.io/pypa/manylinux1_i686'),
+        ('manylinux_x86_64', manylinux_images['x86_64']),
+        ('manylinux_i686', manylinux_images['i686']),
     ]
 
     for platform_tag, docker_image in platforms:
+        if not docker_image:
+            continue
         platform_configs = [c for c in python_configurations if c.identifier.endswith(platform_tag)]
         if not platform_configs:
             continue

@@ -141,11 +141,19 @@ def main():
     )
 
     if platform == 'linux':
-        manylinux1_x86_64_image = os.environ.get('CIBW_MANYLINUX1_X86_64_IMAGE', None)
-        manylinux1_i686_image = os.environ.get('CIBW_MANYLINUX1_I686_IMAGE', None)
+        # TODO Check CIBW_MANYLINUX1_X86_64_IMAGE and CIBW_MANYLINUX1_I686_IMAGE environment variables and error if they exist
+        # TODO Check CIBW_BUILD and CIBW_SKIP for "manylinux1" and error if present
+        # TODO Add documentation on CIBW_ENVIRONMENT and possibility of AUDITWHEEL_PLAT if not defined by custom manylinux image
+        manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', '2010')
+        manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', '')
+
+        default_manylinux_images_x86_64 = {'1': 'quay.io/pypa/manylinux1_x86_64',
+                                           '2010': 'quay.io/pypa/manylinux2010_x86_64'}
+        default_manylinux_images_i686 = {'1': 'quay.io/pypa/manylinux1_i686'}
 
         build_options.update(
-            manylinux1_images={'x86_64': manylinux1_x86_64_image, 'i686': manylinux1_i686_image},
+            manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
+                              'i686': default_manylinux_images_i686.get(manylinux_i686_image) or manylinux_i686_image},
         )
     elif platform == 'macos':
         pass
