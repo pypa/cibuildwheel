@@ -120,7 +120,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 fi
 
                 # we're all done here; move it to output
-                mv "$delocated_wheel" /output
+                mv "${{delocated_wheel[@]}}" /output
                 chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"
             done
         '''.format(
