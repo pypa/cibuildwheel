@@ -64,9 +64,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             for PYBIN in {pybin_paths}; do
                 # Setup
                 rm -rf /tmp/built_wheel
-                rm -rf /tmp/delocated_wheel
+                rm -rf /tmp/delocated_wheels
                 mkdir /tmp/built_wheel
-                mkdir /tmp/delocated_wheel
+                mkdir /tmp/delocated_wheels
 
                 if [ ! -z {before_build} ]; then
                     PATH="$PYBIN:$PATH" sh -c {before_build}
@@ -81,11 +81,11 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 # the first element
                 if [[ "$built_wheel" == *none-any.whl ]]; then
                     # pure python wheel - just copy
-                    mv "$built_wheel" /tmp/delocated_wheel
+                    mv "$built_wheel" /tmp/delocated_wheels
                 else
-                    auditwheel repair "$built_wheel" -w /tmp/delocated_wheel
+                    auditwheel repair "$built_wheel" -w /tmp/delocated_wheels
                 fi
-                delocated_wheel=(/tmp/delocated_wheel/*.whl)
+                delocated_wheels=(/tmp/delocated_wheels/*.whl)
 
                 if [ ! -z {test_command} ]; then
                     # Set up a virtual environment to install and test from, to make sure
@@ -102,7 +102,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         echo "Running tests using `which python`"
 
                         # Install the wheel we just built
-                        pip install "$delocated_wheel"{test_extras}
+                        pip install "${{delocated_wheels[0]}}"{test_extras}
 
                         # Install any requirements to run the tests
                         if [ ! -z "{test_requires}" ]; then
@@ -120,8 +120,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 fi
 
                 # we're all done here; move it to output
-                mv "${{delocated_wheel[@]}}" /output
-                chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"
+                mv "${{delocated_wheels[@]}}" /output
+                for delocated_wheel in "${{delocated_wheels[@]}}"; do chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"; done
             done
         '''.format(
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
