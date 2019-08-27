@@ -147,9 +147,12 @@ def main():
         manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', '2010')
         manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', '')
 
-        default_manylinux_images_x86_64 = {'1': 'quay.io/pypa/manylinux1_x86_64',
-                                           '2010': 'quay.io/pypa/manylinux2010_x86_64'}
-        default_manylinux_images_i686 = {'1': 'quay.io/pypa/manylinux1_i686'}
+        manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
+        manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', '')
+
+        default_manylinux_images_x86_64 = {'manylinux1': 'quay.io/pypa/manylinux1_x86_64',
+                                           'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64'}
+        default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686'}
 
         build_options.update(
             manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,

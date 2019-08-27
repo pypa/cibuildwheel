@@ -42,13 +42,13 @@ def cibuildwheel_run(project_path, env=None, add_env=None):
     )
 
 
-def expected_wheels(package_name, package_version, manylinux_versions={'1_x86_64', '2010_x86_64'}):
+def expected_wheels(package_name, package_version, manylinux_versions={'manylinux1_x86_64', 'manylinux2010_x86_64'}):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
     if platform == 'linux':
         templates = []
-        if '1_x86_64' in manylinux_versions:
+        if 'manylinux1_x86_64' in manylinux_versions:
             templates += [
                 '{package_name}-{package_version}-cp27-cp27m-manylinux1_x86_64.whl',
                 '{package_name}-{package_version}-cp27-cp27mu-manylinux1_x86_64.whl',
@@ -57,7 +57,7 @@ def expected_wheels(package_name, package_version, manylinux_versions={'1_x86_64
                 '{package_name}-{package_version}-cp36-cp36m-manylinux1_x86_64.whl',
                 '{package_name}-{package_version}-cp37-cp37m-manylinux1_x86_64.whl',
             ]
-        if '1_i686' in manylinux_versions:
+        if 'manylinux1_i686' in manylinux_versions:
             templates += [
                 '{package_name}-{package_version}-cp27-cp27m-manylinux1_i686.whl',
                 '{package_name}-{package_version}-cp27-cp27mu-manylinux1_i686.whl',
@@ -66,7 +66,7 @@ def expected_wheels(package_name, package_version, manylinux_versions={'1_x86_64
                 '{package_name}-{package_version}-cp36-cp36m-manylinux1_i686.whl',
                 '{package_name}-{package_version}-cp37-cp37m-manylinux1_i686.whl',
             ]
-        if '2010_x86_64' in manylinux_versions:
+        if 'manylinux2010_x86_64' in manylinux_versions:
             templates += [
                 '{package_name}-{package_version}-cp27-cp27m-manylinux2010_x86_64.whl',
                 '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_x86_64.whl',

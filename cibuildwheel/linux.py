@@ -102,6 +102,11 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         echo "Running tests using `which python`"
 
                         # Install the wheel we just built
+                        # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
+                        # conforms to multiple manylinux standards. These multiple versions of the wheel are
+                        # functionally the same, differing only in name, wheel metadata, and possibly include
+                        # different external shared libraries. so it doesn't matter which one we run the tests on.
+                        # Let's just pick the first one.
                         pip install "${{delocated_wheels[0]}}"{test_extras}
 
                         # Install any requirements to run the tests

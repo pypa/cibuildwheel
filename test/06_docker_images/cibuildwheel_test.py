@@ -5,7 +5,7 @@ def test():
     project_dir = os.path.dirname(__file__)
 
     if utils.platform != 'linux':
-        pytest.skip('the docker test is only relevant to the linux build')
+        pytest.skip('the test is only relevant to the linux build')
 
     utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_MANYLINUX_X86_64_IMAGE': 'dockcross/manylinux2010-x64',
@@ -15,6 +15,6 @@ def test():
     })
 
     # also check that we got the right wheels built
-    expected_wheels = utils.expected_wheels('spam', '0.1.0', manylinux_versions={'1_x86_64', '2010_x86_64', '1_i686'})
+    expected_wheels = utils.expected_wheels('spam', '0.1.0', manylinux_versions={'manylinux1_x86_64', 'manylinux2010_x86_64', 'manylinux1_i686'})
     actual_wheels = os.listdir('wheelhouse')
     assert set(actual_wheels) == set(expected_wheels)
