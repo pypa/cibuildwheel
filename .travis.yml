@@ -27,6 +27,28 @@ matrix:
         - brew update
         - brew outdated python || brew upgrade python
 
+    - os: windows
+      language: shell
+      before_install:
+       - choco install python3-x86_32 --version 3.5.2 --no-progress  -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35'"
+       - choco install python3 --version 3.5.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
+       - choco install python3 --version 3.6.8 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36'"
+       - choco install python3 --version 3.6.8 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
+       - choco install python3 --version 3.7.4 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37'"
+       - choco install python3 --version 3.7.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37-x64'"
+      install:
+       - C:\\Python35-x64\\python -m pip install -r requirements-dev.txt
+      script:
+       - C:\\Python35-x64\\python ./bin/run_tests.py
+
 install: $PYTHON -m pip install -r requirements-dev.txt
 
 script: $PYTHON ./bin/run_tests.py
+
+
+# - choco install python3-x86_32 --version 3.4.3.20150501 --no-progress  -y --allowmultiple --override --installargs "'/qn /norestart ALLUSERS=1 TARGETDIR=C:\Python34'"
+# - choco install python3 --version 3.4.4.20180111 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python34-x64'"
+# - choco install python2 --version 2.7.16 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python27'"
+# - choco install python2 --version 2.7.16 --no-progress -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python27-x64'"
+#       - wget -q http://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi
+#       - msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive

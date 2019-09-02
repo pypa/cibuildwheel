@@ -14,13 +14,14 @@ What does it do?
 
 |   | macOS 10.6+ | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
 |---|---|---|---|---|---|
-| Python 2.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.4 | ✅ | ✅ | ✅ | ✅* | ✅* |
+| Python 2.7 | ✅ | ✅ | ✅ | ✅² | ✅² |
+| Python 3.4 | ✅ | ✅ | ✅ | ✅¹²| ✅¹²|
 | Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
-> \* Not supported on Azure Pipelines
+> ¹ Not supported on Azure Pipelines 
+> ² Current configuration for travis do not support this python version but user can find method for install proper python on travis
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -34,9 +35,10 @@ Usage
 |                 | Linux | macOS | Windows |
 |-----------------|-------|-------|---------|
 | Azure Pipelines | ✅    | ✅    | ✅      |
-| Travis CI       | ✅    | ✅    |         |
+| Travis CI       | ✅    | ✅    | ✅*     |
 | AppVeyor        |       |       | ✅      |
 | CircleCI        | ✅    | ✅    |         |
+> \* Travis provides windows machines but user need install python manually 
 
 `cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and AppVeyor run their builds in isolated environments, so are ideal for this kind of script.
 
@@ -101,11 +103,12 @@ jobs:
     <summary><b>Travis CI</b>
         <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
         <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
+        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
     </summary>
 
 - To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
 
-    ```
+    ```yaml
     language: python
     
     matrix:
@@ -122,6 +125,25 @@ jobs:
       - $PIP install cibuildwheel==0.11.1
       - cibuildwheel --output-dir wheelhouse
     ```
+
+  and matrix entry for windows 
+  ```yaml
+  - os: windows
+      language: shell
+      before_install:
+       - choco install python3 --version Python 2.7.11 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python27'"
+       - choco install python3 --version Python 2.7.11 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python27-x64'"
+       - choco install python3 --version Python 3.4.4.20180111 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python34'"
+       - choco install python3 --version Python 3.4.4.20180111 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python34-x64'"
+       - choco install python3 --version 3.5.4 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35'"
+       - choco install python3 --version 3.5.4 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
+       - choco install python3 --version 3.6.8 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36'"
+       - choco install python3 --version 3.6.8 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
+       - choco install python3 --version 3.7.4 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37'"
+       - choco install python3 --version 3.7.4 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37-x64'"
+      env:
+       - PATH=/c/Python36-x64:/c/Python36-x64/Scripts:$PATH
+  ```
 
   Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
 

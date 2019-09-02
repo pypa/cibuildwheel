@@ -7,6 +7,7 @@ from .util import prepare_command, get_build_verbosity_extra_flags
 
 
 IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 def get_python_path(config):
     if IS_RUNNING_ON_AZURE:
@@ -47,10 +48,15 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64'),
     ]
 
-    if IS_RUNNING_ON_AZURE:
+    if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         # Python 3.4 isn't supported on Azure.
+        # I meet problem with install python on travis.
         # See https://github.com/Microsoft/azure-pipelines-tasks/issues/9674
         python_configurations = [c for c in python_configurations if c.version != '3.4.x']
+    
+    if IS_RUNNING_ON_TRAVIS:
+        # cannot install VCForPython27.msi
+        python_configurations = [c for c in python_configurations if c.version != '2.7.x']
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
@@ -78,10 +84,8 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
     python_configurations = get_python_configurations(build_selector)
-    print("aaa", os.listdir("C:\\"), sys.executable)
     for config in python_configurations:
         config_python_path = get_python_path(config)
-        print("python info", config_python_path, os.listdir(config_python_path), file=sys.stderr)
 
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
