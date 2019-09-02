@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, tempfile, subprocess, shutil
+import os, tempfile, subprocess, shutil, sys
 from collections import namedtuple
 from glob import glob
 
@@ -78,9 +78,10 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
     python_configurations = get_python_configurations(build_selector)
-
+    print("aaa", os.listdir("C:\\"), sys.executable)
     for config in python_configurations:
         config_python_path = get_python_path(config)
+        print("python info", config_python_path, os.listdir(config_python_path), file=sys.stderr)
 
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
