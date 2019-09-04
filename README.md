@@ -21,6 +21,7 @@ What does it do?
 | Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
 > ¹ Not supported on Azure Pipelines 
+>
 > ² Current configuration for travis do not support this python version but user can find method for install proper python on travis
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
@@ -128,19 +129,15 @@ jobs:
 
   and matrix entry for windows 
   ```yaml
-  - os: windows
+    - os: windows
       language: shell
       before_install:
-       - choco install python3 --version Python 2.7.11 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python27'"
-       - choco install python3 --version Python 2.7.11 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python27-x64'"
-       - choco install python3 --version Python 3.4.4.20180111 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python34'"
-       - choco install python3 --version Python 3.4.4.20180111 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python34-x64'"
-       - choco install python3 --version 3.5.4 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35'"
-       - choco install python3 --version 3.5.4 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
-       - choco install python3 --version 3.6.8 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36'"
-       - choco install python3 --version 3.6.8 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
-       - choco install python3 --version 3.7.4 --x86 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37'"
-       - choco install python3 --version 3.7.4 -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37-x64'"
+       - choco install python3-x86_32 --version 3.5.2 --no-progress  -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35'"
+       - choco install python3 --version 3.5.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
+       - choco install python3 --version 3.6.8 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36'"
+       - choco install python3 --version 3.6.8 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
+       - choco install python3 --version 3.7.4 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37'"
+       - choco install python3 --version 3.7.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37-x64'"
       env:
        - PATH=/c/Python36-x64:/c/Python36-x64/Scripts:$PATH
   ```
