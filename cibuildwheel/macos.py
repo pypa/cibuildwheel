@@ -122,10 +122,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
         # set up a virtual environment to install and test from
-        call(['pip', 'install', 'virtualenv', env=env)
+        call(['pip', 'install', 'virtualenv'], env=env)
         venv_dir = tempfile.mkdtemp()
-        call(['virtualenv', venv_dir, env=env)
-        call(['source', os.path.join(venv_dir, 'bin', 'activate')])
+        call(['virtualenv', venv_dir], env=env)
+        call(['source', os.path.join(venv_dir, 'bin', 'activate')], env=env)
 
         # install the wheel
         call(['pip', 'install', delocated_wheel + test_extras], env=env)
