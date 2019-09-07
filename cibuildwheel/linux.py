@@ -88,8 +88,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 # Set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
                 "$PYBIN/pip" install virtualenv
-                "$PYBIN/virtualenv" tmp-test-env
-                source tmp-test-env/bin/activate
+                venv_dir=`mktemp -d`/venv
+                "$PYBIN/virtualenv" $venv_dir
+                source $venv_dir/bin/activate
 
                 # Check that we are using the Python from the virtual environment
                 which python
