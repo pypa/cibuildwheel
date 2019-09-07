@@ -125,7 +125,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['pip', 'install', 'virtualenv'], env=env)
         venv_dir = tempfile.mkdtemp()
         call(['virtualenv', venv_dir], env=env)
-        call(['source', os.path.join(venv_dir, 'bin', 'activate')], env=env)
+        env['PATH'] = os.pathsep.join([os.path.join(venv_dir, 'bin'), env['PATH']])
+        call(['which', 'python'], env=env)
 
         # install the wheel
         call(['pip', 'install', delocated_wheel + test_extras], env=env)
