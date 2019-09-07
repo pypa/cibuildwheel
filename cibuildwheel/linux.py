@@ -30,7 +30,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment, manylinux1_images):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment, manylinux1_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -86,7 +86,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
                 delocated_wheel=(/tmp/delocated_wheel/*.whl)
 
                 # Install the wheel we just built
-                "$PYBIN/pip" install "$delocated_wheel"
+                "$PYBIN/pip" install "$delocated_wheel"{test_extras}
 
                 # Install any requirements to run the tests
                 if [ ! -z "{test_requires}" ]; then

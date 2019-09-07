@@ -24,7 +24,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment):
     python_configurations = get_python_configurations(build_selector)
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
@@ -121,7 +121,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
         # install the wheel
-        call(['pip', 'install', delocated_wheel], env=env)
+        call(['pip', 'install', delocated_wheel + test_extras], env=env)
 
         # test the wheel
         if test_requires:

@@ -225,6 +225,7 @@ All being well, you should get wheels delivered to you in a few minutes.
 |   | `CIBW_MANYLINUX1_I686_IMAGE` | Specify an alternative manylinux1 i686 docker image |
 | **Tests** | `CIBW_TEST_COMMAND` | Execute a shell command to test all built wheels |
 |   | `CIBW_TEST_REQUIRES` | Install Python dependencies before running the tests |
+|   | `CIBW_TEST_EXTRAS` | Install Python dependencies before running the tests using ``extras_require``|
 
 A more detailed description of the options, the allowed values, and some examples can be found in the [Options](#options) section.
 
@@ -412,6 +413,25 @@ Example: `nose==1.3.7 moto==0.4.31`
 Platform-specific variants also available:
 `CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
+***
+
+| Environment variable: `CIBW_TEST_EXTRAS`
+| ---
+
+Optional.
+
+Comma-separated list of
+[extras_require](https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies)
+options that should be included when installing the wheel prior to running the
+tests. This can be used to avoid having to redefine test dependencies in
+``CIBW_TEST_REQUIRES`` if they are already defined in ``setup.py`` or
+``setup.cfg``.
+
+Example: `test,qt` (will cause the wheel to be installed with ``pip install <wheel_file>[test,qt])
+
+
+Platform-specific variants also available:
+`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
 
 ### Example YML syntax
 
