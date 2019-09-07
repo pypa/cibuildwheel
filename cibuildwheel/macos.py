@@ -1,4 +1,6 @@
 from __future__ import print_function
+import tempfile
+from textwrap import dedent
 import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
 from glob import glob
@@ -120,18 +122,33 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             call(['delocate-wheel', '-w', '/tmp/delocated_wheel', built_wheel], env=env)
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
-        # install the wheel
-        call(['pip', 'install', delocated_wheel + test_extras], env=env)
+        # install tox to run the tests in an isolated environment
+        call(['pip', 'install', 'tox', '--ignore-installed', '--user'], env=env)
 
-        # test the wheel
-        if test_requires:
-            call(['pip', 'install'] + test_requires, env=env)
-        if test_command:
-            # run the tests from $HOME, with an absolute path in the command
-            # (this ensures that Python runs the tests against the installed wheel
-            # and not the repo code)
-            test_command_prepared = prepare_command(test_command, project=abs_project_dir)
-            call(test_command_prepared, cwd=os.environ['HOME'], env=env, shell=True)
+        test_requires_cmd = 'pip install ' + ' '.join(test_requires) if test_requires else '#'
+        test_cmd_prepared = "sh -c '{0}'".format(prepare_command(test_command, project=abs_project_dir)) if test_command else '#'
+
+        TOX_CONFIG = """
+        [tox]
+        envlist = test
+        skipsdist = true
+
+        [testenv]
+        whitelist_externals = *
+        commands =
+            pip install {delocated_wheel}{test_extras}
+            {test_requires_cmd}
+            {test_cmd_prepared}
+        """.format(delocated_wheel=delocated_wheel,
+                   test_extras=test_extras,
+                   test_requires_cmd=test_requires_cmd,
+                   test_cmd_prepared=test_cmd_prepared)
+
+        # run test script
+        test_dir = tempfile.mkdtemp()
+        with open(os.path.join(test_dir, 'tox.ini'), 'w') as f:
+            f.write(dedent(TOX_CONFIG))
+        call(['python', '-m', 'tox'], env=env, cwd=test_dir)
 
         # we're all done here; move it to output (overwrite existing)
         dst = os.path.join(output_dir, os.path.basename(delocated_wheel))

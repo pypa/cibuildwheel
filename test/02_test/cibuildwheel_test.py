@@ -10,7 +10,7 @@ def test():
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
         'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test'
     })
 
     # also check that we got the right wheels
@@ -28,7 +28,7 @@ def test_extras_require():
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
         'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test'
     })
 
     # also check that we got the right wheels

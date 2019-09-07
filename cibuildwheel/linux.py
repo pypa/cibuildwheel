@@ -1,4 +1,5 @@
 from __future__ import print_function
+from textwrap import dedent
 import os, subprocess, sys, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
@@ -51,6 +52,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if not platform_configs:
             continue
 
+        test_requires_cmd = 'pip install ' + ' '.join(test_requires) if test_requires else '#'
+        test_cmd_prepared = "sh -c '{0}'".format(prepare_command(test_command, project='/project')) if test_command else '#'
+
         bash_script = '''
             set -o errexit
             set -o xtrace
@@ -85,20 +89,28 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 fi
                 delocated_wheel=(/tmp/delocated_wheel/*.whl)
 
-                # Install the wheel we just built
-                "$PYBIN/pip" install "$delocated_wheel"{test_extras}
+                # install tox to run the tests in an isolated environment
+                $PYBIN/pip install tox --ignore-installed
 
-                # Install any requirements to run the tests
-                if [ ! -z "{test_requires}" ]; then
-                    "$PYBIN/pip" install {test_requires}
-                fi
+                test_dir=`mktemp -d`
 
-                # Run the tests from a different directory
-                if [ ! -z {test_command} ]; then
-                    pushd $HOME
-                    PATH="$PYBIN:$PATH" sh -c {test_command}
-                    popd
-                fi
+                cat > $test_dir/tox.ini << EOL
+            [tox]
+            envlist = test
+            skipsdist = true
+
+            [testenv]
+            whitelist_externals = *
+            commands =
+                pip install $delocated_wheel{test_extras}
+                {test_requires_cmd}
+                {test_cmd_prepared}
+            EOL
+
+                pushd $test_dir
+                cat tox.ini
+                $PYBIN/tox
+                popd
 
                 # we're all done here; move it to output
                 mv "$delocated_wheel" /output
@@ -106,19 +118,19 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             done
         '''.format(
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
-            test_requires=' '.join(test_requires),
+            test_requires_cmd=test_requires_cmd,
             test_extras=test_extras,
-            test_command=shlex_quote(
-                prepare_command(test_command, project='/project') if test_command else ''
-            ),
+            test_cmd_prepared=test_cmd_prepared,
             before_build=shlex_quote(
                 prepare_command(before_build, project='/project') if before_build else ''
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
-            environment_exports='\n'.join(environment.as_shell_commands()),
+            environment_exports='\n            '.join(environment.as_shell_commands()),
             uid=os.getuid(),
             gid=os.getgid(),
         )
+
+        bash_script = dedent(bash_script)
 
         def run_docker(command, stdin_str=None):
             print('docker command: docker {}'.format(' '.join(map(shlex_quote, command))))
