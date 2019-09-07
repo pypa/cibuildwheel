@@ -107,6 +107,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         '''.format(
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
             test_requires=' '.join(test_requires),
+            test_extras=test_extras,
             test_command=shlex_quote(
                 prepare_command(test_command, project='/project') if test_command else ''
             ),
