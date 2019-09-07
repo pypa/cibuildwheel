@@ -89,7 +89,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 # there are no dependencies that were pulled in at build time.
                 "$PYBIN/pip" install virtualenv
                 venv_dir=`mktemp -d`/venv
-                "$PYBIN/virtualenv" $venv_dir
+                "$PYBIN/python" -m virtualenv $venv_dir
                 source $venv_dir/bin/activate
 
                 # Check that we are using the Python from the virtual environment

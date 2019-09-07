@@ -125,7 +125,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         # there are no dependencies that were pulled in at build time.
         shell(['pip', 'install', 'virtualenv'], env=env)
         venv_dir = tempfile.mkdtemp()
-        shell(['virtualenv', venv_dir], env=env)
+        shell(['python', '-m', 'virtualenv', venv_dir], env=env)
         env['PATH'] = os.pathsep.join([os.path.join(venv_dir, 'Scripts'), env['PATH']])
 
         # check that we are using the Python from the virtual environment
