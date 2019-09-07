@@ -1,4 +1,5 @@
 from __future__ import print_function
+import tempfile
 import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
 from glob import glob
@@ -119,6 +120,12 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             # rebuild the wheel with shared libraries included and place in output dir
             call(['delocate-wheel', '-w', '/tmp/delocated_wheel', built_wheel], env=env)
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
+
+        # set up a virtual environment to install and test from
+        call(['pip', 'install', 'virtualenv', env=env)
+        venv_dir = tempfile.mkdtemp()
+        call(['virtualenv', venv_dir, env=env)
+        call(['source', os.path.join(venv_dir, 'bin', 'activate')])
 
         # install the wheel
         call(['pip', 'install', delocated_wheel + test_extras], env=env)
