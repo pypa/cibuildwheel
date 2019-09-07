@@ -121,6 +121,16 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
+        # set up a virtual environment to install and test from, to make sure
+        # there are no dependencies that were pulled in at build time.
+        shell(['pip', 'install', 'virtualenv'], env=env)
+        venv_dir = tempfile.mkdtemp()
+        shell(['virtualenv', venv_dir], env=env)
+        env['PATH'] = os.pathsep.join([os.path.join(venv_dir, 'Scripts'), env['PATH']])
+
+        # check that we are using the Python from the virtual environment
+        shell(['which', 'python'], env=env)
+
         # install the wheel
         shell(['pip', 'install', built_wheel + test_extras], env=env)
 
