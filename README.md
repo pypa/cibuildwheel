@@ -132,12 +132,7 @@ jobs:
     - os: windows
       language: shell
       before_install:
-       - choco install python3-x86_32 --version 3.5.2 --no-progress  -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35'"
-       - choco install python3 --version 3.5.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
-       - choco install python3 --version 3.6.8 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36'"
        - choco install python3 --version 3.6.8 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
-       - choco install python3 --version 3.7.4 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37'"
-       - choco install python3 --version 3.7.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37-x64'"
       env:
        - PATH=/c/Python36-x64:/c/Python36-x64/Scripts:$PATH
   ```

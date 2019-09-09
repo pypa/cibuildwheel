@@ -3,6 +3,11 @@ import os, tempfile, subprocess, shutil, sys
 from collections import namedtuple
 from glob import glob
 
+try:
+    from shlex import quote as shlex_quote
+except ImportError:
+    from pipes import quote as shlex_quote
+
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
@@ -32,20 +37,40 @@ def get_python_path(config):
             arch = '-x64' if config.arch == '64' else ''
         )
 
+        
 
 def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path'])
+
+    bace_choco_args = "--no-progress --force -y --allowmultiple --override".split() 
+    instal_args = "'/quiet  InstallAllUsers=1 TargetDir={}'"
+    
+    class PythonConfiguration(object):
+        def __init__(self, version, arch, identifier, path, choco_args=None):
+            self.version = version
+            self.arch = arch
+            self.identifier = identifier
+            self.path = path
+            if isinstance(choco_args, str):
+                choco_args = choco_args.split()
+            if isinstance(choco_args, list):
+                self.choco_args = choco_args + bace_choco_args + ["--installargs", instal_args.format(path)]
+            else:
+                self.choco_args = choco_args
+        
+        def __str__(self):
+                return "PythonConfiguration({}, {}, {}, {}, {})".format(self.version, self.arch, self.identifier, self.path, str(self.choco_args))
+
     python_configurations = [
         PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27'),
         PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64'),
         PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34'),
         PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64'),
-        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35'),
-        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64'),
-        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36'),
-        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64'),
-        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\Python37'),
-        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64'),
+        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35', choco_args="python3-x86_32 --version 3.5.2"),
+        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64', choco_args="python3 --version 3.5.4"),
+        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36', choco_args="python3 --version 3.6.8 --x86"),
+        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64', choco_args="python3 --version 3.6.8"),
+        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\Python37', choco_args="python3 --version 3.7.4 --x86"),
+        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64', choco_args="python3 --version 3.7.4")
     ]
 
     if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
@@ -83,9 +108,21 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
+    def call(args, env=None, cwd=None, shell=False):
+        # print the command executing for the logs
+        if shell:
+            print('+ %s' % args)
+        else:
+            print('+ ' + ' '.join(shlex_quote(a) for a in args))
+
+        return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
+
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
+        print(config, file=sys.stderr)
         config_python_path = get_python_path(config)
+        if IS_RUNNING_ON_TRAVIS and config.choco_args is not None and not os.path.exists(config.path):
+            call(["choco", "install"] + config.choco_args)
 
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))

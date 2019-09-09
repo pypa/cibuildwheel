@@ -4,6 +4,7 @@ matrix:
   include:
     # Linux Python 2
     - sudo: required
+      if: branch=master
       language: python
       python: 2.7
       services: docker
@@ -11,6 +12,7 @@ matrix:
 
     # Linux Python 3
     - sudo: required
+      if: branch=master
       language: python
       python: 3.4
       services: docker
@@ -18,10 +20,12 @@ matrix:
 
     # macOS Python 2
     - os: osx
+      if: branch=master
       env: PYTHON=python2
 
     # macOS Python 3
     - os: osx
+      if: branch=master
       env: PYTHON=python3
       before_install:
         - brew update
@@ -30,12 +34,7 @@ matrix:
     - os: windows
       language: shell
       before_install:
-       - choco install python3-x86_32 --version 3.5.2 --no-progress  -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35'"
        - choco install python3 --version 3.5.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
-       - choco install python3 --version 3.6.8 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36'"
-       - choco install python3 --version 3.6.8 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
-       - choco install python3 --version 3.7.4 --no-progress --x86 -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37'"
-       - choco install python3 --version 3.7.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python37-x64'"
       install:
        - C:\\Python35-x64\\python -m pip install -r requirements-dev.txt
       script:
