@@ -28,6 +28,8 @@ def get_python_path(config):
             return glob(path_pattern)[0]
         except IndexError:
             raise Exception('Could not find a Python install at ' + path_pattern)
+    elif IS_RUNNING_ON_TRAVIS:
+        return config.path
     else:
         # Assume we're running on AppVeyor
         major, minor = config.version.split('.')[:2]
@@ -63,8 +65,8 @@ def get_python_configurations(build_selector):
     python_configurations = [
         PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27'),
         PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64'),
-        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34'),
-        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64'),
+        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34', choco_args="python3-x86_32 --version 3.4.3.20150501"),
+        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64', choco_args="python3 --version 3.4.4.20180111"),
         PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35', choco_args="python3-x86_32 --version 3.5.2"),
         PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64', choco_args="python3 --version 3.5.4"),
         PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36', choco_args="python3 --version 3.6.8 --x86"),
@@ -83,12 +85,44 @@ def get_python_configurations(build_selector):
         # cannot install VCForPython27.msi
         python_configurations = [c for c in python_configurations if c.version != '2.7.x']
 
+    # check if python is already installed
+    try:
+        import _winreg as _winreg
+    except ImportError:
+        import winreg
+    register = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
+    def get_install_path_dict(reg, python_path):
+        try:
+            python_reg = winreg.OpenKey(register, python_path)
+        except FileNotFoundError:
+            return {}
+        info_dict = {}
+        for i in range(winreg.QueryInfoKey(python_reg)[0]):
+            try:
+                version_info = winreg.EnumKey(python_reg, i)
+                if version_info.endswith("-32"):
+                    info_dict[version_info[:-3]] =  winreg.EnumValue(winreg.OpenKey(python_reg, version_info + "\\InstallPath"), 0)[1]
+                else:
+                    info_dict[version_info] =  winreg.EnumValue(winreg.OpenKey(python_reg, version_info + "\\InstallPath"), 0)[1]
+            except FileNotFoundError:
+                pass
+        python_reg.Close()
+        return info_dict
+
+    python_info_dict = {"64": get_install_path_dict(register, "SOFTWARE\Python\PythonCore"), "32": get_install_path_dict(register, "SOFTWARE\Wow6432Node\Python\PythonCore")}
+    register.Close()
+    
+    for configuration in python_configurations:
+        version_num = configuration.version[:-2]
+        if version_num in python_info_dict[configuration.arch]:
+            configuration.path = python_info_dict[configuration.arch][version_num]
+
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
 def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
-    if IS_RUNNING_ON_AZURE:
+    if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         def shell(args, env=None, cwd=None):
             print('+ ' + ' '.join(args))
             args = ['cmd', '/E:ON', '/V:ON', '/C'] + args

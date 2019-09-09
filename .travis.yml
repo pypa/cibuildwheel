@@ -33,6 +33,7 @@ matrix:
 
     - os: windows
       language: shell
+      env: VS100COMNTOOLS=$VS140COMNTOOLS
       before_install:
        - choco install python3 --version 3.5.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
       install:
