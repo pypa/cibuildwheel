@@ -487,6 +487,7 @@ Here are some repos that use cibuildwheel.
 - [AutoPy](https://github.com/autopilot-rs/autopy)
 - [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
+- [Twisted](https://github.com/twisted/twisted)
 
 > Add repo here! Send a PR.
 
