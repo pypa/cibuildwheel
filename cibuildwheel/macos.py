@@ -127,6 +127,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         venv_dir = tempfile.mkdtemp()
         call(['python', '-m', 'virtualenv', venv_dir], env=env)
         env['PATH'] = os.pathsep.join([os.path.join(venv_dir, 'bin'), env['PATH']])
+        # Some weird issue with the shebang of installed scripts
+        # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
+        env.pop('__PYVENV_LAUNCHER__', None)
 
         # check that we are using the Python from the virtual environment
         call(['which', 'python'], env=env)
