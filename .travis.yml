@@ -36,9 +36,12 @@ matrix:
       env: VS100COMNTOOLS=$VS140COMNTOOLS
       before_install:
        - choco install python3 --version 3.5.4 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python35-x64'"
+       - choco install python3 --version 3.4.4.20180111 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python34-x64'"
+       - choco install python3-x86_32 --version 3.4.3.20150501 --no-progress  -y --allowmultiple --override --installargs "'/qn /norestart ALLUSERS=1 TARGETDIR=C:\Python34'"
       install:
        - C:\\Python35-x64\\python -m pip install -r requirements-dev.txt
       script:
+       - ls /c/ 
        - C:\\Python35-x64\\python ./bin/run_tests.py
 
 install: $PYTHON -m pip install -r requirements-dev.txt

@@ -37,7 +37,7 @@ def cibuildwheel_run(project_path, env=None, add_env=None):
     if add_env is not None:
         env.update(add_env)
 
-    p = subprocess.check_call(
+    subprocess.check_call(
         [sys.executable, '-m', 'cibuildwheel', project_path],
         env=env
     )
@@ -91,7 +91,7 @@ def expected_wheels(package_name, package_version):
         templates = [t for t in templates if '-cp34-' not in t]
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
         # Python 2.7 and 3.4 isn't supported on Travis.
-        templates = [t for t in templates if '-cp27-' not in t and '-cp34-' not in t]
+        templates = [t for t in templates if '-cp27-' not in t]
     
     return [filename.format(package_name=package_name, package_version=package_version)
             for filename in templates]

@@ -39,32 +39,19 @@ def get_python_path(config):
             arch = '-x64' if config.arch == '64' else ''
         )
 
-        
+
+def get_choco_args(configuration):
+    if configuration.choco_args is None:
+        return None
+    bace_choco_args = "--no-progress --force -y --allowmultiple --override".split() 
+    instal_args = "'/quiet  InstallAllUsers=1 TargetDir={}'"       
+    return configuration.choco_args.split() + bace_choco_args + ["--installargs", instal_args.format(configuration.path)]
 
 def get_python_configurations(build_selector):
-
-    bace_choco_args = "--no-progress --force -y --allowmultiple --override".split() 
-    instal_args = "'/quiet  InstallAllUsers=1 TargetDir={}'"
-    
-    class PythonConfiguration(object):
-        def __init__(self, version, arch, identifier, path, choco_args=None):
-            self.version = version
-            self.arch = arch
-            self.identifier = identifier
-            self.path = path
-            if isinstance(choco_args, str):
-                choco_args = choco_args.split()
-            if isinstance(choco_args, list):
-                self.choco_args = choco_args + bace_choco_args + ["--installargs", instal_args.format(path)]
-            else:
-                self.choco_args = choco_args
-        
-        def __str__(self):
-                return "PythonConfiguration({}, {}, {}, {}, {})".format(self.version, self.arch, self.identifier, self.path, str(self.choco_args))
-
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path', "choco_args"])
     python_configurations = [
-        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27'),
-        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64'),
+        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27', choco_args=None),
+        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64', choco_args=None),
         PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34', choco_args="python3-x86_32 --version 3.4.3.20150501"),
         PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64', choco_args="python3 --version 3.4.4.20180111"),
         PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35', choco_args="python3-x86_32 --version 3.5.2"),
@@ -75,14 +62,16 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64', choco_args="python3 --version 3.7.4")
     ]
 
-    if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
+    if IS_RUNNING_ON_AZURE:
         # Python 3.4 isn't supported on Azure.
-        # I meet problem with install python on travis.
         # See https://github.com/Microsoft/azure-pipelines-tasks/issues/9674
+        # During try of install python 3.4 x64 on travis there is coflict with already installed python by some tool. 
+        # But look of path do not allow for hardcode it
         python_configurations = [c for c in python_configurations if c.version != '3.4.x']
     
     if IS_RUNNING_ON_TRAVIS:
         # cannot install VCForPython27.msi
+        # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
         python_configurations = [c for c in python_configurations if c.version != '2.7.x']
 
     # check if python is already installed
@@ -112,13 +101,14 @@ def get_python_configurations(build_selector):
     python_info_dict = {"64": get_install_path_dict(register, "SOFTWARE\Python\PythonCore"), "32": get_install_path_dict(register, "SOFTWARE\Wow6432Node\Python\PythonCore")}
     register.Close()
     
-    for configuration in python_configurations:
+    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
+    for i, configuration in enumerate(python_configurations):
         version_num = configuration.version[:-2]
         if version_num in python_info_dict[configuration.arch]:
-            configuration.path = python_info_dict[configuration.arch][version_num]
+            python_configurations[i] = configuration._replace(path=python_info_dict[configuration.arch][version_num])
 
     # skip builds as required
-    return [c for c in python_configurations if build_selector(c.identifier)]
+    return python_configurations
 
 
 def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
@@ -156,7 +146,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         print(config, file=sys.stderr)
         config_python_path = get_python_path(config)
         if IS_RUNNING_ON_TRAVIS and config.choco_args is not None and not os.path.exists(config.path):
-            call(["choco", "install"] + config.choco_args)
+            call(["choco", "install"] + get_choco_args(config))
 
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))

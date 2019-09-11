@@ -39,7 +39,7 @@ Usage
 | Travis CI       | ✅    | ✅    | ✅*     |
 | AppVeyor        |       |       | ✅      |
 | CircleCI        | ✅    | ✅    |         |
-> \* Travis provides windows machines but user need install python manually 
+> \* Travis provides a Windows environment but Python needs to be installed manually 
 
 `cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and AppVeyor run their builds in isolated environments, so are ideal for this kind of script.
 
