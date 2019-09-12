@@ -84,7 +84,8 @@ def get_python_configurations(build_selector):
     return python_configurations
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment):
     if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         def shell(args, env=None, cwd=None):
             print('+ ' + ' '.join(args))
@@ -176,7 +177,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
         # install the wheel
-        shell(['pip', 'install', built_wheel], env=env)
+        shell(['pip', 'install', built_wheel + test_extras], env=env)
 
         # test the wheel
         if test_requires:

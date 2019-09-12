@@ -17,14 +17,14 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.4', identifier='cp34-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.4.4/python-3.4.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.2/python-3.7.2-macosx10.6.pkg'),
+        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.4/python-3.7.4-macosx10.6.pkg'),
     ]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, before_build, build_verbosity, build_selector, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment):
     python_configurations = get_python_configurations(build_selector)
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
@@ -121,7 +121,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
         # install the wheel
-        call(['pip', 'install', delocated_wheel], env=env)
+        call(['pip', 'install', delocated_wheel + test_extras], env=env)
 
         # test the wheel
         if test_requires:
