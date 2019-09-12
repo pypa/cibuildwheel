@@ -67,19 +67,19 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64', exact_version="3.7.4")
     ]
 
-    if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
+    if IS_RUNNING_ON_AZURE:
         # Python 3.4 isn't supported on Azure.
         # See https://github.com/Microsoft/azure-pipelines-tasks/issues/9674
         python_configurations = [c for c in python_configurations if c.version != '3.4.x']
     
     if IS_RUNNING_ON_TRAVIS:
-        # cannot install VCForPython27.msi
+        # cannot install VCForPython27.msi which is needed for compiling C software
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
-        python_configurations = [c for c in python_configurations if c.version != '2.7.x']
+        # no easy and stable way fo installing python 3.4 
+        python_configurations = [c for c in python_configurations if c.version != '2.7.x' and c.version != '3.4.x']
 
      # skip builds as required
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
-   
    
     return python_configurations
 
@@ -117,6 +117,7 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
     if IS_RUNNING_ON_TRAVIS:
         # instal nuget as best way for provide python
         call(["choco", "install", "nuget.commandline"])
+        # get pip fo this installation which not have. 
         get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
         get_pip_script = 'C:\get-pip.py'
         call(['curl', '-L', '-o', get_pip_script, get_pip_url])

@@ -4,7 +4,6 @@ matrix:
   include:
     # Linux Python 2
     - sudo: required
-      if: branch=master
       language: python
       python: 2.7
       services: docker
@@ -12,7 +11,6 @@ matrix:
 
     # Linux Python 3
     - sudo: required
-      if: branch=master
       language: python
       python: 3.4
       services: docker
@@ -20,12 +18,10 @@ matrix:
 
     # macOS Python 2
     - os: osx
-      if: branch=master
       env: PYTHON=python2
 
     # macOS Python 3
     - os: osx
-      if: branch=master
       env: PYTHON=python3
       before_install:
         - brew update
@@ -35,12 +31,11 @@ matrix:
       language: shell
       env: VS100COMNTOOLS=$VS140COMNTOOLS
       before_install:
-       - choco install python3 --version 3.6.8 --no-progress -y --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
+       - choco install python3 --version 3.6.8 --no-progress -y
       install:
-       - C:\\Python36-x64\\python -m pip install -r requirements-dev.txt
+       - C:\\Python36\\python -m pip install -r requirements-dev.txt
       script:
-       - ls /c/ 
-       - C:\\Python36-x64\\python ./bin/run_tests.py
+       - C:\\Python36\\python ./bin/run_tests.py
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 

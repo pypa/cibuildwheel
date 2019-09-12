@@ -22,7 +22,7 @@ What does it do?
 
 > ¹ Not supported on Azure Pipelines 
 >
-> ² Current configuration for travis do not support this python version but user can find method for install proper python on travis
+> ² Current configuration for travis do not support this python version but user can find method for install proper python on travis. For python 2.7 there is a problem with installation "Microsoft Visual C++ Compiler for Python 2.7"
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -132,9 +132,9 @@ jobs:
     - os: windows
       language: shell
       before_install:
-       - choco install python3 --version 3.6.8 --no-progress --force -y --allowmultiple --override --installargs "'/quiet  InstallAllUsers=1 TargetDir=C:\Python36-x64'"
+       - choco install python3 --version 3.6.8 --no-progress -y
       env:
-       - PATH=/c/Python36-x64:/c/Python36-x64/Scripts:$PATH
+       - PATH=/c/Python36:/c/Python36/Scripts:$PATH
   ```
 
   Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
