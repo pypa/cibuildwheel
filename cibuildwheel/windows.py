@@ -173,8 +173,12 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
         shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
 
         # prepare the Python environment
-        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'],
+        if config.version == "3.4.x":
+            shell(['python', '-m', 'pip', 'install', 'pip==19.1.1'],
               env=env)
+        else:
+            shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'],
+                env=env)
         shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
         shell(['pip', 'install', 'wheel'], env=env)
 
