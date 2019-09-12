@@ -29,7 +29,11 @@ def get_python_path(config):
         except IndexError:
             raise Exception('Could not find a Python install at ' + path_pattern)
     elif IS_RUNNING_ON_TRAVIS:
-        return config.path
+        if config.version == "3.4.x":
+            return config.path
+        else:
+            nuget_args = get_nuget_args(config)
+            return os.path.join(nuget_args[-1], nuget_args[0] + "." + config.exact_version, "tools")
     else:
         # Assume we're running on AppVeyor
         major, minor = config.version.split('.')[:2]
@@ -40,33 +44,32 @@ def get_python_path(config):
         )
 
 
-def get_choco_args(configuration):
-    if configuration.choco_args is None:
+def get_nuget_args(configuration):
+    if configuration.exact_version is None:
         return None
-    bace_choco_args = "--no-progress --force -y --allowmultiple --override".split() 
-    instal_args = "'/quiet  InstallAllUsers=1 TargetDir={}'"       
-    return configuration.choco_args.split() + bace_choco_args + ["--installargs", instal_args.format(configuration.path)]
+    python_name = "python" if configuration.version[0] == '3' else "python2"
+    if configuration.arch == "32":
+        python_name = python_name + "x86"
+    return [python_name, "-Version", configuration.exact_version, "-OutputDirectory", "C:/python"]
 
 def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path', "choco_args"])
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path', "exact_version"])
     python_configurations = [
-        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27', choco_args=None),
-        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64', choco_args=None),
-        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34', choco_args="python3-x86_32 --version 3.4.3.20150501"),
-        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64', choco_args="python3 --version 3.4.4.20180111"),
-        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35', choco_args="python3-x86_32 --version 3.5.2"),
-        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64', choco_args="python3 --version 3.5.4"),
-        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36', choco_args="python3 --version 3.6.8 --x86"),
-        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64', choco_args="python3 --version 3.6.8"),
-        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\Python37', choco_args="python3 --version 3.7.4 --x86"),
-        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64', choco_args="python3 --version 3.7.4")
+        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27', exact_version="2.7.16"),
+        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64', exact_version="2.7.16"),
+        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34', exact_version=None),
+        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64', exact_version=None),
+        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35', exact_version="3.5.4"),
+        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64', exact_version="3.5.4"),
+        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36', exact_version="3.6.8"),
+        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64', exact_version="3.6.8"),
+        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\Python37', exact_version="3.7.4"),
+        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64', exact_version="3.7.4")
     ]
 
-    if IS_RUNNING_ON_AZURE:
+    if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         # Python 3.4 isn't supported on Azure.
         # See https://github.com/Microsoft/azure-pipelines-tasks/issues/9674
-        # During try of install python 3.4 x64 on travis there is coflict with already installed python by some tool. 
-        # But look of path do not allow for hardcode it
         python_configurations = [c for c in python_configurations if c.version != '3.4.x']
     
     if IS_RUNNING_ON_TRAVIS:
@@ -74,40 +77,10 @@ def get_python_configurations(build_selector):
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
         python_configurations = [c for c in python_configurations if c.version != '2.7.x']
 
-    # check if python is already installed
-    try:
-        import _winreg as _winreg
-    except ImportError:
-        import winreg
-    register = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-    def get_install_path_dict(reg, python_path):
-        try:
-            python_reg = winreg.OpenKey(register, python_path)
-        except FileNotFoundError:
-            return {}
-        info_dict = {}
-        for i in range(winreg.QueryInfoKey(python_reg)[0]):
-            try:
-                version_info = winreg.EnumKey(python_reg, i)
-                if version_info.endswith("-32"):
-                    info_dict[version_info[:-3]] =  winreg.EnumValue(winreg.OpenKey(python_reg, version_info + "\\InstallPath"), 0)[1]
-                else:
-                    info_dict[version_info] =  winreg.EnumValue(winreg.OpenKey(python_reg, version_info + "\\InstallPath"), 0)[1]
-            except FileNotFoundError:
-                pass
-        python_reg.Close()
-        return info_dict
-
-    python_info_dict = {"64": get_install_path_dict(register, "SOFTWARE\Python\PythonCore"), "32": get_install_path_dict(register, "SOFTWARE\Wow6432Node\Python\PythonCore")}
-    register.Close()
-    
+     # skip builds as required
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
-    for i, configuration in enumerate(python_configurations):
-        version_num = configuration.version[:-2]
-        if version_num in python_info_dict[configuration.arch]:
-            python_configurations[i] = configuration._replace(path=python_info_dict[configuration.arch][version_num])
-
-    # skip builds as required
+   
+   
     return python_configurations
 
 
@@ -141,12 +114,22 @@ def build(project_dir, output_dir, test_command, test_requires, before_build, bu
 
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
+    if IS_RUNNING_ON_TRAVIS:
+        # instal nuget as best way for provide python
+        call(["choco", "install", "nuget.commandline"])
+        get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
+        get_pip_script = 'C:\get-pip.py'
+        call(['curl', '-L', '-o', get_pip_script, get_pip_url])
+
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
         print(config, file=sys.stderr)
         config_python_path = get_python_path(config)
-        if IS_RUNNING_ON_TRAVIS and config.choco_args is not None and not os.path.exists(config.path):
-            call(["choco", "install"] + get_choco_args(config))
+        if IS_RUNNING_ON_TRAVIS and config.exact_version is not None and not os.path.exists(config_python_path):
+            call(["nuget", "install"] + get_nuget_args(config))
+            if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
+                call([os.path.join(config_python_path, 'python.exe'), get_pip_script ])
+            print(config_python_path, file=sys.stderr)
 
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
