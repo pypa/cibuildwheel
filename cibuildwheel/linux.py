@@ -47,8 +47,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     ]
 
     for platform_tag, docker_image in platforms:
-        if not docker_image:
-            continue
         platform_configs = [c for c in python_configurations if c.identifier.endswith(platform_tag)]
         if not platform_configs:
             continue
