@@ -57,8 +57,6 @@ def get_python_configurations(build_selector):
     python_configurations = [
         PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\\Python27', nuget_version="2.7.16"),
         PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\\Python27-x64', nuget_version="2.7.16"),
-        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\\Python34', nuget_version=None),
-        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\\Python34-x64', nuget_version=None),
         PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\\Python35', nuget_version="3.5.4"),
         PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\\Python35-x64', nuget_version="3.5.4"),
         PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\\Python36', nuget_version="3.6.8"),
@@ -67,20 +65,14 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\\Python37-x64', nuget_version="3.7.4")
     ]
 
-    if IS_RUNNING_ON_AZURE:
-        # Python 3.4 isn't supported on Azure.
-        # See https://github.com/Microsoft/azure-pipelines-tasks/issues/9674
-        python_configurations = [c for c in python_configurations if c.version != '3.4.x']
-    
     if IS_RUNNING_ON_TRAVIS:
         # cannot install VCForPython27.msi which is needed for compiling C software
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
-        # no easy and stable way fo installing python 3.4 
-        python_configurations = [c for c in python_configurations if c.version != '2.7.x' and c.version != '3.4.x']
+        python_configurations = [c for c in python_configurations if c.version != '2.7.x']
 
      # skip builds as required
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
-   
+
     return python_configurations
 
 
@@ -109,7 +101,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     if IS_RUNNING_ON_TRAVIS:
         # instal nuget as best way for provide python
         shell(["choco", "install", "nuget.commandline"])
-        # get pip fo this installation which not have. 
+        # get pip fo this installation which not have.
         get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
         get_pip_script = 'C:\\get-pip.py'
         shell(['curl', '-L', '-o', get_pip_script, get_pip_url])
