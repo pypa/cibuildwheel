@@ -1,0 +1,10 @@
+site_name: cibuildwheel
+docs_dir: docs
+theme: readthedocs
+nav:
+  - Home: index.md
+  - "Setup guide": setup.md
+  - "Options": options.md
+markdown_extensions:
+- codehilite
+- fenced_code
