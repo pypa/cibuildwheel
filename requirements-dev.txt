@@ -1,2 +1,4 @@
 -e .
 pytest
+mkdocs==1.0.4
+
