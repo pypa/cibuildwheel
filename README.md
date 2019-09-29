@@ -523,6 +523,16 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 0.12.0
+
+_29 September 2019_
+
+- ✨ Add CIBW_TEST_EXTRAS option, to allow testing using extra_require
+  options. For example, set `CIBW_TEST_EXTRAS=test,qt` to make the wheel
+  installed with `pip install <wheel_file>[test,qt]`
+- 🛠 Update Python from 3.7.2 to 3.7.4 on macOS
+- 🛠 Update OpenSSL patch to 1.0.2t on macOS
+
 ### 0.11.1
 
 _28 May 2019_
