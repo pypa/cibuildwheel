@@ -424,10 +424,10 @@ Comma-separated list of
 [extras_require](https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies)
 options that should be included when installing the wheel prior to running the
 tests. This can be used to avoid having to redefine test dependencies in
-``CIBW_TEST_REQUIRES`` if they are already defined in ``setup.py`` or
-``setup.cfg``.
+`CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
+`setup.cfg`.
 
-Example: `test,qt` (will cause the wheel to be installed with ``pip install <wheel_file>[test,qt])
+Example: `test,qt` (will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`)
 
 
 Platform-specific variants also available:
