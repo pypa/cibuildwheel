@@ -1,26 +1,28 @@
-## Options summary
+cibuildwheel is configured using environment variables, that can be set using 
+your CI config.
 
-`cibuildwheel` allows for easy customization of the various phases of the build process demonstrated above:
+<table>
+<tr><td><i>example .travis.yml environment variables</i><pre><code>env:
+  global:
+    - CIBW_TEST_REQUIRES=nose
+    - CIBW_TEST_COMMAND="nosetests {project}/tests"
+</code></pre></td>
+<td><i>example appveyor.yml environment variables</i><pre><code>environment:
+  global:
+    CIBW_TEST_REQUIRES: nose
+    CIBW_TEST_COMMAND: "nosetests {project}\\tests"
+</code></pre></td>
+<td><i>example .circleci/config.yml environment variables</i><pre><code>jobs:
+  job_name:
+    environment:
+      CIBW_TEST_REQUIRES: nose
+      CIBW_TEST_COMMAND: "nosetests {project}\\tests"
+</code></pre></td>
+</tr></table>
 
-|   | Option |   |
-|---|---|---|
-| **Target wheels** | `CIBW_PLATFORM` | Override the auto-detected target platform |
-|   | `CIBW_BUILD` | Build only certain Python versions |
-|   | `CIBW_SKIP` | Skip certain Python versions |
-| **Build parameters** | `CIBW_BUILD_VERBOSITY` | Increase or decrease the output of `pip wheel` |
-| **Build environment** | `CIBW_ENVIRONMENT` | Set environment variables needed during the build |
-|   | `CIBW_BEFORE_BUILD` | Execute a shell command preparing each wheel's build |
-|   | `CIBW_MANYLINUX1_X86_64_IMAGE` | Specify an alternative manylinx1 x86_64 docker image |
-|   | `CIBW_MANYLINUX1_I686_IMAGE` | Specify an alternative manylinux1 i686 docker image |
-| **Tests** | `CIBW_TEST_COMMAND` | Execute a shell command to test all built wheels |
-|   | `CIBW_TEST_REQUIRES` | Install Python dependencies before running the tests |
-|   | `CIBW_TEST_EXTRAS` | Install Python dependencies before running the tests using ``extras_require``|
+## 🚩Build selection
 
-Most of the config is via environment variables. These go into `.travis.yml`, `appveyor.yml`, and `.circleci/config.yml` nicely.
-
-## Build selection
-
-### CIBW_PLATFORM
+### CIBW_PLATFORM - Override the auto-detected target platform {: #platform}
 
 Options: `auto` `linux` `macos` `windows`
 
@@ -30,7 +32,7 @@ Default: `auto`
 
 For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
 
-### CIBW_BUILD and CIBW_SKIP
+### CIBW_BUILD, CIBW_SKIP - Choose the Python versions to build {: #build-skip}
 
 Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
 
@@ -55,9 +57,9 @@ Examples:
 - Skip Python 3.6 on Linux: `CIBW_SKIP=cp36-manylinux*`
 - Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD=cp3?-*` and `CIBW_SKIP=*-win32 *-manylinux1_i686`
 
-## Build environment
+## 🌎 Build environment
 
-### CIBW_ENVIRONMENT
+### CIBW_ENVIRONMENT - Set environment variables needed during the build {: #environment}
 
 A space-separated list of environment variables to set during the build. Bash syntax should be used (even on Windows!).
 
@@ -75,7 +77,7 @@ Platform-specific variants also available:
 
 In addition to the above, `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](https://github.com/joerick/cibuildwheel/wiki/Building-packages-with-optional-C-extensions).
 
-### CIBW_BEFORE_BUILD
+### CIBW_BEFORE_BUILD - Execute a shell command preparing each wheel's build {: #before-build}
 
 A shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
 
@@ -90,7 +92,7 @@ Example: `yum install -y libffi-dev && pip install .`
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
-### CIBW_MANYLINUX1_X86_64_IMAGE and CIBW_MANYLINUX1_I686_IMAGE
+### CIBW_MANYLINUX1_X86_64_IMAGE, CIBW_MANYLINUX1_I686_IMAGE - Specify alternative manylinux1 x86_64 docker images {: #manylinux-image}
 
 An alternative docker image to be used for building [`manylinux1`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the official images, [`quay.io/pypa/manylinux1_x86_64`](https://quay.io/pypa/manylinux1_i686) and [`quay.io/pypa/manylinux1_i686`](https://quay.io/pypa/manylinux1_i686).
 
@@ -99,9 +101,9 @@ Beware to specify a valid docker image that can be used the same as the official
 Example: `dockcross/manylinux-x64`  
 Example: `dockcross/manylinux-x86`
 
-## Testing
+## 🔬 Testing
 
-### CIBW_TEST_COMMAND
+### CIBW_TEST_COMMAND - Execute a shell command to test all built wheels {: #test-command}
 
 Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
@@ -112,7 +114,7 @@ Example: `nosetests {project}/tests`
 Platform-specific variants also available:
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
 
-### CIBW_TEST_REQUIRES
+### CIBW_TEST_REQUIRES - Install Python dependencies before running the tests {: #test-requires}
 
 Space-separated list of dependencies required for running the tests.
 
@@ -122,7 +124,7 @@ Example: `nose==1.3.7 moto==0.4.31`
 Platform-specific variants also available:
 `CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
-### CIBW_TEST_EXTRAS
+### CIBW_TEST_EXTRAS - Install your wheel for testing using `extras_require` {: #test-extras}
 
 Comma-separated list of
 [extras_require](https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies)
@@ -137,9 +139,9 @@ Example: `test,qt` (will cause the wheel to be installed with `pip install <whee
 Platform-specific variants also available:
 `CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
 
-## Other
+## 💭 Other
 
-### CIBW_BUILD_VERBOSITY
+### CIBW_BUILD_VERBOSITY - Increase/decrease the output of pip wheel
 
 An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
 

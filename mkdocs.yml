@@ -1,10 +1,19 @@
 site_name: cibuildwheel
 docs_dir: docs
 theme: readthedocs
+repo_url: https://github.com/joerick/cibuildwheel
+
 nav:
   - Home: index.md
   - "Setup guide": setup.md
   - "Options": options.md
+  - deliver-to-pypi.md
+  - faq.md
+  - contributing.md
+  - changelog.md
 markdown_extensions:
-- codehilite
-- fenced_code
+  - fenced_code
+  - toc:
+      permalink: True
+  - attr_list
+  - admonition

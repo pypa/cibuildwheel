@@ -115,7 +115,8 @@ workflows:
       - osx-wheels
 ```
 
-Note: CircleCI doesn't enable free macOS containers for open source by default, but you can ask for access. See [here](https://circleci.com/docs/2.0/oss/#overview) for more information.
+!!! note
+    CircleCI doesn't enable free macOS containers for open source by default, but you can ask for access. See [here](https://circleci.com/docs/2.0/oss/#overview) for more information.
 
 CircleCI will store the built wheels for you - you can access them from the project console.
 
