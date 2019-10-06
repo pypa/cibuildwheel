@@ -1,5 +1,5 @@
 ---
-title: Deliver to PyPI
+title: Delivering to PyPI
 ---
 
 After you've built your wheels, you'll probably want to deliver them to PyPI.
@@ -15,8 +15,9 @@ rm -rf dist
 python setup.py sdist
 
 # 🏃🏻
-# Go and download your wheel files from wherever you put them. Put 
-# them all into the 'dist' folder.
+# Go and download your wheel files from wherever you put them. e.g. your CI
+# provider can be configured to store them for you. Put them all into the 
+# 'dist' folder.
 
 # Upload using 'twine' (you may need to 'pip install twine')
 twine upload dist/*
@@ -30,6 +31,6 @@ Obviously, manual steps are for chumps, so we can automate this a little by usin
 
 ### Automatic method
 
-If you don't need much control over the release of a package, you can set up cibuildwheel to deliver the wheels straight to PyPI. This doesn't require any cloud storage to work - you just need to bump the version and tag it.
+If you don't need much control over the release of a package, you can set up cibuildwheel to deliver the wheels straight to PyPI. This doesn't require anycloud storage to work - you just need to bump the version and tag it.
 
 Check out [this example repo](https://github.com/joerick/cibuildwheel-autopypi-example) for instructions on how to set this up.
