@@ -1,24 +1,42 @@
+### Setting options
+
 cibuildwheel is configured using environment variables, that can be set using 
 your CI config.
 
-<table>
-<tr><td><i>example .travis.yml environment variables</i><pre><code>env:
+For example, to configure cibuildwheel to run tests, add the following YAML to
+your CI config file:
+
+> .travis.yml ([docs](https://docs.travis-ci.com/user/environment-variables/))
+```yaml
+env:
   global:
     - CIBW_TEST_REQUIRES=nose
     - CIBW_TEST_COMMAND="nosetests {project}/tests"
-</code></pre></td>
-<td><i>example appveyor.yml environment variables</i><pre><code>environment:
+```
+
+> appveyor.yml ([docs](https://www.appveyor.com/docs/build-configuration/#environment-variables))
+```yaml
+environment:
   global:
     CIBW_TEST_REQUIRES: nose
     CIBW_TEST_COMMAND: "nosetests {project}\\tests"
-</code></pre></td>
-<td><i>example .circleci/config.yml environment variables</i><pre><code>jobs:
+```
+
+> .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
+```yaml
+jobs:
   job_name:
     environment:
       CIBW_TEST_REQUIRES: nose
-      CIBW_TEST_COMMAND: "nosetests {project}\\tests"
-</code></pre></td>
-</tr></table>
+      CIBW_TEST_COMMAND: "nosetests {project}/tests"
+```
+
+> azure-pipelines.yml ([docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables))
+```yaml
+variables:
+  CIBW_TEST_REQUIRES: nose
+  CIBW_TEST_COMMAND: "nosetests {project}/tests"
+```
 
 ## 🚩Build selection
 
@@ -150,7 +168,7 @@ Platform-specific variants also available:
 
 ## Command line options
 
-```
+```text
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--output-dir OUTPUT_DIR] [--print-build-identifiers]
                     [project_dir]
@@ -178,3 +196,44 @@ optional arguments:
                         invocation and exit.
 
 ```
+
+<style>
+  .cibw-option-header {
+    margin-top: 5px;
+    /* border-bottom: 1px solid rgba(0, 0, 0, 0.05); */
+  }
+  .cibw-option-header:hover {
+    background-color: transparent !important;
+  }
+  .cibw-option-name {
+    display: block;
+    font-weight: bold;
+  }
+  .cibw-option-description {
+    font-size: 0.9em;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // add styling classes to the toc-tree elements
+    $('.wy-menu-vertical li.current a').each(function(i, el) {
+      var $el = $(el);
+      $el.html( $el.text().replace(
+        /(^[A-Z0-9, _]+) - (.*)$/,
+        '<div class="cibw-option-name">$1</div><div class="cibw-option-description">$2</div>')
+      );
+    })
+    
+    // add styling classes to the emoji headers
+    $('.wy-menu-vertical li.current a').each(function(i, el) {
+      var $el = $(el);
+      var text = $el.text();
+      var emojiStartRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/
+
+      if (text.match(emojiStartRegex)) {
+        $el.addClass('cibw-option-header')
+      }
+    })
+  })
+</script>

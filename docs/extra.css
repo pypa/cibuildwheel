@@ -1,0 +1,72 @@
+
+/* Global styles */
+
+p {
+    margin-bottom: 12px;
+}
+
+code {
+    font-size: 85%;
+    background-color: rgba(27,31,35,.05);
+    border-radius: 3px;
+    padding: .2em .4em;
+    color: inherit;
+    border: none;
+    margin: 0 1px;
+}
+
+code, pre, tt {
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+}
+
+.hljs {
+    padding: 1em;
+    background-color: #f6f8fa;
+}
+
+/*
+    Code block filename style
+
+    Use by putting a quote before a code block e.g.
+
+       > filename.txt
+
+       ```
+       code here
+       ```
+
+    JS adds the relevant classes to make the following selectors work.
+*/
+.rst-content .code-block-filename {
+    margin: 0;
+    padding: 2px 1em;
+    background-color: #eff1f3;
+    font-size: 85%;
+    font-weight: bold;
+    
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+
+    border-bottom: 1px solid #e6e8e9;
+    color: #444;
+}
+
+.rst-content .code-block-filename * {
+    font-size: inherit;
+}
+.rst-content .code-block-filename :last-child {
+    margin-bottom: 0;
+}
+
+.code-block-filename + pre {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.code-block-filename + pre code {
+    padding-top: 0.9em;
+}
+
+/* import font awesome 4 for icons */
+@import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css);

@@ -2,7 +2,7 @@
 
 Using Azure pipelines, you can build all three platforms on the same service. Create a `azure-pipelines.yml` file in your repo.
 
-**azure-pipelines.yml**
+> azure-pipelines.yml
 ```yaml
 jobs:
 - job: linux
@@ -50,6 +50,7 @@ jobs:
 
 To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
 
+> .travis.yml
 ```yaml
 language: python
 
@@ -74,6 +75,7 @@ Then setup a deployment method by following the [Travis CI deployment docs](http
     
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
+> .circleci/config.yml
 ```yaml
 version: 2
 
@@ -124,6 +126,8 @@ CircleCI will store the built wheels for you - you can access them from the proj
 
 To build Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
 
+> appveyor.yml
+
 ```yaml
 build_script:
   - pip install cibuildwheel==0.12.0
@@ -139,4 +143,27 @@ Commit those files, enable building of your repo on Travis CI and AppVeyor, and 
 
 All being well, you should get wheels delivered to you in a few minutes. 
 
-> ⚠️ Got an error? Check the [checklist](#it-didnt-work) below.
+> ⚠️ Got an error? Check the [FAQ](faq.md).
+
+<script> 
+  document.addEventListener('DOMContentLoaded', function() {
+    $('.toctree-l2 a, .rst-content h2').each(function(i, el) {
+      var text = $(el).text()
+      var match = text.match(/(.*) \[([a-z/]+)\]/);
+
+      if (match) {
+        var iconHTML = match[2].split('/').map(function(ident) {
+          switch (ident) {
+            case 'linux':
+              return '<i class="fa fa-linux" aria-hidden="true"></i>'
+            case 'windows':
+              return '<i class="fa fa-windows" aria-hidden="true"></i>'
+            case 'mac':
+              return '<i class="fa fa-apple" aria-hidden="true"></i>'
+          }
+        }).join(' ');
+        $(el).html(match[1] + ' ' + iconHTML)
+      }
+    });
+  });
+</script>
