@@ -1,13 +1,14 @@
 cibuildwheel
 ============
 
-[Documentation](cibuildwheel.readthedocs.org) [![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel) [![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch=master)](https://travis-ci.org/joerick/cibuildwheel) [![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master) [![CircleCI](https://circleci.com/gh/joerick/cibuildwheel.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel)
+[![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel) [![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch=master)](https://travis-ci.org/joerick/cibuildwheel) [![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master) [![CircleCI](https://circleci.com/gh/joerick/cibuildwheel.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel)
+
+[Documentation](https://cibuildwheel.readthedocs.org)
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
 `cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
 
-**`cibuildwheel` is in beta**. It's brand new - I'd love for you to try it and help make it better!
 
 What does it do?
 ----------------
@@ -31,14 +32,7 @@ Usage
 
 `cibuildwheel` currently works  **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **AppVeyor** to build Windows wheels. **Azure Pipelines** supports all three.
 
-|                 | Linux | macOS | Windows |
-|-----------------|-------|-------|---------|
-| Azure Pipelines | ✅    | ✅    | ✅      |
-| Travis CI       | ✅    | ✅    |         |
-| AppVeyor        |       |       | ✅      |
-| CircleCI        | ✅    | ✅    |         |
-
-`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and AppVeyor run their builds in isolated environments, so are ideal for this kind of script.
+`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like Travis CI, CircleCI, Azure Pipelines and AppVeyor are ideal.
 
 Example setup
 -------------
@@ -50,10 +44,12 @@ language: python
 
 matrix:
   include:
+    # perform a linux build
     - sudo: required
       services:
         - docker
       env: PIP=pip
+    # and a mac build
     - os: osx
       language: generic
       env: PIP=pip2
@@ -65,13 +61,19 @@ env:
 
 script:
   - $PIP install cibuildwheel==0.12.0
+
+  # build the wheels, put them into './wheelhouse'
   - cibuildwheel --output-dir wheelhouse
+
+  # if the release was tagged, upload them to PyPI
   - |
     if [[ $TRAVIS_TAG ]]; then
       python -m pip install twine
       python -m twine upload wheelhouse/*.whl
     fi
 ```
+
+For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org).
 
 Working examples
 ----------------
@@ -89,7 +91,7 @@ Here are some repos that use cibuildwheel.
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
 - [Twisted](https://github.com/twisted/twisted)
 
-> Add repo here! Send a PR.
+> Add your repo here! Send a PR.
 
 Legal note
 ----------
