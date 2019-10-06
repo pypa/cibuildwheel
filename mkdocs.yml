@@ -10,7 +10,6 @@ nav:
   - deliver-to-pypi.md
   - faq.md
   - contributing.md
-  - changelog.md
 markdown_extensions:
   - fenced_code
   - toc:
