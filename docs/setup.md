@@ -46,6 +46,10 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 ```
 
+Commit this file, enable building of your repo on Azure Pipelines, and push.
+
+Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
+
 ## Travis CI [linux/mac]
 
 To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
@@ -69,7 +73,9 @@ script:
   - cibuildwheel --output-dir wheelhouse
 ```
 
-Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
+Commit this file, enable building of your repo on Travis CI, and push.
+
+Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).
 
 ## CircleCI [linux/mac]
     
@@ -117,10 +123,12 @@ workflows:
       - osx-wheels
 ```
 
+Commit this file, enable building of your repo on CircleCI, and push.
+
 !!! note
     CircleCI doesn't enable free macOS containers for open source by default, but you can ask for access. See [here](https://circleci.com/docs/2.0/oss/#overview) for more information.
 
-CircleCI will store the built wheels for you - you can access them from the project console.
+CircleCI will store the built wheels for you - you can access them from the project console. Check out the CircleCI [docs](https://circleci.com/docs/2.0/configuration-reference/#section=configuration) for more info on this config file.
 
 ## AppVeyor [windows]
 
@@ -136,12 +144,12 @@ artifacts:
   - path: "wheelhouse\\*.whl"
     name: Wheels
 ```
-    
-AppVeyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [AppVeyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
 
-Commit those files, enable building of your repo on Travis CI and AppVeyor, and push.
+Commit this file, enable building of your repo on AppVeyor, and push.
 
-All being well, you should get wheels delivered to you in a few minutes. 
+AppVeyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [AppVeyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](deliver-to-pypi.md) below.
+
+For more info on this config file, check out the [docs](https://www.appveyor.com/docs/).
 
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
