@@ -121,31 +121,40 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             call(['delocate-wheel', '-w', '/tmp/delocated_wheel', built_wheel], env=env)
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
-        # set up a virtual environment to install and test from, to make sure
-        # there are no dependencies that were pulled in at build time.
-        call(['pip', 'install', 'virtualenv'], env=env)
-        venv_dir = tempfile.mkdtemp()
-        call(['python', '-m', 'virtualenv', venv_dir], env=env)
-        env['PATH'] = os.pathsep.join([os.path.join(venv_dir, 'bin'), env['PATH']])
-        # Some weird issue with the shebang of installed scripts
-        # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
-        env.pop('__PYVENV_LAUNCHER__', None)
-
-        # check that we are using the Python from the virtual environment
-        call(['which', 'python'], env=env)
-
-        # install the wheel
-        call(['pip', 'install', delocated_wheel + test_extras], env=env)
-
-        # test the wheel
-        if test_requires:
-            call(['pip', 'install'] + test_requires, env=env)
         if test_command:
-            # run the tests from $HOME, with an absolute path in the command
-            # (this ensures that Python runs the tests against the installed wheel
-            # and not the repo code)
-            test_command_prepared = prepare_command(test_command, project=abs_project_dir)
-            call(test_command_prepared, cwd=os.environ['HOME'], env=env, shell=True)
+            # set up a virtual environment to install and test from, to make sure
+            # there are no dependencies that were pulled in at build time.
+            call(['pip', 'install', 'virtualenv'], env=env)
+            venv_dir = tempfile.mkdtemp()
+            call(['python', '-m', 'virtualenv', venv_dir], env=env)
+
+            virtualenv_env = env.copy()
+            virtualenv_env['PATH'] = os.pathsep.join([
+                os.path.join(venv_dir, 'bin'),
+                virtualenv_env['PATH'],
+            ])
+            # Fix some weird issue with the shebang of installed scripts
+            # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
+            virtualenv_env.pop('__PYVENV_LAUNCHER__', None)
+
+            # check that we are using the Python from the virtual environment
+            call(['which', 'python'], env=virtualenv_env)
+
+            # install the wheel
+            call(['pip', 'install', delocated_wheel + test_extras], env=virtualenv_env)
+
+            # test the wheel
+            if test_requires:
+                call(['pip', 'install'] + test_requires, env=virtualenv_env)
+            if test_command:
+                # run the tests from $HOME, with an absolute path in the command
+                # (this ensures that Python runs the tests against the installed wheel
+                # and not the repo code)
+                test_command_prepared = prepare_command(test_command, project=abs_project_dir)
+                call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+            
+            # clean up
+            shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
         dst = os.path.join(output_dir, os.path.basename(delocated_wheel))
