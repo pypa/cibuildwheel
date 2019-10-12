@@ -85,29 +85,36 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 fi
                 delocated_wheel=(/tmp/delocated_wheel/*.whl)
 
-                # Set up a virtual environment to install and test from, to make sure
-                # there are no dependencies that were pulled in at build time.
-                "$PYBIN/pip" install virtualenv
-                venv_dir=`mktemp -d`/venv
-                "$PYBIN/python" -m virtualenv $venv_dir
-                source $venv_dir/bin/activate
-
-                # Check that we are using the Python from the virtual environment
-                which python
-
-                # Install the wheel we just built
-                "$PYBIN/pip" install "$delocated_wheel"{test_extras}
-
-                # Install any requirements to run the tests
-                if [ ! -z "{test_requires}" ]; then
-                    "$PYBIN/pip" install {test_requires}
-                fi
-
-                # Run the tests from a different directory
                 if [ ! -z {test_command} ]; then
-                    pushd $HOME
-                    PATH="$PYBIN:$PATH" sh -c {test_command}
-                    popd
+                    # Set up a virtual environment to install and test from, to make sure
+                    # there are no dependencies that were pulled in at build time.
+                    "$PYBIN/pip" install virtualenv
+                    venv_dir=`mktemp -d`/venv
+                    "$PYBIN/python" -m virtualenv "$venv_dir"
+
+                    # run the tests in a subshell to keep that `activate`
+                    # script from polluting the env
+                    (
+                        source "$venv_dir/bin/activate"
+
+                        echo "Running tests using `which python`"
+
+                        # Install the wheel we just built
+                        pip install "$delocated_wheel"{test_extras}
+
+                        # Install any requirements to run the tests
+                        if [ ! -z "{test_requires}" ]; then
+                            pip install {test_requires}
+                        fi
+
+                        # Run the tests from a different directory
+                        pushd $HOME
+                        sh -c {test_command}
+                        popd
+                    )
+
+                    # clean up
+                    rm -rf "$venv_dir"
                 fi
 
                 # we're all done here; move it to output
