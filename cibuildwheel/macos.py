@@ -146,12 +146,12 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             # test the wheel
             if test_requires:
                 call(['pip', 'install'] + test_requires, env=virtualenv_env)
-            if test_command:
-                # run the tests from $HOME, with an absolute path in the command
-                # (this ensures that Python runs the tests against the installed wheel
-                # and not the repo code)
-                test_command_prepared = prepare_command(test_command, project=abs_project_dir)
-                call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+
+            # run the tests from $HOME, with an absolute path in the command
+            # (this ensures that Python runs the tests against the installed wheel
+            # and not the repo code)
+            test_command_prepared = prepare_command(test_command, project=abs_project_dir)
+            call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
             
             # clean up
             shutil.rmtree(venv_dir)
