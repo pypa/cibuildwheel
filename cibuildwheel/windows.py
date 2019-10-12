@@ -121,28 +121,37 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
         built_wheel = glob(built_wheel_dir+'/*.whl')[0]
 
-        # set up a virtual environment to install and test from, to make sure
-        # there are no dependencies that were pulled in at build time.
-        shell(['pip', 'install', 'virtualenv'], env=env)
-        venv_dir = tempfile.mkdtemp()
-        shell(['python', '-m', 'virtualenv', venv_dir], env=env)
-        env['PATH'] = os.pathsep.join([os.path.join(venv_dir, 'Scripts'), env['PATH']])
-
-        # check that we are using the Python from the virtual environment
-        shell(['which', 'python'], env=env)
-
-        # install the wheel
-        shell(['pip', 'install', built_wheel + test_extras], env=env)
-
-        # test the wheel
-        if test_requires:
-            shell(['pip', 'install'] + test_requires, env=env)
         if test_command:
+            # set up a virtual environment to install and test from, to make sure
+            # there are no dependencies that were pulled in at build time.
+            shell(['pip', 'install', 'virtualenv'], env=env)
+            venv_dir = tempfile.mkdtemp()
+            shell(['python', '-m', 'virtualenv', venv_dir], env=env)
+
+            virtualenv_env = env.copy()
+            virtualenv_env['PATH'] = os.pathsep.join([
+                os.path.join(venv_dir, 'Scripts'),
+                virtualenv_env['PATH'],
+            ])
+
+            # check that we are using the Python from the virtual environment
+            shell(['which', 'python'], env=virtualenv_env)
+
+            # install the wheel
+            shell(['pip', 'install', built_wheel + test_extras], env=virtualenv_env)
+
+            # test the wheel
+            if test_requires:
+                shell(['pip', 'install'] + test_requires, env=virtualenv_env)
+
             # run the tests from c:\, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
             test_command_prepared = prepare_command(test_command, project=abs_project_dir)
-            shell([test_command_prepared], cwd='c:\\', env=env)
+            shell([test_command_prepared], cwd='c:\\', env=virtualenv_env)
+
+            # clean up
+            shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (remove if already exists)
         dst = os.path.join(output_dir, os.path.basename(built_wheel))
