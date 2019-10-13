@@ -58,7 +58,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
             # patch open ssl
             if config.version in ('3.4', '3.5'):
-                call(['curl', '-fsSLo', '/tmp/python-patch.tar.gz', 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2s/patch-macos-python-%s-openssl-v1.0.2s.tar.gz' % config.version])
+                call(['curl', '-fsSLo', '/tmp/python-patch.tar.gz', 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version])
                 call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/%s/' % config.version, '-xmf', '/tmp/python-patch.tar.gz'])
 
         installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)

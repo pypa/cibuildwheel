@@ -63,7 +63,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.11.1
+        pip install cibuildwheel==0.12.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -73,7 +73,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.11.1
+        pip install cibuildwheel==0.12.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -92,7 +92,7 @@ jobs:
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.11.1
+        pip install cibuildwheel==0.12.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -123,7 +123,7 @@ jobs:
           env: PIP=pip2
 
     script:
-      - $PIP install cibuildwheel==0.11.1
+      - $PIP install cibuildwheel==0.12.0
       - cibuildwheel --output-dir wheelhouse
     ```
 
@@ -206,7 +206,7 @@ jobs:
 
     ```
     build_script:
-      - pip install cibuildwheel==0.11.1
+      - pip install cibuildwheel==0.12.0
       - cibuildwheel --output-dir wheelhouse
     artifacts:
       - path: "wheelhouse\\*.whl"
@@ -438,10 +438,10 @@ Comma-separated list of
 [extras_require](https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies)
 options that should be included when installing the wheel prior to running the
 tests. This can be used to avoid having to redefine test dependencies in
-``CIBW_TEST_REQUIRES`` if they are already defined in ``setup.py`` or
-``setup.cfg``.
+`CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
+`setup.cfg`.
 
-Example: `test,qt` (will cause the wheel to be installed with ``pip install <wheel_file>[test,qt])
+Example: `test,qt` (will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`)
 
 
 Platform-specific variants also available:
@@ -536,6 +536,16 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 0.12.0
+
+_29 September 2019_
+
+- ✨ Add CIBW_TEST_EXTRAS option, to allow testing using extra_require
+  options. For example, set `CIBW_TEST_EXTRAS=test,qt` to make the wheel
+  installed with `pip install <wheel_file>[test,qt]`
+- 🛠 Update Python from 3.7.2 to 3.7.4 on macOS
+- 🛠 Update OpenSSL patch to 1.0.2t on macOS
 
 ### 0.11.1
 
