@@ -33,7 +33,7 @@ def get_python_path(config):
             return config.path
         else:
             nuget_args = get_nuget_args(config)
-            return os.path.join(nuget_args[-1], nuget_args[0] + "." + config.exact_version, "tools")
+            return os.path.join(nuget_args[-1], nuget_args[0] + "." + config.nuget_version, "tools")
     else:
         # Assume we're running on AppVeyor
         major, minor = config.version.split('.')[:2]
@@ -45,26 +45,26 @@ def get_python_path(config):
 
 
 def get_nuget_args(configuration):
-    if configuration.exact_version is None:
+    if configuration.nuget_version is None:
         return None
     python_name = "python" if configuration.version[0] == '3' else "python2"
     if configuration.arch == "32":
         python_name = python_name + "x86"
-    return [python_name, "-Version", configuration.exact_version, "-OutputDirectory", "C:/python"]
+    return [python_name, "-Version", configuration.nuget_version, "-OutputDirectory", "C:/python"]
 
 def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path', "exact_version"])
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'path', "nuget_version"])
     python_configurations = [
-        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\Python27', exact_version="2.7.16"),
-        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\Python27-x64', exact_version="2.7.16"),
-        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\Python34', exact_version=None),
-        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\Python34-x64', exact_version=None),
-        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\Python35', exact_version="3.5.4"),
-        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\Python35-x64', exact_version="3.5.4"),
-        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\Python36', exact_version="3.6.8"),
-        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\Python36-x64', exact_version="3.6.8"),
-        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\Python37', exact_version="3.7.4"),
-        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\Python37-x64', exact_version="3.7.4")
+        PythonConfiguration(version='2.7.x', arch="32", identifier='cp27-win32', path='C:\\Python27', nuget_version="2.7.16"),
+        PythonConfiguration(version='2.7.x', arch="64", identifier='cp27-win_amd64', path='C:\\Python27-x64', nuget_version="2.7.16"),
+        PythonConfiguration(version='3.4.x', arch="32", identifier='cp34-win32', path='C:\\Python34', nuget_version=None),
+        PythonConfiguration(version='3.4.x', arch="64", identifier='cp34-win_amd64', path='C:\\Python34-x64', nuget_version=None),
+        PythonConfiguration(version='3.5.x', arch="32", identifier='cp35-win32', path='C:\\Python35', nuget_version="3.5.4"),
+        PythonConfiguration(version='3.5.x', arch="64", identifier='cp35-win_amd64', path='C:\\Python35-x64', nuget_version="3.5.4"),
+        PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\\Python36', nuget_version="3.6.8"),
+        PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\\Python36-x64', nuget_version="3.6.8"),
+        PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\\Python37', nuget_version="3.7.4"),
+        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\\Python37-x64', nuget_version="3.7.4")
     ]
 
     if IS_RUNNING_ON_AZURE:
@@ -106,31 +106,21 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
-    def call(args, env=None, cwd=None, shell=False):
-        # print the command executing for the logs
-        if shell:
-            print('+ %s' % args)
-        else:
-            print('+ ' + ' '.join(shlex_quote(a) for a in args))
-
-        return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
-
     if IS_RUNNING_ON_TRAVIS:
         # instal nuget as best way for provide python
-        call(["choco", "install", "nuget.commandline"])
+        shell(["choco", "install", "nuget.commandline"])
         # get pip fo this installation which not have. 
         get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
-        get_pip_script = 'C:\get-pip.py'
-        call(['curl', '-L', '-o', get_pip_script, get_pip_url])
+        get_pip_script = 'C:\\get-pip.py'
+        shell(['curl', '-L', '-o', get_pip_script, get_pip_url])
 
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
-        print(config, file=sys.stderr)
         config_python_path = get_python_path(config)
-        if IS_RUNNING_ON_TRAVIS and config.exact_version is not None and not os.path.exists(config_python_path):
-            call(["nuget", "install"] + get_nuget_args(config))
+        if IS_RUNNING_ON_TRAVIS and config.nuget_version is not None and not os.path.exists(config_python_path):
+            shell(["nuget", "install"] + get_nuget_args(config))
             if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
-                call([os.path.join(config_python_path, 'python.exe'), get_pip_script ])
+                shell([os.path.join(config_python_path, 'python.exe'), get_pip_script ])
 
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))

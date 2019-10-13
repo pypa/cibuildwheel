@@ -86,7 +86,7 @@ def expected_wheels(package_name, package_version):
     else:
         raise Exception('unsupported platform')
     
-    if IS_WINDOWS_RUNNING_ON_AZURE or IS_WINDOWS_RUNNING_ON_TRAVIS:
+    if IS_WINDOWS_RUNNING_ON_AZURE:
         # Python 3.4 isn't supported on Azure.
         templates = [t for t in templates if '-cp34-' not in t]
     if IS_WINDOWS_RUNNING_ON_TRAVIS:

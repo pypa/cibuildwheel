@@ -22,7 +22,7 @@ What does it do?
 
 > ¹ Not supported on Azure Pipelines 
 >
-> ² Current configuration for travis do not support this python version but user can find method for install proper python on travis. For python 2.7 there is a problem with installation "Microsoft Visual C++ Compiler for Python 2.7"
+> ² Not supported on Travis
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -36,10 +36,9 @@ Usage
 |                 | Linux | macOS | Windows |
 |-----------------|-------|-------|---------|
 | Azure Pipelines | ✅    | ✅    | ✅      |
-| Travis CI       | ✅    | ✅    | ✅*     |
+| Travis CI       | ✅    | ✅    | ✅     |
 | AppVeyor        |       |       | ✅      |
 | CircleCI        | ✅    | ✅    |         |
-> \* Travis provides a Windows environment but Python needs to be installed manually 
 
 `cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and AppVeyor run their builds in isolated environments, so are ideal for this kind of script.
 
@@ -127,7 +126,7 @@ jobs:
       - cibuildwheel --output-dir wheelhouse
     ```
 
-  and matrix entry for windows 
+  To build on Windows too, add this matrix entry: 
   ```yaml
     - os: windows
       language: shell
@@ -136,6 +135,8 @@ jobs:
       env:
        - PATH=/c/Python36:/c/Python36/Scripts:$PATH
   ```
+
+  Note that building Windows Python 2.7 wheels on Travis is unsupported.
 
   Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
 
