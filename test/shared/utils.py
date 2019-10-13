@@ -39,10 +39,10 @@ def cibuildwheel_run(project_path, env=None, add_env=None):
 
     subprocess.check_call(
         [sys.executable, '-m', 'cibuildwheel', project_path],
-        env=env
+        env=env,
     )
- 
- 
+
+
 def expected_wheels(package_name, package_version):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.

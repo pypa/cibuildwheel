@@ -19,5 +19,4 @@ def test_build_identifiers():
     # identifiers
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
     build_identifiers = utils.cibuildwheel_get_build_identifiers(project_dir)
-    print("bb", build_identifiers)
     assert len(expected_wheels) == len(build_identifiers)
