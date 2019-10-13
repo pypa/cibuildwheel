@@ -131,7 +131,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             call(["nuget", "install"] + get_nuget_args(config))
             if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
                 call([os.path.join(config_python_path, 'python.exe'), get_pip_script ])
-            print(config_python_path, file=sys.stderr)
 
         # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
