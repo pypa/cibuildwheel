@@ -143,8 +143,6 @@ def main():
     )
 
     if platform == 'linux':
-        # TODO Add documentation on CIBW_ENVIRONMENT and possibility of AUDITWHEEL_PLAT if not defined by custom manylinux image
-
         manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
         manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
 
