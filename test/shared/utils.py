@@ -55,24 +55,28 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp35-cp35m-manylinux1_x86_64.whl',
             '{package_name}-{package_version}-cp36-cp36m-manylinux1_x86_64.whl',
             '{package_name}-{package_version}-cp37-cp37m-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp38-cp38m-manylinux1_x86_64.whl',
             '{package_name}-{package_version}-cp27-cp27m-manylinux2010_x86_64.whl',
             '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_x86_64.whl',
             '{package_name}-{package_version}-cp34-cp34m-manylinux2010_x86_64.whl',
             '{package_name}-{package_version}-cp35-cp35m-manylinux2010_x86_64.whl',
             '{package_name}-{package_version}-cp36-cp36m-manylinux2010_x86_64.whl',
             '{package_name}-{package_version}-cp37-cp37m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp38-cp38m-manylinux2010_x86_64.whl',
             '{package_name}-{package_version}-cp27-cp27m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp27-cp27mu-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp34-cp34m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp35-cp35m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp36-cp36m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp37-cp37m-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp38-cp38m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp27-cp27m-manylinux2010_i686.whl',
             '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_i686.whl',
             '{package_name}-{package_version}-cp34-cp34m-manylinux2010_i686.whl',
             '{package_name}-{package_version}-cp35-cp35m-manylinux2010_i686.whl',
             '{package_name}-{package_version}-cp36-cp36m-manylinux2010_i686.whl',
             '{package_name}-{package_version}-cp37-cp37m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp38-cp38m-manylinux2010_i686.whl',
         ]
     elif platform == 'windows':
         templates = [
@@ -81,11 +85,13 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp35-cp35m-win32.whl',
             '{package_name}-{package_version}-cp36-cp36m-win32.whl',
             '{package_name}-{package_version}-cp37-cp37m-win32.whl',
+            '{package_name}-{package_version}-cp38-cp38m-win32.whl',
             '{package_name}-{package_version}-cp27-cp27m-win_amd64.whl',
             '{package_name}-{package_version}-cp34-cp34m-win_amd64.whl',
             '{package_name}-{package_version}-cp35-cp35m-win_amd64.whl',
             '{package_name}-{package_version}-cp36-cp36m-win_amd64.whl',
             '{package_name}-{package_version}-cp37-cp37m-win_amd64.whl',
+            '{package_name}-{package_version}-cp38-cp38m-win_amd64.whl',
         ]
     elif platform == 'macos':
         templates = [
@@ -94,6 +100,7 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp35-cp35m-macosx_10_6_intel.whl',
             '{package_name}-{package_version}-cp36-cp36m-macosx_10_6_intel.whl',
             '{package_name}-{package_version}-cp37-cp37m-macosx_10_6_intel.whl',
+            '{package_name}-{package_version}-cp38-cp38m-macosx_10_6_intel.whl',
         ]
     else:
         raise Exception('unsupported platform')

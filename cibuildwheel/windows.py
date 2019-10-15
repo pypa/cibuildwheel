@@ -64,7 +64,9 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.6.x', arch="32", identifier='cp36-win32', path='C:\\Python36', nuget_version="3.6.8"),
         PythonConfiguration(version='3.6.x', arch="64", identifier='cp36-win_amd64', path='C:\\Python36-x64', nuget_version="3.6.8"),
         PythonConfiguration(version='3.7.x', arch="32", identifier='cp37-win32', path='C:\\Python37', nuget_version="3.7.4"),
-        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\\Python37-x64', nuget_version="3.7.4")
+        PythonConfiguration(version='3.7.x', arch="64", identifier='cp37-win_amd64', path='C:\\Python37-x64', nuget_version="3.7.4"),
+        PythonConfiguration(version='3.8.x', arch="32", identifier='cp38-win32', path='C:\\Python38', nuget_version="3.8.0"),
+        PythonConfiguration(version='3.8.x', arch="64", identifier='cp38-win_amd64', path='C:\\Python38-x64', nuget_version="3.8.0"),
     ]
 
     if IS_RUNNING_ON_AZURE:
