@@ -42,39 +42,37 @@ def cibuildwheel_run(project_path, env=None, add_env=None):
     )
 
 
-def expected_wheels(package_name, package_version, manylinux_x86_64_versions={'manylinux1', 'manylinux2010'}, manylinux_i686_versions={'manylinux1'}):
+def expected_wheels(package_name, package_version):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
     if platform == 'linux':
-        templates = []
-        if 'manylinux1' in manylinux_x86_64_versions:
-            templates += [
-                '{package_name}-{package_version}-cp27-cp27m-manylinux1_x86_64.whl',
-                '{package_name}-{package_version}-cp27-cp27mu-manylinux1_x86_64.whl',
-                '{package_name}-{package_version}-cp34-cp34m-manylinux1_x86_64.whl',
-                '{package_name}-{package_version}-cp35-cp35m-manylinux1_x86_64.whl',
-                '{package_name}-{package_version}-cp36-cp36m-manylinux1_x86_64.whl',
-                '{package_name}-{package_version}-cp37-cp37m-manylinux1_x86_64.whl',
-            ]
-        if 'manylinux2010' in manylinux_x86_64_versions:
-            templates += [
-                '{package_name}-{package_version}-cp27-cp27m-manylinux2010_x86_64.whl',
-                '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_x86_64.whl',
-                '{package_name}-{package_version}-cp34-cp34m-manylinux2010_x86_64.whl',
-                '{package_name}-{package_version}-cp35-cp35m-manylinux2010_x86_64.whl',
-                '{package_name}-{package_version}-cp36-cp36m-manylinux2010_x86_64.whl',
-                '{package_name}-{package_version}-cp37-cp37m-manylinux2010_x86_64.whl',
-            ]
-        if 'manylinux1' in manylinux_i686_versions:
-            templates += [
-                '{package_name}-{package_version}-cp27-cp27m-manylinux1_i686.whl',
-                '{package_name}-{package_version}-cp27-cp27mu-manylinux1_i686.whl',
-                '{package_name}-{package_version}-cp34-cp34m-manylinux1_i686.whl',
-                '{package_name}-{package_version}-cp35-cp35m-manylinux1_i686.whl',
-                '{package_name}-{package_version}-cp36-cp36m-manylinux1_i686.whl',
-                '{package_name}-{package_version}-cp37-cp37m-manylinux1_i686.whl',
-            ]
+        templates = [
+            '{package_name}-{package_version}-cp27-cp27m-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp27-cp27mu-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp34-cp34m-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp35-cp35m-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp36-cp36m-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp37-cp37m-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp27-cp27m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp34-cp34m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp35-cp35m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp36-cp36m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp37-cp37m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp27-cp27m-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp27-cp27mu-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp34-cp34m-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp35-cp35m-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp36-cp36m-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp37-cp37m-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp27-cp27m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp34-cp34m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp35-cp35m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp36-cp36m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp37-cp37m-manylinux2010_i686.whl',
+        ]
     elif platform == 'windows':
         templates = [
             '{package_name}-{package_version}-cp27-cp27m-win32.whl',

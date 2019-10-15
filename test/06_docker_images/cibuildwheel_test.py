@@ -15,6 +15,7 @@ def test():
     })
 
     # also check that we got the right wheels built
-    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+                       if '-manylinux2010_i686' not in w]
     actual_wheels = os.listdir('wheelhouse')
     assert set(actual_wheels) == set(expected_wheels)

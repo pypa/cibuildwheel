@@ -12,11 +12,10 @@ def test():
     # rather than when dynamically loading the Python 
     utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_ENVIRONMENT': 'CFLAGS="$CFLAGS -Werror=implicit-function-declaration"',
-        'CIBW_SKIP': '*-manylinux_i686',
     })
     
     # also check that we got the right wheels
-    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0', manylinux_x86_64_versions={'manylinux2010'})
-                       if '-manylinux1_i686' not in w]
+    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+                       if not '-manylinux' in w or '-manylinux2010' in w]
     actual_wheels = os.listdir('wheelhouse')
     assert set(actual_wheels) == set(expected_wheels)

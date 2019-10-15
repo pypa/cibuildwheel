@@ -146,11 +146,12 @@ def main():
         # TODO Add documentation on CIBW_ENVIRONMENT and possibility of AUDITWHEEL_PLAT if not defined by custom manylinux image
 
         manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
-        manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux1')
+        manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
 
         default_manylinux_images_x86_64 = {'manylinux1': 'quay.io/pypa/manylinux1_x86_64',
                                            'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64'}
-        default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686'}
+        default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686',
+                                         'manylinux2010': 'quay.io/pypa/manylinux2010_i686'}
 
         build_options.update(
             manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
