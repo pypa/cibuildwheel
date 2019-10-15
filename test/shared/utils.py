@@ -100,7 +100,7 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp35-cp35m-macosx_10_6_intel.whl',
             '{package_name}-{package_version}-cp36-cp36m-macosx_10_6_intel.whl',
             '{package_name}-{package_version}-cp37-cp37m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp38-cp38-macosx_10_6_intel.whl',
+            '{package_name}-{package_version}-cp38-cp38-macosx_10_9_x86_64.whl',
         ]
     else:
         raise Exception('unsupported platform')
