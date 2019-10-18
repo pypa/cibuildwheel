@@ -112,9 +112,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         # Run the tests from a different directory
                         pushd $HOME
                         sh -c {test_command}
-                        test_retcode=$(( $test_retcode || $? ))
                         popd
                     )
+                    test_retcode=$(( $test_retcode || $? ))
 
                     # clean up
                     rm -rf "$venv_dir"
