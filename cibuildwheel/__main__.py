@@ -54,6 +54,8 @@ def main():
 
     args = parser.parse_args()
 
+    detect_obsolete_options()
+
     if args.platform != 'auto':
         platform = args.platform
     else:
@@ -141,11 +143,17 @@ def main():
     )
 
     if platform == 'linux':
-        manylinux1_x86_64_image = os.environ.get('CIBW_MANYLINUX1_X86_64_IMAGE', None)
-        manylinux1_i686_image = os.environ.get('CIBW_MANYLINUX1_I686_IMAGE', None)
+        manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
+        manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
+
+        default_manylinux_images_x86_64 = {'manylinux1': 'quay.io/pypa/manylinux1_x86_64',
+                                           'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64'}
+        default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686',
+                                         'manylinux2010': 'quay.io/pypa/manylinux2010_i686'}
 
         build_options.update(
-            manylinux1_images={'x86_64': manylinux1_x86_64_image, 'i686': manylinux1_i686_image},
+            manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
+                              'i686': default_manylinux_images_i686.get(manylinux_i686_image) or manylinux_i686_image},
         )
     elif platform == 'macos':
         pass
@@ -168,6 +176,26 @@ def main():
         cibuildwheel.macos.build(**build_options)
     else:
         raise Exception('Unsupported platform')
+
+
+def detect_obsolete_options():
+    # Check the old 'MANYLINUX1_*_IMAGE' options
+    for (deprecated, alternative) in [('CIBW_MANYLINUX1_X86_64_IMAGE', 'CIBW_MANYLINUX_X86_64_IMAGE'),
+                                      ('CIBW_MANYLINUX1_I686_IMAGE', 'CIBW_MANYLINUX_I686_IMAGE')]:
+        if deprecated in os.environ:
+            print("'{}' has been deprecated, and will be removed in a future release. Use the option '{}' instead.".format(deprecated, alternative))
+            if alternative not in os.environ:
+                print("Using value of option '{}' as replacement for '{}'".format(deprecated, alternative))
+                os.environ[alternative] = os.environ[deprecated]
+            else:
+                print("Option '{}' is not empty. Please unset '{}'".format(alternative, deprecated))
+                exit(2)
+
+    # Check for 'manylinux1' in the 'CIBW_BUILD' and 'CIBW_SKIP' options
+    for deprecated in ['CIBW_BUILD', 'CIBW_SKIP']:
+        if deprecated in os.environ and 'manylinux1' in os.environ[deprecated]:
+            print("Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of 'manylinux1' by 'manylinux' in the option '{}'".format(deprecated))
+            os.environ[deprecated] = os.environ[deprecated].replace('manylinux1', 'manylinux')
 
 
 def print_preamble(platform, build_options):
