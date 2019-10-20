@@ -5,7 +5,7 @@ Wheel-building can be pretty complex. I expect users to find many edge-cases - p
 
 I plan to be pretty liberal in accepting pull requests, as long as they align with the design goals below.
 
-`cibuildwheel` is indie open source. I'm not paid to work on this.
+`cibuildwheel` is indie open source. We're not paid to work on this.
 
 Design Goals
 ------------

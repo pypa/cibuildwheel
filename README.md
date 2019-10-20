@@ -277,6 +277,11 @@ _31 March 2017_
 
 - 🌟 First public release!
 
+Contributing
+============
+
+For more info on how to contribute to cibuildwheel, see the [docs](https://cibuildwheel.readthedocs.io/en/latest/contributing/).
+
 Maintainers
 -----------
 
@@ -301,7 +306,7 @@ Massive props also to-
 - @mayeut for a [phenomenal PR](https://github.com/joerick/cibuildwheel/pull/71) patching Python itself for better compatibility!
 
 See also
---------
+========
 
 If you'd like to keep wheel building separate from the package itself, check out [astrofrog/autowheel](https://github.com/astrofrog/autowheel). It builds packages using cibuildwheel from source distributions on PyPI.
 
