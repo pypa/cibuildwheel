@@ -313,7 +313,7 @@ Examples:
 - Skip Python 2.7 on 32-bit Windows: `CIBW_SKIP`:`cp27-win32`
 - Skip Python 3.4 and Python 3.5: `CIBW_SKIP`:`cp34-* cp35-*`
 - Skip Python 3.6 on Linux: `CIBW_SKIP`:`cp36-manylinux*`
-- Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD`:`cp3?-*` and `CIBW_SKIP`:`*-win32 *-manylinux_i686`
+- Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD`:`cp3?-*` and `CIBW_SKIP`:`*-win32 *_i686`
 
 ***
 
