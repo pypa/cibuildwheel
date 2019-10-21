@@ -57,8 +57,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             mkdir /output
             cd /project
 
-            test_retcode=0
-
             {environment_exports}
 
             for PYBIN in {pybin_paths}; do
@@ -111,10 +109,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
                         # Run the tests from a different directory
                         pushd $HOME
-                        sh -c {test_command}
+                        sh -o errexit -c {test_command}
                         popd
                     )
-                    test_retcode=$(( $test_retcode || $? ))
+                    # exit if tests failed
+                    if [ $? -ne 0 ]; then
+                      exit 1;
+                    fi
 
                     # clean up
                     rm -rf "$venv_dir"
@@ -124,8 +125,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 mv "$delocated_wheel" /output
                 chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"
             done
-
-            exit $test_retcode
         '''.format(
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
             test_requires=' '.join(test_requires),
