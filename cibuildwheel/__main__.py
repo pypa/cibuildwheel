@@ -65,6 +65,8 @@ def main():
             platform = 'linux'
         elif os.environ.get('TRAVIS_OS_NAME') == 'osx':
             platform = 'macos'
+        elif os.environ.get('TRAVIS_OS_NAME') == 'windows':
+            platform = 'windows'
         elif 'APPVEYOR' in os.environ:
             platform = 'windows'
         elif 'BITRISE_BUILD_NUMBER' in os.environ:
