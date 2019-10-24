@@ -31,12 +31,12 @@ What does it do?
 Usage
 -----
 
-`cibuildwheel` currently works  **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **AppVeyor** to build Windows wheels. **Azure Pipelines** supports all three.
+`cibuildwheel` currently works on **Travis CI** and **Azure Pipelines** to build wheels for all three supported platforms (Linux, macOS, Windows). On **CircleCI** Linux and macOS wheels can be built, and on **AppVeyor** Windows is supported.
 
 |                 | Linux | macOS | Windows |
 |-----------------|-------|-------|---------|
 | Azure Pipelines | ✅    | ✅    | ✅      |
-| Travis CI       | ✅    | ✅    | ✅     |
+| Travis CI       | ✅    | ✅    | ✅      |
 | AppVeyor        |       |       | ✅      |
 | CircleCI        | ✅    | ✅    |         |
 
