@@ -76,10 +76,12 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp35-cp35m-win32.whl',
             '{package_name}-{package_version}-cp36-cp36m-win32.whl',
             '{package_name}-{package_version}-cp37-cp37m-win32.whl',
+            '{package_name}-{package_version}-cp38-cp38-win32.whl',
             '{package_name}-{package_version}-cp27-cp27m-win_amd64.whl',
             '{package_name}-{package_version}-cp35-cp35m-win_amd64.whl',
             '{package_name}-{package_version}-cp36-cp36m-win_amd64.whl',
             '{package_name}-{package_version}-cp37-cp37m-win_amd64.whl',
+            '{package_name}-{package_version}-cp38-cp38-win_amd64.whl',
         ]
     elif platform == 'macos':
         templates = [
@@ -92,7 +94,7 @@ def expected_wheels(package_name, package_version):
         raise Exception('unsupported platform')
 
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
-        # Python 2.7 and 3.4 isn't supported on Travis.
+        # Python 2.7 isn't supported on Travis.
         templates = [t for t in templates if '-cp27-' not in t]
 
     return [filename.format(package_name=package_name, package_version=package_version)
