@@ -41,6 +41,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         exit(2)
 
     python_configurations = get_python_configurations(build_selector)
+    if len(python_configurations) == 0:
+        raise ValueError("Empty list of configuration to build. Check 'CIBW_BUILD' and 'CIBW_SKIP' environment variables. " \
+            "Check documentation if python version identifier do not change")
     platforms = [
         ('manylinux_x86_64', manylinux_images['x86_64']),
         ('manylinux_i686', manylinux_images['i686']),

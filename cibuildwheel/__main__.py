@@ -185,18 +185,18 @@ def detect_obsolete_options():
     for (deprecated, alternative) in [('CIBW_MANYLINUX1_X86_64_IMAGE', 'CIBW_MANYLINUX_X86_64_IMAGE'),
                                       ('CIBW_MANYLINUX1_I686_IMAGE', 'CIBW_MANYLINUX_I686_IMAGE')]:
         if deprecated in os.environ:
-            print("'{}' has been deprecated, and will be removed in a future release. Use the option '{}' instead.".format(deprecated, alternative))
+            print("'{}' has been deprecated, and will be removed in a future release. Use the option '{}' instead.".format(deprecated, alternative), file=sys.stderr)
             if alternative not in os.environ:
-                print("Using value of option '{}' as replacement for '{}'".format(deprecated, alternative))
+                print("Using value of option '{}' as replacement for '{}'".format(deprecated, alternative), file=sys.stderr)
                 os.environ[alternative] = os.environ[deprecated]
             else:
-                print("Option '{}' is not empty. Please unset '{}'".format(alternative, deprecated))
+                print("Option '{}' is not empty. Please unset '{}'".format(alternative, deprecated), file=sys.stderr)
                 exit(2)
 
     # Check for 'manylinux1' in the 'CIBW_BUILD' and 'CIBW_SKIP' options
     for deprecated in ['CIBW_BUILD', 'CIBW_SKIP']:
         if deprecated in os.environ and 'manylinux1' in os.environ[deprecated]:
-            print("Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of 'manylinux1' by 'manylinux' in the option '{}'".format(deprecated))
+            print("Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of 'manylinux1' by 'manylinux' in the option '{}'".format(deprecated), file=sys.stderr)
             os.environ[deprecated] = os.environ[deprecated].replace('manylinux1', 'manylinux')
 
 

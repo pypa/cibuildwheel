@@ -27,6 +27,9 @@ def get_python_configurations(build_selector):
 
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment):
     python_configurations = get_python_configurations(build_selector)
+    if len(python_configurations) == 0:
+        raise ValueError("Empty list of configuration to build. Check 'CIBW_BUILD' and 'CIBW_SKIP' environment variables " \
+                        "Check documentation if python version identifier do not change")
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
 
