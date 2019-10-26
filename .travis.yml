@@ -23,9 +23,6 @@ matrix:
     # macOS Python 3
     - os: osx
       env: PYTHON=python3
-      before_install:
-        - brew update
-        - brew outdated python || brew upgrade python
 
     - os: windows
       language: shell
