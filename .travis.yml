@@ -27,11 +27,12 @@ matrix:
     - os: windows
       language: shell
       before_install:
-       - choco install python3 --version 3.6.8 --no-progress -y
+       - choco install nuget.commandline
+       - nuget install python -Version 3.7.5 -ExcludeVersion -OutputDirectory C:/python-cibuildwheel
       install:
-       - C:\\Python36\\python -m pip install -r requirements-dev.txt
+       - C:\\python-cibuildwheel\\python\\tools\\python -m pip install -r requirements-dev.txt
       script:
-       - C:\\Python36\\python ./bin/run_tests.py
+       - C:\\python-cibuildwheel\\python\\tools\\python ./bin/run_tests.py
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 
