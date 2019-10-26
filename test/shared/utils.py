@@ -26,14 +26,14 @@ def cibuildwheel_get_build_identifiers(project_path, env=None):
 
 def cibuildwheel_run(project_path, env=None, add_env=None):
     '''
-    Runs cibuildwheel as a subprocess, building the project at project_path. 
-    
+    Runs cibuildwheel as a subprocess, building the project at project_path.
+
     Uses the current Python interpreter.
     Configure settings using env.
     '''
     if env is None:
         env = os.environ.copy()
-    
+
     if add_env is not None:
         env.update(add_env)
 
@@ -81,11 +81,13 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp35-cp35m-win32.whl',
             '{package_name}-{package_version}-cp36-cp36m-win32.whl',
             '{package_name}-{package_version}-cp37-cp37m-win32.whl',
+            '{package_name}-{package_version}-cp38-cp38-win32.whl',
             '{package_name}-{package_version}-cp27-cp27m-win_amd64.whl',
             '{package_name}-{package_version}-cp34-cp34m-win_amd64.whl',
             '{package_name}-{package_version}-cp35-cp35m-win_amd64.whl',
             '{package_name}-{package_version}-cp36-cp36m-win_amd64.whl',
             '{package_name}-{package_version}-cp37-cp37m-win_amd64.whl',
+            '{package_name}-{package_version}-cp38-cp38-win_amd64.whl',
         ]
     elif platform == 'macos':
         templates = [
@@ -97,14 +99,14 @@ def expected_wheels(package_name, package_version):
         ]
     else:
         raise Exception('unsupported platform')
-    
+
     if IS_WINDOWS_RUNNING_ON_AZURE:
         # Python 3.4 isn't supported on Azure.
         templates = [t for t in templates if '-cp34-' not in t]
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
         # Python 2.7 and 3.4 isn't supported on Travis.
         templates = [t for t in templates if '-cp27-' not in t and '-cp34-' not in t]
-    
+
     return [filename.format(package_name=package_name, package_version=package_version)
             for filename in templates]
 
