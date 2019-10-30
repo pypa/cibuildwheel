@@ -27,6 +27,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
         PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
         PythonConfiguration(identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='pp271-manylinux_pypy_x86_64', path='/opt/python/pp271-pypy_41'),
+        PythonConfiguration(identifier='pp371-manylinux_pypy_x86_64', path='/opt/python/pp371-pypy3_71'),
     ]
 
     # skip builds as required
@@ -47,6 +49,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     platforms = [
         ('manylinux_x86_64', manylinux_images['x86_64']),
         ('manylinux_i686', manylinux_images['i686']),
+        ('manylinux_pypy_x86_64', manylinux_images['pypy_x86_64']),
     ]
 
     for platform_tag, docker_image in platforms:

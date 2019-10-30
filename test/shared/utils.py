@@ -82,16 +82,21 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     python_abi_tags = ['cp27-cp27m', 'cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
     if platform == 'linux':
         python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
-        platform_tags = []
-        for architecture in ['x86_64', 'i686']:
-            for manylinux_version in manylinux_versions:
-                platform_tags.append('{manylinux_version}_{architecture}'.format(
-                    manylinux_version=manylinux_version, architecture=architecture
-                ))
+        # Starting out by adding PyPy support on Linux
+        python_abi_tags.extend(['pp271-pypy_41', 'pp371-pypy3_71'])
+        cp_architectures = ['x86_64', 'i686']
+        pp_architectures = ['x86_64']
 
         def get_platform_tags(python_abi_tag):
-            return platform_tags
-
+            if python_abi_tag.startswith('pp'):
+                architectures = pp_architectures
+            else:
+                architectures = cp_architectures
+            return ['{manylinux_version}_{architecture}'.format(
+                        manylinux_version=manylinux_version, architecture=architecture
+                    )
+                    for manylinux_version in manylinux_versions
+                    for architecture in architectures]
     elif platform == 'windows':
 
         def get_platform_tags(python_abi_tag):
