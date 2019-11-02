@@ -19,8 +19,9 @@ What does it do?
 | Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.8 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
-> ¹ Not supported on Azure Pipelines 
+> ¹ Not supported on Azure Pipelines
 >
 > ² Not supported on Travis
 
@@ -58,7 +59,7 @@ Usage
 jobs:
 - job: linux
   pool: {vmImage: 'Ubuntu-16.04'}
-  steps: 
+  steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
@@ -68,7 +69,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 - job: macos
   pool: {vmImage: 'macOS-10.13'}
-  steps: 
+  steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
@@ -78,7 +79,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
-  steps: 
+  steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x64}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x86}}
@@ -110,7 +111,7 @@ jobs:
 
     ```yaml
     language: python
-    
+
     matrix:
       include:
         - sudo: required
@@ -126,7 +127,7 @@ jobs:
       - cibuildwheel --output-dir wheelhouse
     ```
 
-  To build on Windows too, add this matrix entry: 
+  To build on Windows too, add this matrix entry:
   ```yaml
     - os: windows
       language: shell
@@ -147,7 +148,7 @@ jobs:
         <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
         <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
     </summary>
-    
+
 - To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
   ```
@@ -213,14 +214,14 @@ jobs:
       - path: "wheelhouse\\*.whl"
         name: Wheels
     ```
-    
+
   AppVeyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [AppVeyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
-    
+
 </details>
 
 - Commit those files, enable building of your repo on Travis CI and AppVeyor, and push.
 
-All being well, you should get wheels delivered to you in a few minutes. 
+All being well, you should get wheels delivered to you in a few minutes.
 
 > ⚠️ Got an error? Check the [checklist](#it-didnt-work) below.
 
@@ -259,7 +260,7 @@ Options
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--output-dir OUTPUT_DIR] [--print-build-identifiers]
                     [project_dir]
-    
+
 Build wheels for all the platforms.
 
 positional arguments:
@@ -312,7 +313,7 @@ When both options are specified, both conditions are applied and only builds wit
 
 The format is `python_tag-platform_tag`. The tags are similar but not identical to the ones defined in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
-Python tags look like `cp27` `cp34` `cp35` `cp36` `cp37`
+Python tags look like `cp27` `cp34` `cp35` `cp36` `cp37` `cp38`
 
 Platform tags look like `macosx_10_6_intel` `manylinux_x86_64` `manylinux_i686` `win32` `win_amd64`
 
@@ -355,10 +356,10 @@ You must set this variable to pass variables to Linux builds (since they execute
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
-Example: `CFLAGS="-g -Wall" CXXFLAGS="-Wall"`  
-Example: `PATH=$PATH:/usr/local/bin`  
-Example: `BUILD_TIME="$(date)"`  
-Example: `PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple"`  
+Example: `CFLAGS="-g -Wall" CXXFLAGS="-Wall"`
+Example: `PATH=$PATH:/usr/local/bin`
+Example: `BUILD_TIME="$(date)"`
+Example: `PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple"`
 
 Platform-specific variants also available:
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
@@ -378,11 +379,11 @@ If dependencies are required to build your wheel (for example if you include a h
 
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root.
 
-Example: `pip install .`  
-Example: `pip install pybind11`  
+Example: `pip install .`
+Example: `pip install pybind11`
 Example: `yum install -y libffi-dev && pip install .`
 
-Platform-specific variants also available:  
+Platform-specific variants also available:
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
 ***
@@ -400,8 +401,8 @@ Beware to specify a valid Docker image that can be used in the same way as the o
 
 Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT="manylinux2010_$(uname -m)"`).
 
-Example: `manylinux1`  
-Example: `dockcross/manylinux-x64`  
+Example: `manylinux1`
+Example: `dockcross/manylinux-x64`
 Example: `dockcross/manylinux-x86`
 
 ***
@@ -413,7 +414,7 @@ Optional.
 
 Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
-On Linux and Mac, the command runs in a shell, so you can write things like `cmd1 && cmd2`. 
+On Linux and Mac, the command runs in a shell, so you can write things like `cmd1 && cmd2`.
 
 Example: `nosetests {project}/tests`
 
@@ -429,7 +430,7 @@ Optional.
 
 Space-separated list of dependencies required for running the tests.
 
-Example: `pytest`  
+Example: `pytest`
 Example: `nose==1.3.7 moto==0.4.31`
 
 Platform-specific variants also available:
@@ -480,13 +481,13 @@ After you've built your wheels, you'll probably want to deliver them to PyPI.
 On your development machine, do the following...
 
 ```bash
-# Clear out your 'dist' folder. 
+# Clear out your 'dist' folder.
 rm -rf dist
 # Make a source distribution
 python setup.py sdist
 
 # 🏃🏻
-# Go and download your wheel files from wherever you put them. Put 
+# Go and download your wheel files from wherever you put them. Put
 # them all into the 'dist' folder.
 
 # Upload using 'twine' (you may need to 'pip install twine')
@@ -518,7 +519,7 @@ If your wheel didn't compile, check the list below for some debugging tips.
 Working examples
 ----------------
 
-Here are some repos that use cibuildwheel. 
+Here are some repos that use cibuildwheel.
 
 - [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext)
 - [websockets](https://github.com/aaugustin/websockets)
@@ -536,7 +537,7 @@ Here are some repos that use cibuildwheel.
 Legal note
 ----------
 
-Since `cibuildwheel` runs the wheel through delocate or auditwheel, it might automatically bundle dynamically linked libraries from the build machine. 
+Since `cibuildwheel` runs the wheel through delocate or auditwheel, it might automatically bundle dynamically linked libraries from the build machine.
 
 It helps ensure that the library can run without any dependencies outside of the pip toolchain.
 
@@ -568,7 +569,7 @@ _26 May 2019_
 
 - ✨ Add support for building on Azure pipelines! This lets you build all
   Linux, Mac and Windows wheels on one service, so it promises to be the
-  easiest to set up! Check out the quickstart in the docs, or 
+  easiest to set up! Check out the quickstart in the docs, or
   [cibuildwheel-azure-example](https://github.com/joerick/cibuildwheel-azure-example)
   for an example project. (#126, #132)
 - 🛠 Internal change - the end-to-end test projects format was updated, so we
@@ -708,7 +709,7 @@ _11 June 2017_
 
 _13 April 2017_
 
-- ✨ Added `CIBW_SKIP` option, letting users explicitly skip a build 
+- ✨ Added `CIBW_SKIP` option, letting users explicitly skip a build
 - ✨ Added `CIBW_BEFORE_BUILD` option, letting users run a shell command before the build starts
 
 ### 0.1.3
@@ -750,7 +751,7 @@ Maintainers
 Credits
 -------
 
-`cibuildwheel` stands on the shoulders of giants. 
+`cibuildwheel` stands on the shoulders of giants.
 
 - ⭐️ @matthew-brett for [matthew-brett/multibuild](http://github.com/matthew-brett/multibuild) and [matthew-brett/delocate](http://github.com/matthew-brett/delocate)
 - @PyPA for the manylinux Docker images [pypa/manylinux](https://github.com/pypa/manylinux)
