@@ -4,6 +4,12 @@ environment:
     - PYTHON: "C:\\Python35\\python.exe"
 
 build_script:
+  - ps: |
+      $PYTHON = $env:PYTHON
+      curl -o install_python.ps1 https://raw.githubusercontent.com/matthew-brett/multibuild/11a389d78892cf90addac8f69433d5e22bfa422a/install_python.ps1
+      & { $env:PYTHON = 'C:\\Python38'; .\install_python.ps1 }
+      & { $env:PYTHON = 'C:\\Python38-x64'; .\install_python.ps1 }
+      $env:PYTHON = $PYTHON
   - "%PYTHON% -m pip install -r requirements-dev.txt"
   # the '-u' flag is required so the output is in the correct order. 
   # See https://github.com/joerick/cibuildwheel/pull/24 for more info.
