@@ -18,6 +18,7 @@ What does it do?
 | Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.8 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
 > ¹ Not supported on Travis
 
@@ -76,14 +77,7 @@ jobs:
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
   steps:
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - task: UsePythonVersion@0
     - script: choco install vcpython27 -f -y
       displayName: Install Visual C++ for Python 2.7
     - bash: |
@@ -309,7 +303,7 @@ When both options are specified, both conditions are applied and only builds wit
 
 The format is `python_tag-platform_tag`. The tags are similar but not identical to the ones defined in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
-Python tags look like `cp27` `cp35` `cp36` `cp37`
+Python tags look like `cp27` `cp35` `cp36` `cp37` `cp38`
 
 Platform tags look like `macosx_10_6_intel` `manylinux_x86_64` `manylinux_i686` `win32` `win_amd64`
 
