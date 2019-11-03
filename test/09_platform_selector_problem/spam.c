@@ -1,23 +1,14 @@
 #include <Python.h>
-#if defined(__linux__)
-#include <malloc.h>
-#endif
 
 static PyObject *
 spam_system(PyObject *self, PyObject *args)
 {
     const char *command;
-    int sts = 0;
+    int sts;
 
     if (!PyArg_ParseTuple(args, "s", &command))
         return NULL;
-
-#if defined(__linux__)
-    sts = malloc_info(0, stdout);
-#endif
-    if (sts == 0) {
-        sts = system(command);
-    }
+    sts = system(command);
     return PyLong_FromLong(sts);
 }
 

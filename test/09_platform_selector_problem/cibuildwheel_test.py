@@ -29,8 +29,7 @@ def test_wrong_identifier():
             universal_newlines=True
         )
 
-    assert "Empty list of configuration to build" in excinfo.value.stderr
-
+    assert "build identifiers are selected after applying 'CIBW_BUILD' and 'CIBW_SKIP'" in excinfo.value.stderr
 
 
 def test_old_manylinux():
