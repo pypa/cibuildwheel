@@ -106,6 +106,7 @@ Default: `auto`
 For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
 
 ### CIBW_BUILD, CIBW_SKIP {: #build-skip}
+
 > Choose the Python versions to build
 
 Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
@@ -285,8 +286,8 @@ optional arguments:
   .options-toc {
     display: grid;
     grid-auto-columns: fit-content(20%) 1fr;
-    grid-gap: 10px;
-    gap: 10px;
+    grid-gap: 16px 32px;
+    gap: 16px 32px;
     font-size: 90%;
     margin-bottom: 24px;
   }
@@ -298,44 +299,15 @@ optional arguments:
   .options-toc .header:first-child {
     margin-top: 0;
   }
+  .options-toc a.option {
+    display: block;
+    margin-bottom: 5px;
+  }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // add styling classes to the toc-tree elements
-    $('.wy-menu-vertical li.current a').each(function(i, el) {
-      var $el = $(el);
-      $el.html( $el.text().replace(
-        /(^([A-Z0-9, _]| and )+)$/,
-        '<div class="cibw-option-name">$1</div>')
-      );
-    });
-
-    // var optionList = []
-
-    // $('.rst-content .section').children().each(function (i, el) {
-    //   if (el.tagName == 'H2') {
-    //     optionList.push({
-    //       type: 'header',
-    //       name: el.textContent,
-    //     })
-    //   }
-    //   if (el.tagName == 'H3') {
-    //     optionList.push({
-    //       type: 'option', 
-    //       name: el.textContent, 
-    //       description: $(el).next('blockquote').text(),
-    //     })
-    //   }
-    //   console.log(optionList);
-
-    //   var gridEl = $('.options-toc');
-    //   optionsList.forEach(function (item) {
-    //     if (item.type == 'header')
-    //   })
-    //   gridEl.append
-    // });
-
+    // gather the options data
     var options = {}
     var headers = []
 
@@ -357,6 +329,8 @@ optional arguments:
 
         options[header].push({name: optionName, description, id});
       });
+    
+    // write the table of contents
 
     var tocTable = $('.options-toc');
 
@@ -369,25 +343,22 @@ optional arguments:
       for (var j = 0; j < headerOptions.length; j += 1) {
         var option = headerOptions[j];
 
-        $('<a class="name">')
-          .text(option.name)
-          .attr('href', '#'+option.id)
+        var optionNames = option.name.split(', ')
+
+        $('<div class="name">')
+          .append($.map(optionNames, function (name) {
+            return $('<a class="option">')
+              .append(
+                $('<code>').text(name)
+              )
+              .attr('href', '#'+option.id)
+            }
+          ))
           .appendTo(tocTable);
-        $('<div class="description">').text(option.description).appendTo(tocTable);
+        $('<div class="description">')
+          .text(option.description)
+          .appendTo(tocTable);
       }
     }
-
-    console.log(options);
-    
-    // add styling classes to the emoji headers
-    $('.wy-menu-vertical li.current a').each(function(i, el) {
-      var $el = $(el);
-      var text = $el.text();
-      var emojiStartRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/
-
-      if (text.match(emojiStartRegex)) {
-        $el.addClass('cibw-option-header')
-      }
-    });
   });
 </script>
