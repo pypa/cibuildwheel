@@ -88,8 +88,12 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x64}}
+    #- {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x86}}
+    #- {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x64}}
+    - powershell: |
+        curl -o install_python.ps1 https://raw.githubusercontent.com/matthew-brett/multibuild/11a389d78892cf90addac8f69433d5e22bfa422a/install_python.ps1
+        & { $env:PYTHON = 'C:\\Python38'; .\install_python.ps1; Copy-Item 'C:\\Python38' 'C:\\hostedtoolcache\\windows\\Python\\3.8.0\\x86' -Recurse }
+        & { $env:PYTHON = 'C:\\Python38-x64'; .\install_python.ps1; Copy-Item 'C:\\Python38-x64' 'C:\\hostedtoolcache\\windows\\Python\\3.8.0\\x64' -Recurse }
     - script: choco install vcpython27 -f -y
       displayName: Install Visual C++ for Python 2.7
     - bash: |
@@ -210,6 +214,12 @@ jobs:
 
     ```
     build_script:
+      - ps: |
+          $PYTHON = $env:PYTHON
+          curl -o install_python.ps1 https://raw.githubusercontent.com/matthew-brett/multibuild/11a389d78892cf90addac8f69433d5e22bfa422a/install_python.ps1
+          & { $env:PYTHON = 'C:\\Python38'; .\install_python.ps1 }
+          & { $env:PYTHON = 'C:\\Python38-x64'; .\install_python.ps1 }
+          $env:PYTHON = $PYTHON
       - pip install cibuildwheel==0.12.0
       - cibuildwheel --output-dir wheelhouse
     artifacts:
