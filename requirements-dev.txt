@@ -1,4 +1,4 @@
 -e .
+-e ./docs/mkdocs_include_markdown_plugin
 pytest
 mkdocs==1.0.4
-
