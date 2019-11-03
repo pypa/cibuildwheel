@@ -27,3 +27,6 @@ markdown_extensions:
       permalink: True
   - attr_list
   - admonition
+
+plugins:
+  - importmarkdown
