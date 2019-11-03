@@ -310,5 +310,40 @@ optional arguments:
           .appendTo(tocTable);
       }
     }
+
+    // write the markdown table for the README
+
+    var markdown = ''
+
+    markdown += '|   | Option | Description |\n'
+    markdown += '|---|--------|-------------|\n'
+
+    var prevHeader = null
+
+    for (var i = 0; i < headers.length; i += 1) {
+      var header = headers[i];
+      var headerOptions = options[header];
+      for (var j = 0; j < headerOptions.length; j += 1) {
+        var option = headerOptions[j];
+
+        if (j == 0) {
+          markdown += '| **'+header+'** '
+        } else {
+          markdown += '|   '
+        }
+
+        var optionNames = option.name.trim().split(', ')
+        var url = 'https://cibuildwheel.readthedocs.io/en/stable/options/#'+option.id;
+        var namesMarkdown = $.map(optionNames, function(n) {
+          return '[`'+n+'`]('+url+') '
+        }).join(' ')
+
+        markdown += '| '+namesMarkdown+' '
+        markdown += '| '+option.description.trim()+' '
+        markdown += '|\n'
+      }
+    }
+
+    console.log('readme options markdown\n', markdown)
   });
 </script>
