@@ -16,8 +16,10 @@ except ImportError:
 from .util import prepare_command, get_build_verbosity_extra_flags
 
 
-IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+IS_RUNNING_ON_GITHUB = os.environ.get('GITHUB_WORKFLOW', None) is not None
+IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache') and not IS_RUNNING_ON_GITHUB
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
+IS_RUNNING_ON_APPVEYOR = os.environ.get('APPVEYOR', 'false').lower() == 'true'
 
 
 def get_python_path(config):
@@ -46,10 +48,13 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.8.0', arch="64", identifier='cp38-win_amd64'),
     ]
 
-    if IS_RUNNING_ON_TRAVIS:
+    if IS_RUNNING_ON_TRAVIS or IS_RUNNING_ON_GITHUB:
         # cannot install VCForPython27.msi which is needed for compiling C software
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
         python_configurations = [c for c in python_configurations if not c.version.startswith('2.7.')]
+
+    if IS_RUNNING_ON_GITHUB:
+        python_configurations = [c for c in python_configurations if  not c.version.startswith('3.5.')]
 
      # skip builds as required
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
@@ -71,11 +76,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 file.write(response.read())
         finally:
             response.close()
-    if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
-        shell = simple_shell
-    else:
+    if IS_RUNNING_ON_APPVEYOR:
         run_with_env = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'appveyor_run_with_env.cmd'))
-
         # run_with_env is a cmd file that sets the right environment variables
         # to build on AppVeyor.
         def shell(args, env=None, cwd=None):
@@ -83,6 +85,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             print('+ ' + ' '.join(args))
             args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
             return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+    else:
+        shell = simple_shell
 
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')

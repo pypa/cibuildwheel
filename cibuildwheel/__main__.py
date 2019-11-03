@@ -83,6 +83,13 @@ def main():
                 platform = 'macos'
             elif os.environ['AGENT_OS'] == 'Windows_NT':
                 platform = 'windows'
+        elif 'GITHUB_WORKFLOW' in os.environ:
+            if sys.platform.startswith('linux'):
+                platform = 'linux'
+            elif sys.platform.startswith('darwin'):
+                platform = 'macos'
+            else:
+                platform = 'windows'
 
         if platform is None:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '

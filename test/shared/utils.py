@@ -6,7 +6,9 @@ This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 
 import subprocess, sys, os
 
-IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+
+IS_WINDOWS_RUNNING_ON_GITHUB = os.path.exists('C:\\hostedtoolcache') and os.environ.get('GITHUB_WORKFLOW', None) is not None
+IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache') and not IS_WINDOWS_RUNNING_ON_GITHUB
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
@@ -101,6 +103,10 @@ def expected_wheels(package_name, package_version):
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
         # Python 2.7 isn't supported on Travis.
         templates = [t for t in templates if '-cp27-' not in t]
+
+    if IS_WINDOWS_RUNNING_ON_GITHUB:
+        # Python 2.7 and 3.4 isn't supported on Travis.
+        templates = [t for t in templates if '-cp27-' not in t and '-cp35-' not in t]
 
     return [filename.format(package_name=package_name, package_version=package_version)
             for filename in templates]
