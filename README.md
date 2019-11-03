@@ -17,13 +17,15 @@ What does it do?
 
 |   | macOS 10.6+ | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
 |---|---|---|---|---|---|
-| Python 2.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.4 | ✅ | ✅ | ✅ | ✅* | ✅* |
+| Python 2.7 | ✅ | ✅ | ✅ | ✅² | ✅² |
+| Python 3.4 | ✅ | ✅ | ✅ | ✅¹²| ✅¹²|
 | Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
 | Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
-> \* Not supported on Azure Pipelines
+> ¹ Not supported on Azure Pipelines 
+>
+> ² Not supported on Travis
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -32,7 +34,14 @@ What does it do?
 Usage
 -----
 
-`cibuildwheel` currently works  **Travis CI** and **CircleCI** to build Linux and Mac wheels, and **AppVeyor** to build Windows wheels. **Azure Pipelines** supports all three.
+`cibuildwheel` currently works on **Travis CI** and **Azure Pipelines** to build wheels for all three supported platforms (Linux, macOS, Windows). On **CircleCI** Linux and macOS wheels can be built, and on **AppVeyor** Windows is supported.
+
+|                 | Linux | macOS | Windows |
+|-----------------|-------|-------|---------|
+| Azure Pipelines | ✅    | ✅    | ✅      |
+| Travis CI       | ✅    | ✅    | ✅      |
+| AppVeyor        |       |       | ✅      |
+| CircleCI        | ✅    | ✅    |         |
 
 `cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like Travis CI, CircleCI, Azure Pipelines and AppVeyor are ideal.
 

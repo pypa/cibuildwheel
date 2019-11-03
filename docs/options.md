@@ -59,17 +59,19 @@ For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Ma
 
 > Choose the Python versions to build
 
-Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux1_x86_64` or `cp34-macosx_10_6_intel` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
+Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux_x86_64` or `cp34-macosx_10_6_intel` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
-The format is `python_tag-platform_tag`. The tags are as defined in [PEP 0425](https://www.python.org/dev/peps/pep-0425/#details).
+The format is `python_tag-platform_tag`. The tags are similar but not identical to the ones defined in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
 Python tags look like `cp27` `cp34` `cp35` `cp36` `cp37`
 
-Platform tags look like `macosx_10_6_intel` `manylinux1_x86_64` `manylinux1_i686` `win32` `win_amd64`
+Platform tags look like `macosx_10_6_intel` `manylinux_x86_64` `manylinux_i686` `win32` `win_amd64`
 
-You can also use shell-style globbing syntax (as per `fnmatch`) 
+You can also use shell-style globbing syntax (as per `fnmatch`).
+
+The list of supported and currently selected build identifiers can be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
 
 Examples:
 
@@ -80,7 +82,7 @@ Examples:
 - Skip Python 2.7 on 32-bit Windows: `CIBW_SKIP=cp27-win32`
 - Skip Python 3.4 and Python 3.5: `CIBW_SKIP=cp34-* cp35-*`
 - Skip Python 3.6 on Linux: `CIBW_SKIP=cp36-manylinux*`
-- Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD=cp3?-*` and `CIBW_SKIP=*-win32 *-manylinux1_i686`
+- Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD=cp3?-*` and `CIBW_SKIP=*-win32 *-manylinux_i686`
 
 ## Build environment
 
@@ -119,13 +121,18 @@ Example: `yum install -y libffi-dev && pip install .`
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
-### CIBW_MANYLINUX1_X86_64_IMAGE, CIBW_MANYLINUX1_I686_IMAGE {: #manylinux-image}
-> Specify alternative manylinux1 x86_64 docker images 
+### CIBW_MANYLINUX_X86_64_IMAGE, CIBW_MANYLINUX_I686_IMAGE {: #manylinux-image}
+> Specify alternative manylinux docker images 
 
-An alternative docker image to be used for building [`manylinux1`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the official images, [`quay.io/pypa/manylinux1_x86_64`](https://quay.io/pypa/manylinux1_i686) and [`quay.io/pypa/manylinux1_i686`](https://quay.io/pypa/manylinux1_i686).
+An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64) and [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686).
 
-Beware to specify a valid docker image that can be used the same as the official, default docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-compatible in order to produce valid `manylinux1` wheels (see https://github.com/pypa/manylinux and [PEP 513](https://www.python.org/dev/peps/pep-0513/) for more details).
+The value of this option can either be set to `manylinux1` or `manylinux2010` to use the [official `manylinux` images](https://github.com/pypa/manylinux), or any other valid Docker image name.
 
+Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1- or manylinux2010-compatible in order to produce valid `manylinux1`/`manylinux2010` wheels (see https://github.com/pypa/manylinux, [PEP 513](https://www.python.org/dev/peps/pep-0513/), and [PEP 571](https://www.python.org/dev/peps/pep-0571/) for more details).
+
+Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT="manylinux2010_$(uname -m)"`).
+
+Example: `manylinux1`  
 Example: `dockcross/manylinux-x64`  
 Example: `dockcross/manylinux-x86`
 

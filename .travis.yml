@@ -23,9 +23,15 @@ matrix:
     # macOS Python 3
     - os: osx
       env: PYTHON=python3
+
+    - os: windows
+      language: shell
       before_install:
-        - brew update
-        - brew outdated python || brew upgrade python
+       - choco install python3 --version 3.6.8 --no-progress -y
+      install:
+       - C:\\Python36\\python -m pip install -r requirements-dev.txt
+      script:
+       - C:\\Python36\\python ./bin/run_tests.py
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 

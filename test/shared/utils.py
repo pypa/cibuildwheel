@@ -6,7 +6,8 @@ This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 
 import subprocess, sys, os
 
-IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
 def cibuildwheel_get_build_identifiers(project_path, env=None):
@@ -54,12 +55,24 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp35-cp35m-manylinux1_x86_64.whl',
             '{package_name}-{package_version}-cp36-cp36m-manylinux1_x86_64.whl',
             '{package_name}-{package_version}-cp37-cp37m-manylinux1_x86_64.whl',
+            '{package_name}-{package_version}-cp27-cp27m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp34-cp34m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp35-cp35m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp36-cp36m-manylinux2010_x86_64.whl',
+            '{package_name}-{package_version}-cp37-cp37m-manylinux2010_x86_64.whl',
             '{package_name}-{package_version}-cp27-cp27m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp27-cp27mu-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp34-cp34m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp35-cp35m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp36-cp36m-manylinux1_i686.whl',
             '{package_name}-{package_version}-cp37-cp37m-manylinux1_i686.whl',
+            '{package_name}-{package_version}-cp27-cp27m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp34-cp34m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp35-cp35m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp36-cp36m-manylinux2010_i686.whl',
+            '{package_name}-{package_version}-cp37-cp37m-manylinux2010_i686.whl',
         ]
     elif platform == 'windows':
         templates = [
@@ -85,9 +98,12 @@ def expected_wheels(package_name, package_version):
     else:
         raise Exception('unsupported platform')
     
-    if IS_RUNNING_ON_AZURE:
+    if IS_WINDOWS_RUNNING_ON_AZURE:
         # Python 3.4 isn't supported on Azure.
         templates = [t for t in templates if '-cp34-' not in t]
+    if IS_WINDOWS_RUNNING_ON_TRAVIS:
+        # Python 2.7 and 3.4 isn't supported on Travis.
+        templates = [t for t in templates if '-cp27-' not in t and '-cp34-' not in t]
     
     return [filename.format(package_name=package_name, package_version=package_version)
             for filename in templates]

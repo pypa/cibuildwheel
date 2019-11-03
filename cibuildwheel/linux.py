@@ -12,25 +12,25 @@ except ImportError:
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['identifier', 'path'])
     python_configurations = [
-        PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(identifier='cp27-manylinux1_x86_64', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp34-manylinux1_x86_64', path='/opt/python/cp34-cp34m'),
-        PythonConfiguration(identifier='cp35-manylinux1_x86_64', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(identifier='cp36-manylinux1_x86_64', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(identifier='cp37-manylinux1_x86_64', path='/opt/python/cp37-cp37m'),
-        PythonConfiguration(identifier='cp27-manylinux1_i686', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(identifier='cp27-manylinux1_i686', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp34-manylinux1_i686', path='/opt/python/cp34-cp34m'),
-        PythonConfiguration(identifier='cp35-manylinux1_i686', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(identifier='cp36-manylinux1_i686', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(identifier='cp37-manylinux1_i686', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(identifier='cp34-manylinux_x86_64', path='/opt/python/cp34-cp34m'),
+        PythonConfiguration(identifier='cp35-manylinux_x86_64', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_x86_64', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_x86_64', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(identifier='cp34-manylinux_i686', path='/opt/python/cp34-cp34m'),
+        PythonConfiguration(identifier='cp35-manylinux_i686', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
     ]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment, manylinux1_images):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment, manylinux_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -42,8 +42,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     platforms = [
-        ('manylinux1_x86_64', manylinux1_images.get('x86_64') or 'quay.io/pypa/manylinux1_x86_64'),
-        ('manylinux1_i686', manylinux1_images.get('i686') or 'quay.io/pypa/manylinux1_i686'),
+        ('manylinux_x86_64', manylinux_images['x86_64']),
+        ('manylinux_i686', manylinux_images['i686']),
     ]
 
     for platform_tag, docker_image in platforms:
@@ -62,9 +62,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             for PYBIN in {pybin_paths}; do
                 # Setup
                 rm -rf /tmp/built_wheel
-                rm -rf /tmp/delocated_wheel
+                rm -rf /tmp/delocated_wheels
                 mkdir /tmp/built_wheel
-                mkdir /tmp/delocated_wheel
+                mkdir /tmp/delocated_wheels
 
                 if [ ! -z {before_build} ]; then
                     PATH="$PYBIN:$PATH" sh -c {before_build}
@@ -79,30 +79,52 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 # the first element
                 if [[ "$built_wheel" == *none-any.whl ]]; then
                     # pure python wheel - just copy
-                    mv "$built_wheel" /tmp/delocated_wheel
+                    mv "$built_wheel" /tmp/delocated_wheels
                 else
-                    auditwheel repair "$built_wheel" -w /tmp/delocated_wheel
+                    auditwheel repair "$built_wheel" -w /tmp/delocated_wheels
                 fi
-                delocated_wheel=(/tmp/delocated_wheel/*.whl)
+                delocated_wheels=(/tmp/delocated_wheels/*.whl)
 
-                # Install the wheel we just built
-                "$PYBIN/pip" install "$delocated_wheel"{test_extras}
-
-                # Install any requirements to run the tests
-                if [ ! -z "{test_requires}" ]; then
-                    "$PYBIN/pip" install {test_requires}
-                fi
-
-                # Run the tests from a different directory
                 if [ ! -z {test_command} ]; then
-                    pushd $HOME
-                    PATH="$PYBIN:$PATH" sh -c {test_command}
-                    popd
+                    # Set up a virtual environment to install and test from, to make sure
+                    # there are no dependencies that were pulled in at build time.
+                    "$PYBIN/pip" install virtualenv
+                    venv_dir=`mktemp -d`/venv
+                    "$PYBIN/python" -m virtualenv "$venv_dir"
+
+                    # run the tests in a subshell to keep that `activate`
+                    # script from polluting the env
+                    (
+                        source "$venv_dir/bin/activate"
+
+                        echo "Running tests using `which python`"
+
+                        # Install the wheel we just built
+                        # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
+                        # conforms to multiple manylinux standards. These multiple versions of the wheel are
+                        # functionally the same, differing only in name, wheel metadata, and possibly include
+                        # different external shared libraries. so it doesn't matter which one we run the tests on.
+                        # Let's just pick the first one.
+                        pip install "${{delocated_wheels[0]}}"{test_extras}
+
+                        # Install any requirements to run the tests
+                        if [ ! -z "{test_requires}" ]; then
+                            pip install {test_requires}
+                        fi
+
+                        # Run the tests from a different directory
+                        pushd $HOME
+                        sh -c {test_command}
+                        popd
+                    )
+
+                    # clean up
+                    rm -rf "$venv_dir"
                 fi
 
                 # we're all done here; move it to output
-                mv "$delocated_wheel" /output
-                chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"
+                mv "${{delocated_wheels[@]}}" /output
+                for delocated_wheel in "${{delocated_wheels[@]}}"; do chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"; done
             done
         '''.format(
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),

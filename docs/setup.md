@@ -73,6 +73,18 @@ script:
   - cibuildwheel --output-dir wheelhouse
 ```
 
+To build on Windows too, add this matrix entry: 
+```yaml
+    - os: windows
+      language: shell
+      before_install:
+        - choco install python3 --version 3.6.8 --no-progress -y
+      env:
+        - PATH=/c/Python36:/c/Python36/Scripts:$PATH
+```
+
+Note that building Windows Python 2.7 wheels on Travis is unsupported.
+
 Commit this file, enable building of your repo on Travis CI, and push.
 
 Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).

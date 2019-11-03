@@ -1,4 +1,5 @@
 from __future__ import print_function
+import tempfile
 import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
 from glob import glob
@@ -13,11 +14,11 @@ from .util import prepare_command, get_build_verbosity_extra_flags
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.16/python-2.7.16-macosx10.6.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.6.pkg'),
         PythonConfiguration(version='3.4', identifier='cp34-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.4.4/python-3.4.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.4/python-3.7.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.5/python-3.7.5-macosx10.6.pkg'),
     ]
 
     # skip builds as required
@@ -120,18 +121,40 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             call(['delocate-wheel', '-w', '/tmp/delocated_wheel', built_wheel], env=env)
         delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
 
-        # install the wheel
-        call(['pip', 'install', delocated_wheel + test_extras], env=env)
-
-        # test the wheel
-        if test_requires:
-            call(['pip', 'install'] + test_requires, env=env)
         if test_command:
+            # set up a virtual environment to install and test from, to make sure
+            # there are no dependencies that were pulled in at build time.
+            call(['pip', 'install', 'virtualenv'], env=env)
+            venv_dir = tempfile.mkdtemp()
+            call(['python', '-m', 'virtualenv', venv_dir], env=env)
+
+            virtualenv_env = env.copy()
+            virtualenv_env['PATH'] = os.pathsep.join([
+                os.path.join(venv_dir, 'bin'),
+                virtualenv_env['PATH'],
+            ])
+            # Fix some weird issue with the shebang of installed scripts
+            # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
+            virtualenv_env.pop('__PYVENV_LAUNCHER__', None)
+
+            # check that we are using the Python from the virtual environment
+            call(['which', 'python'], env=virtualenv_env)
+
+            # install the wheel
+            call(['pip', 'install', delocated_wheel + test_extras], env=virtualenv_env)
+
+            # test the wheel
+            if test_requires:
+                call(['pip', 'install'] + test_requires, env=virtualenv_env)
+
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
             test_command_prepared = prepare_command(test_command, project=abs_project_dir)
-            call(test_command_prepared, cwd=os.environ['HOME'], env=env, shell=True)
+            call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+
+            # clean up
+            shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
         dst = os.path.join(output_dir, os.path.basename(delocated_wheel))
