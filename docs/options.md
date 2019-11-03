@@ -212,39 +212,22 @@ optional arguments:
 ```
 
 <style>
-  .cibw-option-header {
-    margin-top: 5px;
-    /* border-bottom: 1px solid rgba(0, 0, 0, 0.05); */
-    font-size: 80%;
-    text-transform: uppercase;
-  }
-  .cibw-option-header:hover {
-    background-color: transparent !important;
-  }
-  .cibw-option-name {
-  }
-  .cibw-option-description {
-    font-size: 0.9em;
-  }
   .toctree-l3 {
     border-left: 10px solid transparent;
   }
-  .rst-content .section .toc-grid-marker + table td {
-    border: none !important;
-    background-color: transparent !important;
-  }
+
   .options-toc {
     display: grid;
     grid-auto-columns: fit-content(20%) 1fr;
     grid-gap: 16px 32px;
     gap: 16px 32px;
     font-size: 90%;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    margin-top: 28px;
   }
   .options-toc .header {
     grid-column: 1 / 3;
     font-weight: bold;
-    margin-top: 15px;
   }
   .options-toc .header:first-child {
     margin-top: 0;
