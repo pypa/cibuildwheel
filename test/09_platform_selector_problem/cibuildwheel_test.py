@@ -25,12 +25,11 @@ def test_wrong_identifier():
     with pytest.raises(subprocess.CalledProcessError) as excinfo:
         subprocess.run(
             [sys.executable, '-m', 'cibuildwheel', project_dir],
-            env=env, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            env=env, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            universal_newlines=True
         )
-    if isinstance(excinfo.value.stderr, bytes):
-        assert "Empty list of configuration to build" in excinfo.value.stderr.decode()
-    else:
-        assert "Empty list of configuration to build" in excinfo.value.stderr
+
+    assert "Empty list of configuration to build" in excinfo.value.stderr
 
 
 
@@ -49,11 +48,9 @@ def test_old_manylinux():
     
     res = subprocess.run(
         [sys.executable, '-m', 'cibuildwheel', project_dir],
-        env=env, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        env=env, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        universal_newlines=True
     )
-    if isinstance(res.stderr, bytes):
-        assert "Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of"\
-            " 'manylinux1' by 'manylinux' in the option 'CIBW_BUILD'" in res.stderr.decode()
-    else:
-        assert "Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of"\
-            " 'manylinux1' by 'manylinux' in the option 'CIBW_BUILD'" in res.stderr
+    
+    assert "Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of"\
+        " 'manylinux1' by 'manylinux' in the option 'CIBW_BUILD'" in res.stderr
