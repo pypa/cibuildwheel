@@ -2,11 +2,13 @@
 title: Tips and tricks
 ---
 
+### Troubleshooting
+
 If your wheel didn't compile, check the list below for some debugging tips.
 
 - A mistake in your config. To quickly test your config without doing a git push and waiting for your code to build on CI, you can test the Linux build in a Docker container. On Mac or Linux, with Docker running, try `cibuildwheel --platform linux`. You'll have to bring your config into the current environment first.
 
-- Missing dependency. You might need to install something on the build machine. You can do this in `.travis.yml`, `appveyor.yml`, or `.circleci/config.yml`, with apt-get, brew or choco. Given how the Linux build works, you'll need to use the [CIBW_BEFORE_BUILD](options.md#before-build) option.
+- Missing dependency. You might need to install something on the build machine. You can do this in `.travis.yml`, `appveyor.yml`, or `.circleci/config.yml`, with apt-get, brew or choco. Given how the Linux build works, you'll need to use the [`CIBW_BEFORE_BUILD`](options.md#before-build) option.
 
 - Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
 

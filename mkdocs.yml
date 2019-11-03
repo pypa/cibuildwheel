@@ -15,8 +15,8 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - "Setup guide": setup.md
-  - "Options": options.md
+  - setup.md
+  - options.md
   - deliver-to-pypi.md
   - faq.md
   - contributing.md
