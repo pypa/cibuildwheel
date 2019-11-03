@@ -1,5 +1,5 @@
 ---
-title: It didn't work!
+title: Tips and tricks
 ---
 
 If your wheel didn't compile, check the list below for some debugging tips.
@@ -21,3 +21,17 @@ Linux wheels are built in the [`manylinux` docker images](https://github.com/pyp
 - The project directory is mounted in the running Docker instance as `/project`, the output directory for the wheels as `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that this is not available on CircleCI due to their Docker policies.
 
 - Alternative dockers images can be specified with the `CIBW_MANYLINUX1_X86_64_IMAGE` and `CIBW_MANYLINUX1_I686_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#manylinux-image) for more details.
+
+### Building packages with optional C extensions
+
+`cibuildwheel` defines the environment variable `CIBUILDWHEEL` to the value `1` allowing projects for which the C extension is optional to make it mandatory when building wheels.
+
+An easy way to do it in Python 3 is through the `optional` named argument of `Extension` constructor in your `setup.py`:
+
+```python
+myextension = Extension(
+    "myextension",
+    ["myextension.c"],
+    optional=os.environ.get('CIBUILDWHEEL', '0') != '1',
+)
+```
