@@ -42,8 +42,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     if len(python_configurations) == 0:
-        raise ValueError("No linux build identifiers are selected after applying 'CIBW_BUILD' and 'CIBW_SKIP'. " \
-            "Check documentation if python version identifier do not change")
+        raise ValueError("No linux build identifiers are selected after applying 'CIBW_BUILD' and 'CIBW_SKIP'. ")
     platforms = [
         ('manylinux_x86_64', manylinux_images['x86_64']),
         ('manylinux_i686', manylinux_images['i686']),

@@ -97,8 +97,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     if len(python_configurations) == 0:
-        raise ValueError("No windows build identifiers are selected after applying 'CIBW_BUILD' and 'CIBW_SKIP'. " \
-                        "Check documentation if python version identifier do not change")
+        raise ValueError("No windows build identifiers are selected after applying 'CIBW_BUILD' and 'CIBW_SKIP'. ")
     for config in python_configurations:
         config_python_path = get_python_path(config)
         simple_shell([nuget, "install"] + get_nuget_args(config))
