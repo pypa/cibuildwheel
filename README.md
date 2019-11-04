@@ -12,13 +12,13 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS 10.6+ | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
-|---|---|---|---|---|---|
-| Python 2.7 | ✅ | ✅ | ✅ | ✅¹ | ✅¹ |
-| Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.8 | ✅ | ✅ | ✅ | ✅  | ✅  |
+|   | macOS 10.6+ intel | macOS 10.9+ x86_64 | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
+|---|---|---|---|---|---|---|
+| Python 2.7 | ✅ |    | ✅ | ✅ | ✅¹ | ✅¹ |
+| Python 3.5 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
+| Python 3.6 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
+| Python 3.7 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
+| Python 3.8 |    | ✅ | ✅ | ✅ | ✅  | ✅  |
 
 > ¹ Not supported on Travis
 
@@ -305,7 +305,7 @@ The format is `python_tag-platform_tag`. The tags are similar but not identical 
 
 Python tags look like `cp27` `cp35` `cp36` `cp37` `cp38`
 
-Platform tags look like `macosx_10_6_intel` `manylinux_x86_64` `manylinux_i686` `win32` `win_amd64`
+Platform tags look like `macosx_10_6_intel` `macosx_10_9_x86_64` `manylinux_x86_64` `manylinux_i686` `win32` `win_amd64`
 
 You can also use shell-style globbing syntax (as per `fnmatch`).
 
@@ -314,6 +314,7 @@ The list of supported and currently selected build identifiers can be retrieved 
 Examples:
 - Only build on Python 3.6: `CIBW_BUILD`:`cp36-*`
 - Skip building on Python 2.7 on the Mac: `CIBW_SKIP`:`cp27-macosx_10_6_intel`
+- Skip building on Python 3.8 on the Mac: `CIBW_SKIP`:`cp38-macosx_10_9_x86_64`
 - Skip building on Python 2.7 on all platforms: `CIBW_SKIP`:`cp27-*`
 - Skip Python 2.7 on Windows: `CIBW_SKIP`:`cp27-win*`
 - Skip Python 2.7 on 32-bit Windows: `CIBW_SKIP`:`cp27-win32`
