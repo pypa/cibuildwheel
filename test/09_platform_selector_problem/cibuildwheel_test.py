@@ -29,7 +29,13 @@ def test_wrong_identifier():
             universal_newlines=True
         )
 
-    assert "build identifiers are selected after applying 'CIBW_BUILD' and 'CIBW_SKIP'" in excinfo.value.stderr
+    assert "configuration to build. Check 'CIBW_BUILD' environment variable" in excinfo.value.stderr
+
+def skip_all(tmp_path):
+    tmp_path = str(tmp_path)
+    project_dir = os.path.dirname(__file__)
+    utils.cibuildwheel_run(project_dir, add_env={'CIBW_SKIP':'*'}, output_dir=tmp_path)
+    assert len(os.listdir(tmp_path)) == 0
 
 
 def test_old_manylinux():
@@ -52,4 +58,4 @@ def test_old_manylinux():
     )
     
     assert "Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of"\
-        " 'manylinux1' by 'manylinux' in the option 'CIBW_BUILD'" in res.stderr
+           " 'manylinux1' by 'manylinux' in the option 'CIBW_BUILD'" in res.stderr

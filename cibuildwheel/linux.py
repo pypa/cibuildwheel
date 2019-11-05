@@ -42,7 +42,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     if len(python_configurations) == 0:
-        raise ValueError("No linux build identifiers are selected after applying 'CIBW_BUILD' and 'CIBW_SKIP'. ")
+        positive_configuration = get_python_configurations(build_selector.positive_only())
+        if len(positive_configuration) == 0:
+            raise ValueError("Empty list of linux configuration to build. Check 'CIBW_BUILD' environment variable.")
     platforms = [
         ('manylinux_x86_64', manylinux_images['x86_64']),
         ('manylinux_i686', manylinux_images['i686']),

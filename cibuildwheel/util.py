@@ -34,6 +34,12 @@ class BuildSelector(object):
     def __repr__(self):
         return 'BuildSelector({!r} - {!r})'.format(' '.join(self.build_patterns), ' '.join(self.skip_patterns))
 
+    def positive_only(self):
+        """return BuildSelector with only build_pattern"""
+        build_selector = BuildSelector("", "")
+        build_selector.build_patterns = self.build_patterns[:]
+        return build_selector
+
 
 # Taken from https://stackoverflow.com/a/107717
 class Unbuffered(object):
