@@ -1,4 +1,5 @@
-import os
+import os, subprocess
+import pytest
 import utils
 
 def test():
@@ -35,3 +36,16 @@ def test_extras_require():
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
     actual_wheels = os.listdir('wheelhouse')
     assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_failing_test():
+    '''Ensure a failing test causes cibuildwheel to error out and exit'''
+    project_dir = os.path.dirname(__file__)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(project_dir, add_env={
+            'CIBW_TEST_COMMAND': 'false',
+        })
+
+    assert len(os.listdir('wheelhouse'))
+

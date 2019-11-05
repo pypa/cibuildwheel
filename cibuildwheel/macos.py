@@ -14,11 +14,11 @@ from .util import prepare_command, get_build_verbosity_extra_flags
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.16/python-2.7.16-macosx10.6.pkg'),
-        PythonConfiguration(version='3.4', identifier='cp34-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.4.4/python-3.4.4-macosx10.6.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.6.pkg'),
         PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.4/python-3.7.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.5/python-3.7.5-macosx10.6.pkg'),
+        PythonConfiguration(version='3.8', identifier='cp38-macosx_10_9_x86_64', url='https://www.python.org/ftp/python/3.8.0/python-3.8.0-macosx10.9.pkg'),
     ]
 
     # skip builds as required
@@ -58,7 +58,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             # install
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
             # patch open ssl
-            if config.version in ('3.4', '3.5'):
+            if config.version == '3.5':
                 call(['curl', '-fsSLo', '/tmp/python-patch.tar.gz', 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version])
                 call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/%s/' % config.version, '-xmf', '/tmp/python-patch.tar.gz'])
 
@@ -152,7 +152,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             # and not the repo code)
             test_command_prepared = prepare_command(test_command, project=abs_project_dir)
             call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
-            
+
             # clean up
             shutil.rmtree(venv_dir)
 
