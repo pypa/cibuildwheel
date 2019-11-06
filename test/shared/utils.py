@@ -98,9 +98,13 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
                     for manylinux_version in manylinux_versions
                     for architecture in architectures]
     elif platform == 'windows':
-
+        # Second step: adding PyPy support on Windows
+        python_abi_tags.extend(['pp272-pypy_41', 'pp372-pp372'])
         def get_platform_tags(python_abi_tag):
-            return ['win32', 'win_amd64']
+            if python_abi_tag.startswith('pp'):
+                return ['win32']
+            else:
+                return ['win32', 'win_amd64']
 
     elif platform == 'macos':
 
@@ -120,7 +124,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
 
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
         # Python 2.7 isn't supported on Travis.
-        templates = [t for t in templates if '-cp27-' not in t]
+        templates = [t for t in templates if '-cp27-' not in t and '-pp2' not in t]
 
     return templates
 
