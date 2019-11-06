@@ -83,7 +83,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     if platform == 'linux':
         python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
         # Starting out by adding PyPy support on Linux
-        python_abi_tags.extend(['pp271-pypy_41', 'pp371-pypy3_71'])
+        python_abi_tags.extend(['pp272-pypy_41', 'pp372-pypy3_72'])
         cp_architectures = ['x86_64', 'i686']
         pp_architectures = ['x86_64']
 
