@@ -209,8 +209,6 @@ jobs:
 
 </details>
 
-- Commit those files, enable building of your repo on Travis CI and AppVeyor, and push.
-
 All being well, you should get wheels delivered to you in a few minutes.
 
 > ⚠️ Got an error? Check the [checklist](#it-didnt-work) below.
