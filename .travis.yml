@@ -16,10 +16,6 @@ matrix:
       services: docker
       env: PYTHON=python
 
-    # macOS Python 2
-    - os: osx
-      env: PYTHON=python2
-
     # macOS Python 3
     - os: osx
       env: PYTHON=python3
