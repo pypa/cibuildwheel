@@ -29,7 +29,7 @@ def get_nuget_args(configuration):
     python_name = "python" if configuration.version[0] == '3' else "python2"
     if configuration.arch == "32":
         python_name = python_name + "x86"
-    return [python_name, "-Version", configuration.version, "-OutputDirectory", "C:/python"]
+    return [python_name, "-Version", configuration.version, "-OutputDirectory", "C:/cibw/python"]
 
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier'])
@@ -65,6 +65,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
     def download(url, dest):
         print('+ Download ' + url + ' to ' + dest)
+        dest_dir = os.path.dirname(dest)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
         response = urlopen(url)
         try:
             with open(dest, 'wb') as file:
@@ -89,10 +92,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
 
     # install nuget as best way to provide python
-    nuget = 'C:\\nuget.exe'
+    nuget = 'C:\\cibw\\nuget.exe'
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
     # get pip fo this installation which not have.
-    get_pip_script = 'C:\\get-pip.py'
+    get_pip_script = 'C:\\cibw\\get-pip.py'
     download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
 
     python_configurations = get_python_configurations(build_selector)
