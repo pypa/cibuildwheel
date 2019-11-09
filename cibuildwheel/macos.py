@@ -76,6 +76,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         if config.version[0] == '3':
             os.symlink(os.path.join(installation_bin_path, 'python3'), '/tmp/cibw_bin/python')
+            os.symlink(os.path.join(installation_bin_path, 'python3-32'), '/tmp/cibw_bin/python-32')
             os.symlink(os.path.join(installation_bin_path, 'python3-config'), '/tmp/cibw_bin/python-config')
             os.symlink(os.path.join(installation_bin_path, 'pip3'), '/tmp/cibw_bin/pip')
 
@@ -122,39 +123,54 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         repaired_wheel = glob(os.path.join(repaired_wheel_dir, '*.whl'))[0]
 
         if test_command:
-            # set up a virtual environment to install and test from, to make sure
-            # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv'], env=env)
-            venv_dir = tempfile.mkdtemp()
-            call(['python', '-m', 'virtualenv', venv_dir], env=env)
+            # Because of https://github.com/pypa/virtualenv/issues/1437, we can only test
+            # 32-bit mode using python 3 embedded venv module.
+            if repaired_wheel.endswith('_intel.whl') and config.version[0] == '3':
+                test_drivers = ['python', 'python-32']
+            else:
+                test_drivers = ['python']
 
-            virtualenv_env = env.copy()
-            virtualenv_env['PATH'] = os.pathsep.join([
-                os.path.join(venv_dir, 'bin'),
-                virtualenv_env['PATH'],
-            ])
-            # Fix some weird issue with the shebang of installed scripts
-            # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
-            virtualenv_env.pop('__PYVENV_LAUNCHER__', None)
+            for test_driver in test_drivers:
+                # set up a virtual environment to install and test from, to make sure
+                # there are no dependencies that were pulled in at build time.
+                if config.version[0] == '2':
+                    call([test_driver, '-m', 'pip', 'install', 'virtualenv'], env=env)
+                venv_dir = tempfile.mkdtemp()
+                if config.version[0] == '2':
+                    call([test_driver, '-m', 'virtualenv', venv_dir], env=env)
+                else:
+                    call([test_driver, '-m', 'venv', venv_dir], env=env)
 
-            # check that we are using the Python from the virtual environment
-            call(['which', 'python'], env=virtualenv_env)
+                virtualenv_env = env.copy()
+                virtualenv_env['PATH'] = os.pathsep.join([
+                    os.path.join(venv_dir, 'bin'),
+                    virtualenv_env['PATH'],
+                ])
+                # Fix some weird issue with the shebang of installed scripts
+                # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
+                virtualenv_env.pop('__PYVENV_LAUNCHER__', None)
 
-            # install the wheel
-            call(['pip', 'install', repaired_wheel + test_extras], env=virtualenv_env)
+                # check that we are using the Python from the virtual environment
+                call(['which', 'python'], env=virtualenv_env)
 
-            # test the wheel
-            if test_requires:
-                call(['pip', 'install'] + test_requires, env=virtualenv_env)
+                if test_driver == 'python-32':
+                    call([test_driver, '-c', 'import sys; assert sys.maxsize < 2 ** 32'], env=virtualenv_env)
 
-            # run the tests from $HOME, with an absolute path in the command
-            # (this ensures that Python runs the tests against the installed wheel
-            # and not the repo code)
-            test_command_prepared = prepare_command(test_command, project=abs_project_dir)
-            call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+                # install the wheel
+                call(['pip', 'install', repaired_wheel + test_extras], env=virtualenv_env)
 
-            # clean up
-            shutil.rmtree(venv_dir)
+                # test the wheel
+                if test_requires:
+                    call(['pip', 'install'] + test_requires, env=virtualenv_env)
+
+                # run the tests from $HOME, with an absolute path in the command
+                # (this ensures that Python runs the tests against the installed wheel
+                # and not the repo code)
+                test_command_prepared = prepare_command(test_command, project=abs_project_dir)
+                call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+
+                # clean up
+                shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
         dst = os.path.join(output_dir, os.path.basename(repaired_wheel))
