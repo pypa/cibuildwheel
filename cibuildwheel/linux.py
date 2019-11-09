@@ -117,6 +117,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         sh -c {test_command}
                         popd
                     )
+                    # exit if tests failed (needed for older bash versions)
+                    if [ $? -ne 0 ]; then
+                      exit 1;
+                    fi
 
                     # clean up
                     rm -rf "$venv_dir"
