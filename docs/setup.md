@@ -1,4 +1,8 @@
-## Azure Pipelines [linux/mac/windows]
+---
+title: 'Setup'
+---
+
+# Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
 
 Using Azure pipelines, you can build all three platforms on the same service. Create a `azure-pipelines.yml` file in your repo.
 
@@ -43,7 +47,7 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-## Travis CI [linux/mac]
+# Travis CI [linux/mac] {: #travis-ci}
 
 To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
 
@@ -82,7 +86,7 @@ Commit this file, enable building of your repo on Travis CI, and push.
 
 Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).
 
-## CircleCI [linux/mac]
+# CircleCI [linux/mac] {: #circleci}
 
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
@@ -135,7 +139,7 @@ Commit this file, enable building of your repo on CircleCI, and push.
 
 CircleCI will store the built wheels for you - you can access them from the project console. Check out the CircleCI [docs](https://circleci.com/docs/2.0/configuration-reference/#section=configuration) for more info on this config file.
 
-## AppVeyor [windows]
+# AppVeyor [windows] {: #appveyor}
 
 To build Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
 
@@ -160,12 +164,12 @@ For more info on this config file, check out the [docs](https://www.appveyor.com
 
 <script> 
   document.addEventListener('DOMContentLoaded', function() {
-    $('.toctree-l2 a, .rst-content h2').each(function(i, el) {
+    $('.toctree-l2 a, .rst-content h1').each(function(i, el) {
       var text = $(el).text()
       var match = text.match(/(.*) \[([a-z/]+)\]/);
 
       if (match) {
-        var iconHTML = match[2].split('/').map(function(ident) {
+        var iconHTML = $.map(match[2].split('/'), function(ident) {
           switch (ident) {
             case 'linux':
               return '<i class="fa fa-linux" aria-hidden="true"></i>'
@@ -175,7 +179,15 @@ For more info on this config file, check out the [docs](https://www.appveyor.com
               return '<i class="fa fa-apple" aria-hidden="true"></i>'
           }
         }).join(' ');
-        $(el).html(match[1] + ' ' + iconHTML)
+
+        $(el).append(
+          $('<div>')
+            .append(iconHTML)
+            .css({float: 'right'})
+        )
+        $(el).contents()
+          .filter(function(){ return this.nodeType == 3; }).first()
+          .replaceWith(match[1]);
       }
     });
   });

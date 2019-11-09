@@ -1,5 +1,6 @@
-Contributing
-============
+---
+title: Contributing
+---
 
 Wheel-building can be pretty complex. I expect users to find many edge-cases - please help the rest of the community out by documenting these, adding features to support them, and reporting bugs.
 
