@@ -1,3 +1,4 @@
+import os
 from cibuildwheel.environment import parse_environment
 
 
@@ -37,12 +38,15 @@ def test_inheritance():
 def test_shell_eval():
     environment_recipe = parse_environment('VAR="$(echo "a test" string)"')
 
+    env_copy = os.environ.copy()
+    env_copy.pop('VAR', None)
+
     environment_dict = environment_recipe.as_dictionary(
-        prev_environment={}
+        prev_environment=env_copy
     )
     environment_cmds = environment_recipe.as_shell_commands()
 
-    assert environment_dict == {'VAR': 'a test string'}
+    assert environment_dict['VAR'] == 'a test string'
     assert environment_cmds == ['export VAR="$(echo "a test" string)"']
 
 def test_shell_eval_and_env():
