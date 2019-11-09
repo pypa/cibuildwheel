@@ -24,7 +24,7 @@ def cibuildwheel_get_build_identifiers(project_path, env=None):
     return cmd_output.strip().split('\n')
 
 
-def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
+def cibuildwheel_run(project_path, env=None, add_env=None, output_dir="wheelhouse"):
     '''
     Runs cibuildwheel as a subprocess, building the project at project_path.
 
@@ -37,9 +37,6 @@ def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
     if add_env is not None:
         env.update(add_env)
     
-    if output_dir is None:
-        output_dir = "wheelhouse"
-
     subprocess.check_call(
         [sys.executable, '-m', 'cibuildwheel', "--output-dir", output_dir, project_path],
         env=env
