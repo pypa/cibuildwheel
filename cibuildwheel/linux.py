@@ -14,16 +14,16 @@ def get_python_configurations(build_selector):
     python_configurations = [
         PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp34-manylinux_x86_64', path='/opt/python/cp34-cp34m'),
         PythonConfiguration(identifier='cp35-manylinux_x86_64', path='/opt/python/cp35-cp35m'),
         PythonConfiguration(identifier='cp36-manylinux_x86_64', path='/opt/python/cp36-cp36m'),
         PythonConfiguration(identifier='cp37-manylinux_x86_64', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_x86_64', path='/opt/python/cp38-cp38'),
         PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp34-manylinux_i686', path='/opt/python/cp34-cp34m'),
         PythonConfiguration(identifier='cp35-manylinux_i686', path='/opt/python/cp35-cp35m'),
         PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
         PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
     ]
 
     # skip builds as required

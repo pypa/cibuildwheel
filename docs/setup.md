@@ -28,14 +28,7 @@ jobs:
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
   steps: 
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '2.7', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - task: UsePythonVersion@0
     - script: choco install vcpython27 -f -y
       displayName: Install Visual C++ for Python 2.7
     - bash: |
@@ -73,7 +66,7 @@ script:
   - cibuildwheel --output-dir wheelhouse
 ```
 
-To build on Windows too, add this matrix entry: 
+To build on Windows too, add this matrix entry:
 ```yaml
     - os: windows
       language: shell
@@ -90,7 +83,7 @@ Commit this file, enable building of your repo on Travis CI, and push.
 Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).
 
 ## CircleCI [linux/mac]
-    
+
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
 > .circleci/config.yml

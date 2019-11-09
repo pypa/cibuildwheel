@@ -15,17 +15,15 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS 10.6+ | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
-|---|---|---|---|---|---|
-| Python 2.7 | ✅ | ✅ | ✅ | ✅² | ✅² |
-| Python 3.4 | ✅ | ✅ | ✅ | ✅¹²| ✅¹²|
-| Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
+|   | macOS 10.6+ intel | macOS 10.9+ x86_64 | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
+|---|---|---|---|---|---|---|
+| Python 2.7 | ✅ |    | ✅ | ✅ | ✅¹ | ✅¹ |
+| Python 3.5 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
+| Python 3.6 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
+| Python 3.7 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
+| Python 3.8 |    | ✅ | ✅ | ✅ | ✅  | ✅  |
 
-> ¹ Not supported on Azure Pipelines 
->
-> ² Not supported on Travis
+> ¹ Not supported on Travis
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -91,7 +89,7 @@ For more information, including how to build on Appveyor, Azure, CircleCI, check
 Working examples
 ----------------
 
-Here are some repos that use cibuildwheel. 
+Here are some repos that use cibuildwheel.
 
 - [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext)
 - [websockets](https://github.com/aaugustin/websockets)
@@ -109,7 +107,7 @@ Here are some repos that use cibuildwheel.
 Legal note
 ----------
 
-Since `cibuildwheel` runs the wheel through delocate or auditwheel, it might automatically bundle dynamically linked libraries from the build machine. 
+Since `cibuildwheel` runs the wheel through delocate or auditwheel, it might automatically bundle dynamically linked libraries from the build machine.
 
 It helps ensure that the library can run without any dependencies outside of the pip toolchain.
 
@@ -141,7 +139,7 @@ _26 May 2019_
 
 - ✨ Add support for building on Azure pipelines! This lets you build all
   Linux, Mac and Windows wheels on one service, so it promises to be the
-  easiest to set up! Check out the quickstart in the docs, or 
+  easiest to set up! Check out the quickstart in the docs, or
   [cibuildwheel-azure-example](https://github.com/joerick/cibuildwheel-azure-example)
   for an example project. (#126, #132)
 - 🛠 Internal change - the end-to-end test projects format was updated, so we
@@ -281,7 +279,7 @@ _11 June 2017_
 
 _13 April 2017_
 
-- ✨ Added `CIBW_SKIP` option, letting users explicitly skip a build 
+- ✨ Added `CIBW_SKIP` option, letting users explicitly skip a build
 - ✨ Added `CIBW_BEFORE_BUILD` option, letting users run a shell command before the build starts
 
 ### 0.1.3
@@ -306,7 +304,7 @@ Maintainers
 Credits
 -------
 
-`cibuildwheel` stands on the shoulders of giants. 
+`cibuildwheel` stands on the shoulders of giants.
 
 - ⭐️ @matthew-brett for [matthew-brett/multibuild](http://github.com/matthew-brett/multibuild) and [matthew-brett/delocate](http://github.com/matthew-brett/delocate)
 - @PyPA for the manylinux Docker images [pypa/manylinux](https://github.com/pypa/manylinux)
