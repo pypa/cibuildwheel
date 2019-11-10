@@ -71,7 +71,7 @@ env:
       # Note: TWINE_PASSWORD is set in Travis settings
 
 script:
-  - $PIP install cibuildwheel==0.12.0
+  - $PIP install cibuildwheel==1.0.0
 
   # build the wheels, put them into './wheelhouse'
   - cibuildwheel --output-dir wheelhouse

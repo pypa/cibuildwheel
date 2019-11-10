@@ -15,7 +15,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.12.0
+        pip install cibuildwheel==1.0.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -25,7 +25,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.12.0
+        pip install cibuildwheel==1.0.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -37,7 +37,7 @@ jobs:
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.12.0
+        pip install cibuildwheel==1.0.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -66,7 +66,7 @@ matrix:
       env: PIP=pip2
 
 script:
-  - $PIP install cibuildwheel==0.12.0
+  - $PIP install cibuildwheel==1.0.0
   - cibuildwheel --output-dir wheelhouse
 ```
 
@@ -105,7 +105,7 @@ jobs:
       - run:
           name: Build the Linux wheels.
           command: |
-            pip install --user cibuildwheel==0.12.0
+            pip install --user cibuildwheel==1.0.0
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -119,7 +119,7 @@ jobs:
       - run:
           name: Build the OS X wheels.
           command: |
-            pip install --user cibuildwheel==0.12.0
+            pip install --user cibuildwheel==1.0.0
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -147,7 +147,7 @@ To build Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
 
 ```yaml
 build_script:
-  - pip install cibuildwheel==0.12.0
+  - pip install cibuildwheel==1.0.0
   - cibuildwheel --output-dir wheelhouse
 artifacts:
   - path: "wheelhouse\\*.whl"
