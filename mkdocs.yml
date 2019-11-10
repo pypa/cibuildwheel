@@ -1,0 +1,32 @@
+site_name: cibuildwheel
+docs_dir: docs
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+      - yaml
+repo_url: https://github.com/joerick/cibuildwheel
+
+extra_css:
+  - extra.css
+
+extra_javascript:
+  - extra.js
+
+nav:
+  - Home: index.md
+  - setup.md
+  - options.md
+  - deliver-to-pypi.md
+  - faq.md
+  - contributing.md
+
+markdown_extensions:
+  - fenced_code
+  - toc:
+      permalink: True
+  - attr_list
+  - admonition
+
+plugins:
+  - importmarkdown

@@ -3,11 +3,14 @@ cibuildwheel
 
 [![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel) [![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch=master)](https://travis-ci.org/joerick/cibuildwheel) [![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master) [![CircleCI](https://circleci.com/gh/joerick/cibuildwheel.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel)
 
+[Documentation](https://cibuildwheel.readthedocs.org)
+
+<!--intro-start-->
+
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
 `cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
 
-**`cibuildwheel` is in beta**. It's brand new - I'd love for you to try it and help make it better!
 
 What does it do?
 ----------------
@@ -38,472 +41,65 @@ Usage
 | AppVeyor        |       |       | ✅      |
 | CircleCI        | ✅    | ✅    |         |
 
-`cibuildwheel` is not intended to run on your development machine. It will try to install packages globally; this is no good. Travis CI, CircleCI, and AppVeyor run their builds in isolated environments, so are ideal for this kind of script.
+`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like Travis CI, CircleCI, Azure Pipelines and AppVeyor are ideal.
 
-### Minimal setup
+<!--intro-end-->
 
-<details>
-    <summary><b>Azure Pipelines</b>
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
-    </summary>
+Example setup
+-------------
 
-- Using Azure pipelines, you can build all three platforms on the same service. Create a `azure-pipelines.yml` file in your repo.
+To build manylinux and macOS wheels on Travis CI, and upload them to PyPI whenever you tag a version, you could use this `.travis.yml`:
 
-**azure-pipelines.yml**
 ```yaml
-jobs:
-- job: linux
-  pool: {vmImage: 'Ubuntu-16.04'}
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        python -m pip install --upgrade pip
-        pip install cibuildwheel==0.12.0
-        cibuildwheel --output-dir wheelhouse .
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: 'wheelhouse'}
-- job: macos
-  pool: {vmImage: 'macOS-10.13'}
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        python -m pip install --upgrade pip
-        pip install cibuildwheel==0.12.0
-        cibuildwheel --output-dir wheelhouse .
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: 'wheelhouse'}
-- job: windows
-  pool: {vmImage: 'vs2017-win2016'}
-  steps:
-    - task: UsePythonVersion@0
-    - script: choco install vcpython27 -f -y
-      displayName: Install Visual C++ for Python 2.7
-    - bash: |
-        python -m pip install --upgrade pip
-        pip install cibuildwheel==0.12.0
-        cibuildwheel --output-dir wheelhouse .
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: 'wheelhouse'}
+language: python
+
+matrix:
+  include:
+    # perform a linux build
+    - sudo: required
+      services:
+        - docker
+      env: PIP=pip
+    # and a mac build
+    - os: osx
+      language: generic
+      env: PIP=pip2
+
+env:
+  global:
+    - TWINE_USERNAME=joerick
+      # Note: TWINE_PASSWORD is set in Travis settings
+
+script:
+  - $PIP install cibuildwheel==0.12.0
+
+  # build the wheels, put them into './wheelhouse'
+  - cibuildwheel --output-dir wheelhouse
+
+  # if the release was tagged, upload them to PyPI
+  - |
+    if [[ $TRAVIS_TAG ]]; then
+      python -m pip install twine
+      python -m twine upload wheelhouse/*.whl
+    fi
 ```
 
-</details>
-
-<details>
-    <summary><b>Travis CI</b>
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
-    </summary>
-
-- To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
-
-    ```yaml
-    language: python
-
-    matrix:
-      include:
-        - sudo: required
-          services:
-            - docker
-          env: PIP=pip
-        - os: osx
-          language: generic
-          env: PIP=pip2
-
-    script:
-      - $PIP install cibuildwheel==0.12.0
-      - cibuildwheel --output-dir wheelhouse
-    ```
-
-  To build on Windows too, add this matrix entry:
-  ```yaml
-    - os: windows
-      language: shell
-      before_install:
-       - choco install python3 --version 3.6.8 --no-progress -y
-      env:
-       - PATH=/c/Python36:/c/Python36/Scripts:$PATH
-  ```
-
-  Note that building Windows Python 2.7 wheels on Travis is unsupported.
-
-  Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](#delivering-to-pypi) below.
-
-</details>
-
-<details>
-    <summary><b>CircleCI</b>
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/apple.svg" />
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/linux.svg" />
-    </summary>
-
-- To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
-
-  ```
-  version: 2
-
-  jobs:
-    linux-wheels:
-      working_directory: ~/linux-wheels
-      docker:
-        - image: circleci/python:3.6
-      steps:
-        - checkout
-        - setup_remote_docker
-        - run:
-            name: Build the Linux wheels.
-            command: |
-              pip install --user cibuildwheel
-              cibuildwheel --output-dir wheelhouse
-        - store_artifacts:
-            path: wheelhouse/
-
-    osx-wheels:
-      working_directory: ~/osx-wheels
-      macos:
-        xcode: "10.0.0"
-      steps:
-        - checkout
-        - run:
-            name: Build the OS X wheels.
-            command: |
-              pip install --user cibuildwheel
-              cibuildwheel --output-dir wheelhouse
-        - store_artifacts:
-            path: wheelhouse/
-
-  workflows:
-    version: 2
-    all-tests:
-      jobs:
-        - linux-wheels
-        - osx-wheels
-  ```
-
-  Note: CircleCI doesn't enable free macOS containers for open source by default, but you can ask for access. See [here](https://circleci.com/docs/2.0/oss/#overview) for more information.
-
-  CircleCI will store the built wheels for you - you can access them from the project console.
-
-</details>
-
-
-<details>
-    <summary><b>AppVeyor</b>
-        <img width="16" src="https://unpkg.com/simple-icons@latest/icons/windows.svg" />
-    </summary>
-
-- To build Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
-
-    ```
-    build_script:
-      - pip install cibuildwheel==0.12.0
-      - cibuildwheel --output-dir wheelhouse
-    artifacts:
-      - path: "wheelhouse\\*.whl"
-        name: Wheels
-    ```
-
-  AppVeyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [AppVeyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](#delivering-to-pypi) below.
-
-</details>
-
-All being well, you should get wheels delivered to you in a few minutes.
-
-> ⚠️ Got an error? Check the [checklist](#it-didnt-work) below.
-
-### Configuration overview
-
-`cibuildwheel` allows for easy customization of the various phases of the build process demonstrated above:
-
-|   | Option |   |
-|---|---|---|
-| **Target wheels** | `CIBW_PLATFORM` | Override the auto-detected target platform |
-|   | `CIBW_BUILD` | Build only certain Python versions |
-|   | `CIBW_SKIP` | Skip certain Python versions |
-| **Build parameters** | `CIBW_BUILD_VERBOSITY` | Increase or decrease the output of `pip wheel` |
-| **Build environment** | `CIBW_ENVIRONMENT` | Set environment variables needed during the build |
-|   | `CIBW_BEFORE_BUILD` | Execute a shell command preparing each wheel's build |
-|   | `CIBW_MANYLINUX_X86_64_IMAGE` | Specify an alternative manylinux x86_64 docker image |
-|   | `CIBW_MANYLINUX_I686_IMAGE` | Specify an alternative manylinux i686 docker image |
-| **Tests** | `CIBW_TEST_COMMAND` | Execute a shell command to test all built wheels |
-|   | `CIBW_TEST_REQUIRES` | Install Python dependencies before running the tests |
-|   | `CIBW_TEST_EXTRAS` | Install Python dependencies before running the tests using ``extras_require``|
-
-A more detailed description of the options, the allowed values, and some examples can be found in the [Options](#options) section.
-
-### Linux builds on Docker
-
-Linux wheels are built in the [`manylinux` docker images](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 571](https://www.python.org/dev/peps/pep-0571/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
-- Programs and libraries cannot be installed on the Travis CI Ubuntu host with `apt-get`, but can be installed inside of the Docker image using `yum` or manually. The same goes for environment variables that are potentially needed to customize the wheel building. `cibuildwheel` supports this by providing the `CIBW_ENVIRONMENT` and `CIBW_BEFORE_BUILD` options to setup the build environment inside the running Docker image. See [below](#options) for details on these options.
-- The project directory is mounted in the running Docker instance as `/project`, the output directory for the wheels as `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that this is not available on CircleCI due to their Docker policies.
-- Alternative dockers images can be specified with the `CIBW_MANYLINUX_X86_64_IMAGE` and `CIBW_MANYLINUX_I686_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [below](#options) for more details.
-
+For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org).
 
 Options
 -------
 
-```
-usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
-                    [--output-dir OUTPUT_DIR] [--print-build-identifiers]
-                    [project_dir]
-
-Build wheels for all the platforms.
-
-positional arguments:
-  project_dir           Path to the project that you want wheels for.
-                        Default: the current directory.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --platform {auto,linux,macos,windows}
-                        Platform to build for. For "linux" you need docker
-                        running, on Mac or Linux. For "macos", you need a Mac
-                        machine, and note that this script is going to
-                        automatically install MacPython on your system, so
-                        don't run on your development machine. For "windows",
-                        you need to run in Windows, and it will build and test
-                        for all versions of Python at C:\PythonXX[-x64].
-  --output-dir OUTPUT_DIR
-                        Destination folder for the wheels.
-  --print-build-identifiers
-                        Print the build identifiers matched by the current
-                        invocation and exit.
-
-```
-
-Most of the config is via environment variables. These go into `.travis.yml`, `appveyor.yml`, and `.circleci/config.yml` nicely.
-
-***
-
-| Environment variable: `CIBW_PLATFORM` | Command line argument: `--platform`
-| --- | ---
-
-Options: `auto` `linux` `macos` `windows`
-
-Default: `auto`
-
-`auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
-
-For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
-
-***
-
-| Environment variables: `CIBW_BUILD` and `CIBW_SKIP`
-| ---
-
-Optional.
-
-Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux_x86_64` or `cp35-macosx_10_6_intel` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
-
-When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
-
-The format is `python_tag-platform_tag`. The tags are similar but not identical to the ones defined in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
-
-Python tags look like `cp27` `cp35` `cp36` `cp37` `cp38`
-
-Platform tags look like `macosx_10_6_intel` `macosx_10_9_x86_64` `manylinux_x86_64` `manylinux_i686` `win32` `win_amd64`
-
-You can also use shell-style globbing syntax (as per `fnmatch`).
-
-The list of supported and currently selected build identifiers can be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
-
-Examples:
-- Only build on Python 3.6: `CIBW_BUILD`:`cp36-*`
-- Skip building on Python 2.7 on the Mac: `CIBW_SKIP`:`cp27-macosx_10_6_intel`
-- Skip building on Python 3.8 on the Mac: `CIBW_SKIP`:`cp38-macosx_10_9_x86_64`
-- Skip building on Python 2.7 on all platforms: `CIBW_SKIP`:`cp27-*`
-- Skip Python 2.7 on Windows: `CIBW_SKIP`:`cp27-win*`
-- Skip Python 2.7 on 32-bit Windows: `CIBW_SKIP`:`cp27-win32`
-- Skip Python 2.7 and Python 3.5: `CIBW_SKIP`:`cp27-* cp35-*`
-- Skip Python 3.6 on Linux: `CIBW_SKIP`:`cp36-manylinux*`
-- Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD`:`cp3?-*` and `CIBW_SKIP`:`*-win32 *-manylinux_i686`
-
-***
-
-| Environment variable: `CIBW_BUILD_VERBOSITY`
-| ---
-
-Optional.
-
-An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
-
-Platform-specific variants also available:
-`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
-
-***
-
-| Environment variable: `CIBW_ENVIRONMENT`
-| ---
-
-Optional.
-
-A space-separated list of environment variables to set during the build. Bash syntax should be used (even on Windows!).
-
-You must set this variable to pass variables to Linux builds (since they execute in a Docker container). It also works for the other platforms.
-
-You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
-
-Example: `CFLAGS="-g -Wall" CXXFLAGS="-Wall"`\
-Example: `PATH=$PATH:/usr/local/bin`\
-Example: `BUILD_TIME="$(date)"`\
-Example: `PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple"`\
-
-Platform-specific variants also available:
-`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
-
-In addition to the above, `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](https://github.com/joerick/cibuildwheel/wiki/Building-packages-with-optional-C-extensions).
-
-***
-
-| Environment variable: `CIBW_BEFORE_BUILD`
-| ---
-
-Optional.
-
-A shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
-
-If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `pip install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
-
-The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root.
-
-Example: `pip install .`\
-Example: `pip install pybind11`\
-Example: `yum install -y libffi-dev && pip install .`
-
-Platform-specific variants also available:\
- `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
-
-***
-
-| Environment variables: `CIBW_MANYLINUX_X86_64_IMAGE` and `CIBW_MANYLINUX_I686_IMAGE`
-| ---
-
-Optional.
-
-An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64) and [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686).
-
-The value of this option can either be set to `manylinux1` or `manylinux2010` to use the [official `manylinux` images](https://github.com/pypa/manylinux), or any other valid Docker image name.
-
-Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1- or manylinux2010-compatible in order to produce valid `manylinux1`/`manylinux2010` wheels (see https://github.com/pypa/manylinux, [PEP 513](https://www.python.org/dev/peps/pep-0513/), and [PEP 571](https://www.python.org/dev/peps/pep-0571/) for more details).
-
-Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT="manylinux2010_$(uname -m)"`).
-
-Example: `manylinux1`\
-Example: `dockcross/manylinux-x64`\
-Example: `dockcross/manylinux-x86`
-
-***
-
-| Environment variable: `CIBW_TEST_COMMAND`
-| ---
-
-Optional.
-
-Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
-
-On Linux and Mac, the command runs in a shell, so you can write things like `cmd1 && cmd2`.
-
-Example: `nosetests {project}/tests`
-
-Platform-specific variants also available:
-`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
-
-***
-
-| Environment variable: `CIBW_TEST_REQUIRES`
-| ---
-
-Optional.
-
-Space-separated list of dependencies required for running the tests.
-
-Example: `pytest`\
-Example: `nose==1.3.7 moto==0.4.31`
-
-Platform-specific variants also available:
-`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
-
-***
-
-| Environment variable: `CIBW_TEST_EXTRAS`
-| ---
-
-Optional.
-
-Comma-separated list of
-[extras_require](https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies)
-options that should be included when installing the wheel prior to running the
-tests. This can be used to avoid having to redefine test dependencies in
-`CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
-`setup.cfg`.
-
-Example: `test,qt` (will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`)
-
-
-Platform-specific variants also available:
-`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
-
-### Example YML syntax
-
-<table>
-<tr><td><i>example .travis.yml environment variables</i><pre><code>env:
-  global:
-    - CIBW_TEST_REQUIRES=nose
-    - CIBW_TEST_COMMAND="nosetests {project}/tests"
-</code></pre></td>
-<td><i>example appveyor.yml environment variables</i><pre><code>environment:
-  global:
-    CIBW_TEST_REQUIRES: nose
-    CIBW_TEST_COMMAND: "nosetests {project}\\tests"
-</code></pre></td>
-</tr></table>
-
-Delivering to PyPI
-------------------
-
-After you've built your wheels, you'll probably want to deliver them to PyPI.
-
-### Manual method
-
-On your development machine, do the following...
-
-```bash
-# Clear out your 'dist' folder.
-rm -rf dist
-# Make a source distribution
-python setup.py sdist
-
-# 🏃🏻
-# Go and download your wheel files from wherever you put them. Put
-# them all into the 'dist' folder.
-
-# Upload using 'twine' (you may need to 'pip install twine')
-twine upload dist/*
-```
-
-### Semi-automatic method using wheelhouse-uploader
-
-Obviously, manual steps are for chumps, so we can automate this a little by using [wheelhouse-uploader](https://github.com/ogrisel/wheelhouse-uploader).
-
-> Quick note from me - using S3 as a storage didn't work due to a [bug](https://issues.apache.org/jira/browse/LIBCLOUD-792) in libcloud. Feel free to use my fork of that package that fixes the bug `pip install https://github.com/joerick/libcloud/archive/v1.5.0-s3fix.zip`
-
-### Automatic method
-
-If you don't need much control over the release of a package, you can set up cibuildwheel to deliver the wheels straight to PyPI. This doesn't require any cloud storage to work - you just need to bump the version and tag it.
-
-Check out [this example repo](https://github.com/joerick/cibuildwheel-autopypi-example) for instructions on how to set this up.
-
-It didn't work!
----------------
-
-If your wheel didn't compile, check the list below for some debugging tips.
-
-- A mistake in your config. To quickly test your config without doing a git push and waiting for your code to build on CI, you can run the Linux build in a Docker container. On Mac or Linux, with Docker running, try `cibuildwheel --platform linux`. You'll have to bring your config into the current environment first.
-- Missing dependency. You might need to install something on the build machine. You can do this in `.travis.yml`, `appveyor.yml`, or `.circleci/config.yml`, with apt-get, brew or whatever Windows uses :P . Given how the Linux build works, we'll probably have to build something into `cibuildwheel`. Let's chat about that over in the issues!
-- Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
-- MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/joerick/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
+|   | Option | Description |
+|---|--------|-------------|
+| **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.readthedocs.io/en/stable/options/#platform)  | Override the auto-detected target platform |
+|   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
+| **Build environment** | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
+|   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
+|   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
+| **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test all built wheels |
+|   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
+|   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
+| **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Increase/decrease the output of pip wheel |
 
 Working examples
 ----------------
@@ -521,7 +117,7 @@ Here are some repos that use cibuildwheel.
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
 - [Twisted](https://github.com/twisted/twisted)
 
-> Add repo here! Send a PR.
+> Add your repo here! Send a PR.
 
 Legal note
 ----------
@@ -710,24 +306,7 @@ _31 March 2017_
 Contributing
 ============
 
-Wheel-building is pretty complex. I expect users to find many edge-cases - please help the rest of the community out by documenting these, adding features to support them, and reporting bugs.
-
-I plan to be pretty liberal in accepting pull requests, as long as they align with the design goals below.
-
-`cibuildwheel` is indie open source. I'm not paid to work on this.
-
-Design Goals
-------------
-
-- `cibuildwheel` should wrap the complexity of wheel building.
-- The user interface to `cibuildwheel` is the build script (e.g. `.travis.yml`). Feature additions should not increase the complexity of this script.
-- Options should be environment variables (these lend themselves better to YML config files). They should be prefixed with `CIBW_`.
-- Options should be generalise to all platforms. If platform-specific options are required, they should be namespaced e.g. `CIBW_TEST_COMMAND_MACOS`
-
-Other notes:
-
-- The platforms are very similar, until they're not. I'd rather have straight-forward code than totally DRY code, so let's keep airy platfrom abstractions to a minimum.
-- I might want to break the options into a shared config file one day, so that config is more easily shared. That has motivated some of the design decisions.
+For more info on how to contribute to cibuildwheel, see the [docs](https://cibuildwheel.readthedocs.io/en/latest/contributing/).
 
 Maintainers
 -----------
@@ -753,7 +332,7 @@ Massive props also to-
 - @mayeut for a [phenomenal PR](https://github.com/joerick/cibuildwheel/pull/71) patching Python itself for better compatibility!
 
 See also
---------
+========
 
 If you'd like to keep wheel building separate from the package itself, check out [astrofrog/autowheel](https://github.com/astrofrog/autowheel). It builds packages using cibuildwheel from source distributions on PyPI.
 
