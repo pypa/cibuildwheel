@@ -1,5 +1,4 @@
 import mkdocs, re, os, io, cgi
-from pprint import pprint
 
 TAG_REGEX_PATTERN = re.compile(
     r'''
@@ -24,7 +23,6 @@ class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
             filename = match.group('filename')
             start = match.group('start')
             end = match.group('end')
-            print('got a match', filename, start, end)
 
             file_path_abs = os.path.join(os.path.dirname(page_src_path), filename)
 
