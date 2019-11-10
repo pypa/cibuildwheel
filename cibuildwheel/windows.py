@@ -24,7 +24,7 @@ def get_python_path(config):
     elif config.identifier.startswith('pp'):
         # Inside the PyPy zip file is a directory with the same name
         filename = config.url.rsplit('/', 1)[-1]
-        return os.path.join("C:\\PyPy", os.path.splitext(filename)[0])
+        return os.path.join("C:\\cibw", os.path.splitext(filename)[0])
 
 
 def get_nuget_args(configuration):
@@ -104,7 +104,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if config.identifier.startswith('cp'):
             simple_shell([nuget, "install"] + get_nuget_args(config))
         elif config.identifier.startswith('pp') and not os.path.exists(config_python_path):
-            pypy_zip = config.url.rsplit('/', 1)[-1]
+            pypy_zip = os.path.join("C:\\cibw", config.url.rsplit('/', 1)[-1])
             download(config.url, pypy_zip)
             # Extract to the parent of config_python_path because the zip file still contains a directory
             extract_zip(pypy_zip, os.path.dirname(config_python_path))
