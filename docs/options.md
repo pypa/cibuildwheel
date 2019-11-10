@@ -42,9 +42,12 @@ variables:
   CIBW_TEST_COMMAND: "nosetests {project}/tests"
 ```
 
+
 ## Build selection
 
+
 ### `CIBW_PLATFORM` {: #platform}
+
 > Override the auto-detected target platform
 
 Options: `auto` `linux` `macos` `windows`
@@ -54,6 +57,7 @@ Default: `auto`
 `auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
 
 For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
+
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
 
@@ -80,24 +84,35 @@ The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425]
 
 #### Examples
 
--   `CIBW_BUILD=cp36-*`  Only build on Python 3.6
+```yaml
+# Only build on Python 3.6
+CIBW_BUILD: cp36-*
 
--   `CIBW_SKIP=cp27-macosx_10_6_intel`  Skip building on Python 2.7 on the Mac
+# Skip building on Python 2.7 on the Mac
+CIBW_SKIP: cp27-macosx_10_6_intel
 
--   `CIBW_SKIP=cp38-macosx_10_9_x86_64`  Skip building on Python 3.8 on the Mac
+# Skip building on Python 3.8 on the Mac
+CIBW_SKIP: cp38-macosx_10_9_x86_64
 
--   `CIBW_SKIP=cp27-*`  Skip building on Python 2.7 on all platforms
+# Skip building on Python 2.7 on all platforms
+CIBW_SKIP: cp27-*
 
--   `CIBW_SKIP=cp27-win*`  Skip Python 2.7 on Windows
+# Skip Python 2.7 on Windows
+CIBW_SKIP: cp27-win*
 
--   `CIBW_SKIP=cp27-win32`  Skip Python 2.7 on 32-bit Windows
+# Skip Python 2.7 on 32-bit Windows
+CIBW_SKIP: cp27-win32
 
--   `CIBW_SKIP=cp27-* cp35-*`  Skip Python 2.7 and Python 3.5
+# Skip Python 2.7 and Python 3.5
+CIBW_SKIP: cp27-* cp35-*
 
--   `CIBW_SKIP=cp36-manylinux*`  Skip Python 3.6 on Linux
+# Skip Python 3.6 on Linux
+CIBW_SKIP: cp36-manylinux*
 
--   `CIBW_BUILD=cp3?-*` and `CIBW_SKIP=*-win32 *-manylinux_i686`  Only build on Python 3 and skip 32-bit builds
-
+# Only build on Python 3 and skip 32-bit builds
+CIBW_BUILD: cp3?-*
+CIBW_SKIP: "*-win32 *-manylinux_i686"
+```
 
 <style>
   .build-id-table-marker + table {
@@ -120,24 +135,38 @@ The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425]
 </style>
 
 
+## Build customization
+
+
 ### `CIBW_ENVIRONMENT` {: #environment}
 > Set environment variables needed during the build
 
-A space-separated list of environment variables to set during the build. Bash syntax should be used (even on Windows!).
+A space-separated list of environment variables to set during the build. Bash syntax should be used, even on Windows.
 
 You must set this variable to pass variables to Linux builds (since they execute in a Docker container). It also works for the other platforms.
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
-Example: `CFLAGS="-g -Wall" CXXFLAGS="-Wall"`  
-Example: `PATH=$PATH:/usr/local/bin`  
-Example: `BUILD_TIME="$(date)"`  
-Example: `PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple"`
+#### Examples
+```yaml
+# Set some compiler flags
+CIBW_ENVIRONMENT: "CFLAGS='-g -Wall' CXXFLAGS='-Wall'"
+
+# Append a directory to the PATH variable (this is expanded in the build environment)
+CIBW_ENVIRONMENT: "PATH=$PATH:/usr/local/bin"
+
+# Set BUILD_TIME to the output of the `date` command
+CIBW_ENVIRONMENT: "BUILD_TIME=$(date)"
+
+# Supply options to `pip` to affect how it downloads dependencies
+CIBW_ENVIRONMENT: "PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple"
+```
 
 Platform-specific variants also available:  
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
 
-In addition to the above, `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
+!!! note
+    `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
@@ -149,9 +178,17 @@ If dependencies are required to build your wheel (for example if you include a h
 
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root.
 
-Example: `pip install .`  
-Example: `pip install pybind11`  
-Example: `yum install -y libffi-dev && pip install .`
+#### Examples
+```yaml
+# install your project and dependencies before building
+CIBW_BEFORE_BUILD: pip install .
+
+# install something required for the build
+CIBW_BEFORE_BUILD: pip install pybind11
+
+# chain commands using &&
+CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
+```
 
 Platform-specific variants also available:  
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
@@ -168,9 +205,17 @@ Beware to specify a valid Docker image that can be used in the same way as the o
 
 Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT="manylinux2010_$(uname -m)"`).
 
-Example: `manylinux1`  
-Example: `dockcross/manylinux-x64`  
-Example: `dockcross/manylinux-x86`
+#### Examples
+
+```yaml
+# build using the manylinux1 image to ensure manylinux1 wheels are produced
+CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
+CIBW_MANYLINUX_I686_IMAGE: manylinux1
+
+# build using a different image from the docker registry
+CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
+CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
+```
 
 ## Testing
 
@@ -181,18 +226,34 @@ Shell command to run tests after the build. The wheel will be installed automati
 
 On Linux and Mac, the command runs in a shell, so you can write things like `cmd1 && cmd2`. 
 
-Example: `nosetests {project}/tests`
+#### Examples
+
+```yaml
+# run the project tests against the installed wheel using `nose`
+CIBW_TEST_COMMAND: nosetests {project}/tests
+
+# run the project tests using `pytest`
+CIBW_TEST_COMMAND: nosetests {project}/tests
+```
 
 Platform-specific variants also available:  
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
+
 
 ### `CIBW_TEST_REQUIRES` {: #test-requires}
 > Install Python dependencies before running the tests
 
 Space-separated list of dependencies required for running the tests.
 
-Example: `pytest`  
-Example: `nose==1.3.7 moto==0.4.31`
+#### Examples
+
+```yaml
+# install pytest before running CIBW_TEST_COMMAND
+CIBW_TEST_REQUIRES: pytest  
+
+# install specific versions of test dependencies
+CIBW_TEST_REQUIRES: nose==1.3.7 moto==0.4.31
+```
 
 Platform-specific variants also available:  
 `CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
@@ -207,8 +268,12 @@ tests. This can be used to avoid having to redefine test dependencies in
 `CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
 `setup.cfg`.
 
-Example: `test,qt` (will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`)
+#### Examples
 
+```yaml
+# will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
+CIBW_TEST_EXTRAS: test,qt 
+```
 
 Platform-specific variants also available:  
 `CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
@@ -219,6 +284,13 @@ Platform-specific variants also available:
 > Increase/decrease the output of pip wheel
 
 An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
+
+#### Examples
+
+```yaml
+# increase pip debugging output
+CIBW_BUILD_VERBOSITY: 1
+```
 
 Platform-specific variants also available:  
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
@@ -278,6 +350,9 @@ optional arguments:
   .options-toc a.option {
     display: block;
     margin-bottom: 5px;
+  }
+  h3 code {
+    font-size: 100%;
   }
 </style>
 
