@@ -142,7 +142,7 @@ _10 November 2019_
   images - you can upload both to PyPI. If you need manylinux1 wheels, you can
   build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option.
   (#155)
-- 📚 Documentation is now on its [own mini-site](cibuildwheel.readtehdocs.io),
+- 📚 Documentation is now on its [own mini-site](https://cibuildwheel.readtehdocs.io),
    rather than on the README (#169)
 - ✨ Add support for building Windows wheels on Travis CI. (#160)
 - 🛠 If you set `CIBW_TEST_COMMAND`, your tests now run in a virtualenv. (#164)
