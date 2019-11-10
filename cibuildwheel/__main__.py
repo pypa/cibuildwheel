@@ -24,6 +24,12 @@ def get_option_from_environment(option_name, platform=None, default=None):
     return os.environ.get(option_name, default)
 
 
+def strtobool(val):
+    if val.lower() in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
@@ -59,16 +65,19 @@ def main():
     if args.platform != 'auto':
         platform = args.platform
     else:
-        if sys.platform.startswith('linux'):
-            platform = 'linux'
-        elif sys.platform == 'darwin':
-            platform = 'macos'
-        elif sys.platform == 'win32':
-            platform = 'windows'
-
+        ci = strtobool(os.environ.get('CI', 'false')) or 'BITRISE_BUILD_NUMBER' in os.environ or 'AZURE_HTTP_USER_AGENT' in os.environ
+        if ci:
+            if sys.platform.startswith('linux'):
+                platform = 'linux'
+            elif sys.platform == 'darwin':
+                platform = 'macos'
+            elif sys.platform == 'win32':
+                platform = 'windows'
         if platform is None:
-            print('cibuildwheel: Unable to detect platform. Check --help output for more '
-                  'information.',
+            print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
+                  'Travis CI, AppVeyor, Azure Pipelines and CircleCI are supported. You can run on your '
+                  'development machine or other CI providers using the --platform argument. Check --help '
+                  'output for more information.',
                   file=sys.stderr)
             exit(2)
 
