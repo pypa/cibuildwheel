@@ -131,6 +131,26 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 1.0.0
+
+_10 November 2019_
+
+- ✨ Add support for building Python 3.8 wheels! (#180)
+- ✨ Add support for building manylinux2010 wheels. cibuildwheel will now
+  build using the manylinux2010 images by default. If your project is still
+  manylinux1 compatible, you should get both manylinux1 and manylinux2010
+  images - you can upload both to PyPI. If you need manylinux1 wheels, you can
+  build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option.
+  (#155)
+- 📚 Documentation is now on its [own mini-site](cibuildwheel.readtehdocs.io),
+   rather than on the README (#169)
+- ✨ Add support for building Windows wheels on Travis CI. (#160)
+- 🛠 If you set `CIBW_TEST_COMMAND`, your tests now run in a virtualenv. (#164)
+- 🛠 Windows now uses Python as installed by nuget, rather than the versions
+  installed by the various CI providers. (#180)
+- 🛠 Update Python from 2.7.16 to 2.7.17 and 3.7.4 to 3.7.5 on macOS (#171)
+- ⚠️ Removed support for Python 3.4 (#168)
+
 ### 0.12.0
 
 _29 September 2019_
