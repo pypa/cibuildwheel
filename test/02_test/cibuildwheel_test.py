@@ -45,6 +45,10 @@ def test_failing_test():
     with pytest.raises(subprocess.CalledProcessError):
         utils.cibuildwheel_run(project_dir, add_env={
             'CIBW_TEST_COMMAND': 'false',
+            # manylinux1 has a version of bash that's been shown to have 
+            # problems with this, so let's check that.
+            'CIBW_MANYLINUX_I686_IMAGE': 'manylinux1',
+            'CIBW_MANYLINUX_X86_64_IMAGE': 'manylinux1',
         })
 
     assert len(os.listdir('wheelhouse'))
