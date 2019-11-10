@@ -38,7 +38,7 @@ def main():
                               'script is going to automatically install MacPython on your system, '
                               'so don\'t run on your development machine. For "windows", you need to '
                               'run in Windows, and it will build and test for all versions of '
-                              'Python at C:\\PythonXX[-x64]. Default: auto.'))
+                              'Python. Default: auto.'))
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
@@ -59,35 +59,15 @@ def main():
     if args.platform != 'auto':
         platform = args.platform
     else:
-        platform = None
-
-        if os.environ.get('TRAVIS_OS_NAME') == 'linux':
+        if sys.platform.startswith('linux'):
             platform = 'linux'
-        elif os.environ.get('TRAVIS_OS_NAME') == 'osx':
+        elif sys.platform == 'darwin':
             platform = 'macos'
-        elif os.environ.get('TRAVIS_OS_NAME') == 'windows':
+        elif sys.platform == 'win32':
             platform = 'windows'
-        elif 'APPVEYOR' in os.environ:
-            platform = 'windows'
-        elif 'BITRISE_BUILD_NUMBER' in os.environ:
-            platform = 'macos'
-        elif os.environ.get('CIRCLECI'):
-            if sys.platform.startswith('linux'):
-                platform = 'linux'
-            elif sys.platform.startswith('darwin'):
-                platform = 'macos'
-        elif 'AZURE_HTTP_USER_AGENT' in os.environ:
-            if os.environ['AGENT_OS'] == 'Linux':
-                platform = 'linux'
-            elif os.environ['AGENT_OS'] == 'Darwin':
-                platform = 'macos'
-            elif os.environ['AGENT_OS'] == 'Windows_NT':
-                platform = 'windows'
 
         if platform is None:
-            print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
-                  'Travis CI, AppVeyor, and CircleCI are supported. You can run on your development '
-                  'machine using the --platform argument. Check --help output for more '
+            print('cibuildwheel: Unable to detect platform. Check --help output for more '
                   'information.',
                   file=sys.stderr)
             exit(2)

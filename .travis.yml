@@ -23,11 +23,11 @@ matrix:
     - os: windows
       language: shell
       before_install:
-       - choco install python3 --version 3.6.8 --no-progress -y
+       - choco install python3 --version 3.5.4 --no-progress -y
       install:
-       - C:\\Python36\\python -m pip install -r requirements-dev.txt
+       - C:\\Python35\\python -m pip install -r requirements-dev.txt
       script:
-       - C:\\Python36\\python ./bin/run_tests.py
+       - C:\\Python35\\python ./bin/run_tests.py
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 

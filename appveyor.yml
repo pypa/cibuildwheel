@@ -1,10 +1,11 @@
-environment:
-  matrix:
-    - PYTHON: "C:\\Python27\\python.exe"
-    - PYTHON: "C:\\Python35\\python.exe"
+image:
+  - Ubuntu
+  - Visual Studio 2015
 
 build_script:
-  - "%PYTHON% -m pip install -r requirements-dev.txt"
-  # the '-u' flag is required so the output is in the correct order. 
+  - cmd: "C:\\Python27\\python.exe -m pip install -r requirements-dev.txt"
+  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install -r requirements-dev.txt"
+  # the '-u' flag is required so the output is in the correct order.
   # See https://github.com/joerick/cibuildwheel/pull/24 for more info.
-  - "%PYTHON% -u ./bin/run_tests.py"
+  - cmd: "C:\\Python27\\python.exe -u ./bin/run_tests.py"
+  - sh: "${HOME}/.localpython3.7.4/bin/python3 ./bin/run_tests.py"
