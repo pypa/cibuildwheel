@@ -58,6 +58,7 @@ Default: `auto`
 
 For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
 
+This option can also be set using the command-line option `--platform`.
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
 
