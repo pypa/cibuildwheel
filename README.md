@@ -312,7 +312,6 @@ Maintainers
 -----------
 
 - Joe Rickerby [@joerick](https://github.com/joerick)
-- Tomas Garcia [@tgarc](https://github.com/tgarc)
 - Yannick Jadoul [@YannickJadoul](https://github.com/YannickJadoul)
 - Matthieu Darbois [@mayeut](https://github.com/mayeut)
 
