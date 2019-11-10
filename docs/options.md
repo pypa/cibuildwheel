@@ -63,29 +63,62 @@ Space-separated list of builds to build and skip. Each build has an identifier l
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
-The format is `python_tag-platform_tag`. The tags are similar but not identical to the ones defined in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
+When setting the options, you can use shell-style globbing syntax (as per `fnmatch`). All the build identifiers supported by cibuildwheel are shown below:
 
-Python tags look like `cp27` `cp34` `cp35` `cp36` `cp37` `cp38`
+<div class="build-id-table-marker"></div>
 
-Platform tags look like `macosx_10_6_intel` `macosx_10_9_x86_64` `manylinux_x86_64` `manylinux_i686` `win32` `win_amd64`
+|            | macOS 64bit             | macOS 32/64bit         | Manylinux 64bit        | Manylinux 32bit      | Windows 64bit   | Windows 32bit  |
+|------------|-------------------------|------------------------|------------------------|----------------------|-----------------|----------------|
+| Python 2.7 |                         | cp27-macosx_10_6_intel | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |
+| Python 3.5 |                         | cp35-macosx_10_6_intel | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     |
+| Python 3.6 |                         | cp36-macosx_10_6_intel | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     |
+| Python 3.7 |                         | cp37-macosx_10_6_intel | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     |
+| Python 3.8 | cp38-macosx_10_9_x86_64 |                        | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     |
 
-You can also use shell-style globbing syntax (as per `fnmatch`).
+The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
+The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
-The list of supported and currently selected build identifiers can be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
+#### Examples
 
-Examples:
+-   `CIBW_BUILD=cp36-*`  Only build on Python 3.6
 
-- Only build on Python 3.6: `CIBW_BUILD=cp36-*`
-- Skip building on Python 2.7 on the Mac: `CIBW_SKIP=cp27-macosx_10_6_intel`
-- Skip building on Python 3.8 on the Mac: `CIBW_SKIP=cp38-macosx_10_9_x86_64`
-- Skip building on Python 2.7 on all platforms: `CIBW_SKIP=cp27-*`
-- Skip Python 2.7 on Windows: `CIBW_SKIP=cp27-win*`
-- Skip Python 2.7 on 32-bit Windows: `CIBW_SKIP=cp27-win32`
-- Skip Python 2.7 and Python 3.5: `CIBW_SKIP=cp27-* cp35-*`
-- Skip Python 3.6 on Linux: `CIBW_SKIP=cp36-manylinux*`
-- Only build on Python 3 and skip 32-bit builds: `CIBW_BUILD=cp3?-*` and `CIBW_SKIP=*-win32 *-manylinux_i686`
+-   `CIBW_SKIP=cp27-macosx_10_6_intel`  Skip building on Python 2.7 on the Mac
 
-## Build environment
+-   `CIBW_SKIP=cp38-macosx_10_9_x86_64`  Skip building on Python 3.8 on the Mac
+
+-   `CIBW_SKIP=cp27-*`  Skip building on Python 2.7 on all platforms
+
+-   `CIBW_SKIP=cp27-win*`  Skip Python 2.7 on Windows
+
+-   `CIBW_SKIP=cp27-win32`  Skip Python 2.7 on 32-bit Windows
+
+-   `CIBW_SKIP=cp27-* cp35-*`  Skip Python 2.7 and Python 3.5
+
+-   `CIBW_SKIP=cp36-manylinux*`  Skip Python 3.6 on Linux
+
+-   `CIBW_BUILD=cp3?-*` and `CIBW_SKIP=*-win32 *-manylinux_i686`  Only build on Python 3 and skip 32-bit builds
+
+
+<style>
+  .build-id-table-marker + table {
+    font-size: 90%;
+    white-space: nowrap;
+  }
+  .rst-content .build-id-table-marker + table td, 
+  .rst-content .build-id-table-marker + table th {
+    padding: 4px 4px;
+  }
+  .build-id-table-marker + table td:not(:first-child) {
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    font-size: 85%;
+  }
+  dt code {
+    font-size: 100%;
+    background-color: rgba(41, 128, 185, 0.1);
+    padding: 0;
+  }
+</style>
+
 
 ### `CIBW_ENVIRONMENT` {: #environment}
 > Set environment variables needed during the build
