@@ -5,9 +5,9 @@ import subprocess
 import utils 
 
 
-def test_wrong_identifier_py2_py34():
-    if not (sys.version_info[0] == 2 or (sys.version_info[0] == 3 and sys.version_info[1] == 4)):
-        pytest.skip("test for python 2.7 and 3.4")
+def test_wrong_identifier_py2():
+    if sys.version_info[0] != 2:
+        pytest.skip("test for python 2.7")
     project_dir = os.path.dirname(__file__)
 
     with pytest.raises(subprocess.CalledProcessError) as excinfo:
@@ -16,8 +16,6 @@ def test_wrong_identifier_py2_py34():
 def test_wrong_identifier():
     if sys.version_info[0] == 2:
         pytest.skip("test not running on python 2.7")
-    if sys.version_info[0] == 3 and sys.version_info[1] == 4:
-        pytest.skip("test not running on python 3.4")
     project_dir = os.path.dirname(__file__)
     env = os.environ.copy()
     env['CIBW_BUILD'] = 'py368-*'
@@ -29,14 +27,7 @@ def test_wrong_identifier():
             universal_newlines=True
         )
 
-    assert "configuration to build. Check 'CIBW_BUILD' environment variable" in excinfo.value.stderr
-
-def skip_all(tmp_path):
-    tmp_path = str(tmp_path)
-    project_dir = os.path.dirname(__file__)
-    utils.cibuildwheel_run(project_dir, add_env={'CIBW_SKIP':'*'}, output_dir=tmp_path)
-    assert len(os.listdir(tmp_path)) == 0
-
+    assert "Check 'CIBW_BUILD' and 'CIBW_SKIP' environment variables." in excinfo.value.stderr
 
 def test_old_manylinux():
     if sys.version_info[0] == 2:

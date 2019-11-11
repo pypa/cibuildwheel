@@ -97,9 +97,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     if len(python_configurations) == 0:
-        positive_configuration = get_python_configurations(build_selector.positive_only())
-        if len(positive_configuration) == 0:
-            raise ValueError("Empty list of windows configuration to build. Check 'CIBW_BUILD' environment variables")
+        raise ValueError("Empty list of windows configuration to build. Check 'CIBW_BUILD' and 'CIBW_SKIP' environment variables.")
     for config in python_configurations:
         config_python_path = get_python_path(config)
         simple_shell([nuget, "install"] + get_nuget_args(config))
