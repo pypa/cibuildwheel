@@ -24,6 +24,12 @@ def get_option_from_environment(option_name, platform=None, default=None):
     return os.environ.get(option_name, default)
 
 
+def strtobool(val):
+    if val.lower() in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
@@ -38,7 +44,7 @@ def main():
                               'script is going to automatically install MacPython on your system, '
                               'so don\'t run on your development machine. For "windows", you need to '
                               'run in Windows, and it will build and test for all versions of '
-                              'Python at C:\\PythonXX[-x64]. Default: auto.'))
+                              'Python. Default: auto.'))
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
@@ -59,36 +65,19 @@ def main():
     if args.platform != 'auto':
         platform = args.platform
     else:
-        platform = None
-
-        if os.environ.get('TRAVIS_OS_NAME') == 'linux':
-            platform = 'linux'
-        elif os.environ.get('TRAVIS_OS_NAME') == 'osx':
-            platform = 'macos'
-        elif os.environ.get('TRAVIS_OS_NAME') == 'windows':
-            platform = 'windows'
-        elif 'APPVEYOR' in os.environ:
-            platform = 'windows'
-        elif 'BITRISE_BUILD_NUMBER' in os.environ:
-            platform = 'macos'
-        elif os.environ.get('CIRCLECI'):
+        ci = strtobool(os.environ.get('CI', 'false')) or 'BITRISE_BUILD_NUMBER' in os.environ or 'AZURE_HTTP_USER_AGENT' in os.environ
+        if ci:
             if sys.platform.startswith('linux'):
                 platform = 'linux'
-            elif sys.platform.startswith('darwin'):
+            elif sys.platform == 'darwin':
                 platform = 'macos'
-        elif 'AZURE_HTTP_USER_AGENT' in os.environ:
-            if os.environ['AGENT_OS'] == 'Linux':
-                platform = 'linux'
-            elif os.environ['AGENT_OS'] == 'Darwin':
-                platform = 'macos'
-            elif os.environ['AGENT_OS'] == 'Windows_NT':
+            elif sys.platform == 'win32':
                 platform = 'windows'
-
         if platform is None:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
-                  'Travis CI, AppVeyor, and CircleCI are supported. You can run on your development '
-                  'machine using the --platform argument. Check --help output for more '
-                  'information.',
+                  'Travis CI, AppVeyor, Azure Pipelines and CircleCI are supported. You can run on your '
+                  'development machine or other CI providers using the --platform argument. Check --help '
+                  'output for more information.',
                   file=sys.stderr)
             exit(2)
 
