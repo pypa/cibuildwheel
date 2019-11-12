@@ -2,14 +2,14 @@ from fnmatch import fnmatch
 import warnings
 
 
-def prepare_command(command, project):
+def prepare_command(command, **kwargs):
     '''
-    Preprocesses a command by expanding variables like {project}.
+    Preprocesses a command by expanding variables like {python}.
 
-    For example, used in the test_command option, to specify the path to the
-    tests directory.
+    For example, used in the test_command option to specify the path to the
+    project's root.
     '''
-    return command.format(python='python', pip='pip', project=project)
+    return command.format(python='python', pip='pip', **kwargs)
 
 
 def get_build_verbosity_extra_flags(level):

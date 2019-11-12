@@ -57,8 +57,7 @@ def get_python_configurations(build_selector):
     return python_configurations
 
 
-
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
     def simple_shell(args, env=None, cwd=None):
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
@@ -90,6 +89,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
+    repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
 
     # install nuget as best way to provide python
     nuget = 'C:\\cibw\\nuget.exe'
@@ -132,19 +132,29 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         simple_shell(['pip', '--version'], env=env)
         simple_shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
 
-        # setup dirs
-        if os.path.exists(built_wheel_dir):
-            shutil.rmtree(built_wheel_dir)
-        os.makedirs(built_wheel_dir)
-
         # run the before_build command
         if before_build:
             before_build_prepared = prepare_command(before_build, project=abs_project_dir)
             shell([before_build_prepared], env=env)
 
         # build the wheel
+        if os.path.exists(built_wheel_dir):
+            shutil.rmtree(built_wheel_dir)
+        os.makedirs(built_wheel_dir)
         shell(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
-        built_wheel = glob(built_wheel_dir+'/*.whl')[0]
+        built_wheel = glob(os.path.join(built_wheel_dir, '*.whl'))[0]
+
+        # repair the wheel
+        if os.path.exists(repaired_wheel_dir):
+            shutil.rmtree(repaired_wheel_dir)
+        os.makedirs(repaired_wheel_dir)
+        if built_wheel.endswith('none-any.whl') or not repair_command:
+            # pure Python wheel or empty repair command
+            shutil.move(built_wheel, repaired_wheel_dir)
+        else:
+            repair_command_prepared = prepare_command(repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
+            shell([repair_command_prepared], env=env)
+        repaired_wheel = glob(os.path.join(repaired_wheel_dir, '*.whl'))[0]
 
         if test_command:
             # set up a virtual environment to install and test from, to make sure
@@ -163,7 +173,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             shell(['which', 'python'], env=virtualenv_env)
 
             # install the wheel
-            shell(['pip', 'install', built_wheel + test_extras], env=virtualenv_env)
+            shell(['pip', 'install', repaired_wheel + test_extras], env=virtualenv_env)
 
             # test the wheel
             if test_requires:
@@ -179,7 +189,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (remove if already exists)
-        dst = os.path.join(output_dir, os.path.basename(built_wheel))
+        dst = os.path.join(output_dir, os.path.basename(repaired_wheel))
         if os.path.isfile(dst):
             os.remove(dst)
-        shutil.move(built_wheel, dst)
+        shutil.move(repaired_wheel, dst)

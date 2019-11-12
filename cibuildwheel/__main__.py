@@ -89,6 +89,13 @@ def main():
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
+    if platform == 'linux':
+        repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
+    elif platform == 'macos':
+        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'
+    else:
+        repair_command_default = ''
+    repair_command = get_option_from_environment('CIBW_REPAIR_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
 
     if test_extras:
@@ -130,6 +137,7 @@ def main():
         before_build=before_build,
         build_verbosity=build_verbosity,
         build_selector=build_selector,
+        repair_command=repair_command,
         environment=environment,
     )
 

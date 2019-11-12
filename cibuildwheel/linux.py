@@ -30,7 +30,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment, manylinux_images):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -60,30 +60,28 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             {environment_exports}
 
             for PYBIN in {pybin_paths}; do
-                # Setup
-                rm -rf /tmp/built_wheel
-                rm -rf /tmp/delocated_wheels
-                mkdir /tmp/built_wheel
-                mkdir /tmp/delocated_wheels
-
                 if [ ! -z {before_build} ]; then
                     PATH="$PYBIN:$PATH" sh -c {before_build}
                 fi
 
-                # Build that wheel
+                # Build the wheel
+                rm -rf /tmp/built_wheel
+                mkdir /tmp/built_wheel
                 PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
 
-                # Delocate the wheel
+                # repair the wheel
+                rm -rf /tmp/repaired_wheels
+                mkdir /tmp/repaired_wheels
                 # NOTE: 'built_wheel' here is a bash array of glob matches; "$built_wheel" returns
                 # the first element
-                if [[ "$built_wheel" == *none-any.whl ]]; then
-                    # pure python wheel - just copy
-                    mv "$built_wheel" /tmp/delocated_wheels
+                if [[ "$built_wheel" == *none-any.whl ]] || [ -z {repair_command} ]; then
+                    # pure Python wheel or empty repair command
+                    mv "$built_wheel" /tmp/repaired_wheels
                 else
-                    auditwheel repair "$built_wheel" -w /tmp/delocated_wheels
+                    built_wheel=$built_wheel sh -c {repair_command}
                 fi
-                delocated_wheels=(/tmp/delocated_wheels/*.whl)
+                repaired_wheels=(/tmp/repaired_wheels/*.whl)
 
                 if [ ! -z {test_command} ]; then
                     # Set up a virtual environment to install and test from, to make sure
@@ -105,7 +103,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         # functionally the same, differing only in name, wheel metadata, and possibly include
                         # different external shared libraries. so it doesn't matter which one we run the tests on.
                         # Let's just pick the first one.
-                        pip install "${{delocated_wheels[0]}}"{test_extras}
+                        pip install "${{repaired_wheels[0]}}"{test_extras}
 
                         # Install any requirements to run the tests
                         if [ ! -z "{test_requires}" ]; then
@@ -127,8 +125,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 fi
 
                 # we're all done here; move it to output
-                mv "${{delocated_wheels[@]}}" /output
-                for delocated_wheel in "${{delocated_wheels[@]}}"; do chown {uid}:{gid} "/output/$(basename "$delocated_wheel")"; done
+                mv "${{repaired_wheels[@]}}" /output
+                for repaired_wheel in "${{repaired_wheels[@]}}"; do chown {uid}:{gid} "/output/$(basename "$repaired_wheel")"; done
             done
         '''.format(
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
@@ -141,6 +139,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 prepare_command(before_build, project='/project') if before_build else ''
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
+            repair_command=shlex_quote(
+                prepare_command(repair_command, wheel='"$built_wheel"', dest_dir='/tmp/repaired_wheels') if repair_command else ''
+            ),
             environment_exports='\n'.join(environment.as_shell_commands()),
             uid=os.getuid(),
             gid=os.getgid(),
