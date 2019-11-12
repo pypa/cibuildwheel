@@ -124,14 +124,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         # make sure pip is installed
         if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
-            simple_shell([os.path.join(config_python_path, 'python.exe'), get_pip_script], env=env)
+            simple_shell(['python', get_pip_script], env=env)
         assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # prepare the Python environment
         simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
         simple_shell(['pip', '--version'], env=env)
-        simple_shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
-        simple_shell(['pip', 'install', 'wheel'], env=env)
+        simple_shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
 
         # setup dirs
         if os.path.exists(built_wheel_dir):
