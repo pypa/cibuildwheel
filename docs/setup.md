@@ -11,7 +11,7 @@ Using Azure pipelines, you can build all three platforms on the same service. Cr
 jobs:
 - job: linux
   pool: {vmImage: 'Ubuntu-16.04'}
-  steps: 
+  steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
@@ -21,7 +21,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 - job: macos
   pool: {vmImage: 'macOS-10.13'}
-  steps: 
+  steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
@@ -31,7 +31,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
-  steps: 
+  steps:
     - task: UsePythonVersion@0
     - script: choco install vcpython27 -f -y
       displayName: Install Visual C++ for Python 2.7
@@ -109,7 +109,7 @@ jobs:
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
-  
+
   osx-wheels:
     working_directory: ~/osx-wheels
     macos:
@@ -139,16 +139,23 @@ Commit this file, enable building of your repo on CircleCI, and push.
 
 CircleCI will store the built wheels for you - you can access them from the project console. Check out the CircleCI [docs](https://circleci.com/docs/2.0/configuration-reference/#section=configuration) for more info on this config file.
 
-# AppVeyor [windows] {: #appveyor}
+# AppVeyor [linux/windows] {: #appveyor}
 
-To build Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
+To build Linux and Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
 
 > appveyor.yml
 
 ```yaml
+image:
+  - Ubuntu
+  - Visual Studio 2015
 build_script:
-  - pip install cibuildwheel==1.0.0
-  - cibuildwheel --output-dir wheelhouse
+  # windows
+  - cmd: pip install cibuildwheel==1.0.0
+  - cmd: cibuildwheel --output-dir wheelhouse
+  # linux
+  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install cibuildwheel==1.0.0"
+  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m cibuildwheel --output-dir wheelhouse"
 artifacts:
   - path: "wheelhouse\\*.whl"
     name: Wheels
@@ -162,7 +169,7 @@ For more info on this config file, check out the [docs](https://www.appveyor.com
 
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
-<script> 
+<script>
   document.addEventListener('DOMContentLoaded', function() {
     $('.toctree-l2 a, .rst-content h1').each(function(i, el) {
       var text = $(el).text()
