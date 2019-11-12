@@ -63,6 +63,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/%s/' % config.version, '-xmf', '/tmp/python-patch.tar.gz'])
 
         installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
+        assert os.path.exists(os.path.join(installation_bin_path, 'python3' if config.version[0] == '3' else 'python'))
 
         # Python bin folders on Mac don't symlink python3 to python, so we do that
         # so `python` and `pip` always point to the active configuration.
@@ -89,6 +90,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         # install pip & wheel
         call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
+        assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
         call(['pip', 'install', '--upgrade', 'setuptools'], env=env)
         call(['pip', 'install', 'wheel'], env=env)
