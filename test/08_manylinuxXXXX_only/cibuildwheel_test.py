@@ -1,4 +1,7 @@
-import os, pytest
+import os
+
+import pytest
+
 import utils
 
 

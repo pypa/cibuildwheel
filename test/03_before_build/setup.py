@@ -1,5 +1,10 @@
-from setuptools import setup, Extension
-import sys, os
+import os
+import sys
+
+from setuptools import (
+    Extension,
+    setup,
+)
 
 # assert that the Python version as written to pythonversion.txt in the CIBW_BEFORE_BUILD step
 # is the same one as is currently running.

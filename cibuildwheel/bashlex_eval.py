@@ -1,8 +1,12 @@
-import subprocess, shlex, sys
+import shlex
+import subprocess
+import sys
 from collections import namedtuple
+
 import bashlex
 
 NodeExecutionContext = namedtuple('NodeExecutionContext', ['environment', 'input'])
+
 
 def evaluate(value, environment):
     if not value:
@@ -16,9 +20,9 @@ def evaluate(value, environment):
         raise ValueError('"%s" has too many parts' % value)
 
     value_word_node = command_node.parts[0]
-    
+
     return evaluate_node(
-        value_word_node, 
+        value_word_node,
         context=NodeExecutionContext(environment=environment, input=value)
     )
 
@@ -61,6 +65,7 @@ def evaluate_command_node(node, context):
     words = [evaluate_node(part, context=context) for part in node.parts]
     command = ' '.join(words)
     return subprocess.check_output(shlex.split(command), env=context.environment, universal_newlines=True)
+
 
 
 def evaluate_parameter_node(node, context):

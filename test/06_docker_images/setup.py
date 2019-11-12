@@ -1,6 +1,10 @@
-import os, sys
+import os
+import sys
 
-from setuptools import setup, Extension
+from setuptools import (
+    Extension,
+    setup,
+)
 
 # check that we're running in the correct docker image as specified in the
 # environment options CIBW_MANYLINUX1_*_IMAGE

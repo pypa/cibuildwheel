@@ -1,6 +1,6 @@
+import os
+import urllib.request
 from fnmatch import fnmatch
-import warnings
-import os, urllib.request
 from time import sleep
 
 
@@ -64,7 +64,7 @@ def download(url, dest):
     for i in range(repeat_num):
         try:
             response = urllib.request.urlopen(url)
-        except:
+        except Exception:
             if i == repeat_num - 1:
                 raise
             sleep(3)

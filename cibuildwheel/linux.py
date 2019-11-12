@@ -1,6 +1,15 @@
-import os, shlex, subprocess, sys, textwrap, uuid
+import os
+import shlex
+import subprocess
+import sys
+import textwrap
+import uuid
 from collections import namedtuple
-from .util import prepare_command, get_build_verbosity_extra_flags
+
+from .util import (
+    get_build_verbosity_extra_flags,
+    prepare_command,
+)
 
 
 def get_python_configurations(build_selector):
@@ -27,7 +36,7 @@ def get_python_configurations(build_selector):
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images):
     try:
         subprocess.check_call(['docker', '--version'])
-    except:
+    except Exception:
         print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
               'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
               'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
@@ -123,7 +132,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 for repaired_wheel in "${{repaired_wheels[@]}}"; do chown {uid}:{gid} "/output/$(basename "$repaired_wheel")"; done
             done
         '''.format(
-            pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
+            pybin_paths=' '.join(c.path + '/bin' for c in platform_configs),
             test_requires=' '.join(test_requires),
             test_extras=test_extras,
             test_command=shlex.quote(
@@ -147,9 +156,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                             '--env', 'CIBUILDWHEEL',
                             '--name', container_name,
                             '-i',
-                            '-v', '/:/host', # ignored on CircleCI
-                            docker_image, '/bin/bash'],
-                            check=True)
+                            '-v', '/:/host',  # ignored on CircleCI
+                            docker_image, '/bin/bash'], check=True)
             subprocess.run(['docker', 'cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'], check=True)
             subprocess.run(['docker', 'start', '-i', '-a', container_name], input=bash_script, universal_newlines=True, check=True)
             subprocess.run(['docker', 'cp', container_name + ':/output/.', os.path.abspath(output_dir)], check=True)
@@ -184,5 +192,5 @@ def troubleshoot(project_dir, error):
             '''))
 
             print('  Files detected:')
-            print('\n'.join(['    '+f for f in so_files]))
+            print('\n'.join(['    ' + f for f in so_files]))
             print('')

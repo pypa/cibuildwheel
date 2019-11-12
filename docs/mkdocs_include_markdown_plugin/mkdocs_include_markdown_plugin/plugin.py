@@ -1,4 +1,9 @@
-import mkdocs, re, os, io, cgi
+import cgi
+import io
+import os
+import re
+
+import mkdocs
 
 INCLUDE_TAG_REGEX = re.compile(
     r'''
@@ -27,6 +32,7 @@ INCLUDEMARKDOWN_TAG_REGEX = re.compile(
     ''',
     flags=re.VERBOSE,
 )
+
 
 class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
     def on_page_markdown(self, markdown, page, **kwargs):
@@ -62,13 +68,13 @@ class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
 
             with io.open(file_path_abs, encoding='utf8') as f:
                 text_to_include = f.read()
-            
+
             if start:
                 _, _, text_to_include = text_to_include.partition(start)
 
             if end:
                 text_to_include, _, _ = text_to_include.partition(end)
-            
+
             return (
                 '<!-- BEGIN INCLUDE %s %s %s -->\n' % (
                     filename, cgi.escape(start or ''), cgi.escape(end or '')
@@ -80,4 +86,3 @@ class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
         markdown = re.sub(INCLUDE_TAG_REGEX, found_include_tag, markdown)
         markdown = re.sub(INCLUDEMARKDOWN_TAG_REGEX, found_includemarkdown_tag, markdown)
         return markdown
-    

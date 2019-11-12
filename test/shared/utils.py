@@ -4,10 +4,12 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 '''
 
-import subprocess, sys, os, shutil
-from tempfile import mkdtemp
+import os
+import shutil
+import subprocess
+import sys
 from contextlib import contextmanager
-
+from tempfile import mkdtemp
 
 IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'

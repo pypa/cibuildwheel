@@ -1,8 +1,9 @@
 import os
+
 import utils
 
-
 project_dir = os.path.dirname(__file__)
+
 
 def test():
     # build the wheels
