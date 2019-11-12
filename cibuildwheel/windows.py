@@ -118,9 +118,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         env = environment.as_dictionary(prev_environment=env)
 
         # for the logs - check we're running the right version of python
-        shell(['where', 'python'], env=env)
-        shell(['python', '--version'], env=env)
-        shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
+        simple_shell(['where', 'python'], env=env)
+        simple_shell(['python', '--version'], env=env)
+        simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
 
         # make sure pip is installed
         if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
@@ -128,10 +128,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # prepare the Python environment
-        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
-        shell(['pip', '--version'], env=env)
-        shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
-        shell(['pip', 'install', 'wheel'], env=env)
+        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
+        simple_shell(['pip', '--version'], env=env)
+        simple_shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
+        simple_shell(['pip', 'install', 'wheel'], env=env)
 
         # setup dirs
         if os.path.exists(built_wheel_dir):
