@@ -27,8 +27,6 @@ def get_python_configurations(build_selector):
 
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment):
     python_configurations = get_python_configurations(build_selector)
-    get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
-    get_pip_script = '/tmp/get-pip.py'
 
     pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
     if sys.version_info[0] >= 3:
@@ -45,9 +43,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
     abs_project_dir = os.path.abspath(project_dir)
-
-    # get latest pip once and for all
-    call(['curl', '-L', '-o', get_pip_script, get_pip_url])
 
     for config in python_configurations:
         # if this version of python isn't installed, get it from python.org and install
@@ -89,9 +84,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['python', '--version'], env=env)
 
         # install pip & wheel
-        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
+        call(['python', '-m', 'ensurepip', '--default-pip', '--upgrade'], env=env)
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
+
         call(['pip', 'install', '--upgrade', 'setuptools'], env=env)
         call(['pip', 'install', 'wheel'], env=env)
         call(['pip', 'install', 'delocate'], env=env)

@@ -95,8 +95,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     nuget = 'C:\\cibw\\nuget.exe'
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
     # get pip fo this installation which not have.
-    get_pip_script = 'C:\\cibw\\get-pip.py'
-    download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
 
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
@@ -123,13 +121,11 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
 
         # make sure pip is installed
-        if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
-            simple_shell([os.path.join(config_python_path, 'python.exe'), get_pip_script], env=env)
+        simple_shell(['python', '-m', 'ensurepip', '--default-pip', '--upgrade'], env=env)
         assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
+        simple_shell(['pip', '--version'], env=env)
 
         # prepare the Python environment
-        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
-        simple_shell(['pip', '--version'], env=env)
         simple_shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
         simple_shell(['pip', 'install', 'wheel'], env=env)
 
