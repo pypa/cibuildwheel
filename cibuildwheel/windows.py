@@ -100,22 +100,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
+        # install Python
         config_python_path = get_python_path(config)
         simple_shell([nuget, "install"] + get_nuget_args(config))
-        if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
-            simple_shell([os.path.join(config_python_path, 'python.exe'), get_pip_script ])
-
-        # check python & pip exist for this configuration
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
-        assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
-        # setup dirs
-        if os.path.exists(built_wheel_dir):
-            shutil.rmtree(built_wheel_dir)
-        os.makedirs(built_wheel_dir)
-
+        # set up PATH and environment variables for run_with_env
         env = os.environ.copy()
-        # set up environment variables for run_with_env
         env['PYTHON_VERSION'] = config.version
         env['PYTHON_ARCH'] = config.arch
         env['PATH'] = os.pathsep.join([
@@ -123,16 +114,28 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             os.path.join(config_python_path, 'Scripts'),
             env['PATH']
         ])
+        # update env with results from CIBW_ENVIRONMENT
         env = environment.as_dictionary(prev_environment=env)
 
         # for the logs - check we're running the right version of python
-        shell(['python', '--version'], env=env)
-        shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
+        simple_shell(['where', 'python'], env=env)
+        simple_shell(['python', '--version'], env=env)
+        simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
+
+        # make sure pip is installed
+        if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
+            simple_shell(['python', get_pip_script], env=env)
+        assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # prepare the Python environment
-        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
-        shell(['pip', 'install', '--upgrade', 'setuptools'], env=env)
-        shell(['pip', 'install', 'wheel'], env=env)
+        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
+        simple_shell(['pip', '--version'], env=env)
+        simple_shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
+
+        # setup dirs
+        if os.path.exists(built_wheel_dir):
+            shutil.rmtree(built_wheel_dir)
+        os.makedirs(built_wheel_dir)
 
         # run the before_build command
         if before_build:
