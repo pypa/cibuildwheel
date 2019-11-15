@@ -79,7 +79,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                     # pure Python wheel or empty repair command
                     mv "$built_wheel" /tmp/repaired_wheels
                 else
-                    built_wheel=$built_wheel sh -c {repair_command}
+                    sh -c {repair_command} repair_command "$built_wheel"
                 fi
                 repaired_wheels=(/tmp/repaired_wheels/*.whl)
 
@@ -140,7 +140,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
             repair_command=shlex_quote(
-                prepare_command(repair_command, wheel='"$built_wheel"', dest_dir='/tmp/repaired_wheels') if repair_command else ''
+                prepare_command(repair_command, wheel='"$1"', dest_dir='/tmp/repaired_wheels') if repair_command else ''
             ),
             environment_exports='\n'.join(environment.as_shell_commands()),
             uid=os.getuid(),
