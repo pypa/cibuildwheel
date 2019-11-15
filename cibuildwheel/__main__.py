@@ -95,7 +95,7 @@ def main():
         repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'
     else:
         repair_command_default = ''
-    repair_command = get_option_from_environment('CIBW_REPAIR_COMMAND', platform=platform, default=repair_command_default)
+    repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
 
     if test_extras:
