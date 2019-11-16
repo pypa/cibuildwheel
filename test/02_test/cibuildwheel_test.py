@@ -2,9 +2,8 @@ import os, subprocess
 import pytest
 import utils
 
-def test():
+def test(tmp_path):
     project_dir = os.path.dirname(__file__)
-
     # build and test the wheels
     utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_TEST_REQUIRES': 'nose',
@@ -12,17 +11,16 @@ def test():
         # mac/linux.
         'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
         'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
-    })
+    }, output_dir=tmp_path)
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
-    actual_wheels = os.listdir('wheelhouse')
+    actual_wheels = [x.name for x in tmp_path.iterdir()]
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_extras_require():
+def test_extras_require(tmp_path):
     project_dir = os.path.dirname(__file__)
-
     # build and test the wheels
     utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_TEST_EXTRAS': 'test',
@@ -30,18 +28,17 @@ def test_extras_require():
         # mac/linux.
         'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
         'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
-    })
+    }, output_dir=tmp_path)
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
-    actual_wheels = os.listdir('wheelhouse')
+    actual_wheels = [x.name for x in tmp_path.iterdir()]
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_failing_test():
+def test_failing_test(tmp_path):
     '''Ensure a failing test causes cibuildwheel to error out and exit'''
     project_dir = os.path.dirname(__file__)
-
     with pytest.raises(subprocess.CalledProcessError):
         utils.cibuildwheel_run(project_dir, add_env={
             'CIBW_TEST_COMMAND': 'false',
@@ -49,7 +46,7 @@ def test_failing_test():
             # problems with this, so let's check that.
             'CIBW_MANYLINUX_I686_IMAGE': 'manylinux1',
             'CIBW_MANYLINUX_X86_64_IMAGE': 'manylinux1',
-        })
+        }, output_dir=tmp_path)
 
-    assert len(os.listdir('wheelhouse'))
+    assert len([x.name for x in tmp_path.iterdir()]) == 0
 

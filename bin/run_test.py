@@ -20,10 +20,7 @@ def single_run(test_project):
         [sys.executable, '-m', 'pytest', '-vv', os.path.join(test_project, 'cibuildwheel_test.py')],
         env=env,
     )
-
-    # clean up
-    if os.path.exists('wheelhouse'):
-        shutil.rmtree('wheelhouse')
+        
 
 if __name__ == '__main__':
     import argparse

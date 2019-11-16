@@ -23,7 +23,12 @@ if __name__ == '__main__':
     print('Testing projects:', test_projects)
 
     run_test_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'run_test.py')
+    test_failed = 0
     for project_path in test_projects:
-        subprocess.check_call([sys.executable, run_test_path, project_path])
+        if 0 != subprocess.call([sys.executable, run_test_path, project_path]):
+            test_failed += 1
 
+    if test_failed > 0:
+        print('%d of %d projects built failed.' % (test_failed, len(test_projects)))
+        sys.exit(3)
     print('%d projects built successfully.' % len(test_projects))
