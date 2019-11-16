@@ -7,7 +7,19 @@ jobs:
         versionSpec: '3.8'
     - bash: |
         python -m pip install -r requirements-dev.txt
+        python -m pip install pytest-azurepipelines
         python ./bin/run_tests.py
+
+- job: linux_pytest
+  pool: {vmImage: 'Ubuntu-18.04'}
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.8'
+    - bash: |
+        python -m pip install -r requirements-dev.txt
+        python -m pip install pytest-azurepipelines
+        pytest unit_test test
 
 - job: macos
   pool: {vmImage: 'macOS-10.13'}
@@ -17,6 +29,7 @@ jobs:
         versionSpec: '3.8'
     - bash: |
         python -m pip install -r requirements-dev.txt
+        python -m pip install pytest-azurepipelines
         python ./bin/run_tests.py
 
 - job: windows
@@ -29,5 +42,6 @@ jobs:
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install -r requirements-dev.txt
+        python -m pip install pytest-azurepipelines
         python ./bin/run_tests.py
 
