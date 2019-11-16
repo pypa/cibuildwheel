@@ -3,4 +3,4 @@
 cd "$(dirname "$0")"
 cd ..
 
-CIBW_PLATFORM=linux ./bin/run_test.py $1
+CIBW_PLATFORM=linux python -m pytest $1

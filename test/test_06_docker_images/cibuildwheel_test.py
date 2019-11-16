@@ -1,15 +1,11 @@
 import os, pytest
-from utils import utils
-
-
-PROJECT_DIR = os.path.dirname(__file__)
 
 
 def test(utils):
     if utils.platform != 'linux':
         pytest.skip('the test is only relevant to the linux build')
 
-    utils.cibuildwheel_run(PROJECT_DIR, add_env={
+    utils.cibuildwheel_run(add_env={
         'CIBW_MANYLINUX_X86_64_IMAGE': 'dockcross/manylinux2010-x64',
         'CIBW_MANYLINUX_I686_IMAGE': 'dockcross/manylinux1-x86',
         'CIBW_BEFORE_BUILD': '/opt/python/cp36-cp36m/bin/pip install -U auditwheel',  # Currently necessary on dockcross images to get auditwheel 2.1 supporting AUDITWHEEL_PLAT

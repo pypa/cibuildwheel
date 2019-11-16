@@ -1,19 +1,15 @@
 import os, subprocess
 import pytest
-from utils import utils
-
-
-PROJECT_DIR = os.path.dirname(__file__)
 
 
 def test(utils):
     # build and test the wheels
-    utils.cibuildwheel_run(PROJECT_DIR, add_env={
+    utils.cibuildwheel_run(add_env={
         'CIBW_TEST_REQUIRES': 'nose',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
-        'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND': 'false || nosetests {project}/spamtest',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/spamtest',
     })
 
     # also check that we got the right wheels
@@ -24,12 +20,12 @@ def test(utils):
 
 def test_extras_require(utils):
     # build and test the wheels
-    utils.cibuildwheel_run(PROJECT_DIR, add_env={
+    utils.cibuildwheel_run(add_env={
         'CIBW_TEST_EXTRAS': 'test',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
-        'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND': 'false || nosetests {project}/spamtest',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/spamtest',
     })
 
     # also check that we got the right wheels
@@ -41,7 +37,7 @@ def test_extras_require(utils):
 def test_failing_test(utils):
     '''Ensure a failing test causes cibuildwheel to error out and exit'''
     with pytest.raises(subprocess.CalledProcessError):
-        utils.cibuildwheel_run(PROJECT_DIR, add_env={
+        utils.cibuildwheel_run(add_env={
             'CIBW_TEST_COMMAND': 'false',
             # manylinux1 has a version of bash that's been shown to have
             # problems with this, so let's check that.

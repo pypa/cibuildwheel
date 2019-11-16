@@ -1,13 +1,9 @@
 import os
-from utils import utils
-
-
-PROJECT_DIR = os.path.dirname(__file__)
 
 
 def test(utils):
     # build the wheels
-    utils.cibuildwheel_run(PROJECT_DIR)
+    utils.cibuildwheel_run()
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
@@ -23,5 +19,5 @@ def test_build_identifiers(utils):
     # the expected wheels
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                        if not '-manylinux' in w or '-manylinux1' in w]
-    build_identifiers = utils.cibuildwheel_get_build_identifiers(PROJECT_DIR)
+    build_identifiers = utils.cibuildwheel_get_build_identifiers()
     assert len(expected_wheels) == len(build_identifiers)

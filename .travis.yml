@@ -27,8 +27,8 @@ matrix:
       install:
        - C:\\Python35\\python -m pip install -r requirements-dev.txt
       script:
-       - C:\\Python35\\python ./bin/run_tests.py
+       - C:\\Python35\\python -m pytest
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 
-script: $PYTHON ./bin/run_tests.py
+script: $PYTHON -m pytest

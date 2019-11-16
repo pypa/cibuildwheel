@@ -1,13 +1,9 @@
 import os
-from utils import utils
-
-
-PROJECT_DIR = os.path.dirname(__file__)
 
 
 def test(utils):
     # build the wheels
-    utils.cibuildwheel_run(PROJECT_DIR, add_env={
+    utils.cibuildwheel_run(add_env={
         'CIBW_BUILD': 'cp3?-*',
         'CIBW_SKIP': 'cp37-*',
     })

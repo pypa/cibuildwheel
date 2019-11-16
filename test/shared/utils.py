@@ -1,7 +1,5 @@
 '''
 Utility functions used by the cibuildwheel tests.
-
-This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 '''
 
 import subprocess, sys, os
@@ -26,17 +24,20 @@ else:
 
 
 @pytest.fixture
-def utils(tmp_path):
+def utils(tmp_path, request):
     '''
     Fixture use to run cibuildwheel with outputdir in a tmp_path, also list the wheels in that tmp_path
     '''
     class _utils:
+        def _get_default_project_path(self):
+            return os.path.dirname(request.module.__file__)
 
-        def cibuildwheel_get_build_identifiers(self, project_path, env=None):
+        def cibuildwheel_get_build_identifiers(self, project_path=None, env=None):
             '''
             Returns the list of build identifiers that cibuildwheel will try to build
             for the current platform.
             '''
+            project_path= project_path or self._get_default_project_path()
             cmd_output = subprocess.check_output(
                 [sys.executable, '-m', 'cibuildwheel', '--print-build-identifiers', project_path],
                 universal_newlines=True,
@@ -45,7 +46,7 @@ def utils(tmp_path):
 
             return cmd_output.strip().split('\n')
 
-        def cibuildwheel_run(self, project_path, env=None, add_env=None):
+        def cibuildwheel_run(self, project_path=None, env=None, add_env=None):
             '''
             Runs cibuildwheel as a subprocess, building the project at project_path.
 
@@ -57,6 +58,8 @@ def utils(tmp_path):
 
             if add_env is not None:
                 env.update(add_env)
+
+            project_path= project_path or self._get_default_project_path()
 
             subprocess.check_call(
                 [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(tmp_path), project_path],

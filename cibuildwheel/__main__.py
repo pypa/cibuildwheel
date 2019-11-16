@@ -66,6 +66,7 @@ def main():
         platform = args.platform
     else:
         ci = strtobool(os.environ.get('CI', 'false')) or 'BITRISE_BUILD_NUMBER' in os.environ or 'AZURE_HTTP_USER_AGENT' in os.environ
+        platform = None
         if ci:
             if sys.platform.startswith('linux'):
                 platform = 'linux'
