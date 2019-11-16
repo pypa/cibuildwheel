@@ -1,11 +1,13 @@
 import os
-import utils
+from utils import utils
 
-def test():
-    project_dir = os.path.dirname(__file__)
 
+PROJECT_DIR = os.path.dirname(__file__)
+
+
+def test(utils):
     # build the wheels
-    utils.cibuildwheel_run(project_dir, add_env={
+    utils.cibuildwheel_run(PROJECT_DIR, add_env={
         'CIBW_BUILD': 'cp3?-*',
         'CIBW_SKIP': 'cp37-*',
     })
@@ -13,5 +15,5 @@ def test():
     # check that we got the right wheels. There should be no 2.7 or 3.7.
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                        if ('-cp3' in w) and ('-cp37' not in w)]
-    actual_wheels = os.listdir('wheelhouse')
+    actual_wheels = utils.list_wheels()
     assert set(actual_wheels) == set(expected_wheels)

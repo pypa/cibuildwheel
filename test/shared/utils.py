@@ -5,105 +5,11 @@ This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 '''
 
 import subprocess, sys, os
+import pytest
+
 
 IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
-
-
-def cibuildwheel_get_build_identifiers(project_path, env=None):
-    '''
-    Returns the list of build identifiers that cibuildwheel will try to build
-    for the current platform.
-    '''
-    cmd_output = subprocess.check_output(
-        [sys.executable, '-m', 'cibuildwheel', '--print-build-identifiers', project_path],
-        universal_newlines=True,
-        env=env,
-    )
-
-    return cmd_output.strip().split('\n')
-
-
-def cibuildwheel_run(project_path, env=None, add_env=None):
-    '''
-    Runs cibuildwheel as a subprocess, building the project at project_path.
-
-    Uses the current Python interpreter.
-    Configure settings using env.
-    '''
-    if env is None:
-        env = os.environ.copy()
-
-    if add_env is not None:
-        env.update(add_env)
-
-    subprocess.check_call(
-        [sys.executable, '-m', 'cibuildwheel', project_path],
-        env=env,
-    )
-
-
-def expected_wheels(package_name, package_version):
-    '''
-    Returns a list of expected wheels from a run of cibuildwheel.
-    '''
-    if platform == 'linux':
-        templates = [
-            '{package_name}-{package_version}-cp27-cp27m-manylinux1_x86_64.whl',
-            '{package_name}-{package_version}-cp27-cp27mu-manylinux1_x86_64.whl',
-            '{package_name}-{package_version}-cp35-cp35m-manylinux1_x86_64.whl',
-            '{package_name}-{package_version}-cp36-cp36m-manylinux1_x86_64.whl',
-            '{package_name}-{package_version}-cp37-cp37m-manylinux1_x86_64.whl',
-            '{package_name}-{package_version}-cp38-cp38-manylinux1_x86_64.whl',
-            '{package_name}-{package_version}-cp27-cp27m-manylinux2010_x86_64.whl',
-            '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_x86_64.whl',
-            '{package_name}-{package_version}-cp35-cp35m-manylinux2010_x86_64.whl',
-            '{package_name}-{package_version}-cp36-cp36m-manylinux2010_x86_64.whl',
-            '{package_name}-{package_version}-cp37-cp37m-manylinux2010_x86_64.whl',
-            '{package_name}-{package_version}-cp38-cp38-manylinux2010_x86_64.whl',
-            '{package_name}-{package_version}-cp27-cp27m-manylinux1_i686.whl',
-            '{package_name}-{package_version}-cp27-cp27mu-manylinux1_i686.whl',
-            '{package_name}-{package_version}-cp35-cp35m-manylinux1_i686.whl',
-            '{package_name}-{package_version}-cp36-cp36m-manylinux1_i686.whl',
-            '{package_name}-{package_version}-cp37-cp37m-manylinux1_i686.whl',
-            '{package_name}-{package_version}-cp38-cp38-manylinux1_i686.whl',
-            '{package_name}-{package_version}-cp27-cp27m-manylinux2010_i686.whl',
-            '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_i686.whl',
-            '{package_name}-{package_version}-cp35-cp35m-manylinux2010_i686.whl',
-            '{package_name}-{package_version}-cp36-cp36m-manylinux2010_i686.whl',
-            '{package_name}-{package_version}-cp37-cp37m-manylinux2010_i686.whl',
-            '{package_name}-{package_version}-cp38-cp38-manylinux2010_i686.whl',
-        ]
-    elif platform == 'windows':
-        templates = [
-            '{package_name}-{package_version}-cp27-cp27m-win32.whl',
-            '{package_name}-{package_version}-cp35-cp35m-win32.whl',
-            '{package_name}-{package_version}-cp36-cp36m-win32.whl',
-            '{package_name}-{package_version}-cp37-cp37m-win32.whl',
-            '{package_name}-{package_version}-cp38-cp38-win32.whl',
-            '{package_name}-{package_version}-cp27-cp27m-win_amd64.whl',
-            '{package_name}-{package_version}-cp35-cp35m-win_amd64.whl',
-            '{package_name}-{package_version}-cp36-cp36m-win_amd64.whl',
-            '{package_name}-{package_version}-cp37-cp37m-win_amd64.whl',
-            '{package_name}-{package_version}-cp38-cp38-win_amd64.whl',
-        ]
-    elif platform == 'macos':
-        templates = [
-            '{package_name}-{package_version}-cp27-cp27m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp35-cp35m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp36-cp36m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp37-cp37m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp38-cp38-macosx_10_9_x86_64.whl',
-        ]
-    else:
-        raise Exception('unsupported platform')
-
-    if IS_WINDOWS_RUNNING_ON_TRAVIS:
-        # Python 2.7 isn't supported on Travis.
-        templates = [t for t in templates if '-cp27-' not in t]
-
-    return [filename.format(package_name=package_name, package_version=package_version)
-            for filename in templates]
 
 platform = None
 
@@ -117,3 +23,113 @@ elif sys.platform in ['win32', 'cygwin']:
     platform = 'windows'
 else:
     raise Exception('Unsupported platform')
+
+
+@pytest.fixture
+def utils(tmp_path):
+    '''
+    Fixture use to run cibuildwheel with outputdir in a tmp_path, also list the wheels in that tmp_path
+    '''
+    class _utils:
+
+        def cibuildwheel_get_build_identifiers(self, project_path, env=None):
+            '''
+            Returns the list of build identifiers that cibuildwheel will try to build
+            for the current platform.
+            '''
+            cmd_output = subprocess.check_output(
+                [sys.executable, '-m', 'cibuildwheel', '--print-build-identifiers', project_path],
+                universal_newlines=True,
+                env=env,
+            )
+
+            return cmd_output.strip().split('\n')
+
+        def cibuildwheel_run(self, project_path, env=None, add_env=None):
+            '''
+            Runs cibuildwheel as a subprocess, building the project at project_path.
+
+            Uses the current Python interpreter.
+            Configure settings using env.
+            '''
+            if env is None:
+                env = os.environ.copy()
+
+            if add_env is not None:
+                env.update(add_env)
+
+            subprocess.check_call(
+                [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(tmp_path), project_path],
+                env=env,
+            )
+
+        def expected_wheels(self, package_name, package_version):
+            '''
+            Returns a list of expected wheels from a run of cibuildwheel.
+            '''
+            if platform == 'linux':
+                templates = [
+                    '{package_name}-{package_version}-cp27-cp27m-manylinux1_x86_64.whl',
+                    '{package_name}-{package_version}-cp27-cp27mu-manylinux1_x86_64.whl',
+                    '{package_name}-{package_version}-cp35-cp35m-manylinux1_x86_64.whl',
+                    '{package_name}-{package_version}-cp36-cp36m-manylinux1_x86_64.whl',
+                    '{package_name}-{package_version}-cp37-cp37m-manylinux1_x86_64.whl',
+                    '{package_name}-{package_version}-cp38-cp38-manylinux1_x86_64.whl',
+                    '{package_name}-{package_version}-cp27-cp27m-manylinux2010_x86_64.whl',
+                    '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_x86_64.whl',
+                    '{package_name}-{package_version}-cp35-cp35m-manylinux2010_x86_64.whl',
+                    '{package_name}-{package_version}-cp36-cp36m-manylinux2010_x86_64.whl',
+                    '{package_name}-{package_version}-cp37-cp37m-manylinux2010_x86_64.whl',
+                    '{package_name}-{package_version}-cp38-cp38-manylinux2010_x86_64.whl',
+                    '{package_name}-{package_version}-cp27-cp27m-manylinux1_i686.whl',
+                    '{package_name}-{package_version}-cp27-cp27mu-manylinux1_i686.whl',
+                    '{package_name}-{package_version}-cp35-cp35m-manylinux1_i686.whl',
+                    '{package_name}-{package_version}-cp36-cp36m-manylinux1_i686.whl',
+                    '{package_name}-{package_version}-cp37-cp37m-manylinux1_i686.whl',
+                    '{package_name}-{package_version}-cp38-cp38-manylinux1_i686.whl',
+                    '{package_name}-{package_version}-cp27-cp27m-manylinux2010_i686.whl',
+                    '{package_name}-{package_version}-cp27-cp27mu-manylinux2010_i686.whl',
+                    '{package_name}-{package_version}-cp35-cp35m-manylinux2010_i686.whl',
+                    '{package_name}-{package_version}-cp36-cp36m-manylinux2010_i686.whl',
+                    '{package_name}-{package_version}-cp37-cp37m-manylinux2010_i686.whl',
+                    '{package_name}-{package_version}-cp38-cp38-manylinux2010_i686.whl',
+                ]
+            elif platform == 'windows':
+                templates = [
+                    '{package_name}-{package_version}-cp27-cp27m-win32.whl',
+                    '{package_name}-{package_version}-cp35-cp35m-win32.whl',
+                    '{package_name}-{package_version}-cp36-cp36m-win32.whl',
+                    '{package_name}-{package_version}-cp37-cp37m-win32.whl',
+                    '{package_name}-{package_version}-cp38-cp38-win32.whl',
+                    '{package_name}-{package_version}-cp27-cp27m-win_amd64.whl',
+                    '{package_name}-{package_version}-cp35-cp35m-win_amd64.whl',
+                    '{package_name}-{package_version}-cp36-cp36m-win_amd64.whl',
+                    '{package_name}-{package_version}-cp37-cp37m-win_amd64.whl',
+                    '{package_name}-{package_version}-cp38-cp38-win_amd64.whl',
+                ]
+            elif platform == 'macos':
+                templates = [
+                    '{package_name}-{package_version}-cp27-cp27m-macosx_10_6_intel.whl',
+                    '{package_name}-{package_version}-cp35-cp35m-macosx_10_6_intel.whl',
+                    '{package_name}-{package_version}-cp36-cp36m-macosx_10_6_intel.whl',
+                    '{package_name}-{package_version}-cp37-cp37m-macosx_10_6_intel.whl',
+                    '{package_name}-{package_version}-cp38-cp38-macosx_10_9_x86_64.whl',
+                ]
+            else:
+                raise Exception('unsupported platform')
+
+            if IS_WINDOWS_RUNNING_ON_TRAVIS:
+                # Python 2.7 isn't supported on Travis.
+                templates = [t for t in templates if '-cp27-' not in t]
+
+            return [filename.format(package_name=package_name, package_version=package_version)
+                    for filename in templates]
+
+        def list_wheels(self):
+            return os.listdir(str(tmp_path))
+
+        @property
+        def platform(self):
+            return platform
+
+    yield _utils()

@@ -21,9 +21,6 @@ def single_run(test_project):
         env=env,
     )
 
-    # clean up
-    if os.path.exists('wheelhouse'):
-        shutil.rmtree('wheelhouse')
 
 if __name__ == '__main__':
     import argparse
@@ -33,7 +30,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     project_path = os.path.abspath(args.test_project_dir)
-    
+
     if not os.path.exists(project_path):
         print('No test project not found.', file=sys.stderr)
         exit(2)

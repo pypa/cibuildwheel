@@ -1,9 +1,12 @@
 import os
-import utils
+from utils import utils
 
-def test():
-    project_dir = os.path.dirname(__file__)
+
+PROJECT_DIR = os.path.dirname(__file__)
+
+
+def test(utils):
     # this test checks that SSL is working in the build environment using
     # some checks in setup.py.
 
-    utils.cibuildwheel_run(project_dir)
+    utils.cibuildwheel_run(PROJECT_DIR)
