@@ -240,11 +240,13 @@ CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {
 
 An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64) and [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686).
 
-The value of this option can either be set to `manylinux1` or `manylinux2010` to use the [official `manylinux` images](https://github.com/pypa/manylinux), or any other valid Docker image name.
+The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use the [official `manylinux` images](https://github.com/pypa/manylinux), or any other valid Docker image name.
 
-Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1- or manylinux2010-compatible in order to produce valid `manylinux1`/`manylinux2010` wheels (see https://github.com/pypa/manylinux, [PEP 513](https://www.python.org/dev/peps/pep-0513/), and [PEP 571](https://www.python.org/dev/peps/pep-0571/) for more details).
+Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid `manylinux1`/`manylinux2010`/`manylinux2014` wheels (see https://github.com/pypa/manylinux, [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/ and [PEP 599](https://www.python.org/dev/peps/pep-0599/) for more details).
 
 Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT="manylinux2010_$(uname -m)"`).
+
+Note that `manylinux2014` doesn't support builds with Python 2.7 - when building with `manylinux2014`, skip Python 2.7 using `CIBW_SKIP` (see example below).
 
 #### Examples
 
@@ -252,6 +254,11 @@ Note that `auditwheel` detects the version of the `manylinux` standard in the Do
 # build using the manylinux1 image to ensure manylinux1 wheels are produced
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
 CIBW_MANYLINUX_I686_IMAGE: manylinux1
+
+# build using the manylinux2014 image
+CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+CIBW_SKIP: cp27-manylinux*
 
 # build using a different image from the docker registry
 CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
