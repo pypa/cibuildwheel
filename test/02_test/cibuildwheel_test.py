@@ -1,6 +1,15 @@
-import os, subprocess
+import subprocess
+import os
+import sys 
+
 import pytest
-import utils
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from shared import utils
+
+
+
 
 def test(tmp_path):
     project_dir = os.path.dirname(__file__)
@@ -9,8 +18,8 @@ def test(tmp_path):
         'CIBW_TEST_REQUIRES': 'nose',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
-        'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND': 'false || nosetests {project}/subtest',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/subtest',
     }, output_dir=tmp_path)
 
     # also check that we got the right wheels
@@ -26,8 +35,8 @@ def test_extras_require(tmp_path):
         'CIBW_TEST_EXTRAS': 'test',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
-        'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND': 'false || nosetests {project}/subtest',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/subtest',
     }, output_dir=tmp_path)
 
     # also check that we got the right wheels
