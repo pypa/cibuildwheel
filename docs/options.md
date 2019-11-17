@@ -148,6 +148,9 @@ You must set this variable to pass variables to Linux builds (since they execute
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
+Platform-specific variants also available:<br/>
+`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
+
 #### Examples
 ```yaml
 # Set some compiler flags
@@ -162,9 +165,6 @@ CIBW_ENVIRONMENT: "BUILD_TIME=$(date)"
 # Supply options to `pip` to affect how it downloads dependencies
 CIBW_ENVIRONMENT: "PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple"
 ```
-
-Platform-specific variants also available:<br/>
-`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
 
 !!! note
     `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
@@ -181,6 +181,9 @@ The active Python binary can be accessed using `python`, and pip with `pip`; `ci
 
 On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
+Platform-specific variants also available:<br/>
+ `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
+
 #### Examples
 ```yaml
 # install your project and dependencies before building
@@ -192,9 +195,6 @@ CIBW_BEFORE_BUILD: pip install pybind11
 # chain commands using &&
 CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
 ```
-
-Platform-specific variants also available:<br/>
- `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
@@ -216,6 +216,9 @@ The following placeholders must be used inside the command and will be replaced 
 
 On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
+Platform-specific variants also available:<br/>
+`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
+
 #### Examples
 
 ```yaml
@@ -225,9 +228,6 @@ CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
 # pass the `--lib-sdir .` flag to auditwheel on Linux
 CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
 ```
-
-Platform-specific variants also available:<br/>
-`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
 
 
 ### `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE` {: #manylinux-image}
@@ -262,6 +262,9 @@ Shell command to run tests after the build. The wheel will be installed automati
 
 On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
+Platform-specific variants also available:<br/>
+`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
+
 #### Examples
 
 ```yaml
@@ -272,14 +275,14 @@ CIBW_TEST_COMMAND: nosetests {project}/tests
 CIBW_TEST_COMMAND: nosetests {project}/tests
 ```
 
-Platform-specific variants also available:<br/>
-`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
-
 
 ### `CIBW_TEST_REQUIRES` {: #test-requires}
 > Install Python dependencies before running the tests
 
 Space-separated list of dependencies required for running the tests.
+
+Platform-specific variants also available:<br/>
+`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
 #### Examples
 
@@ -291,8 +294,6 @@ CIBW_TEST_REQUIRES: pytest
 CIBW_TEST_REQUIRES: nose==1.3.7 moto==0.4.31
 ```
 
-Platform-specific variants also available:<br/>
-`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
 ### `CIBW_TEST_EXTRAS` {: #test-extras}
 > Install your wheel for testing using `extras_require`
@@ -304,6 +305,9 @@ tests. This can be used to avoid having to redefine test dependencies in
 `CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
 `setup.cfg`.
 
+Platform-specific variants also available:<br/>
+`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
+
 #### Examples
 
 ```yaml
@@ -311,8 +315,6 @@ tests. This can be used to avoid having to redefine test dependencies in
 CIBW_TEST_EXTRAS: test,qt
 ```
 
-Platform-specific variants also available:<br/>
-`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
 
 ## Other
 
@@ -321,6 +323,9 @@ Platform-specific variants also available:<br/>
 
 An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
 
+Platform-specific variants also available:<br/>
+`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
+
 #### Examples
 
 ```yaml
@@ -328,8 +333,6 @@ An number from 1 to 3 to increase the level of verbosity (corresponding to invok
 CIBW_BUILD_VERBOSITY: 1
 ```
 
-Platform-specific variants also available:<br/>
-`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
 
 ## Command line options
 
