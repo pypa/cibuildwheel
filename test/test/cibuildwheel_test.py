@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from shared import utils
+import utils
 
 
 def test(tmp_path):

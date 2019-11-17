@@ -1,6 +1,6 @@
 import os
 
-from shared import utils
+import utils
 
 
 def test(tmp_path):
