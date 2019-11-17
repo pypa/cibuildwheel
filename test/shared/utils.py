@@ -4,10 +4,24 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 '''
 
-import subprocess, sys, os
+import subprocess, sys, os, shutil
+from tempfile import mkdtemp
+from contextlib import contextmanager
+
 
 IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
+
+
+# Python 2 does not have a tempfile.TemporaryDirectory context manager
+@contextmanager
+def TemporaryDirectoryIfNone(path):
+    _path = path or mkdtemp()
+    try:
+        yield _path
+    finally:
+        if path is None:
+            shutil.rmtree(_path)
 
 
 def cibuildwheel_get_build_identifiers(project_path, env=None):
@@ -24,12 +38,18 @@ def cibuildwheel_get_build_identifiers(project_path, env=None):
     return cmd_output.strip().split('\n')
 
 
-def cibuildwheel_run(project_path, env=None, add_env=None):
+def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
     '''
     Runs cibuildwheel as a subprocess, building the project at project_path.
 
     Uses the current Python interpreter.
-    Configure settings using env.
+
+    :param project_path: path of the project to be built.
+    :param env: full environment to be used, os.environ if None
+    :param add_env: environment used to update env
+    :param output_dir: directory where wheels are saved. If None, a temporary
+    directory will be used for the duration of the command.
+    :return: list of built wheels (file names).
     '''
     if env is None:
         env = os.environ.copy()
@@ -37,10 +57,13 @@ def cibuildwheel_run(project_path, env=None, add_env=None):
     if add_env is not None:
         env.update(add_env)
 
-    subprocess.check_call(
-        [sys.executable, '-m', 'cibuildwheel', project_path],
-        env=env,
-    )
+    with TemporaryDirectoryIfNone(output_dir) as _output_dir:
+        subprocess.check_call(
+            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir), project_path],
+            env=env,
+        )
+        wheels = os.listdir(_output_dir)
+    return wheels
 
 
 def expected_wheels(package_name, package_version):
