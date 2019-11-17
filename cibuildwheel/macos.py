@@ -21,6 +21,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.1/python-3.8.1-macosx10.9.pkg'),
+        PythonConfiguration(version='2.7-v7.2.0', identifier='pp272-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.2.0-osx64.tar.bz2'),
+        PythonConfiguration(version='3.6-v7.2.0', identifier='pp372-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.2.0-osx64.tar.bz2'),
     ]
 
     # skip builds as required
@@ -54,20 +56,42 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     download(get_pip_url, get_pip_script)
 
     for config in python_configurations:
-        # if this version of python isn't installed, get it from python.org and install
-        python_package_identifier = 'org.python.Python.PythonFramework-%s' % config.version
-        if python_package_identifier not in installed_system_packages:
-            # download the pkg
-            download(config.url, '/tmp/Python.pkg')
-            # install
-            call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
-            # patch open ssl
-            if config.version == '3.5':
-                open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version
-                download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
-                call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/%s/' % config.version, '-xmf', '/tmp/python-patch.tar.gz'])
+        if config.identifier.startswith('cp'):
+            # if this version of python isn't installed, get it from python.org and install
+            python_package_identifier = 'org.python.Python.PythonFramework-%s' % config.version
+            if python_package_identifier not in installed_system_packages:
+                # download the pkg
+                download(config.url, '/tmp/Python.pkg')
+                # install
+                call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
+                # patch open ssl
+                if config.version == '3.5':
+                    open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version
+                    download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
+                    call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/%s/' % config.version, '-xmf', '/tmp/python-patch.tar.gz'])
 
-        installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
+            installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
+        elif config.identifier.startswith('pp'):
+            pypy_tar_bz2 = config.url.rsplit('/', 1)[-1]
+            assert pypy_tar_bz2.endswith(".tar.bz2")
+            pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
+            installation_bin_path = os.path.join('/tmp', pypy_base_filename, 'bin')
+            if not os.path.exists(installation_bin_path):
+                download(config.url, os.path.join("/tmp", pypy_tar_bz2))
+                call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
+                pypy_executable = 'pypy' if config.version[0] == '2' else 'pypy3'
+                python_symlink = 'python' if config.version[0] == '2' else 'python3'
+                os.symlink(os.path.join(installation_bin_path, pypy_executable), os.path.join(installation_bin_path, python_symlink))
+
+                # Workaround for a too high 'MACOSX_DEPLOYMENT_TARGET' in PyPy 2.7, v7.2.0; fixed in HEAD and next release
+                if config.version[0] == '2':
+                    sysconfig_pypy_path =  os.path.join('/tmp', pypy_base_filename, 'lib-python', '2.7', 'distutils', 'sysconfig_pypy.py')
+                    with open(sysconfig_pypy_path, 'r') as f:
+                        sysconfig_pypy_contents = f.read()
+                    sysconfig_pypy_contents = sysconfig_pypy_contents.replace("g['MACOSX_DEPLOYMENT_TARGET'] = '10.14'", "g['MACOSX_DEPLOYMENT_TARGET'] = '10.7'")
+                    with open(sysconfig_pypy_path, 'w') as f:
+                        f.write(sysconfig_pypy_contents)
+
         assert os.path.exists(os.path.join(installation_bin_path, 'python3' if config.version[0] == '3' else 'python'))
 
         # Python bin folders on Mac don't symlink python3 to python, so we do that
@@ -87,6 +111,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             installation_bin_path,
             env['PATH'],
         ])
+        # PyPy 3.6, v7.2.0 doesn't set MACOSX_DEPLOYMENT_TARGET in distutils.sysconfig, so let's set it ourselves until this gets settled
+        if config.identifier.startswith('pp') and config.version[0] == '3' and 'MACOSX_DEPLOYMENT_TARGET' not in env:
+            env['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
         env = environment.as_dictionary(prev_environment=env)
 
         # check what version we're on
@@ -94,7 +121,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['python', '--version'], env=env)
 
         # install pip & wheel
-        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env, cwd="/tmp")
+        call(['python', get_pip_script], env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
         call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)

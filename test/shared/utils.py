@@ -79,11 +79,10 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     # {distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
-    python_abi_tags = ['cp27-cp27m', 'cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
+    python_abi_tags = ['cp27-cp27m', 'cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38',
+                       'pp272-pypy_41', 'pp372-pypy3_72']
     if platform == 'linux':
         python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
-        # Starting out by adding PyPy support on Linux
-        python_abi_tags.extend(['pp272-pypy_41', 'pp372-pypy3_72'])
         cp_architectures = ['x86_64', 'i686']
         pp_architectures = ['x86_64']
 
@@ -98,8 +97,8 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
                     for manylinux_version in manylinux_versions
                     for architecture in architectures]
     elif platform == 'windows':
-        # Second step: adding PyPy support on Windows
-        python_abi_tags.extend(['pp272-pypy_41', 'pp372-pp372'])
+        # The PyPy3 ABI tag for Windows will be consistent in the 7.3.0 release
+        python_abi_tags[python_abi_tags.index('pp372-pypy3_72')] = 'pp372-pp372'
         def get_platform_tags(python_abi_tag):
             if python_abi_tag.startswith('pp'):
                 return ['win32']
@@ -107,10 +106,13 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
                 return ['win32', 'win_amd64']
 
     elif platform == 'macos':
-
         def get_platform_tags(python_abi_tag):
-            return ['macosx_' + (macosx_deployment_target or "10.9").replace(".", "_") + '_x86_64']
-
+            default_version = '10.9'
+            if python_abi_tag == 'pp272-pypy_41':
+                default_version = '10.7'
+            elif python_abi_tag == 'pp372-pypy3_72':
+                default_version = '10.13'
+            return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
     else:
         raise Exception('unsupported platform')
 
