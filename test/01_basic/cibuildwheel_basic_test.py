@@ -11,7 +11,7 @@ def test(tmp_path):
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
-    actual_wheels = [x.name for x in tmp_path.iterdir()]
+    actual_wheels = utils.list_wheels(tmp_path)
     assert set(actual_wheels) == set(expected_wheels)
 
 

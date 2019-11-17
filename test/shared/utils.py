@@ -10,6 +10,10 @@ IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
+def list_wheels(wheel_path):
+    return os.listdir(str(wheel_path))
+
+
 def cibuildwheel_get_build_identifiers(project_path, env=None):
     '''
     Returns the list of build identifiers that cibuildwheel will try to build

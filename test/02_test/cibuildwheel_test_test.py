@@ -19,7 +19,7 @@ def test(tmp_path):
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
-    actual_wheels = [x.name for x in tmp_path.iterdir()]
+    actual_wheels = utils.list_wheels(tmp_path)
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -36,7 +36,7 @@ def test_extras_require(tmp_path):
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
-    actual_wheels = [x.name for x in tmp_path.iterdir()]
+    actual_wheels = utils.list_wheels(tmp_path)
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -52,5 +52,4 @@ def test_failing_test(tmp_path):
             'CIBW_MANYLINUX_X86_64_IMAGE': 'manylinux1',
         }, output_dir=tmp_path)
 
-    assert len([x.name for x in tmp_path.iterdir()]) == 0
-
+    assert len(utils.list_wheels(tmp_path)) == 0

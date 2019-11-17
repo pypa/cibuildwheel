@@ -21,5 +21,5 @@ def test(tmp_path):
     # also check that we got the right wheels
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                        if not '-manylinux' in w or '-manylinux2010' in w]
-    actual_wheels = [x.name for x in tmp_path.iterdir()]
+    actual_wheels = utils.list_wheels(tmp_path)
     assert set(actual_wheels) == set(expected_wheels)
