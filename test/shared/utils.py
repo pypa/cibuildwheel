@@ -1,7 +1,7 @@
 '''
 Utility functions used by the cibuildwheel tests.
 
-This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
+This file is added to the PYTHONPATH in the conftest.py file.
 '''
 
 import subprocess, sys, os
