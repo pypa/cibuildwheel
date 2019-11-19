@@ -50,7 +50,7 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
     monkeypatch.setenv('CIBW_SKIP', SKIP)
 
     main()
-    
+
     intercepted_build_selector = intercepted_build_args.kwargs['build_selector']
     assert isinstance(intercepted_build_selector, BuildSelector)
     assert intercepted_build_selector('build-this')
@@ -60,12 +60,12 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
 
 
 @pytest.mark.parametrize('architecture, image, full_image', [
-    ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64'), 
+    ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64'),
     ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64'),
     ('x86_64', 'manylinux2010', 'quay.io/pypa/manylinux2010_x86_64'),
     ('x86_64', 'manylinux2014', 'quay.io/pypa/manylinux2014_x86_64'),
     ('x86_64', 'custom_image', 'custom_image'),
-    ('i686', None, 'quay.io/pypa/manylinux2010_i686'), 
+    ('i686', None, 'quay.io/pypa/manylinux2010_i686'),
     ('i686', 'manylinux1', 'quay.io/pypa/manylinux1_i686'),
     ('i686', 'manylinux2010', 'quay.io/pypa/manylinux2010_i686'),
     ('i686', 'manylinux2014', 'quay.io/pypa/manylinux2014_i686'),
@@ -87,7 +87,7 @@ def get_default_repair_command(platform):
     if platform == 'linux':
         return 'auditwheel repair -w {dest_dir} {wheel}'
     elif platform == 'macos':
-        return 'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'
+        return 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
     elif platform == 'windows':
         return ''
     else:
@@ -139,9 +139,9 @@ def test_test_requires(test_requires, platform_specific, platform, intercepted_b
             monkeypatch.setenv('CIBW_TEST_REQUIRES', 'overwritten')
         else:
             monkeypatch.setenv('CIBW_TEST_REQUIRES', test_requires)
-    
+
     main()
-    
+
     assert intercepted_build_args.kwargs['test_requires'] == (test_requires or '').split()
 
 
@@ -154,9 +154,9 @@ def test_test_extras(test_extras, platform_specific, platform, intercepted_build
             monkeypatch.setenv('CIBW_TEST_EXTRAS', 'overwritten')
         else:
             monkeypatch.setenv('CIBW_TEST_EXTRAS', test_extras)
-    
+
     main()
-    
+
     assert intercepted_build_args.kwargs['test_extras'] == ('[' + test_extras + ']' if test_extras else '')
 
 

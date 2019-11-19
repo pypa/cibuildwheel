@@ -61,7 +61,7 @@ def main():
     args = parser.parse_args()
 
     detect_obsolete_options()
-    
+
     if args.platform != 'auto':
         platform = args.platform
     else:
@@ -97,7 +97,7 @@ def main():
     if platform == 'linux':
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
     elif platform == 'macos':
-        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'
+        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
     else:
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
