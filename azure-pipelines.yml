@@ -7,7 +7,8 @@ jobs:
         versionSpec: '3.8'
     - bash: |
         python -m pip install -r requirements-dev.txt
-        python ./bin/run_tests.py
+        python -m pip pytest-azurepipelines
+        pytest -vv unit_test test
 
 - job: macos
   pool: {vmImage: 'macOS-10.13'}
@@ -17,7 +18,8 @@ jobs:
         versionSpec: '3.8'
     - bash: |
         python -m pip install -r requirements-dev.txt
-        python ./bin/run_tests.py
+        python -m pip pytest-azurepipelines
+        pytest -vv unit_test test
 
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
@@ -29,5 +31,6 @@ jobs:
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install -r requirements-dev.txt
-        python ./bin/run_tests.py
+        python -m pip pytest-azurepipelines
+        pytest -vv unit_test test
 

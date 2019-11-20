@@ -10,8 +10,8 @@ def test():
         'CIBW_TEST_REQUIRES': 'nose',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
-        'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND': 'false || nosetests {project}/spamtest',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/spamtest',
     })
 
     # also check that we got the right wheels
@@ -27,8 +27,8 @@ def test_extras_require():
         'CIBW_TEST_EXTRAS': 'test',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
-        'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/test',
+        'CIBW_TEST_COMMAND': 'false || nosetests {project}/spamtest',
+        'CIBW_TEST_COMMAND_WINDOWS': 'nosetests {project}/spamtest',
     })
 
     # also check that we got the right wheels
