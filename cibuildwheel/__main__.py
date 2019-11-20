@@ -61,6 +61,7 @@ def main():
     args = parser.parse_args()
 
     detect_obsolete_options()
+    
     if args.platform != 'auto':
         platform = args.platform
     else:
@@ -178,7 +179,7 @@ def main():
     elif platform == 'macos':
         cibuildwheel.macos.build(**build_options)
     else:
-        raise Exception('Unsupported platform')
+        raise Exception('Unsupported platform: {}'.format(platform))
 
 
 def detect_obsolete_options():
