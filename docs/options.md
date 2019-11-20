@@ -4,7 +4,7 @@
 
 ## Setting options
 
-cibuildwheel is configured using environment variables, that can be set using 
+cibuildwheel is configured using environment variables, that can be set using
 your CI config.
 
 For example, to configure cibuildwheel to run tests, add the following YAML to
@@ -120,7 +120,7 @@ CIBW_SKIP: "*-win32 *-manylinux_i686"
     font-size: 90%;
     white-space: nowrap;
   }
-  .rst-content .build-id-table-marker + table td, 
+  .rst-content .build-id-table-marker + table td,
   .rst-content .build-id-table-marker + table th {
     padding: 4px 4px;
   }
@@ -148,6 +148,9 @@ You must set this variable to pass variables to Linux builds (since they execute
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
+Platform-specific variants also available:<br/>
+`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
+
 #### Examples
 ```yaml
 # Set some compiler flags
@@ -163,9 +166,6 @@ CIBW_ENVIRONMENT: "BUILD_TIME=$(date)"
 CIBW_ENVIRONMENT: "PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple"
 ```
 
-Platform-specific variants also available:  
-`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
-
 !!! note
     `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
@@ -177,7 +177,12 @@ A shell command to run before building the wheel. This option allows you to run 
 
 If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `pip install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
 
-The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root.
+The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
+
+On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+Platform-specific variants also available:<br/>
+ `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
 #### Examples
 ```yaml
@@ -191,12 +196,42 @@ CIBW_BEFORE_BUILD: pip install pybind11
 CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
 ```
 
-Platform-specific variants also available:  
- `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
+
+### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
+> Execute a shell command to repair each (non-pure Python) built wheel
+
+Default:
+
+- on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
+- on macOS: `'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'`
+- on Windows: `''`
+
+A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
+The command is run on each built wheel (except for pure Python ones) before testing it.
+
+The following placeholders must be used inside the command and will be replaced by `cibuildwheel`:
+
+- `{wheel}` for the absolute path to the built wheel
+- `{dest_dir}` for the absolute path of the directory where to create the repaired wheel.
+
+On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+Platform-specific variants also available:<br/>
+`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
+
+#### Examples
+
+```yaml
+# don't repair macOS wheels
+CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
+
+# pass the `--lib-sdir .` flag to auditwheel on Linux
+CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
+```
 
 
 ### `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE` {: #manylinux-image}
-> Specify alternative manylinux docker images 
+> Specify alternative manylinux docker images
 
 An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64) and [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686).
 
@@ -221,11 +256,14 @@ CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
 ## Testing
 
 ### `CIBW_TEST_COMMAND` {: #test-command}
-> Execute a shell command to test all built wheels
+> Execute a shell command to test each built wheel
 
 Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
-On Linux and Mac, the command runs in a shell, so you can write things like `cmd1 && cmd2`. 
+On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+Platform-specific variants also available:<br/>
+`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
 
 #### Examples
 
@@ -237,27 +275,25 @@ CIBW_TEST_COMMAND: nosetests {project}/tests
 CIBW_TEST_COMMAND: nosetests {project}/tests
 ```
 
-Platform-specific variants also available:  
-`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
-
 
 ### `CIBW_TEST_REQUIRES` {: #test-requires}
 > Install Python dependencies before running the tests
 
 Space-separated list of dependencies required for running the tests.
 
+Platform-specific variants also available:<br/>
+`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
+
 #### Examples
 
 ```yaml
 # install pytest before running CIBW_TEST_COMMAND
-CIBW_TEST_REQUIRES: pytest  
+CIBW_TEST_REQUIRES: pytest
 
 # install specific versions of test dependencies
 CIBW_TEST_REQUIRES: nose==1.3.7 moto==0.4.31
 ```
 
-Platform-specific variants also available:  
-`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
 ### `CIBW_TEST_EXTRAS` {: #test-extras}
 > Install your wheel for testing using `extras_require`
@@ -269,15 +305,16 @@ tests. This can be used to avoid having to redefine test dependencies in
 `CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
 `setup.cfg`.
 
+Platform-specific variants also available:<br/>
+`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
+
 #### Examples
 
 ```yaml
 # will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
-CIBW_TEST_EXTRAS: test,qt 
+CIBW_TEST_EXTRAS: test,qt
 ```
 
-Platform-specific variants also available:  
-`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
 
 ## Other
 
@@ -286,6 +323,9 @@ Platform-specific variants also available:
 
 An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
 
+Platform-specific variants also available:<br/>
+`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
+
 #### Examples
 
 ```yaml
@@ -293,8 +333,6 @@ An number from 1 to 3 to increase the level of verbosity (corresponding to invok
 CIBW_BUILD_VERBOSITY: 1
 ```
 
-Platform-specific variants also available:  
-`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
 
 ## Command line options
 
@@ -302,7 +340,7 @@ Platform-specific variants also available:
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--output-dir OUTPUT_DIR] [--print-build-identifiers]
                     [project_dir]
-    
+
 Build wheels for all the platforms.
 
 positional arguments:
@@ -381,7 +419,7 @@ optional arguments:
 
         options[header].push({name: optionName, description, id});
       });
-    
+
     // write the table of contents
 
     var tocTable = $('.options-toc');
