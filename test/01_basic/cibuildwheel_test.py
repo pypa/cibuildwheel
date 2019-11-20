@@ -6,11 +6,10 @@ project_dir = os.path.dirname(__file__)
 
 def test():
     # build the wheels
-    utils.cibuildwheel_run(project_dir)
+    actual_wheels = utils.cibuildwheel_run(project_dir)
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
-    actual_wheels = os.listdir('wheelhouse')
     assert set(actual_wheels) == set(expected_wheels)
 
 
