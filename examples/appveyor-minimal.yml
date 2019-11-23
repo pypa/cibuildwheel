@@ -1,14 +1,20 @@
-image:
-  - Ubuntu
-  - Visual Studio 2015
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      APPVEYOR_JOB_NAME: "python37-x64-ubuntu"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      APPVEYOR_JOB_NAME: "python37-x64-vs2015"
+    - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+      APPVEYOR_JOB_NAME: "python37-x64-macos-mojave"
 
-build_script:
-  # windows
-  - cmd: pip3 install cibuildwheel==1.1.0
-  - cmd: cibuildwheel --output-dir wheelhouse
-  # linux
-  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install cibuildwheel==1.1.0"
-  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m cibuildwheel --output-dir wheelhouse"
+stack: python 3.7
+
+init:
+- cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
+
+install: python -m pip install cibuildwheel==1.1.0
+
+build_script: python -m cibuildwheel --output-dir wheelhouse
 
 artifacts:
   - path: "wheelhouse\\*.whl"
