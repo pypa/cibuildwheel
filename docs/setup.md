@@ -47,37 +47,39 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-# Travis CI [linux/mac] {: #travis-ci}
+# Travis CI [linux/mac/windows] {: #travis-ci}
 
-To build Linux and Mac wheels on Travis CI, create a `.travis.yml` file in your repo.
+To build Linux, Mac, and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
 
 > .travis.yml
 ```yaml
 language: python
 
-matrix:
+jobs:
   include:
-    - sudo: required
-      services:
-        - docker
-      env: PIP=pip
+    # perform a linux build
+    - services: docker
+    # and a mac build
     - os: osx
-      language: generic
-      env: PIP=pip2
-
-script:
-  - $PIP install cibuildwheel==1.0.0
-  - cibuildwheel --output-dir wheelhouse
-```
-
-To build on Windows too, add this matrix entry:
-```yaml
+      language: shell
+    # and a windows build
     - os: windows
       language: shell
       before_install:
-        - choco install python3 --version 3.6.8 --no-progress -y
-      env:
-        - PATH=/c/Python36:/c/Python36/Scripts:$PATH
+        - choco install python --version 3.8.0
+        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+
+env:
+  global:
+    - TWINE_USERNAME=joerick
+      # Note: TWINE_PASSWORD is set in Travis settings
+
+install:
+  - python -m pip install twine cibuildwheel==1.0.0
+
+script:
+  # build the wheels, put them into './wheelhouse'
+  - python -m cibuildwheel --output-dir wheelhouse
 ```
 
 Note that building Windows Python 2.7 wheels on Travis is unsupported.
