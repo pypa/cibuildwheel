@@ -1,0 +1,34 @@
+# As written, this configuration will build your wheels on every
+# commit, but will only push to PyPI on tagged commits.
+
+language: python
+
+jobs:
+  include:
+    # perform a linux build
+    - services: docker
+    # and a mac build
+    - os: osx
+      language: shell
+    # and a windows build
+    - os: windows
+      language: shell
+      before_install:
+        - choco install python --version 3.8.0
+        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+
+env:
+  global:
+    - TWINE_USERNAME=joerick
+      # Note: TWINE_PASSWORD is set in Travis settings
+
+install:
+  - python -m pip install twine cibuildwheel==1.0.0
+
+script:
+  # build the wheels, put them into './wheelhouse'
+  - python -m cibuildwheel --output-dir wheelhouse
+
+after_success:
+  # if the release was tagged, upload them to PyPI
+  - if [[ $TRAVIS_TAG ]]; then python -m twine upload wheelhouse/*.whl; fi
