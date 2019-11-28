@@ -48,43 +48,43 @@ Usage
 Example setup
 -------------
 
-To build manylinux and macOS wheels on Travis CI, and upload them to PyPI whenever you tag a version, you could use this `.travis.yml`:
+To build manylinux, macOS, and Windows  wheels on Travis CI and upload them to PyPI whenever you tag a version, you could use this `.travis.yml`:
 
 ```yaml
 language: python
 
-matrix:
+jobs:
   include:
     # perform a linux build
-    - sudo: required
-      services:
-        - docker
-      env: PIP=pip
+    - services: docker
     # and a mac build
     - os: osx
-      language: generic
-      env: PIP=pip2
+      language: shell
+    # and a windows build
+    - os: windows
+      language: shell
+      before_install:
+        - choco install python --version 3.8.0
+        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
 
 env:
   global:
     - TWINE_USERNAME=joerick
       # Note: TWINE_PASSWORD is set in Travis settings
 
+install:
+  - python -m pip install twine cibuildwheel==1.0.0
+
 script:
-  - $PIP install cibuildwheel==1.0.0
-
   # build the wheels, put them into './wheelhouse'
-  - cibuildwheel --output-dir wheelhouse
+  - python -m cibuildwheel --output-dir wheelhouse
 
+after_success:
   # if the release was tagged, upload them to PyPI
-  - |
-    if [[ $TRAVIS_TAG ]]; then
-      python -m pip install twine
-      python -m twine upload wheelhouse/*.whl
-    fi
+  - if [[ $TRAVIS_TAG ]]; then python -m twine upload wheelhouse/*.whl; fi
 ```
 
-For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org).
+For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and also check out [the examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------

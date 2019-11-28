@@ -1,0 +1,77 @@
+# In this configuration, the package is tested against multiple versions of python
+# on Linux and on one version of Python on Windows. If and only if all tests pass
+# will the wheels be built and deployed. Further, deployment is only initiated if
+# the current branch is "master", the current commit is tagged, and the current
+# repo is yours (e.g. it won't run on a Pull Request). For convenience, a source
+# distribution is also created.
+
+language: python
+python:
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
+
+before_install:
+  - |
+    if [[ "$TRAVIS_OS_NAME" = windows ]]; then
+        choco install python --version 3.8.0
+        export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+    fi
+
+install:
+  - python -m pip install pytest
+
+script:
+  - python setup.py install
+  - pytest
+
+stages:
+  - test
+  # Only execute deployment stage on master branch, tagged commits,
+  # and from your repository (e.g. not PRs). Replace with your repo name.
+  - name: deploy
+    if: branch = master AND tag IS PRESENT AND repo = joerick/cibuildwheel
+
+jobs:
+  include:
+    # Optional: run a test on Windows
+    - os: windows
+      language: shell
+      name: Test on Windows
+
+    # Deploy source distribution
+    - stage: deploy
+      name: Deploy source distribution
+      install: skip
+      script: python setup.py sdist --formats=gztar
+      after_success: python -m twine upload --skip-existing dist/*.tar.gz
+    # Deploy on linux
+    - stage: deploy
+      name: Build and deploy Linux wheels
+      services: docker
+      install: python -m pip install twine cibuildwheel==1.0.0
+      script: python -m cibuildwheel --output-dir wheelhouse
+      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+    # Deploy on mac
+    - stage: deploy
+      name: Build and deploy macOS wheels
+      os: osx
+      language: shell
+      install: python -m pip install twine cibuildwheel==1.0.0
+      script: python -m cibuildwheel --output-dir wheelhouse
+      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+    # Deploy on windows
+    - stage: deploy
+      name: Build and deploy Windows wheels
+      os: windows
+      language: shell
+      install: python -m pip install twine cibuildwheel==1.0.0
+      script: python -m cibuildwheel --output-dir wheelhouse
+      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+
+env:
+  global:
+    - TWINE_USERNAME=joerick
+      # Note: TWINE_PASSWORD is set in Travis settings
+
