@@ -179,7 +179,8 @@ def main():
     elif platform == 'macos':
         cibuildwheel.macos.build(**build_options)
     else:
-        raise Exception('Unsupported platform: {}'.format(platform))
+        print('cibuildwheel: Unsupported platform: {}'.format(platform), file=sys.stderr)
+        exit(2)
 
 
 def detect_obsolete_options():
