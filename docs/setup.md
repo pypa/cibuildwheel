@@ -52,35 +52,11 @@ Wheels will be stored for you and available through the Pipelines interface. For
 To build Linux, Mac, and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
 
 > .travis.yml
-```yaml
-language: python
-
-jobs:
-  include:
-    # perform a linux build
-    - services: docker
-    # and a mac build
-    - os: osx
-      language: shell
-    # and a windows build
-    - os: windows
-      language: shell
-      before_install:
-        - choco install python --version 3.8.0
-        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
-
-env:
-  global:
-    - TWINE_USERNAME=joerick
-      # Note: TWINE_PASSWORD is set in Travis settings
-
-install:
-  - python -m pip install twine cibuildwheel==1.1.0
-
-script:
-  # build the wheels, put them into './wheelhouse'
-  - python -m cibuildwheel --output-dir wheelhouse
-```
+{% 
+   includemarkdown "../examples/travis-ci-deploy-only.yml"
+   before="```yaml\n"
+   after="```\n"
+%}
 
 Note that building Windows Python 2.7 wheels on Travis is unsupported.
 
