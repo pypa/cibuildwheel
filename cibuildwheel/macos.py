@@ -14,11 +14,11 @@ from .util import prepare_command, get_build_verbosity_extra_flags
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.6.pkg'),
-        PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
-        PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.6.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_10_9_x86_64', url='https://www.python.org/ftp/python/3.8.1/python-3.8.1-macosx10.9.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_intel', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.6.pkg'),
+        PythonConfiguration(version='3.5', identifier='cp35-macosx_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.6', identifier='cp36-macosx_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
+        PythonConfiguration(version='3.7', identifier='cp37-macosx_intel', url='https://www.python.org/ftp/python/3.7.5/python-3.7.5-macosx10.6.pkg'),
+        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.0/python-3.8.0-macosx10.9.pkg')
     ]
 
     # skip builds as required
@@ -96,7 +96,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
-        call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)
+        call(['pip', 'install', '--upgrade', 'setuptools'], env=env)
+        call(['pip', 'install', 'git+https://github.com/Czaki/wheel.git@1a907d36eb4921efa0c9e7dce6b570aa5f84d7f5'], env=env)
+        call(['pip', 'install', 'delocate'], env=env)
 
         # run the before_build command
         if before_build:

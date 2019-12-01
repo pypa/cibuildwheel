@@ -203,6 +203,9 @@ def detect_obsolete_options():
         if deprecated in os.environ and 'manylinux1' in os.environ[deprecated]:
             print("Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of 'manylinux1' by 'manylinux' in the option '{}'".format(deprecated))
             os.environ[deprecated] = os.environ[deprecated].replace('manylinux1', 'manylinux')
+        if deprecated in os.environ and ("macosx_10_6" in os.environ[deprecated] or "macosx_10_9" in os.environ[deprecated]):
+            print("Build identifiers with 'macosx_10_6' or 'macosx_10_9' been deprecated. Replacing with 'macosx' in the option '{}'".format(deprecated))
+            os.environ[deprecated] = os.environ[deprecated].replace('macosx_10_6', 'macosx').replace('macosx_10_9', 'macosx')
 
 
 def print_preamble(platform, build_options):
