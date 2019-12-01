@@ -66,7 +66,7 @@ def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
     return wheels
 
 
-def expected_wheels(package_name, package_version):
+def expected_wheels(package_name, package_version, macosx_deployment_target=None):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -111,12 +111,21 @@ def expected_wheels(package_name, package_version):
             '{package_name}-{package_version}-cp38-cp38-win_amd64.whl',
         ]
     elif platform == 'macos':
+        if macosx_deployment_target is not None:
+            tag = macosx_deployment_target.replace(".", "_")
+            tag1 = macosx_deployment_target.replace(".", "_")
+        elif "MACOSX_DEPLOYMENT_TARGET" in os.environ:
+            tag = os.environ["MACOSX_DEPLOYMENT_TARGET"].replace(".", "_")
+            tag1 = os.environ["MACOSX_DEPLOYMENT_TARGET"].replace(".", "_")
+        else:
+            tag = "10_6"
+            tag1 = "10_9"
         templates = [
-            '{package_name}-{package_version}-cp27-cp27m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp35-cp35m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp36-cp36m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp37-cp37m-macosx_10_6_intel.whl',
-            '{package_name}-{package_version}-cp38-cp38-macosx_10_9_x86_64.whl',
+            '{package_name}-{package_version}-cp27-cp27m-macosx_' + tag + '_intel.whl',
+            '{package_name}-{package_version}-cp35-cp35m-macosx_' + tag + '_intel.whl',
+            '{package_name}-{package_version}-cp36-cp36m-macosx_' + tag + '_intel.whl',
+            '{package_name}-{package_version}-cp37-cp37m-macosx_' + tag + '_intel.whl',
+            '{package_name}-{package_version}-cp38-cp38-macosx_' + tag1 + '_x86_64.whl',
         ]
     else:
         raise Exception('unsupported platform')
