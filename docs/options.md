@@ -148,6 +148,8 @@ You must set this variable to pass variables to Linux builds (since they execute
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
+To specify more than one environment variable separate it by space. 
+
 Platform-specific variants also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
 
@@ -164,6 +166,9 @@ CIBW_ENVIRONMENT: "BUILD_TIME=$(date)"
 
 # Supply options to `pip` to affect how it downloads dependencies
 CIBW_ENVIRONMENT: "PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple"
+
+# Set two flags
+CIBW_ENVIRONMENT: "BUILD_TIME=$(date) SAMPLE_TEXT=\"sample text\""
 ```
 
 !!! note
