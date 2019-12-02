@@ -1,6 +1,12 @@
 #include <Python.h>
-#if defined(__linux__)
 #include <malloc.h>
+
+#if !defined(__GLIBC_PREREQ)
+#error "Must run on a glibc linux environment"
+#endif
+
+#if !__GLIBC_PREREQ(2, 5)  /* manylinux1 is glibc 2.5 */
+#error "Must run on a glibc >= 2.5 linux environment"
 #endif
 
 static PyObject *
@@ -12,7 +18,12 @@ spam_system(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &command))
         return NULL;
 
-#if defined(__linux__)
+#if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 17)  /* manylinux2014 is glibc 2.17 */
+    // secure_getenv is only available in manylinux2014, ensuring
+    // that only a manylinux2014 wheel is produced
+    sts = (int)secure_getenv("NON_EXISTING_ENV_VARIABLE");
+#elif defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 10)  /* manylinux2010 is glibc 2.12 */
+    // malloc_info is only available on manylinux2010+
     sts = malloc_info(0, stdout);
 #endif
     if (sts == 0) {
@@ -38,7 +49,7 @@ spam_system(PyObject *self, PyObject *args)
 #endif
 
 static PyMethodDef module_methods[] = {
-    {"system", (PyCFunction)spam_system, METH_VARARGS, 
+    {"system", (PyCFunction)spam_system, METH_VARARGS,
      "Execute a shell command."},
     {NULL}  /* Sentinel */
 };
@@ -47,9 +58,9 @@ MOD_INIT(spam)
 {
     PyObject* m;
 
-    MOD_DEF(m, 
-            "spam", 
-            "Example module", 
+    MOD_DEF(m,
+            "spam",
+            "Example module",
             module_methods,
             -1)
 
