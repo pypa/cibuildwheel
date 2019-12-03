@@ -92,7 +92,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['python', '--version'], env=env)
 
         # install pip & wheel
-        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
+        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
         call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)
