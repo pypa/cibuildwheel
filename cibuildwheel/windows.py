@@ -124,7 +124,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         # make sure pip is installed
         if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
-            simple_shell(['python', get_pip_script], env=env)
+            simple_shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
         assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # prepare the Python environment
