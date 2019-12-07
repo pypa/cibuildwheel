@@ -132,6 +132,19 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 1.1.0
+
+_7 December 2019_
+
+- ✨ Add support for building manylinux2014 wheels. To use, set 
+  `CIBW_MANYLINUX_X86_64_IMAGE` and CIBW_MANYLINUX_I686_IMAGE to 
+  `manylinux2014`.
+- ✨ Add support for [Linux on Appveyor](https://www.appveyor.com/blog/2018/03/06/appveyor-for-linux/) (#204, #207)
+- ✨ Add `CIBW_REPAIR_WHEEL_COMMAND` env variable, for changing how
+  `auditwheel` or `delocate` are invoked, or testing an equivalent on
+  Windows. (#211)
+- 📚 Added some travis example configs - these are available in /examples. (#228)
+
 ### 1.0.0
 
 _10 November 2019_
@@ -140,7 +153,7 @@ _10 November 2019_
 - ✨ Add support for building manylinux2010 wheels. cibuildwheel will now
   build using the manylinux2010 images by default. If your project is still
   manylinux1 compatible, you should get both manylinux1 and manylinux2010
-  images - you can upload both to PyPI. If you need manylinux1 wheels, you can
+  wheels - you can upload both to PyPI. If you always require manylinux1 wheels, you can
   build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option.
   (#155)
 - 📚 Documentation is now on its [own mini-site](https://cibuildwheel.readthedocs.io),
