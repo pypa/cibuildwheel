@@ -15,7 +15,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==1.0.0
+        pip install cibuildwheel==1.1.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -25,7 +25,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==1.0.0
+        pip install cibuildwheel==1.1.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -37,7 +37,7 @@ jobs:
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==1.0.0
+        pip install cibuildwheel==1.1.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -75,7 +75,7 @@ env:
       # Note: TWINE_PASSWORD is set in Travis settings
 
 install:
-  - python -m pip install twine cibuildwheel==1.0.0
+  - python -m pip install twine cibuildwheel==1.1.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -107,7 +107,7 @@ jobs:
       - run:
           name: Build the Linux wheels.
           command: |
-            pip install --user cibuildwheel==1.0.0
+            pip install --user cibuildwheel==1.1.0
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -121,7 +121,7 @@ jobs:
       - run:
           name: Build the OS X wheels.
           command: |
-            pip install --user cibuildwheel==1.0.0
+            pip install --user cibuildwheel==1.1.0
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -153,10 +153,10 @@ image:
   - Visual Studio 2015
 build_script:
   # windows
-  - cmd: pip install cibuildwheel==1.0.0
+  - cmd: pip install cibuildwheel==1.1.0
   - cmd: cibuildwheel --output-dir wheelhouse
   # linux
-  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install cibuildwheel==1.0.0"
+  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install cibuildwheel==1.1.0"
   - sh: "${HOME}/.localpython3.7.4/bin/python3 -m cibuildwheel --output-dir wheelhouse"
 artifacts:
   - path: "wheelhouse\\*.whl"

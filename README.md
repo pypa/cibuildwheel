@@ -73,7 +73,7 @@ env:
       # Note: TWINE_PASSWORD is set in Travis settings
 
 install:
-  - python -m pip install twine cibuildwheel==1.0.0
+  - python -m pip install twine cibuildwheel==1.1.0
 
 script:
   # build the wheels, put them into './wheelhouse'
