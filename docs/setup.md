@@ -52,11 +52,9 @@ Wheels will be stored for you and available through the Pipelines interface. For
 To build Linux, Mac, and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
 
 > .travis.yml
-{% 
-   includemarkdown "../examples/travis-ci-deploy-only.yml"
-   before="```yaml\n"
-   after="```\n"
-%}
+```yaml
+{% include "../examples/travis-ci-minimal.yml" %}
+```
 
 Note that building Windows Python 2.7 wheels on Travis is unsupported.
 
