@@ -1,18 +1,18 @@
 #include <Python.h>
 #include <string>
-#if STANDARD == 11
-#include <array>
-#elif STANDARD == 14
-int a = 100'000;
-#elif STANDARD == 17
-#include <utility>
-auto a = std::pair(5.0, false);
-#else
-#error Standard needed
-#endif
 
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
+// Depending on the requested standard, use a modern C++ feature
+// that was introduced in that standard.
+#if STANDARD == 11
+    #include <array>
+#elif STANDARD == 14
+    int a = 100'000;
+#elif STANDARD == 17
+    #include <utility>
+    auto a = std::pair(5.0, false);
+#else
+    #error Standard needed
+#endif
 
 static PyObject *
 spam_system(PyObject *self, PyObject *args)

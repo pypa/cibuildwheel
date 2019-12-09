@@ -6,7 +6,7 @@ standard = os.environ["STANDARD"]
 
 language_standard = "/std:c++" + standard if platform.system() == "Windows" else "-std=c++" + standard
 
-extra_compile_args=[language_standard, "-DSTANDARD=" + standard]
+extra_compile_args = [language_standard, "-DSTANDARD=" + standard]
 
 if standard == "17":
     if platform.system() == "Windows":

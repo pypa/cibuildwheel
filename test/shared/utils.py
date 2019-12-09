@@ -53,6 +53,8 @@ def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
     '''
     if env is None:
         env = os.environ.copy()
+        # If present in the host environment, remove the MACOSX_DEPLOYMENT_TARGET for consistency
+        env.pop('MACOSX_DEPLOYMENT_TARGET', None)
 
     if add_env is not None:
         env.update(add_env)
@@ -94,20 +96,15 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
             return ['win32', 'win_amd64']
         
     elif platform == 'macos':
-        if macosx_deployment_target is not None:
-            tag = macosx_deployment_target.replace(".", "_")
-            tag1 = macosx_deployment_target.replace(".", "_")
-        else:
-            tag = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "10_6").replace(".", "_")
-            tag1 = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "10_9").replace(".", "_")
         
         def get_platform_tags(python_abi_tag):
             if python_abi_tag == 'cp38-cp38':
-                return ['macosx_' + tag1 + '_x86_64']
+                return ['macosx_' + (macosx_deployment_target or "10.9").replace(".", "_") + '_x86_64']
             else:
-                return ['macosx_' + tag + '_intel']
+                return ['macosx_' + (macosx_deployment_target or "10.6").replace(".", "_") + '_intel']
     else:
         raise Exception('unsupported platform')
+
     templates = []
     for python_abi_tag in python_abi_tags:
         for platform_tag in get_platform_tags(python_abi_tag):
