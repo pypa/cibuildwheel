@@ -66,7 +66,8 @@ def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
     return wheels
 
 
-def expected_wheels(package_name, package_version, manylinux_versions=['manylinux1', 'manylinux2010']):
+def expected_wheels(package_name, package_version, manylinux_versions=['manylinux1', 'manylinux2010'],
+                    macosx_deployment_target=None):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -83,20 +84,30 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
                 platform_tags.append('{manylinux_version}_{architecture}'.format(
                     manylinux_version=manylinux_version, architecture=architecture
                 ))
+            
         def get_platform_tags(python_abi_tag):
             return platform_tags
+        
     elif platform == 'windows':
+
         def get_platform_tags(python_abi_tag):
             return ['win32', 'win_amd64']
+        
     elif platform == 'macos':
+        if macosx_deployment_target is not None:
+            tag = macosx_deployment_target.replace(".", "_")
+            tag1 = macosx_deployment_target.replace(".", "_")
+        else:
+            tag = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "10_6").replace(".", "_")
+            tag1 = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "10_9").replace(".", "_")
+        
         def get_platform_tags(python_abi_tag):
             if python_abi_tag == 'cp38-cp38':
-                return ['macosx_10_9_x86_64']
+                return ['macosx_' + tag1 + '_x86_64']
             else:
-                return ['macosx_10_6_intel']
+                return ['macosx_' + tag + '_intel']
     else:
         raise Exception('unsupported platform')
-
     templates = []
     for python_abi_tag in python_abi_tags:
         for platform_tag in get_platform_tags(python_abi_tag):
