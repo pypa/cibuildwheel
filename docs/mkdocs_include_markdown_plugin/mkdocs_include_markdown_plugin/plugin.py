@@ -42,7 +42,11 @@ class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
 
             with io.open(file_path_abs, encoding='utf8') as f:
                 text_to_include = f.read()
-            
+
+            # Allow good practice of having a final newline in the file
+            if text_to_include.endswith('\n'):
+                text_to_include = text_to_include[:-1]
+
             return text_to_include
 
 
