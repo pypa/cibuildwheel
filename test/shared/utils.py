@@ -83,27 +83,23 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
                        'pp272-pypy_41', 'pp372-pypy3_72']
     if platform == 'linux':
         python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
-        cp_architectures = ['x86_64', 'i686']
-        pp_architectures = ['x86_64']
-
+        architectures = {'cp': ['x86_64', 'i686'], 'pp': ['x86_64']}
+        platform_tags = {}
+        for python_implemention in architectures:
+            platform_tags[python_implemention] = [
+                '{manylinux_version}_{architecture}'.format(
+                    manylinux_version=manylinux_version, architecture=architecture)
+                for architecture in architectures[python_implemention]
+                for manylinux_version in manylinux_versions
+            ]
         def get_platform_tags(python_abi_tag):
-            if python_abi_tag.startswith('pp'):
-                architectures = pp_architectures
-            else:
-                architectures = cp_architectures
-            return ['{manylinux_version}_{architecture}'.format(
-                        manylinux_version=manylinux_version, architecture=architecture
-                    )
-                    for manylinux_version in manylinux_versions
-                    for architecture in architectures]
+            return platform_tags[python_abi_tag[:2]]
     elif platform == 'windows':
         # The PyPy3 ABI tag for Windows will be consistent in the 7.3.0 release
         python_abi_tags[python_abi_tags.index('pp372-pypy3_72')] = 'pp372-pp372'
+        platform_tags = {'cp': ['win32', 'win_amd64'], 'pp': ['win32']}
         def get_platform_tags(python_abi_tag):
-            if python_abi_tag.startswith('pp'):
-                return ['win32']
-            else:
-                return ['win32', 'win_amd64']
+            return platform_tags[python_abi_tag[:2]]
 
     elif platform == 'macos':
         def get_platform_tags(python_abi_tag):
