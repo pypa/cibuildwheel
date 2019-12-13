@@ -80,9 +80,12 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
     python_abi_tags = ['cp27-cp27m', 'cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38',
-                       'pp272-pypy_41', 'pp372-pypy3_72']
+                       'pp273-pypy_73', 'pp373-pypy36_pp73']
     if platform == 'linux':
         python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
+        # We don't have PyPy 7.3.0rc1 yet on the manylinux image
+        python_abi_tags[python_abi_tags.index('pp273-pypy_73')] = 'pp272-pypy_41'
+        python_abi_tags[python_abi_tags.index('pp373-pypy36_pp73')] = 'pp372-pypy3_72'
         architectures = {'cp': ['x86_64', 'i686'], 'pp': ['x86_64']}
         platform_tags = {}
         for python_implemention in architectures:
@@ -95,8 +98,6 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
         def get_platform_tags(python_abi_tag):
             return platform_tags[python_abi_tag[:2]]
     elif platform == 'windows':
-        # The PyPy3 ABI tag for Windows will be consistent in the 7.3.0 release
-        python_abi_tags[python_abi_tags.index('pp372-pypy3_72')] = 'pp372-pp372'
         platform_tags = {'cp': ['win32', 'win_amd64'], 'pp': ['win32']}
         def get_platform_tags(python_abi_tag):
             return platform_tags[python_abi_tag[:2]]
@@ -104,9 +105,9 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     elif platform == 'macos':
         def get_platform_tags(python_abi_tag):
             default_version = '10.9'
-            if python_abi_tag == 'pp272-pypy_41':
+            if python_abi_tag == 'pp273-pypy_73':
                 default_version = '10.7'
-            elif python_abi_tag == 'pp372-pypy3_72':
+            elif python_abi_tag == 'pp373-pypy36_pp73':
                 default_version = '10.13'
             return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
     else:

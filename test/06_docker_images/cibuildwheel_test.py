@@ -19,5 +19,5 @@ def test():
 
     # also check that we got the right wheels built
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                       if 'pypy' not in w]
+                       if '-pp' not in w]
     assert set(actual_wheels) == set(expected_wheels)

@@ -47,8 +47,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7.6', arch="64", identifier='cp37-win_amd64', url=None),
         PythonConfiguration(version='3.8.1', arch="32", identifier='cp38-win32', url=None),
         PythonConfiguration(version='3.8.1', arch="64", identifier='cp38-win_amd64', url=None),
-        PythonConfiguration(version='2.7-v7.2.0', arch="32", identifier='pp272-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.2.0-win32.zip'),
-        PythonConfiguration(version='3.6-v7.2.0', arch="32", identifier='pp372-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.2.0-win32.zip'),
+        PythonConfiguration(version='2.7-v7.3.0rc1', arch="32", identifier='pp27_73-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0rc1-win32.zip'),
+        PythonConfiguration(version='3.6-v7.3.0rc1', arch="32", identifier='pp36_73-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0rc1-win32.zip'),
     ]
 
     if IS_RUNNING_ON_TRAVIS:
@@ -111,7 +111,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             pypy_exe = 'pypy.exe' if config.version[0] == '2' else 'pypy3.exe'
             simple_shell(['mklink', os.path.join(config_python_path, 'python.exe'), os.path.join(config_python_path, pypy_exe)])
             simple_shell(['mklink', '/d', os.path.join(config_python_path, 'Scripts'), os.path.join(config_python_path, 'bin')])
-            simple_shell(['chcp', '437'])  # Workaround for https://bitbucket.org/pypy/pypy/issues/3081/
         assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
 
         # set up PATH and environment variables for run_with_env
