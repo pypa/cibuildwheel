@@ -20,6 +20,7 @@ def not_call_mock(*args, **kwargs):
     raise RuntimeError("This should never be called")
 
 
+@pytest.fixture(autouse=True)
 def apply_mock_protection(monkeypatch):
     monkeypatch.setattr(subprocess, "Popen", not_call_mock)
     monkeypatch.setattr(windows, "urlopen", not_call_mock)
@@ -32,7 +33,6 @@ def apply_mock_protection(monkeypatch):
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):
     monkeypatch.setattr(os, 'environ', {})
-    apply_mock_protection(monkeypatch)
     with pytest.raises(SystemExit) as exit:
         main()
     assert exit.value.code == 2
@@ -43,7 +43,6 @@ def test_unknown_platform_non_ci(monkeypatch, capsys):
 
 def test_unknown_platform_on_ci(monkeypatch, capsys):
     monkeypatch.setattr(os, 'environ', {"CI": "true"})
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(sys, "platform", "Something")
 
     with pytest.raises(SystemExit) as exit:
@@ -55,7 +54,6 @@ def test_unknown_platform_on_ci(monkeypatch, capsys):
 
 def test_unknown_platform(monkeypatch, capsys):
     monkeypatch.setattr(os, 'environ', {"CIBW_PLATFORM": "Something"})
-    apply_mock_protection(monkeypatch)
     with pytest.raises(SystemExit) as exit:
         main()
     _, err = capsys.readouterr()
@@ -65,7 +63,6 @@ def test_unknown_platform(monkeypatch, capsys):
 @pytest.mark.parametrize("system", ["macos", "linux", "windows"])
 @pytest.mark.parametrize("choose_platform_method", ["partameter", "environment"])
 def test_platform_chose(system, choose_platform_method, argtest, monkeypatch):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     if choose_platform_method == "partameter":
         monkeypatch.setattr(sys, "argv", sys.argv + ["--platform", system])
@@ -77,7 +74,6 @@ def test_platform_chose(system, choose_platform_method, argtest, monkeypatch):
 @pytest.mark.parametrize("system", ["macos", "linux", "windows"])
 @pytest.mark.parametrize("output_dir", ["partameter", "environment", "both", "none"])
 def test_output_dir_set(system, output_dir, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     output_name = "out"
     env = {"CIBW_PLATFORM": system}
@@ -105,7 +101,6 @@ def test_output_dir_set(system, output_dir, monkeypatch, argtest):
     ("*c*", {"abcd", "bcde"})
 ])
 def test_build_selector(system, build, build_set, skip, skip_set, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system, "CIBW_BUILD": build, "CIBW_SKIP": skip}
     monkeypatch.setattr(os, 'environ', env)
@@ -119,7 +114,6 @@ def test_build_selector(system, build, build_set, skip, skip_set, monkeypatch, a
 @pytest.mark.parametrize("system", ["macos", "windows"])
 @pytest.mark.parametrize("manylinux", ["none", "manylinux1"])
 def test_no_manylinux(system, manylinux, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     if manylinux != "none":
@@ -142,7 +136,6 @@ def test_no_manylinux(system, manylinux, monkeypatch, argtest):
     ("asfsgd", "asfsgd")])
 def test_manylinux_choose(manylinux86, manylinux86_image, manylinux64,
         manylinux64_image, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(linux, "build", argtest)
     env = {"CIBW_PLATFORM": "linux"}
     if manylinux86 != "none":
@@ -161,7 +154,6 @@ def test_manylinux_choose(manylinux86, manylinux86_image, manylinux64,
 @pytest.mark.parametrize("repair_command", ["none", "aaaa", "repair -w {dest_dir} {wheel}"])
 @pytest.mark.parametrize("system_suffix", (True, False))
 def test_repair_command(system, default_repair, repair_command, system_suffix, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     if repair_command != "none":
@@ -184,7 +176,6 @@ def test_repair_command(system, default_repair, repair_command, system_suffix, m
 @pytest.mark.parametrize("environment", [{}, {"AAA": "123"}, {"AA1": "124", "AA2": "124"}])
 @pytest.mark.parametrize("platform_environment", [{}, {"BBB": "123"}, {"BB1": "123", "BB2": "127"}])
 def test_environment(system, environment, platform_environment, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     cibw_env = " ".join(["{}={}".format(k, v) for k, v in environment.items()])
@@ -206,7 +197,6 @@ def test_environment(system, environment, platform_environment, monkeypatch, arg
 @pytest.mark.parametrize("test_requires", ["", "test1"])
 @pytest.mark.parametrize("platform_test_requires", ["", "test2"])
 def test_test_requires(system, test_requires, platform_test_requires, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     if test_requires:
@@ -226,7 +216,6 @@ def test_test_requires(system, test_requires, platform_test_requires, monkeypatc
 @pytest.mark.parametrize("test_extras", ["", "test1"])
 @pytest.mark.parametrize("platform_test_extras", ["", "test2"])
 def test_test_extras(system, test_extras, platform_test_extras, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     if test_extras:
@@ -248,7 +237,6 @@ def test_test_extras(system, test_extras, platform_test_extras, monkeypatch, arg
 @pytest.mark.parametrize("test_command", [None, "test1"])
 @pytest.mark.parametrize("platform_test_command", [None, "test2"])
 def test_test_command(system, test_command, platform_test_command, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     if test_command:
@@ -268,7 +256,6 @@ def test_test_command(system, test_command, platform_test_command, monkeypatch, 
 @pytest.mark.parametrize("before_build", [None, "test1"])
 @pytest.mark.parametrize("platform_before_build", [None, "test2"])
 def test_before_build(system, before_build, platform_before_build, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     if before_build:
@@ -288,7 +275,6 @@ def test_before_build(system, before_build, platform_before_build, monkeypatch, 
 @pytest.mark.parametrize("verbosity", [None, 0, -2, 4])
 @pytest.mark.parametrize("platform_verbosity", [None, 0, 2, -4])
 def test_build_verbosity(system, verbosity, platform_verbosity, monkeypatch, argtest):
-    apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
     if verbosity is not None:
