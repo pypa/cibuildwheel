@@ -148,7 +148,7 @@ You must set this variable to pass variables to Linux builds (since they execute
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
-To specify more than one environment variable separate it by space. 
+To specify more than one environment variable, separate the assignments by spaces. 
 
 Platform-specific variants also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
