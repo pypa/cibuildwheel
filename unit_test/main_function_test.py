@@ -202,43 +202,86 @@ def test_environment(system, environment, platform_environment, monkeypatch, arg
         assert argtest.kwargs["environment"].as_dictionary({}) == environment
 
 
-def identity(x):
-    return x
-
-
-def extras(x):
-    if x is None:
-        return ""
-    return "[{}]".format(x)
-
-
-def requires(x):
-    if x is None:
-        return []
-    return x.split()
-
-
 @pytest.mark.parametrize("system", ["macos", "linux", "windows"])
-@pytest.mark.parametrize("generic_var", [None, "test1"])
-@pytest.mark.parametrize("platform_generic_var", [None, "test2"])
-@pytest.mark.parametrize("environ_var,kwargs_var,transform_var", [
-    ("CIBW_BEFORE_BUILD", "before_build", identity), ("CIBW_TEST_COMMAND", "test_command", identity),
-    ("CIBW_TEST_EXTRAS", "test_extras", extras), ("CIBW_TEST_REQUIRES", "test_requires", requires)])
-def test_generic_var(system, generic_var, platform_generic_var, environ_var, kwargs_var, transform_var, monkeypatch, argtest):
+@pytest.mark.parametrize("test_requires", ["", "test1"])
+@pytest.mark.parametrize("platform_test_requires", ["", "test2"])
+def test_test_requires(system, test_requires, platform_test_requires, monkeypatch, argtest):
     apply_mock_protection(monkeypatch)
     monkeypatch.setattr(globals()[system], "build", argtest)
     env = {"CIBW_PLATFORM": system}
-    if generic_var:
-        env[environ_var] = generic_var
-    if platform_generic_var:
-        env["{}_{}".format(environ_var, system.upper())] = platform_generic_var
+    if test_requires:
+        env["CIBW_TEST_REQUIRES"] = test_requires
+    if platform_test_requires:
+        env["CIBW_TEST_REQUIRES_{}".format(system.upper())] = platform_test_requires
     monkeypatch.setattr(os, 'environ', env)
     main()
     assert isinstance(argtest.kwargs["environment"], ParsedEnvironment)
-    if platform_generic_var:
-        assert argtest.kwargs[kwargs_var] == transform_var(platform_generic_var)
+    if platform_test_requires:
+        assert argtest.kwargs["test_requires"] == platform_test_requires.split()
     else:
-        assert argtest.kwargs[kwargs_var] == transform_var(generic_var)
+        assert argtest.kwargs["test_requires"] == test_requires.split()
+
+
+@pytest.mark.parametrize("system", ["macos", "linux", "windows"])
+@pytest.mark.parametrize("test_extras", ["", "test1"])
+@pytest.mark.parametrize("platform_test_extras", ["", "test2"])
+def test_test_extras(system, test_extras, platform_test_extras, monkeypatch, argtest):
+    apply_mock_protection(monkeypatch)
+    monkeypatch.setattr(globals()[system], "build", argtest)
+    env = {"CIBW_PLATFORM": system}
+    if test_extras:
+        env["CIBW_TEST_EXTRAS"] = test_extras
+    if platform_test_extras:
+        env["CIBW_TEST_EXTRAS_{}".format(system.upper())] = platform_test_extras
+    monkeypatch.setattr(os, 'environ', env)
+    main()
+    assert isinstance(argtest.kwargs["environment"], ParsedEnvironment)
+    if platform_test_extras:
+        assert argtest.kwargs["test_extras"] == "[" + platform_test_extras + "]"
+    elif test_extras:
+        assert argtest.kwargs["test_extras"] == "[" + test_extras + "]"
+    else:
+        assert argtest.kwargs["test_extras"] == ""
+
+
+@pytest.mark.parametrize("system", ["macos", "linux", "windows"])
+@pytest.mark.parametrize("test_command", [None, "test1"])
+@pytest.mark.parametrize("platform_test_command", [None, "test2"])
+def test_test_command(system, test_command, platform_test_command, monkeypatch, argtest):
+    apply_mock_protection(monkeypatch)
+    monkeypatch.setattr(globals()[system], "build", argtest)
+    env = {"CIBW_PLATFORM": system}
+    if test_command:
+        env["CIBW_TEST_COMMAND"] = test_command
+    if platform_test_command:
+        env["CIBW_TEST_COMMAND_{}".format(system.upper())] = platform_test_command
+    monkeypatch.setattr(os, 'environ', env)
+    main()
+    assert isinstance(argtest.kwargs["environment"], ParsedEnvironment)
+    if platform_test_command:
+        assert argtest.kwargs["test_command"] == platform_test_command
+    else:
+        assert argtest.kwargs["test_command"] == test_command
+
+
+@pytest.mark.parametrize("system", ["macos", "linux", "windows"])
+@pytest.mark.parametrize("before_build", [None, "test1"])
+@pytest.mark.parametrize("platform_before_build", [None, "test2"])
+def test_before_build(system, before_build, platform_before_build, monkeypatch, argtest):
+    apply_mock_protection(monkeypatch)
+    monkeypatch.setattr(globals()[system], "build", argtest)
+    env = {"CIBW_PLATFORM": system}
+    if before_build:
+        env["CIBW_BEFORE_BUILD"] = before_build
+    if platform_before_build:
+        env["CIBW_BEFORE_BUILD_{}".format(system.upper())] = platform_before_build
+    monkeypatch.setattr(os, 'environ', env)
+    main()
+    assert isinstance(argtest.kwargs["environment"], ParsedEnvironment)
+    if platform_before_build:
+        assert argtest.kwargs["before_build"] == platform_before_build
+    else:
+        assert argtest.kwargs["before_build"] == before_build
 
 
 @pytest.mark.parametrize("system", ["macos", "linux", "windows"])
