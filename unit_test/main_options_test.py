@@ -2,7 +2,6 @@ import pytest
 
 import sys
 
-from cibuildwheel import linux, macos, windows
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.util import BuildSelector

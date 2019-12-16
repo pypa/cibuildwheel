@@ -3,7 +3,6 @@ import pytest
 import sys
 
 from cibuildwheel.__main__ import main
-from cibuildwheel import linux, macos, windows
 
 from main_util_fixtures import MOCK_PROJECT_DIR, mock_protection, platform, intercepted_build_args
 
