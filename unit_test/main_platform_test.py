@@ -46,6 +46,7 @@ def test_unknown_platform(monkeypatch, capsys):
 
 
 def test_platform_argument(platform, intercepted_build_args, monkeypatch):
+    monkeypatch.setenv('CIBW_PLATFORM', 'nonexistent')
     monkeypatch.setattr(sys, 'argv', sys.argv + ['--platform', platform])
 
     main()
