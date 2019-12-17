@@ -63,17 +63,29 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
         return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+    
     def download(url, dest):
         print('+ Download ' + url + ' to ' + dest)
         dest_dir = os.path.dirname(dest)
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
-        response = urlopen(url)
+        for _ in range(10):
+            try:
+                response = urlopen(url)
+            except:
+                sleep(3)
+                continue
+            break
+        else:
+            print("Download from url " + url + "failed", file=sys.stderr)
+            sys.exit(1)
+
         try:
             with open(dest, 'wb') as file:
                 file.write(response.read())
         finally:
             response.close()
+    
     if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         shell = simple_shell
     else:
@@ -97,15 +109,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
     # get pip fo this installation which not have.
     get_pip_script = 'C:\\cibw\\get-pip.py'
-
-    for _ in range(10):
-        try:
-            download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
-        except:
-            sleep(3)
-            continue
-        break
-    assert os.path.exists(get_pip_script)
+    download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
 
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
