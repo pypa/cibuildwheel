@@ -69,16 +69,16 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         dest_dir = os.path.dirname(dest)
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
-        for _ in range(3):
+        repeat_num = 3
+        for i in range(repeat_num):
             try:
                 response = urlopen(url)
             except:
+                if i == repeat_num - 1:
+                    raise 
                 sleep(3)
                 continue
             break
-        else:
-            print("Download from url " + url + "failed", file=sys.stderr)
-            sys.exit(1)
 
         try:
             with open(dest, 'wb') as file:
