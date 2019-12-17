@@ -69,7 +69,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         dest_dir = os.path.dirname(dest)
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
-        for _ in range(10):
+        for _ in range(3):
             try:
                 response = urlopen(url)
             except:

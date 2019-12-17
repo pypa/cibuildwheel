@@ -51,7 +51,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
     # get latest pip once and for all
-    for _ in range(10):
+    for _ in range(3):
         try:
             call(['curl', '-L', '-o', get_pip_script, get_pip_url])
         except subprocess.CalledProcessError:
