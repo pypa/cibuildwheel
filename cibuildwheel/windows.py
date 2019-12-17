@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os, tempfile, subprocess, shutil, sys
+from time import sleep
 from collections import namedtuple
 from glob import glob
 
@@ -96,7 +97,15 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
     # get pip fo this installation which not have.
     get_pip_script = 'C:\\cibw\\get-pip.py'
-    download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
+
+    for _ in range(10):
+        try:
+            download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
+        except:
+            sleep(3)
+            continue
+        break
+    assert os.path.exists(get_pip_script)
 
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:

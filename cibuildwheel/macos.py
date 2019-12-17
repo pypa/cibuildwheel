@@ -1,4 +1,5 @@
 from __future__ import print_function
+from time import sleep
 import tempfile
 import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
@@ -50,7 +51,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
     # get latest pip once and for all
-    call(['curl', '-L', '-o', get_pip_script, get_pip_url])
+    for _ in range(10):
+        try:
+            call(['curl', '-L', '-o', get_pip_script, get_pip_url])
+        except subprocess.CalledProcessError:
+            sleep(3)
+            continue
+        break
+    assert os.path.exists(get_pip_script)
 
     for config in python_configurations:
         # if this version of python isn't installed, get it from python.org and install
