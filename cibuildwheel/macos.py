@@ -1,5 +1,4 @@
 from __future__ import print_function
-from time import sleep
 import tempfile
 import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
