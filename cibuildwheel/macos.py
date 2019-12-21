@@ -97,7 +97,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
         call(['pip', 'install', '--upgrade', 'setuptools'], env=env)
-        call(['pip', 'install', 'git+https://github.com/Czaki/wheel.git@1a907d36eb4921efa0c9e7dce6b570aa5f84d7f5'], env=env)
+        call(['pip', 'install', 'git+https://github.com/Czaki/wheel.git@0dd9f3e66893517ec4c9521db523ea3a899a5148'], env=env)
         call(['pip', 'install', 'delocate'], env=env)
 
         # run the before_build command
