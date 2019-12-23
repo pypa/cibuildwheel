@@ -167,7 +167,8 @@ def main():
         default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686',
                                          'manylinux2010': 'quay.io/pypa/manylinux2010_i686',
                                          'manylinux2014': 'quay.io/pypa/manylinux2014_i686'}
-        default_manylinux_images_pypy_x86_64 = {'manylinux2010': 'pypywheels/manylinux2010-pypy_x86_64'}
+        # Testing 7.3.0rc3. Before merging PR, reset to 'pypywheels/manylinux2010-pypy_x86_64'!
+        default_manylinux_images_pypy_x86_64 = {'manylinux2010': 'yannickjadoul/manylinux2010-pypy_x86_64:7.3.0rc3'} 
 
         build_options.update(
             manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
