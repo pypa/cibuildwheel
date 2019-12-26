@@ -50,7 +50,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
     # get latest pip once and for all
-    call(['curl', '-L', '-o', get_pip_script, get_pip_url])
+    
+    call(['curl', '-L', '--retry', '3', '--retry-delay', '3', '-o', get_pip_script, get_pip_url])
 
     for config in python_configurations:
         # if this version of python isn't installed, get it from python.org and install

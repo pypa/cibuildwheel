@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os, tempfile, subprocess, shutil, sys
+from time import sleep
 from collections import namedtuple
 from glob import glob
 
@@ -62,17 +63,29 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
         return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+    
     def download(url, dest):
         print('+ Download ' + url + ' to ' + dest)
         dest_dir = os.path.dirname(dest)
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
-        response = urlopen(url)
+        repeat_num = 3
+        for i in range(repeat_num):
+            try:
+                response = urlopen(url)
+            except:
+                if i == repeat_num - 1:
+                    raise 
+                sleep(3)
+                continue
+            break
+
         try:
             with open(dest, 'wb') as file:
                 file.write(response.read())
         finally:
             response.close()
+    
     if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         shell = simple_shell
     else:
