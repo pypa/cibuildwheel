@@ -63,11 +63,11 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
     ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64'), 
     ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64'),
     ('x86_64', 'manylinux2010', 'quay.io/pypa/manylinux2010_x86_64'),
-    ('x86_64', 'custom_image', None),
+    ('x86_64', 'custom_image', 'custom_image'),
     ('i686', None, 'quay.io/pypa/manylinux2010_i686'), 
     ('i686', 'manylinux1', 'quay.io/pypa/manylinux1_i686'),
     ('i686', 'manylinux2010', 'quay.io/pypa/manylinux2010_i686'),
-    ('i686', 'custom_image', None),
+    ('i686', 'custom_image', 'custom_image'),
 ])
 def test_manylinux_images(architecture, image, full_image, platform, intercepted_build_args, monkeypatch):
     if image is not None:
@@ -76,7 +76,7 @@ def test_manylinux_images(architecture, image, full_image, platform, intercepted
     main()
 
     if platform == 'linux':
-        assert intercepted_build_args.kwargs['manylinux_images'][architecture] == full_image or image
+        assert intercepted_build_args.kwargs['manylinux_images'][architecture] == full_image
     else:
         assert 'manylinux_images' not in intercepted_build_args.kwargs
 
@@ -88,6 +88,8 @@ def get_default_repair_command(platform):
         return 'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'
     elif platform == 'windows':
         return ''
+    else:
+        raise ValueError('Unknown platform', platform)
 
 @pytest.mark.parametrize('repair_command', [None, 'repair', 'repair -w {dest_dir} {wheel}'])
 @pytest.mark.parametrize('platform_specific', [False, True])
@@ -123,7 +125,7 @@ def test_environment(environment, platform_specific, platform, intercepted_build
 
     intercepted_environment = intercepted_build_args.kwargs['environment']
     assert isinstance(intercepted_environment, ParsedEnvironment)
-    assert intercepted_environment.as_dictionary({}) == environment
+    assert intercepted_environment.as_dictionary(prev_environment={}) == environment
 
 
 @pytest.mark.parametrize('test_requires', [None, 'requirement other_requirement'])
@@ -168,7 +170,7 @@ def test_test_command(test_command, platform_specific, platform, intercepted_bui
 
     main()
 
-    assert intercepted_build_args.kwargs['test_command'] == test_command or ''
+    assert intercepted_build_args.kwargs['test_command'] == test_command
 
 
 @pytest.mark.parametrize('before_build', [None, 'before --build'])
@@ -183,7 +185,7 @@ def test_before_build(before_build, platform_specific, platform, intercepted_bui
 
     main()
 
-    assert intercepted_build_args.kwargs['before_build'] == before_build or ''
+    assert intercepted_build_args.kwargs['before_build'] == before_build
 
 
 @pytest.mark.parametrize('build_verbosity', [None, 0, 2, -2, 4, -4])
