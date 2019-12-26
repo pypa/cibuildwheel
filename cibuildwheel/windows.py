@@ -41,10 +41,10 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.5.4', arch="64", identifier='cp35-win_amd64'),
         PythonConfiguration(version='3.6.8', arch="32", identifier='cp36-win32'),
         PythonConfiguration(version='3.6.8', arch="64", identifier='cp36-win_amd64'),
-        PythonConfiguration(version='3.7.5', arch="32", identifier='cp37-win32'),
-        PythonConfiguration(version='3.7.5', arch="64", identifier='cp37-win_amd64'),
-        PythonConfiguration(version='3.8.0', arch="32", identifier='cp38-win32'),
-        PythonConfiguration(version='3.8.0', arch="64", identifier='cp38-win_amd64'),
+        PythonConfiguration(version='3.7.6', arch="32", identifier='cp37-win32'),
+        PythonConfiguration(version='3.7.6', arch="64", identifier='cp37-win_amd64'),
+        PythonConfiguration(version='3.8.1', arch="32", identifier='cp38-win32'),
+        PythonConfiguration(version='3.8.1', arch="64", identifier='cp38-win_amd64'),
     ]
 
     if IS_RUNNING_ON_TRAVIS:
