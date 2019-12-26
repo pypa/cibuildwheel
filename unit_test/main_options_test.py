@@ -6,7 +6,7 @@ from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.util import BuildSelector
 
-from main_util_fixtures import mock_protection, platform, intercepted_build_args
+from main_util_fixtures import mock_protection, fake_project_dir, platform, intercepted_build_args
 
 
 

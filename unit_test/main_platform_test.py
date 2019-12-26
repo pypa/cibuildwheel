@@ -4,7 +4,7 @@ import sys
 
 from cibuildwheel.__main__ import main
 
-from main_util_fixtures import MOCK_PROJECT_DIR, mock_protection, platform, intercepted_build_args
+from main_util_fixtures import MOCK_PROJECT_DIR, mock_protection, fake_project_dir, platform, intercepted_build_args
 
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):
