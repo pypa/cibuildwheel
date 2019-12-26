@@ -63,10 +63,12 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
     ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64'), 
     ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64'),
     ('x86_64', 'manylinux2010', 'quay.io/pypa/manylinux2010_x86_64'),
+    ('x86_64', 'manylinux2014', 'quay.io/pypa/manylinux2014_x86_64'),
     ('x86_64', 'custom_image', 'custom_image'),
     ('i686', None, 'quay.io/pypa/manylinux2010_i686'), 
     ('i686', 'manylinux1', 'quay.io/pypa/manylinux1_i686'),
     ('i686', 'manylinux2010', 'quay.io/pypa/manylinux2010_i686'),
+    ('i686', 'manylinux2014', 'quay.io/pypa/manylinux2014_i686'),
     ('i686', 'custom_image', 'custom_image'),
 ])
 def test_manylinux_images(architecture, image, full_image, platform, intercepted_build_args, monkeypatch):
