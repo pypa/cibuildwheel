@@ -8,39 +8,7 @@ Using Azure pipelines, you can build all three platforms on the same service. Cr
 
 > azure-pipelines.yml
 ```yaml
-jobs:
-- job: linux
-  pool: {vmImage: 'Ubuntu-16.04'}
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        python -m pip install --upgrade pip
-        pip install cibuildwheel==1.1.0
-        cibuildwheel --output-dir wheelhouse .
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: 'wheelhouse'}
-- job: macos
-  pool: {vmImage: 'macOS-10.13'}
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        python -m pip install --upgrade pip
-        pip install cibuildwheel==1.1.0
-        cibuildwheel --output-dir wheelhouse .
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: 'wheelhouse'}
-- job: windows
-  pool: {vmImage: 'vs2017-win2016'}
-  steps:
-    - task: UsePythonVersion@0
-    - script: choco install vcpython27 -f -y
-      displayName: Install Visual C++ for Python 2.7
-    - bash: |
-        python -m pip install --upgrade pip
-        pip install cibuildwheel==1.1.0
-        cibuildwheel --output-dir wheelhouse .
-    - task: PublishBuildArtifacts@1
-      inputs: {pathtoPublish: 'wheelhouse'}
+{% include "../examples/azure-pipelines-minimal.yml" %}
 ```
 
 Commit this file, enable building of your repo on Azure Pipelines, and push.
@@ -53,33 +21,7 @@ To build Linux, Mac, and Windows wheels on Travis CI, create a `.travis.yml` fil
 
 > .travis.yml
 ```yaml
-language: python
-
-jobs:
-  include:
-    # perform a linux build
-    - services: docker
-    # and a mac build
-    - os: osx
-      language: shell
-    # and a windows build
-    - os: windows
-      language: shell
-      before_install:
-        - choco install python --version 3.8.0
-        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
-
-env:
-  global:
-    - TWINE_USERNAME=joerick
-      # Note: TWINE_PASSWORD is set in Travis settings
-
-install:
-  - python -m pip install twine cibuildwheel==1.1.0
-
-script:
-  # build the wheels, put them into './wheelhouse'
-  - python -m cibuildwheel --output-dir wheelhouse
+{% include "../examples/travis-ci-minimal.yml" %}
 ```
 
 Note that building Windows Python 2.7 wheels on Travis is unsupported.
@@ -94,44 +36,7 @@ To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file 
 
 > .circleci/config.yml
 ```yaml
-version: 2
-
-jobs:
-  linux-wheels:
-    working_directory: ~/linux-wheels
-    docker:
-      - image: circleci/python:3.6
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Build the Linux wheels.
-          command: |
-            pip install --user cibuildwheel==1.1.0
-            cibuildwheel --output-dir wheelhouse
-      - store_artifacts:
-          path: wheelhouse/
-
-  osx-wheels:
-    working_directory: ~/osx-wheels
-    macos:
-      xcode: "10.0.0"
-    steps:
-      - checkout
-      - run:
-          name: Build the OS X wheels.
-          command: |
-            pip install --user cibuildwheel==1.1.0
-            cibuildwheel --output-dir wheelhouse
-      - store_artifacts:
-          path: wheelhouse/
-
-workflows:
-  version: 2
-  all-tests:
-    jobs:
-      - linux-wheels
-      - osx-wheels
+{% include "../examples/circleci-minimal.yml" %}
 ```
 
 Commit this file, enable building of your repo on CircleCI, and push.
@@ -148,19 +53,7 @@ To build Linux and Windows wheels on AppVeyor, create an `appveyor.yml` file in 
 > appveyor.yml
 
 ```yaml
-image:
-  - Ubuntu
-  - Visual Studio 2015
-build_script:
-  # windows
-  - cmd: pip install cibuildwheel==1.1.0
-  - cmd: cibuildwheel --output-dir wheelhouse
-  # linux
-  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install cibuildwheel==1.1.0"
-  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m cibuildwheel --output-dir wheelhouse"
-artifacts:
-  - path: "wheelhouse\\*.whl"
-    name: Wheels
+{% include "../examples/appveyor-minimal.yml" %}
 ```
 
 Commit this file, enable building of your repo on AppVeyor, and push.

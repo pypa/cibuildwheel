@@ -74,4 +74,3 @@ env:
   global:
     - TWINE_USERNAME=joerick
       # Note: TWINE_PASSWORD is set in Travis settings
-
