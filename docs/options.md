@@ -72,15 +72,15 @@ When setting the options, you can use shell-style globbing syntax (as per [`fnma
 
 <div class="build-id-table-marker"></div>
 
-|                 | macOS 64bit            | Manylinux 64bit                | Manylinux 32bit      | Windows 64bit   | Windows 32bit  |
-|-----------------|------------------------|--------------------------------|----------------------|-----------------|----------------|
-| Python 2.7      | cp27-macosx_x86_64     | cp27-manylinux_x86_64          | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |
-| Python 3.5      | cp35-macosx_x86_64     | cp35-manylinux_x86_64          | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     |
-| Python 3.6      | cp36-macosx_x86_64     | cp36-manylinux_x86_64          | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     |
-| Python 3.7      | cp37-macosx_x86_64     | cp37-manylinux_x86_64          | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     |
-| Python 3.8      | cp38-macosx_x86_64     | cp38-manylinux_x86_64          | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     |
-| PyPy 2.7 v7.3.0 | pp27_73-macosx_x86_64  | pp27_73-manylinux_pypy_x86_64  |                      |                 | pp27_73-win32  |
-| PyPy 3.6 v7.3.0 | pp36_73-macosx_x86_64  | pp36_73-manylinux_pypy_x86_64  |                      |                 | pp36_73-win32  |
+|                 | macOS 64bit            | Manylinux 64bit           | Manylinux 32bit      | Windows 64bit   | Windows 32bit  |
+|-----------------|------------------------|---------------------------|----------------------|-----------------|----------------|
+| Python 2.7      | cp27-macosx_x86_64     | cp27-manylinux_x86_64     | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |
+| Python 3.5      | cp35-macosx_x86_64     | cp35-manylinux_x86_64     | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     |
+| Python 3.6      | cp36-macosx_x86_64     | cp36-manylinux_x86_64     | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     |
+| Python 3.7      | cp37-macosx_x86_64     | cp37-manylinux_x86_64     | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     |
+| Python 3.8      | cp38-macosx_x86_64     | cp38-manylinux_x86_64     | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     |
+| PyPy 2.7 v7.3.0 | pp27_73-macosx_x86_64  | pp27_73-manylinux_x86_64  |                      |                 | pp27_73-win32  |
+| PyPy 3.6 v7.3.0 | pp36_73-macosx_x86_64  | pp36_73-manylinux_x86_64  |                      |                 | pp36_73-win32  |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
