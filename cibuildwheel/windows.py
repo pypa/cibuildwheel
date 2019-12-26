@@ -17,38 +17,28 @@ IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
-def get_python_path(config): 
-    if config.identifier.startswith('cp'):
-        nuget_args = get_nuget_args(config)
-        return os.path.join(nuget_args[-1], nuget_args[0] + "." + config.version, "tools")
-    elif config.identifier.startswith('pp'):
-        # Inside the PyPy zip file is a directory with the same name
-        filename = config.url.rsplit('/', 1)[-1]
-        return os.path.join("C:\\cibw", os.path.splitext(filename)[0])
-
-
-def get_nuget_args(configuration):
-    python_name = "python" if configuration.version[0] == '3' else "python2"
-    if configuration.arch == "32":
-        python_name = python_name + "x86"
-    return [python_name, "-Version", configuration.version, "-OutputDirectory", "C:/cibw/python"]
+def get_nuget_args(version, arch):
+    python_name = 'python' if version[0] == '3' else 'python2'
+    if arch == '32':
+        python_name = python_name + 'x86'
+    return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
 
 
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7.17', arch="32", identifier='cp27-win32', url=None),
-        PythonConfiguration(version='2.7.17', arch="64", identifier='cp27-win_amd64', url=None),
-        PythonConfiguration(version='3.5.4', arch="32", identifier='cp35-win32', url=None),
-        PythonConfiguration(version='3.5.4', arch="64", identifier='cp35-win_amd64', url=None),
-        PythonConfiguration(version='3.6.8', arch="32", identifier='cp36-win32', url=None),
-        PythonConfiguration(version='3.6.8', arch="64", identifier='cp36-win_amd64', url=None),
-        PythonConfiguration(version='3.7.6', arch="32", identifier='cp37-win32', url=None),
-        PythonConfiguration(version='3.7.6', arch="64", identifier='cp37-win_amd64', url=None),
-        PythonConfiguration(version='3.8.1', arch="32", identifier='cp38-win32', url=None),
-        PythonConfiguration(version='3.8.1', arch="64", identifier='cp38-win_amd64', url=None),
-        PythonConfiguration(version='2.7-v7.3.0', arch="32", identifier='pp27_73-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-win32.zip'),
-        PythonConfiguration(version='3.6-v7.3.0', arch="32", identifier='pp36_73-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-win32.zip'),
+        PythonConfiguration(version='2.7.17', arch='32', identifier='cp27-win32', url=None),
+        PythonConfiguration(version='2.7.17', arch='64', identifier='cp27-win_amd64', url=None),
+        PythonConfiguration(version='3.5.4', arch='32', identifier='cp35-win32', url=None),
+        PythonConfiguration(version='3.5.4', arch='64', identifier='cp35-win_amd64', url=None),
+        PythonConfiguration(version='3.6.8', arch='32', identifier='cp36-win32', url=None),
+        PythonConfiguration(version='3.6.8', arch='64', identifier='cp36-win_amd64', url=None),
+        PythonConfiguration(version='3.7.6', arch='32', identifier='cp37-win32', url=None),
+        PythonConfiguration(version='3.7.6', arch='64', identifier='cp37-win_amd64', url=None),
+        PythonConfiguration(version='3.8.1', arch='32', identifier='cp38-win32', url=None),
+        PythonConfiguration(version='3.8.1', arch='64', identifier='cp38-win_amd64', url=None),
+        PythonConfiguration(version='2.7-v7.3.0', arch='32', identifier='pp27_73-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-win32.zip'),
+        PythonConfiguration(version='3.6-v7.3.0', arch='32', identifier='pp36_73-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-win32.zip'),
     ]
 
     if IS_RUNNING_ON_TRAVIS:
@@ -71,6 +61,28 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     def extract_zip(zip_src, dest):
         with ZipFile(zip_src) as zip:
             zip.extractall(dest)
+    
+    def install_cpython(version, arch):
+        nuget_args = get_nuget_args(version, arch)
+        installation_path = os.path.join(nuget_args[-1], nuget_args[0] + '.' + version, 'tools')
+        simple_shell([nuget, 'install'] + nuget_args)
+        return installation_path
+    
+    def install_pypy(version, arch, url):
+        assert arch == '32'
+        # Inside the PyPy zip file is a directory with the same name
+        zip_filename = url.rsplit('/', 1)[-1]
+        installation_path = os.path.join('C:\\cibw', os.path.splitext(zip_filename)[0])
+        if not os.path.exists(installation_path):
+            pypy_zip = os.path.join('C:\\cibw', zip_filename)
+            download(url, pypy_zip)
+            # Extract to the parent directory because the zip file still contains a directory
+            extract_zip(pypy_zip, os.path.dirname(installation_path))
+            pypy_exe = 'pypy3.exe' if config.version[0] == '3' else 'pypy.exe'
+            simple_shell(['mklink', os.path.join(installation_path, 'python.exe'), os.path.join(installation_path, pypy_exe)])
+            simple_shell(['mklink', '/d', os.path.join(installation_path, 'Scripts'), os.path.join(installation_path, 'bin')])
+        return installation_path
+
 
     if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         shell = simple_shell
@@ -100,26 +112,22 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
         # install Python
-        config_python_path = get_python_path(config)
         if config.identifier.startswith('cp'):
-            simple_shell([nuget, "install"] + get_nuget_args(config))
-        elif config.identifier.startswith('pp') and not os.path.exists(config_python_path):
-            pypy_zip = os.path.join("C:\\cibw", config.url.rsplit('/', 1)[-1])
-            download(config.url, pypy_zip)
-            # Extract to the parent of config_python_path because the zip file still contains a directory
-            extract_zip(pypy_zip, os.path.dirname(config_python_path))
-            pypy_exe = 'pypy.exe' if config.version[0] == '2' else 'pypy3.exe'
-            simple_shell(['mklink', os.path.join(config_python_path, 'python.exe'), os.path.join(config_python_path, pypy_exe)])
-            simple_shell(['mklink', '/d', os.path.join(config_python_path, 'Scripts'), os.path.join(config_python_path, 'bin')])
-        assert os.path.exists(os.path.join(config_python_path, 'python.exe'))
+            installation_path = install_cpython(config.version, config.arch)
+        elif config.identifier.startswith('pp'):
+            installation_path = install_pypy(config.version, config.arch, config.url)
+        else:
+            raise ValueError("Unknown Python implementation")
+
+        assert os.path.exists(os.path.join(installation_path, 'python.exe'))
 
         # set up PATH and environment variables for run_with_env
         env = os.environ.copy()
         env['PYTHON_VERSION'] = config.version
         env['PYTHON_ARCH'] = config.arch
         env['PATH'] = os.pathsep.join([
-            config_python_path,
-            os.path.join(config_python_path, 'Scripts'),
+            installation_path,
+            os.path.join(installation_path, 'Scripts'),
             env['PATH']
         ])
         # update env with results from CIBW_ENVIRONMENT
@@ -128,12 +136,12 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         # for the logs - check we're running the right version of python
         simple_shell(['where', 'python'], env=env)
         simple_shell(['python', '--version'], env=env)
-        simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
+        simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
 
         # make sure pip is installed
-        if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
+        if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
             simple_shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
-        assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
+        assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
 
         # prepare the Python environment
         simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)

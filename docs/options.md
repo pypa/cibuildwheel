@@ -117,7 +117,7 @@ CIBW_BUILD: cp3?-*
 CIBW_SKIP: "*-win32 *-manylinux_i686"
 
 # Only build PyPy and CPython 3
-CIBW_BUILD: pp??_??-* cp3?-*
+CIBW_BUILD: pp*-* cp3?-*
 ```
 
 <style>
@@ -260,7 +260,7 @@ Note that `manylinux2014` doesn't support builds with Python 2.7 - when building
 # skip PyPy, since there is no PyPy manylinux1 image
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
 CIBW_MANYLINUX_I686_IMAGE: manylinux1
-CIBW_SKIP: pp??_??-*
+CIBW_SKIP: pp*-*
 
 # build using the manylinux2014 image
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
