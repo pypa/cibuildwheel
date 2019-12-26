@@ -41,10 +41,10 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.5.4', arch="64", identifier='cp35-win_amd64'),
         PythonConfiguration(version='3.6.8', arch="32", identifier='cp36-win32'),
         PythonConfiguration(version='3.6.8', arch="64", identifier='cp36-win_amd64'),
-        PythonConfiguration(version='3.7.5', arch="32", identifier='cp37-win32'),
-        PythonConfiguration(version='3.7.5', arch="64", identifier='cp37-win_amd64'),
-        PythonConfiguration(version='3.8.0', arch="32", identifier='cp38-win32'),
-        PythonConfiguration(version='3.8.0', arch="64", identifier='cp38-win_amd64'),
+        PythonConfiguration(version='3.7.6', arch="32", identifier='cp37-win32'),
+        PythonConfiguration(version='3.7.6', arch="64", identifier='cp37-win_amd64'),
+        PythonConfiguration(version='3.8.1', arch="32", identifier='cp38-win32'),
+        PythonConfiguration(version='3.8.1', arch="64", identifier='cp38-win_amd64'),
     ]
 
     if IS_RUNNING_ON_TRAVIS:
@@ -63,7 +63,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
         return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
-    
+
     def download(url, dest):
         print('+ Download ' + url + ' to ' + dest)
         dest_dir = os.path.dirname(dest)
@@ -75,7 +75,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 response = urlopen(url)
             except:
                 if i == repeat_num - 1:
-                    raise 
+                    raise
                 sleep(3)
                 continue
             break
@@ -85,7 +85,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 file.write(response.read())
         finally:
             response.close()
-    
+
     if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
         shell = simple_shell
     else:
