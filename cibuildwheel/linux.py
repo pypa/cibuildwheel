@@ -30,7 +30,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, environment_test, manylinux_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except:

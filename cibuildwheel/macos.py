@@ -25,7 +25,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, environment_test):
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
@@ -129,7 +129,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             venv_dir = tempfile.mkdtemp()
             call(['python', '-m', 'virtualenv', venv_dir], env=env)
 
-            virtualenv_env = env.copy()
+            if environment_test:
+                virtualenv_env = environment_test.as_dictionary(os.environ.copy())
+            else:
+                virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([
                 os.path.join(venv_dir, 'bin'),
                 virtualenv_env['PATH'],

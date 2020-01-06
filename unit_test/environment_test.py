@@ -86,3 +86,11 @@ def test_no_vars_pass_through():
     environment_dict = environment_recipe.as_dictionary(prev_environment={'CIBUILDWHEEL': 'awesome'})
 
     assert environment_dict == {'CIBUILDWHEEL': 'awesome'}
+
+def test_bool_conversions():
+    environment_recipe = parse_environment('')
+    assert not environment_recipe
+
+    environment_recipe = parse_environment('A=1')
+    assert environment_recipe
+

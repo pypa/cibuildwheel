@@ -204,3 +204,24 @@ def test_build_verbosity(build_verbosity, platform_specific, platform, intercept
 
     expected_verbosity = max(-3, min(3, int(build_verbosity or 0)))
     assert intercepted_build_args.kwargs['build_verbosity'] == expected_verbosity
+
+
+@pytest.mark.parametrize('environment', [
+    {},
+    {'something': 'value'},
+    {'something': 'value', 'something_else': 'other_value'}
+])
+@pytest.mark.parametrize('platform_specific', [False, True])
+def test_environment_test(environment, platform_specific, platform, intercepted_build_args, monkeypatch):
+    env_string = ' '.join(['{}={}'.format(k, v) for k, v in environment.items()])
+    if platform_specific:
+        monkeypatch.setenv('CIBW_ENVIRONMENT_TEST_' + platform.upper(), env_string)
+        monkeypatch.setenv('CIBW_ENVIRONMENT_TEST', 'overwritten')
+    else:
+        monkeypatch.setenv('CIBW_ENVIRONMENT_TEST', env_string)
+
+    main()
+
+    intercepted_environment = intercepted_build_args.kwargs['environment_test']
+    assert isinstance(intercepted_environment, ParsedEnvironment)
+    assert intercepted_environment.as_dictionary(prev_environment={}) == environment

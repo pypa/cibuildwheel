@@ -78,3 +78,10 @@ class ParsedEnvironment(object):
 
     def __repr__(self):
         return 'ParsedEnvironment(%r)' % [repr(a) for a in self.assignments]
+    
+    def __bool__(self):
+        return bool(self.assignments)
+
+    # for python 2
+    def __nonzero__(self):
+        return self.__bool__()

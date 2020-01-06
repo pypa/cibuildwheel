@@ -102,6 +102,7 @@ def main():
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+    test_environment_config = get_option_from_environment('CIBW_ENVIRONMENT_TEST', platform=platform, default='')
 
     if test_extras:
         test_extras = '[{0}]'.format(test_extras)
@@ -119,6 +120,14 @@ def main():
         traceback.print_exc(None, sys.stderr)
         exit(2)
 
+    try:
+        environment_test = parse_environment(test_environment_config)
+    except (EnvironmentParseError, ValueError):
+        print('cibuildwheel: Malformed environment test option "%s"' % environment_config, file=sys.stderr)
+        import traceback
+        traceback.print_exc(None, sys.stderr)
+        exit(2)
+       
     build_selector = BuildSelector(build_config, skip_config)
 
     # Add CIBUILDWHEEL environment variable
@@ -144,6 +153,7 @@ def main():
         build_selector=build_selector,
         repair_command=repair_command,
         environment=environment,
+        environment_test=environment_test
     )
 
     if platform == 'linux':

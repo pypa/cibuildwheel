@@ -58,7 +58,7 @@ def get_python_configurations(build_selector):
     return python_configurations
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, environment_test):
     def simple_shell(args, env=None, cwd=None):
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
@@ -176,7 +176,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             venv_dir = tempfile.mkdtemp()
             shell(['python', '-m', 'virtualenv', venv_dir], env=env)
 
-            virtualenv_env = env.copy()
+            if environment_test:
+                virtualenv_env = environment_test.as_dictionary(os.environ.copy())
+            else:
+                virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([
                 os.path.join(venv_dir, 'Scripts'),
                 virtualenv_env['PATH'],
