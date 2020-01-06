@@ -68,7 +68,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, before_test, manylinux_images):
     try:
         subprocess.check_call(['docker', '--version'])
     except Exception:
@@ -154,6 +154,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
                         echo "Running tests using `which python`"
 
+                        if [ ! -z {before_test} ]; then
+                            sh -c {before_test}
+                        fi
+
                         # Install the wheel we just built
                         # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
                         # conforms to multiple manylinux standards. These multiple versions of the wheel are
@@ -202,6 +206,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             environment_exports='\n'.join(environment.as_shell_commands()),
             uid=os.getuid(),
             gid=os.getgid(),
+            before_test=shlex_quote(
+                prepare_command(before_test, project='/project') if before_test else ''
+            ),
         )
 
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
