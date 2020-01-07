@@ -340,6 +340,32 @@ Platform-specific variants also available:<br/>
 CIBW_TEST_EXTRAS: test,qt
 ```
 
+### `CIBW_BEFORE_TEST` {: #before-test}
+> Execute a shell command preparing test environment
+
+A shell command to run after setup test environment. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to install non pip package, change values of environment variables
+or perform multi step pip installation (like install `scikit-build` or `cython` before install test package)
+
+If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `pip install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
+
+The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
+
+On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+Platform-specific variants also available:<br/>
+ `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
+
+#### Examples
+```yaml
+# install packages needed to build test dependencies
+CIBW_BEFORE_TEST: pip install cmake scikit-build
+
+# install test dependencies with overwritten environment variables. 
+CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
+
+# chain commands using &&
+CIBW_BEFORE_TEST: yum install -y libffi-dev && pip install .
+```
 
 ## Other
 
