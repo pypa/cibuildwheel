@@ -1,6 +1,5 @@
 import shlex
 import subprocess
-import sys
 from collections import namedtuple
 
 import bashlex
@@ -65,7 +64,6 @@ def evaluate_command_node(node, context):
     words = [evaluate_node(part, context=context) for part in node.parts]
     command = ' '.join(words)
     return subprocess.check_output(shlex.split(command), env=context.environment, universal_newlines=True)
-
 
 
 def evaluate_parameter_node(node, context):

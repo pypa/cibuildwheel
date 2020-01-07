@@ -12,7 +12,10 @@ from cibuildwheel.environment import (
     EnvironmentParseError,
     parse_environment,
 )
-from cibuildwheel.util import BuildSelector, Unbuffered
+from cibuildwheel.util import (
+    BuildSelector,
+    Unbuffered
+)
 
 
 def get_option_from_environment(option_name, platform=None, default=None):

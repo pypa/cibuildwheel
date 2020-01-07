@@ -55,7 +55,6 @@ class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
 
             return text_to_include
 
-
         def found_includemarkdown_tag(match):
             filename = match.group('filename')
             start = match.group('start')
