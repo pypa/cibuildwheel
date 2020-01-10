@@ -341,12 +341,11 @@ CIBW_TEST_EXTRAS: test,qt
 ```
 
 ### `CIBW_BEFORE_TEST` {: #before-test}
-> Execute a shell command preparing test environment
+> Execute a shell command before testing each wheel
 
-A shell command to run after setup test environment. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to install non pip package, change values of environment variables
+A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install non pip package, change values of environment variables
 or perform multi step pip installation (like install `scikit-build` or `cython` before install test package)
 
-If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `pip install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
 
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
