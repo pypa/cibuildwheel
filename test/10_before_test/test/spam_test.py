@@ -4,8 +4,9 @@ from unittest import TestCase
 
 class TestBeforeTest(TestCase):
     def test_version(self):
-        # assert that the Python version as written to pythonversion.txt in the CIBW_BEFORE_BUILD step
+        # assert that the Python version as written to pythonversion.txt in the CIBW_BEFORE_TEST step
         # is the same one as is currently running.
+        # because of use symlinks in MacOS run this test is also need
         version_file = 'c:\\pythonversion.txt' if sys.platform == 'win32' else '/tmp/pythonversion.txt'
         with open(version_file) as f:
             stored_version = f.read()
