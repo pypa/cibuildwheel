@@ -69,8 +69,8 @@ jobs:
 
 env:
   global:
-    - TWINE_USERNAME=joerick
-      # Note: TWINE_PASSWORD is set in Travis settings
+    - TWINE_USERNAME=__token__
+    # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
   - python -m pip install twine cibuildwheel==1.1.0
