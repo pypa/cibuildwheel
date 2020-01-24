@@ -28,6 +28,11 @@ def test_output_dir_default(platform, intercepted_build_args, monkeypatch):
 
     assert intercepted_build_args.kwargs['output_dir'] == 'wheelhouse'
 
+def test_pip_version_windows(platform, intercepted_build_args, monkeypatch):
+    monkeypatch.setenv('CIBW_PIP_VERSION_WINDOWS', '19.3.1')
+    main()
+    assert intercepted_build_args
+
 
 @pytest.mark.parametrize('also_set_environment', [False, True])
 def test_output_dir_argument(also_set_environment, platform, intercepted_build_args, monkeypatch):

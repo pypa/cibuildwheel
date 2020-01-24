@@ -164,7 +164,9 @@ def main():
     elif platform == 'macos':
         pass
     elif platform == 'windows':
-        pass
+        pip_version = os.environ.get('CIBW_PIP_VERSION_WINDOWS', None)
+        if pip_version:
+            build_options['pip_version'] = pip_version
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout = Unbuffered(sys.stdout)

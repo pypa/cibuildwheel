@@ -265,6 +265,19 @@ CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
 CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
 ```
 
+### `CIBW_PIP_VERSION_WINDOWS` {: #windows-pip-version}
+> Specify a specific pip version for windows builds
+
+As par of the windows build process pip is automatically updated to the latest
+version. However, sometimes the latest version of pip isn't desireable to use.
+Using this option you can specify a specific version of pip to use in the
+windows build process.
+
+```yaml
+# Use pip version 19.3.1
+CIBW_PIP_VERSION_WINDOWS=19.3.1
+```
+
 ## Testing
 
 ### `CIBW_TEST_COMMAND` {: #test-command}

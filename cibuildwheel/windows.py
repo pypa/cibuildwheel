@@ -58,7 +58,7 @@ def get_python_configurations(build_selector):
     return python_configurations
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, pip_version=None):
     def simple_shell(args, env=None, cwd=None):
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
@@ -141,7 +141,11 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # prepare the Python environment
-        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
+        if pip_version is not None:
+            pip_str = 'pip==' + pip_version
+        else:
+            pip_str = 'pip'
+        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', pip_str], env=env)
         simple_shell(['pip', '--version'], env=env)
         simple_shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
 
