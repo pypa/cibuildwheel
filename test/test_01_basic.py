@@ -1,11 +1,21 @@
 import os
-import utils
+import textwrap
+from . import utils
 
 
-project_dir = os.path.dirname(__file__)
+def test(tmpdir):
+    project_dir = str(tmpdir)
 
+    utils.generate_project(
+        path=project_dir,
+        setup_py_add=textwrap.dedent('''
+            import os
+                            
+            if os.environ.get("CIBUILDWHEEL", "0") != "1":
+                raise Exception("CIBUILDWHEEL environment variable is not set to 1")
+        ''')
+    )
 
-def test():
     # build the wheels
     utils.cibuildwheel_run(project_dir)
 
@@ -15,7 +25,13 @@ def test():
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_build_identifiers():
+def test_build_identifiers(tmpdir):
+    project_dir = str(tmpdir)
+
+    utils.generate_project(
+        path=project_dir,
+    )
+
     # check that the number of expected wheels matches the number of build
     # identifiers
     # after adding CIBW_MANYLINUX_IMAGE to support manylinux2010, there

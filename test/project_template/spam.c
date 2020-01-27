@@ -1,5 +1,7 @@
 #include <Python.h>
 
+{{spam_c_top_level_add}}
+
 static PyObject *
 spam_system(PyObject *self, PyObject *args)
 {
@@ -8,7 +10,11 @@ spam_system(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s", &command))
         return NULL;
+
     sts = system(command);
+
+    {{spam_c_function_add | indent(4)}}
+
     return PyLong_FromLong(sts);
 }
 

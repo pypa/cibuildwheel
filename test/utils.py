@@ -111,10 +111,21 @@ def expected_wheels(package_name, package_version):
         for filename in templates
     ]
 
-def generate_project(path, template_path='./test/project_template',
-                     setup_py_add='', extra_files=[]):
+def generate_project(path, 
+                     template_path='./test/project_template',
+                     setup_py_add='',
+                     setup_py_setup_args_add='',
+                     spam_c_top_level_add='',
+                     spam_c_function_add='',
+                     extra_files=[]):
     ignore_patterns = ['.pytest_*', '*.pyc', '__pycache__', '.DS_Store']
-    template_context = dict(setup_py_add=setup_py_add)
+
+    template_context = dict(
+        setup_py_add=setup_py_add,
+        setup_py_setup_args_add=setup_py_setup_args_add,
+        spam_c_top_level_add=spam_c_top_level_add,
+        spam_c_function_add=spam_c_function_add,
+    )
     
     for root, dirs, files in os.walk(template_path):
         for name in files+dirs:
@@ -123,6 +134,7 @@ def generate_project(path, template_path='./test/project_template',
             dst_path = src_path.replace(template_path, path, 1)
 
             is_dir = (name in dirs)
+
             if any(fnmatch(name, pattern) for pattern in ignore_patterns):
                 if is_dir:
                     dirs.remove(name)
@@ -142,8 +154,8 @@ def generate_project(path, template_path='./test/project_template',
     for filename, content in extra_files:
         file_path = os.path.join(path, filename)
         try:
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        except FileExistsError:
+            os.makedirs(os.path.dirname(file_path))
+        except OSError:
             pass
         with io.open(file_path, 'w', encoding='utf8') as f:
             f.write(content)

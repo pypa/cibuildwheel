@@ -2,6 +2,8 @@ import os, inspect
 from . import utils
 
 setup_py_add=r'''
+import os
+
 # explode if environment isn't correct, as set in CIBW_ENVIRONMENT
 CIBW_TEST_VAR = os.environ.get("CIBW_TEST_VAR")
 CIBW_TEST_VAR_2 = os.environ.get("CIBW_TEST_VAR_2")

@@ -1,12 +1,25 @@
-import os, pytest
-import utils
+import os, pytest, textwrap
+from . import utils
 
-
-def test():
-    project_dir = os.path.dirname(__file__)
+def test(tmpdir):
+    project_dir = str(tmpdir)
 
     if utils.platform != "linux":
         pytest.skip("the test is only relevant to the linux build")
+
+    utils.generate_project(
+        path=project_dir,
+        setup_py_add=textwrap.dedent(r'''
+            import os, sys
+            
+            # check that we're running in the correct docker image as specified in the
+            # environment options CIBW_MANYLINUX1_*_IMAGE
+            if "linux" in sys.platform and not os.path.exists("/dockcross"):
+                raise Exception(
+                    "/dockcross directory not found. Is this test running in the correct docker image?"
+                )
+        ''')
+    )
 
     utils.cibuildwheel_run(
         project_dir,

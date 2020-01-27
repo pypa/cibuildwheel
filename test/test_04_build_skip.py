@@ -3,7 +3,7 @@ from . import utils
 
 
 def test(tmpdir):
-    project_dir = tmpdir
+    project_dir = str(tmpdir)
 
     utils.generate_project(
         path=project_dir,

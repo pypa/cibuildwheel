@@ -23,9 +23,7 @@ def test(tmpdir):
 
             # check that the executable also was written
             executable_file = (
-                "c:\\pythonexecutable.txt"
-                if sys.platform == "win32"
-                else "/tmp/pythonexecutable.txt"
+                "c:\\pythonexecutable.txt" if sys.platform == "win32" else "/tmp/pythonexecutable.txt"
             )
             with open(executable_file) as f:
                 stored_executable = f.read()

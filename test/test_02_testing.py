@@ -1,11 +1,27 @@
 import os, subprocess
-import pytest
-import utils
+import pytest, textwrap
+from . import utils
 
 
 def test(tmpdir):
     project_dir = str(tmpdir)
 
+    # generate sample project with a test
+    utils.generate_project(
+        path=project_dir,
+        extra_files=[
+            ('test/spam_test.py', textwrap.dedent(u'''
+                from unittest import TestCase
+                import spam
+
+                class TestSpam(TestCase):
+                    def test_system(self):
+                        self.assertEqual(0, spam.system('python -c "exit(0)"'))
+                        self.assertNotEqual(0, spam.system('python -c "exit(1)"'))
+            '''))
+        ],
+    )
+    
     # build and test the wheels
     utils.cibuildwheel_run(
         project_dir,
@@ -24,18 +40,31 @@ def test(tmpdir):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_extras_require():
-    project_dir = os.path.dirname(__file__)
+def test_extras_require(tmpdir):
+    project_dir = str(tmpdir)
+
+    utils.generate_project(
+        path=project_dir,
+        setup_py_setup_args_add='extras_require={"test": ["nose"]},',
+        extra_files=[
+            ('test/spam_test.py', textwrap.dedent(u'''
+                from unittest import TestCase
+                import spam
+
+                class TestSpam(TestCase):
+                    def test_system(self):
+                        self.assertEqual(0, spam.system('python -c "exit(0)"'))
+                        self.assertNotEqual(0, spam.system('python -c "exit(1)"'))
+            '''))
+        ],
+    )
 
     # build and test the wheels
     utils.cibuildwheel_run(
         project_dir,
         add_env={
             "CIBW_TEST_EXTRAS": "test",
-            # the 'false ||' bit is to ensure this command runs in a shell on
-            # mac/linux.
-            "CIBW_TEST_COMMAND": "false || nosetests {project}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "nosetests {project}/test",
+            "CIBW_TEST_COMMAND": "nosetests {project}/test",
         },
     )
 
