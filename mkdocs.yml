@@ -18,6 +18,7 @@ nav:
   - setup.md
   - options.md
   - deliver-to-pypi.md
+  - cpp_standards.md
   - faq.md
   - contributing.md
 
