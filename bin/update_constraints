@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"
+cd ..
+
+export CUSTOM_COMPILE_COMMAND="bin/update_constraints"
+
+pip-compile \
+    --allow-unsafe \
+    --generate-hashes \
+    --upgrade \
+    cibuildwheel/resources/constraints.in

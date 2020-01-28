@@ -58,7 +58,7 @@ def get_python_configurations(build_selector):
     return python_configurations
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
     def simple_shell(args, env=None, cwd=None):
         print('+ ' + ' '.join(args))
         args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
@@ -135,15 +135,17 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         simple_shell(['python', '--version'], env=env)
         simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
 
+        dependency_constraint_flags = ['-c', dependency_constraints] if dependency_constraints else []
+                    
         # make sure pip is installed
         if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
-            simple_shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
+            simple_shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
         assert os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe'))
 
         # prepare the Python environment
-        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
+        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'] + dependency_constraint_flags, env=env)
         simple_shell(['pip', '--version'], env=env)
-        simple_shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
+        simple_shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
 
         # run the before_build command
         if before_build:
@@ -172,7 +174,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            shell(['pip', 'install', 'virtualenv'], env=env)
+            shell(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
             venv_dir = tempfile.mkdtemp()
             shell(['python', '-m', 'virtualenv', venv_dir], env=env)
 

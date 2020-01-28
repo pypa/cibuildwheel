@@ -30,7 +30,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images, dependency_constraints):
     try:
         subprocess.check_call(['docker', '--version'])
     except:
@@ -86,7 +86,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 if [ ! -z {test_command} ]; then
                     # Set up a virtual environment to install and test from, to make sure
                     # there are no dependencies that were pulled in at build time.
-                    "$PYBIN/pip" install virtualenv
+                    "$PYBIN/pip" install {dependency_install_flags} virtualenv
                     venv_dir=`mktemp -d`/venv
                     "$PYBIN/python" -m virtualenv "$venv_dir"
 
@@ -145,6 +145,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             environment_exports='\n'.join(environment.as_shell_commands()),
             uid=os.getuid(),
             gid=os.getgid(),
+            dependency_install_flags='-c /constraints.txt' if dependency_constraints else '',
         )
 
         def run_docker(command, stdin_str=None):
@@ -171,6 +172,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         '-v', '/:/host', # ignored on Circle
                         docker_image, '/bin/bash'])
             run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
+            if dependency_constraints:
+                run_docker(['cp', os.path.abspath(dependency_constraints) + '/.', container_name + ':/constraints.txt'])
             run_docker(['start', '-i', '-a', container_name], stdin_str=bash_script)
             run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
         except subprocess.CalledProcessError:

@@ -102,6 +102,15 @@ def main():
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+    dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
+    if dependency_versions == 'pinned':
+        dependency_constraints = os.path.join(
+            os.path.dirname(__file__), 'resources', 'constraints.txt'
+        )
+    elif dependency_versions == 'latest':
+        dependency_constraints = ''
+    else:
+        dependency_constraints = dependency_versions
 
     if test_extras:
         test_extras = '[{0}]'.format(test_extras)
@@ -144,6 +153,7 @@ def main():
         build_selector=build_selector,
         repair_command=repair_command,
         environment=environment,
+        dependency_constraints=dependency_constraints,
     )
 
     if platform == 'linux':

@@ -25,7 +25,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
@@ -92,11 +92,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['which', 'python'], env=env)
         call(['python', '--version'], env=env)
 
+        dependency_constraint_flags = ['-c', dependency_constraints] if dependency_constraints else []
+
         # install pip & wheel
-        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env, cwd="/tmp")
+        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'] + dependency_constraint_flags, env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
-        call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)
+        call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
 
         # run the before_build command
         if before_build:
@@ -125,7 +127,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv'], env=env)
+            call(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
             venv_dir = tempfile.mkdtemp()
             call(['python', '-m', 'virtualenv', venv_dir], env=env)
 
