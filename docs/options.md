@@ -265,6 +265,43 @@ CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
 CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
 ```
 
+### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
+> Specify how cibuildwheel controls the versions of the tools it uses
+
+Options: `pinned` `latest` `<your constraints file>`
+
+Default: `pinned`
+
+If `CIBW_DEPENDENCY_VERSIONS` is `pinned`, cibuildwheel uses versions of tools
+like `pip`, `setuptools`, `virtualenv` that shipped with that release. This
+represents a known-good set of dependencies, and is recommended for build
+repeatability.
+
+If set to `latest`, cibuildwheel will use the latest of these packages that
+are available on PyPI. This might be preferable if these packages have bug
+fixes that can't wait for a new cibuildwheel release.
+
+To control the versions of dependencies yourself, you can supply a [pip
+constraints](https://pip.pypa.io/en/stable/user_guide/#constraints-files) file
+here and it will be used instead.
+
+Platform-specific variants also available:<br/>
+`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_LINUX`
+
+#### Examples
+
+```yaml
+# use tools versions that are bundled with cibuildwheel (this is the default)
+CIBW_DEPENDENCY_VERSIONS: pinned
+
+# use the latest versions available on PyPI
+CIBW_DEPENDENCY_VERSIONS: latest
+
+# use your own pip constraints file
+CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
+```
+
+
 ## Testing
 
 ### `CIBW_TEST_COMMAND` {: #test-command}
