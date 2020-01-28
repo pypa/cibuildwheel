@@ -1,20 +1,20 @@
 import os
 import textwrap
 from . import utils
+from .project_generator import TemplateProjectC
 
+project_spec = TemplateProjectC(
+    setup_py_add=textwrap.dedent('''
+        import os
+
+        if os.environ.get("CIBUILDWHEEL", "0") != "1":
+            raise Exception("CIBUILDWHEEL environment variable is not set to 1")
+    ''')
+)
 
 def test(tmpdir):
     project_dir = str(tmpdir)
-
-    utils.generate_project(
-        path=project_dir,
-        setup_py_add=textwrap.dedent('''
-            import os
-                            
-            if os.environ.get("CIBUILDWHEEL", "0") != "1":
-                raise Exception("CIBUILDWHEEL environment variable is not set to 1")
-        ''')
-    )
+    project_spec.generate(project_dir)
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir)
@@ -26,10 +26,7 @@ def test(tmpdir):
 
 def test_build_identifiers(tmpdir):
     project_dir = str(tmpdir)
-
-    utils.generate_project(
-        path=project_dir,
-    )
+    project_spec.generate(project_dir)
 
     # check that the number of expected wheels matches the number of build
     # identifiers
