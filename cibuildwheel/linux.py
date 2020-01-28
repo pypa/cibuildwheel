@@ -173,7 +173,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         docker_image, '/bin/bash'])
             run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
             if dependency_constraints:
-                run_docker(['cp', os.path.abspath(dependency_constraints) + '/.', container_name + ':/constraints.txt'])
+                run_docker(['cp', os.path.abspath(dependency_constraints), container_name + ':/constraints.txt'])
             run_docker(['start', '-i', '-a', container_name], stdin_str=bash_script)
             run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
         except subprocess.CalledProcessError:
