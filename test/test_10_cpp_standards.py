@@ -1,15 +1,35 @@
 import os
-import sys 
+import textwrap
 
 import pytest
 
-import utils
+from . import utils
 
+spam_cpp_top_level_add = '''
+// Depending on the requested standard, use a modern C++ feature
+// that was introduced in that standard.
+#if STANDARD == 11
+    #include <array>
+#elif STANDARD == 14
+    int a = 100'000;
+#elif STANDARD == 17
+    #include <utility>
+    auto a = std::pair(5.0, false);
+#else
+    #error Standard needed
+#endif
+'''
 
 project_dir = os.path.dirname(__file__)
 
-def test_cpp11(tmp_path):
+def test_cpp11():
     # This test checks that the C++11 standard is supported
+
+    utils.generate_project(
+        path=project_dir,
+        template_path='./test/cpp_project_template',
+        spam_cpp_top_level_add='#include <array>',
+    )
 
     add_env = {'CIBW_SKIP': 'cp27-win*', 'CIBW_ENVIRONMENT': 'STANDARD=11'}
     # VC++ for Python 2.7 does not support modern standards
@@ -25,6 +45,12 @@ def test_cpp11(tmp_path):
 
 def test_cpp14():
     # This test checks that the C++14 standard is supported
+
+    utils.generate_project(
+        path=project_dir,
+        template_path='./test/cpp_project_template',
+        spam_cpp_top_level_add="int a = 100'000;",
+    )
 
     add_env = {'CIBW_SKIP': 'cp27-win* cp35-win*', 'CIBW_ENVIRONMENT': 'STANDARD=14'}
     # VC++ for Python 2.7 does not support modern standards
@@ -43,6 +69,14 @@ def test_cpp14():
 def test_cpp17():
     # This test checks that the C++17 standard is supported
 
+    utils.generate_project(
+        path=project_dir,
+        template_path='./test/cpp_project_template',
+        spam_cpp_top_level_add=textwrap.dedent('''
+            #include <utility>
+            auto a = std::pair(5.0, false);
+        '''),
+    )
     # Python 2.7 uses the `register` keyword which is forbidden in the C++17 standard 
     # The manylinux1 docker image does not have a compiler which supports C++11
     # Python 3.4 and 3.5 are compiled with MSVC 10, which does not support C++17

@@ -38,7 +38,7 @@ def test(tmpdir):
     )
 
     # build the wheels
-    utils.cibuildwheel_run(
+    actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
             # write python version information to a temporary file, this is
@@ -50,5 +50,4 @@ def test(tmpdir):
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
-    actual_wheels = os.listdir("wheelhouse")
     assert set(actual_wheels) == set(expected_wheels)

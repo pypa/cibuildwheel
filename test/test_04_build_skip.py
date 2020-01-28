@@ -17,7 +17,7 @@ def test(tmpdir):
     )
     
     # build the wheels
-    utils.cibuildwheel_run(
+    actual_wheels = utils.cibuildwheel_run(
         project_dir, add_env={"CIBW_BUILD": "cp3?-*", "CIBW_SKIP": "cp37-*",}
     )
 
@@ -27,5 +27,4 @@ def test(tmpdir):
         for w in utils.expected_wheels("spam", "0.1.0")
         if ("-cp3" in w) and ("-cp37" not in w)
     ]
-    actual_wheels = os.listdir("wheelhouse")
     assert set(actual_wheels) == set(expected_wheels)

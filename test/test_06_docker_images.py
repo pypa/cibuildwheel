@@ -11,7 +11,7 @@ def test(tmpdir):
         path=project_dir,
         setup_py_add=textwrap.dedent(r'''
             import os, sys
-            
+
             # check that we're running in the correct docker image as specified in the
             # environment options CIBW_MANYLINUX1_*_IMAGE
             if "linux" in sys.platform and not os.path.exists("/dockcross"):
@@ -21,7 +21,7 @@ def test(tmpdir):
         ''')
     )
 
-    utils.cibuildwheel_run(
+    actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
             "CIBW_MANYLINUX_X86_64_IMAGE": "dockcross/manylinux2010-x64",
@@ -37,5 +37,4 @@ def test(tmpdir):
         for w in utils.expected_wheels("spam", "0.1.0")
         if "-manylinux2010_i686" not in w
     ]
-    actual_wheels = os.listdir("wheelhouse")
     assert set(actual_wheels) == set(expected_wheels)

@@ -23,7 +23,7 @@ def test(tmpdir):
     )
     
     # build and test the wheels
-    utils.cibuildwheel_run(
+    actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "nose",
@@ -36,7 +36,6 @@ def test(tmpdir):
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
-    actual_wheels = os.listdir("wheelhouse")
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -60,7 +59,7 @@ def test_extras_require(tmpdir):
     )
 
     # build and test the wheels
-    utils.cibuildwheel_run(
+    actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
             "CIBW_TEST_EXTRAS": "test",
@@ -70,7 +69,6 @@ def test_extras_require(tmpdir):
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
-    actual_wheels = os.listdir("wheelhouse")
     assert set(actual_wheels) == set(expected_wheels)
 
 
