@@ -48,43 +48,43 @@ Usage
 Example setup
 -------------
 
-To build manylinux and macOS wheels on Travis CI, and upload them to PyPI whenever you tag a version, you could use this `.travis.yml`:
+To build manylinux, macOS, and Windows  wheels on Travis CI and upload them to PyPI whenever you tag a version, you could use this `.travis.yml`:
 
 ```yaml
 language: python
 
-matrix:
+jobs:
   include:
     # perform a linux build
-    - sudo: required
-      services:
-        - docker
-      env: PIP=pip
+    - services: docker
     # and a mac build
     - os: osx
-      language: generic
-      env: PIP=pip2
+      language: shell
+    # and a windows build
+    - os: windows
+      language: shell
+      before_install:
+        - choco install python --version 3.8.0
+        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
 
 env:
   global:
-    - TWINE_USERNAME=joerick
-      # Note: TWINE_PASSWORD is set in Travis settings
+    - TWINE_USERNAME=__token__
+    # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
+
+install:
+  - python -m pip install twine cibuildwheel==1.1.0
 
 script:
-  - $PIP install cibuildwheel==1.0.0
-
   # build the wheels, put them into './wheelhouse'
-  - cibuildwheel --output-dir wheelhouse
+  - python -m cibuildwheel --output-dir wheelhouse
 
+after_success:
   # if the release was tagged, upload them to PyPI
-  - |
-    if [[ $TRAVIS_TAG ]]; then
-      python -m pip install twine
-      python -m twine upload wheelhouse/*.whl
-    fi
+  - if [[ $TRAVIS_TAG ]]; then python -m twine upload wheelhouse/*.whl; fi
 ```
 
-For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org).
+For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and also check out [the examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
@@ -95,11 +95,12 @@ Options
 |   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
 | **Build environment** | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
 |   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
+|   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each (non-pure Python) built wheel |
 |   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
-| **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test all built wheels |
+| **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
 |   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
 |   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
-| **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Increase/decrease the output of pip wheel |
+| **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-verbosity)  | Increase/decrease the output of pip wheel |
 
 Working examples
 ----------------
@@ -122,7 +123,7 @@ Here are some repos that use cibuildwheel.
 Legal note
 ----------
 
-Since `cibuildwheel` runs the wheel through delocate or auditwheel, it might automatically bundle dynamically linked libraries from the build machine.
+Since `cibuildwheel` repairs the wheel with `delocate` or `auditwheel`, it might automatically bundle dynamically linked libraries from the build machine.
 
 It helps ensure that the library can run without any dependencies outside of the pip toolchain.
 
@@ -130,6 +131,19 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.1.0
+
+_7 December 2019_
+
+- ✨ Add support for building manylinux2014 wheels. To use, set 
+  `CIBW_MANYLINUX_X86_64_IMAGE` and CIBW_MANYLINUX_I686_IMAGE to 
+  `manylinux2014`.
+- ✨ Add support for [Linux on Appveyor](https://www.appveyor.com/blog/2018/03/06/appveyor-for-linux/) (#204, #207)
+- ✨ Add `CIBW_REPAIR_WHEEL_COMMAND` env variable, for changing how
+  `auditwheel` or `delocate` are invoked, or testing an equivalent on
+  Windows. (#211)
+- 📚 Added some travis example configs - these are available in /examples. (#228)
 
 ### 1.0.0
 
@@ -139,7 +153,7 @@ _10 November 2019_
 - ✨ Add support for building manylinux2010 wheels. cibuildwheel will now
   build using the manylinux2010 images by default. If your project is still
   manylinux1 compatible, you should get both manylinux1 and manylinux2010
-  images - you can upload both to PyPI. If you need manylinux1 wheels, you can
+  wheels - you can upload both to PyPI. If you always require manylinux1 wheels, you can
   build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option.
   (#155)
 - 📚 Documentation is now on its [own mini-site](https://cibuildwheel.readthedocs.io),

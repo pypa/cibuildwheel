@@ -61,25 +61,30 @@ def main():
     args = parser.parse_args()
 
     detect_obsolete_options()
-
+    
     if args.platform != 'auto':
         platform = args.platform
     else:
         ci = strtobool(os.environ.get('CI', 'false')) or 'BITRISE_BUILD_NUMBER' in os.environ or 'AZURE_HTTP_USER_AGENT' in os.environ
-        if ci:
-            if sys.platform.startswith('linux'):
-                platform = 'linux'
-            elif sys.platform == 'darwin':
-                platform = 'macos'
-            elif sys.platform == 'win32':
-                platform = 'windows'
-        if platform is None:
+        if not ci:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
                   'Travis CI, AppVeyor, Azure Pipelines and CircleCI are supported. You can run on your '
                   'development machine or other CI providers using the --platform argument. Check --help '
                   'output for more information.',
                   file=sys.stderr)
             exit(2)
+        if sys.platform.startswith('linux'):
+            platform = 'linux'
+        elif sys.platform == 'darwin':
+            platform = 'macos'
+        elif sys.platform == 'win32':
+            platform = 'windows'
+        else:
+            print('cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
+                  'cibuildwheel using the --platform argument. Check --help output for more information.',
+                  file=sys.stderr)
+            exit(2)
+
 
     output_dir = args.output_dir
     test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
@@ -89,6 +94,13 @@ def main():
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
+    if platform == 'linux':
+        repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
+    elif platform == 'macos':
+        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'
+    else:
+        repair_command_default = ''
+    repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
 
     if test_extras:
@@ -130,6 +142,7 @@ def main():
         before_build=before_build,
         build_verbosity=build_verbosity,
         build_selector=build_selector,
+        repair_command=repair_command,
         environment=environment,
     )
 
@@ -138,9 +151,11 @@ def main():
         manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
 
         default_manylinux_images_x86_64 = {'manylinux1': 'quay.io/pypa/manylinux1_x86_64',
-                                           'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64'}
+                                           'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64',
+                                           'manylinux2014': 'quay.io/pypa/manylinux2014_x86_64'}
         default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686',
-                                         'manylinux2010': 'quay.io/pypa/manylinux2010_i686'}
+                                         'manylinux2010': 'quay.io/pypa/manylinux2010_i686',
+                                         'manylinux2014': 'quay.io/pypa/manylinux2014_i686'}
 
         build_options.update(
             manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
@@ -166,7 +181,8 @@ def main():
     elif platform == 'macos':
         cibuildwheel.macos.build(**build_options)
     else:
-        raise Exception('Unsupported platform')
+        print('cibuildwheel: Unsupported platform: {}'.format(platform), file=sys.stderr)
+        exit(2)
 
 
 def detect_obsolete_options():
@@ -185,8 +201,11 @@ def detect_obsolete_options():
     # Check for 'manylinux1' in the 'CIBW_BUILD' and 'CIBW_SKIP' options
     for deprecated in ['CIBW_BUILD', 'CIBW_SKIP']:
         if deprecated in os.environ and 'manylinux1' in os.environ[deprecated]:
-            print("Build identifiers with 'manylinux1' been deprecated. Replacing all occurences of 'manylinux1' by 'manylinux' in the option '{}'".format(deprecated))
+            print("Build identifiers with 'manylinux1' have been deprecated. Replacing all occurences of 'manylinux1' by 'manylinux' in the option '{}'".format(deprecated))
             os.environ[deprecated] = os.environ[deprecated].replace('manylinux1', 'manylinux')
+        if deprecated in os.environ and ("macosx_10_6" in os.environ[deprecated] or "macosx_10_9" in os.environ[deprecated]):
+            print("Build identifiers with 'macosx_10_6' or 'macosx_10_9' have been deprecated. Replacing all occurences with 'macosx' in the option '{}'".format(deprecated))
+            os.environ[deprecated] = os.environ[deprecated].replace('macosx_10_6', 'macosx').replace('macosx_10_9', 'macosx')
 
 
 def print_preamble(platform, build_options):

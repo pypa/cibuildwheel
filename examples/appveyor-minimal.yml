@@ -1,0 +1,15 @@
+image:
+  - Ubuntu
+  - Visual Studio 2015
+
+build_script:
+  # windows
+  - cmd: pip install cibuildwheel==1.1.0
+  - cmd: cibuildwheel --output-dir wheelhouse
+  # linux
+  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install cibuildwheel==1.1.0"
+  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m cibuildwheel --output-dir wheelhouse"
+
+artifacts:
+  - path: "wheelhouse\\*.whl"
+    name: Wheels

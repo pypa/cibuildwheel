@@ -14,18 +14,23 @@ from .util import prepare_command, get_build_verbosity_extra_flags
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_10_6_intel', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.6.pkg'),
-        PythonConfiguration(version='3.5', identifier='cp35-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
-        PythonConfiguration(version='3.6', identifier='cp36-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_10_6_intel', url='https://www.python.org/ftp/python/3.7.5/python-3.7.5-macosx10.6.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_10_9_x86_64', url='https://www.python.org/ftp/python/3.8.0/python-3.8.0-macosx10.9.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_intel', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.6.pkg'),
+        PythonConfiguration(version='3.5', identifier='cp35-macosx_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.6', identifier='cp36-macosx_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
+        PythonConfiguration(version='3.7', identifier='cp37-macosx_intel', url='https://www.python.org/ftp/python/3.7.5/python-3.7.5-macosx10.6.pkg'),
+        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.0/python-3.8.0-macosx10.9.pkg'),
     ]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, environment):
+def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+    abs_project_dir = os.path.abspath(project_dir)
+    temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
+    built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
+    repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
+
     python_configurations = get_python_configurations(build_selector)
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
@@ -44,10 +49,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
-    abs_project_dir = os.path.abspath(project_dir)
-
     # get latest pip once and for all
-    call(['curl', '-L', '-o', get_pip_script, get_pip_url])
+
+    call(['curl', '-L', '--retry', '3', '--retry-delay', '3', '-o', get_pip_script, get_pip_url])
 
     for config in python_configurations:
         # if this version of python isn't installed, get it from python.org and install
@@ -89,18 +93,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['python', '--version'], env=env)
 
         # install pip & wheel
-        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env)
+        call(['python', get_pip_script, '--no-setuptools', '--no-wheel'], env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
         call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)
-
-        # setup dirs
-        if os.path.exists('/tmp/built_wheel'):
-            shutil.rmtree('/tmp/built_wheel')
-        os.makedirs('/tmp/built_wheel')
-        if os.path.exists('/tmp/delocated_wheel'):
-            shutil.rmtree('/tmp/delocated_wheel')
-        os.makedirs('/tmp/delocated_wheel')
 
         # run the before_build command
         if before_build:
@@ -108,18 +104,23 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
-        call(['pip', 'wheel', abs_project_dir, '-w', '/tmp/built_wheel', '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
-        built_wheel = glob('/tmp/built_wheel/*.whl')[0]
+        if os.path.exists(built_wheel_dir):
+            shutil.rmtree(built_wheel_dir)
+        os.makedirs(built_wheel_dir)
+        call(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
+        built_wheel = glob(os.path.join(built_wheel_dir, '*.whl'))[0]
 
-        if built_wheel.endswith('none-any.whl'):
-            # pure python wheel - just move
-            shutil.move(built_wheel, '/tmp/delocated_wheel')
+        # repair the wheel
+        if os.path.exists(repaired_wheel_dir):
+            shutil.rmtree(repaired_wheel_dir)
+        os.makedirs(repaired_wheel_dir)
+        if built_wheel.endswith('none-any.whl') or not repair_command:
+            # pure Python wheel or empty repair command
+            shutil.move(built_wheel, repaired_wheel_dir)
         else:
-            # list the dependencies
-            call(['delocate-listdeps', built_wheel], env=env)
-            # rebuild the wheel with shared libraries included and place in output dir
-            call(['delocate-wheel', '-w', '/tmp/delocated_wheel', built_wheel], env=env)
-        delocated_wheel = glob('/tmp/delocated_wheel/*.whl')[0]
+            repair_command_prepared = prepare_command(repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
+            call(repair_command_prepared, env=env, shell=True)
+        repaired_wheel = glob(os.path.join(repaired_wheel_dir, '*.whl'))[0]
 
         if test_command:
             # set up a virtual environment to install and test from, to make sure
@@ -141,7 +142,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             call(['which', 'python'], env=virtualenv_env)
 
             # install the wheel
-            call(['pip', 'install', delocated_wheel + test_extras], env=virtualenv_env)
+            call(['pip', 'install', repaired_wheel + test_extras], env=virtualenv_env)
 
             # test the wheel
             if test_requires:
@@ -157,5 +158,5 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
-        dst = os.path.join(output_dir, os.path.basename(delocated_wheel))
-        shutil.move(delocated_wheel, dst)
+        dst = os.path.join(output_dir, os.path.basename(repaired_wheel))
+        shutil.move(repaired_wheel, dst)
