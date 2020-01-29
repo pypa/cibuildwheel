@@ -80,7 +80,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
     python_abi_tags = ['cp27-cp27m', 'cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38',
-                       'pp273-pypy_73', 'pp373-pypy36_pp73']
+                       'pp27-pypy_73', 'pp36-pypy36_pp73']
     if platform == 'linux':
         python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
         architectures = {'cp': ['x86_64', 'i686'], 'pp': ['x86_64']}
@@ -102,9 +102,9 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     elif platform == 'macos':
         def get_platform_tags(python_abi_tag):
             default_version = '10.9'
-            if python_abi_tag == 'pp273-pypy_73':
+            if python_abi_tag == 'pp27-pypy_73':
                 default_version = '10.7'
-            elif python_abi_tag == 'pp373-pypy36_pp73':
+            elif python_abi_tag == 'pp36-pypy36_pp73':
                 default_version = '10.13'
             return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
     else:
