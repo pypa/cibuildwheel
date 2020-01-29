@@ -90,6 +90,11 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             installation_bin_path = install_pypy(config.version, config.url)
             python_executable = 'pypy3' if config.version[0] == '3' else 'pypy'
             pip_executable = 'pip3' if config.version[0] == '3' else 'pip'
+            # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
+            if config.version[0] == '3':
+                patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
+                sysconfigdata_file = os.path.join(os.path.dirname(installation_bin_path), 'lib_pypy', '_sysconfigdata.py')
+                subprocess.call(['patch', sysconfigdata_file, patch_file , '-N'])  # Always has nonzero return code
         else:
             raise ValueError("Unknown Python implementation")
 

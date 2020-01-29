@@ -101,11 +101,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
 
     elif platform == 'macos':
         def get_platform_tags(python_abi_tag):
-            default_version = '10.9'
-            if python_abi_tag == 'pp27-pypy_73':
-                default_version = '10.7'
-            elif python_abi_tag == 'pp36-pypy36_pp73':
-                default_version = '10.13'
+            default_version = '10.7' if python_abi_tag.startswith('pp') else '10.9'
             return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
     else:
         raise Exception('unsupported platform')
