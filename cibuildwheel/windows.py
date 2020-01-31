@@ -14,7 +14,7 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
-from .util import prepare_command, get_build_verbosity_extra_flags
+from .util import prepare_command, get_build_verbosity_extra_flags, get_pip_script
 
 
 IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
@@ -107,9 +107,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     # install nuget as best way to provide python
     nuget = 'C:\\cibw\\nuget.exe'
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
-    # get pip fo this installation which not have.
-    get_pip_script = 'C:\\cibw\\get-pip.py'
-    download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
 
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:

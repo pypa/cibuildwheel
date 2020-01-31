@@ -1,5 +1,6 @@
 from fnmatch import fnmatch
 import warnings
+import os
 
 
 def prepare_command(command, **kwargs):
@@ -50,3 +51,6 @@ class Unbuffered(object):
 
     def __getattr__(self, attr):
         return getattr(self.stream, attr)
+
+
+get_pip_script = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'get-pip.py'))

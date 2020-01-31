@@ -8,7 +8,7 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
-from .util import prepare_command, get_build_verbosity_extra_flags
+from .util import prepare_command, get_build_verbosity_extra_flags, get_pip_script
 
 
 def get_python_configurations(build_selector):
@@ -32,8 +32,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
 
     python_configurations = get_python_configurations(build_selector)
-    get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
-    get_pip_script = '/tmp/get-pip.py'
 
     pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
     if sys.version_info[0] >= 3:
@@ -48,10 +46,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             print('+ ' + ' '.join(shlex_quote(a) for a in args))
 
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
-
-    # get latest pip once and for all
-
-    call(['curl', '-L', '--retry', '3', '--retry-delay', '3', '-o', get_pip_script, get_pip_url])
 
     for config in python_configurations:
         # if this version of python isn't installed, get it from python.org and install
