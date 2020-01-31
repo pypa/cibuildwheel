@@ -8,7 +8,7 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
-from .util import prepare_command, get_build_verbosity_extra_flags
+from .util import prepare_command, get_build_verbosity_extra_flags, download
 
 
 def get_python_configurations(build_selector):
@@ -51,19 +51,20 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
     # get latest pip once and for all
-    call(['curl', '--retry', '3', '--retry-delay', '3', '-sSLo', get_pip_script, get_pip_url])
+    download(get_pip_url, get_pip_script)
 
     for config in python_configurations:
         # if this version of python isn't installed, get it from python.org and install
         python_package_identifier = 'org.python.Python.PythonFramework-%s' % config.version
         if python_package_identifier not in installed_system_packages:
             # download the pkg
-            call(['curl', '--retry', '3', '--retry-delay', '3', '-sSLo', '/tmp/Python.pkg', config.url])
+            download(config.url, '/tmp/Python.pkg')
             # install
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
             # patch open ssl
             if config.version == '3.5':
-                call(['curl', '--retry', '3', '--retry-delay', '3', '-fsSLo', '/tmp/python-patch.tar.gz', 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version])
+                open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version
+                download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
                 call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/%s/' % config.version, '-xmf', '/tmp/python-patch.tar.gz'])
 
         installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
