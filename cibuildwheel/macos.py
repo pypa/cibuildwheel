@@ -100,8 +100,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         # setup target platform, only required for python 3.5
         if config.version == '3.5':
-            env['_PYTHON_HOST_PLATFORM'] = 'macosx-10.9-x86_64'  # cross-compilation platform override
-            env['ARCHFLAGS'] = '-arch x86_64'  # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
+            if '_PYTHON_HOST_PLATFORM' not in env:
+                # cross-compilation platform override
+                env['_PYTHON_HOST_PLATFORM'] = 'macosx-10.9-x86_64'
+            if 'ARCHFLAGS' not in env:
+                # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
+                env['ARCHFLAGS'] = '-arch x86_64'
+            if 'MACOSX_DEPLOYMENT_TARGET' not in env:
+                env['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
         # run the before_build command
         if before_build:
