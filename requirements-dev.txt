@@ -3,4 +3,4 @@
 pytest
 mkdocs==1.0.4
 pip-tools
-
+requests
