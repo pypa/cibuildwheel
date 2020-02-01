@@ -204,3 +204,26 @@ def test_build_verbosity(build_verbosity, platform_specific, platform, intercept
 
     expected_verbosity = max(-3, min(3, int(build_verbosity or 0)))
     assert intercepted_build_args.kwargs['build_verbosity'] == expected_verbosity
+
+
+@pytest.mark.parametrize('option_name', ['CIBW_BUILD', 'CIBW_SKIP'])
+@pytest.mark.parametrize('option_value, build_selector_patterns', [
+    ('*-manylinux1_*', ['*-manylinux_*']),
+    ('*-macosx_10_6_intel', ['*-macosx_x86_64']),
+    ('*-macosx_10_9_x86_64', ['*-macosx_x86_64']),
+    ('cp37-macosx_10_9_x86_64', ['cp37-macosx_x86_64']),
+])
+def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_name, option_value, build_selector_patterns):
+    monkeypatch.setenv(option_name, option_value)
+
+    main()
+
+    intercepted_build_selector = intercepted_build_args.kwargs['build_selector']
+    assert isinstance(intercepted_build_selector, BuildSelector)
+
+    if option_name == 'CIBW_BUILD':
+        assert intercepted_build_selector.build_patterns == build_selector_patterns
+    else:
+        assert intercepted_build_selector.skip_patterns == build_selector_patterns
+
+

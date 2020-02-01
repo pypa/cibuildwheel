@@ -198,15 +198,18 @@ def detect_obsolete_options():
                 print("Option '{}' is not empty. Please unset '{}'".format(alternative, deprecated))
                 exit(2)
 
-    # Check for 'manylinux1' in the 'CIBW_BUILD' and 'CIBW_SKIP' options
-    for deprecated in ['CIBW_BUILD', 'CIBW_SKIP']:
-        if deprecated in os.environ and 'manylinux1' in os.environ[deprecated]:
-            print("Build identifiers with 'manylinux1' have been deprecated. Replacing all occurences of 'manylinux1' by 'manylinux' in the option '{}'".format(deprecated))
-            os.environ[deprecated] = os.environ[deprecated].replace('manylinux1', 'manylinux')
-        if deprecated in os.environ and ("macosx_10_6" in os.environ[deprecated] or "macosx_10_9" in os.environ[deprecated]):
-            print("Build identifiers with 'macosx_10_6' or 'macosx_10_9' have been deprecated. Replacing all occurences with 'macosx' in the option '{}'".format(deprecated))
-            os.environ[deprecated] = os.environ[deprecated].replace('macosx_10_6', 'macosx').replace('macosx_10_9', 'macosx')
-
+    # Check for deprecated identifiers in 'CIBW_BUILD' and 'CIBW_SKIP' options
+    for option in ['CIBW_BUILD', 'CIBW_SKIP']:
+        for deprecated, alternative in [('manylinux1', 'manylinux'),
+                                        ('macosx_10_6_intel', 'macosx_x86_64'),
+                                        ('macosx_10_9_x86_64', 'macosx_x86_64')]:
+            if option in os.environ and deprecated in os.environ[option]:
+                print("Build identifiers with '{deprecated}' have been deprecated. Replacing all occurences of '{deprecated}' with '{alternative}' in the option '{option}'".format(
+                    deprecated=deprecated,
+                    alternative=alternative,
+                    option=option,
+                ))
+                os.environ[option] = os.environ[option].replace(deprecated, alternative)
 
 def print_preamble(platform, build_options):
     print(textwrap.dedent('''
