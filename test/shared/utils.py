@@ -86,22 +86,20 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
                 platform_tags.append('{manylinux_version}_{architecture}'.format(
                     manylinux_version=manylinux_version, architecture=architecture
                 ))
-            
+
         def get_platform_tags(python_abi_tag):
             return platform_tags
-        
+
     elif platform == 'windows':
 
         def get_platform_tags(python_abi_tag):
             return ['win32', 'win_amd64']
-        
+
     elif platform == 'macos':
-        
+
         def get_platform_tags(python_abi_tag):
-            if python_abi_tag == 'cp38-cp38':
-                return ['macosx_' + (macosx_deployment_target or "10.9").replace(".", "_") + '_x86_64']
-            else:
-                return ['macosx_' + (macosx_deployment_target or "10.6").replace(".", "_") + '_intel']
+            return ['macosx_' + (macosx_deployment_target or "10.9").replace(".", "_") + '_x86_64']
+
     else:
         raise Exception('unsupported platform')
 

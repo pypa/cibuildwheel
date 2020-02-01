@@ -4,7 +4,7 @@ import sys
 import os
 import subprocess
 
-from cibuildwheel import linux, macos, windows
+from cibuildwheel import linux, macos, windows, util
 
 
 class ArgsInterceptor(object):
@@ -26,7 +26,7 @@ def mock_protection(monkeypatch):
         raise RuntimeError("This should never be called")
 
     monkeypatch.setattr(subprocess, 'Popen', fail_on_call)
-    monkeypatch.setattr(windows, 'urlopen', fail_on_call)
+    monkeypatch.setattr(util, 'download', fail_on_call)
     monkeypatch.setattr(windows, 'build', fail_on_call)
     monkeypatch.setattr(linux, 'build', fail_on_call)
     monkeypatch.setattr(macos, 'build', fail_on_call)
