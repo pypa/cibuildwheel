@@ -1,6 +1,12 @@
 from fnmatch import fnmatch
 import warnings
 import os
+from time import sleep
+
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 
 
 def prepare_command(command, **kwargs):
@@ -51,6 +57,30 @@ class Unbuffered(object):
 
     def __getattr__(self, attr):
         return getattr(self.stream, attr)
+
+
+def download(url, dest):
+    print('+ Download ' + url + ' to ' + dest)
+    dest_dir = os.path.dirname(dest)
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+
+    repeat_num = 3
+    for i in range(repeat_num):
+        try:
+            response = urlopen(url)
+        except:
+            if i == repeat_num - 1:
+                raise
+            sleep(3)
+            continue
+        break
+
+    try:
+        with open(dest, 'wb') as file:
+            file.write(response.read())
+    finally:
+        response.close()
 
 
 get_pip_script = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'get-pip.py'))

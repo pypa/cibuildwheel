@@ -11,6 +11,9 @@ Using Azure pipelines, you can build all three platforms on the same service. Cr
 {% include "../examples/azure-pipelines-minimal.yml" %}
 ```
 
+!!! note
+    To support Python 3.5 on Windows, make sure to specify the use of `{vmImage: 'vs2017-win2016'}` on Windows, to ensure the required toolchain is available.
+
 Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).

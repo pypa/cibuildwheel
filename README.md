@@ -15,13 +15,13 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS 10.6+ intel | macOS 10.9+ x86_64 | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
-|---|---|---|---|---|---|---|
-| Python 2.7 | ✅ |    | ✅ | ✅ | ✅¹ | ✅¹ |
-| Python 3.5 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
-| Python 3.6 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
-| Python 3.7 | ✅ |    | ✅ | ✅ | ✅  | ✅  |
-| Python 3.8 |    | ✅ | ✅ | ✅ | ✅  | ✅  |
+|   | macOS 10.9+ x86_64 | manylinux i686 | manylinux x86_64 |  Windows 32bit | Windows 64bit |
+|---|---|---|---|---|---|
+| Python 2.7 | ✅ | ✅ | ✅ | ✅¹ | ✅¹ |
+| Python 3.5 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.6 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.7 | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.8 | ✅ | ✅ | ✅ | ✅  | ✅  |
 
 > ¹ Not supported on Travis
 

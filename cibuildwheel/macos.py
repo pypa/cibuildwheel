@@ -8,17 +8,17 @@ try:
 except ImportError:
     from pipes import quote as shlex_quote
 
-from .util import prepare_command, get_build_verbosity_extra_flags, get_pip_script
+from .util import prepare_command, get_build_verbosity_extra_flags, download, get_pip_script
 
 
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_intel', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.6.pkg'),
-        PythonConfiguration(version='3.5', identifier='cp35-macosx_intel', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
-        PythonConfiguration(version='3.6', identifier='cp36-macosx_intel', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.6.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_intel', url='https://www.python.org/ftp/python/3.7.5/python-3.7.5-macosx10.6.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.0/python-3.8.0-macosx10.9.pkg'),
+        PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.9.pkg'),
+        PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
+        PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.9.pkg'),
+        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.1/python-3.8.1-macosx10.9.pkg'),
     ]
 
     # skip builds as required
@@ -52,12 +52,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         python_package_identifier = 'org.python.Python.PythonFramework-%s' % config.version
         if python_package_identifier not in installed_system_packages:
             # download the pkg
-            call(['curl', '-L', '-o', '/tmp/Python.pkg', config.url])
+            download(config.url, '/tmp/Python.pkg')
             # install
             call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
             # patch open ssl
             if config.version == '3.5':
-                call(['curl', '-fsSLo', '/tmp/python-patch.tar.gz', 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version])
+                open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version
+                download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
                 call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/%s/' % config.version, '-xmf', '/tmp/python-patch.tar.gz'])
 
         installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(config.version)
@@ -93,6 +94,17 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
         call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
+
+        # setup target platform, only required for python 3.5
+        if config.version == '3.5':
+            if '_PYTHON_HOST_PLATFORM' not in env:
+                # cross-compilation platform override
+                env['_PYTHON_HOST_PLATFORM'] = 'macosx-10.9-x86_64'
+            if 'ARCHFLAGS' not in env:
+                # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
+                env['ARCHFLAGS'] = '-arch x86_64'
+            if 'MACOSX_DEPLOYMENT_TARGET' not in env:
+                env['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
         # run the before_build command
         if before_build:

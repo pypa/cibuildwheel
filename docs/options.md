@@ -64,7 +64,7 @@ This option can also be set using the command-line option `--platform`.
 
 > Choose the Python versions to build
 
-Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux_x86_64` or `cp35-macosx_intel` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
+Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux_x86_64` or `cp35-macosx_x86_64` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
@@ -72,13 +72,13 @@ When setting the options, you can use shell-style globbing syntax (as per `fnmat
 
 <div class="build-id-table-marker"></div>
 
-|            | macOS 64bit         | macOS 32/64bit     | Manylinux 64bit        | Manylinux 32bit      | Windows 64bit   | Windows 32bit  |
-|------------|---------------------|--------------------|------------------------|----------------------|-----------------|----------------|
-| Python 2.7 |                     | cp27-macosx_intel  | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |
-| Python 3.5 |                     | cp35-macosx_intel  | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     |
-| Python 3.6 |                     | cp36-macosx_intel  | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     |
-| Python 3.7 |                     | cp37-macosx_intel  | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     |
-| Python 3.8 | cp38-macosx_x86_64  |                    | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     |
+|            | macOS 64bit        | Manylinux 64bit        | Manylinux 32bit      | Windows 64bit   | Windows 32bit  |
+|------------|--------------------|------------------------|----------------------|-----------------|----------------|
+| Python 2.7 | cp27-macosx_x86_64 | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |
+| Python 3.5 | cp35-macosx_x86_64 | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     |
+| Python 3.6 | cp36-macosx_x86_64 | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     |
+| Python 3.7 | cp37-macosx_x86_64 | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     |
+| Python 3.8 | cp38-macosx_x86_64 | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
@@ -90,7 +90,7 @@ The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425]
 CIBW_BUILD: cp36-*
 
 # Skip building on Python 2.7 on the Mac
-CIBW_SKIP: cp27-macosx_intel
+CIBW_SKIP: cp27-macosx_x86_64
 
 # Skip building on Python 3.8 on the Mac
 CIBW_SKIP: cp38-macosx_x86_64
@@ -208,7 +208,7 @@ CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
 Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
-- on macOS: `'delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} {wheel}'`
+- on macOS: `'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'`
 - on Windows: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
