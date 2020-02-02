@@ -4,7 +4,7 @@ import argparse, os, subprocess, sys, textwrap
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
 from cibuildwheel.environment import parse_environment, EnvironmentParseError
-from cibuildwheel.util import BuildSelector, Unbuffered
+from cibuildwheel.util import BuildSelector, DependencyConstraints, Unbuffered
 
 def get_option_from_environment(option_name, platform=None, default=None):
     '''
@@ -102,15 +102,14 @@ def main():
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
-        dependency_constraints = os.path.join(
-            os.path.dirname(__file__), 'resources', 'constraints.txt'
-        )
+        dependency_constraints = DependencyConstraints.with_defaults()
     elif dependency_versions == 'latest':
-        dependency_constraints = ''
+        dependency_constraints = None
     else:
-        dependency_constraints = dependency_versions
+        dependency_constraints = DependencyConstraints(dependency_versions)
 
     if test_extras:
         test_extras = '[{0}]'.format(test_extras)

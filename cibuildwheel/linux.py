@@ -10,20 +10,20 @@ except ImportError:
 
 
 def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['identifier', 'path'])
+    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'path'])
     python_configurations = [
-        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp35-manylinux_x86_64', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(identifier='cp36-manylinux_x86_64', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(identifier='cp37-manylinux_x86_64', path='/opt/python/cp37-cp37m'),
-        PythonConfiguration(identifier='cp38-manylinux_x86_64', path='/opt/python/cp38-cp38'),
-        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(identifier='cp35-manylinux_i686', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
-        PythonConfiguration(identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(version='3.5', identifier='cp35-manylinux_x86_64', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(version='3.6', identifier='cp36-manylinux_x86_64', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(version='3.7', identifier='cp37-manylinux_x86_64', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(version='3.8', identifier='cp38-manylinux_x86_64', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(version='3.5', identifier='cp35-manylinux_i686', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(version='3.6', identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(version='3.7', identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(version='3.8', identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
     ]
 
     # skip builds as required
@@ -79,7 +79,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
             for config in platform_configs:
                 if dependency_constraints:
-                    run_docker(['cp', os.path.abspath(dependency_constraints), container_name + ':/constraints.txt'])
+                    constraints_file = dependency_constraints.get_for_python_version(config.version)
+                    run_docker(['cp', os.path.abspath(constraints_file), container_name + ':/constraints.txt'])
+
                 run_docker(['start', '-i', '-a', container_name], stdin_str='''
                     set -o errexit
                     set -o xtrace

@@ -285,6 +285,13 @@ To control the versions of dependencies yourself, you can supply a [pip
 constraints](https://pip.pypa.io/en/stable/user_guide/#constraints-files) file
 here and it will be used instead.
 
+!!! note
+    If you need different dependencies for each python version, provide them
+    in the same folder with a `-pythonXY` suffix. e.g. if your
+    `CIBW_DEPENDENCY_VERSIONS=./constraints.txt`, cibuildwheel will use
+    `./constraints-python27.txt` on Python 2.7, or fallback to
+    `./constraints.txt` if that's not found.
+
 Platform-specific variants also available:<br/>
 `CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_LINUX`
 

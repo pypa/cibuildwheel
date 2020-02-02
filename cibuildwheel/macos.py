@@ -87,7 +87,11 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         call(['which', 'python'], env=env)
         call(['python', '--version'], env=env)
 
-        dependency_constraint_flags = ['-c', dependency_constraints] if dependency_constraints else []
+        dependency_constraint_flags = []
+        if dependency_constraints:
+            dependency_constraint_flags = [
+                '-c', dependency_constraints.get_for_python_version(config.version)
+            ]
 
         # install pip & wheel
         call(['python', get_pip_script, '--no-setuptools', '--no-wheel'] + dependency_constraint_flags, env=env, cwd="/tmp")

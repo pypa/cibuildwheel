@@ -104,8 +104,12 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         simple_shell(['python', '--version'], env=env)
         simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)\"'], env=env)
 
-        dependency_constraint_flags = ['-c', dependency_constraints] if dependency_constraints else []
-                    
+        dependency_constraint_flags = []
+        if dependency_constraints:
+            dependency_constraint_flags = [
+                '-c', dependency_constraints.get_for_python_version(config.version)
+            ]
+
         # make sure pip is installed
         if not os.path.exists(os.path.join(config_python_path, 'Scripts', 'pip.exe')):
             simple_shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")

@@ -20,7 +20,7 @@ subprocess.check_call([
     '--generate-hashes',
     '--upgrade',
     'cibuildwheel/resources/constraints.in',
-    '--output-file', 'cibuildwheel/resources/constraints-python2.txt'
+    '--output-file', 'cibuildwheel/resources/constraints-python27.txt'
 ])
 
 Image = namedtuple('Image', ['manylinux_version', 'arch'])
