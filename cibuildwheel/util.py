@@ -100,7 +100,7 @@ class DependencyConstraints(object):
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python27.txt
         base, ext = os.path.splitext(self.base_file_path)
-        specific = base + '-{}{}'.format(version_parts[0], version_parts[1])
+        specific = base + '-python{}{}'.format(version_parts[0], version_parts[1])
         specific_file_path = specific + ext
         if os.path.exists(specific_file_path):
             return specific_file_path
