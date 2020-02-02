@@ -1,5 +1,6 @@
 from __future__ import print_function
 import argparse, os, subprocess, sys, textwrap
+from configparser import ConfigParser
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
@@ -159,16 +160,29 @@ def main():
         manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
         manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
 
-        default_manylinux_images_x86_64 = {'manylinux1': 'quay.io/pypa/manylinux1_x86_64',
-                                           'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64',
-                                           'manylinux2014': 'quay.io/pypa/manylinux2014_x86_64'}
-        default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686',
-                                         'manylinux2010': 'quay.io/pypa/manylinux2010_i686',
-                                         'manylinux2014': 'quay.io/pypa/manylinux2014_i686'}
+        pinned_docker_images_file = os.path.join(
+            os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
+        )
+        pinned_docker_images = ConfigParser()
+        pinned_docker_images.read(pinned_docker_images_file)
+
+        # pinned_docker_images looks like a dict of dicts, e.g.
+        # { 'manylinux2010': {'x86_64': 'url.to/docker/image', 'i686': ...}}
+
+        manylinux_images = {}
+
+        if manylinux_x86_64_image in pinned_docker_images:
+            manylinux_images['x86_64'] = pinned_docker_images[manylinux_x86_64_image]['x86_64']
+        else:
+            manylinux_images['x86_64'] = manylinux_x86_64_image
+
+        if manylinux_i686_image in pinned_docker_images:
+            manylinux_images['i686'] = pinned_docker_images[manylinux_i686_image]['i686']
+        else:
+            manylinux_images['i686'] = manylinux_i686_image
 
         build_options.update(
-            manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
-                              'i686': default_manylinux_images_i686.get(manylinux_i686_image) or manylinux_i686_image},
+            manylinux_images=manylinux_images
         )
     elif platform == 'macos':
         pass
