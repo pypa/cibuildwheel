@@ -1,4 +1,3 @@
-from __future__ import print_function
 import argparse, os, subprocess, sys, textwrap
 
 import cibuildwheel

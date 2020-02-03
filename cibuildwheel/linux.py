@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os, shlex, subprocess, sys, textwrap, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags

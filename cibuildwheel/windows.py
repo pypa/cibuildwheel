@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os, tempfile, subprocess, shutil, sys
 from collections import namedtuple
 from glob import glob
