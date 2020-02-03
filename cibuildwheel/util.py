@@ -23,7 +23,7 @@ def get_build_verbosity_extra_flags(level):
         return []
 
 
-class BuildSelector(object):
+class BuildSelector:
     def __init__(self, build_config, skip_config):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
@@ -38,7 +38,7 @@ class BuildSelector(object):
 
 
 # Taken from https://stackoverflow.com/a/107717
-class Unbuffered(object):
+class Unbuffered:
     def __init__(self, stream):
         self.stream = stream
 

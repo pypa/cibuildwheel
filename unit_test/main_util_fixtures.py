@@ -7,7 +7,7 @@ import subprocess
 from cibuildwheel import linux, macos, windows, util
 
 
-class ArgsInterceptor(object):
+class ArgsInterceptor:
     def __call__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
