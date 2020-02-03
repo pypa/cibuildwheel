@@ -32,9 +32,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
 
-    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
-    if sys.version_info[0] >= 3:
-        pkgs_output = pkgs_output.decode('utf8')
+    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'], universal_newlines=True)
     installed_system_packages = pkgs_output.splitlines()
 
     def call(args, env=None, cwd=None, shell=False):
