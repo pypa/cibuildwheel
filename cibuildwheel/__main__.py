@@ -170,7 +170,9 @@ def main():
         pinned_docker_images.read(pinned_docker_images_file)
 
         # pinned_docker_images looks like a dict of dicts, e.g.
-        # { 'manylinux2010': {'x86_64': 'url.to/docker/image', 'i686': ...}}
+        # { 'manylinux1': {'x86_64': '...', 'i686': '...'},
+        #   'manylinux2010': {'x86_64': '...', 'i686': '...'},
+        #   'manylinux2014': {'x86_64': '...', 'i686': '...'} }
 
         manylinux_images = {}
 
