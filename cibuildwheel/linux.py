@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, subprocess, sys, uuid
+import os, subprocess, sys, uuid, textwrap
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
 
@@ -173,8 +173,36 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
             run_docker(['start', '-i', '-a', container_name], stdin_str=bash_script)
             run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as error:
+            troubleshoot(project_dir, error)
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
             run_docker(['rm', '--force', '-v', container_name])
+
+
+def troubleshoot(project_dir, error):
+    if (isinstance(error, subprocess.CalledProcessError) and 'start' in error.cmd):
+        # the bash script failed
+        print('Checking for common errors...')
+        so_files = []
+        for root, dirs, files in os.walk(project_dir):
+            for name in files:
+                _, ext = os.path.splitext(name)
+                if ext == '.so':
+                    so_files.append(os.path.join(root, name))
+
+        if so_files:
+            print(textwrap.dedent('''
+                NOTE: Shared object (.so) files found in this project.
+
+                  These files might be built against the wrong OS, causing problems with
+                  auditwheel.
+
+                  If you're using Cython and have previously done an in-place build,
+                  remove those build files (*.so and *.c) before starting cibuildwheel.
+            '''))
+
+            print('  Files detected:')
+            print('\n'.join(['    '+f for f in so_files]))
+            print('')
