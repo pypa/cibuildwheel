@@ -1,12 +1,7 @@
 from __future__ import print_function
-import os, subprocess, sys, uuid, textwrap
+import os, shlex, subprocess, sys, textwrap, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
-
-try:
-    from shlex import quote as shlex_quote
-except ImportError:
-    from pipes import quote as shlex_quote
 
 
 def get_python_configurations(build_selector):
@@ -132,14 +127,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
             test_requires=' '.join(test_requires),
             test_extras=test_extras,
-            test_command=shlex_quote(
+            test_command=shlex.quote(
                 prepare_command(test_command, project='/project') if test_command else ''
             ),
-            before_build=shlex_quote(
+            before_build=shlex.quote(
                 prepare_command(before_build, project='/project') if before_build else ''
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
-            repair_command=shlex_quote(
+            repair_command=shlex.quote(
                 prepare_command(repair_command, wheel='"$1"', dest_dir='/tmp/repaired_wheels') if repair_command else ''
             ),
             environment_exports='\n'.join(environment.as_shell_commands()),

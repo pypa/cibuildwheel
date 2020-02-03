@@ -1,12 +1,7 @@
 from fnmatch import fnmatch
 import warnings
-import os
+import os, urllib.request
 from time import sleep
-
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
 
 
 def prepare_command(command, **kwargs):
@@ -68,7 +63,7 @@ def download(url, dest):
     repeat_num = 3
     for i in range(repeat_num):
         try:
-            response = urlopen(url)
+            response = urllib.request.urlopen(url)
         except:
             if i == repeat_num - 1:
                 raise
