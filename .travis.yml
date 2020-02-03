@@ -2,13 +2,6 @@ language: generic
 
 matrix:
   include:
-    # Linux Python 2
-    - sudo: required
-      language: python
-      python: 2.7
-      services: docker
-      env: PYTHON=python
-
     # Linux Python 3
     - sudo: required
       language: python
