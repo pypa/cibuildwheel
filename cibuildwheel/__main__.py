@@ -1,6 +1,9 @@
 from __future__ import print_function
 import argparse, os, subprocess, sys, textwrap
-from configparser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 
 import cibuildwheel
 import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
