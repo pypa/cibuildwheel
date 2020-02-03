@@ -147,38 +147,24 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             gid=os.getgid(),
         )
 
-        def run_docker(command, stdin_str=None):
-            print('docker command: docker {}'.format(' '.join(map(shlex_quote, command))))
-            if stdin_str is None:
-                subprocess.check_call(['docker'] + command)
-            else:
-                args = ['docker'] + command
-                process = subprocess.Popen(args, stdin=subprocess.PIPE, universal_newlines=True)
-                try:
-                    process.communicate(stdin_str)
-                except KeyboardInterrupt:
-                    process.kill()
-                    process.wait()
-                if process.returncode != 0:
-                    raise subprocess.CalledProcessError(process.returncode, args)
-
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         try:
-            run_docker(['create',
-                        '--env', 'CIBUILDWHEEL',
-                        '--name', container_name,
-                        '-i',
-                        '-v', '/:/host', # ignored on Circle
-                        docker_image, '/bin/bash'])
-            run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
-            run_docker(['start', '-i', '-a', container_name], stdin_str=bash_script)
-            run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
+            subprocess.run(['docker', 'create',
+                            '--env', 'CIBUILDWHEEL',
+                            '--name', container_name,
+                            '-i',
+                            '-v', '/:/host', # ignored on CircleCI
+                            docker_image, '/bin/bash'],
+                            check=True)
+            subprocess.run(['docker', 'cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'], check=True)
+            subprocess.run(['docker', 'start', '-i', '-a', container_name], input=bash_script, universal_newlines=True, check=True)
+            subprocess.run(['docker', 'cp', container_name + ':/output/.', os.path.abspath(output_dir)], check=True)
         except subprocess.CalledProcessError as error:
             troubleshoot(project_dir, error)
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
-            run_docker(['rm', '--force', '-v', container_name])
+            subprocess.run(['docker', 'rm', '--force', '-v', container_name], check=True)
 
 
 def troubleshoot(project_dir, error):
