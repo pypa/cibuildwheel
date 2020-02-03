@@ -91,12 +91,12 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                     PYBIN="{config_python_bin}"
                     export PATH="$PYBIN:$PATH"
 
+                    {environment_exports}
+
                     # check the active python and pip are in PYBIN
                     # if `test` returns false, the script will exit due to errexit
                     test "$(which pip)" = "$PYBIN/pip"
                     test "$(which python)" = "$PYBIN/python"
-
-                    {environment_exports}
 
                     if [ ! -z {before_build} ]; then
                         sh -c {before_build}
