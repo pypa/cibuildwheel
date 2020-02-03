@@ -141,11 +141,15 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         simple_shell(['where', 'python'], env=env)
         simple_shell(['python', '--version'], env=env)
         simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
+        # TODO Cleanup/merge with above `simple_shell` once we have `subprocess.run` after dropping Python 2 support?
+        assert subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0] == os.path.join(installation_path, 'python.exe')
 
         # make sure pip is installed
         if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
             simple_shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
         assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
+        # TODO Cleanup/merge with above `simple_shell` once we have `subprocess.run` after dropping Python 2 support?
+        assert subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0] == os.path.join(installation_path, 'Scripts', 'pip.exe')
 
         # prepare the Python environment
         simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)

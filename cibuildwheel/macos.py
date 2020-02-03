@@ -137,11 +137,15 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         # check what version we're on
         call(['which', 'python'], env=env)
         call(['python', '--version'], env=env)
+        # TODO Cleanup/merge with above `call` once we have `subprocess.run` after dropping Python 2 support?
+        assert subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip() == '/tmp/cibw_bin/python'
 
         # install pip & wheel
         call(['python', get_pip_script], env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['pip', '--version'], env=env)
+        # TODO Cleanup/merge with above `call` once we have `subprocess.run` after dropping Python 2 support?
+        assert subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip() == '/tmp/cibw_bin/pip'
         call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)
 
         # setup target platform, only required for python 3.5
