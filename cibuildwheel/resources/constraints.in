@@ -1,6 +1,5 @@
 pip
 setuptools
 wheel
-auditwheel
 delocate
 virtualenv

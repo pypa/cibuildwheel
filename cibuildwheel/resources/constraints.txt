@@ -4,20 +4,14 @@
 #
 #    bin/update_constraints
 #
-auditwheel==3.1.0 \
-    --hash=sha256:54a3f65fed0045c65c7d0ec7f35b824dac031f5b904f8ffc131960ec3610eaa7
 delocate==0.8.0 \
     --hash=sha256:ac9f4d8d28b2582d94f764db0d72a1fe3c42ab8212e9b780168455de385d5b95
-pyelftools==0.26 \
-    --hash=sha256:86ac6cee19f6c945e8dedf78c6ee74f1112bd14da5a658d8c9d4103aed5756a2 \
-    --hash=sha256:cc0ea0de82b240a73ef4056fce44acbb4727dca7d66759371aff2bad457ed711 \
-    # via auditwheel
 virtualenv==16.7.9 \
     --hash=sha256:0d62c70883c0342d59c11d0ddac0d954d0431321a41ab20851facf2b222598f3 \
     --hash=sha256:55059a7a676e4e19498f1aad09b8313a38fcc0cdbe4fdddc0e9b06946d21b4bb
-wheel==0.34.1 \
-    --hash=sha256:48e082fac9a549bb30abcb71360db41e9e999f63bfc9933fdb7339ba7205330f \
-    --hash=sha256:664b9c5033ee7cd5aa6b355bc8a4a5915eadb7612e7b0acab1aa71f005457107
+wheel==0.34.2 \
+    --hash=sha256:8788e9155fe14f54164c1b9eb0a319d98ef02c160725587ad60f14ddc57b6f96 \
+    --hash=sha256:df277cb51e61359aba502208d680f90c0493adec6f0e848af94948778aed386e
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==20.0.2 \
