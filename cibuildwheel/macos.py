@@ -1,12 +1,7 @@
-from __future__ import print_function
 import tempfile
 import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
 from glob import glob
-try:
-    from shlex import quote as shlex_quote
-except ImportError:
-    from pipes import quote as shlex_quote
 
 from .util import prepare_command, get_build_verbosity_extra_flags, download
 
@@ -36,9 +31,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
 
-    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
-    if sys.version_info[0] >= 3:
-        pkgs_output = pkgs_output.decode('utf8')
+    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'], universal_newlines=True)
     installed_system_packages = pkgs_output.splitlines()
 
     def call(args, env=None, cwd=None, shell=False):
@@ -46,7 +39,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if shell:
             print('+ %s' % args)
         else:
-            print('+ ' + ' '.join(shlex_quote(a) for a in args))
+            print('+ ' + ' '.join(shlex.quote(a) for a in args))
 
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 

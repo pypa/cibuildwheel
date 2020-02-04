@@ -1,12 +1,6 @@
-from __future__ import print_function
-import os, subprocess, sys, uuid, textwrap
+import os, shlex, subprocess, sys, textwrap, uuid
 from collections import namedtuple
 from .util import prepare_command, get_build_verbosity_extra_flags
-
-try:
-    from shlex import quote as shlex_quote
-except ImportError:
-    from pipes import quote as shlex_quote
 
 
 def get_python_configurations(build_selector):
@@ -132,14 +126,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             pybin_paths=' '.join(c.path+'/bin' for c in platform_configs),
             test_requires=' '.join(test_requires),
             test_extras=test_extras,
-            test_command=shlex_quote(
+            test_command=shlex.quote(
                 prepare_command(test_command, project='/project') if test_command else ''
             ),
-            before_build=shlex_quote(
+            before_build=shlex.quote(
                 prepare_command(before_build, project='/project') if before_build else ''
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
-            repair_command=shlex_quote(
+            repair_command=shlex.quote(
                 prepare_command(repair_command, wheel='"$1"', dest_dir='/tmp/repaired_wheels') if repair_command else ''
             ),
             environment_exports='\n'.join(environment.as_shell_commands()),
@@ -147,38 +141,24 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             gid=os.getgid(),
         )
 
-        def run_docker(command, stdin_str=None):
-            print('docker command: docker {}'.format(' '.join(map(shlex_quote, command))))
-            if stdin_str is None:
-                subprocess.check_call(['docker'] + command)
-            else:
-                args = ['docker'] + command
-                process = subprocess.Popen(args, stdin=subprocess.PIPE, universal_newlines=True)
-                try:
-                    process.communicate(stdin_str)
-                except KeyboardInterrupt:
-                    process.kill()
-                    process.wait()
-                if process.returncode != 0:
-                    raise subprocess.CalledProcessError(process.returncode, args)
-
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         try:
-            run_docker(['create',
-                        '--env', 'CIBUILDWHEEL',
-                        '--name', container_name,
-                        '-i',
-                        '-v', '/:/host', # ignored on Circle
-                        docker_image, '/bin/bash'])
-            run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
-            run_docker(['start', '-i', '-a', container_name], stdin_str=bash_script)
-            run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
+            subprocess.run(['docker', 'create',
+                            '--env', 'CIBUILDWHEEL',
+                            '--name', container_name,
+                            '-i',
+                            '-v', '/:/host', # ignored on CircleCI
+                            docker_image, '/bin/bash'],
+                            check=True)
+            subprocess.run(['docker', 'cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'], check=True)
+            subprocess.run(['docker', 'start', '-i', '-a', container_name], input=bash_script, universal_newlines=True, check=True)
+            subprocess.run(['docker', 'cp', container_name + ':/output/.', os.path.abspath(output_dir)], check=True)
         except subprocess.CalledProcessError as error:
             troubleshoot(project_dir, error)
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
-            run_docker(['rm', '--force', '-v', container_name])
+            subprocess.run(['docker', 'rm', '--force', '-v', container_name], check=True)
 
 
 def troubleshoot(project_dir, error):

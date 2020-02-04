@@ -1,11 +1,11 @@
 version: 2
 
 jobs:
-  osx-python2:
+  osx-python3.6:
     macos:
-      xcode: "10.0.0"
+      xcode: "9.4.1"
     environment:
-      PYTHON: python2
+      PYTHON: python3
     steps:
       - checkout
 
@@ -16,7 +16,7 @@ jobs:
           name: Test.
           command: venv/bin/python ./bin/run_tests.py
 
-  osx-python3:
+  osx-python3.7:
     macos:
       xcode: "10.0.0"
     environment:
@@ -31,23 +31,7 @@ jobs:
           name: Test.
           command: venv/bin/python ./bin/run_tests.py
 
-  linux-python2:
-    docker:
-      - image: circleci/python:2.7
-    environment:
-      PYTHON: python2
-    steps:
-      - checkout
-      - setup_remote_docker
-
-      - run:
-          name: Prepare the environment.
-          command: bash .circleci/prepare.sh
-      - run:
-          name: Test.
-          command: venv/bin/python ./bin/run_tests.py
-
-  linux-python3:
+  linux-python3.6:
     docker:
       - image: circleci/python:3.6
     environment:
@@ -67,7 +51,6 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      - osx-python2
-      - osx-python3
-      - linux-python2
-      - linux-python3
+      - osx-python3.6
+      - osx-python3.7
+      - linux-python3.6

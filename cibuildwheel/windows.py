@@ -1,12 +1,6 @@
-from __future__ import print_function
 import os, tempfile, subprocess, shutil, sys
 from collections import namedtuple
 from glob import glob
-
-try:
-    from shlex import quote as shlex_quote
-except ImportError:
-    from pipes import quote as shlex_quote
 
 from .util import prepare_command, get_build_verbosity_extra_flags, download
 

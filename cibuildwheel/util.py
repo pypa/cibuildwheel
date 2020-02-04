@@ -1,12 +1,7 @@
 from fnmatch import fnmatch
 import warnings
-import os
+import os, urllib.request
 from time import sleep
-
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
 
 
 def prepare_command(command, **kwargs):
@@ -28,7 +23,7 @@ def get_build_verbosity_extra_flags(level):
         return []
 
 
-class BuildSelector(object):
+class BuildSelector:
     def __init__(self, build_config, skip_config):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
@@ -43,7 +38,7 @@ class BuildSelector(object):
 
 
 # Taken from https://stackoverflow.com/a/107717
-class Unbuffered(object):
+class Unbuffered:
     def __init__(self, stream):
         self.stream = stream
 
@@ -68,7 +63,7 @@ def download(url, dest):
     repeat_num = 3
     for i in range(repeat_num):
         try:
-            response = urlopen(url)
+            response = urllib.request.urlopen(url)
         except:
             if i == repeat_num - 1:
                 raise

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os, io
 
@@ -28,12 +27,11 @@ setup(
         'cibuildwheel': ['resources/*'],
     },
     # Supported python versions
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires='>=3.5',
     keywords='ci wheel packaging pypi travis appveyor macos linux windows',
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: BSD License',
