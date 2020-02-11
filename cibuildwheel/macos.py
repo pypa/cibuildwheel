@@ -13,6 +13,16 @@ from .util import (
 )
 
 
+def call(args, env=None, cwd=None, shell=False):
+    # print the command executing for the logs
+    if shell:
+        print('+ %s' % args)
+    else:
+        print('+ ' + ' '.join(shlex.quote(a) for a in args))
+
+    return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
+
+
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
@@ -29,6 +39,36 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
+def install_cpython(version, url):
+    installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
+
+    # if this version of python isn't installed, get it from python.org and install
+    python_package_identifier = 'org.python.Python.PythonFramework-{}'.format(version)
+    if python_package_identifier not in installed_system_packages:
+        # download the pkg
+        download(url, '/tmp/Python.pkg')
+        # install
+        call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
+        # patch open ssl
+        if version == '3.5':
+            open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % version
+            download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
+            call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/{}/'.format(version), '-xmf', '/tmp/python-patch.tar.gz'])
+
+    return '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(version)
+
+
+def install_pypy(version, url):
+    pypy_tar_bz2 = url.rsplit('/', 1)[-1]
+    assert pypy_tar_bz2.endswith(".tar.bz2")
+    pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
+    installation_path = os.path.join('/tmp', pypy_base_filename)
+    if not os.path.exists(installation_path):
+        download(url, os.path.join("/tmp", pypy_tar_bz2))
+        call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
+    return os.path.join(installation_path, 'bin')
+
+
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
@@ -39,44 +79,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
-
-    pkgs_output = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True)
-    installed_system_packages = pkgs_output.splitlines()
-
-    def call(args, env=None, cwd=None, shell=False):
-        # print the command executing for the logs
-        if shell:
-            print('+ %s' % args)
-        else:
-            print('+ ' + ' '.join(shlex.quote(a) for a in args))
-
-        return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
-  
-    def install_cpython(version, url):
-         # if this version of python isn't installed, get it from python.org and install
-        python_package_identifier = 'org.python.Python.PythonFramework-{}'.format(version)
-        if python_package_identifier not in installed_system_packages:
-            # download the pkg
-            download(url, '/tmp/Python.pkg')
-            # install
-            call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
-            # patch open ssl
-            if version == '3.5':
-                open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2t/patch-macos-python-%s-openssl-v1.0.2t.tar.gz' % config.version
-                download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
-                call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/{}/'.format(version), '-xmf', '/tmp/python-patch.tar.gz'])
-        return '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(version)
-    
-    def install_pypy(version, url):
-        pypy_tar_bz2 = url.rsplit('/', 1)[-1]
-        assert pypy_tar_bz2.endswith(".tar.bz2")
-        pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
-        installation_path = os.path.join('/tmp', pypy_base_filename)
-        if not os.path.exists(installation_path):
-            download(url, os.path.join("/tmp", pypy_tar_bz2))
-            call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
-        return os.path.join(installation_path, 'bin')
-
 
     # get latest pip once and for all
     download(get_pip_url, get_pip_script)

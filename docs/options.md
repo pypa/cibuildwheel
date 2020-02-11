@@ -56,7 +56,7 @@ Default: `auto`
 
 `auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
 
-For `linux` you need Docker running, on macOS or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python under `C:\cibw\python`.
+For `linux` you need Docker running, on macOS or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and `cibuildwheel` will install required versions of Python to `C:\cibw\python` using NuGet.
 
 This option can also be set using the command-line option `--platform`.
 
@@ -84,6 +84,8 @@ When setting the options, you can use shell-style globbing syntax (as per [`fnma
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
+
+For CPython, the minimally supported OS X/macOS version is 10.9; for PyPy 2.7 and PyPy 3.6, respectively macOS 10.7 and 10.13 or higher is required.
 
 #### Examples
 

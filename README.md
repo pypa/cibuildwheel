@@ -15,19 +15,17 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS 10.9+ x86_64 | manylinux i686 | manylinux x86_64 | Windows 32bit | Windows 64bit |
+|   | macOS x86_64 | manylinux i686 | manylinux x86_64 | Windows 32bit | Windows 64bit |
 |---|---|---|---|---|---|
-| Python 2.7      | ✅  | ✅ | ✅ | ✅¹ | ✅¹ |
-| Python 3.5      | ✅  | ✅ | ✅ | ✅  | ✅  |
-| Python 3.6      | ✅  | ✅ | ✅ | ✅  | ✅  |
-| Python 3.7      | ✅  | ✅ | ✅ | ✅  | ✅  |
-| Python 3.8      | ✅  | ✅ | ✅ | ✅  | ✅  |
-| PyPy 2.7 v7.3.0 | ✅² |   | ✅ | ✅  |    |
-| PyPy 3.6 v7.3.0 | ✅² |   | ✅ | ✅  |    |
+| Python 2.7      | ✅ | ✅ | ✅ | ✅¹ | ✅¹ |
+| Python 3.5      | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.6      | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.7      | ✅ | ✅ | ✅ | ✅  | ✅  |
+| Python 3.8      | ✅ | ✅ | ✅ | ✅  | ✅  |
+| PyPy 2.7 v7.3.0 | ✅ |   | ✅ | ✅  |    |
+| PyPy 3.6 v7.3.0 | ✅ |   | ✅ | ✅  |    |
 
 > ¹ Not supported on Travis
-
-> ² For PyPy 2.7, the minimally supported OS X/macOS version is 10.7; for PyPy 3.6, macOS 10.13 or higher is required.
 
 - Builds manylinux, macOS and Windows (32 and 64bit) wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
