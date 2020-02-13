@@ -27,8 +27,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
         PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
         PythonConfiguration(identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
-        PythonConfiguration(identifier='pp27_73-manylinux_x86_64', path='/opt/python/pp273-pypy_73'),
-        PythonConfiguration(identifier='pp36_73-manylinux_x86_64', path='/opt/python/pp373-pypy36_pp73'),
+        PythonConfiguration(identifier='pp27-manylinux_x86_64', path='/opt/python/pp273-pypy_73'),
+        PythonConfiguration(identifier='pp36-manylinux_x86_64', path='/opt/python/pp373-pypy36_pp73'),
     ]
 
     # skip builds as required
