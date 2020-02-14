@@ -130,7 +130,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv'], env=env)
+            call(['pip', 'install', 'virtualenv<20'], env=env)
             venv_dir = tempfile.mkdtemp()
             call(['python', '-m', 'virtualenv', venv_dir], env=env)
 
