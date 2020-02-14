@@ -1,9 +1,16 @@
+import os
+import shlex
+import shutil
+import subprocess
 import tempfile
-import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
 from glob import glob
 
-from .util import prepare_command, get_build_verbosity_extra_flags, download
+from .util import (
+    download,
+    get_build_verbosity_extra_flags,
+    prepare_command,
+)
 
 
 def get_python_configurations(build_selector):
@@ -31,7 +38,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
     get_pip_script = '/tmp/get-pip.py'
 
-    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'], universal_newlines=True)
+    pkgs_output = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True)
     installed_system_packages = pkgs_output.splitlines()
 
     def call(args, env=None, cwd=None, shell=False):

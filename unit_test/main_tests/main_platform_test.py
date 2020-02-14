@@ -1,10 +1,10 @@
-import pytest
-
 import sys
+
+import pytest
 
 from cibuildwheel.__main__ import main
 
-from main_util_fixtures import MOCK_PROJECT_DIR, mock_protection, fake_project_dir, platform, intercepted_build_args
+from conftest import MOCK_PROJECT_DIR  # noqa: I100
 
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):

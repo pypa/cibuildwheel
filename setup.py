@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import os, io
+import io
+import os
 
 try:
     from setuptools import setup
@@ -20,7 +21,7 @@ setup(
     author="Joe Rickerby",
     author_email='joerick@mac.com',
     url='https://github.com/joerick/cibuildwheel',
-    packages=['cibuildwheel',],
+    packages=['cibuildwheel', ],
     license="BSD",
     zip_safe=False,
     package_data={

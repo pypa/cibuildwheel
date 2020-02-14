@@ -1,6 +1,10 @@
-import os, subprocess
+import os
+import subprocess
+
 import pytest
+
 import utils
+
 
 def test():
     project_dir = os.path.dirname(__file__)

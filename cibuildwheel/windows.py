@@ -1,8 +1,15 @@
-import os, tempfile, subprocess, shutil, sys
+import os
+import shutil
+import subprocess
+import tempfile
 from collections import namedtuple
 from glob import glob
 
-from .util import prepare_command, get_build_verbosity_extra_flags, download
+from .util import (
+    download,
+    get_build_verbosity_extra_flags,
+    prepare_command,
+)
 
 
 IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
@@ -19,6 +26,7 @@ def get_nuget_args(configuration):
     if configuration.arch == "32":
         python_name = python_name + "x86"
     return [python_name, "-Version", configuration.version, "-OutputDirectory", "C:/cibw/python"]
+
 
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier'])
@@ -40,7 +48,7 @@ def get_python_configurations(build_selector):
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
         python_configurations = [c for c in python_configurations if not c.version.startswith('2.7.')]
 
-     # skip builds as required
+    # skip builds as required
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
 
     return python_configurations

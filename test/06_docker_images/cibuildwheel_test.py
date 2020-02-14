@@ -1,5 +1,9 @@
-import os, pytest
+import os
+
+import pytest
+
 import utils
+
 
 def test():
     project_dir = os.path.dirname(__file__)

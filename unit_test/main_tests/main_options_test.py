@@ -1,13 +1,10 @@
-import pytest
-
 import sys
+
+import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.util import BuildSelector
-
-from main_util_fixtures import mock_protection, fake_project_dir, platform, intercepted_build_args
-
 
 
 # CIBW_PLATFORM is tested in main_platform_test.py
@@ -92,6 +89,7 @@ def get_default_repair_command(platform):
         return ''
     else:
         raise ValueError('Unknown platform', platform)
+
 
 @pytest.mark.parametrize('repair_command', [None, 'repair', 'repair -w {dest_dir} {wheel}'])
 @pytest.mark.parametrize('platform_specific', [False, True])
@@ -225,5 +223,3 @@ def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_n
         assert intercepted_build_selector.build_patterns == build_selector_patterns
     else:
         assert intercepted_build_selector.skip_patterns == build_selector_patterns
-
-

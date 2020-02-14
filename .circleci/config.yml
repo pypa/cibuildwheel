@@ -1,6 +1,19 @@
 version: 2
 
 jobs:
+  flake8:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+
+      - run:
+          name: Install flake8
+          command: sudo python -m pip install flake8
+      - run:
+          name: Test.
+          command: flake8 --exclude=.git,.venv,site .
+
   osx-python3.6:
     macos:
       xcode: "9.4.1"
@@ -51,6 +64,7 @@ workflows:
   version: 2
   all-tests:
     jobs:
+      - flake8
       - osx-python3.6
       - osx-python3.7
       - linux-python3.6

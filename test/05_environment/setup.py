@@ -1,5 +1,9 @@
-from setuptools import setup, Extension
-import sys, os
+import os
+
+from setuptools import (
+    Extension,
+    setup,
+)
 
 # explode if environment isn't correct, as set in CIBW_ENVIRONMENT
 CIBW_TEST_VAR = os.environ.get('CIBW_TEST_VAR')
@@ -14,7 +18,6 @@ if '/opt/cibw_test_path' not in PATH:
     raise Exception('PATH should contain "/opt/cibw_test_path". It was "%s"' % PATH)
 if '$PATH' in PATH:
     raise Exception('$PATH should be expanded in PATH. It was "%s"' % PATH)
-
 
 setup(
     name="spam",
