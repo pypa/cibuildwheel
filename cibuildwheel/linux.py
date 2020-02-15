@@ -61,17 +61,22 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                             '--name', container_name,
                             '-i',
                             '-v', '/:/host',  # ignored on CircleCI
-                            docker_image, '/bin/bash'])
-            subprocess.run(['docker', 'cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
+                            docker_image, '/bin/bash'], check=True)
+            subprocess.run(['docker', 'cp',
+                            os.path.abspath(project_dir) + '/.',
+                            container_name + ':/project'], check=True)
 
             for config in platform_configs:
                 if dependency_constraints:
                     constraints_file = dependency_constraints.get_for_python_version(config.version)
-                    subprocess.run(['docker', 'cp', os.path.abspath(constraints_file), container_name + ':/constraints.txt'])
+                    subprocess.run(['docker', 'cp',
+                                    os.path.abspath(constraints_file),
+                                    container_name + ':/constraints.txt'], check=True)
 
                 subprocess.run(
                     ['docker', 'start', '-i', '-a', container_name],
                     universal_newlines=True,
+                    check=True,
                     input='''
                         set -o errexit
                         set -o xtrace
@@ -179,7 +184,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 )
 
             # copy the output back into the host
-            subprocess.run(['docker', 'cp', container_name + ':/output/.', os.path.abspath(output_dir)])
+            subprocess.run(['docker', 'cp',
+                            container_name + ':/output/.',
+                            os.path.abspath(output_dir)], check=True)
         except subprocess.CalledProcessError:
             exit(1)
         finally:
