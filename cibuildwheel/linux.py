@@ -1,12 +1,15 @@
-from __future__ import print_function
-import os, subprocess, sys, uuid
+import os
+import shlex
+import subprocess
+import sys
+import textwrap
+import uuid
 from collections import namedtuple
-from .util import prepare_command, get_build_verbosity_extra_flags
 
-try:
-    from shlex import quote as shlex_quote
-except ImportError:
-    from pipes import quote as shlex_quote
+from .util import (
+    get_build_verbosity_extra_flags,
+    prepare_command,
+)
 
 
 def get_python_configurations(build_selector):
@@ -49,7 +52,7 @@ def run_docker(command, stdin_str=None):
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images, dependency_constraints):
     try:
         subprocess.check_call(['docker', '--version'])
-    except:
+    except Exception:
         print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
               'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
               'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
@@ -69,20 +72,20 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         try:
-            run_docker(['create',
-                        '--env', 'CIBUILDWHEEL',
-                        '--name', container_name,
-                        '-i',
-                        '-v', '/:/host', # ignored on CircleCI
-                        docker_image, '/bin/bash'])
-            run_docker(['cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
+            subprocess.run(['docker', 'create',
+                            '--env', 'CIBUILDWHEEL',
+                            '--name', container_name,
+                            '-i',
+                            '-v', '/:/host', # ignored on CircleCI
+                            docker_image, '/bin/bash'])
+            subprocess.run(['docker', 'cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
 
             for config in platform_configs:
                 if dependency_constraints:
                     constraints_file = dependency_constraints.get_for_python_version(config.version)
                     run_docker(['cp', os.path.abspath(constraints_file), container_name + ':/constraints.txt'])
 
-                run_docker(['start', '-i', '-a', container_name], stdin_str='''
+                subprocess.run(['docker', 'start', '-i', '-a', container_name], stdin_str='''
                     set -o errexit
                     set -o xtrace
                     mkdir -p /output
@@ -188,11 +191,36 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 ))
 
             # copy the output back into the host
-            run_docker(['cp', container_name + ':/output/.', os.path.abspath(output_dir)])
+            subprocess.run(['docker', 'cp', container_name + ':/output/.', os.path.abspath(output_dir)])
         except subprocess.CalledProcessError:
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
-            run_docker(['rm', '--force', '-v', container_name])
+            subprocess.run(['docker', 'rm', '--force', '-v', container_name], check=True)
 
 
+def troubleshoot(project_dir, error):
+    if (isinstance(error, subprocess.CalledProcessError) and 'start' in error.cmd):
+        # the bash script failed
+        print('Checking for common errors...')
+        so_files = []
+        for root, dirs, files in os.walk(project_dir):
+            for name in files:
+                _, ext = os.path.splitext(name)
+                if ext == '.so':
+                    so_files.append(os.path.join(root, name))
+
+        if so_files:
+            print(textwrap.dedent('''
+                NOTE: Shared object (.so) files found in this project.
+
+                  These files might be built against the wrong OS, causing problems with
+                  auditwheel.
+
+                  If you're using Cython and have previously done an in-place build,
+                  remove those build files (*.so and *.c) before starting cibuildwheel.
+            '''))
+
+            print('  Files detected:')
+            print('\n'.join(['    ' + f for f in so_files]))
+            print('')

@@ -1,6 +1,10 @@
-import os, sys
-from setuptools import setup, Extension
+import os
 import platform
+
+from setuptools import (
+    Extension,
+    setup,
+)
 
 standard = os.environ["STANDARD"]
 

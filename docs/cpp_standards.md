@@ -20,7 +20,7 @@ OS X/macOS allows you to specify a so-called "deployment target" version that wi
 
 However, to enable modern C++ standards, the deploment target needs to be set high enough (since older OS X/macOS versions did not have the necessary modern C++ standard library).
 
-To get C++11 and C++14 support, set `MACOSX_DEPLOYMENT_TARGET` to (at least) `"10.9"`.
+To get C++11 and C++14 support, `MACOSX_DEPLOYMENT_TARGET` needs to be set to (at least) `"10.9"`. By default, `cibuildwheel` already does this, building 64-bit-only wheels for macOS 10.9 and later.
 
 To get C++17 support, set `MACOSX_DEPLOYMENT_TARGET` to (at least) `"10.13"` or `"10.14"` (macOS 10.13 offers partial C++17 support; e.g., the filesystem header is in experimental, offering `#include <experimental/filesystem>` instead of `#include <filesystem>`; macOS 10.14 has full C++17 support).
 

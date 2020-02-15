@@ -1,19 +1,25 @@
-import pytest
-
-import sys
 import os
 import subprocess
+import sys
 
-from cibuildwheel import linux, macos, windows, util
+import pytest
+
+from cibuildwheel import (
+    linux,
+    macos,
+    util,
+    windows,
+)
 
 
-class ArgsInterceptor(object):
+class ArgsInterceptor:
     def __call__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
 
 
 MOCK_PROJECT_DIR = 'some_project_dir'
+
 
 @pytest.fixture(autouse=True)
 def mock_protection(monkeypatch):
@@ -31,13 +37,14 @@ def mock_protection(monkeypatch):
     monkeypatch.setattr(linux, 'build', fail_on_call)
     monkeypatch.setattr(macos, 'build', fail_on_call)
 
+
 @pytest.fixture(autouse=True)
 def fake_project_dir(monkeypatch):
     '''
     Monkey-patch enough for the main() function to run
     '''
-
     real_os_path_exists = os.path.exists
+
     def mock_os_path_exists(path):
         if path == os.path.join(MOCK_PROJECT_DIR, 'setup.py'):
             return True

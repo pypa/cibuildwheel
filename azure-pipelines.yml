@@ -1,5 +1,5 @@
 jobs:
-- job: linux
+- job: linux_38
   pool: {vmImage: 'Ubuntu-18.04'}
   steps:
     - task: UsePythonVersion@0
@@ -9,7 +9,17 @@ jobs:
         python -m pip install -r requirements-dev.txt
         python ./bin/run_tests.py
 
-- job: macos
+- job: macos_35
+  pool: {vmImage: 'macOS-10.13'}
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.5'
+    - bash: |
+        python -m pip install -r requirements-dev.txt
+        python ./bin/run_tests.py
+
+- job: macos_38
   pool: {vmImage: 'macOS-10.13'}
   steps:
     - task: UsePythonVersion@0
@@ -19,7 +29,19 @@ jobs:
         python -m pip install -r requirements-dev.txt
         python ./bin/run_tests.py
 
-- job: windows
+- job: windows_36
+  pool: {vmImage: 'vs2017-win2016'}
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.6'
+    - script: choco install vcpython27 -f -y
+      displayName: Install Visual C++ for Python 2.7
+    - bash: |
+        python -m pip install -r requirements-dev.txt
+        python ./bin/run_tests.py
+
+- job: windows_38
   pool: {vmImage: 'vs2017-win2016'}
   steps:
     - task: UsePythonVersion@0

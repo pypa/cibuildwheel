@@ -1,5 +1,9 @@
-from setuptools import setup, Extension
 import sys
+
+from setuptools import (
+    Extension,
+    setup,
+)
 
 # explode if run on Python 2.7 or Python 3.4 (these should be skipped)
 if sys.version_info[0:2] == (2, 7):

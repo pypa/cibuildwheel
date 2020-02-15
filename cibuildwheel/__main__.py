@@ -1,14 +1,24 @@
-from __future__ import print_function
-import argparse, os, subprocess, sys, textwrap
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
+import argparse
+import os
+import sys
+import textwrap
+import traceback
+from configparser import ConfigParser
 
 import cibuildwheel
-import cibuildwheel.linux, cibuildwheel.windows, cibuildwheel.macos
-from cibuildwheel.environment import parse_environment, EnvironmentParseError
-from cibuildwheel.util import BuildSelector, DependencyConstraints, Unbuffered
+import cibuildwheel.linux
+import cibuildwheel.macos
+import cibuildwheel.windows
+from cibuildwheel.environment import (
+    EnvironmentParseError,
+    parse_environment,
+)
+from cibuildwheel.util import (
+    BuildSelector,
+    DependencyConstraints,
+    Unbuffered
+)
+
 
 def get_option_from_environment(option_name, platform=None, default=None):
     '''
@@ -89,7 +99,6 @@ def main():
                   file=sys.stderr)
             exit(2)
 
-
     output_dir = args.output_dir
     test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
@@ -125,9 +134,8 @@ def main():
 
     try:
         environment = parse_environment(environment_config)
-    except (EnvironmentParseError, ValueError) as e:
+    except (EnvironmentParseError, ValueError):
         print('cibuildwheel: Malformed environment option "%s"' % environment_config, file=sys.stderr)
-        import traceback
         traceback.print_exc(None, sys.stderr)
         exit(2)
 
@@ -239,6 +247,7 @@ def detect_obsolete_options():
                 ))
                 os.environ[option] = os.environ[option].replace(deprecated, alternative)
 
+
 def print_preamble(platform, build_options):
     print(textwrap.dedent('''
              _ _       _ _   _       _           _
@@ -248,7 +257,6 @@ def print_preamble(platform, build_options):
         '''))
 
     print('cibuildwheel version %s\n' % cibuildwheel.__version__)
-
 
     print('Build options:')
     print('  platform: %r' % platform)

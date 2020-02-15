@@ -1,7 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from __future__ import print_function
-import os, sys, subprocess, shutil
+import argparse
+import os
+import subprocess
+import sys
 
 
 def single_run(test_project):
@@ -12,8 +14,6 @@ def single_run(test_project):
 
 
 if __name__ == '__main__':
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument("test_project_dir")
     args = parser.parse_args()

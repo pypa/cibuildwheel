@@ -1,4 +1,7 @@
-from setuptools import setup, Extension
+from setuptools import (
+    Extension,
+    setup,
+)
 
 setup(
     name="spam",

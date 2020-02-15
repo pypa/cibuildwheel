@@ -1,14 +1,17 @@
-from __future__ import print_function
+import os
+import shlex
+import shutil
+import subprocess
 import tempfile
-import os, subprocess, shlex, sys, shutil
 from collections import namedtuple
 from glob import glob
-try:
-    from shlex import quote as shlex_quote
-except ImportError:
-    from pipes import quote as shlex_quote
 
-from .util import prepare_command, get_build_verbosity_extra_flags, download, get_pip_script
+from .util import (
+    download,
+    get_build_verbosity_extra_flags,
+    prepare_command,
+    get_pip_script
+)
 
 
 def get_python_configurations(build_selector):
@@ -33,9 +36,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
 
-    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'])
-    if sys.version_info[0] >= 3:
-        pkgs_output = pkgs_output.decode('utf8')
+    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'], universal_newlines=True)
     installed_system_packages = pkgs_output.splitlines()
 
     def call(args, env=None, cwd=None, shell=False):
@@ -43,7 +44,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if shell:
             print('+ %s' % args)
         else:
-            print('+ ' + ' '.join(shlex_quote(a) for a in args))
+            print('+ ' + ' '.join(shlex.quote(a) for a in args))
 
         return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 

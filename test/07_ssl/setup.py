@@ -1,6 +1,10 @@
 import ssl
 import sys
-from setuptools import setup, Extension
+
+from setuptools import (
+    Extension,
+    setup,
+)
 
 if sys.version_info[0] == 2:
     from urllib2 import urlopen

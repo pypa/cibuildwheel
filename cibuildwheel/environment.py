@@ -1,4 +1,5 @@
 import bashlex
+
 from . import bashlex_eval
 
 
@@ -41,7 +42,7 @@ def split_env_items(env_string):
     return result
 
 
-class EnvironmentAssignment(object):
+class EnvironmentAssignment:
     def __init__(self, assignment):
         name, equals, value = assignment.partition('=')
         if not equals:
@@ -60,7 +61,7 @@ class EnvironmentAssignment(object):
         return '%s=%s' % (self.name, self.value)
 
 
-class ParsedEnvironment(object):
+class ParsedEnvironment:
     def __init__(self, assignments):
         self.assignments = assignments
 

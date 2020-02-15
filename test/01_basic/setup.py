@@ -1,6 +1,9 @@
 import os
 
-from setuptools import setup, Extension
+from setuptools import (
+    Extension,
+    setup,
+)
 
 if os.environ.get('CIBUILDWHEEL', '0') != '1':
     raise Exception('CIBUILDWHEEL environment variable is not set to 1')
