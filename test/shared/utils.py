@@ -92,10 +92,12 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
                 for architecture in architectures[python_implemention]
                 for manylinux_version in manylinux_versions
             ]
+
         def get_platform_tags(python_abi_tag):
             return platform_tags[python_abi_tag[:2]]
     elif platform == 'windows':
         platform_tags = {'cp': ['win32', 'win_amd64'], 'pp': ['win32']}
+
         def get_platform_tags(python_abi_tag):
             return platform_tags[python_abi_tag[:2]]
 
