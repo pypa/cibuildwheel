@@ -1,6 +1,7 @@
 from cibuildwheel.util import DependencyConstraints
 import os
 
+
 def test_defaults():
     dependency_constraints = DependencyConstraints.with_defaults()
 

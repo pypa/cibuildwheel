@@ -36,7 +36,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
 
-    pkgs_output = subprocess.check_output(['pkgutil',  '--pkgs'], universal_newlines=True)
+    pkgs_output = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True)
     installed_system_packages = pkgs_output.splitlines()
 
     def call(args, env=None, cwd=None, shell=False):

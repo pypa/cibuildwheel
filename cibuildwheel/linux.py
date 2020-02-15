@@ -33,22 +33,6 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def run_docker(command, stdin_str=None):
-    print('docker command: docker {}'.format(' '.join(map(shlex_quote, command))))
-    if stdin_str is None:
-        subprocess.check_call(['docker'] + command)
-    else:
-        args = ['docker'] + command
-        process = subprocess.Popen(args, stdin=subprocess.PIPE, universal_newlines=True)
-        try:
-            process.communicate(stdin_str)
-        except KeyboardInterrupt:
-            process.kill()
-            process.wait()
-        if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode, args)
-
-
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images, dependency_constraints):
     try:
         subprocess.check_call(['docker', '--version'])
@@ -76,14 +60,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                             '--env', 'CIBUILDWHEEL',
                             '--name', container_name,
                             '-i',
-                            '-v', '/:/host', # ignored on CircleCI
+                            '-v', '/:/host',  # ignored on CircleCI
                             docker_image, '/bin/bash'])
             subprocess.run(['docker', 'cp', os.path.abspath(project_dir) + '/.', container_name + ':/project'])
 
             for config in platform_configs:
                 if dependency_constraints:
                     constraints_file = dependency_constraints.get_for_python_version(config.version)
-                    run_docker(['cp', os.path.abspath(constraints_file), container_name + ':/constraints.txt'])
+                    subprocess.run(['docker', 'cp', os.path.abspath(constraints_file), container_name + ':/constraints.txt'])
 
                 subprocess.run(['docker', 'start', '-i', '-a', container_name], stdin_str='''
                     set -o errexit
@@ -174,14 +158,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                     config_python_bin=config.path + '/bin',
                     test_requires=' '.join(test_requires),
                     test_extras=test_extras,
-                    test_command=shlex_quote(
+                    test_command=shlex.quote(
                         prepare_command(test_command, project='/project') if test_command else ''
                     ),
-                    before_build=shlex_quote(
+                    before_build=shlex.quote(
                         prepare_command(before_build, project='/project') if before_build else ''
                     ),
                     build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
-                    repair_command=shlex_quote(
+                    repair_command=shlex.quote(
                         prepare_command(repair_command, wheel='"$1"', dest_dir='/tmp/repaired_wheels') if repair_command else ''
                     ),
                     environment_exports='\n'.join(environment.as_shell_commands()),
