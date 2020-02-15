@@ -12,8 +12,7 @@ jobs:
           command: sudo python -m pip install flake8
       - run:
           name: Test.
-          command: flake8 --exclude=.git,.venv,site .
-
+          command: flake8 .
   osx-python3.6:
     macos:
       xcode: "9.4.1"
