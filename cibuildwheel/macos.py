@@ -39,7 +39,22 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def install_cpython(version, url):
+def make_symlinks(dest_dir, installation_bin_path, python_executable, pip_executable):
+    assert os.path.exists(os.path.join(installation_bin_path, python_executable))
+
+    # Python bin folders on Mac don't symlink `python3` to `python`, and neither
+    # does PyPy for `pypy` or `pypy3`, so we do that so `python` and `pip` always
+    # point to the active configuration.
+    if os.path.exists(dest_dir):
+        shutil.rmtree(dest_dir)
+    os.makedirs(dest_dir)
+
+    os.symlink(os.path.join(installation_bin_path, python_executable), os.path.join(dest_dir, 'python'))
+    os.symlink(os.path.join(installation_bin_path, python_executable + '-config'), os.path.join(dest_dir, 'python-config'))
+    os.symlink(os.path.join(installation_bin_path, pip_executable), os.path.join(dest_dir, 'pip'))
+
+
+def install_cpython(version, url, symlinks_dir):
     installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
@@ -55,10 +70,15 @@ def install_cpython(version, url):
             download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
             call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/{}/'.format(version), '-xmf', '/tmp/python-patch.tar.gz'])
 
-    return '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(version)
+    installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(version)
+    python_executable = 'python3' if version[0] == '3' else 'python'
+    pip_executable = 'pip3' if version[0] == '3' else 'pip'
+    make_symlinks(symlinks_dir, installation_bin_path, python_executable, pip_executable)
+
+    return installation_bin_path
 
 
-def install_pypy(version, url):
+def install_pypy(version, url, symlinks_dir):
     pypy_tar_bz2 = url.rsplit('/', 1)[-1]
     assert pypy_tar_bz2.endswith(".tar.bz2")
     pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
@@ -66,7 +86,19 @@ def install_pypy(version, url):
     if not os.path.exists(installation_path):
         download(url, os.path.join("/tmp", pypy_tar_bz2))
         call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
-    return os.path.join(installation_path, 'bin')
+
+    # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
+    if version.endswith("-v7.3.0") and version[0] == '3':
+        patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
+        sysconfigdata_file = os.path.join(installation_path, 'lib_pypy', '_sysconfigdata.py')
+        subprocess.call(['patch', sysconfigdata_file, patch_file, '-N'])  # Always has nonzero return code
+
+    installation_bin_path = os.path.join(installation_path, 'bin')
+    python_executable = 'pypy3' if version[0] == '3' else 'pypy'
+    pip_executable = 'pip3' if version[0] == '3' else 'pip'
+    make_symlinks(symlinks_dir, installation_bin_path, python_executable, pip_executable)
+
+    return installation_bin_path
 
 
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
@@ -83,39 +115,18 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     # get latest pip once and for all
     download(get_pip_url, get_pip_script)
 
+    symlinks_dir = '/tmp/cibw_bin'
     for config in python_configurations:
         if config.identifier.startswith('cp'):
-            installation_bin_path = install_cpython(config.version, config.url)
-            python_executable = 'python3' if config.version[0] == '3' else 'python'
-            pip_executable = 'pip3' if config.version[0] == '3' else 'pip'
+            installation_bin_path = install_cpython(config.version, config.url, symlinks_dir)
         elif config.identifier.startswith('pp'):
-            installation_bin_path = install_pypy(config.version, config.url)
-            python_executable = 'pypy3' if config.version[0] == '3' else 'pypy'
-            pip_executable = 'pip3' if config.version[0] == '3' else 'pip'
-            # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
-            if config.version[0] == '3':
-                patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
-                sysconfigdata_file = os.path.join(os.path.dirname(installation_bin_path), 'lib_pypy', '_sysconfigdata.py')
-                subprocess.call(['patch', sysconfigdata_file, patch_file, '-N'])  # Always has nonzero return code
+            installation_bin_path = install_pypy(config.version, config.url, symlinks_dir)
         else:
             raise ValueError("Unknown Python implementation")
 
-        assert os.path.exists(os.path.join(installation_bin_path, python_executable))
-
-        # Python bin folders on Mac don't symlink `python3` to `python`, and neither
-        # does PyPy for `pypy` or `pypy3`, so we do that so `python` and `pip` always
-        # point to the active configuration.
-        if os.path.exists('/tmp/cibw_bin'):
-            shutil.rmtree('/tmp/cibw_bin')
-        os.makedirs('/tmp/cibw_bin')
-
-        os.symlink(os.path.join(installation_bin_path, python_executable), '/tmp/cibw_bin/python')
-        os.symlink(os.path.join(installation_bin_path, python_executable + '-config'), '/tmp/cibw_bin/python-config')
-        os.symlink(os.path.join(installation_bin_path, pip_executable), '/tmp/cibw_bin/pip')
-
         env = os.environ.copy()
         env['PATH'] = os.pathsep.join([
-            '/tmp/cibw_bin',
+            symlinks_dir,
             installation_bin_path,
             env['PATH'],
         ])
