@@ -148,7 +148,7 @@ You must set this variable to pass variables to Linux builds (since they execute
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
-To specify more than one environment variable, separate the assignments by spaces. 
+To specify more than one environment variable, separate the assignments by spaces.
 
 Platform-specific variants also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
@@ -240,7 +240,7 @@ CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {
 
 An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64) and [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686).
 
-The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use the [official `manylinux` images](https://github.com/pypa/manylinux), or any other valid Docker image name.
+The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use a pinned version of the [official `manylinux` images](https://github.com/pypa/manylinux). Alternatively, set this options to any other valid Docker image name.
 
 Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid `manylinux1`/`manylinux2010`/`manylinux2014` wheels (see https://github.com/pypa/manylinux, [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/ and [PEP 599](https://www.python.org/dev/peps/pep-0599/) for more details).
 
@@ -259,6 +259,11 @@ CIBW_MANYLINUX_I686_IMAGE: manylinux1
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
 CIBW_MANYLINUX_I686_IMAGE: manylinux2014
 CIBW_SKIP: cp27-manylinux*
+
+# build using the latest manylinux2010 release, instead of the cibuildwheel
+# pinned version
+CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
+CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
 
 # build using a different image from the docker registry
 CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
@@ -293,7 +298,13 @@ here and it will be used instead.
     `./constraints.txt` if that's not found.
 
 Platform-specific variants also available:<br/>
-`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_LINUX`
+`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS`
+
+!!! note
+    This option does not affect the tools used on the Linux build - those versions
+    are bundled with the manylinux image that cibuildwheel uses. To change
+    dependency versions on Linux, use the [CIBW_MANYLINUX_*](#manylinux-image)
+    options.
 
 #### Examples
 
