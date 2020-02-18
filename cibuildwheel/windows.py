@@ -152,7 +152,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             # there are no dependencies that were pulled in at build time.
             shell(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
             venv_dir = tempfile.mkdtemp()
-            shell(['python', '-m', 'virtualenv', venv_dir], env=env)
+            shell(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([

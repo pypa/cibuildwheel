@@ -121,7 +121,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                             # there are no dependencies that were pulled in at build time.
                             pip install {dependency_install_flags} virtualenv
                             venv_dir=`mktemp -d`/venv
-                            python -m virtualenv "$venv_dir"
+                            python -m virtualenv --no-download "$venv_dir"
 
                             # run the tests in a subshell to keep that `activate`
                             # script from polluting the env
