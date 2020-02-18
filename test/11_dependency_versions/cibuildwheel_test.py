@@ -96,6 +96,7 @@ def test_dependency_constraints_file(tmp_path):
         'pip': '19.2.3',
         'setuptools': '43.0.0',
         'wheel': '0.33.6',
+        'virtualenv': '16.7.8',
     }
 
     constraints_file = tmp_path / 'constraints.txt'
@@ -104,6 +105,7 @@ def test_dependency_constraints_file(tmp_path):
             pip=={pip}
             setuptools=={setuptools}
             wheel=={wheel}
+            virtualenv=={virtualenv}
         '''.format(**tool_versions)
     ))
 
