@@ -48,8 +48,6 @@ def test_pinned_versions(python_version):
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_BUILD': cibw_build_option,
         'CIBW_ENVIRONMENT': cibw_environment_option,
-        'CIBW_TEST_REQUIRES': 'pytest',
-        'CIBW_TEST_COMMAND': 'pytest {project}/test',
     })
 
     # also check that we got the right wheels
@@ -100,8 +98,6 @@ def test_dependency_constraints_file(tmp_path):
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_ENVIRONMENT': cibw_environment_option,
         'CIBW_DEPENDENCY_VERSIONS': str(constraints_file),
-        'CIBW_TEST_REQUIRES': 'pytest',
-        'CIBW_TEST_COMMAND': 'pytest {project}/test',
     })
 
     # also check that we got the right wheels
