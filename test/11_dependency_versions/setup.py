@@ -14,11 +14,15 @@ versions = versions_output_text.strip().splitlines()
 # `versions` now looks like:
 # ['pip==x.x.x', 'setuptools==x.x.x', 'wheel==x.x.x']
 
+print('Gathered versions', versions)
+
 for package_name in ['pip', 'setuptools', 'wheel']:
     env_name = 'EXPECTED_{}_VERSION'.format(package_name.upper())
     expected_version = os.environ[env_name]
 
-    assert '{}}=={}'.format(package_name, expected_version) in versions
+    print(package_name, 'version should equal', expected_version)
+
+    assert '{}=={}'.format(package_name, expected_version) in versions
 
 setup(
     name="spam",
