@@ -103,4 +103,5 @@ class DependencyConstraints(object):
             return self.base_file_path
 
 
-get_pip_script = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'get-pip.py'))
+resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
+get_pip_script = os.path.join(resources_dir, 'get-pip.py')

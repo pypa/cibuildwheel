@@ -1,0 +1,82 @@
+import os
+import re
+import cibuildwheel.util
+import pytest
+
+import utils
+
+VERSION_REGEX = r'([\w-]+)==([^\s]+)'
+
+
+def get_version_from_constraint_file(package_name, constraint_file):
+    version_pattern = package_name + r'==([^\s]+)'
+
+    with open(constraint_file, encoding='utf8') as f:
+        constraint_file_text = f.read()
+
+    match = re.search(version_pattern, constraint_file_text)
+
+    if not match:
+        raise Exception("couldn't find version spec matching " + version_pattern)
+
+    return match.group(1)
+
+
+def get_versions_from_constraint_file(python2=False):
+    if python2:
+        constraint_filename = 'constraints-python27.txt'
+    else:
+        constraint_filename = 'constraints.txt'
+
+    constraint_file = os.path.join(cibuildwheel.util.resources_dir, constraint_filename)
+
+    with open(constraint_file, encoding='utf8') as f:
+        constraint_file_text = f.read()
+
+    versions = {}
+
+    for line in constraint_file_text.strip().splitlines():
+        match = re.match(VERSION_REGEX, line)
+        if match:
+            versions[match.group(1)] = match.group(2)
+
+    return versions
+
+
+@pytest.mark.parametrize('python_version', ['2.7', '3.x'])
+def test_pinned_versions(python_version):
+    if utils.platform == 'linux':
+        pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
+
+    project_dir = os.path.dirname(__file__)
+
+    build_environment = {}
+
+    if python_version == '2.7':
+        constraint_filename = 'constraints-python27.txt'
+    else:
+        constraint_filename = 'constraints.txt'
+
+    constraint_file = os.path.join(cibuildwheel.util.resources_dir, constraint_filename)
+
+    for package in ['pip', 'setuptools', 'wheel', 'virtualenv']:
+        env_name = 'EXPECTED_{}_VERSION'.format(package.upper())
+        build_environment[env_name] = get_version_from_constraint_file(package, constraint_file)
+
+    cibw_environment_option = ' '.join(['{}={}'.format(k, v) for k, v in build_environment.items()])
+    cibw_build_option = 'cp27-*' if python_version == '2.7' else 'cp3*'
+
+    # build and test the wheels
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
+        'CIBW_BUILD': cibw_build_option,
+        'CIBW_ENVIRONMENT': cibw_environment_option,
+        'CIBW_TEST_REQUIRES': 'pytest',
+        'CIBW_TEST_COMMAND': 'pytest {project}/test',
+    })
+
+    # also check that we got the right wheels
+    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+# TODO: add a test with a user-specified constraints file
