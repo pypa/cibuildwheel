@@ -1,7 +1,8 @@
 import os
 import re
-import cibuildwheel.util
 import pytest
+import textwrap
+import cibuildwheel.util
 
 import utils
 
@@ -85,4 +86,45 @@ def test_pinned_versions(python_version):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-# TODO: add a test with a user-specified constraints file
+def test_dependency_constraints_file(tmp_path):
+    if utils.platform == 'linux':
+        pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
+
+    project_dir = os.path.dirname(__file__)
+
+    tool_versions = {
+        'pip': '19.2.3',
+        'setuptools': '43.0.0',
+        'wheel': '0.33.6',
+    }
+
+    constraints_file = tmp_path / 'constraints.txt'
+    constraints_file.write_text(textwrap.dedent(
+        '''
+            pip=={pip}
+            setuptools=={setuptools}
+            wheel=={wheel}
+        '''.format(**tool_versions)
+    ))
+
+    build_environment = {}
+
+    for package_name, version in tool_versions.items():
+        env_name = 'EXPECTED_{}_VERSION'.format(package_name.upper())
+        build_environment[env_name] = version
+
+    cibw_environment_option = ' '.join(
+        ['{}={}'.format(k, v) for k, v in build_environment.items()]
+    )
+
+    # build and test the wheels
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
+        'CIBW_ENVIRONMENT': cibw_environment_option,
+        'CIBW_DEPENDENCY_VERSIONS': str(constraints_file),
+        'CIBW_TEST_REQUIRES': 'pytest',
+        'CIBW_TEST_COMMAND': 'pytest {project}/test',
+    })
+
+    # also check that we got the right wheels
+    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')]
+    assert set(actual_wheels) == set(expected_wheels)
