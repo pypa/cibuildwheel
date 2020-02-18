@@ -6,8 +6,6 @@ import cibuildwheel.util
 
 import utils
 
-VERSION_REGEX = r'([\w-]+)==([^\s]+)'
-
 
 def get_version_from_constraint_file(package_name, constraint_file):
     version_pattern = package_name + r'==([^\s]+)'
@@ -21,27 +19,6 @@ def get_version_from_constraint_file(package_name, constraint_file):
         raise Exception("couldn't find version spec matching " + version_pattern)
 
     return match.group(1)
-
-
-def get_versions_from_constraint_file(python2=False):
-    if python2:
-        constraint_filename = 'constraints-python27.txt'
-    else:
-        constraint_filename = 'constraints.txt'
-
-    constraint_file = os.path.join(cibuildwheel.util.resources_dir, constraint_filename)
-
-    with open(constraint_file, encoding='utf8') as f:
-        constraint_file_text = f.read()
-
-    versions = {}
-
-    for line in constraint_file_text.strip().splitlines():
-        match = re.match(VERSION_REGEX, line)
-        if match:
-            versions[match.group(1)] = match.group(2)
-
-    return versions
 
 
 @pytest.mark.parametrize('python_version', ['2.7', '3.x'])
