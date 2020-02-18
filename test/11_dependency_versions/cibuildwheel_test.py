@@ -75,7 +75,13 @@ def test_pinned_versions(python_version):
     })
 
     # also check that we got the right wheels
-    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    if python_version == '2.7':
+        expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+                           if w.startswith('cp27')]
+    else:
+        expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+                           if w.startswith('cp3')]
+
     assert set(actual_wheels) == set(expected_wheels)
 
 
