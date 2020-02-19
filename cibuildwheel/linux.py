@@ -27,6 +27,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
         PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
         PythonConfiguration(identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='pp27-manylinux_x86_64', path='/opt/python/pp27-pypy_73'),
+        PythonConfiguration(identifier='pp36-manylinux_x86_64', path='/opt/python/pp36-pypy36_pp73'),
     ]
 
     # skip builds as required
@@ -45,12 +47,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     platforms = [
-        ('manylinux_x86_64', manylinux_images['x86_64']),
-        ('manylinux_i686', manylinux_images['i686']),
+        ('cp', 'manylinux_x86_64', manylinux_images['x86_64']),
+        ('cp', 'manylinux_i686', manylinux_images['i686']),
+        ('pp', 'manylinux_x86_64', manylinux_images['pypy_x86_64']),
     ]
 
-    for platform_tag, docker_image in platforms:
-        platform_configs = [c for c in python_configurations if c.identifier.endswith(platform_tag)]
+    for implementation, platform_tag, docker_image in platforms:
+        platform_configs = [c for c in python_configurations if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)]
         if not platform_configs:
             continue
 

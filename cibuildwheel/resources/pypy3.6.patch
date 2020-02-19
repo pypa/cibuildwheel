@@ -1,0 +1,7 @@
+--- a/lib_pypy/_sysconfigdata.py	Tue Jan 28 22:54:59 2020 +0200
++++ b/lib_pypy/_sysconfigdata.py	Wed Jan 29 19:21:23 2020 +0200
+@@ -47,4 +47,5 @@
+     build_time_vars['CC'] += ' -arch %s' % (arch,)
+     if "CXX" in build_time_vars:
+         build_time_vars['CXX'] += ' -arch %s' % (arch,)
++    build_time_vars['MACOSX_DEPLOYMENT_TARGET'] = '10.7'

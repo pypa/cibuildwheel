@@ -79,29 +79,32 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
     # {distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
-    python_abi_tags = ['cp27-cp27m', 'cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
+    python_abi_tags = ['cp27-cp27m', 'cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38',
+                       'pp27-pypy_73', 'pp36-pypy36_pp73']
     if platform == 'linux':
         python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
-        platform_tags = []
-        for architecture in ['x86_64', 'i686']:
-            for manylinux_version in manylinux_versions:
-                platform_tags.append('{manylinux_version}_{architecture}'.format(
-                    manylinux_version=manylinux_version, architecture=architecture
-                ))
+        architectures = {'cp': ['x86_64', 'i686'], 'pp': ['x86_64']}
+        platform_tags = {}
+        for python_implemention in architectures:
+            platform_tags[python_implemention] = [
+                '{manylinux_version}_{architecture}'.format(
+                    manylinux_version=manylinux_version, architecture=architecture)
+                for architecture in architectures[python_implemention]
+                for manylinux_version in manylinux_versions
+            ]
 
         def get_platform_tags(python_abi_tag):
-            return platform_tags
-
+            return platform_tags[python_abi_tag[:2]]
     elif platform == 'windows':
+        platform_tags = {'cp': ['win32', 'win_amd64'], 'pp': ['win32']}
 
         def get_platform_tags(python_abi_tag):
-            return ['win32', 'win_amd64']
+            return platform_tags[python_abi_tag[:2]]
 
     elif platform == 'macos':
-
         def get_platform_tags(python_abi_tag):
-            return ['macosx_' + (macosx_deployment_target or "10.9").replace(".", "_") + '_x86_64']
-
+            default_version = '10.7' if python_abi_tag.startswith('pp') else '10.9'
+            return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
     else:
         raise Exception('unsupported platform')
 
@@ -115,7 +118,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=['manylinu
 
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
         # Python 2.7 isn't supported on Travis.
-        templates = [t for t in templates if '-cp27-' not in t]
+        templates = [t for t in templates if '-cp27-' not in t and '-pp2' not in t]
 
     return templates
 
