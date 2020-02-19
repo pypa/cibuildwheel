@@ -87,11 +87,11 @@ def install_pypy(version, url, symlinks_dir):
         download(url, os.path.join("/tmp", pypy_tar_bz2))
         call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
 
-    # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
-    if version.endswith("-v7.3.0") and version[0] == '3':
-        patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
-        sysconfigdata_file = os.path.join(installation_path, 'lib_pypy', '_sysconfigdata.py')
-        subprocess.call(['patch', sysconfigdata_file, patch_file, '-N'])  # Always has nonzero return code
+        # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
+        if version.endswith("-v7.3.0") and version[0] == '3':
+            patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
+            sysconfigdata_file = os.path.join(installation_path, 'lib_pypy', '_sysconfigdata.py')
+            call(['patch', sysconfigdata_file, patch_file, '-N'])  # Always has nonzero return code
 
     installation_bin_path = os.path.join(installation_path, 'bin')
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
