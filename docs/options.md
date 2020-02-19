@@ -85,7 +85,7 @@ When setting the options, you can use shell-style globbing syntax (as per [`fnma
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
-For CPython, the minimally supported OS X/macOS version is 10.9; for PyPy 2.7 and PyPy 3.6, respectively macOS 10.7 and 10.13 or higher is required.
+For CPython, the minimally supported macOS version is 10.9; for PyPy 2.7 and PyPy 3.6, respectively macOS 10.7 and 10.13 or higher is required.
 
 #### Examples
 
@@ -120,6 +120,9 @@ CIBW_SKIP: "*-win32 *-manylinux_i686"
 
 # Only build PyPy and CPython 3
 CIBW_BUILD: pp* cp3?-*
+
+# Disable building PyPy wheels on all platforms
+CIBW_SKIP: pp*
 ```
 
 <style>

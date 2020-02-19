@@ -39,22 +39,25 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-def make_symlinks(dest_dir, installation_bin_path, python_executable, pip_executable):
+SYMLINKS_DIR = '/tmp/cibw_bin'
+
+
+def make_symlinks(installation_bin_path, python_executable, pip_executable):
     assert os.path.exists(os.path.join(installation_bin_path, python_executable))
 
     # Python bin folders on Mac don't symlink `python3` to `python`, and neither
     # does PyPy for `pypy` or `pypy3`, so we do that so `python` and `pip` always
     # point to the active configuration.
-    if os.path.exists(dest_dir):
-        shutil.rmtree(dest_dir)
-    os.makedirs(dest_dir)
+    if os.path.exists(SYMLINKS_DIR):
+        shutil.rmtree(SYMLINKS_DIR)
+    os.makedirs(SYMLINKS_DIR)
 
-    os.symlink(os.path.join(installation_bin_path, python_executable), os.path.join(dest_dir, 'python'))
-    os.symlink(os.path.join(installation_bin_path, python_executable + '-config'), os.path.join(dest_dir, 'python-config'))
-    os.symlink(os.path.join(installation_bin_path, pip_executable), os.path.join(dest_dir, 'pip'))
+    os.symlink(os.path.join(installation_bin_path, python_executable), os.path.join(SYMLINKS_DIR, 'python'))
+    os.symlink(os.path.join(installation_bin_path, python_executable + '-config'), os.path.join(SYMLINKS_DIR, 'python-config'))
+    os.symlink(os.path.join(installation_bin_path, pip_executable), os.path.join(SYMLINKS_DIR, 'pip'))
 
 
-def install_cpython(version, url, symlinks_dir):
+def install_cpython(version, url):
     installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
@@ -73,12 +76,12 @@ def install_cpython(version, url, symlinks_dir):
     installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(version)
     python_executable = 'python3' if version[0] == '3' else 'python'
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
-    make_symlinks(symlinks_dir, installation_bin_path, python_executable, pip_executable)
+    make_symlinks(installation_bin_path, python_executable, pip_executable)
 
     return installation_bin_path
 
 
-def install_pypy(version, url, symlinks_dir):
+def install_pypy(version, url):
     pypy_tar_bz2 = url.rsplit('/', 1)[-1]
     assert pypy_tar_bz2.endswith(".tar.bz2")
     pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
@@ -96,7 +99,7 @@ def install_pypy(version, url, symlinks_dir):
     installation_bin_path = os.path.join(installation_path, 'bin')
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
-    make_symlinks(symlinks_dir, installation_bin_path, python_executable, pip_executable)
+    make_symlinks(installation_bin_path, python_executable, pip_executable)
 
     return installation_bin_path
 
@@ -115,18 +118,17 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     # get latest pip once and for all
     download(get_pip_url, get_pip_script)
 
-    symlinks_dir = '/tmp/cibw_bin'
     for config in python_configurations:
         if config.identifier.startswith('cp'):
-            installation_bin_path = install_cpython(config.version, config.url, symlinks_dir)
+            installation_bin_path = install_cpython(config.version, config.url)
         elif config.identifier.startswith('pp'):
-            installation_bin_path = install_pypy(config.version, config.url, symlinks_dir)
+            installation_bin_path = install_pypy(config.version, config.url)
         else:
             raise ValueError("Unknown Python implementation")
 
         env = os.environ.copy()
         env['PATH'] = os.pathsep.join([
-            symlinks_dir,
+            SYMLINKS_DIR,
             installation_bin_path,
             env['PATH'],
         ])
