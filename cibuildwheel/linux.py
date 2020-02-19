@@ -70,9 +70,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 {environment_exports}
 
                 # check the active python and pip are in PYBIN
-                # if `test` returns false, the script will exit due to errexit
-                test "$(which pip)" = "$PYBIN/pip"
-                test "$(which python)" = "$PYBIN/python"
+                if [ "$(which pip)" != "$PYBIN/pip" ]; then
+                    echo "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+                    exit 1
+                fi
+                if [ "$(which python)" != "$PYBIN/python" ]; then
+                    echo "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+                    exit 1
+                fi
 
                 if [ ! -z {before_build} ]; then
                     sh -c {before_build}

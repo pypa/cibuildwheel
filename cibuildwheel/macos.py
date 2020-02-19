@@ -2,6 +2,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 from collections import namedtuple
 from glob import glob
@@ -137,15 +138,20 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         # check what version we're on
         call(['which', 'python'], env=env)
         call(['python', '--version'], env=env)
-        # TODO Cleanup/merge with above `call` once we have `subprocess.run` after dropping Python 2 support?
-        assert subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip() == '/tmp/cibw_bin/python'
+        which_python = subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip()
+        if which_python != '/tmp/cibw_bin/python':
+            print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
+            exit(1)
 
         # install pip & wheel
         call(['python', get_pip_script], env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
+        call(['which', 'pip'], env=env)
         call(['pip', '--version'], env=env)
-        # TODO Cleanup/merge with above `call` once we have `subprocess.run` after dropping Python 2 support?
-        assert subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip() == '/tmp/cibw_bin/pip'
+        which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
+        if which_pip != '/tmp/cibw_bin/pip':
+            print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
+            exit(1)
         call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)
 
         # setup target platform, only required for python 3.5
