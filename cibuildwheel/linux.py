@@ -1,5 +1,5 @@
-import distutils
 import os
+import platform
 import shlex
 import subprocess
 import sys
@@ -48,17 +48,19 @@ def get_python_configurations(build_selector):
     for c in python_configurations:
         if not build_selector(c.identifier):
             continue
-        platform = distutils.util.get_platform()
-        if platform == "linux-x86_64":
+        if platform.machine == "x86_64":
             if c.identifier.endswith('x86_64') or c.identifier.endswith('i686'):
                 configurations.append(c)
-        elif platform == "linux-aarch64":
+        if platform.machine == "i686":
+            if c.identifier.endswith('i686'):
+                configuration.append(c)
+        elif platform.machine == "aarch64":
             if c.identifier.endswith('aarch64'):
                 configurations.append(c)
-        elif platform == "linux-ppc64le":
+        elif platform.machine == "ppc64le":
             if c.identifier.endswith('ppc64le'):
                 configurations.append(c)
-        elif platform == "linux-s390x":
+        elif platform.machine == "s390x":
             if c.identifier.endswith('s390x'):
                 configurations.append(c)
 
