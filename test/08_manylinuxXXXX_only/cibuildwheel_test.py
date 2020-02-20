@@ -1,4 +1,5 @@
 import os
+import platform
 
 import pytest
 
@@ -11,6 +12,9 @@ def test(manylinux_image):
 
     if utils.platform != 'linux':
         pytest.skip('the docker test is only relevant to the linux build')
+    elif platform.machine not in ['x86_64', 'i686']:
+        if manylinux_image in ['manylinux1', 'manylinux2010']:
+            pytest.skip("manylinux1 and 2010 doesn't exist for non-x86 architectures")
 
     # build the wheels
     # CFLAGS environment variable is necessary to fail on 'malloc_info' (on manylinux1) during compilation/linking,
@@ -20,6 +24,9 @@ def test(manylinux_image):
         'CIBW_MANYLINUX_X86_64_IMAGE': manylinux_image,
         'CIBW_MANYLINUX_I686_IMAGE': manylinux_image,
         'CIBW_MANYLINUX_PYPY_X86_64_IMAGE': manylinux_image,
+        'CIBW_MANYLINUX_AARCH64_IMAGE': manylinux_image,
+        'CIBW_MANYLINUX_PPC64LE_IMAGE': manylinux_image,
+        'CIBW_MANYLINUX_S390X_IMAGE': manylinux_image,
     }
     if manylinux_image == 'manylinux1':
         # We don't have a manylinux1 image for PyPy

@@ -1,4 +1,5 @@
 import os
+import platform
 
 import pytest
 
@@ -8,7 +9,8 @@ import utils
 def test():
     project_dir = os.path.dirname(__file__)
 
-    if utils.platform != 'linux':
+    if utils.platform != 'linux' or platform.machine() not in ['x86_64',
+                                                               'i686']:
         pytest.skip('the test is only relevant to the linux build')
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
