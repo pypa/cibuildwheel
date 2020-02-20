@@ -54,7 +54,7 @@ def get_python_configurations(build_selector):
                 configurations.append(c)
         if pm == "i686":
             if c.identifier.endswith('i686'):
-                configuration.append(c)
+                configurations.append(c)
         elif pm == "aarch64":
             if c.identifier.endswith('aarch64'):
                 configurations.append(c)
