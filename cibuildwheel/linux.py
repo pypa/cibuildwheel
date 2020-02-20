@@ -48,19 +48,20 @@ def get_python_configurations(build_selector):
     for c in python_configurations:
         if not build_selector(c.identifier):
             continue
-        if platform.machine == "x86_64":
+        pm = platform.machine()
+        if pm == "x86_64":
             if c.identifier.endswith('x86_64') or c.identifier.endswith('i686'):
                 configurations.append(c)
-        if platform.machine == "i686":
+        if pm == "i686":
             if c.identifier.endswith('i686'):
                 configuration.append(c)
-        elif platform.machine == "aarch64":
+        elif pm == "aarch64":
             if c.identifier.endswith('aarch64'):
                 configurations.append(c)
-        elif platform.machine == "ppc64le":
+        elif pm == "ppc64le":
             if c.identifier.endswith('ppc64le'):
                 configurations.append(c)
-        elif platform.machine == "s390x":
+        elif pm == "s390x":
             if c.identifier.endswith('s390x'):
                 configurations.append(c)
 

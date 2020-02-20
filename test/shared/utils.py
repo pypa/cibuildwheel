@@ -81,15 +81,14 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
-
     python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
     extra_python_abi_tags = ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73']
 
     if platform == 'linux':
-        if pm.machine not in ['x86_64', 'i686']:
+        if pm.machine() not in ['x86_64', 'i686']:
             if manylinux_versions is None:
                 manylinux_versions = ['manylinux2014']
-            architectures = {'cp': [pm.machine]}
+            architectures = {'cp': [pm.machine()]}
         else:
             if manylinux_versions is None:
                 manylinux_versions = ['manylinux1', 'manylinux2010']
@@ -108,14 +107,15 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         def get_platform_tags(python_abi_tag):
             return platform_tags[python_abi_tag[:2]]
     elif platform == 'windows':
-        python_api_tag += extra_python_abi_tags
+        python_abi_tags += extra_python_abi_tags
         platform_tags = {'cp': ['win32', 'win_amd64'], 'pp': ['win32']}
 
         def get_platform_tags(python_abi_tag):
             return platform_tags[python_abi_tag[:2]]
 
     elif platform == 'macos':
-        python_api_tag += extra_python_abi_tags
+        python_abi_tags += extra_python_abi_tags
+
         def get_platform_tags(python_abi_tag):
             default_version = '10.7' if python_abi_tag.startswith('pp') else '10.9'
             return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
