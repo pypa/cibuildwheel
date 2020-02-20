@@ -63,17 +63,30 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             mkdir /output
             cd /project
 
-            {environment_exports}
+            for PYBIN in {pybin_paths}; do (
+                # Temporary hack/workaround, putting loop body in subshell; fixed in PR #256
 
-            for PYBIN in {pybin_paths}; do
+                export PATH="$PYBIN:$PATH"
+                {environment_exports}
+
+                # check the active python and pip are in PYBIN
+                if [ "$(which pip)" != "$PYBIN/pip" ]; then
+                    echo "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+                    exit 1
+                fi
+                if [ "$(which python)" != "$PYBIN/python" ]; then
+                    echo "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+                    exit 1
+                fi
+
                 if [ ! -z {before_build} ]; then
-                    PATH="$PYBIN:$PATH" sh -c {before_build}
+                    sh -c {before_build}
                 fi
 
                 # Build the wheel
                 rm -rf /tmp/built_wheel
                 mkdir /tmp/built_wheel
-                PATH="$PYBIN:$PATH" "$PYBIN/pip" wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
+                pip wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
 
                 # repair the wheel
@@ -92,9 +105,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 if [ ! -z {test_command} ]; then
                     # Set up a virtual environment to install and test from, to make sure
                     # there are no dependencies that were pulled in at build time.
-                    "$PYBIN/pip" install virtualenv
+                    pip install virtualenv
                     venv_dir=`mktemp -d`/venv
-                    "$PYBIN/python" -m virtualenv "$venv_dir"
+                    python -m virtualenv "$venv_dir"
 
                     # run the tests in a subshell to keep that `activate`
                     # script from polluting the env
@@ -123,7 +136,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                     )
                     # exit if tests failed (needed for older bash versions)
                     if [ $? -ne 0 ]; then
-                      exit 1;
+                        exit 1;
                     fi
 
                     # clean up
@@ -133,7 +146,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 # we're all done here; move it to output
                 mv "${{repaired_wheels[@]}}" /output
                 for repaired_wheel in "${{repaired_wheels[@]}}"; do chown {uid}:{gid} "/output/$(basename "$repaired_wheel")"; done
-            done
+            ) done
         '''.format(
             pybin_paths=' '.join(c.path + '/bin' for c in platform_configs),
             test_requires=' '.join(test_requires),
