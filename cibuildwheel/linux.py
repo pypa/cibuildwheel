@@ -1,3 +1,4 @@
+import distutils
 import os
 import shlex
 import subprocess
@@ -29,10 +30,39 @@ def get_python_configurations(build_selector):
         PythonConfiguration(identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
         PythonConfiguration(identifier='pp27-manylinux_x86_64', path='/opt/python/pp27-pypy_73'),
         PythonConfiguration(identifier='pp36-manylinux_x86_64', path='/opt/python/pp36-pypy36_pp73'),
+        PythonConfiguration(identifier='cp35-manylinux_aarch64', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_aarch64', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_aarch64', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_aarch64', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='cp35-manylinux_ppc64le', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_ppc64le', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_ppc64le', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_ppc64le', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='cp35-manylinux_s390x', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_s390x', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_s390x', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_s390x', path='/opt/python/cp38-cp38'),
     ]
-
     # skip builds as required
-    return [c for c in python_configurations if build_selector(c.identifier)]
+    configurations = []
+    for c in python_configurations:
+        if not build_selector(c.identifier):
+            continue
+        platform = distutils.util.get_platform()
+        if platform == "linux-x86_64":
+            if c.identifier.endswith('x86_64') or c.identifier.endswith('i686'):
+                configurations.append(c)
+        elif platform == "linux-aarch64":
+            if c.identifier.endswith('aarch64'):
+                configurations.append(c)
+        elif platform == "linux-ppc64le":
+            if c.identifier.endswith('ppc64le'):
+                configurations.append(c)
+        elif platform == "linux-s390x":
+            if c.identifier.endswith('s390x'):
+                configurations.append(c)
+
+    return configurations
 
 
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images):
@@ -49,6 +79,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
     platforms = [
         ('cp', 'manylinux_x86_64', manylinux_images['x86_64']),
         ('cp', 'manylinux_i686', manylinux_images['i686']),
+        ('cp', 'manylinux_aarch64', manylinux_images['aarch64']),
+        ('cp', 'manylinux_ppc64le', manylinux_images['ppc64le']),
+        ('cp', 'manylinux_s390x', manylinux_images['s390x']),
         ('pp', 'manylinux_x86_64', manylinux_images['pypy_x86_64']),
     ]
 

@@ -72,15 +72,15 @@ When setting the options, you can use shell-style globbing syntax (as per [`fnma
 
 <div class="build-id-table-marker"></div>
 
-|                 | macOS 64bit         | Manylinux 64bit        | Manylinux 32bit      | Windows 64bit   | Windows 32bit  |
-|-----------------|---------------------|------------------------|----------------------|-----------------|----------------|
-| Python 2.7      | cp27-macosx_x86_64  | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |
-| Python 3.5      | cp35-macosx_x86_64  | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     |
-| Python 3.6      | cp36-macosx_x86_64  | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     |
-| Python 3.7      | cp37-macosx_x86_64  | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     |
-| Python 3.8      | cp38-macosx_x86_64  | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     |
-| PyPy 2.7 v7.3.0 | pp27-macosx_x86_64  | pp27-manylinux_x86_64  |                      |                 | pp27-win32     |
-| PyPy 3.6 v7.3.0 | pp36-macosx_x86_64  | pp36-manylinux_x86_64  |                      |                 | pp36-win32     |
+|                 | macOS 64bit         | Manylinux x86 64bit    | Manylinux x86 32bit  | Windows 64bit   | Windows 32bit  | Manylinux Armv8 64bit  | Manylinux PPC64LE      | Manylinux s390x      |
+|-----------------|---------------------|------------------------|----------------------|-----------------|----------------|------------------------|------------------------|----------------------|
+| Python 2.7      | cp27-macosx_x86_64  | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |                        |                        |                      |
+| Python 3.5      | cp35-macosx_x86_64  | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     | cp35-manylinux_aarch64 | cp35-manylinux_ppc64le | cp35-manylinux_s390x |
+| Python 3.6      | cp36-macosx_x86_64  | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     | cp36-manylinux_aarch64 | cp36-manylinux_ppc64le | cp36-manylinux_s390x |
+| Python 3.7      | cp37-macosx_x86_64  | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     | cp37-manylinux_aarch64 | cp37-manylinux_ppc64le | cp37-manylinux_s390x |
+| Python 3.8      | cp38-macosx_x86_64  | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     | cp38-manylinux_aarch64 | cp38-manylinux_ppc64le | cp38-manylinux_s390x |
+| PyPy 2.7 v7.3.0 | pp27-macosx_x86_64  | pp27-manylinux_x86_64  |                      |                 | pp27-win32     |                        |                        |                      |
+| PyPy 3.6 v7.3.0 | pp36-macosx_x86_64  | pp36-manylinux_x86_64  |                      |                 | pp36-win32     |                        |                        |                      |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
@@ -245,10 +245,10 @@ CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {
 ```
 
 
-### `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` {: #manylinux-image}
+### `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, `CIBW_MANYLINUX_PYPY_X86_64_IMAGE`, `CIBW_MANYLINUX_AARCH64_IMAGE`, `CIBW_MANYLINUX_PPC64LE_IMAGE`, `CIBW_MANYLINUX_S390X_IMAGE` {: #manylinux-image}
 > Specify alternative manylinux docker images
 
-An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), and [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64).
+An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x), and [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64).
 
 The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use the [official `manylinux` images](https://github.com/pypa/manylinux) and [PyPy `manylinux` images](https://github.com/pypy/manylinux), or any other valid Docker image name. Note that for PyPy, only the official `manylinux2010` image is currently available.
 
