@@ -13,6 +13,26 @@ from .util import (
 )
 
 
+def matches_platform(identifier):
+    pm = platform.machine()
+    if pm == "x86_64":
+        if identifier.endswith('x86_64') or identifier.endswith('i686'):
+            return True
+    elif pm == "i686":
+        if identifier.endswith('i686'):
+            return True
+    elif pm == "aarch64":
+        if identifier.endswith('aarch64'):
+            return True
+    elif pm == "ppc64le":
+        if identifier.endswith('ppc64le'):
+            return True
+    elif pm == "s390x":
+        if identifier.endswith('s390x'):
+            return True
+    return False
+
+
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['identifier', 'path'])
     python_configurations = [
@@ -44,28 +64,7 @@ def get_python_configurations(build_selector):
         PythonConfiguration(identifier='cp38-manylinux_s390x', path='/opt/python/cp38-cp38'),
     ]
     # skip builds as required
-    configurations = []
-    for c in python_configurations:
-        if not build_selector(c.identifier):
-            continue
-        pm = platform.machine()
-        if pm == "x86_64":
-            if c.identifier.endswith('x86_64') or c.identifier.endswith('i686'):
-                configurations.append(c)
-        if pm == "i686":
-            if c.identifier.endswith('i686'):
-                configurations.append(c)
-        elif pm == "aarch64":
-            if c.identifier.endswith('aarch64'):
-                configurations.append(c)
-        elif pm == "ppc64le":
-            if c.identifier.endswith('ppc64le'):
-                configurations.append(c)
-        elif pm == "s390x":
-            if c.identifier.endswith('s390x'):
-                configurations.append(c)
-
-    return configurations
+    return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
 
 
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images):
