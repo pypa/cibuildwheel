@@ -16,6 +16,7 @@ from .util import (
 def matches_platform(identifier):
     pm = platform.machine()
     if pm == "x86_64":
+        # x86_64 machines can run i686 docker containers
         if identifier.endswith('x86_64') or identifier.endswith('i686'):
             return True
     elif pm == "i686":
