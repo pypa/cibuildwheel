@@ -8,4 +8,4 @@ This is a summary of the Python versions and platforms covered by the different 
 
 > ¹ Python version not really pinned, but dependent on the (default) version of image used.
 
-In addition additional non-x86 architectures are covered on Travis CI using Python 3.5.
+Non-x86 architectures are covered on Travis CI using Python 3.5.
