@@ -15,15 +15,15 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS x86_64 | manylinux i686 | manylinux x86_64 | Windows 32bit | Windows 64bit |
-|---|---|---|---|---|---|
-| Python 2.7      | ✅ | ✅ | ✅ | ✅¹ | ✅¹ |
-| Python 3.5      | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.6      | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.7      | ✅ | ✅ | ✅ | ✅  | ✅  |
-| Python 3.8      | ✅ | ✅ | ✅ | ✅  | ✅  |
-| PyPy 2.7 v7.3.0 | ✅ |   | ✅ | ✅  |    |
-| PyPy 3.6 v7.3.0 | ✅ |   | ✅ | ✅  |    |
+|   | macOS x86_64 | manylinux i686 | manylinux x86_64 | Windows 32bit | Windows 64bit | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
+|---|---|---|---|---|---|---|---|---|
+| Python 2.7      | ✅ | ✅ | ✅ | ✅¹ | ✅¹ |     |     |     |
+| Python 3.5      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
+| Python 3.6      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
+| Python 3.7      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
+| Python 3.8      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
+| PyPy 2.7 v7.3.0 | ✅ |   | ✅ | ✅  |    |    |    |    |
+| PyPy 3.6 v7.3.0 | ✅ |   | ✅ | ✅  |    |    |    |    |
 
 > ¹ Not supported on Travis
 

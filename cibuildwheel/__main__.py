@@ -160,6 +160,9 @@ def main():
         manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
         manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
         manylinux_pypy_x86_64_image = os.environ.get('CIBW_MANYLINUX_PYPY_X86_64_IMAGE', 'manylinux2010')
+        manylinux_aarch64_image = os.environ.get('CIBW_MANYLINUX_AARCH64_IMAGE', 'manylinux2014')
+        manylinux_ppc64le_image = os.environ.get('CIBW_MANYLINUX_PPC64LE_IMAGE', 'manylinux2014')
+        manylinux_s390x_image = os.environ.get('CIBW_MANYLINUX_S390X_IMAGE', 'manylinux2014')
 
         default_manylinux_images_x86_64 = {'manylinux1': 'quay.io/pypa/manylinux1_x86_64',
                                            'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64',
@@ -168,11 +171,18 @@ def main():
                                          'manylinux2010': 'quay.io/pypa/manylinux2010_i686',
                                          'manylinux2014': 'quay.io/pypa/manylinux2014_i686'}
         default_manylinux_images_pypy_x86_64 = {'manylinux2010': 'pypywheels/manylinux2010-pypy_x86_64'}
+        default_manylinux_images_aarch64 = {'manylinux2014': 'quay.io/pypa/manylinux2014_aarch64'}
+        default_manylinux_images_ppc64le = {'manylinux2014': 'quay.io/pypa/manylinux2014_ppc64le'}
+        default_manylinux_images_s390x = {'manylinux2014': 'quay.io/pypa/manylinux2014_s390x'}
 
         build_options.update(
             manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
                               'i686': default_manylinux_images_i686.get(manylinux_i686_image) or manylinux_i686_image,
-                              'pypy_x86_64': default_manylinux_images_pypy_x86_64.get(manylinux_pypy_x86_64_image) or manylinux_pypy_x86_64_image},
+                              'pypy_x86_64': default_manylinux_images_pypy_x86_64.get(manylinux_pypy_x86_64_image) or manylinux_pypy_x86_64_image,
+                              'aarch64': default_manylinux_images_aarch64.get(manylinux_aarch64_image) or manylinux_aarch64_image,
+                              'ppc64le': default_manylinux_images_ppc64le.get(manylinux_ppc64le_image) or manylinux_ppc64le_image,
+                              's390x': default_manylinux_images_s390x.get(manylinux_s390x_image) or manylinux_s390x_image,
+                              },
         )
     elif platform == 'macos':
         pass

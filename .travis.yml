@@ -9,6 +9,30 @@ matrix:
       services: docker
       env: PYTHON=python
 
+    # Linux Python 3
+    - sudo: required
+      language: python
+      python: 3.5
+      services: docker
+      arch: arm64
+      env: PYTHON=python
+
+    # Linux Python 3
+    - sudo: required
+      language: python
+      python: 3.5
+      services: docker
+      arch: ppc64le
+      env: PYTHON=python
+
+    # Linux Python 3
+    - sudo: required
+      language: python
+      python: 3.5
+      services: docker
+      arch: s390x
+      env: PYTHON=python
+
     # macOS Python 3
     - os: osx
       env: PYTHON=python3
