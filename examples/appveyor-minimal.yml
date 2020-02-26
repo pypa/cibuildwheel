@@ -4,7 +4,7 @@ image:
 
 build_script:
   # windows
-  - cmd: pip install cibuildwheel==1.1.0
+  - cmd: pip3 install cibuildwheel==1.1.0
   - cmd: cibuildwheel --output-dir wheelhouse
   # linux
   - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install cibuildwheel==1.1.0"

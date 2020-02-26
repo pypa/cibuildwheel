@@ -75,15 +75,15 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python -m pip install twine cibuildwheel==1.1.0
+  - python3 -m pip install twine cibuildwheel==1.1.0
 
 script:
   # build the wheels, put them into './wheelhouse'
-  - python -m cibuildwheel --output-dir wheelhouse
+  - python3 -m cibuildwheel --output-dir wheelhouse
 
 after_success:
   # if the release was tagged, upload them to PyPI
-  - if [[ $TRAVIS_TAG ]]; then python -m twine upload wheelhouse/*.whl; fi
+  - if [[ $TRAVIS_TAG ]]; then python3 -m twine upload wheelhouse/*.whl; fi
 ```
 
 For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and also check out [the examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
@@ -138,8 +138,8 @@ Changelog
 
 _7 December 2019_
 
-- ✨ Add support for building manylinux2014 wheels. To use, set 
-  `CIBW_MANYLINUX_X86_64_IMAGE` and CIBW_MANYLINUX_I686_IMAGE to 
+- ✨ Add support for building manylinux2014 wheels. To use, set
+  `CIBW_MANYLINUX_X86_64_IMAGE` and CIBW_MANYLINUX_I686_IMAGE to
   `manylinux2014`.
 - ✨ Add support for [Linux on Appveyor](https://www.appveyor.com/blog/2018/03/06/appveyor-for-linux/) (#204, #207)
 - ✨ Add `CIBW_REPAIR_WHEEL_COMMAND` env variable, for changing how
