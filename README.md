@@ -15,19 +15,19 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS x86_64 | manylinux i686 | manylinux x86_64 | Windows 32bit | Windows 64bit | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
+|   | macOS x86_64 | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
 |---|---|---|---|---|---|---|---|---|
-| Python 2.7      | ✅ | ✅ | ✅ | ✅¹ | ✅¹ |     |     |     |
-| Python 3.5      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
-| Python 3.6      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
-| Python 3.7      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
-| Python 3.8      | ✅ | ✅ | ✅ | ✅  | ✅  | ✅  | ✅  | ✅  |
-| PyPy 2.7 v7.3.0 | ✅ |   | ✅ | ✅  |    |    |    |    |
-| PyPy 3.6 v7.3.0 | ✅ |   | ✅ | ✅  |    |    |    |    |
+| CPython 2.7     | ✅ | ✅¹ | ✅¹ | ✅ | ✅ |     |     |     |
+| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
+| CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
+| CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
+| CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
+| PyPy 2.7 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
+| PyPy 3.6 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
 
 > ¹ Not supported on Travis
 
-- Builds manylinux, macOS and Windows (32 and 64bit) wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
+- Builds manylinux, macOS and Windows wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs the library test suite against the wheel-installed version of your library
 
