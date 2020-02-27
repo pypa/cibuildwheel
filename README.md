@@ -25,7 +25,7 @@ What does it do?
 | PyPy 2.7 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
 | PyPy 3.6 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
 
-> ¹ Not supported on Travis
+<sup>¹ Not supported on Travis</sup>
 
 - Builds manylinux, macOS and Windows wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
