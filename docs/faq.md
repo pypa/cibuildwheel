@@ -37,3 +37,27 @@ myextension = Extension(
     optional=os.environ.get('CIBUILDWHEEL', '0') != '1',
 )
 ```
+
+### 'No module named XYZ' errors after running cibuildwheel on macOS
+
+`cibuildwheel` on Mac installs the distributions from Python.org system-wide during its operation. This is necessary, but it can cause some confusing errors after cibuildwheel has finished.
+
+Consider the build script:
+
+```bash
+python3 -m pip install twine cibuildwheel
+python3 -m cibuildwheel --output-dir wheelhouse
+python3 -m twine upload wheelhouse/*.whl
+# error: no module named 'twine'
+```
+
+This doesn't work because while `cibuildwheel` was running, it installed a few new versions of 'python3', so the `python3` run on line 3 isn't the same as the `python3` that ran on line 1.
+
+Solutions to this vary, but the simplest is to install tools immediately before they're used:
+
+```bash
+python3 -m pip install cibuildwheel
+python3 -m cibuildwheel --output-dir wheelhouse
+python3 -m pip install twine
+python3 -m twine upload wheelhouse/*.whl
+```
