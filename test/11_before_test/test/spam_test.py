@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 from unittest import TestCase
 
 
@@ -21,5 +22,7 @@ class TestBeforeTest(TestCase):
             stored_executable = f.read()
         print('stored_executable', stored_executable)
         print('sys.executable', sys.executable)
-        # windows/mac are case insensitive
-        assert os.path.realpath(stored_executable).lower() == os.path.realpath(sys.executable).lower()
+        #  Works around path-comparison bugs caused by short-paths on Windows e.g.
+        #  vssadm~1 instead of vssadministrator
+
+        assert os.stat(stored_executable) == os.stat(sys.executable)

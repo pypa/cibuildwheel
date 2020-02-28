@@ -206,7 +206,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             environment_exports='\n'.join(environment.as_shell_commands()),
             uid=os.getuid(),
             gid=os.getgid(),
-            before_test=shlex_quote(
+            before_test=shlex.quote(
                 prepare_command(before_test, project='/project') if before_test else ''
             ),
         )
