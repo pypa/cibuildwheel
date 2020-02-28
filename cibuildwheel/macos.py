@@ -133,8 +133,13 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             installation_bin_path,
             env['PATH'],
         ])
-        # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`, `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
-        # Be safe and avoid other issues by just always removing the '__PYVENV_LAUNCHER__' environment variable (cfr. https://github.com/python/cpython/pull/9516)
+
+        # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
+        # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
+        # Also fix an issue with the shebang of installed scripts inside the 
+        # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
+        # https://github.com/pypa/virtualenv/issues/620 
+        # Also see https://github.com/python/cpython/pull/9516
         env.pop('__PYVENV_LAUNCHER__', None)
         env = environment.as_dictionary(prev_environment=env)
 
@@ -204,9 +209,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 os.path.join(venv_dir, 'bin'),
                 virtualenv_env['PATH'],
             ])
-            # Fix some weird issue with the shebang of installed scripts
-            # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
-            # virtualenv_env.pop('__PYVENV_LAUNCHER__', None)  # No need for this anymore, as '__PYVENV_LAUNCHER__' is already removed from `env` above
 
             # check that we are using the Python from the virtual environment
             call(['which', 'python'], env=virtualenv_env)
