@@ -75,7 +75,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install twine cibuildwheel==1.1.0
+  - python3 -m pip install cibuildwheel==1.1.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -83,7 +83,11 @@ script:
 
 after_success:
   # if the release was tagged, upload them to PyPI
-  - if [[ $TRAVIS_TAG ]]; then python3 -m twine upload wheelhouse/*.whl; fi
+  - |
+    if [[ $TRAVIS_TAG ]]; then
+      python3 -m pip install twine
+      python3 -m twine upload wheelhouse/*.whl
+    fi
 ```
 
 For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and also check out [the examples](https://github.com/joerick/cibuildwheel/tree/master/examples).

@@ -47,30 +47,38 @@ jobs:
       name: Deploy source distribution
       install: skip
       script: python3 setup.py sdist --formats=gztar
-      after_success: python3 -m twine upload --skip-existing dist/*.tar.gz
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing dist/*.tar.gz
     # Deploy on linux
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker
-      install: python3 -m pip install twine cibuildwheel==1.1.0
+      install: python3 -m pip install cibuildwheel==1.1.0
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
     # Deploy on mac
     - stage: deploy
       name: Build and deploy macOS wheels
       os: osx
       language: shell
-      install: python3 -m pip install twine cibuildwheel==1.1.0
+      install: python3 -m pip install cibuildwheel==1.1.0
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
     # Deploy on windows
     - stage: deploy
       name: Build and deploy Windows wheels
       os: windows
       language: shell
-      install: python3 -m pip install twine cibuildwheel==1.1.0
+      install: python3 -m pip install cibuildwheel==1.1.0
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
 
 env:
   global:
