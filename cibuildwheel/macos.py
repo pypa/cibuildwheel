@@ -136,9 +136,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
         # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
-        # Also fix an issue with the shebang of installed scripts inside the 
+        # Also fix an issue with the shebang of installed scripts inside the
         # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
-        # https://github.com/pypa/virtualenv/issues/620 
+        # https://github.com/pypa/virtualenv/issues/620
         # Also see https://github.com/python/cpython/pull/9516
         env.pop('__PYVENV_LAUNCHER__', None)
         env = environment.as_dictionary(prev_environment=env)
