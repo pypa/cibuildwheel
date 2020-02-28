@@ -133,6 +133,14 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             installation_bin_path,
             env['PATH'],
         ])
+
+        # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
+        # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
+        # Also fix an issue with the shebang of installed scripts inside the
+        # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
+        # https://github.com/pypa/virtualenv/issues/620
+        # Also see https://github.com/python/cpython/pull/9516
+        env.pop('__PYVENV_LAUNCHER__', None)
         env = environment.as_dictionary(prev_environment=env)
 
         # check what version we're on
@@ -192,7 +200,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv<20'], env=env)
+            call(['pip', 'install', 'virtualenv'], env=env)
             venv_dir = tempfile.mkdtemp()
             call(['python', '-m', 'virtualenv', venv_dir], env=env)
 
@@ -201,9 +209,6 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 os.path.join(venv_dir, 'bin'),
                 virtualenv_env['PATH'],
             ])
-            # Fix some weird issue with the shebang of installed scripts
-            # See https://github.com/theacodes/nox/issues/44 and https://github.com/pypa/virtualenv/issues/620
-            virtualenv_env.pop('__PYVENV_LAUNCHER__', None)
 
             # check that we are using the Python from the virtual environment
             call(['which', 'python'], env=virtualenv_env)
