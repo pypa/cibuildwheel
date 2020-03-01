@@ -10,7 +10,7 @@ from .util import (
     download,
     get_build_verbosity_extra_flags,
     prepare_command,
-    get_pip_script
+    get_pip_script,
 )
 
 
@@ -140,6 +140,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             # there are no dependencies that were pulled in at build time.
             call(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
             venv_dir = tempfile.mkdtemp()
+
+            # Use --no-download to ensure determinism by using seed libraries
+            # built into virtualenv
             call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()

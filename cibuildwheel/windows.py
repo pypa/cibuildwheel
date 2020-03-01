@@ -152,6 +152,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             # there are no dependencies that were pulled in at build time.
             shell(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
             venv_dir = tempfile.mkdtemp()
+
+            # Use --no-download to ensure determinism by using seed libraries
+            # built into virtualenv
             shell(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()
