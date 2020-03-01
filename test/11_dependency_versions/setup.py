@@ -20,9 +20,9 @@ for package_name in ['pip', 'setuptools', 'wheel']:
     env_name = 'EXPECTED_{}_VERSION'.format(package_name.upper())
     expected_version = os.environ[env_name]
 
-    print(package_name, 'version should equal', expected_version)
-
-    assert '{}=={}'.format(package_name, expected_version) in versions
+    assert '{}=={}'.format(package_name, expected_version) in versions, (
+        'error: {} version should equal {}'.format(package_name, expected_version)
+    )
 
 setup(
     name="spam",

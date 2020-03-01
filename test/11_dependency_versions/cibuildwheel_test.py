@@ -6,19 +6,19 @@ import cibuildwheel.util
 
 import utils
 
+VERSION_REGEX = r'([\w-]+)==([^\s]+)'
 
-def get_version_from_constraint_file(package_name, constraint_file):
-    version_pattern = package_name + r'==([^\s]+)'
 
+def get_versions_from_constraint_file(constraint_file):
     with open(constraint_file, encoding='utf8') as f:
         constraint_file_text = f.read()
 
-    match = re.search(version_pattern, constraint_file_text)
+    versions = {}
 
-    if not match:
-        raise Exception("couldn't find version spec matching " + version_pattern)
+    for package, version in re.findall(VERSION_REGEX, constraint_file_text):
+        versions[package] = version
 
-    return match.group(1)
+    return versions
 
 
 @pytest.mark.parametrize('python_version', ['2.7', '3.x'])
@@ -36,12 +36,15 @@ def test_pinned_versions(python_version):
         constraint_filename = 'constraints.txt'
 
     constraint_file = os.path.join(cibuildwheel.util.resources_dir, constraint_filename)
+    constraint_versions = get_versions_from_constraint_file(constraint_file)
 
     for package in ['pip', 'setuptools', 'wheel', 'virtualenv']:
         env_name = 'EXPECTED_{}_VERSION'.format(package.upper())
-        build_environment[env_name] = get_version_from_constraint_file(package, constraint_file)
+        build_environment[env_name] = constraint_versions[package]
 
-    cibw_environment_option = ' '.join(['{}={}'.format(k, v) for k, v in build_environment.items()])
+    cibw_environment_option = ' '.join(
+        ['{}={}'.format(k, v) for k, v in build_environment.items()]
+    )
     cibw_build_option = 'cp27-*' if python_version == '2.7' else 'cp3*'
 
     # build and test the wheels
