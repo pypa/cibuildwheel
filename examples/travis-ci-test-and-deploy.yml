@@ -20,10 +20,10 @@ before_install:
     fi
 
 install:
-  - python -m pip install pytest
+  - python3 -m pip install pytest
 
 script:
-  - python setup.py install
+  - python3 setup.py install
   - pytest
 
 stages:
@@ -46,31 +46,39 @@ jobs:
     - stage: deploy
       name: Deploy source distribution
       install: skip
-      script: python setup.py sdist --formats=gztar
-      after_success: python -m twine upload --skip-existing dist/*.tar.gz
+      script: python3 setup.py sdist --formats=gztar
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing dist/*.tar.gz
     # Deploy on linux
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker
-      install: python -m pip install twine cibuildwheel==1.0.0
-      script: python -m cibuildwheel --output-dir wheelhouse
-      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+      install: python3 -m pip install cibuildwheel==1.1.0
+      script: python3 -m cibuildwheel --output-dir wheelhouse
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
     # Deploy on mac
     - stage: deploy
       name: Build and deploy macOS wheels
       os: osx
       language: shell
-      install: python -m pip install twine cibuildwheel==1.0.0
-      script: python -m cibuildwheel --output-dir wheelhouse
-      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+      install: python3 -m pip install cibuildwheel==1.1.0
+      script: python3 -m cibuildwheel --output-dir wheelhouse
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
     # Deploy on windows
     - stage: deploy
       name: Build and deploy Windows wheels
       os: windows
       language: shell
-      install: python -m pip install twine cibuildwheel==1.0.0
-      script: python -m cibuildwheel --output-dir wheelhouse
-      after_success: python -m twine upload --skip-existing wheelhouse/*.whl
+      install: python3 -m pip install cibuildwheel==1.1.0
+      script: python3 -m cibuildwheel --output-dir wheelhouse
+      after_success: |
+        python3 -m pip install twine
+        python3 -m twine upload --skip-existing wheelhouse/*.whl
 
 env:
   global:

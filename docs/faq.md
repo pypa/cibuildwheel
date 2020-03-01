@@ -22,7 +22,7 @@ Linux wheels are built in the [`manylinux` docker images](https://github.com/pyp
 
 - The project directory is mounted in the running Docker instance as `/project`, the output directory for the wheels as `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that this is not available on CircleCI due to their Docker policies.
 
-- Alternative dockers images can be specified with the `CIBW_MANYLINUX_X86_64_IMAGE` and `CIBW_MANYLINUX_I686_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#manylinux-image) for more details.
+- Alternative dockers images can be specified with the `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, and `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#manylinux-image) for more details.
 
 ### Building packages with optional C extensions
 
@@ -36,4 +36,28 @@ myextension = Extension(
     ["myextension.c"],
     optional=os.environ.get('CIBUILDWHEEL', '0') != '1',
 )
+```
+
+### 'No module named XYZ' errors after running cibuildwheel on macOS
+
+`cibuildwheel` on Mac installs the distributions from Python.org system-wide during its operation. This is necessary, but it can cause some confusing errors after cibuildwheel has finished.
+
+Consider the build script:
+
+```bash
+python3 -m pip install twine cibuildwheel
+python3 -m cibuildwheel --output-dir wheelhouse
+python3 -m twine upload wheelhouse/*.whl
+# error: no module named 'twine'
+```
+
+This doesn't work because while `cibuildwheel` was running, it installed a few new versions of 'python3', so the `python3` run on line 3 isn't the same as the `python3` that ran on line 1.
+
+Solutions to this vary, but the simplest is to install tools immediately before they're used:
+
+```bash
+python3 -m pip install cibuildwheel
+python3 -m cibuildwheel --output-dir wheelhouse
+python3 -m pip install twine
+python3 -m twine upload wheelhouse/*.whl
 ```

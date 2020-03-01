@@ -56,7 +56,7 @@ Default: `auto`
 
 `auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
 
-For `linux` you need Docker running, on Mac or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and it will build and test for all versions of Python at `C:\PythonXX[-x64]`.
+For `linux` you need Docker running, on macOS or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and `cibuildwheel` will install required versions of Python to `C:\cibw\python` using NuGet.
 
 This option can also be set using the command-line option `--platform`.
 
@@ -68,20 +68,24 @@ Space-separated list of builds to build and skip. Each build has an identifier l
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
-When setting the options, you can use shell-style globbing syntax (as per `fnmatch`). All the build identifiers supported by cibuildwheel are shown below:
+When setting the options, you can use shell-style globbing syntax (as per [`fnmatch`](https://docs.python.org/3/library/fnmatch.html)). All the build identifiers supported by cibuildwheel are shown below:
 
 <div class="build-id-table-marker"></div>
 
-|            | macOS 64bit        | Manylinux 64bit        | Manylinux 32bit      | Windows 64bit   | Windows 32bit  |
-|------------|--------------------|------------------------|----------------------|-----------------|----------------|
-| Python 2.7 | cp27-macosx_x86_64 | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |
-| Python 3.5 | cp35-macosx_x86_64 | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     |
-| Python 3.6 | cp36-macosx_x86_64 | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     |
-| Python 3.7 | cp37-macosx_x86_64 | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     |
-| Python 3.8 | cp38-macosx_x86_64 | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     |
+|                 | macOS 64bit         | Manylinux x86 64bit    | Manylinux x86 32bit  | Windows 64bit   | Windows 32bit  | Manylinux Armv8 64bit  | Manylinux PPC64LE      | Manylinux s390x      |
+|-----------------|---------------------|------------------------|----------------------|-----------------|----------------|------------------------|------------------------|----------------------|
+| Python 2.7      | cp27-macosx_x86_64  | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |                        |                        |                      |
+| Python 3.5      | cp35-macosx_x86_64  | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     | cp35-manylinux_aarch64 | cp35-manylinux_ppc64le | cp35-manylinux_s390x |
+| Python 3.6      | cp36-macosx_x86_64  | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     | cp36-manylinux_aarch64 | cp36-manylinux_ppc64le | cp36-manylinux_s390x |
+| Python 3.7      | cp37-macosx_x86_64  | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     | cp37-manylinux_aarch64 | cp37-manylinux_ppc64le | cp37-manylinux_s390x |
+| Python 3.8      | cp38-macosx_x86_64  | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     | cp38-manylinux_aarch64 | cp38-manylinux_ppc64le | cp38-manylinux_s390x |
+| PyPy 2.7 v7.3.0 | pp27-macosx_x86_64  | pp27-manylinux_x86_64  |                      |                 | pp27-win32     |                        |                        |                      |
+| PyPy 3.6 v7.3.0 | pp36-macosx_x86_64  | pp36-manylinux_x86_64  |                      |                 | pp36-win32     |                        |                        |                      |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
+
+For CPython, the minimally supported macOS version is 10.9; for PyPy 2.7 and PyPy 3.6, respectively macOS 10.7 and 10.13 or higher is required.
 
 #### Examples
 
@@ -113,6 +117,12 @@ CIBW_SKIP: cp36-manylinux*
 # Only build on Python 3 and skip 32-bit builds
 CIBW_BUILD: cp3?-*
 CIBW_SKIP: "*-win32 *-manylinux_i686"
+
+# Only build PyPy and CPython 3
+CIBW_BUILD: pp* cp3?-*
+
+# Disable building PyPy wheels on all platforms
+CIBW_SKIP: pp*
 ```
 
 <style>
@@ -235,16 +245,17 @@ CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {
 ```
 
 
-### `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE` {: #manylinux-image}
+### `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, `CIBW_MANYLINUX_PYPY_X86_64_IMAGE`, `CIBW_MANYLINUX_AARCH64_IMAGE`, `CIBW_MANYLINUX_PPC64LE_IMAGE`, `CIBW_MANYLINUX_S390X_IMAGE` {: #manylinux-image}
 > Specify alternative manylinux docker images
 
-An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64) and [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686).
+An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), and [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x).
 
-The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use a pinned version of the [official `manylinux` images](https://github.com/pypa/manylinux). Alternatively, set this options to any other valid Docker image name.
+The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use a pinned version of the [official `manylinux` images](https://github.com/pypa/manylinux) and [PyPy `manylinux` images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. Note that for PyPy, only the official `manylinux2010` image is currently available. For architectures other
+than x86 (x86\_64 and i686) manylinux2014 must be used because this is the first version of the manylinux specification that supports additional architectures.
 
-Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid `manylinux1`/`manylinux2010`/`manylinux2014` wheels (see https://github.com/pypa/manylinux, [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/ and [PEP 599](https://www.python.org/dev/peps/pep-0599/) for more details).
+Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid `manylinux1`/`manylinux2010`/`manylinux2014` wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/) and [PEP 599](https://www.python.org/dev/peps/pep-0599/) for more details).
 
-Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT="manylinux2010_$(uname -m)"`).
+Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
 Note that `manylinux2014` doesn't support builds with Python 2.7 - when building with `manylinux2014`, skip Python 2.7 using `CIBW_SKIP` (see example below).
 
@@ -252,8 +263,10 @@ Note that `manylinux2014` doesn't support builds with Python 2.7 - when building
 
 ```yaml
 # build using the manylinux1 image to ensure manylinux1 wheels are produced
+# skip PyPy, since there is no PyPy manylinux1 image
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
 CIBW_MANYLINUX_I686_IMAGE: manylinux1
+CIBW_SKIP: pp*
 
 # build using the manylinux2014 image
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014

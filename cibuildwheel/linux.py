@@ -1,4 +1,5 @@
 import os
+import platform
 import shlex
 import subprocess
 import sys
@@ -12,25 +13,59 @@ from .util import (
 )
 
 
+def matches_platform(identifier):
+    pm = platform.machine()
+    if pm == "x86_64":
+        # x86_64 machines can run i686 docker containers
+        if identifier.endswith('x86_64') or identifier.endswith('i686'):
+            return True
+    elif pm == "i686":
+        if identifier.endswith('i686'):
+            return True
+    elif pm == "aarch64":
+        if identifier.endswith('aarch64'):
+            return True
+    elif pm == "ppc64le":
+        if identifier.endswith('ppc64le'):
+            return True
+    elif pm == "s390x":
+        if identifier.endswith('s390x'):
+            return True
+    return False
+
+
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'path'])
     python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_x86_64', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_x86_64', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_x86_64', path='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_x86_64', path='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27m'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_i686', path='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(identifier='cp35-manylinux_x86_64', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_x86_64', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_x86_64', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_x86_64', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27m'),
+        PythonConfiguration(identifier='cp27-manylinux_i686', path='/opt/python/cp27-cp27mu'),
+        PythonConfiguration(identifier='cp35-manylinux_i686', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_i686', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_i686', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_i686', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='pp27-manylinux_x86_64', path='/opt/python/pp27-pypy_73'),
+        PythonConfiguration(identifier='pp36-manylinux_x86_64', path='/opt/python/pp36-pypy36_pp73'),
+        PythonConfiguration(identifier='cp35-manylinux_aarch64', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_aarch64', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_aarch64', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_aarch64', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='cp35-manylinux_ppc64le', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_ppc64le', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_ppc64le', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_ppc64le', path='/opt/python/cp38-cp38'),
+        PythonConfiguration(identifier='cp35-manylinux_s390x', path='/opt/python/cp35-cp35m'),
+        PythonConfiguration(identifier='cp36-manylinux_s390x', path='/opt/python/cp36-cp36m'),
+        PythonConfiguration(identifier='cp37-manylinux_s390x', path='/opt/python/cp37-cp37m'),
+        PythonConfiguration(identifier='cp38-manylinux_s390x', path='/opt/python/cp38-cp38'),
     ]
-
     # skip builds as required
-    return [c for c in python_configurations if build_selector(c.identifier)]
+    return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
 
 
 def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, manylinux_images, dependency_constraints):
@@ -45,12 +80,16 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
     python_configurations = get_python_configurations(build_selector)
     platforms = [
-        ('manylinux_x86_64', manylinux_images['x86_64']),
-        ('manylinux_i686', manylinux_images['i686']),
+        ('cp', 'manylinux_x86_64', manylinux_images['x86_64']),
+        ('cp', 'manylinux_i686', manylinux_images['i686']),
+        ('cp', 'manylinux_aarch64', manylinux_images['aarch64']),
+        ('cp', 'manylinux_ppc64le', manylinux_images['ppc64le']),
+        ('cp', 'manylinux_s390x', manylinux_images['s390x']),
+        ('pp', 'manylinux_x86_64', manylinux_images['pypy_x86_64']),
     ]
 
-    for platform_tag, docker_image in platforms:
-        platform_configs = [c for c in python_configurations if c.identifier.endswith(platform_tag)]
+    for implementation, platform_tag, docker_image in platforms:
+        platform_configs = [c for c in python_configurations if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)]
         if not platform_configs:
             continue
 
@@ -84,14 +123,19 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                         cd /project
 
                         PYBIN="{config_python_bin}"
-                        export PATH="$PYBIN:$PATH"
 
+                        export PATH="$PYBIN:$PATH"
                         {environment_exports}
 
                         # check the active python and pip are in PYBIN
-                        # if `test` returns false, the script will exit due to errexit
-                        test "$(which pip)" = "$PYBIN/pip"
-                        test "$(which python)" = "$PYBIN/python"
+                        if [ "$(which pip)" != "$PYBIN/pip" ]; then
+                        echo "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+                        exit 1
+                        fi
+                        if [ "$(which python)" != "$PYBIN/python" ]; then
+                        echo "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+                        exit 1
+                        fi
 
                         if [ ! -z {before_build} ]; then
                             sh -c {before_build}

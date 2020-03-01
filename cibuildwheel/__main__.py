@@ -170,6 +170,10 @@ def main():
     if platform == 'linux':
         manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
         manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
+        manylinux_pypy_x86_64_image = os.environ.get('CIBW_MANYLINUX_PYPY_X86_64_IMAGE', 'manylinux2010')
+        manylinux_aarch64_image = os.environ.get('CIBW_MANYLINUX_AARCH64_IMAGE', 'manylinux2014')
+        manylinux_ppc64le_image = os.environ.get('CIBW_MANYLINUX_PPC64LE_IMAGE', 'manylinux2014')
+        manylinux_s390x_image = os.environ.get('CIBW_MANYLINUX_S390X_IMAGE', 'manylinux2014')
 
         pinned_docker_images_file = os.path.join(
             os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
@@ -193,6 +197,28 @@ def main():
             manylinux_images['i686'] = pinned_docker_images[manylinux_i686_image]['i686']
         else:
             manylinux_images['i686'] = manylinux_i686_image
+
+        if manylinux_pypy_x86_64_image in pinned_docker_images:
+            manylinux_images['pypy_x86_64'] = pinned_docker_images[manylinux_pypy_x86_64_image]['pypy_x86_64']
+        else:
+            manylinux_images['pypy_x86_64'] = manylinux_pypy_x86_64_image
+
+        if manylinux_aarch64_image in pinned_docker_images:
+            manylinux_images['aarch64'] = pinned_docker_images[manylinux_aarch64_image]['aarch64']
+        else:
+            manylinux_images['aarch64'] = manylinux_aarch64_image
+
+        if manylinux_ppc64le_image in pinned_docker_images:
+            manylinux_images['ppc64le'] = pinned_docker_images[manylinux_ppc64le_image]['ppc64le']
+        else:
+            manylinux_images['ppc64le'] = manylinux_ppc64le_image
+
+        if manylinux_s390x_image in pinned_docker_images:
+            manylinux_images['x390x'] = pinned_docker_images[manylinux_s390x_image]['x390x']
+        else:
+            manylinux_images['x390x'] = manylinux_s390x_image
+
+        manylinux_images['pypy_x86_64'] = ''
 
         build_options.update(
             manylinux_images=manylinux_images
