@@ -18,9 +18,11 @@ class TestSpam(TestCase):
 
     def test_virtualenv(self):
         virtualenv_path = normalize_path(os.environ.get("__CIBW_VIRTUALENV_PATH__"))
+        if not virtualenv_path:
+            self.fail("No virtualenv path defined in environment variable __CIBW_VIRTUALENV_PATH__")
+
         print("=[executable]", sys.executable)
         print("=[spam location]", spam.__file__)
         print("=[virtualenv path]", virtualenv_path)
         self.assertTrue(virtualenv_path in normalize_path(sys.executable))
         self.assertTrue(virtualenv_path in normalize_path(spam.__file__))
-
