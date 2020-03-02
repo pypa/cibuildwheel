@@ -24,5 +24,10 @@ class TestSpam(TestCase):
         print("=[executable]", sys.executable)
         print("=[spam location]", spam.__file__)
         print("=[virtualenv path]", virtualenv_path)
+        print("=[listdir]", os.listdir(virtualenv_path))
+        if os.path.exists(os.path.join(virtualenv_path, 'Scripts')):
+            print("=[listdir]2", os.listdir(os.path.join(virtualenv_path, 'Scripts')))
+        if os.path.exists(os.path.join(virtualenv_path, 'bin')):
+            print("=[listdir]2", os.listdir(os.path.join(virtualenv_path, 'bin')))
         self.assertTrue(virtualenv_path in normalize_path(sys.executable))
         self.assertTrue(virtualenv_path in normalize_path(spam.__file__))

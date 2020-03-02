@@ -188,15 +188,25 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         if test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            shell(['pip', 'install', 'virtualenv'], env=env)
+            shell(['pip', 'install', '"virtualenv<20"'], env=env)
             venv_dir = tempfile.mkdtemp()
             shell(['python', '-m', 'virtualenv', venv_dir], env=env)
 
             virtualenv_env = env.copy()
-            virtualenv_env['PATH'] = os.pathsep.join([
-                os.path.join(venv_dir, 'Scripts'),
-                virtualenv_env['PATH'],
-            ])
+            if os.path.exists(os.path.join(venv_dir, 'Scripts')):
+                virtualenv_env['PATH'] = os.pathsep.join([
+                    os.path.join(venv_dir, 'Scripts'),
+                    virtualenv_env['PATH'],
+                ])
+            elif os.path.exists(os.path.join(venv_dir, 'bin')):
+                # pypy2.7 bugfix
+                virtualenv_env['PATH'] = os.pathsep.join([
+                    os.path.join(venv_dir, 'bin'),
+                    virtualenv_env['PATH'],
+                ])
+            else:
+                print("Fail to create virtualenv", file=sys.stderr)
+                sys.exit(2)
             virtualenv_env["__CIBW_VIRTUALENV_PATH__"] = venv_dir
 
             # check that we are using the Python from the virtual environment
