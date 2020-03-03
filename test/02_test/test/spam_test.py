@@ -6,9 +6,15 @@ from unittest import TestCase
 import spam
 
 
-def normalize_path(path_str):
-    """because of windows short path"""
-    return os.path.normcase(path_str).replace("vssadm~1", "vssadministrator")
+def path_contains(parent, child): 
+    parent = os.path.abspath(parent) 
+    child = os.path.abspath(child) 
+
+    while child != os.path.dirname(child): 
+        child = os.path.dirname(child)  
+        if os.stat(parent) ==  os.stat(child): 
+            return True 
+    return False
 
 
 class TestSpam(TestCase):
@@ -17,7 +23,7 @@ class TestSpam(TestCase):
         self.assertNotEqual(0, spam.system('python -c "exit(1)"'))
 
     def test_virtualenv(self):
-        virtualenv_path = normalize_path(os.environ.get("__CIBW_VIRTUALENV_PATH__"))
+        virtualenv_path = os.environ.get("__CIBW_VIRTUALENV_PATH__")
         if not virtualenv_path:
             self.fail("No virtualenv path defined in environment variable __CIBW_VIRTUALENV_PATH__")
 
@@ -29,5 +35,5 @@ class TestSpam(TestCase):
             print("=[listdir]2", os.listdir(os.path.join(virtualenv_path, 'Scripts')))
         if os.path.exists(os.path.join(virtualenv_path, 'bin')):
             print("=[listdir]2", os.listdir(os.path.join(virtualenv_path, 'bin')))
-        self.assertTrue(virtualenv_path in normalize_path(sys.executable))
-        self.assertTrue(virtualenv_path in normalize_path(spam.__file__))
+        self.assertTrue(path_contains(virtualenv_path, sys.executable))
+        self.assertTrue(path_contains(virtualenv_path, spam.__file__))
