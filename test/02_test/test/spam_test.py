@@ -7,12 +7,18 @@ import spam
 
 
 def path_contains(parent, child): 
+    ''' returns True if `child` is inside `parent`.
+
+    Works around path-comparison bugs caused by short-paths on Windows e.g.
+    vssadm~1 instead of vssadministrator
+    '''
     parent = os.path.abspath(parent) 
     child = os.path.abspath(child) 
 
     while child != os.path.dirname(child): 
         child = os.path.dirname(child)  
         if os.stat(parent) ==  os.stat(child): 
+            # parent and child refer to the same directory on the filesystem
             return True 
     return False
 
