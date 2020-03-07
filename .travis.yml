@@ -25,11 +25,11 @@ matrix:
       arch: ppc64le
       env: PYTHON=python
 
-    - name: macOS | Python 3
+    - name: macOS | x86_64 | Python 3.x
       os: osx
       env: PYTHON=python3
 
-    - name: Windows | Python 3.5
+    - name: Windows | x86_64 | Python 3.5
       os: windows
       language: shell
       before_install:
