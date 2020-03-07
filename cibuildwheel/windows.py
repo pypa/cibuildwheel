@@ -179,10 +179,16 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             shell(['python', '-m', 'virtualenv', venv_dir], env=env)
 
             virtualenv_env = env.copy()
+
+            venv_script_path = os.path.join(venv_dir, 'Scripts')
+            if os.path.exists(os.path.join(venv_dir, 'bin')):
+                # pypy2.7 bugfix
+                venv_script_path = os.pathsep.join([venv_script_path, os.path.join(venv_dir, 'bin')])
             virtualenv_env['PATH'] = os.pathsep.join([
-                os.path.join(venv_dir, 'Scripts'),
+                venv_script_path,
                 virtualenv_env['PATH'],
             ])
+            virtualenv_env["__CIBW_VIRTUALENV_PATH__"] = venv_dir
 
             # check that we are using the Python from the virtual environment
             shell(['which', 'python'], env=virtualenv_env)

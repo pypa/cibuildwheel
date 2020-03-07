@@ -209,6 +209,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 os.path.join(venv_dir, 'bin'),
                 virtualenv_env['PATH'],
             ])
+            virtualenv_env["__CIBW_VIRTUALENV_PATH__"] = venv_dir
 
             # check that we are using the Python from the virtual environment
             call(['which', 'python'], env=virtualenv_env)

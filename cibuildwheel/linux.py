@@ -145,6 +145,8 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                     venv_dir=`mktemp -d`/venv
                     python -m virtualenv "$venv_dir"
 
+                    export __CIBW_VIRTUALENV_PATH__=$venv_dir
+
                     # run the tests in a subshell to keep that `activate`
                     # script from polluting the env
                     (
