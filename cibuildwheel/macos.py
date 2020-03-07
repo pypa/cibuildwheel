@@ -148,8 +148,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         dependency_constraint_flags = []
         if dependency_constraints:
+            python_version, _, _ = config.version.partition('-')
             dependency_constraint_flags = [
-                '-c', dependency_constraints.get_for_python_version(config.version)
+                '-c', dependency_constraints.get_for_python_version(python_version)
             ]
 
         # install pip & wheel
