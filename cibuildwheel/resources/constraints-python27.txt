@@ -15,9 +15,10 @@ configparser==4.0.2 \
 contextlib2==0.6.0.post1 \
     --hash=sha256:01f490098c18b19d2bd5bb5dc445b2054d2fa97f09a4280ba2c5f3c394c8162e \
     --hash=sha256:3355078a159fbb44ee60ea80abd0d87b80b78c248643b49aa6d94673b413609b \
-    # via importlib-metadata, importlib-resources, virtualenv, zipp
+    # via importlib-metadata, importlib-resources, virtualenv
 delocate==0.8.0 \
-    --hash=sha256:ac9f4d8d28b2582d94f764db0d72a1fe3c42ab8212e9b780168455de385d5b95
+    --hash=sha256:ac9f4d8d28b2582d94f764db0d72a1fe3c42ab8212e9b780168455de385d5b95 \
+    # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.0 \
     --hash=sha256:2e166e231a26b36d6dfe35a48c4464346620f8645ed0ace01ee31822b288de21 \
     # via virtualenv
@@ -57,7 +58,7 @@ singledispatch==3.4.0.3 \
 six==1.14.0 \
     --hash=sha256:236bdbdce46e6e6a3d61a337c0f8b763ca1e8717c03b369e87a7ec7ce1319c0a \
     --hash=sha256:8f3cd2e254d8f793e7f3d6d9df77b92252b52637291d0f0da013c76ea2724b6c \
-    # via pathlib2, singledispatch, virtualenv
+    # via pathlib2, virtualenv
 typing==3.7.4.1 \
     --hash=sha256:91dfe6f3f706ee8cc32d38edbbf304e9b7583fb37108fef38229617f8b3eba23 \
     --hash=sha256:c8cabb5ab8945cd2f54917be357d134db9cc1eb039e59d1606dc1e60cb1d9d36 \
@@ -65,10 +66,12 @@ typing==3.7.4.1 \
     # via importlib-resources
 virtualenv==20.0.8 \
     --hash=sha256:0c04c7e8e0314470b4c2b43740ff68be1c62bb3fdef8309341ff1daea60d49d1 \
-    --hash=sha256:1f0369d068d9761b5c1ed7b44dad1ec124727eb10bc7f4aaefbba0cdca3bd924
+    --hash=sha256:1f0369d068d9761b5c1ed7b44dad1ec124727eb10bc7f4aaefbba0cdca3bd924 \
+    # via -r cibuildwheel/resources/constraints.in
 wheel==0.34.2 \
     --hash=sha256:8788e9155fe14f54164c1b9eb0a319d98ef02c160725587ad60f14ddc57b6f96 \
-    --hash=sha256:df277cb51e61359aba502208d680f90c0493adec6f0e848af94948778aed386e
+    --hash=sha256:df277cb51e61359aba502208d680f90c0493adec6f0e848af94948778aed386e \
+    # via -r cibuildwheel/resources/constraints.in, delocate
 zipp==1.2.0 \
     --hash=sha256:c70410551488251b0fee67b460fb9a536af8d6f9f008ad10ac51f615b6a521b1 \
     --hash=sha256:e0d9e63797e483a30d27e09fffd308c59a700d365ec34e93cc100844168bf921 \
@@ -77,7 +80,9 @@ zipp==1.2.0 \
 # The following packages are considered to be unsafe in a requirements file:
 pip==20.0.2 \
     --hash=sha256:4ae14a42d8adba3205ebeb38aa68cfc0b6c346e1ae2e699a0b3bad4da19cef5c \
-    --hash=sha256:7db0c8ea4c7ea51c8049640e8e6e7fde949de672bfa4949920675563a5a6967f
+    --hash=sha256:7db0c8ea4c7ea51c8049640e8e6e7fde949de672bfa4949920675563a5a6967f \
+    # via -r cibuildwheel/resources/constraints.in
 setuptools==44.0.0 \
     --hash=sha256:180081a244d0888b0065e18206950d603f6550721bd6f8c0a10221ed467dd78e \
-    --hash=sha256:e5baf7723e5bb8382fc146e33032b241efc63314211a3a120aaa55d62d2bb008
+    --hash=sha256:e5baf7723e5bb8382fc146e33032b241efc63314211a3a120aaa55d62d2bb008 \
+    # via -r cibuildwheel/resources/constraints.in
