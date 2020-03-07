@@ -40,7 +40,6 @@ jobs:
       services: docker
       arch: s390x
       env: PYTHON=python
-      script: false
 
   allow_failures:
     # must repeat the s390x job above exactly to match
@@ -50,7 +49,6 @@ jobs:
       services: docker
       arch: s390x
       env: PYTHON=python
-      script: false
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 
