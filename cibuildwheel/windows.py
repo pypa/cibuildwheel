@@ -18,24 +18,10 @@ IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
-def simple_shell(args, env=None, cwd=None):
+def shell(args, env=None, cwd=None):
     print('+ ' + ' '.join(args))
     args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
     return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
-
-
-if IS_RUNNING_ON_AZURE or IS_RUNNING_ON_TRAVIS:
-    shell = simple_shell
-else:
-    run_with_env = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'appveyor_run_with_env.cmd'))
-
-    # run_with_env is a cmd file that sets the right environment variables
-    # to build on AppVeyor.
-    def shell(args, env=None, cwd=None):
-        # print the command executing for the logs
-        print('+ ' + ' '.join(args))
-        args = ['cmd', '/E:ON', '/V:ON', '/C', run_with_env] + args
-        return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
 
 
 def get_nuget_args(version, arch):
@@ -81,7 +67,7 @@ def extract_zip(zip_src, dest):
 def install_cpython(version, arch, nuget):
     nuget_args = get_nuget_args(version, arch)
     installation_path = os.path.join(nuget_args[-1], nuget_args[0] + '.' + version, 'tools')
-    simple_shell([nuget, 'install'] + nuget_args)
+    shell([nuget, 'install'] + nuget_args)
     return installation_path
 
 
@@ -96,8 +82,8 @@ def install_pypy(version, arch, url):
         # Extract to the parent directory because the zip file still contains a directory
         extract_zip(pypy_zip, os.path.dirname(installation_path))
         pypy_exe = 'pypy3.exe' if version[0] == '3' else 'pypy.exe'
-        simple_shell(['mklink', os.path.join(installation_path, 'python.exe'), os.path.join(installation_path, pypy_exe)])
-        simple_shell(['mklink', '/d', os.path.join(installation_path, 'Scripts'), os.path.join(installation_path, 'bin')])
+        shell(['mklink', os.path.join(installation_path, 'python.exe'), os.path.join(installation_path, pypy_exe)])
+        shell(['mklink', '/d', os.path.join(installation_path, 'Scripts'), os.path.join(installation_path, 'bin')])
     return installation_path
 
 
@@ -139,9 +125,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
         env = environment.as_dictionary(prev_environment=env)
 
         # for the logs - check we're running the right version of python
-        simple_shell(['where', 'python'], env=env)
-        simple_shell(['python', '--version'], env=env)
-        simple_shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
+        shell(['where', 'python'], env=env)
+        shell(['python', '--version'], env=env)
+        shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
         where_python = subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0].strip()
         if where_python != os.path.join(installation_path, 'python.exe'):
             print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
@@ -149,7 +135,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
         # make sure pip is installed
         if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
-            simple_shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
+            shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
         assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
         where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
         if where_pip.strip() != os.path.join(installation_path, 'Scripts', 'pip.exe'):
@@ -157,9 +143,9 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
             exit(1)
 
         # prepare the Python environment
-        simple_shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
-        simple_shell(['pip', '--version'], env=env)
-        simple_shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
+        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
+        shell(['pip', '--version'], env=env)
+        shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
 
         # run the before_build command
         if before_build:
