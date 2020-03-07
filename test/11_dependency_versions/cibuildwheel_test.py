@@ -59,7 +59,7 @@ def test_pinned_versions(python_version):
                            if '-cp27' in w]
     else:
         expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                           if '-cp27' not in w]
+                           if '-cp27' not in w and '-pypy' not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -73,7 +73,7 @@ def test_dependency_constraints_file(tmp_path):
     tool_versions = {
         'pip': '19.2.3',
         'setuptools': '43.0.0',
-        'wheel': '0.33.6',
+        'wheel': '0.34.2',
         'virtualenv': '16.7.8',
     }
 
