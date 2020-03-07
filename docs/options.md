@@ -158,7 +158,7 @@ You must set this variable to pass variables to Linux builds (since they execute
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
-To specify more than one environment variable, separate the assignments by spaces. 
+To specify more than one environment variable, separate the assignments by spaces.
 
 Platform-specific variants also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
@@ -194,7 +194,7 @@ If dependencies are required to build your wheel (for example if you include a h
 
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
-On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
@@ -209,6 +209,9 @@ CIBW_BEFORE_BUILD: pip install pybind11
 
 # chain commands using &&
 CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
+
+# run a script that's inside your repo
+CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
 ```
 
 
@@ -229,7 +232,7 @@ The following placeholders must be used inside the command and will be replaced 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel.
 
-On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
@@ -285,7 +288,7 @@ CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
 
 Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
-On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`

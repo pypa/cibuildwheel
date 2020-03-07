@@ -20,8 +20,7 @@ IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 def shell(args, env=None, cwd=None):
     print('+ ' + ' '.join(args))
-    args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
-    return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+    return subprocess.check_call(' '.join(args), env=env, cwd=cwd, shell=True)
 
 
 def get_nuget_args(version, arch):
