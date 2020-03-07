@@ -26,6 +26,14 @@ subprocess.check_call([
     'cibuildwheel/resources/constraints.in',
     '--output-file', 'cibuildwheel/resources/constraints-python27.txt'
 ])
+subprocess.check_call([
+    './env35/bin/pip-compile',
+    '--allow-unsafe',
+    '--generate-hashes',
+    '--upgrade',
+    'cibuildwheel/resources/constraints.in',
+    '--output-file', 'cibuildwheel/resources/constraints-python35.txt'
+])
 
 Image = namedtuple('Image', [
     'manylinux_version',
