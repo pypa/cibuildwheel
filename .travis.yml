@@ -31,10 +31,8 @@ jobs:
       language: shell
       before_install:
        - choco install python3 --version 3.5.4 --no-progress -y
-      install:
-       - C:\\Python35\\python -m pip install -r requirements-dev.txt
-      script:
-       - C:\\Python35\\python ./bin/run_tests.py
+      env:
+        - PYTHON=C:\\Python35\\python
 
     - name: Linux | s390x | Python 3.5
       language: python
