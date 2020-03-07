@@ -85,6 +85,7 @@ for image in images:
         pinned_tag = next(
             tag for tag in tags if tag['images'][0]['digest'] == digest
         )
+        tag_name = pinned_tag['name']
 
     if not config.has_section(image.platform):
         config[image.platform] = {}
