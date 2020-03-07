@@ -14,7 +14,6 @@ os.environ['CUSTOM_COMPILE_COMMAND'] = "bin/update_constraints"
 subprocess.check_call([
     'pip-compile',
     '--allow-unsafe',
-    '--generate-hashes',
     '--upgrade',
     'cibuildwheel/resources/constraints.in',
 ])
@@ -22,7 +21,6 @@ for python_version in ['27', '35', '36']:
     subprocess.check_call([
         f'./env{python_version}/bin/pip-compile',
         '--allow-unsafe',
-        '--generate-hashes',
         '--upgrade',
         'cibuildwheel/resources/constraints.in',
         '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
