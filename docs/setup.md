@@ -49,9 +49,9 @@ Commit this file, enable building of your repo on CircleCI, and push.
 
 CircleCI will store the built wheels for you - you can access them from the project console. Check out the CircleCI [docs](https://circleci.com/docs/2.0/configuration-reference/#section=configuration) for more info on this config file.
 
-# AppVeyor [linux/windows] {: #appveyor}
+# AppVeyor [linux/mac/windows] {: #appveyor}
 
-To build Linux and Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
+To build Linux, Mac, and Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
 
 > appveyor.yml
 

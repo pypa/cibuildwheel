@@ -1,11 +1,21 @@
-image:
-  - Ubuntu
-  - Visual Studio 2015
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      APPVEYOR_JOB_NAME: "python37-x64-ubuntu"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      APPVEYOR_JOB_NAME: "python37-x64-vs2015"
+    - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+      APPVEYOR_JOB_NAME: "python37-x64-macos-mojave"
 
-build_script:
-  - cmd: "C:\\Python37\\python.exe -m pip install -r requirements-dev.txt"
-  - sh: "${HOME}/.localpython3.7.4/bin/python3 -m pip install -r requirements-dev.txt"
-  # the '-u' flag is required so the output is in the correct order.
-  # See https://github.com/joerick/cibuildwheel/pull/24 for more info.
-  - cmd: "C:\\Python37\\python.exe -u ./bin/run_tests.py"
-  - sh: "${HOME}/.localpython3.7.4/bin/python3 ./bin/run_tests.py"
+stack: python 3.7
+
+build: off
+
+init:
+- cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
+
+install: python -m pip install -r requirements-dev.txt
+
+# the '-u' flag is required so the output is in the correct order.
+# See https://github.com/joerick/cibuildwheel/pull/24 for more info.
+test_script: python -u ./bin/run_tests.py

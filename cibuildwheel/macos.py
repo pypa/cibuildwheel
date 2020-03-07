@@ -32,7 +32,7 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.9.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.1/python-3.8.1-macosx10.9.pkg'),
+        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.2/python-3.8.2-macosx10.9.pkg'),
         PythonConfiguration(version='2.7-v7.3.0', identifier='pp27-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-osx64.tar.bz2'),
         PythonConfiguration(version='3.6-v7.3.0', identifier='pp36-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-osx64.tar.bz2'),
     ]
@@ -214,6 +214,7 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
                 os.path.join(venv_dir, 'bin'),
                 virtualenv_env['PATH'],
             ])
+            virtualenv_env["__CIBW_VIRTUALENV_PATH__"] = venv_dir
 
             # check that we are using the Python from the virtual environment
             call(['which', 'python'], env=virtualenv_env)
