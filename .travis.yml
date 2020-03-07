@@ -1,50 +1,54 @@
-language: generic
+language: minimal
 
-matrix:
+jobs:
   include:
-    # Linux Python 3
-    - sudo: required
+    - name: Linux | x86_64 + i686 | Python 3.5
       language: python
       python: 3.5
       services: docker
       env: PYTHON=python
 
-    # Linux Python 3
-    - sudo: required
+    - name: Linux | arm64 | Python 3.5
       language: python
       python: 3.5
       services: docker
       arch: arm64
       env: PYTHON=python
 
-    # Linux Python 3
-    - sudo: required
+    - name: Linux | ppc64le | Python 3.5
       language: python
       python: 3.5
       services: docker
       arch: ppc64le
       env: PYTHON=python
 
-    # Linux Python 3
-    - sudo: required
+    - name: macOS | x86_64 | Python 3.x
+      os: osx
+      env: PYTHON=python3
+
+    - name: Windows | x86_64 | Python 3.5
+      os: windows
+      language: shell
+      before_install:
+       - choco install python3 --version 3.5.4 --no-progress -y
+      env:
+        - PYTHON=C:\\Python35\\python
+
+    - name: Linux | s390x | Python 3.5
       language: python
       python: 3.5
       services: docker
       arch: s390x
       env: PYTHON=python
 
-    # macOS Python 3
-    - os: osx
-      env: PYTHON=python3
-
-    - os: windows
-      language: shell
-      before_install:
-       - choco install python3 --version 3.5.4 --no-progress -y
-      install:
-       - C:\\Python35\\python -m pip install -r requirements-dev.txt
-      script:
-       - C:\\Python35\\python ./bin/run_tests.py
+  allow_failures:
+    # must repeat the s390x job above exactly to match
+    - name: Linux | s390x | Python 3.5
+      language: python
+      python: 3.5
+      services: docker
+      arch: s390x
+      env: PYTHON=python
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 
