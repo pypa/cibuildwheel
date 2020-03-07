@@ -1,16 +1,14 @@
 language: minimal
 
-matrix:
+jobs:
   include:
     - name: Linux | x86_64 + i686 | Python 3.5
-      sudo: required
       language: python
       python: 3.5
       services: docker
       env: PYTHON=python
 
     - name: Linux | arm64 | Python 3.5
-      sudo: required
       language: python
       python: 3.5
       services: docker
@@ -18,7 +16,6 @@ matrix:
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.5
-      sudo: required
       language: python
       python: 3.5
       services: docker
@@ -40,7 +37,6 @@ matrix:
        - C:\\Python35\\python ./bin/run_tests.py
 
     - name: Linux | s390x | Python 3.5
-      sudo: required
       language: python
       python: 3.5
       services: docker
@@ -51,7 +47,6 @@ matrix:
   allow_failures:
     # must repeat the s390x job above exactly to match
     - name: Linux | s390x | Python 3.5
-      sudo: required
       language: python
       python: 3.5
       services: docker
