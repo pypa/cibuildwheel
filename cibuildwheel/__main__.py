@@ -113,6 +113,7 @@ def main():
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform, default='')
 
     if test_extras:
         test_extras = '[{0}]'.format(test_extras)
@@ -154,6 +155,7 @@ def main():
         build_selector=build_selector,
         repair_command=repair_command,
         environment=environment,
+        before_test=before_test
     )
 
     if platform == 'linux':
