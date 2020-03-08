@@ -15,14 +15,14 @@ class TestBeforeTest(TestCase):
         print('sys.version', sys.version)
         assert stored_version == sys.version
 
-    def test_executable(self):
-        # check that the executable also was written
-        executable_file = 'c:\\pythonexecutable.txt' if sys.platform == 'win32' else '/tmp/pythonexecutable.txt'
-        with open(executable_file) as f:
-            stored_executable = f.read()
-        print('stored_executable', stored_executable)
-        print('sys.executable', sys.executable)
+    def test_prefix(self):
+        # check that the prefix also was written
+        prefix_file = 'c:\\pythonprefix.txt' if sys.platform == 'win32' else '/tmp/pythonprefix.txt'
+        with open(prefix_file) as f:
+            stored_prefix = f.read()
+        print('stored_prefix', stored_prefix)
+        print('sys.prefix', sys.prefix)
         #  Works around path-comparison bugs caused by short-paths on Windows e.g.
         #  vssadm~1 instead of vssadministrator
 
-        assert os.stat(stored_executable) == os.stat(sys.executable)
+        assert os.stat(stored_prefix) == os.stat(sys.prefix)
