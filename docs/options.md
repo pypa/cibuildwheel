@@ -362,7 +362,7 @@ Platform-specific variants also available:<br/>
 CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
 
 # chain commands using &&
-CIBW_BEFORE_TEST : rm -rf ./data/cache && mkdir -p ./data/cache
+CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
 
 # install non pip python package 
 CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
