@@ -349,10 +349,9 @@ CIBW_TEST_EXTRAS: test,qt
 A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install a non pip package, change values of environment variables
 or perform multi step pip installation (e.g. installing `scikit-build` or `cython` before install test package)
 
-
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
-On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
