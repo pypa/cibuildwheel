@@ -125,6 +125,7 @@ Here are some repos that use cibuildwheel.
 - [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
 - [Twisted](https://github.com/twisted/twisted)
+- [gmic-py](https://github.com/dtschump/gmic-py)
 
 > Add your repo here! Send a PR.
 
