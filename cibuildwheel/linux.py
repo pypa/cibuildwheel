@@ -175,8 +175,8 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
 
                                 echo "Running tests using `which python`"
 
-                                if [ ! -z {before_build} ]; then
-                                    sh -c {before_build}
+                                if [ ! -z {before_test} ]; then
+                                    sh -c {before_test}
                                 fi
 
                                 # Install the wheel we just built
