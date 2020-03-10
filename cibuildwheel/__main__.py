@@ -115,6 +115,7 @@ def main():
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform, default='')
 
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
@@ -164,6 +165,7 @@ def main():
         build_selector=build_selector,
         repair_command=repair_command,
         environment=environment,
+        before_test=before_test,
         dependency_constraints=dependency_constraints,
     )
 

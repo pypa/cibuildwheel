@@ -34,7 +34,8 @@ jobs:
       env:
         - PYTHON=C:\\Python35\\python
 
-    - name: Linux | s390x | Python 3.5
+    - &linux_s390x_35
+      name: Linux | s390x | Python 3.5
       language: python
       python: 3.5
       services: docker
@@ -43,12 +44,7 @@ jobs:
 
   allow_failures:
     # must repeat the s390x job above exactly to match
-    - name: Linux | s390x | Python 3.5
-      language: python
-      python: 3.5
-      services: docker
-      arch: s390x
-      env: PYTHON=python
+    - *linux_s390x_35
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 

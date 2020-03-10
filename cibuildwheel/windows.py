@@ -21,8 +21,7 @@ IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 def shell(args, env=None, cwd=None):
     print('+ ' + ' '.join(args))
-    args = ['cmd', '/E:ON', '/V:ON', '/C'] + args
-    return subprocess.check_call(' '.join(args), env=env, cwd=cwd)
+    return subprocess.check_call(' '.join(args), env=env, cwd=cwd, shell=True)
 
 
 def get_nuget_args(version, arch):
@@ -88,7 +87,7 @@ def install_pypy(version, arch, url):
     return installation_path
 
 
-def build(project_dir, output_dir, test_command, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
+def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
@@ -200,6 +199,10 @@ def build(project_dir, output_dir, test_command, test_requires, test_extras, bef
 
             # check that we are using the Python from the virtual environment
             shell(['which', 'python'], env=virtualenv_env)
+
+            if before_test:
+                before_test_prepared = prepare_command(before_test, project=abs_project_dir)
+                shell([before_test_prepared], env=virtualenv_env)
 
             # install the wheel
             shell(['pip', 'install', repaired_wheel + test_extras], env=virtualenv_env)

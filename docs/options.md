@@ -194,7 +194,7 @@ If dependencies are required to build your wheel (for example if you include a h
 
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
-On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
@@ -209,6 +209,9 @@ CIBW_BEFORE_BUILD: pip install pybind11
 
 # chain commands using &&
 CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
+
+# run a script that's inside your repo
+CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
 ```
 
 
@@ -229,7 +232,7 @@ The following placeholders must be used inside the command and will be replaced 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel.
 
-On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
@@ -340,7 +343,7 @@ CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
 
 Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
 
-On Linux and macOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
@@ -395,6 +398,33 @@ Platform-specific variants also available:<br/>
 CIBW_TEST_EXTRAS: test,qt
 ```
 
+### `CIBW_BEFORE_TEST` {: #before-test}
+> Execute a shell command before testing each wheel
+
+A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install a non pip package, change values of environment variables
+or perform multi step pip installation (e.g. installing `scikit-build` or `cython` before install test package)
+
+The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
+
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+Platform-specific variants also available:<br/>
+ `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
+
+#### Examples
+```yaml
+# install test dependencies with overwritten environment variables. 
+CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
+
+# chain commands using &&
+CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
+
+# install non pip python package 
+CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
+
+# install python packages that are required to install test dependencies
+CIBW_BEFORE_TEST: pip install cmake scikit-build
+```
 
 ## Other
 

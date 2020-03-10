@@ -18,14 +18,15 @@ What does it do?
 |   | macOS x86_64 | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
 |---|---|---|---|---|---|---|---|---|
 | CPython 2.7     | ✅ | ✅¹ | ✅¹ | ✅ | ✅ |     |     |     |
-| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
-| CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
-| CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
-| CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅  |
+| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
+| CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
+| CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
+| CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
 | PyPy 2.7 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
 | PyPy 3.6 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
 
-<sup>¹ Not supported on Travis</sup>
+<sup>¹ Not supported on Travis</sup><br>
+<sup>² Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup>
 
 - Builds manylinux, macOS and Windows wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -75,7 +76,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.1.0
+  - python3 -m pip install cibuildwheel==1.2.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -104,6 +105,7 @@ Options
 |   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each (non-pure Python) built wheel |
 |   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  [`CIBW_MANYLINUX_PYPY_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
 | **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
+|   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-test)  | Execute shell command to prepare test environment |
 |   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
 |   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
 | **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-verbosity)  | Increase/decrease the output of pip wheel |
@@ -123,6 +125,7 @@ Here are some repos that use cibuildwheel.
 - [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
 - [Twisted](https://github.com/twisted/twisted)
+- [gmic-py](https://github.com/dtschump/gmic-py)
 
 > Add your repo here! Send a PR.
 
@@ -137,6 +140,29 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.2.0
+
+_8 March 2020_
+
+- ✨ Add support for building PyPy wheels, across Manylinux, macOS, and
+  Windows. (#185)
+- ✨ Added the ability to build ARM64 (aarch64), ppc64le, and s390x wheels,
+  using manylinux2014 and Travis CI. (#273)
+- ✨ You can now build macOS wheels on Appveyor. (#230)
+- 🛠 Changed default macOS minimum target to 10.9, from 10.6. This allows the
+  use of more modern C++ libraries, among other things. (#156)
+- 🛠 Stop building universal binaries on macOS. We now only build x86_64
+  wheels on macOS. (#220)
+- ✨ Allow chaining of commands using `&&` and `||` on Windows inside
+  CIBW_BEFORE_BUILD and CIBW_TEST_COMMAND. (#293)
+- 🛠 Improved error reporting for failed Cython builds due to stale .so files
+  (#263)
+- 🛠 Update CPython from 3.7.5 to 3.7.6 and from 3.8.0 to 3.8.2 on Mac/Windows
+- 🛠 Improved error messages when a bad config breaks cibuildwheel's PATH
+  variable. (#264)
+- ⚠️ Removed support for *running* cibuildwheel on Python 2.7. cibuildwheel
+  will continue to build Python 2.7 wheels for a little while. (#265)
 
 ### 1.1.0
 
