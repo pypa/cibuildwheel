@@ -17,7 +17,7 @@ scandir==1.10.0           # via pathlib2
 singledispatch==3.4.0.3   # via importlib-resources
 six==1.14.0               # via pathlib2, virtualenv
 typing==3.7.4.1           # via importlib-resources
-virtualenv==20.0.8        # via -r cibuildwheel/resources/constraints.in
+virtualenv==20.0.10       # via -r cibuildwheel/resources/constraints.in
 wheel==0.34.2             # via -r cibuildwheel/resources/constraints.in, delocate
 zipp==1.2.0               # via importlib-metadata, importlib-resources
 
