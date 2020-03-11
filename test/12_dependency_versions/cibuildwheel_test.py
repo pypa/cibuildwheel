@@ -71,7 +71,7 @@ def test_dependency_constraints_file(tmp_path):
     project_dir = os.path.dirname(__file__)
 
     tool_versions = {
-        'pip': '19.2.3',
+        'pip': '20.0.2',
         'setuptools': '44.0.0',
         'wheel': '0.34.2',
         'virtualenv': '16.7.8',
