@@ -72,7 +72,7 @@ def test_dependency_constraints_file(tmp_path):
 
     tool_versions = {
         'pip': '19.2.3',
-        'setuptools': '43.0.0',
+        'setuptools': '44.0.0',
         'wheel': '0.34.2',
         'virtualenv': '16.7.8',
     }
