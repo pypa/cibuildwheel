@@ -71,10 +71,10 @@ def test_dependency_constraints_file(tmp_path, python_version):
     project_dir = os.path.dirname(__file__)
 
     tool_versions = {
-        'pip': '20.0.1',
+        'pip': '20.0.2',
         'setuptools': '44.0.0' if python_version == '2.7' else '46.0.0',
         'wheel': '0.34.2',
-        'virtualenv': '16.7.8',
+        'virtualenv': '20.0.10',
     }
 
     constraints_file = tmp_path / 'constraints.txt'
