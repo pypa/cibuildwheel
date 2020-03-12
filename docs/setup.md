@@ -2,9 +2,22 @@
 title: 'Setup'
 ---
 
+# GitHub Actions [linux/mac/windows] {: #github-actions}
+
+To build Linux, Mac, and Windows wheels using Github Actions, create a `.github/workflows/build.yml` file in your repo.
+
+> build.yml
+```yaml
+{% include "../examples/github-minimal.yml" %}
+```
+
+Commit this file, and push to Github - either to your default branch, or to a PR branch. The build should start automatically.
+
+For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
+
 # Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
 
-Using Azure pipelines, you can build all three platforms on the same service. Create a `azure-pipelines.yml` file in your repo.
+To build Linux, Mac, and Windows wheels on Azure Pipelines, create a `azure-pipelines.yml` file in your repo.
 
 > azure-pipelines.yml
 ```yaml
@@ -64,19 +77,6 @@ Commit this file, enable building of your repo on AppVeyor, and push.
 AppVeyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [AppVeyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](deliver-to-pypi.md) below.
 
 For more info on this config file, check out the [docs](https://www.appveyor.com/docs/).
-
-# GitHub Actions [linux/mac/windows] {: #github-actions}
-
-Using GitHub Actions, you can build all three platforms on the same service. Create a `./github/workflows/build.yml` file in your repo.
-
-> build.yml
-```yaml
-{% include "../examples/github-minimal.yml" %}
-```
-
-Commit this file, enable building of your repo on GitHub Actions, and push.
-
-For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
 
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
