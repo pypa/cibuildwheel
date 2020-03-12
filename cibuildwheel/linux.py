@@ -105,7 +105,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
                             os.path.abspath(project_dir) + '/.',
                             container_name + ':/project'], check=True)
 
-            subprocess.run(['docker', 'start', container_name])
+            subprocess.run(['docker', 'start', container_name], check=True)
 
             for config in platform_configs:
                 if dependency_constraints:
@@ -241,6 +241,8 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             subprocess.run(['docker', 'cp',
                             container_name + ':/output/.',
                             os.path.abspath(output_dir)], check=True)
+
+            subprocess.run(['docker', 'stop', container_name], check=True)
         except subprocess.CalledProcessError:
             exit(1)
         finally:
