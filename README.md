@@ -77,7 +77,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.2.0
+  - python3 -m pip install cibuildwheel==1.3.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -141,6 +141,16 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.3.0
+
+_12 March 2020_
+
+- ✨ Add support for building on Github Actions! Check out the
+  [docs](https://cibuildwheel.readthedocs.io/en/stable/setup/#github-actions)
+  for information on how to set it up. (#194)
+- ✨ Add the `CIBW_BEFORE_TEST` option, which lets you run a command to
+  prepare the environment before your tests are run. (#242)
 
 ### 1.2.0
 
