@@ -65,6 +65,19 @@ AppVeyor will store the built wheels for you - you can access them from the proj
 
 For more info on this config file, check out the [docs](https://www.appveyor.com/docs/).
 
+# GitHub Actions [linux/mac/windows] {: #github-actions}
+
+Using GitHub Actions, you can build all three platforms on the same service. Create a `./github/workflows/build.yml` file in your repo.
+
+> build.yml
+```yaml
+{% include "../examples/github-minimal.yml" %}
+```
+
+Commit this file, enable building of your repo on GitHub Actions, and push.
+
+For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
+
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
 <script>

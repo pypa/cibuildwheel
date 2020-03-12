@@ -9,7 +9,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, GitHub Actions and CircleCI - and it builds and tests your wheels across all of your platforms.
 
 
 What does it do?
@@ -35,13 +35,14 @@ What does it do?
 Usage
 -----
 
-`cibuildwheel` currently works on **Travis CI**, **Azure Pipelines** and **AppVeyor** to build wheels for all three supported platforms (Linux, macOS, Windows). On **CircleCI** Linux and macOS wheels can be built.
+`cibuildwheel` currently works on **Travis CI**, **Azure Pipelines**, **AppVeyor** and **GitHub Actions** to build wheels for all three supported platforms (Linux, macOS, Windows). On **CircleCI** Linux and macOS wheels can be built.
 
 |                 | Linux | macOS | Windows |
 |-----------------|-------|-------|---------|
 | Azure Pipelines | ✅    | ✅    | ✅      |
 | Travis CI       | ✅    | ✅    | ✅      |
 | AppVeyor        | ✅    | ✅    | ✅      |
+| GitHub Actions  | ✅    | ✅    | ✅      |
 | CircleCI        | ✅    | ✅    |         |
 
 `cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like Travis CI, CircleCI, Azure Pipelines and AppVeyor are ideal.

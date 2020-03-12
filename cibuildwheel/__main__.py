@@ -77,12 +77,12 @@ def main():
     if args.platform != 'auto':
         platform = args.platform
     else:
-        ci = strtobool(os.environ.get('CI', 'false')) or 'BITRISE_BUILD_NUMBER' in os.environ or 'AZURE_HTTP_USER_AGENT' in os.environ
+        ci = strtobool(os.environ.get('CI', 'false')) or 'BITRISE_BUILD_NUMBER' in os.environ or 'AZURE_HTTP_USER_AGENT' in os.environ or 'GITHUB_WORKFLOW' in os.environ
         if not ci:
             print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
-                  'Travis CI, AppVeyor, Azure Pipelines and CircleCI are supported. You can run on your '
-                  'development machine or other CI providers using the --platform argument. Check --help '
-                  'output for more information.',
+                  'Travis CI, AppVeyor, Azure Pipelines, GitHub Actions and CircleCI are supported. You '
+                  'can run on your development machine or other CI providers using the --platform argument. '
+                  'Check --help output for more information.',
                   file=sys.stderr)
             exit(2)
         if sys.platform.startswith('linux'):
