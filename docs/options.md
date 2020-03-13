@@ -358,13 +358,13 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 ```yaml
-# install test dependencies with overwritten environment variables. 
+# install test dependencies with overwritten environment variables.
 CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
 
 # chain commands using &&
 CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
 
-# install non pip python package 
+# install non pip python package
 CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
 
 # install python packages that are required to install test dependencies
@@ -399,8 +399,8 @@ usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
 Build wheels for all the platforms.
 
 positional arguments:
-  project_dir           Path to the project that you want wheels for.
-                        Default: the current directory.
+  package_dir           Path to the package that you want wheels for. Default:
+                        the current directory.
 
 optional arguments:
   -h, --help            show this help message and exit
