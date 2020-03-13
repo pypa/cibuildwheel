@@ -60,10 +60,10 @@ def main():
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
-    parser.add_argument('project_dir',
+    parser.add_argument('package_dir',
                         default='.',
                         nargs='?',
-                        help=('Path to the project that you want wheels for. Default: the current '
+                        help=('Path to the package that you want wheels for. Default: the current '
                               'directory.'))
 
     parser.add_argument('--print-build-identifiers',
@@ -101,7 +101,7 @@ def main():
     test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
-    project_dir = args.project_dir
+    package_dir = args.package_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
@@ -136,8 +136,8 @@ def main():
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    if not os.path.exists(os.path.join(project_dir, 'setup.py')):
-        print('cibuildwheel: Could not find setup.py at root of project', file=sys.stderr)
+    if not os.path.exists(os.path.join(package_dir, 'setup.py')):
+        print('cibuildwheel: Could not find setup.py at root of package', file=sys.stderr)
         exit(2)
 
     if args.print_build_identifiers:
@@ -145,7 +145,8 @@ def main():
         exit(0)
 
     build_options = dict(
-        project_dir=project_dir,
+        project_dir='.',
+        package_dir=package_dir,
         output_dir=output_dir,
         test_command=test_command,
         test_requires=test_requires,

@@ -88,6 +88,12 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
         ('pp', 'manylinux_x86_64', manylinux_images['pypy_x86_64']),
     ]
 
+    abs_project_dir = os.path.abspath(project_dir)
+    abs_package_dir = os.path.abspath(package_dir)
+
+    container_project_dir = '/project'
+    container_package_dir = os.path.join(container_project_dir, os.path.relpath(abs_package_dir, os.path.commonprefix([abs_project_dir, abs_package_dir]))),
+
     for implementation, platform_tag, docker_image in platforms:
         platform_configs = [c for c in python_configurations if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)]
         if not platform_configs:
@@ -122,7 +128,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
                 # Build the wheel
                 rm -rf /tmp/built_wheel
                 mkdir /tmp/built_wheel
-                pip wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
+                pip wheel {package_dir} -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                 built_wheel=(/tmp/built_wheel/*.whl)
 
                 # repair the wheel
@@ -191,13 +197,14 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             ) done
         '''.format(
             pybin_paths=' '.join(c.path + '/bin' for c in platform_configs),
+            package_dir=container_package_dir,
             test_requires=' '.join(test_requires),
             test_extras=test_extras,
             test_command=shlex.quote(
-                prepare_command(test_command, project='/project') if test_command else ''
+                prepare_command(test_command, project=container_project_dir, package=container_package_dir) if test_command else ''
             ),
             before_build=shlex.quote(
-                prepare_command(before_build, project='/project') if before_build else ''
+                prepare_command(before_build, project=container_project_dir, package=container_package_dir) if before_build else ''
             ),
             build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(build_verbosity)),
             repair_command=shlex.quote(
@@ -207,7 +214,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             uid=os.getuid(),
             gid=os.getgid(),
             before_test=shlex.quote(
-                prepare_command(before_test, project='/project') if before_test else ''
+                prepare_command(before_test, project=container_project_dir, package=container_package_dir) if before_test else ''
             ),
         )
 
