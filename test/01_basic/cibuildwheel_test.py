@@ -1,9 +1,23 @@
 import os
 import platform
 
+import pytest
+
 import utils
 
 project_dir = os.path.dirname(__file__)
+
+
+@pytest.mark.parametrize("build_prefix", ["cp27", "cp35", "cp36", "cp37", "cp38", "pp27", "pp36"])
+def test_single(build_prefix):
+    """To force installation all python for test"""
+    project_dir = os.path.dirname(__file__)
+    # build the wheels
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
+        'CIBW_BUILD': build_prefix + "*",
+    })
+    expected_wheels = [x for x in utils.expected_wheels('spam', '0.1.0') if build_prefix in x]
+    assert set(actual_wheels) == set(expected_wheels)
 
 
 def test():
