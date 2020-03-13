@@ -110,9 +110,16 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             for config in platform_configs:
                 if dependency_constraints:
                     constraints_file = dependency_constraints.get_for_python_version(config.version)
-                    subprocess.run(['docker', 'cp',
-                                    os.path.abspath(constraints_file),
-                                    container_name + ':/constraints.txt'], check=True)
+
+                    # `docker cp` causes 'no space left on device' error when
+                    # a container is running and the host filesystem is
+                    # mounted. https://github.com/moby/moby/issues/38995
+                    # Use `docker exec` instead.
+                    with open(constraints_file, 'rb') as f:
+                        subprocess.run(
+                            ['docker', 'exec', container_name, 'sh', '-c', 'cat > /constraints.txt'],
+                            input=f.read(),
+                        )
 
                 subprocess.run(
                     ['docker', 'exec', '-i', container_name, '/bin/bash'],
