@@ -100,7 +100,9 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
                             '--name', container_name,
                             '-i',
                             '-v', '/:/host',  # ignored on CircleCI
-                            docker_image], check=True)
+                            docker_image,
+                            '/bin/bash'], check=True)
+
             subprocess.run(['docker', 'cp',
                             os.path.abspath(project_dir) + '/.',
                             container_name + ':/project'], check=True)
