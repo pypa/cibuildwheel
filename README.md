@@ -9,7 +9,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, GitHub Actions and CircleCI - and it builds and tests your wheels across all of your platforms.
 
 
 What does it do?
@@ -35,13 +35,14 @@ What does it do?
 Usage
 -----
 
-`cibuildwheel` currently works on **Travis CI**, **Azure Pipelines** and **AppVeyor** to build wheels for all three supported platforms (Linux, macOS, Windows). On **CircleCI** Linux and macOS wheels can be built.
+`cibuildwheel` currently works on **Travis CI**, **Azure Pipelines**, **AppVeyor** and **GitHub Actions** to build wheels for all three supported platforms (Linux, macOS, Windows). On **CircleCI** Linux and macOS wheels can be built.
 
 |                 | Linux | macOS | Windows |
 |-----------------|-------|-------|---------|
 | Azure Pipelines | ✅    | ✅    | ✅      |
 | Travis CI       | ✅    | ✅    | ✅      |
 | AppVeyor        | ✅    | ✅    | ✅      |
+| GitHub Actions  | ✅    | ✅    | ✅      |
 | CircleCI        | ✅    | ✅    |         |
 
 `cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like Travis CI, CircleCI, Azure Pipelines and AppVeyor are ideal.
@@ -76,7 +77,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.2.0
+  - python3 -m pip install cibuildwheel==1.3.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -140,6 +141,16 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.3.0
+
+_12 March 2020_
+
+- ✨ Add support for building on Github Actions! Check out the
+  [docs](https://cibuildwheel.readthedocs.io/en/stable/setup/#github-actions)
+  for information on how to set it up. (#194)
+- ✨ Add the `CIBW_BEFORE_TEST` option, which lets you run a command to
+  prepare the environment before your tests are run. (#242)
 
 ### 1.2.0
 
