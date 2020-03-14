@@ -9,7 +9,7 @@ import sys
 def single_run(test_project):
     # run the test
     subprocess.check_call(
-        [sys.executable, '-m', 'pytest', '-vv', os.path.join(test_project, 'cibuildwheel_test.py')],
+        [sys.executable, '-m', 'pytest', '-vvs', os.path.join(test_project, 'cibuildwheel_test.py')],
     )
 
 
