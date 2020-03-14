@@ -126,7 +126,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
                     # Use `docker exec` instead.
                     with open(constraints_file, 'rb') as f:
                         call(
-                            ['docker', 'exec', container_name, 'sh', '-c', 'cat > /constraints.txt'],
+                            ['docker', 'exec', '-i', container_name, 'sh', '-c', 'cat > /constraints.txt'],
                             input=f.read(),
                         )
 
