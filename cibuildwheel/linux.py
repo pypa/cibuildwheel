@@ -13,6 +13,13 @@ from .util import (
 )
 
 
+def call(args, input=None, universal_newlines=False):
+    print('+ ' + ' '.join(shlex.quote(a) for a in args))
+    subprocess.run(
+        args, input=input, universal_newlines=universal_newlines, check=True
+    )
+
+
 def matches_platform(identifier):
     pm = platform.machine()
     if pm == "x86_64":
@@ -95,19 +102,19 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
 
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
         try:
-            subprocess.run(['docker', 'create',
-                            '--env', 'CIBUILDWHEEL',
-                            '--name', container_name,
-                            '-i',
-                            '-v', '/:/host',  # ignored on CircleCI
-                            docker_image,
-                            '/bin/bash'], check=True)
+            call(['docker', 'create',
+                  '--env', 'CIBUILDWHEEL',
+                  '--name', container_name,
+                  '-i',
+                  '-v', '/:/host',  # ignored on CircleCI
+                  docker_image,
+                  '/bin/bash'])
 
-            subprocess.run(['docker', 'cp',
-                            os.path.abspath(project_dir) + '/.',
-                            container_name + ':/project'], check=True)
+            call(['docker', 'cp',
+                  os.path.abspath(project_dir) + '/.',
+                  container_name + ':/project'])
 
-            subprocess.run(['docker', 'start', container_name], check=True)
+            call(['docker', 'start', container_name])
 
             for config in platform_configs:
                 if dependency_constraints:
@@ -118,16 +125,18 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
                     # mounted. https://github.com/moby/moby/issues/38995
                     # Use `docker exec` instead.
                     with open(constraints_file, 'rb') as f:
-                        subprocess.run(
+                        call(
                             ['docker', 'exec', container_name, 'sh', '-c', 'cat > /constraints.txt'],
                             input=f.read(),
                         )
 
-                subprocess.run(
+                call(
                     ['docker', 'exec', '-i', container_name, '/bin/bash'],
                     universal_newlines=True,
-                    check=True,
                     input='''
+                        # give xtrace output an extra level of indent inside docker
+                        PS4='    + '
+
                         set -o errexit
                         set -o xtrace
                         mkdir -p /output
@@ -247,18 +256,18 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
                 )
 
             # copy the output back into the host
-            subprocess.run(['docker', 'cp',
-                            container_name + ':/output/.',
-                            os.path.abspath(output_dir)], check=True)
+            call(['docker', 'cp',
+                  container_name + ':/output/.',
+                  os.path.abspath(output_dir)])
         except subprocess.CalledProcessError:
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
-            subprocess.run(['docker', 'rm', '--force', '-v', container_name], check=True)
+            call(['docker', 'rm', '--force', '-v', container_name])
 
 
 def troubleshoot(project_dir, error):
-    if (isinstance(error, subprocess.CalledProcessError) and 'start' in error.cmd):
+    if (isinstance(error, subprocess.CalledProcessError) and 'exec' in error.cmd):
         # the bash script failed
         print('Checking for common errors...')
         so_files = []
