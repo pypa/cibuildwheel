@@ -10,7 +10,9 @@ import requests
 os.chdir(os.path.dirname(__file__))
 os.chdir('..')
 
-os.environ['CUSTOM_COMPILE_COMMAND'] = "bin/update_constraints"
+# CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+# regenerate the constraints files
+os.environ['CUSTOM_COMPILE_COMMAND'] = "bin/update_constraints.py"
 subprocess.check_call([
     'pip-compile',
     '--allow-unsafe',
