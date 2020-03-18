@@ -28,13 +28,15 @@ def call(args, env=None, cwd=None, shell=False):
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
+        # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.9.pkg'),
         PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.2/python-3.8.2-macosx10.9.pkg'),
-        PythonConfiguration(version='2.7-v7.3.0', identifier='pp27-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-osx64.tar.bz2'),
-        PythonConfiguration(version='3.6-v7.3.0', identifier='pp36-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-osx64.tar.bz2'),
+        # PyPy
+        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-osx64.tar.bz2'),
+        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-osx64.tar.bz2'),
     ]
 
     # skip builds as required
@@ -93,7 +95,7 @@ def install_pypy(version, url):
         call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
 
         # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
-        if version.endswith("-v7.3.0") and version[0] == '3':
+        if "-v7.3.0-" in url and version[0] == '3':
             patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
             sysconfigdata_file = os.path.join(installation_path, 'lib_pypy', '_sysconfigdata.py')
             call(['patch', sysconfigdata_file, patch_file, '-N'])  # Always has nonzero return code
@@ -148,9 +150,8 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
 
         dependency_constraint_flags = []
         if dependency_constraints:
-            python_version, _, _ = config.version.partition('-')
             dependency_constraint_flags = [
-                '-c', dependency_constraints.get_for_python_version(python_version)
+                '-c', dependency_constraints.get_for_python_version(config.version)
             ]
 
         # install pip & wheel
