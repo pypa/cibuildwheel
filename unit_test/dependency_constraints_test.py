@@ -17,6 +17,14 @@ def test_defaults():
         os.path.join(resources_dir, 'constraints.txt')
     )
     assert os.path.samefile(
+        dependency_constraints.get_for_python_version('3.6'),
+        os.path.join(resources_dir, 'constraints-python36.txt')
+    )
+    assert os.path.samefile(
+        dependency_constraints.get_for_python_version('3.5'),
+        os.path.join(resources_dir, 'constraints-python35.txt')
+    )
+    assert os.path.samefile(
         dependency_constraints.get_for_python_version('2.7'),
         os.path.join(resources_dir, 'constraints-python27.txt')
     )
