@@ -294,9 +294,9 @@ Options: `pinned` `latest` `<your constraints file>`
 Default: `pinned`
 
 If `CIBW_DEPENDENCY_VERSIONS` is `pinned`, cibuildwheel uses versions of tools
-like `pip`, `setuptools`, `virtualenv` that shipped with that release. This
-represents a known-good set of dependencies, and is recommended for build
-repeatability.
+like `pip`, `setuptools`, `virtualenv` that were pinned with that release of
+cibuildwheel. This represents a known-good set of dependencies, and is
+recommended for build repeatability.
 
 If set to `latest`, cibuildwheel will use the latest of these packages that
 are available on PyPI. This might be preferable if these packages have bug
@@ -413,13 +413,13 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 ```yaml
-# install test dependencies with overwritten environment variables. 
+# install test dependencies with overwritten environment variables.
 CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
 
 # chain commands using &&
 CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
 
-# install non pip python package 
+# install non pip python package
 CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
 
 # install python packages that are required to install test dependencies
