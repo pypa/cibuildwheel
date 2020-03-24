@@ -140,7 +140,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
 
         # make sure pip is installed
         if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
-            shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
+            shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
         assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
         where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
         if where_pip.strip() != os.path.join(installation_path, 'Scripts', 'pip.exe'):
