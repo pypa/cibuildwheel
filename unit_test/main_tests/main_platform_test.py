@@ -4,7 +4,7 @@ import pytest
 
 from cibuildwheel.__main__ import main
 
-from conftest import MOCK_PROJECT_DIR  # noqa: I100
+from conftest import MOCK_PACKAGE_DIR  # noqa: I100
 
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):
@@ -51,10 +51,10 @@ def test_platform_argument(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    assert intercepted_build_args.kwargs['project_dir'] == MOCK_PROJECT_DIR
+    assert intercepted_build_args.kwargs['package_dir'] == MOCK_PACKAGE_DIR
 
 
 def test_platform_environment(platform, intercepted_build_args, monkeypatch):
     main()
 
-    assert intercepted_build_args.kwargs['project_dir'] == MOCK_PROJECT_DIR
+    assert intercepted_build_args.kwargs['package_dir'] == MOCK_PACKAGE_DIR
