@@ -21,7 +21,7 @@ def get_versions_from_constraint_file(constraint_file):
     return versions
 
 
-@pytest.mark.parametrize('python_version', ['2.7', '3.x'])
+@pytest.mark.parametrize('python_version', ['2.7', '3.5', '3.8'])
 def test_pinned_versions(python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
@@ -32,8 +32,13 @@ def test_pinned_versions(python_version):
 
     if python_version == '2.7':
         constraint_filename = 'constraints-python27.txt'
+        build_pattern = '[cp]p27-*'
+    elif python_version == '3.5':
+        constraint_filename = 'constraints-python35.txt'
+        build_pattern = '[cp]p35-*'
     else:
         constraint_filename = 'constraints.txt'
+        build_pattern = '[cp]p38-*'
 
     constraint_file = os.path.join(cibuildwheel.util.resources_dir, constraint_filename)
     constraint_versions = get_versions_from_constraint_file(constraint_file)
@@ -48,7 +53,7 @@ def test_pinned_versions(python_version):
 
     # build and test the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
-        'CIBW_BUILD': '[cp]p27-*' if python_version == '2.7' else '[cp]p3?-*',
+        'CIBW_BUILD': build_pattern,
         'CIBW_ENVIRONMENT': cibw_environment_option,
     })
 
@@ -56,9 +61,14 @@ def test_pinned_versions(python_version):
     if python_version == '2.7':
         expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                            if '-cp27' in w or '-pp27' in w]
-    else:
+    elif python_version == '3.5':
         expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                           if '-cp27' not in w and '-pp27' not in w]
+                           if '-cp35' in w or '-pp35' in w]
+    elif python_version == '3.8':
+        expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+                           if '-cp38' in w or '-pp38' in w]
+    else:
+        raise ValueError('unhandled python version')
 
     assert set(actual_wheels) == set(expected_wheels)
 
