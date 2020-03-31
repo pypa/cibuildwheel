@@ -42,6 +42,13 @@ variables:
   CIBW_TEST_COMMAND: "nosetests {project}/tests"
 ```
 
+> .github/workflows/*.yml ([docs](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables)) (can be global, in job, or in step)
+```yaml
+env:
+  CIBW_TEST_REQUIRES: nose
+  CIBW_TEST_COMMAND: "nosetests {project}/tests"
+```
+
 
 ## Build selection
 
