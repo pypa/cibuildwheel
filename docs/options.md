@@ -14,16 +14,16 @@ your CI config file:
 ```yaml
 env:
   global:
-    - CIBW_TEST_REQUIRES=nose
-    - CIBW_TEST_COMMAND="nosetests {project}/tests"
+    - CIBW_TEST_REQUIRES=pytest
+    - CIBW_TEST_COMMAND="pytest {project}/tests"
 ```
 
 > appveyor.yml ([docs](https://www.appveyor.com/docs/build-configuration/#environment-variables))
 ```yaml
 environment:
   global:
-    CIBW_TEST_REQUIRES: nose
-    CIBW_TEST_COMMAND: "nosetests {project}\\tests"
+    CIBW_TEST_REQUIRES: pytest
+    CIBW_TEST_COMMAND: "pytest {project}\\tests"
 ```
 
 > .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
@@ -31,15 +31,22 @@ environment:
 jobs:
   job_name:
     environment:
-      CIBW_TEST_REQUIRES: nose
-      CIBW_TEST_COMMAND: "nosetests {project}/tests"
+      CIBW_TEST_REQUIRES: pytest
+      CIBW_TEST_COMMAND: "pytest {project}/tests"
 ```
 
 > azure-pipelines.yml ([docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables))
 ```yaml
 variables:
-  CIBW_TEST_REQUIRES: nose
-  CIBW_TEST_COMMAND: "nosetests {project}/tests"
+  CIBW_TEST_REQUIRES: pytest
+  CIBW_TEST_COMMAND: "pytest {project}/tests"
+```
+
+> .github/workflows/*.yml ([docs](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables)) (can be global, in job, or in step)
+```yaml
+env:
+  CIBW_TEST_REQUIRES: pytest
+  CIBW_TEST_COMMAND: "pytest {project}/tests"
 ```
 
 
@@ -300,7 +307,7 @@ Platform-specific variants also available:<br/>
 CIBW_TEST_COMMAND: nosetests {project}/tests
 
 # run the project tests using `pytest`
-CIBW_TEST_COMMAND: nosetests {project}/tests
+CIBW_TEST_COMMAND: pytest {project}/tests
 ```
 
 
