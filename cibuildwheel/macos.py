@@ -14,7 +14,6 @@ from .util import (
     BuildSelector,
     download,
     get_build_verbosity_extra_flags,
-    get_pip_script,
     prepare_command,
 )
 
@@ -144,7 +143,8 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
         exit(1)
 
     # install pip & wheel
-    call(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="/tmp")
+    call(['python', '-m', 'ensurepip'])
+    call(['python', '-m', 'pip', 'install', '--upgrade', '--force-reinstall', 'pip'] + dependency_constraint_flags, env=env)  # Make sure the `pip` script gets installed and not just `pip3` and `pip3.X`
     assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
     call(['which', 'pip'], env=env)
     call(['pip', '--version'], env=env)

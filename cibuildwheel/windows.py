@@ -14,7 +14,6 @@ from .util import (
     BuildSelector,
     download,
     get_build_verbosity_extra_flags,
-    get_pip_script,
     prepare_command,
 )
 
@@ -136,16 +135,17 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
 
     # make sure pip is installed
     if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
-        shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
+        shell(['python', '-m', 'ensurepip', '--default-pip'], env=env)
+        shell(['python', '-m', 'pip', 'install', '--upgrade', '--force-reinstall', 'pip'] + dependency_constraint_flags, env=env)  # Make sure the `pip` script gets installed and not just `pip3` and `pip3.X`
     assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
+    shell(['where', 'pip'], env=env)
+    shell(['pip', '--version'], env=env)
     where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
     if where_pip.strip() != os.path.join(installation_path, 'Scripts', 'pip.exe'):
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
         exit(1)
 
     # prepare the Python environment
-    shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'] + dependency_constraint_flags, env=env)
-    shell(['pip', '--version'], env=env)
     shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
 
     return env

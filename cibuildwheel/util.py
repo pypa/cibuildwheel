@@ -124,4 +124,3 @@ class BuildOptions(NamedTuple):
 
 
 resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
-get_pip_script = os.path.join(resources_dir, 'get-pip.py')
