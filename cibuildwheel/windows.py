@@ -89,6 +89,64 @@ def install_pypy(version, arch, url):
     return installation_path
 
 
+def setup_python(python_configuration, dependency_constraints, environment):
+    nuget = 'C:\\cibw\\nuget.exe'
+    if not os.path.exists(nuget):
+        download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
+
+    if python_configuration.identifier.startswith('cp'):
+        installation_path = install_cpython(python_configuration.version, python_configuration.arch, nuget)
+    elif python_configuration.identifier.startswith('pp'):
+        installation_path = install_pypy(python_configuration.version, python_configuration.arch, python_configuration.url)
+    else:
+        raise ValueError("Unknown Python implementation")
+
+    assert os.path.exists(os.path.join(installation_path, 'python.exe'))
+
+    # set up PATH and environment variables for run_with_env
+    env = os.environ.copy()
+    env['PYTHON_VERSION'] = python_configuration.version
+    env['PYTHON_ARCH'] = python_configuration.arch
+    env['PATH'] = os.pathsep.join([
+        installation_path,
+        os.path.join(installation_path, 'Scripts'),
+        env['PATH']
+    ])
+    # update env with results from CIBW_ENVIRONMENT
+    env = environment.as_dictionary(prev_environment=env)
+
+    # for the logs - check we're running the right version of python
+    shell(['where', 'python'], env=env)
+    shell(['python', '--version'], env=env)
+    shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
+    where_python = subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0].strip()
+    if where_python != os.path.join(installation_path, 'python.exe'):
+        print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
+        exit(1)
+
+    dependency_constraint_flags = []
+    if dependency_constraints:
+        dependency_constraint_flags = [
+            '-c', dependency_constraints.get_for_python_version(python_configuration.version)
+        ]
+
+    # make sure pip is installed
+    if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
+        shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
+    assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
+    where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
+    if where_pip.strip() != os.path.join(installation_path, 'Scripts', 'pip.exe'):
+        print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
+        exit(1)
+
+    # prepare the Python environment
+    shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'] + dependency_constraint_flags, env=env)
+    shell(['pip', '--version'], env=env)
+    shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
+
+    return env, dependency_constraint_flags
+
+
 def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
@@ -102,55 +160,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
         # install Python
-        if config.identifier.startswith('cp'):
-            installation_path = install_cpython(config.version, config.arch, nuget)
-        elif config.identifier.startswith('pp'):
-            installation_path = install_pypy(config.version, config.arch, config.url)
-        else:
-            raise ValueError("Unknown Python implementation")
-
-        assert os.path.exists(os.path.join(installation_path, 'python.exe'))
-
-        # set up PATH and environment variables for run_with_env
-        env = os.environ.copy()
-        env['PYTHON_VERSION'] = config.version
-        env['PYTHON_ARCH'] = config.arch
-        env['PATH'] = os.pathsep.join([
-            installation_path,
-            os.path.join(installation_path, 'Scripts'),
-            env['PATH']
-        ])
-        # update env with results from CIBW_ENVIRONMENT
-        env = environment.as_dictionary(prev_environment=env)
-
-        # for the logs - check we're running the right version of python
-        shell(['where', 'python'], env=env)
-        shell(['python', '--version'], env=env)
-        shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
-        where_python = subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0].strip()
-        if where_python != os.path.join(installation_path, 'python.exe'):
-            print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-            exit(1)
-
-        dependency_constraint_flags = []
-        if dependency_constraints:
-            dependency_constraint_flags = [
-                '-c', dependency_constraints.get_for_python_version(config.version)
-            ]
-
-        # make sure pip is installed
-        if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
-            shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
-        assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
-        where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
-        if where_pip.strip() != os.path.join(installation_path, 'Scripts', 'pip.exe'):
-            print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-            exit(1)
-
-        # prepare the Python environment
-        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'] + dependency_constraint_flags, env=env)
-        shell(['pip', '--version'], env=env)
-        shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
+        env, dependency_constraint_flags = setup_python(config, dependency_constraints, environment)
 
         # run the before_build command
         if before_build:
