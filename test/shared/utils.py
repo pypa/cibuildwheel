@@ -72,7 +72,7 @@ def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
 
 
 def expected_wheels(package_name, package_version, manylinux_versions=None,
-                    macosx_deployment_target=None):
+                    macosx_deployment_target='10.9'):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -117,8 +117,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         python_abi_tags += extra_x86_python_abi_tags
 
         def get_platform_tags(python_abi_tag):
-            default_version = '10.7' if python_abi_tag.startswith('pp') else '10.9'
-            return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
+            return ['macosx_{}_x86_64'.format(macosx_deployment_target.replace('.', '_'))]
     else:
         raise Exception('unsupported platform')
 
