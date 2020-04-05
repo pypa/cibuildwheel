@@ -1,4 +1,5 @@
 import sys
+from fnmatch import fnmatch
 
 import pytest
 
@@ -57,19 +58,19 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
 
 
 @pytest.mark.parametrize('architecture, image, full_image', [
-    ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64'),
-    ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64'),
-    ('x86_64', 'manylinux2010', 'quay.io/pypa/manylinux2010_x86_64'),
-    ('x86_64', 'manylinux2014', 'quay.io/pypa/manylinux2014_x86_64'),
+    ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64:*'),
+    ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64:*'),
+    ('x86_64', 'manylinux2010', 'quay.io/pypa/manylinux2010_x86_64:*'),
+    ('x86_64', 'manylinux2014', 'quay.io/pypa/manylinux2014_x86_64:*'),
     ('x86_64', 'custom_image', 'custom_image'),
-    ('i686', None, 'quay.io/pypa/manylinux2010_i686'),
-    ('i686', 'manylinux1', 'quay.io/pypa/manylinux1_i686'),
-    ('i686', 'manylinux2010', 'quay.io/pypa/manylinux2010_i686'),
-    ('i686', 'manylinux2014', 'quay.io/pypa/manylinux2014_i686'),
+    ('i686', None, 'quay.io/pypa/manylinux2010_i686:*'),
+    ('i686', 'manylinux1', 'quay.io/pypa/manylinux1_i686:*'),
+    ('i686', 'manylinux2010', 'quay.io/pypa/manylinux2010_i686:*'),
+    ('i686', 'manylinux2014', 'quay.io/pypa/manylinux2014_i686:*'),
     ('i686', 'custom_image', 'custom_image'),
-    ('pypy_x86_64', None, 'pypywheels/manylinux2010-pypy_x86_64'),
+    ('pypy_x86_64', None, 'pypywheels/manylinux2010-pypy_x86_64:*'),
     ('pypy_x86_64', 'manylinux1', 'manylinux1'),  # Does not exist
-    ('pypy_x86_64', 'manylinux2010', 'pypywheels/manylinux2010-pypy_x86_64'),
+    ('pypy_x86_64', 'manylinux2010', 'pypywheels/manylinux2010-pypy_x86_64:*'),
     ('pypy_x86_64', 'manylinux2014', 'manylinux2014'),  # Does not exist (yet)
     ('pypy_x86_64', 'custom_image', 'custom_image'),
 ])
@@ -80,7 +81,10 @@ def test_manylinux_images(architecture, image, full_image, platform, intercepted
     main()
 
     if platform == 'linux':
-        assert intercepted_build_args.kwargs['manylinux_images'][architecture] == full_image
+        assert fnmatch(
+            intercepted_build_args.kwargs['manylinux_images'][architecture],
+            full_image
+        )
     else:
         assert 'manylinux_images' not in intercepted_build_args.kwargs
 
