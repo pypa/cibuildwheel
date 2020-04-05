@@ -11,6 +11,7 @@ from .util import (
     download,
     get_build_verbosity_extra_flags,
     prepare_command,
+    get_pip_script,
 )
 
 
@@ -33,6 +34,7 @@ def get_nuget_args(version, arch):
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'url'])
     python_configurations = [
+        # CPython
         PythonConfiguration(version='2.7.17', arch='32', identifier='cp27-win32', url=None),
         PythonConfiguration(version='2.7.17', arch='64', identifier='cp27-win_amd64', url=None),
         PythonConfiguration(version='3.5.4', arch='32', identifier='cp35-win32', url=None),
@@ -43,8 +45,9 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7.6', arch='64', identifier='cp37-win_amd64', url=None),
         PythonConfiguration(version='3.8.2', arch='32', identifier='cp38-win32', url=None),
         PythonConfiguration(version='3.8.2', arch='64', identifier='cp38-win_amd64', url=None),
-        PythonConfiguration(version='2.7-v7.3.0', arch='32', identifier='pp27-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-win32.zip'),
-        PythonConfiguration(version='3.6-v7.3.0', arch='32', identifier='pp36-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-win32.zip'),
+        # PyPy
+        PythonConfiguration(version='2.7', arch='32', identifier='pp27-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-win32.zip'),
+        PythonConfiguration(version='3.6', arch='32', identifier='pp36-win32', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-win32.zip'),
     ]
 
     if IS_RUNNING_ON_TRAVIS:
@@ -86,7 +89,7 @@ def install_pypy(version, arch, url):
     return installation_path
 
 
-def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
@@ -95,9 +98,6 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
     # install nuget as best way to provide python
     nuget = 'C:\\cibw\\nuget.exe'
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
-    # get pip fo this installation which not have.
-    get_pip_script = 'C:\\cibw\\get-pip.py'
-    download('https://bootstrap.pypa.io/get-pip.py', get_pip_script)
 
     python_configurations = get_python_configurations(build_selector)
     for config in python_configurations:
@@ -132,9 +132,15 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
             exit(1)
 
+        dependency_constraint_flags = []
+        if dependency_constraints:
+            dependency_constraint_flags = [
+                '-c', dependency_constraints.get_for_python_version(config.version)
+            ]
+
         # make sure pip is installed
         if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
-            shell(['python', get_pip_script], env=env, cwd="C:\\cibw")
+            shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
         assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
         where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
         if where_pip.strip() != os.path.join(installation_path, 'Scripts', 'pip.exe'):
@@ -142,9 +148,9 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             exit(1)
 
         # prepare the Python environment
-        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'], env=env)
+        shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'] + dependency_constraint_flags, env=env)
         shell(['pip', '--version'], env=env)
-        shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'], env=env)
+        shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
 
         # run the before_build command
         if before_build:
@@ -173,9 +179,12 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
         if test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            shell(['pip', 'install', 'virtualenv'], env=env)
+            shell(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
             venv_dir = tempfile.mkdtemp()
-            shell(['python', '-m', 'virtualenv', venv_dir], env=env)
+
+            # Use --no-download to ensure determinism by using seed libraries
+            # built into virtualenv
+            shell(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()
 

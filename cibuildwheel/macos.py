@@ -11,6 +11,7 @@ from .util import (
     download,
     get_build_verbosity_extra_flags,
     prepare_command,
+    get_pip_script,
 )
 
 
@@ -27,13 +28,15 @@ def call(args, env=None, cwd=None, shell=False):
 def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
     python_configurations = [
+        # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.17/python-2.7.17-macosx10.9.pkg'),
         PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.2/python-3.8.2-macosx10.9.pkg'),
-        PythonConfiguration(version='2.7-v7.3.0', identifier='pp27-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-osx64.tar.bz2'),
-        PythonConfiguration(version='3.6-v7.3.0', identifier='pp36-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-osx64.tar.bz2'),
+        # PyPy
+        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-osx64.tar.bz2'),
+        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-osx64.tar.bz2'),
     ]
 
     # skip builds as required
@@ -92,7 +95,7 @@ def install_pypy(version, url):
         call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
 
         # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
-        if version.endswith("-v7.3.0") and version[0] == '3':
+        if "-v7.3.0-" in url and version[0] == '3':
             patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
             sysconfigdata_file = os.path.join(installation_path, 'lib_pypy', '_sysconfigdata.py')
             call(['patch', sysconfigdata_file, patch_file, '-N'])  # Always has nonzero return code
@@ -105,19 +108,13 @@ def install_pypy(version, url):
     return installation_bin_path
 
 
-def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment):
+def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
     abs_project_dir = os.path.abspath(project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
 
     python_configurations = get_python_configurations(build_selector)
-
-    get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
-    get_pip_script = '/tmp/get-pip.py'
-
-    # get latest pip once and for all
-    download(get_pip_url, get_pip_script)
 
     for config in python_configurations:
         if config.identifier.startswith('cp'):
@@ -151,8 +148,14 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
             exit(1)
 
+        dependency_constraint_flags = []
+        if dependency_constraints:
+            dependency_constraint_flags = [
+                '-c', dependency_constraints.get_for_python_version(config.version)
+            ]
+
         # install pip & wheel
-        call(['python', get_pip_script], env=env, cwd="/tmp")
+        call(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
         call(['which', 'pip'], env=env)
         call(['pip', '--version'], env=env)
@@ -160,7 +163,7 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
         if which_pip != '/tmp/cibw_bin/pip':
             print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
             exit(1)
-        call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'], env=env)
+        call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
 
         # setup target platform, only required for python 3.5
         if config.version == '3.5':
@@ -200,9 +203,12 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
         if test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv'], env=env)
+            call(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
             venv_dir = tempfile.mkdtemp()
-            call(['python', '-m', 'virtualenv', venv_dir], env=env)
+
+            # Use --no-download to ensure determinism by using seed libraries
+            # built into virtualenv
+            call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([

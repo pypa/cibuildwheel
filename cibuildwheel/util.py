@@ -76,3 +76,32 @@ def download(url, dest):
             file.write(response.read())
     finally:
         response.close()
+
+
+class DependencyConstraints(object):
+    def __init__(self, base_file_path):
+        assert os.path.exists(base_file_path)
+        self.base_file_path = os.path.abspath(base_file_path)
+
+    @classmethod
+    def with_defaults(cls):
+        return cls(
+            base_file_path=os.path.join(os.path.dirname(__file__), 'resources', 'constraints.txt')
+        )
+
+    def get_for_python_version(self, version):
+        version_parts = version.split('.')
+
+        # try to find a version-specific dependency file e.g. if
+        # ./constraints.txt is the base, look for ./constraints-python27.txt
+        base, ext = os.path.splitext(self.base_file_path)
+        specific = base + '-python{}{}'.format(version_parts[0], version_parts[1])
+        specific_file_path = specific + ext
+        if os.path.exists(specific_file_path):
+            return specific_file_path
+        else:
+            return self.base_file_path
+
+
+resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
+get_pip_script = os.path.join(resources_dir, 'get-pip.py')

@@ -3,6 +3,7 @@ import os
 import sys
 import textwrap
 import traceback
+from configparser import ConfigParser
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -14,6 +15,7 @@ from cibuildwheel.environment import (
 )
 from cibuildwheel.util import (
     BuildSelector,
+    DependencyConstraints,
     Unbuffered
 )
 
@@ -115,6 +117,14 @@ def main():
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
     before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform, default='')
 
+    dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
+    if dependency_versions == 'pinned':
+        dependency_constraints = DependencyConstraints.with_defaults()
+    elif dependency_versions == 'latest':
+        dependency_constraints = None
+    else:
+        dependency_constraints = DependencyConstraints(dependency_versions)
+
     if test_extras:
         test_extras = '[{0}]'.format(test_extras)
 
@@ -155,41 +165,43 @@ def main():
         build_selector=build_selector,
         repair_command=repair_command,
         environment=environment,
-        before_test=before_test
+        before_test=before_test,
+        dependency_constraints=dependency_constraints,
     )
 
     if platform == 'linux':
-        manylinux_x86_64_image = os.environ.get('CIBW_MANYLINUX_X86_64_IMAGE', 'manylinux2010')
-        manylinux_i686_image = os.environ.get('CIBW_MANYLINUX_I686_IMAGE', 'manylinux2010')
-        manylinux_pypy_x86_64_image = os.environ.get('CIBW_MANYLINUX_PYPY_X86_64_IMAGE', 'manylinux2010')
-        manylinux_aarch64_image = os.environ.get('CIBW_MANYLINUX_AARCH64_IMAGE', 'manylinux2014')
-        manylinux_ppc64le_image = os.environ.get('CIBW_MANYLINUX_PPC64LE_IMAGE', 'manylinux2014')
-        manylinux_s390x_image = os.environ.get('CIBW_MANYLINUX_S390X_IMAGE', 'manylinux2014')
+        pinned_docker_images_file = os.path.join(
+            os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
+        )
+        all_pinned_docker_images = ConfigParser()
+        all_pinned_docker_images.read(pinned_docker_images_file)
+        # all_pinned_docker_images looks like a dict of dicts, e.g.
+        # { 'x86_64': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
+        #   'i686': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
+        #   'pypy_x86_64': {'manylinux2010': '...' }
+        #   ... }
 
-        default_manylinux_images_x86_64 = {'manylinux1': 'quay.io/pypa/manylinux1_x86_64',
-                                           'manylinux2010': 'quay.io/pypa/manylinux2010_x86_64',
-                                           'manylinux2014': 'quay.io/pypa/manylinux2014_x86_64'}
-        default_manylinux_images_i686 = {'manylinux1': 'quay.io/pypa/manylinux1_i686',
-                                         'manylinux2010': 'quay.io/pypa/manylinux2010_i686',
-                                         'manylinux2014': 'quay.io/pypa/manylinux2014_i686'}
-        default_manylinux_images_pypy_x86_64 = {'manylinux2010': 'pypywheels/manylinux2010-pypy_x86_64'}
-        default_manylinux_images_aarch64 = {'manylinux2014': 'quay.io/pypa/manylinux2014_aarch64'}
-        default_manylinux_images_ppc64le = {'manylinux2014': 'quay.io/pypa/manylinux2014_ppc64le'}
-        default_manylinux_images_s390x = {'manylinux2014': 'quay.io/pypa/manylinux2014_s390x'}
+        manylinux_images = {}
+
+        for build_platform in ['x86_64', 'i686', 'pypy_x86_64', 'aarch64', 'ppc64le', 's390x']:
+            pinned_images = all_pinned_docker_images[build_platform]
+
+            config_name = 'CIBW_MANYLINUX_{}_IMAGE'.format(build_platform.upper())
+            config_value = os.environ.get(config_name)
+
+            if config_value is None:
+                # default to manylinux2010 if it's available, otherwise manylinux2014
+                image = pinned_images.get('manylinux2010') or pinned_images.get('manylinux2014')
+            elif config_value in pinned_images:
+                image = pinned_images[config_value]
+            else:
+                image = config_value
+
+            manylinux_images[build_platform] = image
 
         build_options.update(
-            manylinux_images={'x86_64': default_manylinux_images_x86_64.get(manylinux_x86_64_image) or manylinux_x86_64_image,
-                              'i686': default_manylinux_images_i686.get(manylinux_i686_image) or manylinux_i686_image,
-                              'pypy_x86_64': default_manylinux_images_pypy_x86_64.get(manylinux_pypy_x86_64_image) or manylinux_pypy_x86_64_image,
-                              'aarch64': default_manylinux_images_aarch64.get(manylinux_aarch64_image) or manylinux_aarch64_image,
-                              'ppc64le': default_manylinux_images_ppc64le.get(manylinux_ppc64le_image) or manylinux_ppc64le_image,
-                              's390x': default_manylinux_images_s390x.get(manylinux_s390x_image) or manylinux_s390x_image,
-                              },
+            manylinux_images=manylinux_images
         )
-    elif platform == 'macos':
-        pass
-    elif platform == 'windows':
-        pass
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout = Unbuffered(sys.stdout)

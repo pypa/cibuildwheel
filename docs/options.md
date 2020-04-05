@@ -260,7 +260,7 @@ CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {
 
 An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), and [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x).
 
-The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use the [official `manylinux` images](https://github.com/pypa/manylinux) and [PyPy `manylinux` images](https://github.com/pypy/manylinux), or any other valid Docker image name. Note that for PyPy, only the official `manylinux2010` image is currently available. For architectures other
+The value of this option can either be set to `manylinux1`, `manylinux2010` or `manylinux2014` to use a pinned version of the [official `manylinux` images](https://github.com/pypa/manylinux) and [PyPy `manylinux` images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. Note that for PyPy, only the official `manylinux2010` image is currently available. For architectures other
 than x86 (x86\_64 and i686) manylinux2014 must be used because this is the first version of the manylinux specification that supports additional architectures.
 
 Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid `manylinux1`/`manylinux2010`/`manylinux2014` wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/) and [PEP 599](https://www.python.org/dev/peps/pep-0599/) for more details).
@@ -283,10 +283,65 @@ CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
 CIBW_MANYLINUX_I686_IMAGE: manylinux2014
 CIBW_SKIP: cp27-manylinux*
 
+# build using the latest manylinux2010 release, instead of the cibuildwheel
+# pinned version
+CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
+CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
+
 # build using a different image from the docker registry
 CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
 CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
 ```
+
+### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
+> Specify how cibuildwheel controls the versions of the tools it uses
+
+Options: `pinned` `latest` `<your constraints file>`
+
+Default: `pinned`
+
+If `CIBW_DEPENDENCY_VERSIONS` is `pinned`, cibuildwheel uses versions of tools
+like `pip`, `setuptools`, `virtualenv` that were pinned with that release of
+cibuildwheel. This represents a known-good set of dependencies, and is
+recommended for build repeatability.
+
+If set to `latest`, cibuildwheel will use the latest of these packages that
+are available on PyPI. This might be preferable if these packages have bug
+fixes that can't wait for a new cibuildwheel release.
+
+To control the versions of dependencies yourself, you can supply a [pip
+constraints](https://pip.pypa.io/en/stable/user_guide/#constraints-files) file
+here and it will be used instead.
+
+!!! note
+    If you need different dependencies for each python version, provide them
+    in the same folder with a `-pythonXY` suffix. e.g. if your
+    `CIBW_DEPENDENCY_VERSIONS=./constraints.txt`, cibuildwheel will use
+    `./constraints-python27.txt` on Python 2.7, or fallback to
+    `./constraints.txt` if that's not found.
+
+Platform-specific variants also available:<br/>
+`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS`
+
+!!! note
+    This option does not affect the tools used on the Linux build - those versions
+    are bundled with the manylinux image that cibuildwheel uses. To change
+    dependency versions on Linux, use the [CIBW_MANYLINUX_*](#manylinux-image)
+    options.
+
+#### Examples
+
+```yaml
+# use tools versions that are bundled with cibuildwheel (this is the default)
+CIBW_DEPENDENCY_VERSIONS: pinned
+
+# use the latest versions available on PyPI
+CIBW_DEPENDENCY_VERSIONS: latest
+
+# use your own pip constraints file
+CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
+```
+
 
 ## Testing
 
@@ -365,13 +420,13 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 ```yaml
-# install test dependencies with overwritten environment variables. 
+# install test dependencies with overwritten environment variables.
 CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
 
 # chain commands using &&
 CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
 
-# install non pip python package 
+# install non pip python package
 CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
 
 # install python packages that are required to install test dependencies
