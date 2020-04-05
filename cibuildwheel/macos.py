@@ -36,8 +36,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.2/python-3.8.2-macosx10.9.pkg'),
         # PyPy
-        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.1rc1-osx64.tar.bz2'),
-        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.1rc2-osx64.tar.bz2'),
+        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='http://buildbot.pypy.org/nightly/trunk/pypy-c-jit-99266-aee0dd4e0712-osx64.tar.bz2'),
+        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='http://buildbot.pypy.org/nightly/py3.6/pypy-c-jit-99273-42fb7e063523-osx64.tar.bz2'),
     ]
 
     # skip builds as required
