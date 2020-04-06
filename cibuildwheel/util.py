@@ -110,10 +110,10 @@ class DependencyConstraints(object):
 BuildOptions = NamedTuple("BuildOptions", [
     ("project_dir", str),
     ("output_dir", str),
-    ("test_command", str),
+    ("test_command", Optional[str]),
     ("test_requires", List[str]),
     ("test_extras", str),
-    ("before_build", str),
+    ("before_build", Optional[str]),
     ("build_verbosity", int),
     ("build_selector", BuildSelector),
     ("repair_command", str),
@@ -128,10 +128,10 @@ when drop support of python 3.5 execution.
 class BuildOptions(NamedTuple):
     project_dir: str
     output_dir: str
-    test_command: str
+    test_command: Optional[str]
     test_requires: List[str]
     test_extras: str
-    before_build: str
+    before_build: Optional[str]
     build_verbosity: int
     build_selector: BuildSelector
     repair_command: str
