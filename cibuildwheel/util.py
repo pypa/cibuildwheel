@@ -1,4 +1,5 @@
 import os
+import sys
 import urllib.request
 from fnmatch import fnmatch
 from time import sleep
@@ -106,6 +107,24 @@ class DependencyConstraints(object):
             return self.base_file_path
 
 
+BuildOptions = NamedTuple("BuildOptions", [
+    ("project_dir", str),
+    ("output_dir", str),
+    ("test_command", str),
+    ("test_requires", List[str]),
+    ("test_extras", str),
+    ("before_build", str),
+    ("build_verbosity", int),
+    ("build_selector", BuildSelector),
+    ("repair_command", str),
+    ("environment", ParsedEnvironment),
+    ("before_test", str),
+    ("dependency_constraints", Optional[DependencyConstraints]),
+    ("manylinux_images", Optional[Dict[str, str]]),
+])
+
+"""
+when drop support of python 3.5 execution.
 class BuildOptions(NamedTuple):
     project_dir: str
     output_dir: str
@@ -120,7 +139,7 @@ class BuildOptions(NamedTuple):
     before_test: str
     dependency_constraints: Optional[DependencyConstraints]
     manylinux_images: Optional[Dict[str, str]]
-
+"""
 
 resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
 get_pip_script = os.path.join(resources_dir, 'get-pip.py')
