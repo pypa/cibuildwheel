@@ -13,8 +13,9 @@ build: off
 
 init:
 - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
+- ps: $env:PYTEST_ADDOPTS='-k "unit_test or _basic" --suppress-no-test-exit-code'
 
-install: python -m pip install --retries 3 -r requirements-dev.txt
+install: python -m pip install --retries 3 -r requirements-dev.txt pytest-custom-exit-code
 
 # the '-u' flag is required so the output is in the correct order.
 # See https://github.com/joerick/cibuildwheel/pull/24 for more info.
