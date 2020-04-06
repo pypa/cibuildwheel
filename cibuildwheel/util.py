@@ -2,6 +2,9 @@ import os
 import urllib.request
 from fnmatch import fnmatch
 from time import sleep
+from typing import NamedTuple, List, Optional, Dict
+
+from .environment import ParsedEnvironment
 
 
 def prepare_command(command, **kwargs):
@@ -101,6 +104,22 @@ class DependencyConstraints(object):
             return specific_file_path
         else:
             return self.base_file_path
+
+
+class BuildOptions(NamedTuple):
+    project_dir: str
+    output_dir: str
+    test_command: str
+    test_requires: List[str]
+    test_extras: str
+    before_build: str
+    build_verbosity: int
+    build_selector: BuildSelector
+    repair_command: str
+    environment: ParsedEnvironment
+    before_test: str
+    dependency_constraints: Optional[DependencyConstraints]
+    manylinux_images: Optional[Dict[str, str]]
 
 
 resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))

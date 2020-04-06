@@ -51,10 +51,10 @@ def test_platform_argument(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    assert intercepted_build_args.kwargs['project_dir'] == MOCK_PROJECT_DIR
+    assert intercepted_build_args.args[0].project_dir == MOCK_PROJECT_DIR
 
 
 def test_platform_environment(platform, intercepted_build_args, monkeypatch):
     main()
 
-    assert intercepted_build_args.kwargs['project_dir'] == MOCK_PROJECT_DIR
+    assert intercepted_build_args.args[0].project_dir == MOCK_PROJECT_DIR
