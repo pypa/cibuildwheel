@@ -84,7 +84,9 @@ for image in images:
         digest = latest_tag['images'][0]['digest']
 
         pinned_tag = next(
-            tag for tag in tags if tag['images'][0]['digest'] == digest
+            tag
+            for tag in tags
+            if tag != latest_tag and tag['images'][0]['digest'] == digest
         )
         tag_name = pinned_tag['name']
 
