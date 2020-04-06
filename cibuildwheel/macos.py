@@ -108,7 +108,7 @@ def install_pypy(version, url):
     return installation_bin_path
 
 
-def setup_python(python_configuration, dependency_constraints, environment):
+def setup_python(python_configuration, dependency_constraint_flags, environment):
     if python_configuration.identifier.startswith('cp'):
         installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
     elif python_configuration.identifier.startswith('pp'):
@@ -140,12 +140,6 @@ def setup_python(python_configuration, dependency_constraints, environment):
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
         exit(1)
 
-    dependency_constraint_flags = []
-    if dependency_constraints:
-        dependency_constraint_flags = [
-            '-c', dependency_constraints.get_for_python_version(python_configuration.version)
-        ]
-
     # install pip & wheel
     call(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="/tmp")
     assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
@@ -168,7 +162,7 @@ def setup_python(python_configuration, dependency_constraints, environment):
         if 'MACOSX_DEPLOYMENT_TARGET' not in env:
             env['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
-    return env, dependency_constraint_flags
+    return env
 
 
 def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
@@ -180,7 +174,14 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
     python_configurations = get_python_configurations(build_selector)
 
     for config in python_configurations:
-        env, dependency_constraint_flags = setup_python(config, dependency_constraints, environment)
+
+        dependency_constraint_flags = []
+        if dependency_constraints:
+            dependency_constraint_flags = [
+                '-c', dependency_constraints.get_for_python_version(config.version)
+            ]
+        
+        env = setup_python(config, dependency_constraint_flags, environment)
 
 
         # run the before_build command
