@@ -76,7 +76,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
 
 
-def build(opt: BuildOptions):
+def build(options: BuildOptions):
     try:
         subprocess.check_call(['docker', '--version'])
     except Exception:
@@ -86,14 +86,14 @@ def build(opt: BuildOptions):
               file=sys.stderr)
         exit(2)
 
-    python_configurations = get_python_configurations(opt.build_selector)
+    python_configurations = get_python_configurations(options.build_selector)
     platforms = [
-        ('cp', 'manylinux_x86_64', opt.manylinux_images['x86_64']),
-        ('cp', 'manylinux_i686', opt.manylinux_images['i686']),
-        ('cp', 'manylinux_aarch64', opt.manylinux_images['aarch64']),
-        ('cp', 'manylinux_ppc64le', opt.manylinux_images['ppc64le']),
-        ('cp', 'manylinux_s390x', opt.manylinux_images['s390x']),
-        ('pp', 'manylinux_x86_64', opt.manylinux_images['pypy_x86_64']),
+        ('cp', 'manylinux_x86_64', options.manylinux_images['x86_64']),
+        ('cp', 'manylinux_i686', options.manylinux_images['i686']),
+        ('cp', 'manylinux_aarch64', options.manylinux_images['aarch64']),
+        ('cp', 'manylinux_ppc64le', options.manylinux_images['ppc64le']),
+        ('cp', 'manylinux_s390x', options.manylinux_images['s390x']),
+        ('pp', 'manylinux_x86_64', options.manylinux_images['pypy_x86_64']),
     ]
 
     for implementation, platform_tag, docker_image in platforms:
@@ -112,14 +112,14 @@ def build(opt: BuildOptions):
                   '/bin/bash'])
 
             call(['docker', 'cp',
-                  os.path.abspath(opt.project_dir) + '/.',
+                  os.path.abspath(options.project_dir) + '/.',
                   container_name + ':/project'])
 
             call(['docker', 'start', container_name])
 
             for config in platform_configs:
-                if opt.dependency_constraints:
-                    constraints_file = opt.dependency_constraints.get_for_python_version(config.version)
+                if options.dependency_constraints:
+                    constraints_file = options.dependency_constraints.get_for_python_version(config.version)
 
                     # `docker cp` causes 'no space left on device' error when
                     # a container is running and the host filesystem is
@@ -234,32 +234,32 @@ def build(opt: BuildOptions):
                         done
                     '''.format(
                         config_python_bin=config.path + '/bin',
-                        test_requires=' '.join(opt.test_requires),
-                        test_extras=opt.test_extras,
+                        test_requires=' '.join(options.test_requires),
+                        test_extras=options.test_extras,
                         test_command=shlex.quote(
-                            prepare_command(opt.test_command, project='/project') if opt.test_command else ''
+                            prepare_command(options.test_command, project='/project') if options.test_command else ''
                         ),
                         before_build=shlex.quote(
-                            prepare_command(opt.before_build, project='/project') if opt.before_build else ''
+                            prepare_command(options.before_build, project='/project') if options.before_build else ''
                         ),
-                        build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(opt.build_verbosity)),
+                        build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(options.build_verbosity)),
                         repair_command=shlex.quote(
-                            prepare_command(opt.repair_command, wheel='"$1"', dest_dir='/tmp/repaired_wheels') if opt.repair_command else ''
+                            prepare_command(options.repair_command, wheel='"$1"', dest_dir='/tmp/repaired_wheels') if options.repair_command else ''
                         ),
-                        environment_exports='\n'.join(opt.environment.as_shell_commands()),
+                        environment_exports='\n'.join(options.environment.as_shell_commands()),
                         uid=os.getuid(),
                         gid=os.getgid(),
                         before_test=shlex.quote(
-                            prepare_command(opt.before_test, project='/project') if opt.before_test else ''
+                            prepare_command(options.before_test, project='/project') if options.before_test else ''
                         ),
-                        dependency_install_flags='-c /constraints.txt' if opt.dependency_constraints else '',
+                        dependency_install_flags='-c /constraints.txt' if options.dependency_constraints else '',
                     )
                 )
 
             # copy the output back into the host
             call(['docker', 'cp',
                   container_name + ':/output/.',
-                  os.path.abspath(opt.output_dir)])
+                  os.path.abspath(options.output_dir)])
         except subprocess.CalledProcessError:
             exit(1)
         finally:
