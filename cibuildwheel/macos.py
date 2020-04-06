@@ -35,8 +35,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.6/python-3.7.6-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.2/python-3.8.2-macosx10.9.pkg'),
         # PyPy
-        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy2.7-v7.3.0-osx64.tar.bz2'),
-        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://bitbucket.org/pypy/pypy/downloads/pypy3.6-v7.3.0-osx64.tar.bz2'),
+        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='http://buildbot.pypy.org/nightly/trunk/pypy-c-jit-99266-aee0dd4e0712-osx64.tar.bz2'),
+        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='http://buildbot.pypy.org/nightly/py3.6/pypy-c-jit-99273-42fb7e063523-osx64.tar.bz2'),
     ]
 
     # skip builds as required
@@ -93,12 +93,6 @@ def install_pypy(version, url):
     if not os.path.exists(installation_path):
         download(url, os.path.join("/tmp", pypy_tar_bz2))
         call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
-
-        # fix PyPy 7.3.0 bug resulting in wrong macOS platform tag
-        if "-v7.3.0-" in url and version[0] == '3':
-            patch_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'pypy3.6.patch'))
-            sysconfigdata_file = os.path.join(installation_path, 'lib_pypy', '_sysconfigdata.py')
-            call(['patch', sysconfigdata_file, patch_file, '-N'])  # Always has nonzero return code
 
     installation_bin_path = os.path.join(installation_path, 'bin')
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
