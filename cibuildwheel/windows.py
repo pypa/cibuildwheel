@@ -7,12 +7,17 @@ from collections import namedtuple
 from glob import glob
 from zipfile import ZipFile
 
+from typing import Callable, Dict, List, Optional
+
+from .environment import (
+    ParsedEnvironment,
+)
 from .util import (
+    BuildOptions,
     download,
     get_build_verbosity_extra_flags,
-    prepare_command,
     get_pip_script,
-    BuildOptions
+    prepare_command,
 )
 
 
@@ -20,20 +25,22 @@ IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
-def shell(args, env=None, cwd=None):
+def shell(args: List[str], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> int:
     print('+ ' + ' '.join(args))
     return subprocess.check_call(' '.join(args), env=env, cwd=cwd, shell=True)
 
 
-def get_nuget_args(version, arch):
+def get_nuget_args(version: str, arch: str) -> List[str]:
     python_name = 'python' if version[0] == '3' else 'python2'
     if arch == '32':
         python_name = python_name + 'x86'
     return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
 
 
-def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'url'])
+PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'url'])
+
+
+def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),
@@ -62,19 +69,19 @@ def get_python_configurations(build_selector):
     return python_configurations
 
 
-def extract_zip(zip_src, dest):
+def extract_zip(zip_src: str, dest: str) -> None:
     with ZipFile(zip_src) as zip:
         zip.extractall(dest)
 
 
-def install_cpython(version, arch, nuget):
+def install_cpython(version: str, arch: str, nuget: str) -> str:
     nuget_args = get_nuget_args(version, arch)
     installation_path = os.path.join(nuget_args[-1], nuget_args[0] + '.' + version, 'tools')
     shell([nuget, 'install'] + nuget_args)
     return installation_path
 
 
-def install_pypy(version, arch, url):
+def install_pypy(version: str, arch: str, url: str) -> str:
     assert arch == '32'
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit('/', 1)[-1]

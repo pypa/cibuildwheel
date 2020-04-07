@@ -1,4 +1,6 @@
-import bashlex
+import bashlex  # type: ignore
+
+from typing import Dict, List
 
 from . import bashlex_eval
 
@@ -7,13 +9,7 @@ class EnvironmentParseError(Exception):
     pass
 
 
-def parse_environment(env_string):
-    env_items = split_env_items(env_string)
-    assignments = [EnvironmentAssignment(item) for item in env_items]
-    return ParsedEnvironment(assignments=assignments)
-
-
-def split_env_items(env_string):
+def split_env_items(env_string: str) -> List[str]:
     '''Splits space-separated variable assignments into a list of individual assignments.
 
     >>> split_env_items('VAR=abc')
@@ -43,29 +39,29 @@ def split_env_items(env_string):
 
 
 class EnvironmentAssignment:
-    def __init__(self, assignment):
+    def __init__(self, assignment: str):
         name, equals, value = assignment.partition('=')
         if not equals:
             raise EnvironmentParseError(assignment)
         self.name = name
         self.value = value
 
-    def evaluated_value(self, environment):
+    def evaluated_value(self, environment: Dict[str, str]) -> str:
         '''Returns the value of this assignment, as evaluated in the environment'''
         return bashlex_eval.evaluate(self.value, environment=environment)
 
-    def as_shell_assignment(self):
+    def as_shell_assignment(self) -> str:
         return 'export %s=%s' % (self.name, self.value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '%s=%s' % (self.name, self.value)
 
 
 class ParsedEnvironment:
-    def __init__(self, assignments):
+    def __init__(self, assignments: List[EnvironmentAssignment]):
         self.assignments = assignments
 
-    def as_dictionary(self, prev_environment):
+    def as_dictionary(self, prev_environment: Dict[str, str]) -> Dict[str, str]:
         environment = prev_environment.copy()
 
         for assignment in self.assignments:
@@ -74,8 +70,14 @@ class ParsedEnvironment:
 
         return environment
 
-    def as_shell_commands(self):
+    def as_shell_commands(self) -> List[str]:
         return [a.as_shell_assignment() for a in self.assignments]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'ParsedEnvironment(%r)' % [repr(a) for a in self.assignments]
+
+
+def parse_environment(env_string: str) -> ParsedEnvironment:
+    env_items = split_env_items(env_string)
+    assignments = [EnvironmentAssignment(item) for item in env_items]
+    return ParsedEnvironment(assignments=assignments)

@@ -2,12 +2,13 @@ import os
 import urllib.request
 from fnmatch import fnmatch
 from time import sleep
-from typing import NamedTuple, List, Optional, Dict
+
+from typing import Dict, List, NamedTuple, Optional
 
 from .environment import ParsedEnvironment
 
 
-def prepare_command(command, **kwargs):
+def prepare_command(command: str, **kwargs: str) -> str:
     '''
     Preprocesses a command by expanding variables like {python}.
 
@@ -17,7 +18,7 @@ def prepare_command(command, **kwargs):
     return command.format(python='python', pip='pip', **kwargs)
 
 
-def get_build_verbosity_extra_flags(level):
+def get_build_verbosity_extra_flags(level: int) -> List[str]:
     if level > 0:
         return ['-' + level * 'v']
     elif level < 0:
@@ -27,37 +28,37 @@ def get_build_verbosity_extra_flags(level):
 
 
 class BuildSelector:
-    def __init__(self, build_config, skip_config):
+    def __init__(self, build_config: str, skip_config: str):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
 
-    def __call__(self, build_id):
-        def match_any(patterns):
+    def __call__(self, build_id: str) -> bool:
+        def match_any(patterns: List[str]) -> bool:
             return any(fnmatch(build_id, pattern) for pattern in patterns)
         return match_any(self.build_patterns) and not match_any(self.skip_patterns)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'BuildSelector({!r} - {!r})'.format(' '.join(self.build_patterns), ' '.join(self.skip_patterns))
 
 
 # Taken from https://stackoverflow.com/a/107717
 class Unbuffered:
-    def __init__(self, stream):
+    def __init__(self, stream):  # type: ignore
         self.stream = stream
 
-    def write(self, data):
+    def write(self, data):  # type: ignore
         self.stream.write(data)
         self.stream.flush()
 
-    def writelines(self, datas):
+    def writelines(self, datas):  # type: ignore
         self.stream.writelines(datas)
         self.stream.flush()
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr):  # type: ignore
         return getattr(self.stream, attr)
 
 
-def download(url, dest):
+def download(url: str, dest: str) -> None:
     print('+ Download ' + url + ' to ' + dest)
     dest_dir = os.path.dirname(dest)
     if not os.path.exists(dest_dir):

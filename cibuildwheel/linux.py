@@ -7,10 +7,15 @@ import textwrap
 import uuid
 from collections import namedtuple
 
+from typing import Callable, Dict, List, Optional
+
+from .environment import (
+    ParsedEnvironment,
+)
 from .util import (
+    BuildOptions,
     get_build_verbosity_extra_flags,
     prepare_command,
-    BuildOptions
 )
 
 
@@ -42,8 +47,10 @@ def matches_platform(identifier):
     return False
 
 
-def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'path'])
+PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'path'])
+
+
+def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
@@ -86,6 +93,7 @@ def build(options: BuildOptions):
               file=sys.stderr)
         exit(2)
 
+    assert options.manylinux_images is not None
     python_configurations = get_python_configurations(options.build_selector)
     platforms = [
         ('cp', 'manylinux_x86_64', options.manylinux_images['x86_64']),
@@ -274,7 +282,7 @@ def build(options: BuildOptions):
             call(['docker', 'rm', '--force', '-v', container_name])
 
 
-def troubleshoot(package_dir, error):
+def troubleshoot(package_dir: str, error: Exception) -> None:
     if (isinstance(error, subprocess.CalledProcessError) and 'exec' in error.cmd):
         # the bash script failed
         print('Checking for common errors...')
