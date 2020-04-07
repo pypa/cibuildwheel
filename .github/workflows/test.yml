@@ -1,6 +1,11 @@
 name: Test
 
-on: [push, pull_request]
+on:
+  push:
+    - master
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
 
 jobs:
   test:
