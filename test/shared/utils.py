@@ -81,60 +81,61 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
-    python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
-    extra_x86_python_abi_tags = ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73']
-
-    if platform == 'linux':
-        if pm.machine() not in ['x86_64', 'i686']:
-            if manylinux_versions is None:
-                manylinux_versions = ['manylinux2014']
-            architectures = {'cp': [pm.machine()]}
+    if manylinux_versions is None:
+        if pm.machine() == 'x86_64':
+            manylinux_versions = ['manylinux1', 'manylinux2010']
         else:
-            if manylinux_versions is None:
-                manylinux_versions = ['manylinux1', 'manylinux2010']
-            python_abi_tags += extra_x86_python_abi_tags
+            manylinux_versions = ['manylinux2014']
+
+    python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
+
+    if pm.machine() in ['x86_64', 'AMD64', 'x86']:
+        python_abi_tags += ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73']
+
+        if platform == 'linux':
             python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
-            architectures = {'cp': ['x86_64', 'i686'], 'pp': ['x86_64']}
-        platform_tags = {}
-        for python_implemention in architectures:
-            platform_tags[python_implemention] = [
-                '{manylinux_version}_{architecture}'.format(
-                    manylinux_version=manylinux_version, architecture=architecture)
-                for architecture in architectures[python_implemention]
+
+    wheels = []
+
+    for python_abi_tag in python_abi_tags:
+        platform_tags = []
+
+        if platform == 'linux':
+            architectures = [pm.machine()]
+
+            if pm.machine() == 'x86_64' and python_abi_tag.startswith('cp'):
+                architectures.append('i686')
+
+            platform_tags = [
+                '{}_{}'.format(manylinux_version, architecture)
+                for architecture in architectures
                 for manylinux_version in manylinux_versions
             ]
 
-        def get_platform_tags(python_abi_tag):
-            return platform_tags[python_abi_tag[:2]]
-    elif platform == 'windows':
-        python_abi_tags += extra_x86_python_abi_tags
-        platform_tags = {'cp': ['win32', 'win_amd64'], 'pp': ['win32']}
+        elif platform == 'windows':
+            if python_abi_tag.startswith('cp'):
+                platform_tags = ['win32', 'win_amd64']
+            else:
+                platform_tags = ['win32']
 
-        def get_platform_tags(python_abi_tag):
-            return platform_tags[python_abi_tag[:2]]
-
-    elif platform == 'macos':
-        python_abi_tags += extra_x86_python_abi_tags
-
-        def get_platform_tags(python_abi_tag):
+        elif platform == 'macos':
             default_version = '10.7' if python_abi_tag.startswith('pp') else '10.9'
-            return ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
-    else:
-        raise Exception('unsupported platform')
+            platform_tags = ['macosx_{}_x86_64'.format((macosx_deployment_target or default_version).replace('.', '_'))]
 
-    templates = []
-    for python_abi_tag in python_abi_tags:
-        for platform_tag in get_platform_tags(python_abi_tag):
-            templates.append('{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl'.format(
+        else:
+            raise Exception('unsupported platform')
+
+        for platform_tag in platform_tags:
+            wheels.append('{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl'.format(
                 package_name=package_name, package_version=package_version,
                 python_abi_tag=python_abi_tag, platform_tag=platform_tag
             ))
 
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
         # Python 2.7 isn't supported on Travis.
-        templates = [t for t in templates if '-cp27-' not in t and '-pp2' not in t]
+        wheels = [w for w in wheels if '-cp27-' not in w and '-pp2' not in w]
 
-    return templates
+    return wheels
 
 
 platform = None
