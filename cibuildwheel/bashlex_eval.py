@@ -2,11 +2,13 @@ import shlex
 import subprocess
 from collections import namedtuple
 
-from typing import Dict
+from typing import Dict, List, NamedTuple, Optional
 
 import bashlex  # type: ignore
 
-NodeExecutionContext = namedtuple('NodeExecutionContext', ['environment', 'input'])
+NodeExecutionContext = NamedTuple('NodeExecutionContext',
+                                  [('environment', Dict[str, str]),
+                                   ('input', str)])
 
 
 def evaluate(value: str, environment: Dict[str, str]) -> str:
@@ -22,28 +24,28 @@ def evaluate(value: str, environment: Dict[str, str]) -> str:
 
     value_word_node = command_node.parts[0]
 
-    return evaluate_node(  # type: ignore
+    return evaluate_node(
         value_word_node,
         context=NodeExecutionContext(environment=environment, input=value)
     )
 
 
-def evaluate_node(node, context):  # type: ignore
+def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     if node.kind == 'word':
-        return evaluate_word_node(node, context=context)  # type: ignore
+        return evaluate_word_node(node, context=context)
     elif node.kind == 'commandsubstitution':
-        return evaluate_command_node(node.command, context=context)  # type: ignore
+        return evaluate_command_node(node.command, context=context)
     elif node.kind == 'parameter':
-        return evaluate_parameter_node(node, context=context)  # type: ignore
+        return evaluate_parameter_node(node, context=context)
     else:
         raise ValueError('Unsupported bash construct: "%s"' % node.word)
 
 
-def evaluate_word_node(node, context):  # type: ignore
+def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     word_start = node.pos[0]
     word_end = node.pos[1]
     word_string = context.input[word_start:word_end]
-    letters = list(word_string)
+    letters = list(word_string)  # type: List[Optional[str]]
 
     for part in node.parts:
         part_start = part.pos[0] - word_start
@@ -53,7 +55,7 @@ def evaluate_word_node(node, context):  # type: ignore
         for i in range(part_start, part_end):
             letters[i] = None
 
-        letters[part_start] = evaluate_node(part, context=context)  # type: ignore
+        letters[part_start] = evaluate_node(part, context=context)
 
     # remove the None letters and concat
     value = ''.join(l for l in letters if l is not None)
@@ -62,11 +64,11 @@ def evaluate_word_node(node, context):  # type: ignore
     return ' '.join(word.strip() for word in shlex.split(value))
 
 
-def evaluate_command_node(node, context):  # type: ignore
-    words = [evaluate_node(part, context=context) for part in node.parts]  # type: ignore
+def evaluate_command_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
+    words = [evaluate_node(part, context=context) for part in node.parts]
     command = ' '.join(words)
     return subprocess.check_output(shlex.split(command), env=context.environment, universal_newlines=True)
 
 
-def evaluate_parameter_node(node, context):  # type: ignore
+def evaluate_parameter_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     return context.environment.get(node.value, '')
