@@ -115,7 +115,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
         installation_bin_path = install_pypy(python_configuration.version, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
-    
+
     env = os.environ.copy()
     env['PATH'] = os.pathsep.join([
         SYMLINKS_DIR,
@@ -139,29 +139,29 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     if which_python != '/tmp/cibw_bin/python':
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
         exit(1)
-        
-        # install pip & wheel
-        call(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="/tmp")
-        assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
-        call(['which', 'pip'], env=env)
-        call(['pip', '--version'], env=env)
-        which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
-        if which_pip != '/tmp/cibw_bin/pip':
-            print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-            exit(1)
-        call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
 
-# Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
-# CPython 3.5 defaults to 10.6, and pypy defaults to 10.3, causing
-# warnings and potential problems if it's left unset.
-env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
-    
-    if config.version == '3.5':
+    # install pip & wheel
+    call(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="/tmp")
+    assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
+    call(['which', 'pip'], env=env)
+    call(['pip', '--version'], env=env)
+    which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
+    if which_pip != '/tmp/cibw_bin/pip':
+        print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
+        exit(1)
+    call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
+
+    # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
+    # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
+    # inconsistencies if it's left unset.
+    env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
+
+    if python_configuration.version == '3.5':
         # Cross-compilation platform override - CPython 3.5 has an
         # i386/x86_64 version of Python, but we only want a x64_64 build
         env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
-            # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
-            env.setdefault('ARCHFLAGS', '-arch x86_64')
+        # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
+        env.setdefault('ARCHFLAGS', '-arch x86_64')
 
     return env
 
@@ -181,9 +181,8 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             dependency_constraint_flags = [
                 '-c', dependency_constraints.get_for_python_version(config.version)
             ]
-        
-        env = setup_python(config, dependency_constraint_flags, environment)
 
+        env = setup_python(config, dependency_constraint_flags, environment)
 
         # run the before_build command
         if before_build:
