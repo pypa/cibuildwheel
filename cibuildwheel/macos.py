@@ -108,52 +108,38 @@ def install_pypy(version, url):
     return installation_bin_path
 
 
-def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
-    abs_project_dir = os.path.abspath(project_dir)
-    temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
-    built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
-    repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
+def setup_python(python_configuration, dependency_constraint_flags, environment):
+    if python_configuration.identifier.startswith('cp'):
+        installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
+    elif python_configuration.identifier.startswith('pp'):
+        installation_bin_path = install_pypy(python_configuration.version, python_configuration.url)
+    else:
+        raise ValueError("Unknown Python implementation")
+    
+    env = os.environ.copy()
+    env['PATH'] = os.pathsep.join([
+        SYMLINKS_DIR,
+        installation_bin_path,
+        env['PATH'],
+    ])
 
-    python_configurations = get_python_configurations(build_selector)
+    # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
+    # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
+    # Also fix an issue with the shebang of installed scripts inside the
+    # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
+    # https://github.com/pypa/virtualenv/issues/620
+    # Also see https://github.com/python/cpython/pull/9516
+    env.pop('__PYVENV_LAUNCHER__', None)
+    env = environment.as_dictionary(prev_environment=env)
 
-    for config in python_configurations:
-        if config.identifier.startswith('cp'):
-            installation_bin_path = install_cpython(config.version, config.url)
-        elif config.identifier.startswith('pp'):
-            installation_bin_path = install_pypy(config.version, config.url)
-        else:
-            raise ValueError("Unknown Python implementation")
-
-        env = os.environ.copy()
-        env['PATH'] = os.pathsep.join([
-            SYMLINKS_DIR,
-            installation_bin_path,
-            env['PATH'],
-        ])
-
-        # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
-        # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
-        # Also fix an issue with the shebang of installed scripts inside the
-        # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
-        # https://github.com/pypa/virtualenv/issues/620
-        # Also see https://github.com/python/cpython/pull/9516
-        env.pop('__PYVENV_LAUNCHER__', None)
-        env = environment.as_dictionary(prev_environment=env)
-
-        # check what version we're on
-        call(['which', 'python'], env=env)
-        call(['python', '--version'], env=env)
-        which_python = subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip()
-        if which_python != '/tmp/cibw_bin/python':
-            print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-            exit(1)
-
-        dependency_constraint_flags = []
-        if dependency_constraints:
-            dependency_constraint_flags = [
-                '-c', dependency_constraints.get_for_python_version(config.version)
-            ]
-
+    # check what version we're on
+    call(['which', 'python'], env=env)
+    call(['python', '--version'], env=env)
+    which_python = subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip()
+    if which_python != '/tmp/cibw_bin/python':
+        print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
+        exit(1)
+        
         # install pip & wheel
         call(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="/tmp")
         assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
@@ -165,17 +151,39 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             exit(1)
         call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
 
-        # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
-        # CPython 3.5 defaults to 10.6, and pypy defaults to 10.3, causing
-        # warnings and potential problems if it's left unset.
-        env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
-
-        if config.version == '3.5':
-            # Cross-compilation platform override - CPython 3.5 has an
-            # i386/x86_64 version of Python, but we only want a x64_64 build
-            env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
+# Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
+# CPython 3.5 defaults to 10.6, and pypy defaults to 10.3, causing
+# warnings and potential problems if it's left unset.
+env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
+    
+    if config.version == '3.5':
+        # Cross-compilation platform override - CPython 3.5 has an
+        # i386/x86_64 version of Python, but we only want a x64_64 build
+        env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
             # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
             env.setdefault('ARCHFLAGS', '-arch x86_64')
+
+    return env
+
+
+def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
+    abs_project_dir = os.path.abspath(project_dir)
+    temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
+    built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
+    repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
+
+    python_configurations = get_python_configurations(build_selector)
+
+    for config in python_configurations:
+
+        dependency_constraint_flags = []
+        if dependency_constraints:
+            dependency_constraint_flags = [
+                '-c', dependency_constraints.get_for_python_version(config.version)
+            ]
+        
+        env = setup_python(config, dependency_constraint_flags, environment)
+
 
         # run the before_build command
         if before_build:
