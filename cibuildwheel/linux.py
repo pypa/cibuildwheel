@@ -5,13 +5,9 @@ import subprocess
 import sys
 import textwrap
 import uuid
-from collections import namedtuple
 
-from typing import Callable, Dict, List, Optional
+from typing import Callable, List, NamedTuple
 
-from .environment import (
-    ParsedEnvironment,
-)
 from .util import (
     BuildOptions,
     get_build_verbosity_extra_flags,
@@ -47,7 +43,7 @@ def matches_platform(identifier):
     return False
 
 
-PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'path'])
+PythonConfiguration = NamedTuple('PythonConfiguration', [('version', str), ('identifier', str), ('path', str)])
 
 
 def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:

@@ -4,14 +4,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import namedtuple
 from glob import glob
 
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, NamedTuple, Union
 
-from .environment import (
-    ParsedEnvironment,
-)
 from .util import (
     BuildOptions,
     download,
@@ -31,7 +27,7 @@ def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd:
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
 
-PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
+PythonConfiguration = NamedTuple('PythonConfiguration', [('version', str), ('identifier', str), ('url', str)])
 
 
 def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:

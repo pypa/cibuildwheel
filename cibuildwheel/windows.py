@@ -3,15 +3,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import namedtuple
 from glob import glob
 from zipfile import ZipFile
 
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, NamedTuple
 
-from .environment import (
-    ParsedEnvironment,
-)
 from .util import (
     BuildOptions,
     download,
@@ -37,7 +33,7 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
     return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
 
 
-PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'url'])
+PythonConfiguration = NamedTuple('PythonConfiguration', [('version', str), ('arch', str), ('identifier', str), ('url', Optional[str])])
 
 
 def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:
@@ -81,8 +77,9 @@ def install_cpython(version: str, arch: str, nuget: str) -> str:
     return installation_path
 
 
-def install_pypy(version: str, arch: str, url: str) -> str:
+def install_pypy(version: str, arch: str, url: Optional[str]) -> str:
     assert arch == '32'
+    assert url is not None
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit('/', 1)[-1]
     installation_path = os.path.join('C:\\cibw', os.path.splitext(zip_filename)[0])

@@ -1,6 +1,5 @@
 import shlex
 import subprocess
-from collections import namedtuple
 
 from typing import Dict, List, NamedTuple, Optional
 

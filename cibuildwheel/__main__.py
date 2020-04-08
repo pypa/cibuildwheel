@@ -5,7 +5,7 @@ import textwrap
 import traceback
 from configparser import ConfigParser
 
-from typing import Any, Dict, List, Optional, Union, overload
+from typing import Any, Dict, List, Optional, overload
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -24,12 +24,10 @@ from cibuildwheel.util import (
 
 
 @overload
-def get_option_from_environment(option_name: str, platform: Optional[str], default: str) -> str:
-    ...
+def get_option_from_environment(option_name: str, platform: Optional[str], default: str) -> str: ...  # noqa: E704
 @overload
-def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: None = None) -> Optional[str]:
-    ...
-def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: Optional[str] = None) -> Optional[str]:
+def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: None = None) -> Optional[str]: ...  # noqa: E704 E302
+def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: Optional[str] = None) -> Optional[str]:  # noqa: E302
     '''
     Returns an option from the environment, optionally scoped by the platform.
 
