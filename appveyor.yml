@@ -13,7 +13,11 @@ build: off
 
 init:
 - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
-- ps: $env:PYTEST_ADDOPTS='-k "unit_test or _basic" --suppress-no-test-exit-code'
+- ps: |
+      $BRANCH = if ($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) { $env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH } else { $env:APPVEYOR_REPO_BRANCH }
+      if ($BRANCH -eq 'master' -or $BRANCH.ToLower().StartsWith('appveyor-')) {
+        $env:PYTEST_ADDOPTS='-k "unit_test or _basic" --suppress-no-test-exit-code'
+      }
 
 install: python -m pip install --retries 3 -r requirements-dev.txt pytest-custom-exit-code
 
