@@ -151,16 +151,17 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
         exit(1)
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
 
-    # setup target platform, only required for python 3.5
+    # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
+    # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
+    # inconsistencies if it's left unset.
+    env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
+
     if python_configuration.version == '3.5':
-        if '_PYTHON_HOST_PLATFORM' not in env:
-            # cross-compilation platform override
-            env['_PYTHON_HOST_PLATFORM'] = 'macosx-10.9-x86_64'
-        if 'ARCHFLAGS' not in env:
-            # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
-            env['ARCHFLAGS'] = '-arch x86_64'
-        if 'MACOSX_DEPLOYMENT_TARGET' not in env:
-            env['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
+        # Cross-compilation platform override - CPython 3.5 has an
+        # i386/x86_64 version of Python, but we only want a x64_64 build
+        env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
+        # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
+        env.setdefault('ARCHFLAGS', '-arch x86_64')
 
     return env
 
