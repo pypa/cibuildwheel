@@ -115,7 +115,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
         installation_bin_path = install_pypy(python_configuration.version, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
-    
+
     env = os.environ.copy()
     env['PATH'] = os.pathsep.join([
         SYMLINKS_DIR,
@@ -174,15 +174,13 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
     python_configurations = get_python_configurations(build_selector)
 
     for config in python_configurations:
-
         dependency_constraint_flags = []
         if dependency_constraints:
             dependency_constraint_flags = [
                 '-c', dependency_constraints.get_for_python_version(config.version)
             ]
-        
-        env = setup_python(config, dependency_constraint_flags, environment)
 
+        env = setup_python(config, dependency_constraint_flags, environment)
 
         # run the before_build command
         if before_build:
