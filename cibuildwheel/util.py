@@ -78,7 +78,7 @@ def download(url, dest):
         response.close()
 
 
-class DependencyConstraints(object):
+class DependencyConstraints:
     def __init__(self, base_file_path):
         assert os.path.exists(base_file_path)
         self.base_file_path = os.path.abspath(base_file_path)
