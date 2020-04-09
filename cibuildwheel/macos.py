@@ -168,8 +168,6 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
 
 
 def build(options: BuildOptions):
-    abs_project_dir = os.path.abspath(options.project_dir)
-    abs_package_dir = os.path.abspath(options.package_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
@@ -187,14 +185,14 @@ def build(options: BuildOptions):
 
         # run the before_build command
         if options.before_build:
-            before_build_prepared = prepare_command(options.before_build, project=abs_project_dir, package=abs_package_dir)
+            before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
         if os.path.exists(built_wheel_dir):
             shutil.rmtree(built_wheel_dir)
         os.makedirs(built_wheel_dir)
-        call(['pip', 'wheel', abs_package_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
+        call(['pip', 'wheel', options.package_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
         built_wheel = glob(os.path.join(built_wheel_dir, '*.whl'))[0]
 
         # repair the wheel
@@ -230,7 +228,7 @@ def build(options: BuildOptions):
             call(['which', 'python'], env=virtualenv_env)
 
             if options.before_test:
-                before_test_prepared = prepare_command(options.before_test, project=abs_project_dir, package=abs_package_dir)
+                before_test_prepared = prepare_command(options.before_test, project='.', package=options.package_dir)
                 call(before_test_prepared, env=virtualenv_env, shell=True)
 
             # install the wheel
@@ -243,7 +241,11 @@ def build(options: BuildOptions):
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
-            test_command_prepared = prepare_command(options.test_command, project=abs_project_dir, package=abs_package_dir)
+            test_command_prepared = prepare_command(
+                options.test_command,
+                project=os.path.abspath('.'),
+                package=os.path.abspath(options.package_dir)
+            )
             call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
 
             # clean up

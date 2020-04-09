@@ -197,7 +197,6 @@ def main():
         manylinux_images = None
 
     build_options = BuildOptions(
-        project_dir='.',
         package_dir=package_dir,
         output_dir=output_dir,
         test_command=test_command,
