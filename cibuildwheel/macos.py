@@ -12,6 +12,7 @@ from .util import (
     get_build_verbosity_extra_flags,
     prepare_command,
     get_pip_script,
+    BuildOptions
 )
 
 
@@ -166,48 +167,48 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     return env
 
 
-def build(project_dir, output_dir, test_command, before_test, test_requires, test_extras, before_build, build_verbosity, build_selector, repair_command, environment, dependency_constraints):
-    abs_project_dir = os.path.abspath(project_dir)
+def build(options: BuildOptions):
+    abs_project_dir = os.path.abspath(options.project_dir)
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
 
-    python_configurations = get_python_configurations(build_selector)
+    python_configurations = get_python_configurations(options.build_selector)
 
     for config in python_configurations:
         dependency_constraint_flags = []
-        if dependency_constraints:
+        if options.dependency_constraints:
             dependency_constraint_flags = [
-                '-c', dependency_constraints.get_for_python_version(config.version)
+                '-c', options.dependency_constraints.get_for_python_version(config.version)
             ]
-
-        env = setup_python(config, dependency_constraint_flags, environment)
+        
+        env = setup_python(config, dependency_constraint_flags, options.environment)
 
         # run the before_build command
-        if before_build:
-            before_build_prepared = prepare_command(before_build, project=abs_project_dir)
+        if options.before_build:
+            before_build_prepared = prepare_command(options.before_build, project=abs_project_dir)
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
         if os.path.exists(built_wheel_dir):
             shutil.rmtree(built_wheel_dir)
         os.makedirs(built_wheel_dir)
-        call(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(build_verbosity), env=env)
+        call(['pip', 'wheel', abs_project_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
         built_wheel = glob(os.path.join(built_wheel_dir, '*.whl'))[0]
 
         # repair the wheel
         if os.path.exists(repaired_wheel_dir):
             shutil.rmtree(repaired_wheel_dir)
         os.makedirs(repaired_wheel_dir)
-        if built_wheel.endswith('none-any.whl') or not repair_command:
+        if built_wheel.endswith('none-any.whl') or not options.repair_command:
             # pure Python wheel or empty repair command
             shutil.move(built_wheel, repaired_wheel_dir)
         else:
-            repair_command_prepared = prepare_command(repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
+            repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
             call(repair_command_prepared, env=env, shell=True)
         repaired_wheel = glob(os.path.join(repaired_wheel_dir, '*.whl'))[0]
 
-        if test_command:
+        if options.test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
             call(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
@@ -227,26 +228,26 @@ def build(project_dir, output_dir, test_command, before_test, test_requires, tes
             # check that we are using the Python from the virtual environment
             call(['which', 'python'], env=virtualenv_env)
 
-            if before_test:
-                before_test_prepared = prepare_command(before_test, project=abs_project_dir)
+            if options.before_test:
+                before_test_prepared = prepare_command(options.before_test, project=abs_project_dir)
                 call(before_test_prepared, env=virtualenv_env, shell=True)
 
             # install the wheel
-            call(['pip', 'install', repaired_wheel + test_extras], env=virtualenv_env)
+            call(['pip', 'install', repaired_wheel + options.test_extras], env=virtualenv_env)
 
             # test the wheel
-            if test_requires:
-                call(['pip', 'install'] + test_requires, env=virtualenv_env)
+            if options.test_requires:
+                call(['pip', 'install'] + options.test_requires, env=virtualenv_env)
 
             # run the tests from $HOME, with an absolute path in the command
             # (this ensures that Python runs the tests against the installed wheel
             # and not the repo code)
-            test_command_prepared = prepare_command(test_command, project=abs_project_dir)
+            test_command_prepared = prepare_command(options.test_command, project=abs_project_dir)
             call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
 
             # clean up
             shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
-        dst = os.path.join(output_dir, os.path.basename(repaired_wheel))
+        dst = os.path.join(options.output_dir, os.path.basename(repaired_wheel))
         shutil.move(repaired_wheel, dst)

@@ -16,7 +16,8 @@ from cibuildwheel.environment import (
 from cibuildwheel.util import (
     BuildSelector,
     DependencyConstraints,
-    Unbuffered
+    Unbuffered,
+    BuildOptions
 )
 
 
@@ -154,21 +155,6 @@ def main():
         print_build_identifiers(platform, build_selector)
         exit(0)
 
-    build_options = dict(
-        project_dir=project_dir,
-        output_dir=output_dir,
-        test_command=test_command,
-        test_requires=test_requires,
-        test_extras=test_extras,
-        before_build=before_build,
-        build_verbosity=build_verbosity,
-        build_selector=build_selector,
-        repair_command=repair_command,
-        environment=environment,
-        before_test=before_test,
-        dependency_constraints=dependency_constraints,
-    )
-
     if platform == 'linux':
         pinned_docker_images_file = os.path.join(
             os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
@@ -199,9 +185,25 @@ def main():
 
             manylinux_images[build_platform] = image
 
-        build_options.update(
-            manylinux_images=manylinux_images
-        )
+    else:
+        manylinux_images = None
+
+    build_options = BuildOptions(
+        project_dir=project_dir,
+        output_dir=output_dir,
+        test_command=test_command,
+        test_requires=test_requires,
+        test_extras=test_extras,
+        before_build=before_build,
+        build_verbosity=build_verbosity,
+        build_selector=build_selector,
+        repair_command=repair_command,
+        environment=environment,
+        before_test=before_test,
+        dependency_constraints=dependency_constraints,
+        manylinux_images=manylinux_images
+        
+    )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout = Unbuffered(sys.stdout)
@@ -212,11 +214,11 @@ def main():
         os.makedirs(output_dir)
 
     if platform == 'linux':
-        cibuildwheel.linux.build(**build_options)
+        cibuildwheel.linux.build(build_options)
     elif platform == 'windows':
-        cibuildwheel.windows.build(**build_options)
+        cibuildwheel.windows.build(build_options)
     elif platform == 'macos':
-        cibuildwheel.macos.build(**build_options)
+        cibuildwheel.macos.build(build_options)
     else:
         print('cibuildwheel: Unsupported platform: {}'.format(platform), file=sys.stderr)
         exit(2)
@@ -261,7 +263,7 @@ def print_preamble(platform, build_options):
 
     print('Build options:')
     print('  platform: %r' % platform)
-    for option, value in sorted(build_options.items()):
+    for option, value in sorted(build_options._asdict().items()):
         print('  %s: %r' % (option, value))
 
     warnings = detect_warnings(platform, build_options)
@@ -292,7 +294,7 @@ def detect_warnings(platform, build_options):
 
     # warn about deprecated {python} and {pip}
     for option_name in ['test_command', 'before_build']:
-        option_value = build_options.get(option_name)
+        option_value = getattr(build_options, option_name)
 
         if option_value:
             if '{python}' in option_value or '{pip}' in option_value:
