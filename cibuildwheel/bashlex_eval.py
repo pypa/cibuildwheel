@@ -5,9 +5,10 @@ from typing import Dict, List, NamedTuple, Optional
 
 import bashlex  # type: ignore
 
-NodeExecutionContext = NamedTuple('NodeExecutionContext',
-                                  [('environment', Dict[str, str]),
-                                   ('input', str)])
+
+class NodeExecutionContext(NamedTuple):
+    environment: Dict[str, str]
+    input: str
 
 
 def evaluate(value: str, environment: Dict[str, str]) -> str:
@@ -44,7 +45,7 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
     word_start = node.pos[0]
     word_end = node.pos[1]
     word_string = context.input[word_start:word_end]
-    letters = list(word_string)  # type: List[Optional[str]]
+    letters: List[Optional[str]] = list(word_string)
 
     for part in node.parts:
         part_start = part.pos[0] - word_start

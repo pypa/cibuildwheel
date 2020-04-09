@@ -43,7 +43,10 @@ def matches_platform(identifier: str) -> bool:
     return False
 
 
-PythonConfiguration = NamedTuple('PythonConfiguration', [('version', str), ('identifier', str), ('path', str)])
+class PythonConfiguration(NamedTuple):
+    version: str
+    identifier: str
+    path: str
 
 
 def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:

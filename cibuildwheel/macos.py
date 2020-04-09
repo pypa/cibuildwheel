@@ -28,7 +28,10 @@ def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd:
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
 
-PythonConfiguration = NamedTuple('PythonConfiguration', [('version', str), ('identifier', str), ('url', str)])
+class PythonConfiguration(NamedTuple):
+    version: str
+    identifier: str
+    url: str
 
 
 def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:

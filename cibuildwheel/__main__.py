@@ -134,7 +134,7 @@ def main() -> None:
 
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
-        dependency_constraints = DependencyConstraints.with_defaults()  # type: Optional[DependencyConstraints]
+        dependency_constraints: Optional[DependencyConstraints] = DependencyConstraints.with_defaults()
     elif dependency_versions == 'latest':
         dependency_constraints = None
     else:
@@ -169,7 +169,7 @@ def main() -> None:
         print_build_identifiers(platform, build_selector)
         exit(0)
 
-    manylinux_images = None  # type: Optional[Dict[str, str]]
+    manylinux_images: Optional[Dict[str, str]] = None
     if platform == 'linux':
         pinned_docker_images_file = os.path.join(
             os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
@@ -287,14 +287,13 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
 
 
 def print_build_identifiers(platform: str, build_selector: BuildSelector) -> None:
+    python_configurations: List[Any] = []
     if platform == 'linux':
-        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector)  # type: List[Any]
+        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector)
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
     elif platform == 'macos':
         python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
-    else:
-        python_configurations = []
 
     for config in python_configurations:
         print(config.identifier)

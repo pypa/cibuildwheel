@@ -34,7 +34,11 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
     return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
 
 
-PythonConfiguration = NamedTuple('PythonConfiguration', [('version', str), ('arch', str), ('identifier', str), ('url', Optional[str])])
+class PythonConfiguration(NamedTuple):
+    version: str
+    arch: str
+    identifier: str
+    url: Optional[str]
 
 
 def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:

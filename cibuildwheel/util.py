@@ -110,26 +110,21 @@ class DependencyConstraints:
             return self.base_file_path
 
 
-BuildOptions = NamedTuple("BuildOptions", [
-    ("package_dir", str),
-    ("output_dir", str),
-    ("test_command", Optional[str]),
-    ("test_requires", List[str]),
-    ("test_extras", str),
-    ("before_build", Optional[str]),
-    ("build_verbosity", int),
-    ("build_selector", BuildSelector),
-    ("repair_command", str),
-    ("environment", ParsedEnvironment),
-    ("before_test", str),
-    ("dependency_constraints", Optional[DependencyConstraints]),
-    ("manylinux_images", Optional[Dict[str, str]]),
-])
+class BuildOptions(NamedTuple):
+    package_dir: str
+    output_dir: str
+    test_command: Optional[str]
+    test_requires: List[str]
+    test_extras: str
+    before_build: Optional[str]
+    build_verbosity: int
+    build_selector: BuildSelector
+    repair_command: str
+    environment: ParsedEnvironment
+    before_test: str
+    dependency_constraints: Optional[DependencyConstraints]
+    manylinux_images: Optional[Dict[str, str]]
 
-"""
-Replace this definition with a class-style NamedTuple in the
-PEP526 style when Python 3.5 host support is dropped
-"""
 
 resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
 get_pip_script = os.path.join(resources_dir, 'get-pip.py')
