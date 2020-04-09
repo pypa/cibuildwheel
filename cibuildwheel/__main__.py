@@ -202,7 +202,6 @@ def main():
         before_test=before_test,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images
-        
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'

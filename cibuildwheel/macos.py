@@ -181,7 +181,7 @@ def build(options: BuildOptions):
             dependency_constraint_flags = [
                 '-c', options.dependency_constraints.get_for_python_version(config.version)
             ]
-        
+
         env = setup_python(config, dependency_constraint_flags, options.environment)
 
         # run the before_build command

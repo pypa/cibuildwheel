@@ -1,5 +1,4 @@
 import os
-import sys
 import urllib.request
 from fnmatch import fnmatch
 from time import sleep
