@@ -48,26 +48,34 @@ def strtobool(val):
 def main():
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
-        epilog=('Most options are supplied via environment variables. '
-                'See https://github.com/joerick/cibuildwheel#options for info.'))
+        epilog='''
+            Most options are supplied via environment variables.
+            See https://github.com/joerick/cibuildwheel#options for info.
+        ''')
 
     parser.add_argument('--platform',
                         choices=['auto', 'linux', 'macos', 'windows'],
                         default=os.environ.get('CIBW_PLATFORM', 'auto'),
-                        help=('Platform to build for. For "linux" you need docker running, on Mac '
-                              'or Linux. For "macos", you need a Mac machine, and note that this '
-                              'script is going to automatically install MacPython on your system, '
-                              'so don\'t run on your development machine. For "windows", you need to '
-                              'run in Windows, and it will build and test for all versions of '
-                              'Python. Default: auto.'))
+                        help='''
+                            Platform to build for. For "linux" you need docker running, on Mac
+                            or Linux. For "macos", you need a Mac machine, and note that this
+                            script is going to automatically install MacPython on your system,
+                            so don't run on your development machine. For "windows", you need to
+                            run in Windows, and it will build and test for all versions of
+                            Python. Default: auto.
+                        ''')
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
     parser.add_argument('package_dir',
                         default='.',
                         nargs='?',
-                        help=('Path to the package that you want wheels for. Default: the current '
-                              'directory.'))
+                        help='''
+                            Path to the package that you want wheels for. Must be a subdirectory of
+                            the working directory. When set, the working directory is still
+                            considered the 'project' and is copied into the Docker container on
+                            Linux. Default: the working directory.
+                        ''')
 
     parser.add_argument('--print-build-identifiers',
                         action='store_true',
