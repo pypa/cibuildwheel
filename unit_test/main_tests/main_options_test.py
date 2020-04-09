@@ -1,4 +1,5 @@
 import sys
+from fnmatch import fnmatch
 
 import pytest
 
@@ -17,13 +18,13 @@ def test_output_dir(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    assert intercepted_build_args.kwargs['output_dir'] == OUTPUT_DIR
+    assert intercepted_build_args.args[0].output_dir == OUTPUT_DIR
 
 
 def test_output_dir_default(platform, intercepted_build_args, monkeypatch):
     main()
 
-    assert intercepted_build_args.kwargs['output_dir'] == 'wheelhouse'
+    assert intercepted_build_args.args[0].output_dir == 'wheelhouse'
 
 
 @pytest.mark.parametrize('also_set_environment', [False, True])
@@ -36,7 +37,7 @@ def test_output_dir_argument(also_set_environment, platform, intercepted_build_a
 
     main()
 
-    assert intercepted_build_args.kwargs['output_dir'] == OUTPUT_DIR
+    assert intercepted_build_args.args[0].output_dir == OUTPUT_DIR
 
 
 def test_build_selector(platform, intercepted_build_args, monkeypatch):
@@ -48,7 +49,7 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.kwargs['build_selector']
+    intercepted_build_selector = intercepted_build_args.args[0].build_selector
     assert isinstance(intercepted_build_selector, BuildSelector)
     assert intercepted_build_selector('build-this')
     assert not intercepted_build_selector('skip-that')
@@ -57,19 +58,19 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
 
 
 @pytest.mark.parametrize('architecture, image, full_image', [
-    ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64'),
-    ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64'),
-    ('x86_64', 'manylinux2010', 'quay.io/pypa/manylinux2010_x86_64'),
-    ('x86_64', 'manylinux2014', 'quay.io/pypa/manylinux2014_x86_64'),
+    ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64:*'),
+    ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64:*'),
+    ('x86_64', 'manylinux2010', 'quay.io/pypa/manylinux2010_x86_64:*'),
+    ('x86_64', 'manylinux2014', 'quay.io/pypa/manylinux2014_x86_64:*'),
     ('x86_64', 'custom_image', 'custom_image'),
-    ('i686', None, 'quay.io/pypa/manylinux2010_i686'),
-    ('i686', 'manylinux1', 'quay.io/pypa/manylinux1_i686'),
-    ('i686', 'manylinux2010', 'quay.io/pypa/manylinux2010_i686'),
-    ('i686', 'manylinux2014', 'quay.io/pypa/manylinux2014_i686'),
+    ('i686', None, 'quay.io/pypa/manylinux2010_i686:*'),
+    ('i686', 'manylinux1', 'quay.io/pypa/manylinux1_i686:*'),
+    ('i686', 'manylinux2010', 'quay.io/pypa/manylinux2010_i686:*'),
+    ('i686', 'manylinux2014', 'quay.io/pypa/manylinux2014_i686:*'),
     ('i686', 'custom_image', 'custom_image'),
-    ('pypy_x86_64', None, 'pypywheels/manylinux2010-pypy_x86_64'),
+    ('pypy_x86_64', None, 'pypywheels/manylinux2010-pypy_x86_64:*'),
     ('pypy_x86_64', 'manylinux1', 'manylinux1'),  # Does not exist
-    ('pypy_x86_64', 'manylinux2010', 'pypywheels/manylinux2010-pypy_x86_64'),
+    ('pypy_x86_64', 'manylinux2010', 'pypywheels/manylinux2010-pypy_x86_64:*'),
     ('pypy_x86_64', 'manylinux2014', 'manylinux2014'),  # Does not exist (yet)
     ('pypy_x86_64', 'custom_image', 'custom_image'),
 ])
@@ -80,9 +81,12 @@ def test_manylinux_images(architecture, image, full_image, platform, intercepted
     main()
 
     if platform == 'linux':
-        assert intercepted_build_args.kwargs['manylinux_images'][architecture] == full_image
+        assert fnmatch(
+            intercepted_build_args.args[0].manylinux_images[architecture],
+            full_image
+        )
     else:
-        assert 'manylinux_images' not in intercepted_build_args.kwargs
+        assert intercepted_build_args.args[0].manylinux_images is None
 
 
 def get_default_repair_command(platform):
@@ -109,7 +113,7 @@ def test_repair_command(repair_command, platform_specific, platform, intercepted
     main()
 
     expected_repair = repair_command or get_default_repair_command(platform)
-    assert intercepted_build_args.kwargs['repair_command'] == expected_repair
+    assert intercepted_build_args.args[0].repair_command == expected_repair
 
 
 @pytest.mark.parametrize('environment', [
@@ -128,7 +132,7 @@ def test_environment(environment, platform_specific, platform, intercepted_build
 
     main()
 
-    intercepted_environment = intercepted_build_args.kwargs['environment']
+    intercepted_environment = intercepted_build_args.args[0].environment
     assert isinstance(intercepted_environment, ParsedEnvironment)
     assert intercepted_environment.as_dictionary(prev_environment={}) == environment
 
@@ -145,7 +149,7 @@ def test_test_requires(test_requires, platform_specific, platform, intercepted_b
 
     main()
 
-    assert intercepted_build_args.kwargs['test_requires'] == (test_requires or '').split()
+    assert intercepted_build_args.args[0].test_requires == (test_requires or '').split()
 
 
 @pytest.mark.parametrize('test_extras', [None, 'extras'])
@@ -160,7 +164,7 @@ def test_test_extras(test_extras, platform_specific, platform, intercepted_build
 
     main()
 
-    assert intercepted_build_args.kwargs['test_extras'] == ('[' + test_extras + ']' if test_extras else '')
+    assert intercepted_build_args.args[0],test_extras == ('[' + test_extras + ']' if test_extras else '')
 
 
 @pytest.mark.parametrize('test_command', [None, 'test --command'])
@@ -175,7 +179,7 @@ def test_test_command(test_command, platform_specific, platform, intercepted_bui
 
     main()
 
-    assert intercepted_build_args.kwargs['test_command'] == test_command
+    assert intercepted_build_args.args[0].test_command == test_command
 
 
 @pytest.mark.parametrize('before_build', [None, 'before --build'])
@@ -190,7 +194,7 @@ def test_before_build(before_build, platform_specific, platform, intercepted_bui
 
     main()
 
-    assert intercepted_build_args.kwargs['before_build'] == before_build
+    assert intercepted_build_args.args[0].before_build == before_build
 
 
 @pytest.mark.parametrize('build_verbosity', [None, 0, 2, -2, 4, -4])
@@ -206,7 +210,7 @@ def test_build_verbosity(build_verbosity, platform_specific, platform, intercept
     main()
 
     expected_verbosity = max(-3, min(3, int(build_verbosity or 0)))
-    assert intercepted_build_args.kwargs['build_verbosity'] == expected_verbosity
+    assert intercepted_build_args.args[0].build_verbosity == expected_verbosity
 
 
 @pytest.mark.parametrize('option_name', ['CIBW_BUILD', 'CIBW_SKIP'])
@@ -221,7 +225,7 @@ def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_n
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.kwargs['build_selector']
+    intercepted_build_selector = intercepted_build_args.args[0].build_selector
     assert isinstance(intercepted_build_selector, BuildSelector)
 
     if option_name == 'CIBW_BUILD':
