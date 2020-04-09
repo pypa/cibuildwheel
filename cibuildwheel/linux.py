@@ -6,7 +6,7 @@ import sys
 import textwrap
 import uuid
 
-from typing import Callable, List, NamedTuple
+from typing import Callable, List, NamedTuple, Optional, Union
 
 from .util import (
     BuildOptions,
@@ -15,14 +15,14 @@ from .util import (
 )
 
 
-def call(args, input=None, universal_newlines=False):
+def call(args: List[str], input: Optional[Union[str, bytes]] = None, universal_newlines: bool = False) -> None:
     print('+ ' + ' '.join(shlex.quote(a) for a in args))
     subprocess.run(
         args, input=input, universal_newlines=universal_newlines, check=True
     )
 
 
-def matches_platform(identifier):
+def matches_platform(identifier: str) -> bool:
     pm = platform.machine()
     if pm == "x86_64":
         # x86_64 machines can run i686 docker containers
@@ -79,7 +79,7 @@ def get_python_configurations(build_selector: Callable[[str], bool]) -> List[Pyt
     return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
 
 
-def build(options: BuildOptions):
+def build(options: BuildOptions) -> None:
     try:
         subprocess.check_call(['docker', '--version'])
     except Exception:

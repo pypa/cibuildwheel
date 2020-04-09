@@ -8,6 +8,7 @@ from zipfile import ZipFile
 
 from typing import Callable, Dict, List, Optional, NamedTuple
 
+from .environment import ParsedEnvironment
 from .util import (
     BuildOptions,
     download,
@@ -93,7 +94,7 @@ def install_pypy(version: str, arch: str, url: Optional[str]) -> str:
     return installation_path
 
 
-def setup_python(python_configuration, dependency_constraint_flags, environment):
+def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
     nuget = 'C:\\cibw\\nuget.exe'
     if not os.path.exists(nuget):
         download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
@@ -145,7 +146,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     return env
 
 
-def build(options: BuildOptions):
+def build(options: BuildOptions) -> None:
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')

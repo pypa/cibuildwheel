@@ -8,6 +8,7 @@ from glob import glob
 
 from typing import Callable, Dict, List, Optional, NamedTuple, Union
 
+from .environment import ParsedEnvironment
 from .util import (
     BuildOptions,
     download,
@@ -106,7 +107,7 @@ def install_pypy(version: str, url: str) -> str:
     return installation_bin_path
 
 
-def setup_python(python_configuration, dependency_constraint_flags, environment):
+def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
     if python_configuration.identifier.startswith('cp'):
         installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
     elif python_configuration.identifier.startswith('pp'):
@@ -164,7 +165,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     return env
 
 
-def build(options: BuildOptions):
+def build(options: BuildOptions) -> None:
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')

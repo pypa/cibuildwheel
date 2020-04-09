@@ -134,7 +134,7 @@ def main() -> None:
 
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
-        dependency_constraints = DependencyConstraints.with_defaults()
+        dependency_constraints = DependencyConstraints.with_defaults()  # type: Optional[DependencyConstraints]
     elif dependency_versions == 'latest':
         dependency_constraints = None
     else:
@@ -169,6 +169,7 @@ def main() -> None:
         print_build_identifiers(platform, build_selector)
         exit(0)
 
+    manylinux_images = None  # type: Optional[Dict[str, str]]
     if platform == 'linux':
         pinned_docker_images_file = os.path.join(
             os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
@@ -181,8 +182,7 @@ def main() -> None:
         #   'pypy_x86_64': {'manylinux2010': '...' }
         #   ... }
 
-        manylinux_images = {}  # type: Optional[Dict[str, str]]
-        assert manylinux_images is not None  # Weird problem with mypy
+        manylinux_images = {}
 
         for build_platform in ['x86_64', 'i686', 'pypy_x86_64', 'aarch64', 'ppc64le', 's390x']:
             pinned_images = all_pinned_docker_images[build_platform]
@@ -199,9 +199,6 @@ def main() -> None:
                 image = config_value
 
             manylinux_images[build_platform] = image
-
-    else:
-        manylinux_images = None
 
     build_options = BuildOptions(
         package_dir=package_dir,
