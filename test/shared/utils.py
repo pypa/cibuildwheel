@@ -64,8 +64,9 @@ def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
 
     with TemporaryDirectoryIfNone(output_dir) as _output_dir:
         subprocess.check_call(
-            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir), project_path],
+            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir)],
             env=env,
+            cwd=project_path,
         )
         wheels = os.listdir(_output_dir)
     return wheels
