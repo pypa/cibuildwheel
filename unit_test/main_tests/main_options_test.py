@@ -164,7 +164,7 @@ def test_test_extras(test_extras, platform_specific, platform, intercepted_build
 
     main()
 
-    assert intercepted_build_args.args[0],test_extras == ('[' + test_extras + ']' if test_extras else '')
+    assert intercepted_build_args.args[0].test_extras == ('[' + test_extras + ']' if test_extras else '')
 
 
 @pytest.mark.parametrize('test_command', [None, 'test --command'])
