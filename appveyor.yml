@@ -1,4 +1,7 @@
 environment:
+  # workaround an appveyor bug on macos 
+  # see https://github.com/appveyor/ci/issues/3376#issuecomment-611314299
+  APPVEYOR_CONSOLE_DISABLE_PTY: true
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       APPVEYOR_JOB_NAME: "python37-x64-ubuntu"
@@ -6,10 +9,6 @@ environment:
       APPVEYOR_JOB_NAME: "python37-x64-vs2015"
     - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
       APPVEYOR_JOB_NAME: "python37-x64-macos-mojave"
-
-matrix:
-  allow_failures:
-    - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
 
 stack: python 3.7
 
