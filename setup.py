@@ -28,7 +28,7 @@ setup(
         'cibuildwheel': ['resources/*'],
     },
     # Supported python versions
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     keywords='ci wheel packaging pypi travis appveyor macos linux windows',
     classifiers=[
         'Intended Audience :: Developers',
