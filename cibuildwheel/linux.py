@@ -117,9 +117,7 @@ def build(options: BuildOptions):
                   docker_image,
                   '/bin/bash'])
 
-            call(['docker', 'cp',
-                  os.path.abspath(options.project_dir) + '/.',
-                  container_name + ':/project'])
+            call(['docker', 'cp', '.', container_name + ':/project'])
 
             call(['docker', 'start', container_name])
 
@@ -274,12 +272,12 @@ def build(options: BuildOptions):
             call(['docker', 'rm', '--force', '-v', container_name])
 
 
-def troubleshoot(project_dir, error):
+def troubleshoot(package_dir, error):
     if (isinstance(error, subprocess.CalledProcessError) and 'exec' in error.cmd):
         # the bash script failed
         print('Checking for common errors...')
         so_files = []
-        for root, dirs, files in os.walk(project_dir):
+        for root, dirs, files in os.walk(package_dir):
             for name in files:
                 _, ext = os.path.splitext(name)
                 if ext == '.so':
