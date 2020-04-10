@@ -260,7 +260,8 @@ def build(options: BuildOptions):
             call(['docker', 'cp',
                   container_name + ':/output/.',
                   os.path.abspath(options.output_dir)])
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as error:
+            troubleshoot(options.project_dir, error)
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
