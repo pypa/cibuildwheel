@@ -41,13 +41,15 @@ def cibuildwheel_get_build_identifiers(project_path, env=None):
     return cmd_output.strip().split('\n')
 
 
-def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
+def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, output_dir=None):
     '''
     Runs cibuildwheel as a subprocess, building the project at project_path.
 
     Uses the current Python interpreter.
 
     :param project_path: path of the project to be built.
+    :param package_dir: path of the package to be built. Can be absolute, or
+    relative to project_path.
     :param env: full environment to be used, os.environ if None
     :param add_env: environment used to update env
     :param output_dir: directory where wheels are saved. If None, a temporary
@@ -64,7 +66,7 @@ def cibuildwheel_run(project_path, env=None, add_env=None, output_dir=None):
 
     with TemporaryDirectoryIfNone(output_dir) as _output_dir:
         subprocess.check_call(
-            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir)],
+            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir), package_dir],
             env=env,
             cwd=project_path,
         )
