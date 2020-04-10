@@ -6,22 +6,22 @@ branches:
 
 jobs:
   include:
-    - name: Linux | x86_64 + i686 | Python 3.5
+    - name: Linux | x86_64 + i686 | Python 3.6
       language: python
-      python: 3.5
+      python: 3.6
       services: docker
       env: PYTHON=python
 
-    - name: Linux | arm64 | Python 3.5
+    - name: Linux | arm64 | Python 3.6
       language: python
-      python: 3.5
+      python: 3.6
       services: docker
       arch: arm64
       env: PYTHON=python
 
-    - name: Linux | ppc64le | Python 3.5
+    - name: Linux | ppc64le | Python 3.6
       language: python
-      python: 3.5
+      python: 3.6
       services: docker
       arch: ppc64le
       env: PYTHON=python
@@ -30,25 +30,25 @@ jobs:
       os: osx
       env: PYTHON=python3
 
-    - name: Windows | x86_64 | Python 3.5
+    - name: Windows | x86_64 | Python 3.6
       os: windows
       language: shell
       before_install:
-       - choco install python3 --version 3.5.4 --no-progress -y
+       - choco install python3 --version 3.6.8 --no-progress -y
       env:
-        - PYTHON=C:\\Python35\\python
+        - PYTHON=C:\\Python36\\python
 
-    - &linux_s390x_35
-      name: Linux | s390x | Python 3.5
+    - &linux_s390x_36
+      name: Linux | s390x | Python 365
       language: python
-      python: 3.5
+      python: 3.6
       services: docker
       arch: s390x
       env: PYTHON=python
 
   allow_failures:
     # must repeat the s390x job above exactly to match
-    - *linux_s390x_35
+    - *linux_s390x_36
 
 install: $PYTHON -m pip install -r requirements-dev.txt
 
