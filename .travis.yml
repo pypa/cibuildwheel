@@ -39,7 +39,7 @@ jobs:
         - PYTHON=C:\\Python36\\python
 
     - &linux_s390x_36
-      name: Linux | s390x | Python 365
+      name: Linux | s390x | Python 3.6
       language: python
       python: 3.6
       services: docker

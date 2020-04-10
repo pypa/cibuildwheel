@@ -82,9 +82,8 @@ def install_cpython(version: str, arch: str, nuget: str) -> str:
     return installation_path
 
 
-def install_pypy(version: str, arch: str, url: Optional[str]) -> str:
+def install_pypy(version: str, arch: str, url: str) -> str:
     assert arch == '32'
-    assert url is not None
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit('/', 1)[-1]
     installation_path = os.path.join('C:\\cibw', os.path.splitext(zip_filename)[0])
@@ -106,6 +105,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     if python_configuration.identifier.startswith('cp'):
         installation_path = install_cpython(python_configuration.version, python_configuration.arch, nuget)
     elif python_configuration.identifier.startswith('pp'):
+        assert python_configuration.url is not None
         installation_path = install_pypy(python_configuration.version, python_configuration.arch, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")

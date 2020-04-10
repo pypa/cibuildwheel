@@ -1,7 +1,7 @@
 import shlex
 import subprocess
 
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, NamedTuple
 
 import bashlex  # type: ignore
 
@@ -45,7 +45,7 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
     word_start = node.pos[0]
     word_end = node.pos[1]
     word_string = context.input[word_start:word_end]
-    letters: List[Optional[str]] = list(word_string)
+    letters = list(word_string)
 
     for part in node.parts:
         part_start = part.pos[0] - word_start
@@ -53,12 +53,12 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
 
         # Set all the characters in the part to None
         for i in range(part_start, part_end):
-            letters[i] = None
+            letters[i] = ''
 
         letters[part_start] = evaluate_node(part, context=context)
 
     # remove the None letters and concat
-    value = ''.join(l for l in letters if l is not None)
+    value = ''.join(letters)
 
     # apply bash-like quotes/whitespace treatment
     return ' '.join(word.strip() for word in shlex.split(value))

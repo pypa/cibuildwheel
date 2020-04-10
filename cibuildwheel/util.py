@@ -3,7 +3,7 @@ import urllib.request
 from fnmatch import fnmatch
 from time import sleep
 
-from typing import Dict, List, NamedTuple, Optional, Type, TypeVar
+from typing import Dict, List, NamedTuple, Optional
 
 from .environment import ParsedEnvironment
 
@@ -82,17 +82,14 @@ def download(url: str, dest: str) -> None:
         response.close()
 
 
-DependencyConstraints_T = TypeVar('DependencyConstraints_T', bound='DependencyConstraints')
-
-
 class DependencyConstraints:
     def __init__(self, base_file_path: str):
         assert os.path.exists(base_file_path)
         self.base_file_path = os.path.abspath(base_file_path)
 
-    @classmethod
-    def with_defaults(cls: Type[DependencyConstraints_T]) -> DependencyConstraints_T:
-        return cls(
+    @staticmethod
+    def with_defaults() -> 'DependencyConstraints':
+        return DependencyConstraints(
             base_file_path=os.path.join(os.path.dirname(__file__), 'resources', 'constraints.txt')
         )
 
