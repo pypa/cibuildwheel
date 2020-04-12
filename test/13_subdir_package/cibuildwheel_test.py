@@ -4,7 +4,7 @@ import utils
 project_dir = os.path.dirname(__file__)
 
 
-def test():
+def test(capfd):
     package_dir = os.path.join(project_dir, 'src', 'spam')
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, package_dir=package_dir, add_env={
@@ -19,3 +19,7 @@ def test():
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                        if 'cp36' in w]
     assert set(actual_wheels) == set(expected_wheels)
+
+    captured = capfd.readouterr()
+    assert "before_build.py executed!" in captured.out
+    assert "run_tests.py executed!" in captured.out
