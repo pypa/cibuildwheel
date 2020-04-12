@@ -127,6 +127,7 @@ Here are some repos that use cibuildwheel.
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
 - [Twisted](https://github.com/twisted/twisted)
 - [gmic-py](https://github.com/dtschump/gmic-py)
+- [creme](https://github.com/creme-ml/creme)
 
 > Add your repo here! Send a PR.
 
