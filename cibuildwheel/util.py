@@ -107,7 +107,7 @@ class DependencyConstraints:
 
 
 BuildOptions = NamedTuple("BuildOptions", [
-    ("project_dir", str),
+    ("package_dir", str),
     ("output_dir", str),
     ("test_command", Optional[str]),
     ("test_requires", List[str]),

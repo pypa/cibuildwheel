@@ -96,12 +96,18 @@ def build(options: BuildOptions):
         ('pp', 'manylinux_x86_64', options.manylinux_images['pypy_x86_64']),
     ]
 
+    if not os.path.realpath(options.package_dir).startswith(os.path.realpath('.')):
+        raise Exception('package_dir must be inside the working directory')
+
+    container_package_dir = os.path.join('/project', os.path.relpath(options.package_dir, '.'))
+
     for implementation, platform_tag, docker_image in platforms:
         platform_configs = [c for c in python_configurations if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)]
         if not platform_configs:
             continue
 
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+
         try:
             call(['docker', 'create',
                   '--env', 'CIBUILDWHEEL',
@@ -111,9 +117,7 @@ def build(options: BuildOptions):
                   docker_image,
                   '/bin/bash'])
 
-            call(['docker', 'cp',
-                  os.path.abspath(options.project_dir) + '/.',
-                  container_name + ':/project'])
+            call(['docker', 'cp', '.', container_name + ':/project'])
 
             call(['docker', 'start', container_name])
 
@@ -165,7 +169,7 @@ def build(options: BuildOptions):
                         # Build the wheel
                         rm -rf /tmp/built_wheel
                         mkdir /tmp/built_wheel
-                        pip wheel . -w /tmp/built_wheel --no-deps {build_verbosity_flag}
+                        pip wheel {package_dir} -w /tmp/built_wheel --no-deps {build_verbosity_flag}
                         built_wheel=(/tmp/built_wheel/*.whl)
 
                         # repair the wheel
@@ -234,13 +238,14 @@ def build(options: BuildOptions):
                         done
                     '''.format(
                         config_python_bin=config.path + '/bin',
+                        package_dir=container_package_dir,
                         test_requires=' '.join(options.test_requires),
                         test_extras=options.test_extras,
                         test_command=shlex.quote(
-                            prepare_command(options.test_command, project='/project') if options.test_command else ''
+                            prepare_command(options.test_command, project='/project', package=container_package_dir) if options.test_command else ''
                         ),
                         before_build=shlex.quote(
-                            prepare_command(options.before_build, project='/project') if options.before_build else ''
+                            prepare_command(options.before_build, project='/project', package=container_package_dir) if options.before_build else ''
                         ),
                         build_verbosity_flag=' '.join(get_build_verbosity_extra_flags(options.build_verbosity)),
                         repair_command=shlex.quote(
@@ -250,7 +255,7 @@ def build(options: BuildOptions):
                         uid=os.getuid(),
                         gid=os.getgid(),
                         before_test=shlex.quote(
-                            prepare_command(options.before_test, project='/project') if options.before_test else ''
+                            prepare_command(options.before_test, project='/project', package=container_package_dir) if options.before_test else ''
                         ),
                         dependency_install_flags='-c /constraints.txt' if options.dependency_constraints else '',
                     )
@@ -268,12 +273,12 @@ def build(options: BuildOptions):
             call(['docker', 'rm', '--force', '-v', container_name])
 
 
-def troubleshoot(project_dir, error):
+def troubleshoot(package_dir, error):
     if (isinstance(error, subprocess.CalledProcessError) and 'exec' in error.cmd):
         # the bash script failed
         print('Checking for common errors...')
         so_files = []
-        for root, dirs, files in os.walk(project_dir):
+        for root, dirs, files in os.walk(package_dir):
             for name in files:
                 _, ext = os.path.splitext(name)
                 if ext == '.so':

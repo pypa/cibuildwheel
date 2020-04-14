@@ -4,7 +4,7 @@ import pytest
 
 from cibuildwheel.__main__ import main
 
-from conftest import MOCK_PROJECT_DIR  # noqa: I100
+from conftest import MOCK_PACKAGE_DIR  # noqa: I100
 
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):
@@ -12,6 +12,7 @@ def test_unknown_platform_non_ci(monkeypatch, capsys):
     monkeypatch.delenv('BITRISE_BUILD_NUMBER', raising=False)
     monkeypatch.delenv('AZURE_HTTP_USER_AGENT', raising=False)
     monkeypatch.delenv('GITHUB_WORKFLOW', raising=False)
+    monkeypatch.delenv('CIBW_PLATFORM', raising=False)
 
     with pytest.raises(SystemExit) as exit:
         main()
@@ -25,6 +26,7 @@ def test_unknown_platform_non_ci(monkeypatch, capsys):
 def test_unknown_platform_on_ci(monkeypatch, capsys):
     monkeypatch.setenv('CI', 'true')
     monkeypatch.setattr(sys, 'platform', 'nonexistent')
+    monkeypatch.delenv('CIBW_PLATFORM', raising=False)
 
     with pytest.raises(SystemExit) as exit:
         main()
@@ -51,10 +53,10 @@ def test_platform_argument(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    assert intercepted_build_args.args[0].project_dir == MOCK_PROJECT_DIR
+    assert intercepted_build_args.args[0].package_dir == MOCK_PACKAGE_DIR
 
 
 def test_platform_environment(platform, intercepted_build_args, monkeypatch):
     main()
 
-    assert intercepted_build_args.args[0].project_dir == MOCK_PROJECT_DIR
+    assert intercepted_build_args.args[0].package_dir == MOCK_PACKAGE_DIR

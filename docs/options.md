@@ -199,7 +199,7 @@ A shell command to run before building the wheel. This option allows you to run 
 
 If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `pip install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
 
-The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
+The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
@@ -217,8 +217,11 @@ CIBW_BEFORE_BUILD: pip install pybind11
 # chain commands using &&
 CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
 
-# run a script that's inside your repo
+# run a script that's inside your project
 CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
+
+# if cibuildwheel is called with a package_dir argument, it's available as {package}
+CIBW_BEFORE_BUILD: "{package}/bin/prepare_for_build.sh"
 ```
 
 
@@ -348,7 +351,10 @@ CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
 ### `CIBW_TEST_COMMAND` {: #test-command}
 > Execute a shell command to test each built wheel
 
-Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
+Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. To ensure the wheel is imported by your tests (instead of your source copy), tests are run from a different directory. Use the placeholders `{project}` and `{package}` when specifying paths in your project.
+
+- `{project}` is an absolute path to the project root - the working directory where cibuildwheel was called.
+- `{package}` is the path to the package being built - the `package_dir` argument supplied to cibuildwheel on the command line.
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
@@ -361,8 +367,8 @@ Platform-specific variants also available:<br/>
 # run the project tests against the installed wheel using `nose`
 CIBW_TEST_COMMAND: nosetests {project}/tests
 
-# run the project tests using `pytest`
-CIBW_TEST_COMMAND: pytest {project}/tests
+# run the package tests using `pytest`
+CIBW_TEST_COMMAND: pytest {package}/tests
 ```
 
 
@@ -411,7 +417,7 @@ CIBW_TEST_EXTRAS: test,qt
 A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install a non pip package, change values of environment variables
 or perform multi step pip installation (e.g. installing `scikit-build` or `cython` before install test package)
 
-The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. `{project}` can be used as a placeholder for the absolute path to the project's root and will be replaced by `cibuildwheel`.
+The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
@@ -456,13 +462,16 @@ CIBW_BUILD_VERBOSITY: 1
 ```text
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--output-dir OUTPUT_DIR] [--print-build-identifiers]
-                    [project_dir]
+                    [package_dir]
 
 Build wheels for all the platforms.
 
 positional arguments:
-  project_dir           Path to the project that you want wheels for.
-                        Default: the current directory.
+  package_dir           Path to the package that you want wheels for. Must be
+                        a subdirectory of the working directory. When set, the
+                        working directory is still considered the 'project'
+                        and is copied into the Docker container on Linux.
+                        Default: the working directory.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -473,13 +482,12 @@ optional arguments:
                         automatically install MacPython on your system, so
                         don't run on your development machine. For "windows",
                         you need to run in Windows, and it will build and test
-                        for all versions of Python at C:\PythonXX[-x64].
+                        for all versions of Python. Default: auto.
   --output-dir OUTPUT_DIR
                         Destination folder for the wheels.
   --print-build-identifiers
                         Print the build identifiers matched by the current
                         invocation and exit.
-
 ```
 
 <style>
