@@ -47,8 +47,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.8.2', arch='32', identifier='cp38-win32', url=None),
         PythonConfiguration(version='3.8.2', arch='64', identifier='cp38-win_amd64', url=None),
         # PyPy
-        PythonConfiguration(version='2.7', arch='32', identifier='pp27-win32', url='https://github.com/joerick/cibuildwheel-resources/releases/download/1/pypy2.7-v7.3.1-win32.zip'),
-        PythonConfiguration(version='3.6', arch='32', identifier='pp36-win32', url='https://github.com/joerick/cibuildwheel-resources/releases/download/1/pypy3.6-v7.3.1-win32.zip'),
+        PythonConfiguration(version='2.7', arch='32', identifier='pp27-win32', url='https://downloads.python.org/pypy/pypy2.7-v7.3.1-win32.zip'),
+        PythonConfiguration(version='3.6', arch='32', identifier='pp36-win32', url='https://downloads.python.org/pypy/pypy3.6-v7.3.1-win32.zip'),
     ]
 
     if IS_RUNNING_ON_TRAVIS:
