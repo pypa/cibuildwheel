@@ -36,8 +36,8 @@ def get_python_configurations(build_selector):
     PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'url'])
     python_configurations = [
         # CPython
-        PythonConfiguration(version='2.7.17', arch='32', identifier='cp27-win32', url=None),
-        PythonConfiguration(version='2.7.17', arch='64', identifier='cp27-win_amd64', url=None),
+        PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),
+        PythonConfiguration(version='2.7.18', arch='64', identifier='cp27-win_amd64', url=None),
         PythonConfiguration(version='3.5.4', arch='32', identifier='cp35-win32', url=None),
         PythonConfiguration(version='3.5.4', arch='64', identifier='cp35-win_amd64', url=None),
         PythonConfiguration(version='3.6.8', arch='32', identifier='cp36-win32', url=None),
