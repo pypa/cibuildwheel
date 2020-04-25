@@ -42,8 +42,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.5.4', arch='64', identifier='cp35-win_amd64', url=None),
         PythonConfiguration(version='3.6.8', arch='32', identifier='cp36-win32', url=None),
         PythonConfiguration(version='3.6.8', arch='64', identifier='cp36-win_amd64', url=None),
-        PythonConfiguration(version='3.7.6', arch='32', identifier='cp37-win32', url=None),
-        PythonConfiguration(version='3.7.6', arch='64', identifier='cp37-win_amd64', url=None),
+        PythonConfiguration(version='3.7.7', arch='32', identifier='cp37-win32', url=None),
+        PythonConfiguration(version='3.7.7', arch='64', identifier='cp37-win_amd64', url=None),
         PythonConfiguration(version='3.8.2', arch='32', identifier='cp38-win32', url=None),
         PythonConfiguration(version='3.8.2', arch='64', identifier='cp38-win_amd64', url=None),
         # PyPy
