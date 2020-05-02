@@ -1,9 +1,18 @@
 import os
 import platform
+import textwrap
 
 import utils
 
 project_dir = os.path.dirname(__file__)
+
+project_spec = TemplateProjectC(
+    setup_py_add=textwrap.dedent('''
+        import os
+        if os.environ.get("CIBUILDWHEEL", "0") != "1":
+            raise Exception("CIBUILDWHEEL environment variable is not set to 1")
+    ''')
+)
 
 
 def test():

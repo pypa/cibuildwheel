@@ -4,7 +4,36 @@ import pytest
 import textwrap
 import cibuildwheel.util
 
-import utils
+from . import utils
+from .template_projects import CTemplateProject
+
+
+project_with_expected_version_checks = CTemplateProject(
+    setup_py_add=textwrap.dedent(r'''
+        import subprocess
+        import os
+
+        versions_output_text = subprocess.check_output(
+            ['pip', 'freeze', '--all', '-qq'],
+            universal_newlines=True,
+        )
+        versions = versions_output_text.strip().splitlines()
+
+        # `versions` now looks like:
+        # ['pip==x.x.x', 'setuptools==x.x.x', 'wheel==x.x.x']
+
+        print('Gathered versions', versions)
+
+        for package_name in ['pip', 'setuptools', 'wheel']:
+            env_name = 'EXPECTED_{}_VERSION'.format(package_name.upper())
+            expected_version = os.environ[env_name]
+
+            assert '{}=={}'.format(package_name, expected_version) in versions, (
+                'error: {} version should equal {}'.format(package_name, expected_version)
+            )
+    ''')
+)
+
 
 VERSION_REGEX = r'([\w-]+)==([^\s]+)'
 
@@ -22,11 +51,12 @@ def get_versions_from_constraint_file(constraint_file):
 
 
 @pytest.mark.parametrize('python_version', ['2.7', '3.5', '3.8'])
-def test_pinned_versions(python_version):
+def test_pinned_versions(tmpdir, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    project_dir = os.path.dirname(__file__)
+    project_dir = str(tmpdir)
+    project_with_expected_version_checks.generate(project_dir)
 
     build_environment = {}
 
@@ -78,7 +108,8 @@ def test_dependency_constraints_file(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    project_dir = os.path.dirname(__file__)
+    project_dir = str(tmp_path / 'project')
+    project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
         'pip': '20.0.2',
