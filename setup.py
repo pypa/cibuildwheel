@@ -13,7 +13,7 @@ with io.open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='cibuildwheel',
-    version='1.3.0',
+    version='1.4.0',
     install_requires=['bashlex!=0.13'],
     description="Build Python wheels on CI with minimal configuration.",
     long_description=long_description,
