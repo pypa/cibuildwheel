@@ -22,9 +22,11 @@ However, to enable modern C++ standards, the deploment target needs to be set hi
 
 To get C++11 and C++14 support, `MACOSX_DEPLOYMENT_TARGET` needs to be set to (at least) `"10.9"`. By default, `cibuildwheel` already does this, building 64-bit-only wheels for macOS 10.9 and later.
 
-To get C++17 support, set `MACOSX_DEPLOYMENT_TARGET` to (at least) `"10.13"` or `"10.14"` (macOS 10.13 offers partial C++17 support; e.g., the filesystem header is in experimental, offering `#include <experimental/filesystem>` instead of `#include <filesystem>`; macOS 10.14 has full C++17 support).
+To get C++17 support, Xcode 9.3+ is needed, requiring at least macOS 10.13 on the build machine. To use C++17 library features and link against the C++ runtime library, set `MACOSX_DEPLOYMENT_TARGET` to `"10.13"` or `"10.14"` (or higher) - macOS 10.13 offers partial C++17 support (e.g., the filesystem header is in experimental, offering `#include <experimental/filesystem>` instead of `#include <filesystem>`); macOS 10.14 has full C++17 support.
 
-For more details see https://en.cppreference.com/w/cpp/compiler_support and https://xcodereleases.com/: Xcode 10 needs macOS 10.13 and Xcode 11 needs macOS 10.14.
+However, if only C++17 compiler and standard template library (STL) features are used (not needing a C++17 runtime) it might be possible to set `MACOSX_DEPLOYMENT_TARGET` to a lower value, such as `"10.9"`. To find out if this is the case, try compiling and running with a lower `MACOSX_DEPLOYMENT_TARGET`: if C++17 features are used that require a more recent deployment target, building the wheel should fail.
+
+For more details see https://en.cppreference.com/w/cpp/compiler_support, https://en.wikipedia.org/wiki/Xcode, and https://xcodereleases.com/: Xcode 10 needs macOS 10.13 and Xcode 11 needs macOS 10.14.
 
 ## Windows and Python 2.7
 
