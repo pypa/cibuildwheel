@@ -20,11 +20,11 @@ def git_repo_has_changes():
 
 
 @click.command()
-def main(force):
+def main():
     project_root = Path(__file__).parent / '..'
     os.chdir(project_root)
 
-    if git_repo_has_changes() and not force:
+    if git_repo_has_changes():
         print('Your git repo has uncommitted changes. Commit or stash before continuing.')
         exit(1)
 
@@ -41,7 +41,7 @@ def main(force):
     shell(f'git checkout -b {branch_name} origin/master', check=True)
 
     try:
-        shell('bin/update_constraints.py', check=True)
+        shell('bin/update_dependencies.py', check=True)
 
         if not git_repo_has_changes():
             print('Done: no constraint updates required.')

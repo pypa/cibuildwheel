@@ -16,7 +16,8 @@ from cibuildwheel.environment import (
 from cibuildwheel.util import (
     BuildSelector,
     DependencyConstraints,
-    Unbuffered
+    Unbuffered,
+    BuildOptions
 )
 
 
@@ -47,26 +48,34 @@ def strtobool(val):
 def main():
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
-        epilog=('Most options are supplied via environment variables. '
-                'See https://github.com/joerick/cibuildwheel#options for info.'))
+        epilog='''
+            Most options are supplied via environment variables.
+            See https://github.com/joerick/cibuildwheel#options for info.
+        ''')
 
     parser.add_argument('--platform',
                         choices=['auto', 'linux', 'macos', 'windows'],
                         default=os.environ.get('CIBW_PLATFORM', 'auto'),
-                        help=('Platform to build for. For "linux" you need docker running, on Mac '
-                              'or Linux. For "macos", you need a Mac machine, and note that this '
-                              'script is going to automatically install MacPython on your system, '
-                              'so don\'t run on your development machine. For "windows", you need to '
-                              'run in Windows, and it will build and test for all versions of '
-                              'Python. Default: auto.'))
+                        help='''
+                            Platform to build for. For "linux" you need docker running, on Mac
+                            or Linux. For "macos", you need a Mac machine, and note that this
+                            script is going to automatically install MacPython on your system,
+                            so don't run on your development machine. For "windows", you need to
+                            run in Windows, and it will build and test for all versions of
+                            Python. Default: auto.
+                        ''')
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
-    parser.add_argument('project_dir',
+    parser.add_argument('package_dir',
                         default='.',
                         nargs='?',
-                        help=('Path to the project that you want wheels for. Default: the current '
-                              'directory.'))
+                        help='''
+                            Path to the package that you want wheels for. Must be a subdirectory of
+                            the working directory. When set, the working directory is still
+                            considered the 'project' and is copied into the Docker container on
+                            Linux. Default: the working directory.
+                        ''')
 
     parser.add_argument('--print-build-identifiers',
                         action='store_true',
@@ -103,7 +112,7 @@ def main():
     test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
-    project_dir = args.project_dir
+    package_dir = args.package_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
@@ -146,28 +155,13 @@ def main():
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    if not os.path.exists(os.path.join(project_dir, 'setup.py')):
-        print('cibuildwheel: Could not find setup.py at root of project', file=sys.stderr)
+    if not os.path.exists(os.path.join(package_dir, 'setup.py')):
+        print('cibuildwheel: Could not find setup.py at root of package', file=sys.stderr)
         exit(2)
 
     if args.print_build_identifiers:
         print_build_identifiers(platform, build_selector)
         exit(0)
-
-    build_options = dict(
-        project_dir=project_dir,
-        output_dir=output_dir,
-        test_command=test_command,
-        test_requires=test_requires,
-        test_extras=test_extras,
-        before_build=before_build,
-        build_verbosity=build_verbosity,
-        build_selector=build_selector,
-        repair_command=repair_command,
-        environment=environment,
-        before_test=before_test,
-        dependency_constraints=dependency_constraints,
-    )
 
     if platform == 'linux':
         pinned_docker_images_file = os.path.join(
@@ -199,9 +193,24 @@ def main():
 
             manylinux_images[build_platform] = image
 
-        build_options.update(
-            manylinux_images=manylinux_images
-        )
+    else:
+        manylinux_images = None
+
+    build_options = BuildOptions(
+        package_dir=package_dir,
+        output_dir=output_dir,
+        test_command=test_command,
+        test_requires=test_requires,
+        test_extras=test_extras,
+        before_build=before_build,
+        build_verbosity=build_verbosity,
+        build_selector=build_selector,
+        repair_command=repair_command,
+        environment=environment,
+        before_test=before_test,
+        dependency_constraints=dependency_constraints,
+        manylinux_images=manylinux_images,
+    )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout = Unbuffered(sys.stdout)
@@ -212,11 +221,11 @@ def main():
         os.makedirs(output_dir)
 
     if platform == 'linux':
-        cibuildwheel.linux.build(**build_options)
+        cibuildwheel.linux.build(build_options)
     elif platform == 'windows':
-        cibuildwheel.windows.build(**build_options)
+        cibuildwheel.windows.build(build_options)
     elif platform == 'macos':
-        cibuildwheel.macos.build(**build_options)
+        cibuildwheel.macos.build(build_options)
     else:
         print('cibuildwheel: Unsupported platform: {}'.format(platform), file=sys.stderr)
         exit(2)
@@ -261,7 +270,7 @@ def print_preamble(platform, build_options):
 
     print('Build options:')
     print('  platform: %r' % platform)
-    for option, value in sorted(build_options.items()):
+    for option, value in sorted(build_options._asdict().items()):
         print('  %s: %r' % (option, value))
 
     warnings = detect_warnings(platform, build_options)
@@ -292,7 +301,7 @@ def detect_warnings(platform, build_options):
 
     # warn about deprecated {python} and {pip}
     for option_name in ['test_command', 'before_build']:
-        option_value = build_options.get(option_name)
+        option_value = getattr(build_options, option_name)
 
         if option_value:
             if '{python}' in option_value or '{pip}' in option_value:

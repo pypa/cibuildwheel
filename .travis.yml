@@ -1,5 +1,9 @@
 language: minimal
 
+branches:
+  only:
+  - master
+
 jobs:
   include:
     - name: Linux | x86_64 + i686 | Python 3.5
