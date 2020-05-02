@@ -266,7 +266,7 @@ def build(options: BuildOptions):
                   container_name + ':/output/.',
                   os.path.abspath(options.output_dir)])
         except subprocess.CalledProcessError as error:
-            troubleshoot(options.project_dir, error)
+            troubleshoot(options.package_dir, error)
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
