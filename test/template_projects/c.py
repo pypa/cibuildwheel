@@ -1,26 +1,30 @@
 import textwrap
+import jinja2
+from .base import TemplateProject
 
-def indent(str, level):
-    return str
 
-def CTemplateProject(TemplateProject):
-    files = {
-        'spam.c': textwrap.dedent(fr'''
+class CTemplateProject(TemplateProject):
+    default_files = {
+        'spam.c': jinja2.Template(textwrap.dedent(r'''
             #include <Python.h>
 
-            {spam_c_top_level_add}
+            {{ spam_c_top_level_add }}
 
             static PyObject *
             spam_system(PyObject *self, PyObject *args)
-            {{
+            {
                 const char *command;
                 int sts;
+
                 if (!PyArg_ParseTuple(args, "s", &command))
                     return NULL;
+
                 sts = system(command);
-                {indent(spam_c_function_add, 4)}
+
+                {{ spam_c_function_add | indent(4) }}
+
                 return PyLong_FromLong(sts);
-            }}
+            }
 
             /* Module initialization */
 
@@ -56,5 +60,22 @@ def CTemplateProject(TemplateProject):
 
                 MOD_RETURN(m)
             }
-            ''')
+        ''')),
+        'setup.py': jinja2.Template(textwrap.dedent(r'''
+            from setuptools import setup, Extension
+
+            {{ setup_py_add }}
+
+            setup(
+                name="spam",
+                ext_modules=[Extension("spam", sources=["spam.c"])],
+                version="0.1.0",
+                {{ setup_py_setup_args_add | indent(4) }}
+            )
+        '''))
     }
+
+    def __init__(self, spam_c_top_level_add, spam_c_function_add, setup_py_add,
+                 setup_py_setup_args_add, extra_files):
+        super().__init__(extra_files)
+        self.context = {}
