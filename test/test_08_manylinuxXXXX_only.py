@@ -1,4 +1,8 @@
-import os, pytest, textwrap, platform
+import platform
+import textwrap
+
+import pytest
+
 from . import utils
 from .template_projects import CTemplateProject
 

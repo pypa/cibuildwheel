@@ -1,6 +1,5 @@
-import os
+from .template_projects.c import CTemplateProject
 from . import utils
-from test.template_projects.c import CTemplateProject
 
 before_test_project = CTemplateProject()
 before_test_project.files['test/spam_test.py'] = r'''
@@ -33,6 +32,7 @@ class TestBeforeTest(TestCase):
 
         assert os.stat(stored_prefix) == os.stat(sys.prefix)
 '''
+
 
 def test(tmpdir):
     project_dir = str(tmpdir)

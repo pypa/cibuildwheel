@@ -1,7 +1,7 @@
-import os, textwrap
+import textwrap
+
 from . import utils
 from .template_projects import CTemplateProject
-
 
 project_with_before_build_asserts = CTemplateProject(
     setup_py_add=textwrap.dedent(r'''

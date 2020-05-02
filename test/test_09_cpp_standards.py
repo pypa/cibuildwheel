@@ -1,15 +1,16 @@
 import os
 import textwrap
 
+import jinja2
 import pytest
 
 from . import utils
 from .template_projects import SetuptoolsTemplateProject
-import jinja2
 
 cpp_project = SetuptoolsTemplateProject(
     setup_py_add='''ext_modules=[Extension('spam', sources=['spam.cpp'])],'''
 )
+
 cpp_project.files['spam.cpp'] = jinja2.Template(r'''
 #include <Python.h>
 
@@ -63,7 +64,6 @@ MOD_INIT(spam)
 }
 ''')
 
-project_dir = os.path.dirname(__file__)
 
 def test_cpp11(tmpdir):
     # This test checks that the C++11 standard is supported

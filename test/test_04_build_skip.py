@@ -1,7 +1,7 @@
-import os, textwrap
+import textwrap
+
 from . import utils
 from .template_projects import CTemplateProject
-
 
 project_with_skip_asserts = CTemplateProject(
     setup_py_add=textwrap.dedent(r'''
@@ -12,6 +12,7 @@ project_with_skip_asserts = CTemplateProject(
             raise Exception("Python 3.7 should be skipped")
     ''')
 )
+
 
 def test(tmpdir):
     project_dir = str(tmpdir)

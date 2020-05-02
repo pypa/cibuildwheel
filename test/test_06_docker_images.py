@@ -1,7 +1,10 @@
-import os, pytest, textwrap
+import platform
+import textwrap
+
+import pytest
+
 from . import utils
 from .template_projects import CTemplateProject
-
 
 dockcross_only_project = CTemplateProject(
     setup_py_add=textwrap.dedent(r'''
@@ -15,6 +18,7 @@ dockcross_only_project = CTemplateProject(
             )
     ''')
 )
+
 
 def test(tmpdir):
     if utils.platform != 'linux':

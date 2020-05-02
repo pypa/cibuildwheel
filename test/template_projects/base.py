@@ -1,7 +1,7 @@
 import os
 import io
 import jinja2
-from typing import Union, Dict, Any, Optional
+from typing import Union, Dict, Any
 
 
 FilesDict = Dict[str, Union[str, jinja2.Template]]

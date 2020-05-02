@@ -1,7 +1,7 @@
-import os, textwrap
+import textwrap
+
 from . import utils
 from .template_projects import CTemplateProject
-
 
 project_with_ssl_tests = CTemplateProject(
     setup_py_add=textwrap.dedent(r'''
@@ -20,6 +20,7 @@ project_with_ssl_tests = CTemplateProject(
             data = urlopen("https://www.nist.gov", context=context)
     ''')
 )
+
 
 def test(tmpdir):
     # this test checks that SSL is working in the build environment using

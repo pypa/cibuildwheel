@@ -1,5 +1,5 @@
-import os
 import textwrap
+import platform
 from .template_projects import CTemplateProject
 from . import utils
 
@@ -11,6 +11,7 @@ basic_project = CTemplateProject(
             raise Exception("CIBUILDWHEEL environment variable is not set to 1")
     ''')
 )
+
 
 def test(tmpdir):
     project_dir = str(tmpdir)
@@ -33,10 +34,10 @@ def test_build_identifiers(tmpdir):
     # after adding CIBW_MANYLINUX_IMAGE to support manylinux2010, there
     # can be multiple wheels for each wheel, though, so we need to limit
     # the expected wheels
-    expected_wheels = [
-        w
-        for w in utils.expected_wheels("spam", "0.1.0")
-        if not "-manylinux" in w or "-manylinux1" in w
-    ]
+    if platform.machine() in ['x86_64', 'i686']:
+        expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+                           if '-manylinux' not in w or '-manylinux1' in w]
+    else:
+        expected_wheels = utils.expected_wheels('spam', '0.1.0')
     build_identifiers = utils.cibuildwheel_get_build_identifiers(project_dir)
     assert len(expected_wheels) == len(build_identifiers)

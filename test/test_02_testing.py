@@ -1,5 +1,9 @@
-import os, subprocess
-import pytest, textwrap
+import os
+import subprocess
+import textwrap
+
+import pytest
+
 from . import utils
 from .template_projects import CTemplateProject
 
@@ -39,7 +43,6 @@ def test(tmpdir):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-
 def test_extras_require(tmpdir):
     project_dir = str(tmpdir)
     project_with_a_test.generate(project_dir)
@@ -74,4 +77,3 @@ def test_failing_test(tmp_path):
         })
 
     assert len(os.listdir(output_dir)) == 0
-
