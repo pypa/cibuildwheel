@@ -3,7 +3,12 @@ import pytest, textwrap
 from . import utils
 from .template_projects import CTemplateProject
 
-project_with_a_test = CTemplateProject()
+project_with_a_test = CTemplateProject(
+    setup_cfg_add=textwrap.dedent(r'''
+        [options.extras_require]
+        test = nose
+    ''')
+)
 
 project_with_a_test.files['test/spam_test.py'] = r'''
 from unittest import TestCase

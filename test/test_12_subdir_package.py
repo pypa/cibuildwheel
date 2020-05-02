@@ -1,10 +1,35 @@
 import os
 import utils
+from .template_projects.c import spam_c_template
+from .template_projects import TemplateProject
 
-project_dir = os.path.dirname(__file__)
+subdir_package_project = TemplateProject()
+
+subdir_package_project.files['src/spam/spam.c'] = spam_c_template
+
+subdir_package_project.files['src/spam/setup.py'] = r'''
+from setuptools import Extension, setup
+
+setup(
+    name="spam",
+    ext_modules=[Extension('spam', sources=['spam.c'])],
+    version="0.1.0",
+)
+'''
+
+subdir_package_project.files['src/spam/test/run_tests.py'] = r'''
+print('run_tests.py executed!')
+'''
+
+subdir_package_project.files['bin/before_build.py'] = r'''
+print('before_build.py executed!')
+'''
 
 
-def test(capfd):
+def test(capfd, tmpdir):
+    project_dir = str(tmpdir)
+    subdir_package_project.generate(project_dir)
+
     package_dir = os.path.join(project_dir, 'src', 'spam')
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, package_dir=package_dir, add_env={
