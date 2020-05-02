@@ -1,5 +1,5 @@
 import os
-import utils
+from . import utils
 from test.template_projects.c import CTemplateProject
 
 before_test_project = CTemplateProject()

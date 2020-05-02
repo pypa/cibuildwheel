@@ -7,14 +7,13 @@ from . import utils
 from .template_projects import SetuptoolsTemplateProject
 import jinja2
 
-# TODO: specify these at runtime according to manylinux_image
 cpp_project = SetuptoolsTemplateProject(
     setup_py_add='''ext_modules=[Extension('spam', sources=['spam.cpp'])],'''
 )
 cpp_project.files['spam.cpp'] = jinja2.Template(r'''
 #include <Python.h>
 
-{{ spam_cpp_add }}
+{{ spam_cpp_top_level_add }}
 
 static PyObject *
 spam_system(PyObject *self, PyObject *args)
@@ -64,28 +63,13 @@ MOD_INIT(spam)
 }
 ''')
 
-spam_cpp_top_level_add = '''
-// Depending on the requested standard, use a modern C++ feature
-// that was introduced in that standard.
-#if STANDARD == 11
-    #include <array>
-#elif STANDARD == 14
-    int a = 100'000;
-#elif STANDARD == 17
-    #include <utility>
-    auto a = std::pair(5.0, false);
-#else
-    #error Standard needed
-#endif
-'''
-
 project_dir = os.path.dirname(__file__)
 
 def test_cpp11(tmpdir):
     # This test checks that the C++11 standard is supported
     project_dir = str(tmpdir)
 
-    cpp_project.template_context['spam_cpp_add'] = '#include <array>'
+    cpp_project.template_context['spam_cpp_top_level_add'] = '#include <array>'
     cpp_project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
@@ -102,7 +86,7 @@ def test_cpp14(tmpdir):
     # This test checks that the C++14 standard is supported
     project_dir = str(tmpdir)
 
-    cpp_project.template_context['spam_cpp_add'] = "int a = 100'000;"
+    cpp_project.template_context['spam_cpp_top_level_add'] = "int a = 100'000;"
     cpp_project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
@@ -123,7 +107,7 @@ def test_cpp17(tmpdir):
     # This test checks that the C++17 standard is supported
     project_dir = str(tmpdir)
 
-    cpp_project.template_context['spam_cpp_add'] = textwrap.dedent('''
+    cpp_project.template_context['spam_cpp_top_level_add'] = textwrap.dedent('''
             #include <utility>
             auto a = std::pair(5.0, false);
     ''')

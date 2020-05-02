@@ -1,5 +1,5 @@
 import os
-import utils
+from . import utils
 from .template_projects.c import spam_c_template
 from .template_projects import TemplateProject
 
@@ -35,8 +35,7 @@ def test(capfd, tmpdir):
     actual_wheels = utils.cibuildwheel_run(project_dir, package_dir=package_dir, add_env={
         'CIBW_BEFORE_BUILD': 'python {project}/bin/before_build.py',
         'CIBW_TEST_COMMAND': 'python {package}/test/run_tests.py',
-        # this shouldn't depend on the version of python, so build only
-        # CPython 3.6
+        # this shouldn't depend on the version of python, so build only CPython 3.6
         'CIBW_BUILD': 'cp36-*',
     })
 
