@@ -33,14 +33,14 @@ project_with_manylinux_symbols = CTemplateProject(
 
 
 @pytest.mark.parametrize('manylinux_image', ['manylinux1', 'manylinux2010', 'manylinux2014'])
-def test(manylinux_image, tmpdir):
+def test(manylinux_image, tmp_path):
     if utils.platform != 'linux':
         pytest.skip('the docker test is only relevant to the linux build')
     elif platform.machine() not in ['x86_64', 'i686']:
         if manylinux_image in ['manylinux1', 'manylinux2010']:
             pytest.skip("manylinux1 and 2010 doesn't exist for non-x86 architectures")
 
-    project_dir = str(tmpdir)
+    project_dir = tmp_path / 'project'
     project_with_manylinux_symbols.generate(project_dir)
 
     # build the wheels

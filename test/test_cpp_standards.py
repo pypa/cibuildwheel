@@ -73,9 +73,9 @@ MOD_INIT(spam)
 ''')
 
 
-def test_cpp11(tmpdir):
+def test_cpp11(tmp_path):
     # This test checks that the C++11 standard is supported
-    project_dir = str(tmpdir)
+    project_dir = tmp_path / 'project'
 
     project = cpp_template_project.copy()
     extra_compile_args = ['/std:c++11'] if utils.platform == 'windows' else ['-std=c++11']
@@ -93,9 +93,9 @@ def test_cpp11(tmpdir):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cpp14(tmpdir):
+def test_cpp14(tmp_path):
     # This test checks that the C++14 standard is supported
-    project_dir = str(tmpdir)
+    project_dir = tmp_path / 'project'
 
     project = cpp_template_project.copy()
     extra_compile_args = ['/std:c++14'] if utils.platform == 'windows' else ['-std=c++14']
@@ -117,9 +117,9 @@ def test_cpp14(tmpdir):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cpp17(tmpdir):
+def test_cpp17(tmp_path):
     # This test checks that the C++17 standard is supported
-    project_dir = str(tmpdir)
+    project_dir = tmp_path / 'project'
 
     project = cpp_template_project.copy()
     if utils.platform == 'windows':

@@ -34,8 +34,8 @@ class TestBeforeTest(TestCase):
 '''
 
 
-def test(tmpdir):
-    project_dir = str(tmpdir)
+def test(tmp_path):
+    project_dir = tmp_path / 'project'
     before_test_project.generate(project_dir)
 
     # build the wheels

@@ -51,11 +51,11 @@ def get_versions_from_constraint_file(constraint_file):
 
 
 @pytest.mark.parametrize('python_version', ['2.7', '3.5', '3.8'])
-def test_pinned_versions(tmpdir, python_version):
+def test_pinned_versions(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    project_dir = str(tmpdir)
+    project_dir = tmp_path / 'project'
     project_with_expected_version_checks.generate(project_dir)
 
     build_environment = {}
@@ -108,7 +108,7 @@ def test_dependency_constraints_file(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    project_dir = str(tmp_path / 'project')
+    project_dir = tmp_path / 'project'
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {

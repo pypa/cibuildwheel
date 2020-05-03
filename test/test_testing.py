@@ -25,8 +25,8 @@ class TestSpam(TestCase):
 '''
 
 
-def test(tmpdir):
-    project_dir = str(tmpdir)
+def test(tmp_path):
+    project_dir = tmp_path / 'project'
     project_with_a_test.generate(project_dir)
 
     # build and test the wheels
@@ -43,8 +43,8 @@ def test(tmpdir):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_extras_require(tmpdir):
-    project_dir = str(tmpdir)
+def test_extras_require(tmp_path):
+    project_dir = tmp_path / 'project'
     project_with_a_test.generate(project_dir)
 
     # build and test the wheels
@@ -63,8 +63,8 @@ def test_extras_require(tmpdir):
 
 def test_failing_test(tmp_path):
     """Ensure a failing test causes cibuildwheel to error out and exit"""
-    project_dir = str(tmp_path / 'project')
-    output_dir = str(tmp_path / 'output')
+    project_dir = tmp_path / 'project'
+    output_dir = tmp_path / 'output'
     project_with_a_test.generate(project_dir)
 
     with pytest.raises(subprocess.CalledProcessError):

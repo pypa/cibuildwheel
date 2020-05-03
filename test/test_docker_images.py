@@ -20,13 +20,13 @@ dockcross_only_project = CTemplateProject(
 )
 
 
-def test(tmpdir):
+def test(tmp_path):
     if utils.platform != 'linux':
         pytest.skip('the test is only relevant to the linux build')
     if platform.machine() not in ['x86_64', 'i686']:
         pytest.skip('this test is currently only possible on x86_64/i686 due to availability of alternative images')
 
-    project_dir = str(tmpdir)
+    project_dir = tmp_path / 'project'
     dockcross_only_project.generate(project_dir)
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={

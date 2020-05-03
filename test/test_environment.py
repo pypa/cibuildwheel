@@ -27,8 +27,8 @@ project_with_environment_asserts = CTemplateProject(
 )
 
 
-def test(tmpdir):
-    project_dir = str(tmpdir)
+def test(tmp_path):
+    project_dir = tmp_path / 'project'
     project_with_environment_asserts.generate(project_dir)
 
     # write some information into the CIBW_ENVIRONMENT, for expansion and
@@ -45,8 +45,8 @@ def test(tmpdir):
 
 
 def test_overridden_path(tmp_path):
-    project_dir = str(tmp_path / 'project')
-    output_dir = str(tmp_path / 'output')
+    project_dir = tmp_path / 'project'
+    output_dir = tmp_path / 'output'
     CTemplateProject().generate(project_dir)
 
     # mess up PATH, somehow

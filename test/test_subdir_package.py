@@ -26,8 +26,8 @@ print('before_build.py executed!')
 '''
 
 
-def test(capfd, tmpdir):
-    project_dir = str(tmpdir)
+def test(capfd, tmp_path):
+    project_dir = tmp_path / 'project'
     subdir_package_project.generate(project_dir)
 
     package_dir = os.path.join(project_dir, 'src', 'spam')

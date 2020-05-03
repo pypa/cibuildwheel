@@ -13,8 +13,8 @@ basic_project = CTemplateProject(
 )
 
 
-def test(tmpdir):
-    project_dir = str(tmpdir)
+def test(tmp_path):
+    project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
 
     # build the wheels
@@ -25,8 +25,8 @@ def test(tmpdir):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_build_identifiers(tmpdir):
-    project_dir = str(tmpdir)
+def test_build_identifiers(tmp_path):
+    project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
 
     # check that the number of expected wheels matches the number of build

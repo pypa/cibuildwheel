@@ -14,8 +14,8 @@ project_with_skip_asserts = CTemplateProject(
 )
 
 
-def test(tmpdir):
-    project_dir = str(tmpdir)
+def test(tmp_path):
+    project_dir = tmp_path / 'project'
     project_with_skip_asserts.generate(project_dir)
 
     # build the wheels
