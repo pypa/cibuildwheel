@@ -82,24 +82,26 @@ def test_cpp17_modern_msvc_workaround(tmp_path):
     # Use existing setuptools code to run Visual Studio's vcvarsall.bat and get the
     # necessary environment variables, since running vcvarsall.bat in a subprocess
     # does not keep the relevant environment variables
-    # In normal CI setup: run vcvarsall.bat before running cibuildwheel
+    # There are different environment variables for 32-bit/64-bit targets, so we
+    # need to run cibuildwheel twice, once for 32-bit with `vcvarsall.bat x86, and
+    # once for 64-bit with `vcvarsall.bat x64`
+    # In a normal CI setup, just run vcvarsall.bat before running cibuildwheel and set
+    # DISTUTILS_USE_SDK and MSSdk
     import setuptools
 
-    # Different environment variables for 32-bit/64-bit targets
-    # First, 32-bit (or x86)
-    vcvarsall_env = setuptools.msvc.msvc14_get_vc_env('x86')
-    add_env_x86 = add_env.copy()
+    def add_vcvars(prev_env, platform):
+        vcvarsall_env = setuptools.msvc.msvc14_get_vc_env(platform)
+        env = prev_env.copy()
+        for vcvar in ['path', 'include', 'lib']:
+            env[vcvar] = vcvarsall_env[vcvar]
+        return env
+
+    add_env_x86 = add_vcvars(add_env, 'x86')
     add_env_x86['CIBW_BUILD'] = '*-win32'
-    for vc_var in ['path', 'include', 'lib']:
-        add_env_x86[vc_var] = vcvarsall_env[vc_var]
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env_x86)
 
-    # Then, 64-bit (or x64)
-    vcvarsall_env = setuptools.msvc.msvc14_get_vc_env('x64')
-    add_env_x64 = add_env.copy()
+    add_env_x64 = add_vcvars(add_env, 'x64')
     add_env_x64['CIBW_BUILD'] = '*-win_amd64'
-    for vc_var in ['path', 'include', 'lib']:
-        add_env_x64[vc_var] = vcvarsall_env[vc_var]
     actual_wheels += utils.cibuildwheel_run(project_dir, add_env=add_env_x64)
 
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
