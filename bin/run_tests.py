@@ -12,4 +12,4 @@ if __name__ == '__main__':
     subprocess.check_call([sys.executable, '-m', 'pytest', 'unit_test'])
 
     # run the integration tests
-    subprocess.check_call([sys.executable, '-m', 'pytest', 'test'])
+    subprocess.check_call([sys.executable, '-m', 'pytest', '--durations', '0', 'test'])
