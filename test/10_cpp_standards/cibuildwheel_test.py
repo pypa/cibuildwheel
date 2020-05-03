@@ -80,8 +80,10 @@ def test_cpp17_modern_msvc_workaround(tmp_path):
                'DISTUTILS_USE_SDK': '1', 'MSSdk': '1'}
 
     # Use existing distutils code to run Visual Studio's vcvarsall.bat
+    # MSVC++ 14.16 somehow corresponds to _MSC_VER == 1916 and should be included with
+    # Visual Studio 2017 version 15.9, the latest version of VS 2017
     import distutils.msvc9compiler
-    vcvarsall_env = distutils.msvc9compiler.query_vcvarsall(14)
+    vcvarsall_env = distutils.msvc9compiler.query_vcvarsall(14.16)
     add_env.update(vcvarsall_env)
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
