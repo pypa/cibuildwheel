@@ -59,3 +59,32 @@ def test_cpp17():
                        and 'pp36-pypy36_pp73-win32' not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_cpp17_modern_msvc_workaround(tmp_path):
+    # This test checks the workaround for modern C++ versions, using a modern compiler
+
+    if utils.platform != 'windows':
+        pytest.skip('the test is only relevant to the Windows build')
+
+    if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
+        pytest.skip('Visual Studio 2015 does not support C++17')
+
+    # VC++ for Python 2.7 and MSVC 10 do not support modern standards
+    # This is a workaround which forces distutils/setupstools to a newer version
+    # Wheels compiled need a more modern C++ redistributable installed, which is not
+    # included with Python: see documentation for more info
+    # DISTUTILS_USE_SDK and MSSdk=1 tell distutils/setuptools that we are adding
+    # MSVC's compiler, tools, and libraries to PATH ourselves
+    add_env = {'CIBW_ENVIRONMENT': 'STANDARD=17',
+               'DISTUTILS_USE_SDK': '1', 'MSSdk': '1'}
+
+    # Use existing distutils code to run Visual Studio's vcvarsall.bat
+    import distutils.msvc9compiler
+    vcvarsall_env = distutils.msvc9compiler.query_vcvarsall(14)
+    add_env.update(vcvarsall_env)
+
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
+    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+
+    assert set(actual_wheels) == set(expected_wheels)
