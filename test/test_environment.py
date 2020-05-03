@@ -48,6 +48,7 @@ def test_overridden_path(tmp_path):
     project_dir = tmp_path / 'project'
     output_dir = tmp_path / 'output'
     CTemplateProject().generate(project_dir)
+    output_dir.mkdir()
 
     # mess up PATH, somehow
     with pytest.raises(subprocess.CalledProcessError):
