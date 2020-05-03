@@ -79,12 +79,12 @@ def test_cpp17_modern_msvc_workaround(tmp_path):
     add_env = {'CIBW_ENVIRONMENT': 'STANDARD=17',
                'DISTUTILS_USE_SDK': '1', 'MSSdk': '1'}
 
-    # Use existing distutils code to run Visual Studio's vcvarsall.bat
-    # MSVC++ 14.16 somehow corresponds to _MSC_VER == 1916 and should be included with
-    # Visual Studio 2017 version 15.9, the latest version of VS 2017
-    import distutils.msvc9compiler
-    vcvarsall_env = distutils.msvc9compiler.query_vcvarsall(14.16)
-    add_env.update(vcvarsall_env)
+    # Use existing setuptools code to run Visual Studio's vcvarsall.bat
+    import setuptools.msvc
+    vcvarsall_env = setuptools.msvc.msvc14_get_vc_env('x86')
+    for vc_var in ['path', 'include', 'lib']:
+        if vc_var in vcvarsall_env:
+            add_env[vc_var] = vcvarsall_env[vc_var]
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
