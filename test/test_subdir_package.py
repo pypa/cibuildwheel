@@ -1,11 +1,16 @@
 import os
+
+import jinja2
+
 from . import utils
-from .template_projects.c import spam_c_template
 from .template_projects import TemplateProject
+from .template_projects.c import spam_c_template
 
 subdir_package_project = TemplateProject()
 
-subdir_package_project.files['src/spam/spam.c'] = spam_c_template
+subdir_package_project.files['src/spam/spam.c'] = jinja2.Template(spam_c_template)
+subdir_package_project.template_context['spam_c_top_level_add'] = ''
+subdir_package_project.template_context['spam_c_function_add'] = ''
 
 subdir_package_project.files['src/spam/setup.py'] = r'''
 from setuptools import Extension, setup
