@@ -1,5 +1,5 @@
 import jinja2
-from .setuptools import SetuptoolsTemplateProject
+from .base import TemplateProject
 
 
 spam_c_template = r'''
@@ -59,25 +59,42 @@ MOD_INIT(spam)
 }
 '''
 
+setup_py_template = r'''
+from setuptools import setup, Extension
 
-class CTemplateProject(SetuptoolsTemplateProject):
+{{ setup_py_add }}
+
+setup(
+    ext_modules=[Extension('spam', sources=['spam.c'])],
+    {{ setup_py_setup_args_add | indent(4) }}
+)
+'''
+
+setup_cfg_template = r'''
+[metadata]
+name = spam
+version = 0.1.0
+
+{{ setup_cfg_add }}
+'''
+
+
+class CTemplateProject(TemplateProject):
     def __init__(self, *, spam_c_top_level_add='', spam_c_function_add='', setup_py_add='',
                  setup_py_setup_args_add='', setup_cfg_add=''):
-        setup_py_setup_args_add += '''
-            ext_modules=[Extension('spam', sources=['spam.c'])],
-        '''
 
-        super().__init__(
-            setup_py_add=setup_py_add,
-            setup_py_setup_args_add=setup_py_setup_args_add,
-            setup_cfg_add=setup_cfg_add
-        )
+        super().__init__()
 
         self.files.update({
             'spam.c': jinja2.Template(spam_c_template),
+            'setup.py': jinja2.Template(setup_py_template),
+            'setup.cfg': jinja2.Template(setup_cfg_template),
         })
 
         self.template_context.update({
             'spam_c_top_level_add': spam_c_top_level_add,
             'spam_c_function_add': spam_c_function_add,
+            'setup_py_add': setup_py_add,
+            'setup_py_setup_args_add': setup_py_setup_args_add,
+            'setup_cfg_add': setup_cfg_add,
         })
