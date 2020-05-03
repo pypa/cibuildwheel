@@ -5,13 +5,21 @@ import jinja2
 import pytest
 
 from . import utils
-from .template_projects import SetuptoolsTemplateProject
+from .template_projects import TemplateProject
 
-cpp_project = SetuptoolsTemplateProject(
-    setup_py_add='''ext_modules=[Extension('spam', sources=['spam.cpp'])],'''
+cpp_template_project = TemplateProject()
+
+cpp_template_project.files['setup.py'] = jinja2.Template(r'''
+from setuptools import Extension, setup
+
+setup(
+    name="spam",
+    ext_modules=[Extension('spam', sources=['spam.cpp'], language="c++", extra_compile_args={{ extra_compile_args }})],
+    version="0.1.0",
 )
+''')
 
-cpp_project.files['spam.cpp'] = jinja2.Template(r'''
+cpp_template_project.files['spam.cpp'] = jinja2.Template(r'''
 #include <Python.h>
 
 {{ spam_cpp_top_level_add }}
@@ -69,8 +77,11 @@ def test_cpp11(tmpdir):
     # This test checks that the C++11 standard is supported
     project_dir = str(tmpdir)
 
-    cpp_project.template_context['spam_cpp_top_level_add'] = '#include <array>'
-    cpp_project.generate(project_dir)
+    project = cpp_template_project.copy()
+    extra_compile_args = ['/std:c++11'] if utils.platform == 'windows' else ['-std=c++11']
+    project.template_context['extra_compile_args'] = extra_compile_args
+    project.template_context['spam_cpp_top_level_add'] = '#include <array>'
+    project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
     add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
@@ -86,8 +97,11 @@ def test_cpp14(tmpdir):
     # This test checks that the C++14 standard is supported
     project_dir = str(tmpdir)
 
-    cpp_project.template_context['spam_cpp_top_level_add'] = "int a = 100'000;"
-    cpp_project.generate(project_dir)
+    project = cpp_template_project.copy()
+    extra_compile_args = ['/std:c++14'] if utils.platform == 'windows' else ['-std=c++14']
+    project.template_context['extra_compile_args'] = extra_compile_args
+    project.template_context['spam_cpp_top_level_add'] = "int a = 100'000;"
+    project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
     # The manylinux1 docker image does not have a compiler which supports C++11
@@ -107,11 +121,17 @@ def test_cpp17(tmpdir):
     # This test checks that the C++17 standard is supported
     project_dir = str(tmpdir)
 
-    cpp_project.template_context['spam_cpp_top_level_add'] = textwrap.dedent('''
+    project = cpp_template_project.copy()
+    if utils.platform == 'windows':
+        project.template_context['extra_compile_args'] = ['/std:c++17', '/wd5033']
+    else:
+        project.template_context['extra_compile_args'] = ['-std=c++17', '-Wno-register']
+
+    project.template_context['spam_cpp_top_level_add'] = textwrap.dedent('''
             #include <utility>
             auto a = std::pair(5.0, false);
     ''')
-    cpp_project.generate(project_dir)
+    project.generate(project_dir)
 
     # Python and PyPy 2.7 use the `register` keyword which is forbidden in the C++17 standard
     # The manylinux1 docker image does not have a compiler which supports C++11

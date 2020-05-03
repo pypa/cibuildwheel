@@ -26,3 +26,9 @@ class TemplateProject:
                     content = content.render(self.template_context)
 
                 f.write(content)
+
+    def copy(self):
+        other = TemplateProject()
+        other.files = self.files.copy()
+        other.template_context = self.template_context.copy()
+        return other
