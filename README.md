@@ -128,6 +128,9 @@ Here are some repos that use cibuildwheel.
 - [Twisted](https://github.com/twisted/twisted)
 - [gmic-py](https://github.com/dtschump/gmic-py)
 - [creme](https://github.com/creme-ml/creme)
+- [PyAV](https://github.com/PyAV-Org/PyAV)
+- [aiortc](https://github.com/aiortc/aiortc)
+- [aioquic](https://github.com/aiortc/aioquic)
 
 > Add your repo here! Send a PR.
 
