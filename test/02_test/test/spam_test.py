@@ -49,6 +49,8 @@ class TestSpam(TestCase):
     def test_uname(self):
         if platform.system() == "Windows":
             return
+        # if we're running in 32-bit Python, check that the machine is i686.
+        # See #336 for more info.
         bits = struct.calcsize("P") * 8
         if bits == 32:
             self.assertEqual(os.uname()[4], "i686")

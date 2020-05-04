@@ -109,7 +109,7 @@ def build(options: BuildOptions):
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
 
         try:
-            process_name = 'linux32 /bin/bash' if platform_tag.endswith("i686") else '/bin/bash'
+            shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']
             call(['docker', 'create',
                   '--env', 'CIBUILDWHEEL',
                   '--name', container_name,
@@ -137,7 +137,7 @@ def build(options: BuildOptions):
                         )
 
                 call(
-                    ['docker', 'exec', '-i', container_name] + process_name.split(" "),
+                    ['docker', 'exec', '-i', container_name] + shell_cmd,
                     universal_newlines=True,
                     input='''
                         # give xtrace output an extra level of indent inside docker
