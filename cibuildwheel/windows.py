@@ -198,9 +198,6 @@ def build(options: BuildOptions):
             virtualenv_env = env.copy()
 
             venv_script_path = os.path.join(venv_dir, 'Scripts')
-            if os.path.exists(os.path.join(venv_dir, 'bin')):
-                # pypy2.7 bugfix
-                venv_script_path = os.pathsep.join([venv_script_path, os.path.join(venv_dir, 'bin')])
             virtualenv_env['PATH'] = os.pathsep.join([
                 venv_script_path,
                 virtualenv_env['PATH'],
