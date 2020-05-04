@@ -7,7 +7,7 @@ import utils
 project_dir = os.path.dirname(__file__)
 
 
-def test_cpp11(tmp_path):
+def test_cpp11():
     # This test checks that the C++11 standard is supported
 
     # VC++ for Python 2.7 does not support modern standards
@@ -56,8 +56,8 @@ def test_cpp17():
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cpp17_modern_msvc_workaround(tmp_path):
-    # This test checks the workaround for modern C++ versions, using a modern compiler
+def test_cpp17_py27_modern_msvc_workaround():
+    # This test checks the workaround for building Python 2.7 wheel with MSVC 14
 
     if utils.platform != 'windows':
         pytest.skip('the test is only relevant to the Windows build')
@@ -65,7 +65,7 @@ def test_cpp17_modern_msvc_workaround(tmp_path):
     if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
         pytest.skip('Visual Studio 2015 does not support C++17')
 
-    # VC++ for Python 2.7 and MSVC 10 do not support modern standards
+    # VC++ for Python 2.7 (i.e., MSVC 9) does not support modern standards
     # This is a workaround which forces distutils/setupstools to a newer version
     # Wheels compiled need a more modern C++ redistributable installed, which is not
     # included with Python: see documentation for more info
@@ -92,13 +92,15 @@ def test_cpp17_modern_msvc_workaround(tmp_path):
         return env
 
     add_env_x86 = add_vcvars(add_env, 'x86')
-    add_env_x86['CIBW_BUILD'] = '*-win32'
+    add_env_x86['CIBW_BUILD'] = '?p27-win32'
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env_x86)
 
     add_env_x64 = add_vcvars(add_env, 'x64')
-    add_env_x64['CIBW_BUILD'] = '*-win_amd64'
+    add_env_x64['CIBW_BUILD'] = 'cp27-win_amd64'
     actual_wheels += utils.cibuildwheel_run(project_dir, add_env=add_env_x64)
 
-    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+                       if 'cp27-cp27m-win' in w
+                       or 'pp27-pypy_73-win32' in w]
 
     assert set(actual_wheels) == set(expected_wheels)
