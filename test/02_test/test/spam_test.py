@@ -1,6 +1,8 @@
 from __future__ import print_function
 import os
+import platform
 import sys
+import struct
 from unittest import TestCase
 
 import spam
@@ -43,3 +45,10 @@ class TestSpam(TestCase):
             print("=[listdir]2", os.listdir(os.path.join(virtualenv_path, 'bin')))
         self.assertTrue(path_contains(virtualenv_path, sys.executable))
         self.assertTrue(path_contains(virtualenv_path, spam.__file__))
+
+    def test_uname(self):
+        if platform.system() == "Windows":
+            return
+        bits = struct.calcsize("P") * 8
+        if bits == 32:
+            self.assertEqual(os.uname()[4], "i686")

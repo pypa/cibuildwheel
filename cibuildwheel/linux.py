@@ -116,7 +116,7 @@ def build(options: BuildOptions):
                   '-i',
                   '-v', '/:/host',  # ignored on CircleCI
                   docker_image,
-                  process_name])
+                  '/bin/bash'])
 
             call(['docker', 'cp', '.', container_name + ':/project'])
 
@@ -137,7 +137,7 @@ def build(options: BuildOptions):
                         )
 
                 call(
-                    ['docker', 'exec', '-i', container_name, process_name],
+                    ['docker', 'exec', '-i', container_name] + process_name.split(" "),
                     universal_newlines=True,
                     input='''
                         # give xtrace output an extra level of indent inside docker
