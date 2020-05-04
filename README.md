@@ -77,7 +77,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.4.0
+  - python3 -m pip install cibuildwheel==1.4.1
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -142,6 +142,14 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.4.1
+
+_4 May 2020_
+
+- 🐛 Fix a bug causing programs running inside the i686 manylinux images to
+  think they were running x86_64 and target the wrong architecture. (#336,
+  #338)
 
 ### 1.4.0
 
