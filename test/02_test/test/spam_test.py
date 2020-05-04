@@ -53,4 +53,4 @@ class TestSpam(TestCase):
         # See #336 for more info.
         bits = struct.calcsize("P") * 8
         if bits == 32:
-            self.assertEqual(os.uname()[4], "i686")
+            self.assertEqual(platform.machine(), "i686")
