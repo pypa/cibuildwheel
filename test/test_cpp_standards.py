@@ -128,8 +128,8 @@ def test_cpp17(tmp_path):
         project.template_context['extra_compile_args'] = ['-std=c++17', '-Wno-register']
 
     project.template_context['spam_cpp_top_level_add'] = textwrap.dedent('''
-            #include <utility>
-            auto a = std::pair(5.0, false);
+        #include <utility>
+        auto a = std::pair(5.0, false);
     ''')
     project.generate(project_dir)
 
