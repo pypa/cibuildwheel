@@ -2,6 +2,7 @@
 -e ./docs/mkdocs_include_markdown_plugin
 pytest
 mkdocs==1.0.4
+pymdown-extensions
 pip-tools
 requests
 click

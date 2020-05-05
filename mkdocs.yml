@@ -28,6 +28,8 @@ markdown_extensions:
       permalink: True
   - attr_list
   - admonition
+  - pymdownx.magiclink:
+      repo_url_shortener: True
 
 plugins:
   - importmarkdown

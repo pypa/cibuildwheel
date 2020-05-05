@@ -109,6 +109,7 @@ def build(options: BuildOptions):
         container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
 
         try:
+            shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']
             call(['docker', 'create',
                   '--env', 'CIBUILDWHEEL',
                   '--name', container_name,
@@ -136,7 +137,7 @@ def build(options: BuildOptions):
                         )
 
                 call(
-                    ['docker', 'exec', '-i', container_name, '/bin/bash'],
+                    ['docker', 'exec', '-i', container_name] + shell_cmd,
                     universal_newlines=True,
                     input='''
                         # give xtrace output an extra level of indent inside docker
@@ -266,7 +267,7 @@ def build(options: BuildOptions):
                   container_name + ':/output/.',
                   os.path.abspath(options.output_dir)])
         except subprocess.CalledProcessError as error:
-            troubleshoot(options.project_dir, error)
+            troubleshoot(options.package_dir, error)
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called

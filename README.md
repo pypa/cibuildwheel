@@ -77,7 +77,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.3.0
+  - python3 -m pip install cibuildwheel==1.4.1
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -128,6 +128,9 @@ Here are some repos that use cibuildwheel.
 - [Twisted](https://github.com/twisted/twisted)
 - [gmic-py](https://github.com/dtschump/gmic-py)
 - [creme](https://github.com/creme-ml/creme)
+- [PyAV](https://github.com/PyAV-Org/PyAV)
+- [aiortc](https://github.com/aiortc/aiortc)
+- [aioquic](https://github.com/aiortc/aioquic)
 
 > Add your repo here! Send a PR.
 
@@ -142,6 +145,44 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.4.1
+
+_4 May 2020_
+
+- 🐛 Fix a bug causing programs running inside the i686 manylinux images to
+  think they were running x86_64 and target the wrong architecture. (#336,
+  #338)
+
+### 1.4.0
+
+_2 May 2020_
+
+- ✨ Deterministic builds. cibuildwheel now locks the versions of the tools it
+  uses. This means that pinning your version of cibuildwheel pins the versions
+  of pip, setuptools, manylinux etc. that are used under the hood. This should
+  make things more reliable. But note that we don't control the entire build
+  environment on macOS and Windows, where the version of Xcode and Visual
+  Studio can still effect things.
+
+  This can be controlled using the [CIBW_DEPENDENCY_VERSIONS](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)
+  and [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)
+  options - if you always want to use the latest toolchain, you can still do
+  that, or you can specify your own pip constraints file and manylinux image.
+  (#256)
+- ✨ Added `package_dir` command line option, meaning we now support building
+  a package that lives in a subdirectory and pulls in files from the wider
+  project. See [the `package_dir` option help](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line-options)
+  for more information.
+
+  Note that this change makes the working directory (where you call
+  cibuildwheel from) relevant on Linux, as it's considered the 'project' and
+  will be copied into the Docker container. If your builds are slower on this
+  version, that's likely the reason. `cd` to your project and then call
+  `cibuildwheel` from there. (#319, #295)
+- 🛠 On macOS, we make `MACOSX_DEPLOYMENT_TARGET` default to `10.9` if it's
+  not set. This should make things more consistent between Python versions.
+- 🛠 Dependency updates - CPython 3.7.7, CPython 2.7.18, Pypy 7.3.1.
 
 ### 1.3.0
 
