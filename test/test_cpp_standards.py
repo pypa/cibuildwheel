@@ -1,5 +1,4 @@
 import os
-import textwrap
 
 import jinja2
 import pytest
@@ -115,21 +114,24 @@ def test_cpp14(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
+cpp17_project = cpp_template_project.copy()
+
+if utils.platform == 'windows':
+    cpp17_project.template_context['extra_compile_args'] = ['/std:c++17', '/wd5033']
+else:
+    cpp17_project.template_context['extra_compile_args'] = ['-std=c++17', '-Wno-register']
+
+cpp17_project.template_context['spam_cpp_top_level_add'] = r'''
+#include <utility>
+auto a = std::pair(5.0, false);
+'''
+
+
 def test_cpp17(tmp_path):
     # This test checks that the C++17 standard is supported
     project_dir = tmp_path / 'project'
 
-    project = cpp_template_project.copy()
-    if utils.platform == 'windows':
-        project.template_context['extra_compile_args'] = ['/std:c++17', '/wd5033']
-    else:
-        project.template_context['extra_compile_args'] = ['-std=c++17', '-Wno-register']
-
-    project.template_context['spam_cpp_top_level_add'] = textwrap.dedent('''
-        #include <utility>
-        auto a = std::pair(5.0, false);
-    ''')
-    project.generate(project_dir)
+    cpp17_project.generate(project_dir)
 
     # Python and PyPy 2.7 use the `register` keyword which is forbidden in the C++17 standard
     # The manylinux1 docker image does not have a compiler which supports C++11
@@ -150,7 +152,7 @@ def test_cpp17(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cpp17_py27_modern_msvc_workaround():
+def test_cpp17_py27_modern_msvc_workaround(tmp_path):
     # This test checks the workaround for building Python 2.7 wheel with MSVC 14
 
     if utils.platform != 'windows':
@@ -158,6 +160,9 @@ def test_cpp17_py27_modern_msvc_workaround():
 
     if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
         pytest.skip('Visual Studio 2015 does not support C++17')
+
+    project_dir = tmp_path / 'project'
+    cpp17_project.generate(project_dir)
 
     # VC++ for Python 2.7 (i.e., MSVC 9) does not support modern standards
     # This is a workaround which forces distutils/setupstools to a newer version
