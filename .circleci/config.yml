@@ -30,22 +30,6 @@ jobs:
           command: venv/bin/python ./bin/run_tests.py
           no_output_timeout: 30m
 
-  osx-python3.7:
-    macos:
-      xcode: "10.0.0"
-    environment:
-      PYTHON: python3
-    steps:
-      - checkout
-
-      - run:
-          name: Prepare the environment.
-          command: bash .circleci/prepare.sh
-      - run:
-          name: Test.
-          command: venv/bin/python ./bin/run_tests.py
-          no_output_timeout: 30m
-
   linux-python3.6:
     docker:
       - image: circleci/python:3.6
@@ -69,5 +53,4 @@ workflows:
     jobs:
       - flake8
       - osx-python3.6
-      - osx-python3.7
       - linux-python3.6
