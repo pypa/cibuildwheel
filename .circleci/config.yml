@@ -1,18 +1,21 @@
 version: 2
 
 jobs:
-  flake8:
+  flake8-mypy:
     docker:
       - image: circleci/python:3.6
     steps:
       - checkout
 
       - run:
-          name: Install flake8
-          command: sudo python -m pip install flake8
+          name: Install flake8 & mypy
+          command: sudo python -m pip install flake8 mypy
       - run:
-          name: Test.
-          command: flake8 .
+          name: flake8
+          command: flake8
+      - run:
+          name: mypy
+          command: mypy
 
   osx-python3.6:
     macos:
@@ -51,6 +54,6 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      - flake8
+      - flake8-mypy
       - osx-python3.6
       - linux-python3.6
