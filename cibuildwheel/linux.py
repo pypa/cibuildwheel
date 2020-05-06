@@ -6,10 +6,11 @@ import sys
 import textwrap
 import uuid
 
-from typing import Callable, List, NamedTuple, Optional, Union
+from typing import List, NamedTuple, Optional, Union
 
 from .util import (
     BuildOptions,
+    BuildSelector,
     get_build_verbosity_extra_flags,
     prepare_command,
 )
@@ -49,7 +50,7 @@ class PythonConfiguration(NamedTuple):
     path: str
 
 
-def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:
+def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),

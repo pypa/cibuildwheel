@@ -6,11 +6,12 @@ import tempfile
 from glob import glob
 from zipfile import ZipFile
 
-from typing import Callable, Dict, List, Optional, NamedTuple
+from typing import Dict, List, Optional, NamedTuple
 
 from .environment import ParsedEnvironment
 from .util import (
     BuildOptions,
+    BuildSelector,
     download,
     get_build_verbosity_extra_flags,
     get_pip_script,
@@ -41,7 +42,7 @@ class PythonConfiguration(NamedTuple):
     url: Optional[str]
 
 
-def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:
+def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),

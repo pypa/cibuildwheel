@@ -6,11 +6,12 @@ import sys
 import tempfile
 from glob import glob
 
-from typing import Callable, Dict, List, Optional, NamedTuple, Union
+from typing import Dict, List, Optional, NamedTuple, Union
 
 from .environment import ParsedEnvironment
 from .util import (
     BuildOptions,
+    BuildSelector,
     download,
     get_build_verbosity_extra_flags,
     get_pip_script,
@@ -34,7 +35,7 @@ class PythonConfiguration(NamedTuple):
     url: str
 
 
-def get_python_configurations(build_selector: Callable[[str], bool]) -> List[PythonConfiguration]:
+def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
