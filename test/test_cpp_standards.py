@@ -135,7 +135,6 @@ def test_cpp17(tmp_path):
 
     # Python and PyPy 2.7 use the `register` keyword which is forbidden in the C++17 standard
     # The manylinux1 docker image does not have a compiler which supports C++11
-    # Python 3.5 and PyPy 3.6 are compiled with MSVC 10, which does not support C++17
     if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
         pytest.skip('Visual Studio 2015 does not support C++17')
 
@@ -170,8 +169,7 @@ def test_cpp17_py27_modern_msvc_workaround(tmp_path):
     # included with Python: see documentation for more info
     # DISTUTILS_USE_SDK and MSSdk=1 tell distutils/setuptools that we are adding
     # MSVC's compiler, tools, and libraries to PATH ourselves
-    add_env = {'CIBW_ENVIRONMENT': 'STANDARD=17',
-               'DISTUTILS_USE_SDK': '1', 'MSSdk': '1'}
+    add_env = {'DISTUTILS_USE_SDK': '1', 'MSSdk': '1'}
 
     # Use existing setuptools code to run Visual Studio's vcvarsall.bat and get the
     # necessary environment variables, since running vcvarsall.bat in a subprocess
