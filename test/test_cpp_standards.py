@@ -133,12 +133,16 @@ def test_cpp17(tmp_path):
 
     cpp17_project.generate(project_dir)
 
-    # Python and PyPy 2.7 use the `register` keyword which is forbidden in the C++17 standard
-    # The manylinux1 docker image does not have a compiler which supports C++11
+    # - Python and PyPy 2.7 use the `register` keyword which is forbidden in
+    #   the C++17 standard
+    # - The manylinux1 docker image does not have a compiler which supports
+    #   C++11
+    # - Pypy's distutils sets the default compiler to 'msvc9compiler', which
+    #   is too old to support cpp17.
     if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
         pytest.skip('Visual Studio 2015 does not support C++17')
 
-    add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
+    add_env = {'CIBW_SKIP': 'cp27-win* pp??-*'}
 
     if utils.platform == 'macos':
         add_env['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
@@ -146,7 +150,7 @@ def test_cpp17(tmp_path):
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0', macosx_deployment_target='10.13')
                        if 'cp27-cp27m-win' not in w
-                       and 'pp27-pypy_73-win32' not in w]
+                       and '-pp' not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
 
