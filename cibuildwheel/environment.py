@@ -51,10 +51,10 @@ class EnvironmentAssignment:
         return bashlex_eval.evaluate(self.value, environment=environment)
 
     def as_shell_assignment(self) -> str:
-        return 'export %s=%s' % (self.name, self.value)
+        return f'export {self.name}={self.value}'
 
     def __repr__(self) -> str:
-        return '%s=%s' % (self.name, self.value)
+        return f'{self.name}={self.value}'
 
 
 class ParsedEnvironment:
@@ -74,7 +74,7 @@ class ParsedEnvironment:
         return [a.as_shell_assignment() for a in self.assignments]
 
     def __repr__(self) -> str:
-        return 'ParsedEnvironment(%r)' % [repr(a) for a in self.assignments]
+        return f'ParsedEnvironment({[repr(a) for a in self.assignments]!r})'
 
 
 def parse_environment(env_string: str) -> ParsedEnvironment:

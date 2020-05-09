@@ -38,7 +38,7 @@ class BuildSelector:
         return match_any(self.build_patterns) and not match_any(self.skip_patterns)
 
     def __repr__(self) -> str:
-        return 'BuildSelector({!r} - {!r})'.format(' '.join(self.build_patterns), ' '.join(self.skip_patterns))
+        return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -99,7 +99,7 @@ class DependencyConstraints:
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python27.txt
         base, ext = os.path.splitext(self.base_file_path)
-        specific = base + '-python{}{}'.format(version_parts[0], version_parts[1])
+        specific = base + f'-python{version_parts[0]}{version_parts[1]}'
         specific_file_path = specific + ext
         if os.path.exists(specific_file_path):
             return specific_file_path
