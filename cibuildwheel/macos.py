@@ -4,19 +4,22 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import namedtuple
 from glob import glob
 
+from typing import Dict, List, Optional, NamedTuple, Union
+
+from .environment import ParsedEnvironment
 from .util import (
+    BuildOptions,
+    BuildSelector,
     download,
     get_build_verbosity_extra_flags,
-    prepare_command,
     get_pip_script,
-    BuildOptions
+    prepare_command,
 )
 
 
-def call(args, env=None, cwd=None, shell=False):
+def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
     # print the command executing for the logs
     if shell:
         print('+ %s' % args)
@@ -26,8 +29,13 @@ def call(args, env=None, cwd=None, shell=False):
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
 
-def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
+class PythonConfiguration(NamedTuple):
+    version: str
+    identifier: str
+    url: str
+
+
+def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
@@ -47,7 +55,7 @@ def get_python_configurations(build_selector):
 SYMLINKS_DIR = '/tmp/cibw_bin'
 
 
-def make_symlinks(installation_bin_path, python_executable, pip_executable):
+def make_symlinks(installation_bin_path: str, python_executable: str, pip_executable: str) -> None:
     assert os.path.exists(os.path.join(installation_bin_path, python_executable))
 
     # Python bin folders on Mac don't symlink `python3` to `python`, and neither
@@ -62,7 +70,7 @@ def make_symlinks(installation_bin_path, python_executable, pip_executable):
     os.symlink(os.path.join(installation_bin_path, pip_executable), os.path.join(SYMLINKS_DIR, 'pip'))
 
 
-def install_cpython(version, url):
+def install_cpython(version: str, url: str) -> str:
     installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
@@ -86,7 +94,7 @@ def install_cpython(version, url):
     return installation_bin_path
 
 
-def install_pypy(version, url):
+def install_pypy(version: str, url: str) -> str:
     pypy_tar_bz2 = url.rsplit('/', 1)[-1]
     assert pypy_tar_bz2.endswith(".tar.bz2")
     pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
@@ -103,7 +111,7 @@ def install_pypy(version, url):
     return installation_bin_path
 
 
-def setup_python(python_configuration, dependency_constraint_flags, environment):
+def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
     if python_configuration.identifier.startswith('cp'):
         installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
     elif python_configuration.identifier.startswith('pp'):
@@ -161,7 +169,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     return env
 
 
-def build(options: BuildOptions):
+def build(options: BuildOptions) -> None:
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')

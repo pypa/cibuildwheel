@@ -5,6 +5,8 @@ import textwrap
 import traceback
 from configparser import ConfigParser
 
+from typing import Any, Dict, List, Optional, overload
+
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
@@ -14,14 +16,18 @@ from cibuildwheel.environment import (
     parse_environment,
 )
 from cibuildwheel.util import (
+    BuildOptions,
     BuildSelector,
     DependencyConstraints,
     Unbuffered,
-    BuildOptions
 )
 
 
-def get_option_from_environment(option_name, platform=None, default=None):
+@overload
+def get_option_from_environment(option_name: str, platform: Optional[str], default: str) -> str: ...  # noqa: E704
+@overload
+def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: None = None) -> Optional[str]: ...  # noqa: E704 E302
+def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: Optional[str] = None) -> Optional[str]:  # noqa: E302
     '''
     Returns an option from the environment, optionally scoped by the platform.
 
@@ -39,13 +45,13 @@ def get_option_from_environment(option_name, platform=None, default=None):
     return os.environ.get(option_name, default)
 
 
-def strtobool(val):
+def strtobool(val: str) -> bool:
     if val.lower() in ('y', 'yes', 't', 'true', 'on', '1'):
         return True
     return False
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
         epilog='''
@@ -114,7 +120,7 @@ def main():
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     package_dir = args.package_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
-    build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
+    build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
     if platform == 'linux':
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
@@ -128,7 +134,7 @@ def main():
 
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
-        dependency_constraints = DependencyConstraints.with_defaults()
+        dependency_constraints: Optional[DependencyConstraints] = DependencyConstraints.with_defaults()
     elif dependency_versions == 'latest':
         dependency_constraints = None
     else:
@@ -138,7 +144,7 @@ def main():
         test_extras = '[{0}]'.format(test_extras)
 
     try:
-        build_verbosity = min(3, max(-3, int(build_verbosity)))
+        build_verbosity = min(3, max(-3, int(build_verbosity_str)))
     except ValueError:
         build_verbosity = 0
 
@@ -163,6 +169,7 @@ def main():
         print_build_identifiers(platform, build_selector)
         exit(0)
 
+    manylinux_images: Optional[Dict[str, str]] = None
     if platform == 'linux':
         pinned_docker_images_file = os.path.join(
             os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
@@ -193,9 +200,6 @@ def main():
 
             manylinux_images[build_platform] = image
 
-    else:
-        manylinux_images = None
-
     build_options = BuildOptions(
         package_dir=package_dir,
         output_dir=output_dir,
@@ -213,7 +217,7 @@ def main():
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
-    sys.stdout = Unbuffered(sys.stdout)
+    sys.stdout = Unbuffered(sys.stdout)  # type: ignore
 
     print_preamble(platform, build_options)
 
@@ -231,7 +235,7 @@ def main():
         exit(2)
 
 
-def detect_obsolete_options():
+def detect_obsolete_options() -> None:
     # Check the old 'MANYLINUX1_*_IMAGE' options
     for (deprecated, alternative) in [('CIBW_MANYLINUX1_X86_64_IMAGE', 'CIBW_MANYLINUX_X86_64_IMAGE'),
                                       ('CIBW_MANYLINUX1_I686_IMAGE', 'CIBW_MANYLINUX_I686_IMAGE')]:
@@ -258,7 +262,7 @@ def detect_obsolete_options():
                 os.environ[option] = os.environ[option].replace(deprecated, alternative)
 
 
-def print_preamble(platform, build_options):
+def print_preamble(platform: str, build_options: BuildOptions) -> None:
     print(textwrap.dedent('''
              _ _       _ _   _       _           _
          ___|_| |_ _ _|_| |_| |_ _ _| |_ ___ ___| |
@@ -282,21 +286,20 @@ def print_preamble(platform, build_options):
     print('\nHere we go!\n')
 
 
-def print_build_identifiers(platform, build_selector):
+def print_build_identifiers(platform: str, build_selector: BuildSelector) -> None:
+    python_configurations: List[Any] = []
     if platform == 'linux':
         python_configurations = cibuildwheel.linux.get_python_configurations(build_selector)
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
     elif platform == 'macos':
         python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
-    else:
-        python_configurations = []
 
     for config in python_configurations:
         print(config.identifier)
 
 
-def detect_warnings(platform, build_options):
+def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}

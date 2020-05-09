@@ -2,12 +2,13 @@ import os
 import urllib.request
 from fnmatch import fnmatch
 from time import sleep
-from typing import NamedTuple, List, Optional, Dict
+
+from typing import Dict, List, NamedTuple, Optional
 
 from .environment import ParsedEnvironment
 
 
-def prepare_command(command, **kwargs):
+def prepare_command(command: str, **kwargs: str) -> str:
     '''
     Preprocesses a command by expanding variables like {python}.
 
@@ -17,7 +18,7 @@ def prepare_command(command, **kwargs):
     return command.format(python='python', pip='pip', **kwargs)
 
 
-def get_build_verbosity_extra_flags(level):
+def get_build_verbosity_extra_flags(level: int) -> List[str]:
     if level > 0:
         return ['-' + level * 'v']
     elif level < 0:
@@ -27,37 +28,37 @@ def get_build_verbosity_extra_flags(level):
 
 
 class BuildSelector:
-    def __init__(self, build_config, skip_config):
+    def __init__(self, build_config: str, skip_config: str):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
 
-    def __call__(self, build_id):
-        def match_any(patterns):
+    def __call__(self, build_id: str) -> bool:
+        def match_any(patterns: List[str]) -> bool:
             return any(fnmatch(build_id, pattern) for pattern in patterns)
         return match_any(self.build_patterns) and not match_any(self.skip_patterns)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'BuildSelector({!r} - {!r})'.format(' '.join(self.build_patterns), ' '.join(self.skip_patterns))
 
 
 # Taken from https://stackoverflow.com/a/107717
 class Unbuffered:
-    def __init__(self, stream):
+    def __init__(self, stream):  # type: ignore
         self.stream = stream
 
-    def write(self, data):
+    def write(self, data):  # type: ignore
         self.stream.write(data)
         self.stream.flush()
 
-    def writelines(self, datas):
+    def writelines(self, datas):  # type: ignore
         self.stream.writelines(datas)
         self.stream.flush()
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr):  # type: ignore
         return getattr(self.stream, attr)
 
 
-def download(url, dest):
+def download(url: str, dest: str) -> None:
     print('+ Download ' + url + ' to ' + dest)
     dest_dir = os.path.dirname(dest)
     if not os.path.exists(dest_dir):
@@ -82,17 +83,17 @@ def download(url, dest):
 
 
 class DependencyConstraints:
-    def __init__(self, base_file_path):
+    def __init__(self, base_file_path: str):
         assert os.path.exists(base_file_path)
         self.base_file_path = os.path.abspath(base_file_path)
 
-    @classmethod
-    def with_defaults(cls):
-        return cls(
+    @staticmethod
+    def with_defaults() -> 'DependencyConstraints':
+        return DependencyConstraints(
             base_file_path=os.path.join(os.path.dirname(__file__), 'resources', 'constraints.txt')
         )
 
-    def get_for_python_version(self, version):
+    def get_for_python_version(self, version: str) -> str:
         version_parts = version.split('.')
 
         # try to find a version-specific dependency file e.g. if
@@ -106,26 +107,21 @@ class DependencyConstraints:
             return self.base_file_path
 
 
-BuildOptions = NamedTuple("BuildOptions", [
-    ("package_dir", str),
-    ("output_dir", str),
-    ("test_command", Optional[str]),
-    ("test_requires", List[str]),
-    ("test_extras", str),
-    ("before_build", Optional[str]),
-    ("build_verbosity", int),
-    ("build_selector", BuildSelector),
-    ("repair_command", str),
-    ("environment", ParsedEnvironment),
-    ("before_test", str),
-    ("dependency_constraints", Optional[DependencyConstraints]),
-    ("manylinux_images", Optional[Dict[str, str]]),
-])
+class BuildOptions(NamedTuple):
+    package_dir: str
+    output_dir: str
+    test_command: Optional[str]
+    test_requires: List[str]
+    test_extras: str
+    before_build: Optional[str]
+    build_verbosity: int
+    build_selector: BuildSelector
+    repair_command: str
+    environment: ParsedEnvironment
+    before_test: str
+    dependency_constraints: Optional[DependencyConstraints]
+    manylinux_images: Optional[Dict[str, str]]
 
-"""
-Replace this definition with a class-style NamedTuple in the
-PEP526 style when Python 3.5 host support is dropped
-"""
 
 resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
 get_pip_script = os.path.join(resources_dir, 'get-pip.py')
