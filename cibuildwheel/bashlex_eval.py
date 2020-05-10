@@ -20,7 +20,7 @@ def evaluate(value: str, environment: Dict[str, str]) -> str:
     command_node = bashlex.parsesingle(value)
 
     if len(command_node.parts) != 1:
-        raise ValueError('"%s" has too many parts' % value)
+        raise ValueError(f'"{value}" has too many parts')
 
     value_word_node = command_node.parts[0]
 
@@ -38,7 +38,7 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     elif node.kind == 'parameter':
         return evaluate_parameter_node(node, context=context)
     else:
-        raise ValueError('Unsupported bash construct: "%s"' % node.word)
+        raise ValueError(f'Unsupported bash construct: "{node.word}"')
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:

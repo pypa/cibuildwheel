@@ -38,7 +38,7 @@ def get_option_from_environment(option_name: str, platform: Optional[str] = None
       CIBW_COLOR.
     '''
     if platform:
-        option = os.environ.get('%s_%s' % (option_name, platform.upper()))
+        option = os.environ.get(f'{option_name}_{platform.upper()}')
         if option is not None:
             return option
 
@@ -141,7 +141,7 @@ def main() -> None:
         dependency_constraints = DependencyConstraints(dependency_versions)
 
     if test_extras:
-        test_extras = '[{0}]'.format(test_extras)
+        test_extras = f'[{test_extras}]'
 
     try:
         build_verbosity = min(3, max(-3, int(build_verbosity_str)))
@@ -151,7 +151,7 @@ def main() -> None:
     try:
         environment = parse_environment(environment_config)
     except (EnvironmentParseError, ValueError):
-        print('cibuildwheel: Malformed environment option "%s"' % environment_config, file=sys.stderr)
+        print(f'cibuildwheel: Malformed environment option "{environment_config}"', file=sys.stderr)
         traceback.print_exc(None, sys.stderr)
         exit(2)
 
@@ -187,7 +187,7 @@ def main() -> None:
         for build_platform in ['x86_64', 'i686', 'pypy_x86_64', 'aarch64', 'ppc64le', 's390x']:
             pinned_images = all_pinned_docker_images[build_platform]
 
-            config_name = 'CIBW_MANYLINUX_{}_IMAGE'.format(build_platform.upper())
+            config_name = f'CIBW_MANYLINUX_{build_platform.upper()}_IMAGE'
             config_value = os.environ.get(config_name)
 
             if config_value is None:
@@ -231,7 +231,7 @@ def main() -> None:
     elif platform == 'macos':
         cibuildwheel.macos.build(build_options)
     else:
-        print('cibuildwheel: Unsupported platform: {}'.format(platform), file=sys.stderr)
+        print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
         exit(2)
 
 
@@ -240,12 +240,12 @@ def detect_obsolete_options() -> None:
     for (deprecated, alternative) in [('CIBW_MANYLINUX1_X86_64_IMAGE', 'CIBW_MANYLINUX_X86_64_IMAGE'),
                                       ('CIBW_MANYLINUX1_I686_IMAGE', 'CIBW_MANYLINUX_I686_IMAGE')]:
         if deprecated in os.environ:
-            print("'{}' has been deprecated, and will be removed in a future release. Use the option '{}' instead.".format(deprecated, alternative))
+            print(f"'{deprecated}' has been deprecated, and will be removed in a future release. Use the option '{alternative}' instead.")
             if alternative not in os.environ:
-                print("Using value of option '{}' as replacement for '{}'".format(deprecated, alternative))
+                print(f"Using value of option '{deprecated}' as replacement for '{alternative}'")
                 os.environ[alternative] = os.environ[deprecated]
             else:
-                print("Option '{}' is not empty. Please unset '{}'".format(alternative, deprecated))
+                print(f"Option '{alternative}' is not empty. Please unset '{deprecated}'")
                 exit(2)
 
     # Check for deprecated identifiers in 'CIBW_BUILD' and 'CIBW_SKIP' options
@@ -254,11 +254,7 @@ def detect_obsolete_options() -> None:
                                         ('macosx_10_6_intel', 'macosx_x86_64'),
                                         ('macosx_10_9_x86_64', 'macosx_x86_64')]:
             if option in os.environ and deprecated in os.environ[option]:
-                print("Build identifiers with '{deprecated}' have been deprecated. Replacing all occurences of '{deprecated}' with '{alternative}' in the option '{option}'".format(
-                    deprecated=deprecated,
-                    alternative=alternative,
-                    option=option,
-                ))
+                print(f"Build identifiers with '{deprecated}' have been deprecated. Replacing all occurences of '{deprecated}' with '{alternative}' in the option '{option}'")
                 os.environ[option] = os.environ[option].replace(deprecated, alternative)
 
 
@@ -270,12 +266,12 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
         |___|_|___|___|_|_|___|_____|_|_|___|___|_|
         '''))
 
-    print('cibuildwheel version %s\n' % cibuildwheel.__version__)
+    print(f'cibuildwheel version {cibuildwheel.__version__}\n')
 
     print('Build options:')
-    print('  platform: %r' % platform)
+    print(f'  platform: {platform!r}')
     for option, value in sorted(build_options._asdict().items()):
-        print('  %s: %r' % (option, value))
+        print(f'  {option}: {value!r}')
 
     warnings = detect_warnings(platform, build_options)
     if warnings:

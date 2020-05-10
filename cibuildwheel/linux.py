@@ -114,7 +114,7 @@ def build(options: BuildOptions) -> None:
         if not platform_configs:
             continue
 
-        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+        container_name = f'cibuildwheel-{uuid.uuid4()}'
 
         try:
             shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']

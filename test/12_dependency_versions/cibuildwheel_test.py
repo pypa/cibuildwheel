@@ -44,11 +44,11 @@ def test_pinned_versions(python_version):
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 
     for package in ['pip', 'setuptools', 'wheel', 'virtualenv']:
-        env_name = 'EXPECTED_{}_VERSION'.format(package.upper())
+        env_name = f'EXPECTED_{package.upper()}_VERSION'
         build_environment[env_name] = constraint_versions[package]
 
     cibw_environment_option = ' '.join(
-        ['{}={}'.format(k, v) for k, v in build_environment.items()]
+        [f'{k}={v}' for k, v in build_environment.items()]
     )
 
     # build and test the wheels
@@ -100,11 +100,11 @@ def test_dependency_constraints_file(tmp_path, python_version):
     build_environment = {}
 
     for package_name, version in tool_versions.items():
-        env_name = 'EXPECTED_{}_VERSION'.format(package_name.upper())
+        env_name = f'EXPECTED_{package_name.upper()}_VERSION'
         build_environment[env_name] = version
 
     cibw_environment_option = ' '.join(
-        ['{}={}'.format(k, v) for k, v in build_environment.items()]
+        [f'{k}={v}' for k, v in build_environment.items()]
     )
 
     # build and test the wheels

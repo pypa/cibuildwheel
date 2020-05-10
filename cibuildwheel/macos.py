@@ -22,7 +22,7 @@ from .util import (
 def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
     # print the command executing for the logs
     if shell:
-        print('+ %s' % args)
+        print(f'+ {args}')
     else:
         print('+ ' + ' '.join(shlex.quote(a) for a in args))
 
@@ -74,7 +74,7 @@ def install_cpython(version: str, url: str) -> str:
     installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
-    python_package_identifier = 'org.python.Python.PythonFramework-{}'.format(version)
+    python_package_identifier = f'org.python.Python.PythonFramework-{version}'
     if python_package_identifier not in installed_system_packages:
         # download the pkg
         download(url, '/tmp/Python.pkg')
@@ -82,11 +82,11 @@ def install_cpython(version: str, url: str) -> str:
         call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
         # patch open ssl
         if version == '3.5':
-            open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-%s-openssl-v1.0.2u.tar.gz' % version
+            open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-{version}-openssl-v1.0.2u.tar.gz'
             download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
-            call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/{}/'.format(version), '-xmf', '/tmp/python-patch.tar.gz'])
+            call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
 
-    installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(version)
+    installation_bin_path = f'/Library/Frameworks/Python.framework/Versions/{version}/bin'
     python_executable = 'python3' if version[0] == '3' else 'python'
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
     make_symlinks(installation_bin_path, python_executable, pip_executable)
