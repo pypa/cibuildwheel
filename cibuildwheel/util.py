@@ -121,7 +121,7 @@ class BuildOptions(NamedTuple):
     before_test: Optional[str]
     test_requires: List[str]
     test_extras: str
-x    build_verbosity: int
+    build_verbosity: int
 
 
 resources_dir = Path(__file__).resolve().parent / 'resources'
