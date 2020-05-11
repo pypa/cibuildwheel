@@ -190,6 +190,25 @@ CIBW_ENVIRONMENT: "BUILD_TIME=$(date) SAMPLE_TEXT=\"sample text\""
 !!! note
     `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
+### `CIBW_BEFORE_ALL` {: #before-all}
+> Execute a shell command preparing common part for each wheel. 
+
+Shell command to prepare common part of project (ex. build libraries which does not depend on python).
+This option is added mainly for linux build, because linux wheels are build in isolated from host docker containers.
+
+The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
+
+Platform-specific variants also available:<br/>
+ `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+
+#### Examples
+```yaml
+# build third party library
+CIBW_BEFORE_ALL: make -C third_party_lib
+
+# install system library
+CIBW_BEFORE_ALL: yum install -y libffi-dev
+```
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
 > Execute a shell command preparing each wheel's build

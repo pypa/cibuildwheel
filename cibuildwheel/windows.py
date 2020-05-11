@@ -162,6 +162,10 @@ def build(options: BuildOptions) -> None:
     nuget = Path('C:\\cibw\\nuget.exe')
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
 
+    if options.before_all:
+        before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
+        shell([before_all_prepared])
+
     python_configurations = get_python_configurations(options.build_selector)
     for config in python_configurations:
         dependency_constraint_flags = []

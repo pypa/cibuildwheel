@@ -133,6 +133,10 @@ def build(options: BuildOptions) -> None:
 
             call(['docker', 'start', container_name])
 
+            if options.before_all:
+                before_all_prepared = prepare_command(options.before_all, project='/project', package=options.package_dir)
+                call(['docker', 'exec', '-i', container_name] + shell_cmd, universal_newlines=True, input=before_all_prepared)
+
             for config in platform_configs:
                 if options.dependency_constraints:
                     constraints_file = options.dependency_constraints.get_for_python_version(config.version)

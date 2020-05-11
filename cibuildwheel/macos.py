@@ -176,6 +176,10 @@ def build(options: BuildOptions) -> None:
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'
 
+    if options.before_all:
+        before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
+        call([before_all_prepared], shell=True)
+
     python_configurations = get_python_configurations(options.build_selector)
 
     for config in python_configurations:

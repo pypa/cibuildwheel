@@ -112,6 +112,7 @@ class BuildOptions(NamedTuple):
     output_dir: Path
     build_selector: BuildSelector
     environment: ParsedEnvironment
+    before_all: str
     before_build: Optional[str]
     repair_command: str
     manylinux_images: Optional[Dict[str, str]]
@@ -120,7 +121,7 @@ class BuildOptions(NamedTuple):
     before_test: Optional[str]
     test_requires: List[str]
     test_extras: str
-    build_verbosity: int
+x    build_verbosity: int
 
 
 resources_dir = Path(__file__).resolve().parent / 'resources'
