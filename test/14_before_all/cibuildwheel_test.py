@@ -16,7 +16,6 @@ def test():
         'CIBW_BEFORE_ALL': '''python -c "open('{project}/text_info.txt', 'w').write('sample text')"''',
     })
 
-
     # also check that we got the right wheels
     os.remove(os.path.join(project_dir, "text_info.txt"))
     expected_wheels = utils.expected_wheels('spam', '0.1.0')

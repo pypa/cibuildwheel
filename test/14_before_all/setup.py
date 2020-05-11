@@ -1,6 +1,3 @@
-import os
-import sys
-
 from setuptools import (
     Extension,
     setup,
@@ -11,9 +8,8 @@ from setuptools import (
 with open("text_info.txt") as f:
     stored_text = f.read()
 
-print("## stored text: "+stored_text)
+print("## stored text: " + stored_text)
 assert stored_text == "sample text"
-
 
 
 setup(
