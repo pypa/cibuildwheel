@@ -163,8 +163,9 @@ def build(options: BuildOptions) -> None:
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
 
     if options.before_all:
+        env = options.environment.as_dictionary(prev_environment=os.environ)
         before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
-        shell([before_all_prepared])
+        shell([before_all_prepared], env=env)
 
     python_configurations = get_python_configurations(options.build_selector)
     for config in python_configurations:

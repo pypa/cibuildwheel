@@ -9,7 +9,7 @@ with open("text_info.txt") as f:
     stored_text = f.read()
 
 print("## stored text: " + stored_text)
-assert stored_text == "sample text"
+assert stored_text == "sample text 123"
 
 
 setup(

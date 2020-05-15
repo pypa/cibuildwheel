@@ -198,6 +198,8 @@ This option is added mainly for linux build, because linux wheels are build in i
 
 The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
 
+For windows and macos `CIBW_BEFORE_ALL` python interpreter is same as `cibuildwheel` is run. For linux it is default interpreter for docker image. 
+
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
 

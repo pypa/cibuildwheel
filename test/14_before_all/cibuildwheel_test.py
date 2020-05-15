@@ -13,7 +13,8 @@ def test():
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         # write python version information to a temporary file, this is
         # checked in setup.py
-        'CIBW_BEFORE_ALL': '''python -c "open('{project}/text_info.txt', 'w').write('sample text')"''',
+        'CIBW_BEFORE_ALL': '''python -c "import os;open('{project}/text_info.txt', 'w').write('sample text '+os.environ.get('TEST_VAL', ''))"''',
+        'CIBW_ENVIRONMENT': "TEST_VAL='123'"
     })
 
     # also check that we got the right wheels
