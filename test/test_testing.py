@@ -5,9 +5,9 @@ import textwrap
 import pytest
 
 from . import utils
-from .template_projects import CTemplateProject
+from . import template_projects
 
-project_with_a_test = CTemplateProject(
+project_with_a_test = template_projects.new_c_project(
     setup_cfg_add=textwrap.dedent(r'''
         [options.extras_require]
         test = nose

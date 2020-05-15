@@ -1,9 +1,9 @@
 import textwrap
 import platform
-from .template_projects import CTemplateProject
+from . import template_projects
 from . import utils
 
-basic_project = CTemplateProject(
+basic_project = template_projects.new_c_project(
     setup_py_add=textwrap.dedent('''
         import os
 

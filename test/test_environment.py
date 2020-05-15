@@ -3,10 +3,10 @@ import pytest
 import subprocess
 import textwrap
 from . import utils
-from .template_projects import CTemplateProject
+from . import template_projects
 
 
-project_with_environment_asserts = CTemplateProject(
+project_with_environment_asserts = template_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
         import os
 
@@ -47,7 +47,7 @@ def test(tmp_path):
 def test_overridden_path(tmp_path):
     project_dir = tmp_path / 'project'
     output_dir = tmp_path / 'output'
-    CTemplateProject().generate(project_dir)
+    new_c_project().generate(project_dir)
     output_dir.mkdir()
 
     # mess up PATH, somehow

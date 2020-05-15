@@ -1,9 +1,9 @@
 import textwrap
 
 from . import utils
-from .template_projects import CTemplateProject
+from . import template_projects
 
-project_with_before_build_asserts = CTemplateProject(
+project_with_before_build_asserts = template_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
         import sys, os
 
