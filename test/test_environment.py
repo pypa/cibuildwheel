@@ -47,7 +47,9 @@ def test(tmp_path):
 def test_overridden_path(tmp_path):
     project_dir = tmp_path / 'project'
     output_dir = tmp_path / 'output'
-    new_c_project().generate(project_dir)
+
+    project = template_projects.new_c_project()
+    project.generate(project_dir)
     output_dir.mkdir()
 
     # mess up PATH, somehow
