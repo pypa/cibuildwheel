@@ -21,7 +21,7 @@ class TemplateProject:
             file_path = os.path.join(path, filename)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-            with io.open(file_path, 'w', encoding='utf8') as f:
+            with open(file_path, 'w', encoding='utf8') as f:
                 if isinstance(content, jinja2.Template):
                     content = content.render(self.template_context)
 

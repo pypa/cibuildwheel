@@ -33,7 +33,7 @@ def cibuildwheel_get_build_identifiers(project_path, env=None):
     for the current platform.
     '''
     cmd_output = subprocess.check_output(
-        [sys.executable, '-m', 'cibuildwheel', '--print-build-identifiers', str(project_path)],
+        [sys.executable, '-m', 'cibuildwheel', '--print-build-identifiers', project_path],
         universal_newlines=True,
         env=env,
     )

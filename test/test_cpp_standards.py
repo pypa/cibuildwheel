@@ -72,15 +72,18 @@ MOD_INIT(spam)
 ''')
 
 
+cpp11_project = cpp_template_project.copy()
+cpp11_project.template_context['extra_compile_args'] = (
+    ['/std:c++11'] if utils.platform == 'windows' else ['-std=c++11']
+)
+cpp11_project.template_context['spam_cpp_top_level_add'] = '#include <array>'
+
+
 def test_cpp11(tmp_path):
     # This test checks that the C++11 standard is supported
     project_dir = tmp_path / 'project'
 
-    project = cpp_template_project.copy()
-    extra_compile_args = ['/std:c++11'] if utils.platform == 'windows' else ['-std=c++11']
-    project.template_context['extra_compile_args'] = extra_compile_args
-    project.template_context['spam_cpp_top_level_add'] = '#include <array>'
-    project.generate(project_dir)
+    cpp11_project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
     add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
@@ -92,15 +95,18 @@ def test_cpp11(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
+cpp14_project = cpp_template_project.copy()
+cpp14_project.template_context['extra_compile_args'] = (
+    ['/std:c++14'] if utils.platform == 'windows' else ['-std=c++14']
+)
+cpp14_project.template_context['spam_cpp_top_level_add'] = "int a = 100'000;"
+
+
 def test_cpp14(tmp_path):
     # This test checks that the C++14 standard is supported
     project_dir = tmp_path / 'project'
 
-    project = cpp_template_project.copy()
-    extra_compile_args = ['/std:c++14'] if utils.platform == 'windows' else ['-std=c++14']
-    project.template_context['extra_compile_args'] = extra_compile_args
-    project.template_context['spam_cpp_top_level_add'] = "int a = 100'000;"
-    project.generate(project_dir)
+    cpp14_project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
     # The manylinux1 docker image does not have a compiler which supports C++11
@@ -115,12 +121,9 @@ def test_cpp14(tmp_path):
 
 
 cpp17_project = cpp_template_project.copy()
-
-if utils.platform == 'windows':
-    cpp17_project.template_context['extra_compile_args'] = ['/std:c++17', '/wd5033']
-else:
-    cpp17_project.template_context['extra_compile_args'] = ['-std=c++17', '-Wno-register']
-
+cpp17_project.template_context['extra_compile_args'] = (
+    ['/std:c++17', '/wd5033'] if utils.platform == 'windows' else ['-std=c++17', '-Wno-register']
+)
 cpp17_project.template_context['spam_cpp_top_level_add'] = r'''
 #include <utility>
 auto a = std::pair(5.0, false);

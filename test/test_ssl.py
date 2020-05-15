@@ -28,4 +28,7 @@ def test(tmp_path):
     project_dir = tmp_path / 'project'
     project_with_ssl_tests.generate(project_dir)
 
-    utils.cibuildwheel_run(project_dir)
+    actual_wheels = utils.cibuildwheel_run(project_dir)
+
+    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    assert set(actual_wheels) == set(expected_wheels)
