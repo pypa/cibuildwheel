@@ -131,6 +131,7 @@ Here are some repos that use cibuildwheel.
 - [PyAV](https://github.com/PyAV-Org/PyAV)
 - [aiortc](https://github.com/aiortc/aiortc)
 - [aioquic](https://github.com/aiortc/aioquic)
+- [pikepdf](https://github.com/pikepdf/pikepdf)
 
 > Add your repo here! Send a PR.
 
