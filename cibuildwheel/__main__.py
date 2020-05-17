@@ -115,9 +115,10 @@ def main() -> None:
             exit(2)
 
     output_dir = args.output_dir
-    test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
+    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform, default='')
+    test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     package_dir = args.package_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
@@ -130,7 +131,6 @@ def main() -> None:
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
-    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform, default='')
 
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
