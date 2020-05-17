@@ -4,10 +4,10 @@ import textwrap
 import pytest
 
 from . import utils
-from . import template_projects
+from . import test_projects
 
 # TODO: specify these at runtime according to manylinux_image
-project_with_manylinux_symbols = template_projects.new_c_project(
+project_with_manylinux_symbols = test_projects.new_c_project(
     spam_c_top_level_add=textwrap.dedent(r'''
         #include <malloc.h>
 

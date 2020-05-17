@@ -1,9 +1,9 @@
 import textwrap
 
 from . import utils
-from . import template_projects
+from . import test_projects
 
-project_with_ssl_tests = template_projects.new_c_project(
+project_with_ssl_tests = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
         import ssl
         import sys

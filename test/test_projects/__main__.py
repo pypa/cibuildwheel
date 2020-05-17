@@ -7,8 +7,8 @@ import subprocess
 
 def main():
     parser = ArgumentParser(
-        prog="python -m test.template_projects",
-        description='Generate a template project to check it out'
+        prog="python -m test.test_projects",
+        description='Generate a test project to check it out'
     )
     parser.add_argument('PROJECT', help='''
         Python path to a project object. E.g. test.test_0_basic.basic_project

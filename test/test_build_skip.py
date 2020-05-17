@@ -1,9 +1,9 @@
 import textwrap
 
 from . import utils
-from . import template_projects
+from . import test_projects
 
-project_with_skip_asserts = template_projects.new_c_project(
+project_with_skip_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
         # explode if run on Python 2.7 or Python 3.7 (these should be skipped)
         if sys.version_info[0:2] == (2, 7):

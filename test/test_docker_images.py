@@ -4,9 +4,9 @@ import textwrap
 import pytest
 
 from . import utils
-from . import template_projects
+from . import test_projects
 
-dockcross_only_project = template_projects.new_c_project(
+dockcross_only_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
         import os, sys
 

@@ -5,10 +5,10 @@ import textwrap
 import cibuildwheel.util
 
 from . import utils
-from . import template_projects
+from . import test_projects
 
 
-project_with_expected_version_checks = template_projects.new_c_project(
+project_with_expected_version_checks = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
         import subprocess
         import os

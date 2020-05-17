@@ -1,5 +1,5 @@
 import jinja2
-from .base import TemplateProject
+from .base import TestProject
 
 
 SPAM_C_TEMPLATE = r'''
@@ -81,7 +81,7 @@ version = 0.1.0
 
 def new_c_project(*, spam_c_top_level_add='', spam_c_function_add='', setup_py_add='',
                   setup_py_setup_args_add='', setup_cfg_add=''):
-    project = TemplateProject()
+    project = TestProject()
 
     project.files.update({
         'spam.c': jinja2.Template(SPAM_C_TEMPLATE),

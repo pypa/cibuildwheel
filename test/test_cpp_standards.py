@@ -4,11 +4,11 @@ import jinja2
 import pytest
 
 from . import utils
-from .template_projects import TemplateProject
+from .test_projects import TestProject
 
-cpp_template_project = TemplateProject()
+cpp_test_project = TestProject()
 
-cpp_template_project.files['setup.py'] = jinja2.Template(r'''
+cpp_test_project.files['setup.py'] = jinja2.Template(r'''
 from setuptools import Extension, setup
 
 setup(
@@ -18,7 +18,7 @@ setup(
 )
 ''')
 
-cpp_template_project.files['spam.cpp'] = jinja2.Template(r'''
+cpp_test_project.files['spam.cpp'] = jinja2.Template(r'''
 #include <Python.h>
 
 {{ spam_cpp_top_level_add }}
@@ -72,7 +72,7 @@ MOD_INIT(spam)
 ''')
 
 
-cpp11_project = cpp_template_project.copy()
+cpp11_project = cpp_test_project.copy()
 cpp11_project.template_context['extra_compile_args'] = (
     ['/std:c++11'] if utils.platform == 'windows' else ['-std=c++11']
 )
@@ -95,7 +95,7 @@ def test_cpp11(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-cpp14_project = cpp_template_project.copy()
+cpp14_project = cpp_test_project.copy()
 cpp14_project.template_context['extra_compile_args'] = (
     ['/std:c++14'] if utils.platform == 'windows' else ['-std=c++14']
 )
@@ -120,7 +120,10 @@ def test_cpp14(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-cpp17_project = cpp_template_project.copy()
+cpp17_project = cpp_test_project.copy()
+
+# Python and PyPy 2.7 headers use the `register` keyword, which is forbidden in
+# the C++17 standard, so we need the -Wno-register or /wd5033 options
 cpp17_project.template_context['extra_compile_args'] = (
     ['/std:c++17', '/wd5033'] if utils.platform == 'windows' else ['-std=c++17', '-Wno-register']
 )
@@ -136,15 +139,11 @@ def test_cpp17(tmp_path):
 
     cpp17_project.generate(project_dir)
 
-    # - Python and PyPy 2.7 use the `register` keyword which is forbidden in
-    #   the C++17 standard
-    # - The manylinux1 docker image does not have a compiler which supports
-    #   C++11
-    # - Pypy's distutils sets the default compiler to 'msvc9compiler', which
-    #   is too old to support cpp17.
     if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
         pytest.skip('Visual Studio 2015 does not support C++17')
 
+    # Pypy's distutils sets the default compiler to 'msvc9compiler', which
+    # is too old to support cpp17.
     add_env = {'CIBW_SKIP': 'cp27-win* pp??-*'}
 
     if utils.platform == 'macos':

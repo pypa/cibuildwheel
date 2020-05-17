@@ -7,7 +7,13 @@ FilesDict = Dict[str, Union[str, jinja2.Template]]
 TemplateContext = Dict[str, Any]
 
 
-class TemplateProject:
+class TestProject:
+    '''
+    An object that represents a project that can be built by cibuildwheel.
+    Can be manipulated in tests by changing `files` and `template_context`.
+
+    Write out to the filesystem using `generate`.
+    '''
     files: FilesDict
     template_context: TemplateContext
 
@@ -27,7 +33,7 @@ class TemplateProject:
                 f.write(content)
 
     def copy(self):
-        other = TemplateProject()
+        other = TestProject()
         other.files = self.files.copy()
         other.template_context = self.template_context.copy()
         return other

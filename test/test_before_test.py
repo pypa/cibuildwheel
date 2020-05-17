@@ -1,7 +1,7 @@
-from . import template_projects
+from . import test_projects
 from . import utils
 
-before_test_project = template_projects.new_c_project()
+before_test_project = test_projects.new_c_project()
 before_test_project.files['test/spam_test.py'] = r'''
 import sys
 import os

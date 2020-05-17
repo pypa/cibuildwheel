@@ -3,10 +3,10 @@ import os
 import jinja2
 
 from . import utils
-from .template_projects import TemplateProject
-from .template_projects.c import SPAM_C_TEMPLATE
+from .test_projects import TestProject
+from .test_projects.c import SPAM_C_TEMPLATE
 
-subdir_package_project = TemplateProject()
+subdir_package_project = TestProject()
 
 subdir_package_project.files['src/spam/spam.c'] = jinja2.Template(SPAM_C_TEMPLATE)
 subdir_package_project.template_context['spam_c_top_level_add'] = ''
