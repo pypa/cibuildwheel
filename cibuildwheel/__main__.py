@@ -5,6 +5,8 @@ import textwrap
 import traceback
 from configparser import ConfigParser
 
+from typing import Any, Dict, List, Optional, overload
+
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
@@ -14,14 +16,18 @@ from cibuildwheel.environment import (
     parse_environment,
 )
 from cibuildwheel.util import (
+    BuildOptions,
     BuildSelector,
     DependencyConstraints,
     Unbuffered,
-    BuildOptions
 )
 
 
-def get_option_from_environment(option_name, platform=None, default=None):
+@overload
+def get_option_from_environment(option_name: str, platform: Optional[str], default: str) -> str: ...  # noqa: E704
+@overload
+def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: None = None) -> Optional[str]: ...  # noqa: E704 E302
+def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: Optional[str] = None) -> Optional[str]:  # noqa: E302
     '''
     Returns an option from the environment, optionally scoped by the platform.
 
@@ -32,20 +38,20 @@ def get_option_from_environment(option_name, platform=None, default=None):
       CIBW_COLOR.
     '''
     if platform:
-        option = os.environ.get('%s_%s' % (option_name, platform.upper()))
+        option = os.environ.get(f'{option_name}_{platform.upper()}')
         if option is not None:
             return option
 
     return os.environ.get(option_name, default)
 
 
-def strtobool(val):
+def strtobool(val: str) -> bool:
     if val.lower() in ('y', 'yes', 't', 'true', 'on', '1'):
         return True
     return False
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
         epilog='''
@@ -114,7 +120,7 @@ def main():
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     package_dir = args.package_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
-    build_verbosity = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
+    build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
     if platform == 'linux':
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
@@ -128,24 +134,24 @@ def main():
 
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
-        dependency_constraints = DependencyConstraints.with_defaults()
+        dependency_constraints: Optional[DependencyConstraints] = DependencyConstraints.with_defaults()
     elif dependency_versions == 'latest':
         dependency_constraints = None
     else:
         dependency_constraints = DependencyConstraints(dependency_versions)
 
     if test_extras:
-        test_extras = '[{0}]'.format(test_extras)
+        test_extras = f'[{test_extras}]'
 
     try:
-        build_verbosity = min(3, max(-3, int(build_verbosity)))
+        build_verbosity = min(3, max(-3, int(build_verbosity_str)))
     except ValueError:
         build_verbosity = 0
 
     try:
         environment = parse_environment(environment_config)
     except (EnvironmentParseError, ValueError):
-        print('cibuildwheel: Malformed environment option "%s"' % environment_config, file=sys.stderr)
+        print(f'cibuildwheel: Malformed environment option "{environment_config}"', file=sys.stderr)
         traceback.print_exc(None, sys.stderr)
         exit(2)
 
@@ -163,6 +169,7 @@ def main():
         print_build_identifiers(platform, build_selector)
         exit(0)
 
+    manylinux_images: Optional[Dict[str, str]] = None
     if platform == 'linux':
         pinned_docker_images_file = os.path.join(
             os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
@@ -180,7 +187,7 @@ def main():
         for build_platform in ['x86_64', 'i686', 'pypy_x86_64', 'aarch64', 'ppc64le', 's390x']:
             pinned_images = all_pinned_docker_images[build_platform]
 
-            config_name = 'CIBW_MANYLINUX_{}_IMAGE'.format(build_platform.upper())
+            config_name = f'CIBW_MANYLINUX_{build_platform.upper()}_IMAGE'
             config_value = os.environ.get(config_name)
 
             if config_value is None:
@@ -192,9 +199,6 @@ def main():
                 image = config_value
 
             manylinux_images[build_platform] = image
-
-    else:
-        manylinux_images = None
 
     build_options = BuildOptions(
         package_dir=package_dir,
@@ -213,7 +217,7 @@ def main():
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
-    sys.stdout = Unbuffered(sys.stdout)
+    sys.stdout = Unbuffered(sys.stdout)  # type: ignore
 
     print_preamble(platform, build_options)
 
@@ -227,21 +231,21 @@ def main():
     elif platform == 'macos':
         cibuildwheel.macos.build(build_options)
     else:
-        print('cibuildwheel: Unsupported platform: {}'.format(platform), file=sys.stderr)
+        print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
         exit(2)
 
 
-def detect_obsolete_options():
+def detect_obsolete_options() -> None:
     # Check the old 'MANYLINUX1_*_IMAGE' options
     for (deprecated, alternative) in [('CIBW_MANYLINUX1_X86_64_IMAGE', 'CIBW_MANYLINUX_X86_64_IMAGE'),
                                       ('CIBW_MANYLINUX1_I686_IMAGE', 'CIBW_MANYLINUX_I686_IMAGE')]:
         if deprecated in os.environ:
-            print("'{}' has been deprecated, and will be removed in a future release. Use the option '{}' instead.".format(deprecated, alternative))
+            print(f"'{deprecated}' has been deprecated, and will be removed in a future release. Use the option '{alternative}' instead.")
             if alternative not in os.environ:
-                print("Using value of option '{}' as replacement for '{}'".format(deprecated, alternative))
+                print(f"Using value of option '{deprecated}' as replacement for '{alternative}'")
                 os.environ[alternative] = os.environ[deprecated]
             else:
-                print("Option '{}' is not empty. Please unset '{}'".format(alternative, deprecated))
+                print(f"Option '{alternative}' is not empty. Please unset '{deprecated}'")
                 exit(2)
 
     # Check for deprecated identifiers in 'CIBW_BUILD' and 'CIBW_SKIP' options
@@ -250,15 +254,11 @@ def detect_obsolete_options():
                                         ('macosx_10_6_intel', 'macosx_x86_64'),
                                         ('macosx_10_9_x86_64', 'macosx_x86_64')]:
             if option in os.environ and deprecated in os.environ[option]:
-                print("Build identifiers with '{deprecated}' have been deprecated. Replacing all occurences of '{deprecated}' with '{alternative}' in the option '{option}'".format(
-                    deprecated=deprecated,
-                    alternative=alternative,
-                    option=option,
-                ))
+                print(f"Build identifiers with '{deprecated}' have been deprecated. Replacing all occurences of '{deprecated}' with '{alternative}' in the option '{option}'")
                 os.environ[option] = os.environ[option].replace(deprecated, alternative)
 
 
-def print_preamble(platform, build_options):
+def print_preamble(platform: str, build_options: BuildOptions) -> None:
     print(textwrap.dedent('''
              _ _       _ _   _       _           _
          ___|_| |_ _ _|_| |_| |_ _ _| |_ ___ ___| |
@@ -266,12 +266,12 @@ def print_preamble(platform, build_options):
         |___|_|___|___|_|_|___|_____|_|_|___|___|_|
         '''))
 
-    print('cibuildwheel version %s\n' % cibuildwheel.__version__)
+    print(f'cibuildwheel version {cibuildwheel.__version__}\n')
 
     print('Build options:')
-    print('  platform: %r' % platform)
+    print(f'  platform: {platform!r}')
     for option, value in sorted(build_options._asdict().items()):
-        print('  %s: %r' % (option, value))
+        print(f'  {option}: {value!r}')
 
     warnings = detect_warnings(platform, build_options)
     if warnings:
@@ -282,21 +282,20 @@ def print_preamble(platform, build_options):
     print('\nHere we go!\n')
 
 
-def print_build_identifiers(platform, build_selector):
+def print_build_identifiers(platform: str, build_selector: BuildSelector) -> None:
+    python_configurations: List[Any] = []
     if platform == 'linux':
         python_configurations = cibuildwheel.linux.get_python_configurations(build_selector)
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
     elif platform == 'macos':
         python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
-    else:
-        python_configurations = []
 
     for config in python_configurations:
         print(config.identifier)
 
 
-def detect_warnings(platform, build_options):
+def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}

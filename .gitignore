@@ -103,5 +103,5 @@ env3?/
 # VSCode project settings
 /.vscode
 
-# mypy
-.mypy_cache
+# MyPy cache
+.mypy_cache/

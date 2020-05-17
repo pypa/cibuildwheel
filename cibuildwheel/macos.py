@@ -4,37 +4,45 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import namedtuple
 from glob import glob
 
+from typing import Dict, List, Optional, NamedTuple, Union
+
+from .environment import ParsedEnvironment
 from .util import (
+    BuildOptions,
+    BuildSelector,
     download,
     get_build_verbosity_extra_flags,
-    prepare_command,
     get_pip_script,
-    BuildOptions
+    prepare_command,
 )
 
 
-def call(args, env=None, cwd=None, shell=False):
+def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
     # print the command executing for the logs
     if shell:
-        print('+ %s' % args)
+        print(f'+ {args}')
     else:
         print('+ ' + ' '.join(shlex.quote(a) for a in args))
 
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
 
-def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'url'])
+class PythonConfiguration(NamedTuple):
+    version: str
+    identifier: str
+    url: str
+
+
+def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
         PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.7/python-3.7.7-macosx10.9.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.2/python-3.8.2-macosx10.9.pkg'),
+        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.3/python-3.8.3-macosx10.9.pkg'),
         # PyPy
         PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://downloads.python.org/pypy/pypy2.7-v7.3.1-osx64.tar.bz2'),
         PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.6-v7.3.1-osx64.tar.bz2'),
@@ -47,7 +55,7 @@ def get_python_configurations(build_selector):
 SYMLINKS_DIR = '/tmp/cibw_bin'
 
 
-def make_symlinks(installation_bin_path, python_executable, pip_executable):
+def make_symlinks(installation_bin_path: str, python_executable: str, pip_executable: str) -> None:
     assert os.path.exists(os.path.join(installation_bin_path, python_executable))
 
     # Python bin folders on Mac don't symlink `python3` to `python`, and neither
@@ -62,11 +70,11 @@ def make_symlinks(installation_bin_path, python_executable, pip_executable):
     os.symlink(os.path.join(installation_bin_path, pip_executable), os.path.join(SYMLINKS_DIR, 'pip'))
 
 
-def install_cpython(version, url):
+def install_cpython(version: str, url: str) -> str:
     installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
-    python_package_identifier = 'org.python.Python.PythonFramework-{}'.format(version)
+    python_package_identifier = f'org.python.Python.PythonFramework-{version}'
     if python_package_identifier not in installed_system_packages:
         # download the pkg
         download(url, '/tmp/Python.pkg')
@@ -74,11 +82,11 @@ def install_cpython(version, url):
         call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
         # patch open ssl
         if version == '3.5':
-            open_ssl_patch_url = 'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-%s-openssl-v1.0.2u.tar.gz' % version
+            open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-{version}-openssl-v1.0.2u.tar.gz'
             download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
-            call(['sudo', 'tar', '-C', '/Library/Frameworks/Python.framework/Versions/{}/'.format(version), '-xmf', '/tmp/python-patch.tar.gz'])
+            call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
 
-    installation_bin_path = '/Library/Frameworks/Python.framework/Versions/{}/bin'.format(version)
+    installation_bin_path = f'/Library/Frameworks/Python.framework/Versions/{version}/bin'
     python_executable = 'python3' if version[0] == '3' else 'python'
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
     make_symlinks(installation_bin_path, python_executable, pip_executable)
@@ -86,7 +94,7 @@ def install_cpython(version, url):
     return installation_bin_path
 
 
-def install_pypy(version, url):
+def install_pypy(version: str, url: str) -> str:
     pypy_tar_bz2 = url.rsplit('/', 1)[-1]
     assert pypy_tar_bz2.endswith(".tar.bz2")
     pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
@@ -103,7 +111,7 @@ def install_pypy(version, url):
     return installation_bin_path
 
 
-def setup_python(python_configuration, dependency_constraint_flags, environment):
+def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
     if python_configuration.identifier.startswith('cp'):
         installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
     elif python_configuration.identifier.startswith('pp'):
@@ -161,7 +169,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     return env
 
 
-def build(options: BuildOptions):
+def build(options: BuildOptions) -> None:
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')

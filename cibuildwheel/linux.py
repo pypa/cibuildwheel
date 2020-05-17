@@ -5,23 +5,25 @@ import subprocess
 import sys
 import textwrap
 import uuid
-from collections import namedtuple
+
+from typing import List, NamedTuple, Optional, Union
 
 from .util import (
+    BuildOptions,
+    BuildSelector,
     get_build_verbosity_extra_flags,
     prepare_command,
-    BuildOptions
 )
 
 
-def call(args, input=None, universal_newlines=False):
+def call(args: List[str], input: Optional[Union[str, bytes]] = None, universal_newlines: bool = False) -> None:
     print('+ ' + ' '.join(shlex.quote(a) for a in args))
     subprocess.run(
         args, input=input, universal_newlines=universal_newlines, check=True
     )
 
 
-def matches_platform(identifier):
+def matches_platform(identifier: str) -> bool:
     pm = platform.machine()
     if pm == "x86_64":
         # x86_64 machines can run i686 docker containers
@@ -42,8 +44,13 @@ def matches_platform(identifier):
     return False
 
 
-def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'identifier', 'path'])
+class PythonConfiguration(NamedTuple):
+    version: str
+    identifier: str
+    path: str
+
+
+def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27m'),
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path='/opt/python/cp27-cp27mu'),
@@ -76,7 +83,7 @@ def get_python_configurations(build_selector):
     return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
 
 
-def build(options: BuildOptions):
+def build(options: BuildOptions) -> None:
     try:
         subprocess.check_call(['docker', '--version'])
     except Exception:
@@ -86,6 +93,7 @@ def build(options: BuildOptions):
               file=sys.stderr)
         exit(2)
 
+    assert options.manylinux_images is not None
     python_configurations = get_python_configurations(options.build_selector)
     platforms = [
         ('cp', 'manylinux_x86_64', options.manylinux_images['x86_64']),
@@ -106,7 +114,7 @@ def build(options: BuildOptions):
         if not platform_configs:
             continue
 
-        container_name = 'cibuildwheel-{}'.format(uuid.uuid4())
+        container_name = f'cibuildwheel-{uuid.uuid4()}'
 
         try:
             shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']
@@ -274,7 +282,7 @@ def build(options: BuildOptions):
             call(['docker', 'rm', '--force', '-v', container_name])
 
 
-def troubleshoot(package_dir, error):
+def troubleshoot(package_dir: str, error: Exception) -> None:
     if (isinstance(error, subprocess.CalledProcessError) and 'exec' in error.cmd):
         # the bash script failed
         print('Checking for common errors...')

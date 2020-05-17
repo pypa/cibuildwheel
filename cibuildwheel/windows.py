@@ -3,16 +3,19 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import namedtuple
 from glob import glob
 from zipfile import ZipFile
 
+from typing import Dict, List, Optional, NamedTuple
+
+from .environment import ParsedEnvironment
 from .util import (
+    BuildOptions,
+    BuildSelector,
     download,
     get_build_verbosity_extra_flags,
-    prepare_command,
     get_pip_script,
-    BuildOptions
+    prepare_command,
 )
 
 
@@ -20,20 +23,26 @@ IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
-def shell(args, env=None, cwd=None):
+def shell(args: List[str], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> int:
     print('+ ' + ' '.join(args))
     return subprocess.check_call(' '.join(args), env=env, cwd=cwd, shell=True)
 
 
-def get_nuget_args(version, arch):
+def get_nuget_args(version: str, arch: str) -> List[str]:
     python_name = 'python' if version[0] == '3' else 'python2'
     if arch == '32':
         python_name = python_name + 'x86'
     return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
 
 
-def get_python_configurations(build_selector):
-    PythonConfiguration = namedtuple('PythonConfiguration', ['version', 'arch', 'identifier', 'url'])
+class PythonConfiguration(NamedTuple):
+    version: str
+    arch: str
+    identifier: str
+    url: Optional[str]
+
+
+def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),
@@ -44,8 +53,8 @@ def get_python_configurations(build_selector):
         PythonConfiguration(version='3.6.8', arch='64', identifier='cp36-win_amd64', url=None),
         PythonConfiguration(version='3.7.7', arch='32', identifier='cp37-win32', url=None),
         PythonConfiguration(version='3.7.7', arch='64', identifier='cp37-win_amd64', url=None),
-        PythonConfiguration(version='3.8.2', arch='32', identifier='cp38-win32', url=None),
-        PythonConfiguration(version='3.8.2', arch='64', identifier='cp38-win_amd64', url=None),
+        PythonConfiguration(version='3.8.3', arch='32', identifier='cp38-win32', url=None),
+        PythonConfiguration(version='3.8.3', arch='64', identifier='cp38-win_amd64', url=None),
         # PyPy
         PythonConfiguration(version='2.7', arch='32', identifier='pp27-win32', url='https://downloads.python.org/pypy/pypy2.7-v7.3.1-win32.zip'),
         PythonConfiguration(version='3.6', arch='32', identifier='pp36-win32', url='https://downloads.python.org/pypy/pypy3.6-v7.3.1-win32.zip'),
@@ -62,19 +71,19 @@ def get_python_configurations(build_selector):
     return python_configurations
 
 
-def extract_zip(zip_src, dest):
+def extract_zip(zip_src: str, dest: str) -> None:
     with ZipFile(zip_src) as zip:
         zip.extractall(dest)
 
 
-def install_cpython(version, arch, nuget):
+def install_cpython(version: str, arch: str, nuget: str) -> str:
     nuget_args = get_nuget_args(version, arch)
     installation_path = os.path.join(nuget_args[-1], nuget_args[0] + '.' + version, 'tools')
     shell([nuget, 'install'] + nuget_args)
     return installation_path
 
 
-def install_pypy(version, arch, url):
+def install_pypy(version: str, arch: str, url: str) -> str:
     assert arch == '32'
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit('/', 1)[-1]
@@ -89,7 +98,7 @@ def install_pypy(version, arch, url):
     return installation_path
 
 
-def setup_python(python_configuration, dependency_constraint_flags, environment):
+def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
     nuget = 'C:\\cibw\\nuget.exe'
     if not os.path.exists(nuget):
         download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
@@ -97,6 +106,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     if python_configuration.identifier.startswith('cp'):
         installation_path = install_cpython(python_configuration.version, python_configuration.arch, nuget)
     elif python_configuration.identifier.startswith('pp'):
+        assert python_configuration.url is not None
         installation_path = install_pypy(python_configuration.version, python_configuration.arch, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
@@ -141,7 +151,7 @@ def setup_python(python_configuration, dependency_constraint_flags, environment)
     return env
 
 
-def build(options: BuildOptions):
+def build(options: BuildOptions) -> None:
     temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
     built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
     repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')

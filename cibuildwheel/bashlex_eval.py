@@ -1,13 +1,17 @@
 import shlex
 import subprocess
-from collections import namedtuple
 
-import bashlex
+from typing import Dict, NamedTuple
 
-NodeExecutionContext = namedtuple('NodeExecutionContext', ['environment', 'input'])
+import bashlex  # type: ignore
 
 
-def evaluate(value, environment):
+class NodeExecutionContext(NamedTuple):
+    environment: Dict[str, str]
+    input: str
+
+
+def evaluate(value: str, environment: Dict[str, str]) -> str:
     if not value:
         # empty string evaluates to empty string
         # (but trips up bashlex)
@@ -16,7 +20,7 @@ def evaluate(value, environment):
     command_node = bashlex.parsesingle(value)
 
     if len(command_node.parts) != 1:
-        raise ValueError('"%s" has too many parts' % value)
+        raise ValueError(f'"{value}" has too many parts')
 
     value_word_node = command_node.parts[0]
 
@@ -26,7 +30,7 @@ def evaluate(value, environment):
     )
 
 
-def evaluate_node(node, context):
+def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     if node.kind == 'word':
         return evaluate_word_node(node, context=context)
     elif node.kind == 'commandsubstitution':
@@ -34,10 +38,10 @@ def evaluate_node(node, context):
     elif node.kind == 'parameter':
         return evaluate_parameter_node(node, context=context)
     else:
-        raise ValueError('Unsupported bash construct: "%s"' % node.word)
+        raise ValueError(f'Unsupported bash construct: "{node.word}"')
 
 
-def evaluate_word_node(node, context):
+def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     word_start = node.pos[0]
     word_end = node.pos[1]
     word_string = context.input[word_start:word_end]
@@ -49,22 +53,22 @@ def evaluate_word_node(node, context):
 
         # Set all the characters in the part to None
         for i in range(part_start, part_end):
-            letters[i] = None
+            letters[i] = ''
 
         letters[part_start] = evaluate_node(part, context=context)
 
     # remove the None letters and concat
-    value = ''.join(l for l in letters if l is not None)
+    value = ''.join(letters)
 
     # apply bash-like quotes/whitespace treatment
     return ' '.join(word.strip() for word in shlex.split(value))
 
 
-def evaluate_command_node(node, context):
+def evaluate_command_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     words = [evaluate_node(part, context=context) for part in node.parts]
     command = ' '.join(words)
     return subprocess.check_output(shlex.split(command), env=context.environment, universal_newlines=True)
 
 
-def evaluate_parameter_node(node, context):
+def evaluate_parameter_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     return context.environment.get(node.value, '')

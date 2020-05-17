@@ -110,7 +110,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
                 architectures.append('i686')
 
             platform_tags = [
-                '{}_{}'.format(manylinux_version, architecture)
+                f'{manylinux_version}_{architecture}'
                 for architecture in architectures
                 for manylinux_version in manylinux_versions
             ]
@@ -122,16 +122,13 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
                 platform_tags = ['win32']
 
         elif platform == 'macos':
-            platform_tags = ['macosx_{}_x86_64'.format(macosx_deployment_target.replace('.', '_'))]
+            platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
 
         else:
             raise Exception('unsupported platform')
 
         for platform_tag in platform_tags:
-            wheels.append('{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl'.format(
-                package_name=package_name, package_version=package_version,
-                python_abi_tag=python_abi_tag, platform_tag=platform_tag
-            ))
+            wheels.append(f'{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl')
 
     if IS_WINDOWS_RUNNING_ON_TRAVIS:
         # Python 2.7 isn't supported on Travis.
