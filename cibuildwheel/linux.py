@@ -135,7 +135,7 @@ def build(options: BuildOptions) -> None:
 
             if options.before_all:
                 call(
-                    ['docker', 'exec', '-i', container_name] + shell_cmd, 
+                    ['docker', 'exec', '-i', container_name] + shell_cmd,
                     universal_newlines=True,
                     input='''
                         PS4='    + '
@@ -147,10 +147,10 @@ def build(options: BuildOptions) -> None:
 
                         sh -c {before_all}
 
-                        '''.format(
-                            environment_exports='\n'.join(options.environment.as_shell_commands()),
-                            before_all=prepare_command(options.before_all, project='/project', package=container_package_dir)
-                        )
+                    '''.format(
+                        environment_exports='\n'.join(options.environment.as_shell_commands()),
+                        before_all=prepare_command(options.before_all, project='/project', package=container_package_dir)
+                    )
                 )
 
             for config in platform_configs:
