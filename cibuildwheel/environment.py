@@ -1,6 +1,6 @@
 import bashlex  # type: ignore
 
-from typing import Dict, List, MutableMapping
+from typing import Dict, List, Mapping
 
 from . import bashlex_eval
 
@@ -61,7 +61,7 @@ class ParsedEnvironment:
     def __init__(self, assignments: List[EnvironmentAssignment]):
         self.assignments = assignments
 
-    def as_dictionary(self, prev_environment: MutableMapping[str, str]) -> Dict[str, str]:
+    def as_dictionary(self, prev_environment: Mapping[str, str]) -> Dict[str, str]:
         environment = dict(**prev_environment)
 
         for assignment in self.assignments:
