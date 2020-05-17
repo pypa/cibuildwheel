@@ -9,7 +9,6 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0
     hooks:
-    - id: check-json
     - id: check-yaml
     - id: check-merge-conflict
     - id: end-of-file-fixer
