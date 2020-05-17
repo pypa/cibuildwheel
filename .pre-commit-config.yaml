@@ -1,0 +1,22 @@
+repos:
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.1
+    hooks:
+    - id: flake8
+      pass_filenames: true
+      # this seems to need to be here in addition to setup.cfg
+      exclude: cibuildwheel/resources/
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    - id: check-json
+    - id: check-yaml
+    - id: check-merge-conflict
+    - id: end-of-file-fixer
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: ''  # Use the sha / tag you want to point at
+    hooks:
+    -   id: mypy
+        args: [--strict]
+        files: cibuildwheel/*
+        exclude: test|cibuildwheel/resources
