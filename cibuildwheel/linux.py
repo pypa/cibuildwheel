@@ -149,7 +149,7 @@ def build(options: BuildOptions) -> None:
 
                     '''.format(
                         environment_exports='\n'.join(options.environment.as_shell_commands()),
-                        before_all=prepare_command(options.before_all, project='/project', package=container_package_dir)
+                        before_all=shlex.quote(prepare_command(options.before_all, project='/project', package=container_package_dir))
                     )
                 )
 
