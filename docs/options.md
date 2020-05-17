@@ -191,14 +191,15 @@ CIBW_ENVIRONMENT: "BUILD_TIME=$(date) SAMPLE_TEXT=\"sample text\""
     `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
 ### `CIBW_BEFORE_ALL` {: #before-all}
-> Execute a shell command preparing common part for each wheel. 
+> Execute a shell command on the build system before any wheels are built.
 
-Shell command to prepare common part of project (ex. build libraries which does not depend on python).
-This option is added mainly for linux build, because linux wheels are build in isolated from host docker containers.
+Shell command to prepare a common part of the project (e.g. build libraries which does not depend on the specific version of Python).
+
+This option is very useful for the Linux build, where builds take place in isolated Docker containers managed by cibuildwheel. This command will run inside the container before the wheel builds start. Note, if you're building both x86_64 and i686 wheels (the default), your build uses two different Docker images. In that case, this command will execute twice - once per build container.
 
 The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
 
-For windows and macos `CIBW_BEFORE_ALL` python interpreter is same as `cibuildwheel` is run. For linux it is default interpreter for docker image. 
+The version of Python available inside `CIBW_BEFORE_ALL` is not controlled by cibuildwheel. On Windows and macOS, it's whatever is available on the host machine. For Linux, this comes from the Docker image, which on manylinux, is something rather old. Consider using a Python inside `/opt/python`, e.g. `/opt/python/cp38-cp38/bin/python`.
 
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
@@ -209,7 +210,7 @@ Platform-specific variants also available:<br/>
 CIBW_BEFORE_ALL: make -C third_party_lib
 
 # install system library
-CIBW_BEFORE_ALL: yum install -y libffi-dev
+CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
 ```
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
