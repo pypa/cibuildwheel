@@ -77,7 +77,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.4.1
+  - python3 -m pip install cibuildwheel==1.4.2
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -146,6 +146,16 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.4.2
+
+_25 May 2020_
+
+- 🛠 Dependency updates, including CPython 3.8.3 & manylinux images.
+- 🛠 Lots of internal updates - type annotations and checking using mypy, and
+  a new integration testing system.
+- ⚠️ Removed support for *running* cibuildwheel using Python 3.5. cibuildwheel
+  will continue to build Python 3.5 wheels until EOL.
 
 ### 1.4.1
 
