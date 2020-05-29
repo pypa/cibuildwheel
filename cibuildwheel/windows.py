@@ -5,6 +5,7 @@ import sys
 import tempfile
 from glob import glob
 from zipfile import ZipFile
+import toml
 
 from typing import Dict, List, Optional, NamedTuple
 
@@ -147,6 +148,24 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'] + dependency_constraint_flags, env=env)
     shell(['pip', '--version'], env=env)
     shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
+
+    # Python 3.5 PEP 518 hack (see https://github.com/pypa/pip/issues/8392#issuecomment-639563494)
+    # Basically, nuget's Python is an embedded Python distribution, which is not supported by pip.
+    # Before version 3.6, there was no way to disable the "embedded" behavior, including the ignoring
+    # of environment variables, including the ones pip uses to setup PEP 518 builds.
+    #
+    # The fix here is as suggested in that issue; we manually setup the PEP 518 requirements. Since we
+    # are in a fresh environment (except for pinned cibuildweel dependencies), the build is already
+    # mostly "isolated".
+    if python_configuration.version.startswith('3.5') and os.path.exists('pyproject.toml'):
+        data = toml.load('pyproject.toml')
+        requirements = (
+            data['build-system'].get('requires', [])
+            if 'build-system' in data
+            else []
+        )
+        if requirements:
+            shell(['pip', 'install'] + requirements + dependency_constraint_flags, env=env)
 
     return env
 

@@ -14,7 +14,7 @@ with io.open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     name='cibuildwheel',
     version='1.4.2',
-    install_requires=['bashlex!=0.13'],
+    install_requires=['bashlex!=0.13', 'toml'],
     description="Build Python wheels on CI with minimal configuration.",
     long_description=long_description,
     long_description_content_type='text/markdown',
