@@ -48,7 +48,6 @@ def test_poetry_package(tmp_path):
     # for dummy_package package
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=skip_outdated_pip_images_env)
 
-
     # THEN we should have a dummy_package wheel with version 0.1.0
     expected_wheels = utils.expected_wheels("dummy_package", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
