@@ -310,18 +310,6 @@ def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:
 
 
 def detect_setup_pyproject_existence(package_dir: str) -> bool:
-    """Detects whether setup.py, or pyproject.toml is at package dir
-
-    Parameters
-    ----------
-    package_dir : str
-        Package directory path
-
-    Returns
-    -------
-    bool
-        Whether setup.py, or pyproject.toml exists
-    """
     exists = False
     if os.path.exists(os.path.join(package_dir, 'setup.py')):
         exists = True
