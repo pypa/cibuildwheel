@@ -117,10 +117,26 @@ def main() -> None:
     package_dir = args.package_dir
     output_dir = args.output_dir
 
+    if platform == 'linux':
+        repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
+    elif platform == 'macos':
+        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
+    else:
+        repair_command_default = ''
+
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
+    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+    before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
+    repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
+    dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
+    test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
+    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform)
+    test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
+    test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
+    build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
+
     build_selector = BuildSelector(build_config, skip_config)
 
-    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
     try:
         environment = parse_environment(environment_config)
     except (EnvironmentParseError, ValueError):
@@ -128,16 +144,6 @@ def main() -> None:
         traceback.print_exc(None, sys.stderr)
         exit(2)
 
-    before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
-    if platform == 'linux':
-        repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
-    elif platform == 'macos':
-        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
-    else:
-        repair_command_default = ''
-    repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
-
-    dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
         dependency_constraints: Optional[DependencyConstraints] = DependencyConstraints.with_defaults()
     elif dependency_versions == 'latest':
@@ -145,14 +151,9 @@ def main() -> None:
     else:
         dependency_constraints = DependencyConstraints(dependency_versions)
 
-    test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
-    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform)
-    test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
-    test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     if test_extras:
         test_extras = f'[{test_extras}]'
 
-    build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     try:
         build_verbosity = min(3, max(-3, int(build_verbosity_str)))
     except ValueError:
