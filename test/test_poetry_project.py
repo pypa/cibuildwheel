@@ -35,8 +35,14 @@ def test_poetry_package(tmp_path):
 
     project_dir = tmp_path / "project"
     poetry_dummy_project.generate(project_dir)
-    # build the wheels
-    actual_wheels = utils.cibuildwheel_run(project_dir)
+
+    # Poetry is installed during wheels built by pip
+    # however, one of poetry deps require cryptography
+    # which fails to build in outdated pip versions
+    # more info: https://github.com/pyca/cryptography/issues/5101
+    skip_outdated_pip_images_env = {'CIBW_SKIP': 'cp27-* *-win32 *-manylinux_i686'}
+
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=skip_outdated_pip_images_env)
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("dummy_package", "0.1.0")
