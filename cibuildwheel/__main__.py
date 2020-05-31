@@ -325,11 +325,12 @@ def detect_setup_pyproject_existence(package_dir: str) -> bool:
     exists = False
     if os.path.exists(os.path.join(package_dir, 'setup.py')):
         exists = True
-    
+
     if os.path.exists(os.path.join(package_dir, 'pyproject.toml')):
         exists = True
 
     return exists
+
 
 if __name__ == '__main__':
     main()
