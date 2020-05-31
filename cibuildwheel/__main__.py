@@ -161,7 +161,7 @@ def main() -> None:
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    if not os.path.exists(os.path.join(package_dir, 'setup.py')):
+    if not detect_setup_pyproject_existence(package_dir):
         print('cibuildwheel: Could not find setup.py at root of package', file=sys.stderr)
         exit(2)
 
@@ -308,6 +308,28 @@ def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:
 
     return warnings
 
+
+def detect_setup_pyproject_existence(package_dir: str) -> bool:
+    """Detects whether setup.py, or pyproject.toml is at package dir
+
+    Parameters
+    ----------
+    package_dir : str
+        Package directory path
+
+    Returns
+    -------
+    bool
+        Whether setup.py, or pyproject.toml exists
+    """
+    exists = False
+    if os.path.exists(os.path.join(package_dir, 'setup.py')):
+        exists = True
+    
+    if os.path.exists(os.path.join(package_dir, 'pyproject.toml')):
+        exists = True
+
+    return exists
 
 if __name__ == '__main__':
     main()
