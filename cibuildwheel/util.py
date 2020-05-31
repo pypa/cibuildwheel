@@ -116,10 +116,10 @@ class BuildOptions(NamedTuple):
     repair_command: str
     manylinux_images: Optional[Dict[str, str]]
     dependency_constraints: Optional[DependencyConstraints]
-    before_test: str
+    test_command: Optional[str]
+    before_test: Optional[str]
     test_requires: List[str]
     test_extras: str
-    test_command: Optional[str]
     build_verbosity: int
 
 

@@ -348,6 +348,30 @@ CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
 
 ## Testing
 
+### `CIBW_TEST_COMMAND` {: #test-command}
+> Execute a shell command to test each built wheel
+
+Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. To ensure the wheel is imported by your tests (instead of your source copy), tests are run from a different directory. Use the placeholders `{project}` and `{package}` when specifying paths in your project.
+
+- `{project}` is an absolute path to the project root - the working directory where cibuildwheel was called.
+- `{package}` is the path to the package being built - the `package_dir` argument supplied to cibuildwheel on the command line.
+
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+Platform-specific variants also available:<br/>
+`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
+
+#### Examples
+
+```yaml
+# run the project tests against the installed wheel using `nose`
+CIBW_TEST_COMMAND: nosetests {project}/tests
+
+# run the package tests using `pytest`
+CIBW_TEST_COMMAND: pytest {package}/tests
+```
+
+
 ### `CIBW_BEFORE_TEST` {: #before-test}
 > Execute a shell command before testing each wheel
 
@@ -414,30 +438,6 @@ Platform-specific variants also available:<br/>
 ```yaml
 # will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
 CIBW_TEST_EXTRAS: test,qt
-```
-
-
-### `CIBW_TEST_COMMAND` {: #test-command}
-> Execute a shell command to test each built wheel
-
-Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. To ensure the wheel is imported by your tests (instead of your source copy), tests are run from a different directory. Use the placeholders `{project}` and `{package}` when specifying paths in your project.
-
-- `{project}` is an absolute path to the project root - the working directory where cibuildwheel was called.
-- `{package}` is the path to the package being built - the `package_dir` argument supplied to cibuildwheel on the command line.
-
-The command is run in a shell, so you can write things like `cmd1 && cmd2`.
-
-Platform-specific variants also available:<br/>
-`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
-
-#### Examples
-
-```yaml
-# run the project tests against the installed wheel using `nose`
-CIBW_TEST_COMMAND: nosetests {project}/tests
-
-# run the package tests using `pytest`
-CIBW_TEST_COMMAND: pytest {package}/tests
 ```
 
 

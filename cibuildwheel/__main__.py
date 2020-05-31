@@ -114,15 +114,21 @@ def main() -> None:
                   file=sys.stderr)
             exit(2)
 
-    output_dir = args.output_dir
-    test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
-    test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
-    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform, default='')
-    test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     package_dir = args.package_dir
-    before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
-    build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
+    output_dir = args.output_dir
+
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
+    build_selector = BuildSelector(build_config, skip_config)
+
+    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
+    try:
+        environment = parse_environment(environment_config)
+    except (EnvironmentParseError, ValueError):
+        print(f'cibuildwheel: Malformed environment option "{environment_config}"', file=sys.stderr)
+        traceback.print_exc(None, sys.stderr)
+        exit(2)
+
+    before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     if platform == 'linux':
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
     elif platform == 'macos':
@@ -130,7 +136,6 @@ def main() -> None:
     else:
         repair_command_default = ''
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
-    environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
 
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
     if dependency_versions == 'pinned':
@@ -140,22 +145,18 @@ def main() -> None:
     else:
         dependency_constraints = DependencyConstraints(dependency_versions)
 
+    test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
+    before_test = get_option_from_environment('CIBW_BEFORE_TEST', platform=platform)
+    test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
+    test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     if test_extras:
         test_extras = f'[{test_extras}]'
 
+    build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     try:
         build_verbosity = min(3, max(-3, int(build_verbosity_str)))
     except ValueError:
         build_verbosity = 0
-
-    try:
-        environment = parse_environment(environment_config)
-    except (EnvironmentParseError, ValueError):
-        print(f'cibuildwheel: Malformed environment option "{environment_config}"', file=sys.stderr)
-        traceback.print_exc(None, sys.stderr)
-        exit(2)
-
-    build_selector = BuildSelector(build_config, skip_config)
 
     # Add CIBUILDWHEEL environment variable
     # This needs to be passed on to the docker container in linux.py
@@ -206,12 +207,12 @@ def main() -> None:
         test_command=test_command,
         test_requires=test_requires,
         test_extras=test_extras,
+        before_test=before_test,
         before_build=before_build,
         build_verbosity=build_verbosity,
         build_selector=build_selector,
         repair_command=repair_command,
         environment=environment,
-        before_test=before_test,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images,
     )
