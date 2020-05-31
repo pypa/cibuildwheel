@@ -19,7 +19,7 @@ classifiers=[
 ]
 license = "MIT"
 [tool.poetry.dependencies]
-python = "^2.7"
+python = ">=2.7"
 [tool.poetry.dev-dependencies]
 [build-system]
 requires = ["poetry>=0.12"]
