@@ -12,13 +12,14 @@ classifiers=[
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
+    "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
 ]
 license = "MIT"
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^2.7"
 [tool.poetry.dev-dependencies]
 [build-system]
 requires = ["poetry>=0.12"]
