@@ -38,15 +38,24 @@ def test_poetry_package(tmp_path):
     project_dir = tmp_path / "project"
     poetry_dummy_project.generate(project_dir)
 
+    # These are temporary as I understand cibuildwheels
+    # behaviour across different CIs
+
     # Poetry is installed during wheels built by pip
     # however, one of poetry deps require cryptography
     # which fails to build in outdated pip versions
     # more info: https://github.com/pyca/cryptography/issues/5101
-    skip_outdated_pip_images_env = {'CIBW_SKIP': 'cp27-* *-win32 *-manylinux_i686 pp*'}
+    poetry_project_env = {"CIBW_SKIP": "cp27-* *-win32 *-manylinux_i686 pp*"}
+
+    # Pip on Windows don't seem to honour installing build system deps
+    # as it happens on Mac/Linux according to CI tests
+    # so we need to install `poetry` before we build the wheels
+    # https://dev.azure.com/joerick0429/cibuildwheel/_build/results?buildId=1315&view=logs&j=fff2fde4-faa2-579c-a2fc-f5ab27662b77&t=ba46a93f-85b8-5ca5-6207-999df763f341&l=396
+    poetry_project_env["CIBW_BEFORE_BUILD"] = "pip install poetry"
 
     # WHEN we attempt to build wheels for multiple platforms
     # for dummy_package package
-    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=skip_outdated_pip_images_env)
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=poetry_project_env)
 
     # THEN we should have a dummy_package wheel with version 0.1.0
     # expected_wheels = utils.expected_wheels("dummy_package", "0.1.0")
