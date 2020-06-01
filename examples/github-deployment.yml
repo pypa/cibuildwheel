@@ -35,3 +35,13 @@ jobs:
       with:
         name: wheels
         path: ./wheelhouse
+
+    - name: Publish to PyPI
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master #see https://github.com/pypa/gh-action-pypi-publish for setup
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
+        repository_url: https://test.pypi.org/legacy/ #TODO rm this line to use the "real" pypi
+        packages_dir: ./wheelhouse/
+
