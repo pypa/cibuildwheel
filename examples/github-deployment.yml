@@ -1,4 +1,4 @@
-name: Build
+name: GH Deploy
 
 on: [push, pull_request]
 
@@ -36,7 +36,7 @@ jobs:
         name: wheels
         path: ./wheelhouse
 
-    - name: Publish to PyPI
+    - name: Publish to PyPI # (optional) automatically publish the whl to PyPI on a new tag/release
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master #see https://github.com/pypa/gh-action-pypi-publish for setup
       with:
