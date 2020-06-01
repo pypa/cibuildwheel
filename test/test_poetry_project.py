@@ -42,7 +42,7 @@ def test_poetry_package(tmp_path):
     # however, one of poetry deps require cryptography
     # which fails to build in outdated pip versions
     # more info: https://github.com/pyca/cryptography/issues/5101
-    skip_outdated_pip_images_env = {'CIBW_SKIP': 'cp27-* *-win32 *-manylinux_i686'}
+    skip_outdated_pip_images_env = {'CIBW_SKIP': 'cp27-* *-win32 *-manylinux_i686 pp*'}
 
     # WHEN we attempt to build wheels for multiple platforms
     # for dummy_package package
