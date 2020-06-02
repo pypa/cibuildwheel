@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheel on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -27,7 +27,7 @@ jobs:
       run: |
         choco install vcpython27 -f -y
 
-    - name: Build wheel
+    - name: Build wheels
       run: |
         python -m cibuildwheel --output-dir wheelhouse
 
