@@ -11,9 +11,9 @@ jobs:
         os: [ubuntu-18.04, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2
       name: Install Python
       with:
         python-version: '3.7'
@@ -31,18 +31,17 @@ jobs:
       run: |
         python -m cibuildwheel --output-dir wheelhouse
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
-        name: wheels
         path: ./wheelhouse
 
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2
       name: Install Python
       with:
         python-version: '3.7'
