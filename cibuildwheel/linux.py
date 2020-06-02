@@ -279,7 +279,10 @@ def build(options: BuildOptions) -> None:
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
-            call(['docker', 'rm', '--force', '-v', container_name])
+            try:
+                call(['docker', 'rm', '--force', '-v', container_name])
+            except subprocess.CalledProcessError:
+                pass
 
 
 def troubleshoot(package_dir: str, error: Exception) -> None:
