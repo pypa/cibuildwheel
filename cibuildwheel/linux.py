@@ -114,18 +114,18 @@ def build(options: BuildOptions) -> None:
         if not platform_configs:
             continue
 
+        shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']
+
         container_name = f'cibuildwheel-{uuid.uuid4()}'
+        call(['docker', 'create',
+              '--env', 'CIBUILDWHEEL',
+              '--name', container_name,
+              '-i',
+              '-v', '/:/host',  # ignored on CircleCI
+              docker_image,
+              '/bin/bash'])
 
         try:
-            shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']
-            call(['docker', 'create',
-                  '--env', 'CIBUILDWHEEL',
-                  '--name', container_name,
-                  '-i',
-                  '-v', '/:/host',  # ignored on CircleCI
-                  docker_image,
-                  '/bin/bash'])
-
             call(['docker', 'cp', '.', container_name + ':/project'])
 
             call(['docker', 'start', container_name])
@@ -279,10 +279,7 @@ def build(options: BuildOptions) -> None:
             exit(1)
         finally:
             # Still gets executed, even when 'exit(1)' gets called
-            try:
-                call(['docker', 'rm', '--force', '-v', container_name])
-            except subprocess.CalledProcessError:
-                pass
+            call(['docker', 'rm', '--force', '-v', container_name])
 
 
 def troubleshoot(package_dir: str, error: Exception) -> None:
