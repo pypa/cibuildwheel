@@ -114,18 +114,18 @@ def build(options: BuildOptions) -> None:
         if not platform_configs:
             continue
 
+        shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']
+
         container_name = f'cibuildwheel-{uuid.uuid4()}'
+        call(['docker', 'create',
+              '--env', 'CIBUILDWHEEL',
+              '--name', container_name,
+              '-i',
+              '-v', '/:/host',  # ignored on CircleCI
+              docker_image,
+              '/bin/bash'])
 
         try:
-            shell_cmd = ['linux32', '/bin/bash'] if platform_tag.endswith("i686") else ['/bin/bash']
-            call(['docker', 'create',
-                  '--env', 'CIBUILDWHEEL',
-                  '--name', container_name,
-                  '-i',
-                  '-v', '/:/host',  # ignored on CircleCI
-                  docker_image,
-                  '/bin/bash'])
-
             call(['docker', 'cp', '.', container_name + ':/project'])
 
             call(['docker', 'start', container_name])
