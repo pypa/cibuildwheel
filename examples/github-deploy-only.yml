@@ -1,6 +1,6 @@
 name: Build and upload to PyPI
 
-on: [push, pull_request]
+on: [push, pull_request, release]
 
 jobs:
   build_wheels:
