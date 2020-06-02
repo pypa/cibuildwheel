@@ -77,4 +77,7 @@ jobs:
         user: __token__
         password: ${{ secrets.pypi_password }}
         # To test: repository_url: https://test.pypi.org/legacy/
-      if: github.event_name == 'release' && github.event.action == 'published'
+      # upload to PyPI on every tag starting with 'v'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      # alternatively, to publish when a GitHub Release is created, use the following rule:
+      # if: github.event_name == 'release' && github.event.action == 'published'
