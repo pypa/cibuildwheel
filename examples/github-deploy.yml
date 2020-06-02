@@ -33,7 +33,7 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        path: ./wheelhouse
+        path: ./wheelhouse/*.whl
 
   build_sdist:
     name: Build source distribution
@@ -47,11 +47,11 @@ jobs:
         python-version: '3.7'
 
     - name: Build sdist
-      run: python setup.py sdist -d wheelhouse/
+      run: python setup.py sdist
 
     - uses: actions/upload-artifact@v2
       with:
-        path: wheelhouse/*.tar.gz
+        path: dist/*.tar.gz
 
   upload_pypi:
     needs: [build_wheels, build_sdist]
@@ -68,14 +68,13 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: artifact
-        path: wheelhouse
+        path: dist
 
-    - run: twine check wheelhouse/*
+    - run: twine check dist/*
 
     - uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
-        packages_dir: ./wheelhouse/
         # To test: repository_url: https://test.pypi.org/legacy/
       if: github.event_name == 'release' && github.event.action == 'published'
