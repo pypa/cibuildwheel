@@ -40,5 +40,30 @@ Forcing `distutils` or `setuptools` to use a more recent version of MSVC that su
 2. Set up the build Visual Studio build environment you want to use, making sure that e.g. `PATH` contains `cl`, `link`, etc.
     - Usually, this can be done through `vcvarsall.bat x86` or `vcvarsall.bat x64`. The exact location of this file depends on the installation, but the default path for VS 2019 Community (e.g. used in AppVeyor's `Visual Studio 2019` image) is `C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat`. **Note**: `vcvarsall.bat` changes the environment variables, so this cannot be run in a subprocess/subshell and consequently running `vsvarsall.bat` in `CIBW_BEFORE_BUILD` does not have any effect.
     - In Azure Pipelines, [a `VSBuild` task is available](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/build/visual-studio-build)
-    - In GitHub Actions, the default shell is powershell, so you'll need to use `shell: cmd` to source a `.bat` file, and the directory is `"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"`. Or you can use an action, such as the [`ilammy/msvc-dev-cmd@v1`](https://github.com/ilammy/msvc-dev-cmd) action to setup the environment.
-3. Next, call `cibuildwheel`. Unfortunately, MSVC has separate toolchains for compiling 32-bit and 64-bit, so you will need to run `cibuildwheel` twice: once with `CIBW_BUILD=*-win32` after setting up the `x86` build environment, and once with `CIBW_BUILD=*-win_amd64` in a `x64` enviroment (see previous step).
+    - In GitHub Actions, the default shell is powershell, so you'll need to use `shell: cmd` to source a `.bat` file, and the directory is `"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"`. Or you can use an action, such as the [`ilammy/msvc-dev-cmd@v1`](https://github.com/ilammy/msvc-dev-cmd) action to setup the environment (see example below).
+3. Next, call `cibuildwheel`. Unfortunately, MSVC has separate toolchains for compiling 32-bit and 64-bit, so you will need to run `cibuildwheel` twice: once with `CIBW_BUILD=*-win32` after setting up the `x86` build environment, and once with `CIBW_BUILD=*-win_amd64` in a `x64` environment (see previous step).
+
+
+**GitHub Action example with ilammy/msvc-dev-cmd**:
+
+```yaml
+  - uses: ilammy/msvc-dev-cmd@v1
+
+  - name: Build 64-bit wheel
+    run: python -m cibuildwheel --output-dir wheelhouse
+    env:
+      CIBW_BUILD: cp27-win_amd64
+      DISTUTILS_USE_SDK: 1
+      MSSdk: 1
+
+  - uses: ilammy/msvc-dev-cmd@v1
+    with:
+      arch: x86
+
+  - name: Build 32-bit wheel
+    run: python -m cibuildwheel --output-dir wheelhouse
+    env:
+      CIBW_BUILD: cp27-win32
+      DISTUTILS_USE_SDK: 1
+      MSSdk: 1
+```
