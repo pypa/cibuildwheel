@@ -119,7 +119,7 @@ def main() -> None:
     test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     package_dir = args.package_dir
-    if not package_dir.startswith("."):
+    if not (os.path.isabs(package_dir) or package_dir.startswith(".")):
         package_dir = os.path.join(".", package_dir)
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
