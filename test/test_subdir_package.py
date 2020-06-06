@@ -35,7 +35,7 @@ def test(capfd, tmp_path):
     project_dir = tmp_path / 'project'
     subdir_package_project.generate(project_dir)
 
-    package_dir = os.path.join(project_dir, 'src', 'spam')
+    package_dir = os.path.join('src', 'spam')
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, package_dir=package_dir, add_env={
         'CIBW_BEFORE_BUILD': 'python {project}/bin/before_build.py',
