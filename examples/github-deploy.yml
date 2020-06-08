@@ -1,11 +1,11 @@
 name: Build and upload to PyPI
 
-on:
-  - push
-  - pull_request
-  - release:
-      types:
-        - published
+on: [push, pull_request]
+# alternatively, to publish when a (published) GitHub Release is created, use the following:
+# on:
+#   release:
+#     types:
+#       - published
 
 jobs:
   build_wheels:
