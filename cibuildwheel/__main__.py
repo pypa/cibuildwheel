@@ -118,7 +118,7 @@ def main() -> None:
     test_command = get_option_from_environment('CIBW_TEST_COMMAND', platform=platform)
     test_requires = get_option_from_environment('CIBW_TEST_REQUIRES', platform=platform, default='').split()
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
-    package_dir = os.path.abspath(args.package_dir)
+    package_dir = args.package_dir
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')

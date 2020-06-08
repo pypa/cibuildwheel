@@ -180,7 +180,9 @@ def build(options: BuildOptions) -> None:
         if os.path.exists(built_wheel_dir):
             shutil.rmtree(built_wheel_dir)
         os.makedirs(built_wheel_dir)
-        shell(['pip', 'wheel', options.package_dir, '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
+        # os.path.abspath is need. Without it pip wheel may try to fetch package from pypi.org
+        # see https://github.com/joerick/cibuildwheel/pull/369
+        shell(['pip', 'wheel', os.path.abspath(options.package_dir), '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
         built_wheel = glob(os.path.join(built_wheel_dir, '*.whl'))[0]
 
         # repair the wheel
