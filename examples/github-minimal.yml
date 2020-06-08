@@ -11,26 +11,26 @@ jobs:
         os: [ubuntu-18.04, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v2
-      name: Install Python
-      with:
-        python-version: '3.7'
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.7'
 
-    - name: Install cibuildwheel
-      run: |
-        python -m pip install cibuildwheel==1.4.2
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install cibuildwheel==1.4.2
 
-    - name: Install Visual C++ for Python 2.7
-      if: startsWith(matrix.os, 'windows')
-      run: |
-        choco install vcpython27 -f -y
+      - name: Install Visual C++ for Python 2.7
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          choco install vcpython27 -f -y
 
-    - name: Build wheels
-      run: |
-        python -m cibuildwheel --output-dir wheelhouse
+      - name: Build wheels
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
 
-    - uses: actions/upload-artifact@v2
-      with:
-        path: ./wheelhouse/*.whl
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
