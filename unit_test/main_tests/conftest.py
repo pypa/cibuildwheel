@@ -18,7 +18,7 @@ class ArgsInterceptor:
         self.kwargs = kwargs
 
 
-MOCK_PACKAGE_DIR = './some_package_dir'
+MOCK_PACKAGE_DIR = os.path.abspath('some_package_dir')
 
 
 @pytest.fixture(autouse=True)
