@@ -28,7 +28,7 @@ jobs:
       run: |
         python -m pip install -r requirements-dev.txt
     - name: Install Visual C++ for Python 2.7
-      if: startsWith(matrix.os, 'windows')
+      if: runner.os == 'Windows'
       run: |
         choco install vcpython27 -f -y
     - name: Test cibuildwheel
