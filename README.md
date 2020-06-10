@@ -22,8 +22,8 @@ What does it do?
 | CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
 | CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
 | CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
-| PyPy 2.7 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
-| PyPy 3.6 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
+| PyPy 2.7        | ✅ |     | ✅  | ✅ |    |     |     |     |
+| PyPy 3.6        | ✅ |     | ✅  | ✅ |    |     |     |     |
 
 <sup>¹ Not supported on Travis</sup><br>
 <sup>² Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup>
