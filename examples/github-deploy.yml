@@ -1,8 +1,11 @@
 name: Build and upload to PyPI
 
+# Build on every branch push, tag push, and pull request change:
 on: [push, pull_request]
-# alternatively, to publish when a (published) GitHub Release is created, use the following:
+# Alternatively, to publish when a (published) GitHub Release is created, use the following:
 # on:
+#   push:
+#   pull_request:
 #   release:
 #     types:
 #       - published
