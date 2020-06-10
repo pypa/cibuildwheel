@@ -15,6 +15,8 @@ Commit this file, and push to Github - either to your default branch, or to a PR
 
 For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
 
+[`examples/github-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/github-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
+
 # Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
 
 To build Linux, Mac, and Windows wheels on Azure Pipelines, create a `azure-pipelines.yml` file in your repo.
@@ -45,6 +47,8 @@ Note that building Windows Python 2.7 wheels on Travis is unsupported.
 Commit this file, enable building of your repo on Travis CI, and push.
 
 Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).
+
+[`examples/travis-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/travis-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
 
 # CircleCI [linux/mac] {: #circleci}
 

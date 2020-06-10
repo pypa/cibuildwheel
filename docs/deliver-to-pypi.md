@@ -33,4 +33,4 @@ Obviously, manual steps are for chumps, so we can automate this a little by usin
 
 If you don't need much control over the release of a package, you can set up cibuildwheel to deliver the wheels straight to PyPI. This doesn't require anycloud storage to work - you just need to bump the version and tag it.
 
-Check out [this example repo](https://github.com/joerick/cibuildwheel-autopypi-example) for instructions on how to set this up.
+[`examples/travis-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/travis-deploy.yml) and [`examples/github-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/travis-deploy.yml) are example configurations that automatocially upload wheels to PyPI. Also check out [this example repo](https://github.com/joerick/cibuildwheel-autopypi-example) for more detailed instructions on how to set this up.
