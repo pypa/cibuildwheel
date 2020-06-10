@@ -93,7 +93,8 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
     python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
 
     if pm.machine() in ['x86_64', 'AMD64', 'x86']:
-        python_abi_tags += ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73']
+        python_abi_tags += ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73',
+                            'pp27-pypy_41', 'pp36-pypy3_72']
 
         if platform == 'linux':
             python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
