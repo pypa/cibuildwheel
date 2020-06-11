@@ -1,0 +1,9 @@
+diff --git a/lib_pypy/_sysconfigdata.py b/lib_pypy/_sysconfigdata.py
+--- a/lib_pypy/_sysconfigdata.py
++++ b/lib_pypy/_sysconfigdata.py
+@@ -47,4 +47,4 @@ if sys.platform[:6] == "darwin":
+     build_time_vars['CC'] += ' -arch %s' % (arch,)
+     if "CXX" in build_time_vars:
+         build_time_vars['CXX'] += ' -arch %s' % (arch,)
+-
++    build_time_vars['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
