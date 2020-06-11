@@ -1,0 +1,26 @@
+From d19d603d7fb7ada1fb403c8b90cc664c14ed0b7e Mon Sep 17 00:00:00 2001
+From: Matti Picus <matti.picus@gmail.com>
+Date: Mon, 28 Oct 2019 11:41:31 +0200
+Subject: [PATCH] set minimal MACOSX_DEPLOYMENT_TARGET to 10.7 on macOS;
+ cpython uses 10.5
+
+---
+ lib-python/2.7/distutils/sysconfig_pypy.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib-python/2.7/distutils/sysconfig_pypy.py b/lib-python/2.7/distutils/sysconfig_pypy.py
+index 9b0d941717..a10c53dbb0 100644
+--- a/lib-python/2.7/distutils/sysconfig_pypy.py
++++ b/lib-python/2.7/distutils/sysconfig_pypy.py
+@@ -86,7 +86,7 @@ def _init_posix():
+             arch = platform.machine()
+         g['LDSHARED'] += ' -undefined dynamic_lookup'
+         g['CC'] += ' -arch %s' % (arch,)
+-        g['MACOSX_DEPLOYMENT_TARGET'] = '10.14'
++        g['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
+ 
+     global _config_vars
+     _config_vars = g
+-- 
+2.25.1
+
