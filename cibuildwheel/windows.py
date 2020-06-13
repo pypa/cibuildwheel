@@ -206,13 +206,10 @@ def build(options: BuildOptions) -> None:
             shell(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()
-
-            venv_script_path = os.path.join(venv_dir, 'Scripts')
             virtualenv_env['PATH'] = os.pathsep.join([
-                venv_script_path,
+                os.path.join(venv_dir, 'Scripts'),
                 virtualenv_env['PATH'],
             ])
-            virtualenv_env["__CIBW_VIRTUALENV_PATH__"] = venv_dir
 
             # check that we are using the Python from the virtual environment
             shell(['which', 'python'], env=virtualenv_env)
