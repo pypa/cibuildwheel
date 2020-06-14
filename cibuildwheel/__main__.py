@@ -4,6 +4,7 @@ import sys
 import textwrap
 import traceback
 from configparser import ConfigParser
+from pathlib import Path
 
 from typing import Any, Dict, List, Optional, overload
 
@@ -114,8 +115,8 @@ def main() -> None:
                   file=sys.stderr)
             exit(2)
 
-    package_dir = args.package_dir
-    output_dir = args.output_dir
+    package_dir = Path(args.package_dir)
+    output_dir = Path(args.output_dir)
 
     if platform == 'linux':
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
@@ -149,7 +150,8 @@ def main() -> None:
     elif dependency_versions == 'latest':
         dependency_constraints = None
     else:
-        dependency_constraints = DependencyConstraints(dependency_versions)
+        dependency_versions_path = Path(dependency_versions)
+        dependency_constraints = DependencyConstraints(dependency_versions_path)
 
     if test_extras:
         test_extras = f'[{test_extras}]'
@@ -163,7 +165,7 @@ def main() -> None:
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    if not any(os.path.exists(os.path.join(package_dir, name))
+    if not any((package_dir / name).exists()
                for name in ["setup.py", "setup.cfg", "pyproject.toml"]):
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         exit(2)
@@ -174,9 +176,7 @@ def main() -> None:
 
     manylinux_images: Optional[Dict[str, str]] = None
     if platform == 'linux':
-        pinned_docker_images_file = os.path.join(
-            os.path.dirname(__file__), 'resources', 'pinned_docker_images.cfg'
-        )
+        pinned_docker_images_file = Path(__file__).parent / 'resources' / 'pinned_docker_images.cfg'
         all_pinned_docker_images = ConfigParser()
         all_pinned_docker_images.read(pinned_docker_images_file)
         # all_pinned_docker_images looks like a dict of dicts, e.g.
@@ -224,8 +224,8 @@ def main() -> None:
 
     print_preamble(platform, build_options)
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True)
 
     if platform == 'linux':
         cibuildwheel.linux.build(build_options)

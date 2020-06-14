@@ -1,14 +1,15 @@
 import os
 import urllib.request
 from fnmatch import fnmatch
+from pathlib import Path
 from time import sleep
 
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional, Union
 
 from .environment import ParsedEnvironment
 
 
-def prepare_command(command: str, **kwargs: str) -> str:
+def prepare_command(command: str, **kwargs: Union[str, os.PathLike]) -> str:
     '''
     Preprocesses a command by expanding variables like {python}.
 
@@ -58,11 +59,11 @@ class Unbuffered:
         return getattr(self.stream, attr)
 
 
-def download(url: str, dest: str) -> None:
-    print('+ Download ' + url + ' to ' + dest)
-    dest_dir = os.path.dirname(dest)
-    if not os.path.exists(dest_dir):
-        os.makedirs(dest_dir)
+def download(url: str, dest: Path) -> None:
+    print(f'+ Download {url} to {dest}')
+    dest_dir = dest.parent
+    if not dest_dir.exists():
+        dest_dir.mkdir(parents=True)
 
     repeat_num = 3
     for i in range(repeat_num):
@@ -76,40 +77,39 @@ def download(url: str, dest: str) -> None:
         break
 
     try:
-        with open(dest, 'wb') as file:
-            file.write(response.read())
+        dest.write_bytes(response.read())
     finally:
         response.close()
 
 
 class DependencyConstraints:
-    def __init__(self, base_file_path: str):
-        assert os.path.exists(base_file_path)
-        self.base_file_path = os.path.abspath(base_file_path)
+    def __init__(self, base_file_path: Path):
+        assert base_file_path.exists()
+        self.base_file_path = base_file_path.resolve()
 
     @staticmethod
     def with_defaults() -> 'DependencyConstraints':
         return DependencyConstraints(
-            base_file_path=os.path.join(os.path.dirname(__file__), 'resources', 'constraints.txt')
+            base_file_path=Path(__file__).parent / 'resources' / 'constraints.txt'
         )
 
-    def get_for_python_version(self, version: str) -> str:
+    def get_for_python_version(self, version: str) -> Path:
         version_parts = version.split('.')
 
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python27.txt
-        base, ext = os.path.splitext(self.base_file_path)
-        specific = base + f'-python{version_parts[0]}{version_parts[1]}'
-        specific_file_path = specific + ext
-        if os.path.exists(specific_file_path):
+        specific_stem = self.base_file_path.stem + f'-python{version_parts[0]}{version_parts[1]}'
+        sepcific_name = specific_stem + self.base_file_path.suffix
+        specific_file_path = self.base_file_path.with_name(sepcific_name)
+        if specific_file_path.exists():
             return specific_file_path
         else:
             return self.base_file_path
 
 
 class BuildOptions(NamedTuple):
-    package_dir: str
-    output_dir: str
+    package_dir: Path
+    output_dir: Path
     build_selector: BuildSelector
     environment: ParsedEnvironment
     before_build: Optional[str]
@@ -123,5 +123,5 @@ class BuildOptions(NamedTuple):
     build_verbosity: int
 
 
-resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
-get_pip_script = os.path.join(resources_dir, 'get-pip.py')
+resources_dir = Path(__file__).resolve().parent / 'resources'
+get_pip_script = resources_dir / 'get-pip.py'

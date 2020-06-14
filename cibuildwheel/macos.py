@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 from glob import glob
+from pathlib import Path
 
 from typing import Dict, List, Optional, NamedTuple, Union
 
@@ -24,7 +25,7 @@ def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd:
     if shell:
         print(f'+ {args}')
     else:
-        print('+ ' + ' '.join(shlex.quote(a) for a in args))
+        print('+ ' + ' '.join(shlex.quote(str(a)) for a in args))
 
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
@@ -52,41 +53,41 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
     return [c for c in python_configurations if build_selector(c.identifier)]
 
 
-SYMLINKS_DIR = '/tmp/cibw_bin'
+SYMLINKS_DIR = Path('/tmp/cibw_bin')
 
 
-def make_symlinks(installation_bin_path: str, python_executable: str, pip_executable: str) -> None:
-    assert os.path.exists(os.path.join(installation_bin_path, python_executable))
+def make_symlinks(installation_bin_path: Path, python_executable: str, pip_executable: str) -> None:
+    assert (installation_bin_path / python_executable).exists()
 
     # Python bin folders on Mac don't symlink `python3` to `python`, and neither
     # does PyPy for `pypy` or `pypy3`, so we do that so `python` and `pip` always
     # point to the active configuration.
-    if os.path.exists(SYMLINKS_DIR):
+    if SYMLINKS_DIR.exists():
         shutil.rmtree(SYMLINKS_DIR)
-    os.makedirs(SYMLINKS_DIR)
+    SYMLINKS_DIR.mkdir(parents=True)
 
-    os.symlink(os.path.join(installation_bin_path, python_executable), os.path.join(SYMLINKS_DIR, 'python'))
-    os.symlink(os.path.join(installation_bin_path, python_executable + '-config'), os.path.join(SYMLINKS_DIR, 'python-config'))
-    os.symlink(os.path.join(installation_bin_path, pip_executable), os.path.join(SYMLINKS_DIR, 'pip'))
+    (SYMLINKS_DIR / 'python').symlink_to(installation_bin_path / python_executable)
+    (SYMLINKS_DIR / 'python-config').symlink_to(installation_bin_path / (python_executable + '-config'))
+    (SYMLINKS_DIR / 'pip').symlink_to(installation_bin_path / pip_executable)
 
 
-def install_cpython(version: str, url: str) -> str:
+def install_cpython(version: str, url: str) -> Path:
     installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
     python_package_identifier = f'org.python.Python.PythonFramework-{version}'
     if python_package_identifier not in installed_system_packages:
         # download the pkg
-        download(url, '/tmp/Python.pkg')
+        download(url, Path('/tmp/Python.pkg'))
         # install
         call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
         # patch open ssl
         if version == '3.5':
             open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-{version}-openssl-v1.0.2u.tar.gz'
-            download(open_ssl_patch_url, '/tmp/python-patch.tar.gz')
+            download(open_ssl_patch_url, Path('/tmp/python-patch.tar.gz'))
             call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
 
-    installation_bin_path = f'/Library/Frameworks/Python.framework/Versions/{version}/bin'
+    installation_bin_path = Path(f'/Library/Frameworks/Python.framework/Versions/{version}/bin')
     python_executable = 'python3' if version[0] == '3' else 'python'
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
     make_symlinks(installation_bin_path, python_executable, pip_executable)
@@ -94,16 +95,18 @@ def install_cpython(version: str, url: str) -> str:
     return installation_bin_path
 
 
-def install_pypy(version: str, url: str) -> str:
+def install_pypy(version: str, url: str) -> Path:
     pypy_tar_bz2 = url.rsplit('/', 1)[-1]
-    assert pypy_tar_bz2.endswith(".tar.bz2")
-    pypy_base_filename = os.path.splitext(os.path.splitext(pypy_tar_bz2)[0])[0]
-    installation_path = os.path.join('/tmp', pypy_base_filename)
-    if not os.path.exists(installation_path):
-        download(url, os.path.join("/tmp", pypy_tar_bz2))
-        call(['tar', '-C', '/tmp', '-xf', os.path.join("/tmp", pypy_tar_bz2)])
+    extension = ".tar.bz2"
+    assert pypy_tar_bz2.endswith(extension)
+    pypy_base_filename = pypy_tar_bz2[:-len(extension)]
+    installation_path = Path('/tmp') / pypy_base_filename
+    if not installation_path.exists():
+        downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
+        download(url, downloaded_tar_bz2)
+        call(['tar', '-C', '/tmp', '-xf', str(downloaded_tar_bz2)])
 
-    installation_bin_path = os.path.join(installation_path, 'bin')
+    installation_bin_path = installation_path / 'bin'
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
     make_symlinks(installation_bin_path, python_executable, pip_executable)
@@ -121,8 +124,8 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
 
     env = os.environ.copy()
     env['PATH'] = os.pathsep.join([
-        SYMLINKS_DIR,
-        installation_bin_path,
+        str(SYMLINKS_DIR),
+        str(installation_bin_path),
         env['PATH'],
     ])
 
@@ -144,8 +147,8 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
         exit(1)
 
     # install pip & wheel
-    call(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="/tmp")
-    assert os.path.exists(os.path.join(installation_bin_path, 'pip'))
+    call(['python', str(get_pip_script)] + dependency_constraint_flags, env=env, cwd="/tmp")
+    assert (installation_bin_path / 'pip').exists()
     call(['which', 'pip'], env=env)
     call(['pip', '--version'], env=env)
     which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
@@ -170,9 +173,9 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
 
 
 def build(options: BuildOptions) -> None:
-    temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
-    built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
-    repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
+    temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
+    built_wheel_dir = temp_dir / 'built_wheel'
+    repaired_wheel_dir = temp_dir / 'repaired_wheel'
 
     python_configurations = get_python_configurations(options.build_selector)
 
@@ -180,7 +183,7 @@ def build(options: BuildOptions) -> None:
         dependency_constraint_flags = []
         if options.dependency_constraints:
             dependency_constraint_flags = [
-                '-c', options.dependency_constraints.get_for_python_version(config.version)
+                '-c', str(options.dependency_constraints.get_for_python_version(config.version))
             ]
 
         env = setup_python(config, dependency_constraint_flags, options.environment)
@@ -191,39 +194,39 @@ def build(options: BuildOptions) -> None:
             call(before_build_prepared, env=env, shell=True)
 
         # build the wheel
-        if os.path.exists(built_wheel_dir):
+        if built_wheel_dir.exists():
             shutil.rmtree(built_wheel_dir)
-        os.makedirs(built_wheel_dir)
-        # os.path.abspath is need. Without it pip wheel may try to fetch package from pypi.org
+        built_wheel_dir.mkdir(parents=True)
+        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
         # see https://github.com/joerick/cibuildwheel/pull/369
-        call(['pip', 'wheel', os.path.abspath(options.package_dir), '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
-        built_wheel = glob(os.path.join(built_wheel_dir, '*.whl'))[0]
+        call(['pip', 'wheel', str(options.package_dir.resolve()), '-w', str(built_wheel_dir), '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
+        built_wheel = next(built_wheel_dir.glob('*.whl'))
 
         # repair the wheel
-        if os.path.exists(repaired_wheel_dir):
+        if repaired_wheel_dir.exists():
             shutil.rmtree(repaired_wheel_dir)
-        os.makedirs(repaired_wheel_dir)
-        if built_wheel.endswith('none-any.whl') or not options.repair_command:
+        repaired_wheel_dir.mkdir(parents=True)
+        if built_wheel.name.endswith('none-any.whl') or not options.repair_command:
             # pure Python wheel or empty repair command
-            shutil.move(built_wheel, repaired_wheel_dir)
+            shutil.move(str(built_wheel), repaired_wheel_dir)
         else:
             repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
             call(repair_command_prepared, env=env, shell=True)
-        repaired_wheel = glob(os.path.join(repaired_wheel_dir, '*.whl'))[0]
+        repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
         if options.test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
             call(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
-            venv_dir = tempfile.mkdtemp()
+            venv_dir = Path(tempfile.mkdtemp())
 
             # Use --no-download to ensure determinism by using seed libraries
             # built into virtualenv
-            call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
+            call(['python', '-m', 'virtualenv', '--no-download', str(venv_dir)], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([
-                os.path.join(venv_dir, 'bin'),
+                str(venv_dir / 'bin'),
                 virtualenv_env['PATH'],
             ])
 
@@ -235,7 +238,7 @@ def build(options: BuildOptions) -> None:
                 call(before_test_prepared, env=virtualenv_env, shell=True)
 
             # install the wheel
-            call(['pip', 'install', repaired_wheel + options.test_extras], env=virtualenv_env)
+            call(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
 
             # test the wheel
             if options.test_requires:
@@ -246,8 +249,8 @@ def build(options: BuildOptions) -> None:
             # and not the repo code)
             test_command_prepared = prepare_command(
                 options.test_command,
-                project=os.path.abspath('.'),
-                package=os.path.abspath(options.package_dir)
+                project=Path('.').resolve(),
+                package=options.package_dir
             )
             call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
 
@@ -255,5 +258,5 @@ def build(options: BuildOptions) -> None:
             shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
-        dst = os.path.join(options.output_dir, os.path.basename(repaired_wheel))
-        shutil.move(repaired_wheel, dst)
+        dst = options.output_dir / repaired_wheel.name
+        shutil.move(str(repaired_wheel), dst)

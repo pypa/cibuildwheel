@@ -4,6 +4,7 @@ import subprocess
 import sys
 import tempfile
 from glob import glob
+from pathlib import Path
 from zipfile import ZipFile
 
 from typing import Dict, List, Optional, NamedTuple
@@ -19,7 +20,7 @@ from .util import (
 )
 
 
-IS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
@@ -71,36 +72,38 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
     return python_configurations
 
 
-def extract_zip(zip_src: str, dest: str) -> None:
+def extract_zip(zip_src: Path, dest: Path) -> None:
     with ZipFile(zip_src) as zip:
         zip.extractall(dest)
 
 
-def install_cpython(version: str, arch: str, nuget: str) -> str:
+def install_cpython(version: str, arch: str, nuget: Path) -> Path:
     nuget_args = get_nuget_args(version, arch)
-    installation_path = os.path.join(nuget_args[-1], nuget_args[0] + '.' + version, 'tools')
-    shell([nuget, 'install'] + nuget_args)
+    installation_path = Path(nuget_args[-1]) / (nuget_args[0] + '.' + version) / 'tools'
+    shell([str(nuget), 'install'] + nuget_args)
     return installation_path
 
 
-def install_pypy(version: str, arch: str, url: str) -> str:
+def install_pypy(version: str, arch: str, url: str) -> Path:
     assert arch == '32'
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit('/', 1)[-1]
-    installation_path = os.path.join('C:\\cibw', os.path.splitext(zip_filename)[0])
-    if not os.path.exists(installation_path):
-        pypy_zip = os.path.join('C:\\cibw', zip_filename)
+    extension = ".zip"
+    assert zip_filename.endswith(extension)
+    installation_path = Path('C:\\cibw') / zip_filename[:-len(extension)]
+    if not installation_path.exists():
+        pypy_zip = Path('C:\\cibw') / zip_filename
         download(url, pypy_zip)
         # Extract to the parent directory because the zip file still contains a directory
-        extract_zip(pypy_zip, os.path.dirname(installation_path))
+        extract_zip(pypy_zip, installation_path.parent)
         pypy_exe = 'pypy3.exe' if version[0] == '3' else 'pypy.exe'
-        shell(['mklink', os.path.join(installation_path, 'python.exe'), os.path.join(installation_path, pypy_exe)])
+        (installation_path / pypy_exe).symlink_to(installation_path / 'python.exe')
     return installation_path
 
 
 def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
-    nuget = 'C:\\cibw\\nuget.exe'
-    if not os.path.exists(nuget):
+    nuget = Path('C:\\cibw\\nuget.exe')
+    if not nuget.exists():
         download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
 
     if python_configuration.identifier.startswith('cp'):
@@ -111,15 +114,15 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     else:
         raise ValueError("Unknown Python implementation")
 
-    assert os.path.exists(os.path.join(installation_path, 'python.exe'))
+    assert (installation_path / 'python.exe').exists()
 
     # set up PATH and environment variables for run_with_env
     env = os.environ.copy()
     env['PYTHON_VERSION'] = python_configuration.version
     env['PYTHON_ARCH'] = python_configuration.arch
     env['PATH'] = os.pathsep.join([
-        installation_path,
-        os.path.join(installation_path, 'Scripts'),
+        str(installation_path),
+        str(installation_path / 'Scripts'),
         env['PATH']
     ])
     # update env with results from CIBW_ENVIRONMENT
@@ -130,16 +133,16 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     shell(['python', '--version'], env=env)
     shell(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
     where_python = subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0].strip()
-    if where_python != os.path.join(installation_path, 'python.exe'):
+    if where_python != str(installation_path / 'python.exe'):
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
         exit(1)
 
     # make sure pip is installed
-    if not os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe')):
-        shell(['python', get_pip_script] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
-    assert os.path.exists(os.path.join(installation_path, 'Scripts', 'pip.exe'))
+    if not (installation_path / 'Scripts' / 'pip.exe').exists():
+        shell(['python', str(get_pip_script)] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
+    assert (installation_path / 'Scripts' / 'pip.exe').exists()
     where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
-    if where_pip.strip() != os.path.join(installation_path, 'Scripts', 'pip.exe'):
+    if where_pip.strip() != str(installation_path / 'Scripts' / 'pip.exe'):
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
         exit(1)
 
@@ -152,12 +155,12 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
 
 
 def build(options: BuildOptions) -> None:
-    temp_dir = tempfile.mkdtemp(prefix='cibuildwheel')
-    built_wheel_dir = os.path.join(temp_dir, 'built_wheel')
-    repaired_wheel_dir = os.path.join(temp_dir, 'repaired_wheel')
+    temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
+    built_wheel_dir = temp_dir / 'built_wheel'
+    repaired_wheel_dir = temp_dir / 'repaired_wheel'
 
     # install nuget as best way to provide python
-    nuget = 'C:\\cibw\\nuget.exe'
+    nuget = Path('C:\\cibw\\nuget.exe')
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
 
     python_configurations = get_python_configurations(options.build_selector)
@@ -165,7 +168,7 @@ def build(options: BuildOptions) -> None:
         dependency_constraint_flags = []
         if options.dependency_constraints:
             dependency_constraint_flags = [
-                '-c', options.dependency_constraints.get_for_python_version(config.version)
+                '-c', str(options.dependency_constraints.get_for_python_version(config.version))
             ]
 
         # install Python
@@ -177,39 +180,39 @@ def build(options: BuildOptions) -> None:
             shell([before_build_prepared], env=env)
 
         # build the wheel
-        if os.path.exists(built_wheel_dir):
+        if built_wheel_dir.exists():
             shutil.rmtree(built_wheel_dir)
-        os.makedirs(built_wheel_dir)
-        # os.path.abspath is need. Without it pip wheel may try to fetch package from pypi.org
+        built_wheel_dir.mkdir(parents=True)
+        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
         # see https://github.com/joerick/cibuildwheel/pull/369
-        shell(['pip', 'wheel', os.path.abspath(options.package_dir), '-w', built_wheel_dir, '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
-        built_wheel = glob(os.path.join(built_wheel_dir, '*.whl'))[0]
+        shell(['pip', 'wheel', str(options.package_dir.resolve()), '-w', str(built_wheel_dir), '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
+        built_wheel = next(built_wheel_dir.glob('*.whl'))
 
         # repair the wheel
-        if os.path.exists(repaired_wheel_dir):
+        if repaired_wheel_dir.exists():
             shutil.rmtree(repaired_wheel_dir)
-        os.makedirs(repaired_wheel_dir)
-        if built_wheel.endswith('none-any.whl') or not options.repair_command:
+        repaired_wheel_dir.mkdir(parents=True)
+        if built_wheel.name.endswith('none-any.whl') or not options.repair_command:
             # pure Python wheel or empty repair command
-            shutil.move(built_wheel, repaired_wheel_dir)
+            shutil.move(str(built_wheel), repaired_wheel_dir)
         else:
             repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
             shell([repair_command_prepared], env=env)
-        repaired_wheel = glob(os.path.join(repaired_wheel_dir, '*.whl'))[0]
+        repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
         if options.test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
             shell(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
-            venv_dir = tempfile.mkdtemp()
+            venv_dir = Path(tempfile.mkdtemp())
 
             # Use --no-download to ensure determinism by using seed libraries
             # built into virtualenv
-            shell(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
+            shell(['python', '-m', 'virtualenv', '--no-download', str(venv_dir)], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([
-                os.path.join(venv_dir, 'Scripts'),
+                str(venv_dir / 'Scripts'),
                 virtualenv_env['PATH'],
             ])
 
@@ -225,7 +228,7 @@ def build(options: BuildOptions) -> None:
                 shell([before_test_prepared], env=virtualenv_env)
 
             # install the wheel
-            shell(['pip', 'install', repaired_wheel + options.test_extras], env=virtualenv_env)
+            shell(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
 
             # test the wheel
             if options.test_requires:
@@ -236,8 +239,8 @@ def build(options: BuildOptions) -> None:
             # and not the repo code)
             test_command_prepared = prepare_command(
                 options.test_command,
-                project=os.path.abspath('.'),
-                package=os.path.abspath(options.package_dir)
+                project=Path('.').resolve(),
+                package=options.package_dir.resolve()
             )
             shell([test_command_prepared], cwd='c:\\', env=virtualenv_env)
 
@@ -245,7 +248,7 @@ def build(options: BuildOptions) -> None:
             shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (remove if already exists)
-        dst = os.path.join(options.output_dir, os.path.basename(repaired_wheel))
-        if os.path.isfile(dst):
-            os.remove(dst)
-        shutil.move(repaired_wheel, dst)
+        dst = options.output_dir / repaired_wheel.name
+        if dst.is_file():
+            dst.unlink()
+        shutil.move(str(repaired_wheel), dst)
