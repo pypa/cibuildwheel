@@ -15,7 +15,6 @@ repos:
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: ''  # Use the sha / tag you want to point at
     hooks:
-    -   id: mypy
-        args: [--strict]
-        files: cibuildwheel/*
-        exclude: test|cibuildwheel/resources
+    - id: mypy
+      files: cibuildwheel|test
+      exclude: cibuildwheel/resources
