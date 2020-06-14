@@ -143,6 +143,10 @@ def build(options: BuildOptions) -> None:
                         set -o errexit
                         set -o xtrace
 
+                        # add a modern Python interpreter to PATH so it can be used by BEFORE_ALL
+                        # commands
+                        export PATH=/opt/python/cp38-cp38:$PATH
+
                         {environment_exports}
 
                         sh -c {before_all}
