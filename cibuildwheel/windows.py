@@ -149,25 +149,32 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     shell(['pip', '--version'], env=env)
     shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
 
-    # Python 3.5 PEP 518 hack (see https://github.com/pypa/pip/issues/8392#issuecomment-639563494)
-    # Basically, nuget's Python is an embedded Python distribution, which is not supported by pip.
-    # Before version 3.6, there was no way to disable the "embedded" behavior, including the ignoring
-    # of environment variables, including the ones pip uses to setup PEP 518 builds.
-    #
-    # The fix here is as suggested in that issue; we manually setup the PEP 518 requirements. Since we
-    # are in a fresh environment (except for pinned cibuildweel dependencies), the build is already
-    # mostly "isolated".
-    if python_configuration.version.startswith('3.5') and os.path.exists('pyproject.toml'):
-        data = toml.load('pyproject.toml')
+    return env
+
+
+def pep_518_cp35_workaround(package_dir: str, env: Dict[str, str]) -> None:
+    """
+    Python 3.5 PEP 518 hack (see https://github.com/pypa/pip/issues/8392#issuecomment-639563494)
+    Basically, nuget's Python is an embedded Python distribution, which is not supported by pip.
+    Before version 3.6, there was no way to disable the "embedded" behavior, including the ignoring
+    of environment variables, including the ones pip uses to setup PEP 518 builds.
+
+    The fix here is as suggested in that issue; we manually setup the PEP 518 requirements. Since we
+    are in a fresh environment (except for pinned cibuildweel dependencies), the build is already
+    mostly "isolated".
+    """
+
+    pyproject_path = os.path.join(package_dir, 'pyproject.toml')
+
+    if os.path.exists(pyproject_path):
+        data = toml.load(pyproject_path)
         requirements = (
             data['build-system'].get('requires', [])
             if 'build-system' in data
             else []
         )
         if requirements:
-            shell(['pip', 'install'] + requirements + dependency_constraint_flags, env=env)
-
-    return env
+            shell(['pip', 'install'] + requirements, env=env)
 
 
 def build(options: BuildOptions) -> None:
@@ -194,6 +201,11 @@ def build(options: BuildOptions) -> None:
         if options.before_build:
             before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
             shell([before_build_prepared], env=env)
+
+        # activate the PEP 518 patch if on Windows Python 3.5
+        # (will only have an effect if PEP 517 builds are used):
+        if config.version.startswith('3.5'):
+            pep_518_cp35_workaround(options.package_dir, env)
 
         # build the wheel
         if os.path.exists(built_wheel_dir):
