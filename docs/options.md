@@ -52,7 +52,6 @@ env:
 
 ## Build selection
 
-
 ### `CIBW_PLATFORM` {: #platform}
 
 > Override the auto-detected target platform
@@ -66,6 +65,7 @@ Default: `auto`
 For `linux` you need Docker running, on macOS or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and `cibuildwheel` will install required versions of Python to `C:\cibw\python` using NuGet.
 
 This option can also be set using the command-line option `--platform`.
+
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
 
@@ -154,7 +154,6 @@ CIBW_SKIP: pp*
 
 
 ## Build customization
-
 
 ### `CIBW_ENVIRONMENT` {: #environment}
 > Set environment variables needed during the build
@@ -296,6 +295,7 @@ CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
 CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
 ```
 
+
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
 > Specify how cibuildwheel controls the versions of the tools it uses
 
@@ -372,6 +372,35 @@ CIBW_TEST_COMMAND: pytest {package}/tests
 ```
 
 
+### `CIBW_BEFORE_TEST` {: #before-test}
+> Execute a shell command before testing each wheel
+
+A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install a non pip package, change values of environment variables
+or perform multi step pip installation (e.g. installing `scikit-build` or `cython` before install test package)
+
+The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
+
+The command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+Platform-specific variants also available:<br/>
+ `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
+
+#### Examples
+```yaml
+# install test dependencies with overwritten environment variables.
+CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
+
+# chain commands using &&
+CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
+
+# install non pip python package
+CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
+
+# install python packages that are required to install test dependencies
+CIBW_BEFORE_TEST: pip install cmake scikit-build
+```
+
+
 ### `CIBW_TEST_REQUIRES` {: #test-requires}
 > Install Python dependencies before running the tests
 
@@ -411,33 +440,6 @@ Platform-specific variants also available:<br/>
 CIBW_TEST_EXTRAS: test,qt
 ```
 
-### `CIBW_BEFORE_TEST` {: #before-test}
-> Execute a shell command before testing each wheel
-
-A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install a non pip package, change values of environment variables
-or perform multi step pip installation (e.g. installing `scikit-build` or `cython` before install test package)
-
-The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
-
-The command is run in a shell, so you can write things like `cmd1 && cmd2`.
-
-Platform-specific variants also available:<br/>
- `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
-
-#### Examples
-```yaml
-# install test dependencies with overwritten environment variables.
-CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
-
-# chain commands using &&
-CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
-
-# install non pip python package
-CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
-
-# install python packages that are required to install test dependencies
-CIBW_BEFORE_TEST: pip install cmake scikit-build
-```
 
 ## Other
 

@@ -110,17 +110,17 @@ class DependencyConstraints:
 class BuildOptions(NamedTuple):
     package_dir: str
     output_dir: str
+    build_selector: BuildSelector
+    environment: ParsedEnvironment
+    before_build: Optional[str]
+    repair_command: str
+    manylinux_images: Optional[Dict[str, str]]
+    dependency_constraints: Optional[DependencyConstraints]
     test_command: Optional[str]
+    before_test: Optional[str]
     test_requires: List[str]
     test_extras: str
-    before_build: Optional[str]
     build_verbosity: int
-    build_selector: BuildSelector
-    repair_command: str
-    environment: ParsedEnvironment
-    before_test: str
-    dependency_constraints: Optional[DependencyConstraints]
-    manylinux_images: Optional[Dict[str, str]]
 
 
 resources_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
