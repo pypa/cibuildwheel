@@ -128,7 +128,7 @@ def main() -> None:
 
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
-    before_all = get_option_from_environment('CIBW_BEFORE_ALL', platform=platform)
+    before_all = get_option_from_environment('CIBW_BEFORE_ALL', platform=platform, default='')
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
     repair_command = get_option_from_environment('CIBW_REPAIR_WHEEL_COMMAND', platform=platform, default=repair_command_default)
     dependency_versions = get_option_from_environment('CIBW_DEPENDENCY_VERSIONS', platform=platform, default='pinned')
