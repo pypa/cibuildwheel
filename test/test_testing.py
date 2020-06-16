@@ -46,12 +46,15 @@ class TestSpam(TestCase):
         self.assertNotEqual(0, spam.system('python -c "exit(1)"'))
 
     def test_virtualenv(self):
-        virtualenv_path = os.environ.get("__CIBW_VIRTUALENV_PATH__")
-        if not virtualenv_path:
-            self.fail("No virtualenv path defined in environment variable __CIBW_VIRTUALENV_PATH__")
+        # sys.prefix is different from sys.base_prefix when running a virtualenv
+        # See https://docs.python.org/3/library/venv.html, which virtualenv seems
+        # to honor in recent releases
+        # Python 2 doesn't have sys.base_prefix by default
+        if not hasattr(sys, 'base_prefix') or sys.prefix == sys.base_prefix:
+            self.fail("Not running in a virtualenv")
 
-        self.assertTrue(path_contains(virtualenv_path, sys.executable))
-        self.assertTrue(path_contains(virtualenv_path, spam.__file__))
+        self.assertTrue(path_contains(sys.prefix, sys.executable))
+        self.assertTrue(path_contains(sys.prefix, spam.__file__))
 
     def test_uname(self):
         if platform.system() == "Windows":
