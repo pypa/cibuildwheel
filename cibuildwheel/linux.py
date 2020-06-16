@@ -5,7 +5,7 @@ import subprocess
 import sys
 import textwrap
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from typing import List, NamedTuple, Optional, Union
 
@@ -105,12 +105,12 @@ def build(options: BuildOptions) -> None:
         ('pp', 'manylinux_x86_64', options.manylinux_images['pypy_x86_64']),
     ]
 
-    pwd = Path().resolve()
+    cwd = Path.cwd()
     abs_package_dir = options.package_dir.resolve()
-    if pwd != abs_package_dir and pwd not in abs_package_dir.parents:
+    if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         raise Exception('package_dir must be inside the working directory')
 
-    container_package_dir = Path('/project') / abs_package_dir.relative_to(pwd)
+    container_package_dir = PurePath('/project') / abs_package_dir.relative_to(cwd)
 
     for implementation, platform_tag, docker_image in platforms:
         platform_configs = [c for c in python_configurations if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)]
@@ -302,5 +302,5 @@ def troubleshoot(package_dir: Path, error: Exception) -> None:
             '''))
 
             print('  Files detected:')
-            print('\n'.join(['    ' + str(f) for f in so_files]))
+            print('\n'.join([f'    {f}' for f in so_files]))
             print('')

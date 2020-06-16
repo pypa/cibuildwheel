@@ -21,6 +21,7 @@ from cibuildwheel.util import (
     BuildSelector,
     DependencyConstraints,
     Unbuffered,
+    resources_dir,
 )
 
 
@@ -165,7 +166,7 @@ def main() -> None:
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    if not any((package_dir / name).exists()
+    if not any(package_dir.joinpath(name).exists()
                for name in ["setup.py", "setup.cfg", "pyproject.toml"]):
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         exit(2)
@@ -176,7 +177,7 @@ def main() -> None:
 
     manylinux_images: Optional[Dict[str, str]] = None
     if platform == 'linux':
-        pinned_docker_images_file = Path(__file__).parent / 'resources' / 'pinned_docker_images.cfg'
+        pinned_docker_images_file = resources_dir / 'pinned_docker_images.cfg'
         all_pinned_docker_images = ConfigParser()
         all_pinned_docker_images.read(pinned_docker_images_file)
         # all_pinned_docker_images looks like a dict of dicts, e.g.

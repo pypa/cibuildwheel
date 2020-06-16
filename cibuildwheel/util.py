@@ -90,7 +90,7 @@ class DependencyConstraints:
     @staticmethod
     def with_defaults() -> 'DependencyConstraints':
         return DependencyConstraints(
-            base_file_path=Path(__file__).parent / 'resources' / 'constraints.txt'
+            base_file_path=resources_dir / 'constraints.txt'
         )
 
     def get_for_python_version(self, version: str) -> Path:
@@ -99,8 +99,8 @@ class DependencyConstraints:
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python27.txt
         specific_stem = self.base_file_path.stem + f'-python{version_parts[0]}{version_parts[1]}'
-        sepcific_name = specific_stem + self.base_file_path.suffix
-        specific_file_path = self.base_file_path.with_name(sepcific_name)
+        specific_name = specific_stem + self.base_file_path.suffix
+        specific_file_path = self.base_file_path.with_name(specific_name)
         if specific_file_path.exists():
             return specific_file_path
         else:

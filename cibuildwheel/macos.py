@@ -24,7 +24,7 @@ def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd:
     if shell:
         print(f'+ {args}')
     else:
-        print('+ ' + ' '.join(shlex.quote(str(a)) for a in args))
+        print('+ ' + ' '.join(shlex.quote(a) for a in args))
 
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
@@ -65,9 +65,9 @@ def make_symlinks(installation_bin_path: Path, python_executable: str, pip_execu
         shutil.rmtree(SYMLINKS_DIR)
     SYMLINKS_DIR.mkdir(parents=True)
 
-    (SYMLINKS_DIR / 'python').symlink_to(installation_bin_path / python_executable)
-    (SYMLINKS_DIR / 'python-config').symlink_to(installation_bin_path / (python_executable + '-config'))
-    (SYMLINKS_DIR / 'pip').symlink_to(installation_bin_path / pip_executable)
+    SYMLINKS_DIR.joinpath('python').symlink_to(installation_bin_path / python_executable)
+    SYMLINKS_DIR.joinpath('python-config').symlink_to(installation_bin_path / (python_executable + '-config'))
+    SYMLINKS_DIR.joinpath('pip').symlink_to(installation_bin_path / pip_executable)
 
 
 def install_cpython(version: str, url: str) -> Path:
