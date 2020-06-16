@@ -44,7 +44,7 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.7/python-3.7.7-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.3/python-3.8.3-macosx10.9.pkg'),
         # PyPy
-        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://buildbot.pypy.org/nightly/trunk/pypy-c-jit-99603-9a70f02748b3-osx64.tar.bz2'),
+        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://buildbot.pypy.org/nightly/trunk/pypy-c-jit-99615-9e93648adfc9-osx64.tar.bz2'),
         PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://buildbot.pypy.org/nightly/py3.6/pypy-c-jit-99604-3cef5e4c9f29-osx64.tar.bz2'),
     ]
 
