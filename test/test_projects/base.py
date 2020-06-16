@@ -14,6 +14,8 @@ class TestProject:
 
     Write out to the filesystem using `generate`.
     '''
+    __test__ = False  # Have pytest ignore this class on `from .test_projects import TestProject`
+
     files: FilesDict
     template_context: TemplateContext
 
