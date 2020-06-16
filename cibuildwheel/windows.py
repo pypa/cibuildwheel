@@ -3,7 +3,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from glob import glob
 from pathlib import Path
 from zipfile import ZipFile
 

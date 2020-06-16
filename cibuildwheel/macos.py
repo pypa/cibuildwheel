@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from glob import glob
 from pathlib import Path
 
 from typing import Dict, List, Optional, NamedTuple, Union
