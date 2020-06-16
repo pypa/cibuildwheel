@@ -96,7 +96,7 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
         # Extract to the parent directory because the zip file still contains a directory
         extract_zip(pypy_zip, installation_path.parent)
         pypy_exe = 'pypy3.exe' if version[0] == '3' else 'pypy.exe'
-        (installation_path / pypy_exe).symlink_to(installation_path / 'python.exe')
+        (installation_path / 'python.exe').symlink_to(installation_path / pypy_exe)
     return installation_path
 
 
