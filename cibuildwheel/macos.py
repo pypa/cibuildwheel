@@ -249,7 +249,7 @@ def build(options: BuildOptions) -> None:
             test_command_prepared = prepare_command(
                 options.test_command,
                 project=Path('.').resolve(),
-                package=options.package_dir
+                package=options.package_dir.resolve()
             )
             call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
 
