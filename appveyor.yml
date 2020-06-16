@@ -10,6 +10,11 @@ environment:
     - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
       APPVEYOR_JOB_NAME: "python37-x64-macos-mojave"
 
+# while pypy libffi dependency is failing the build, allow failures on macos
+matrix:	
+  allow_failures:	
+    - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+
 stack: python 3.7
 
 build: off
