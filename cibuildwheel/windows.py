@@ -97,6 +97,9 @@ def install_pypy(version: str, arch: str, url: str) -> str:
         extract_zip(pypy_zip, os.path.dirname(installation_path))
         pypy_exe = 'pypy3.exe' if version[0] == '3' else 'pypy.exe'
         shell(['mklink', os.path.join(installation_path, 'python.exe'), os.path.join(installation_path, pypy_exe)])
+
+        if '-v7.2.0-' in url:
+            shell(['chcp', '437'])  # Workaround for https://bitbucket.org/pypy/pypy/issues/3081/
     return installation_path
 
 
