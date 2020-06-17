@@ -99,6 +99,7 @@ def install_pypy(version: str, arch: str, url: str) -> str:
         shell(['mklink', os.path.join(installation_path, 'python.exe'), os.path.join(installation_path, pypy_exe)])
 
         if '-v7.2.0-' in url:
+            shell(['mklink', '/d', os.path.join(installation_path, 'Scripts'), os.path.join(installation_path, 'bin')])
             shell(['chcp', '437'])  # Workaround for https://bitbucket.org/pypy/pypy/issues/3081/
     return installation_path
 
