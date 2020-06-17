@@ -31,11 +31,16 @@ def mock_protection(monkeypatch):
     def fail_on_call(*args, **kwargs):
         raise RuntimeError("This should never be called")
 
+    def ignore_call(*args, **kwargs):
+        pass
+
     monkeypatch.setattr(subprocess, 'Popen', fail_on_call)
     monkeypatch.setattr(util, 'download', fail_on_call)
     monkeypatch.setattr(windows, 'build', fail_on_call)
     monkeypatch.setattr(linux, 'build', fail_on_call)
     monkeypatch.setattr(macos, 'build', fail_on_call)
+
+    monkeypatch.setattr(Path, 'mkdir', ignore_call)
 
 
 @pytest.fixture(autouse=True)
