@@ -10,9 +10,10 @@ import shutil
 import subprocess
 import sys
 from contextlib import contextmanager
+from pathlib import Path
 from tempfile import mkdtemp
 
-IS_WINDOWS_RUNNING_ON_AZURE = os.path.exists('C:\\hostedtoolcache')
+IS_WINDOWS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
@@ -66,7 +67,7 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
 
     with TemporaryDirectoryIfNone(output_dir) as _output_dir:
         subprocess.check_call(
-            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir), package_dir],
+            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir), str(package_dir)],
             env=env,
             cwd=project_path,
         )
