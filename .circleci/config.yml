@@ -9,7 +9,7 @@ jobs:
 
       - run:
           name: Install flake8 & mypy
-          command: sudo python -m pip install flake8==3.8.1 mypy
+          command: sudo python -m pip install flake8 mypy
       - run:
           name: flake8
           command: flake8
