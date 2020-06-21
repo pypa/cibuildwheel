@@ -166,7 +166,7 @@ def main() -> None:
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    if not any(package_dir.joinpath(name).exists()
+    if not any((package_dir / name).exists()
                for name in ["setup.py", "setup.cfg", "pyproject.toml"]):
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         exit(2)
