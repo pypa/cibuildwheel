@@ -42,4 +42,3 @@ jobs:
     - bash: |
         python -m pip install -r requirements-dev.txt pytest-azurepipelines
         python ./bin/run_tests.py
-
