@@ -235,7 +235,7 @@ def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_n
         assert intercepted_build_selector.skip_patterns == build_selector_patterns
 
 
-@pytest.mark.parametrize('before_all', [None, 'test text'])
+@pytest.mark.parametrize('before_all', ["", None, 'test text'])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_before_all(before_all, platform_specific, platform, intercepted_build_args, monkeypatch):
     if before_all is not None:
@@ -246,5 +246,8 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
             monkeypatch.setenv('CIBW_BEFORE_ALL', before_all)
 
     main()
+
+    if before_all is None:
+        before_all = ""
 
     assert intercepted_build_args.args[0].before_all == before_all
