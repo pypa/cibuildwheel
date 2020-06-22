@@ -154,7 +154,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     return env
 
 
-def pep_518_cp35_workaround(package_dir: str, env: Dict[str, str]) -> None:
+def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
     """
     Python 3.5 PEP 518 hack (see https://github.com/pypa/pip/issues/8392#issuecomment-639563494)
     Basically, nuget's Python is an embedded Python distribution, which is not supported by pip.
@@ -166,9 +166,9 @@ def pep_518_cp35_workaround(package_dir: str, env: Dict[str, str]) -> None:
     mostly "isolated".
     """
 
-    pyproject_path = os.path.join(package_dir, 'pyproject.toml')
+    pyproject_path = package_dir / 'pyproject.toml'
 
-    if os.path.exists(pyproject_path):
+    if pyproject_path.exists():
         data = toml.load(pyproject_path)
         requirements = (
             data['build-system'].get('requires', [])
