@@ -5,6 +5,7 @@ import subprocess
 import sys
 import textwrap
 import uuid
+from pathlib import Path, PurePath
 
 from typing import List, NamedTuple, Optional, Union
 
@@ -104,10 +105,12 @@ def build(options: BuildOptions) -> None:
         ('pp', 'manylinux_x86_64', options.manylinux_images['pypy_x86_64']),
     ]
 
-    if not os.path.realpath(options.package_dir).startswith(os.path.realpath('.')):
+    cwd = Path.cwd()
+    abs_package_dir = options.package_dir.resolve()
+    if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         raise Exception('package_dir must be inside the working directory')
 
-    container_package_dir = os.path.join('/project', os.path.relpath(options.package_dir, '.'))
+    container_package_dir = PurePath('/project') / abs_package_dir.relative_to(cwd)
 
     for implementation, platform_tag, docker_image in platforms:
         platform_configs = [c for c in python_configurations if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)]
@@ -272,7 +275,7 @@ def build(options: BuildOptions) -> None:
             # copy the output back into the host
             call(['docker', 'cp',
                   container_name + ':/output/.',
-                  os.path.abspath(options.output_dir)])
+                  str(options.output_dir.resolve())])
         except subprocess.CalledProcessError as error:
             troubleshoot(options.package_dir, error)
             exit(1)
@@ -281,16 +284,11 @@ def build(options: BuildOptions) -> None:
             call(['docker', 'rm', '--force', '-v', container_name])
 
 
-def troubleshoot(package_dir: str, error: Exception) -> None:
+def troubleshoot(package_dir: Path, error: Exception) -> None:
     if (isinstance(error, subprocess.CalledProcessError) and 'exec' in error.cmd):
         # the bash script failed
         print('Checking for common errors...')
-        so_files = []
-        for root, dirs, files in os.walk(package_dir):
-            for name in files:
-                _, ext = os.path.splitext(name)
-                if ext == '.so':
-                    so_files.append(os.path.join(root, name))
+        so_files = list(package_dir.glob('**/*.so'))
 
         if so_files:
             print(textwrap.dedent('''
@@ -304,5 +302,5 @@ def troubleshoot(package_dir: str, error: Exception) -> None:
             '''))
 
             print('  Files detected:')
-            print('\n'.join(['    ' + f for f in so_files]))
+            print('\n'.join([f'    {f}' for f in so_files]))
             print('')

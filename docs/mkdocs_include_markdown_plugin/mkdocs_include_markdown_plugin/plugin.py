@@ -1,7 +1,6 @@
 import cgi
-import io
-import os
 import re
+from pathlib import Path
 
 import mkdocs
 
@@ -41,13 +40,12 @@ class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
         def found_include_tag(match):
             filename = match.group('filename')
 
-            file_path_abs = os.path.join(os.path.dirname(page_src_path), filename)
+            file_path_abs = Path(page_src_path).parent / filename
 
-            if not os.path.exists(file_path_abs):
+            if not file_path_abs.exists():
                 raise ValueError('file not found', filename)
 
-            with io.open(file_path_abs, encoding='utf8') as f:
-                text_to_include = f.read()
+            text_to_include = file_path_abs.read_text(encoding='utf8')
 
             # Allow good practice of having a final newline in the file
             if text_to_include.endswith('\n'):
@@ -60,13 +58,12 @@ class ImportMarkdownPlugin(mkdocs.plugins.BasePlugin):
             start = match.group('start')
             end = match.group('end')
 
-            file_path_abs = os.path.join(os.path.dirname(page_src_path), filename)
+            file_path_abs = Path(page_src_path).parent / filename
 
-            if not os.path.exists(file_path_abs):
+            if not file_path_abs.exists():
                 raise ValueError('file not found', filename)
 
-            with io.open(file_path_abs, encoding='utf8') as f:
-                text_to_include = f.read()
+            text_to_include = file_path_abs.read_text(encoding='utf8')
 
             if start:
                 _, _, text_to_include = text_to_include.partition(start)

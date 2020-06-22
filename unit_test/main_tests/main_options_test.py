@@ -1,5 +1,6 @@
 import sys
 from fnmatch import fnmatch
+from pathlib import Path
 
 import pytest
 
@@ -12,9 +13,9 @@ from cibuildwheel.util import BuildSelector
 
 
 def test_output_dir(platform, intercepted_build_args, monkeypatch):
-    OUTPUT_DIR = 'some_output_dir'
+    OUTPUT_DIR = Path('some_output_dir')
 
-    monkeypatch.setenv('CIBW_OUTPUT_DIR', OUTPUT_DIR)
+    monkeypatch.setenv('CIBW_OUTPUT_DIR', str(OUTPUT_DIR))
 
     main()
 
@@ -24,14 +25,14 @@ def test_output_dir(platform, intercepted_build_args, monkeypatch):
 def test_output_dir_default(platform, intercepted_build_args, monkeypatch):
     main()
 
-    assert intercepted_build_args.args[0].output_dir == 'wheelhouse'
+    assert intercepted_build_args.args[0].output_dir == Path('wheelhouse')
 
 
 @pytest.mark.parametrize('also_set_environment', [False, True])
 def test_output_dir_argument(also_set_environment, platform, intercepted_build_args, monkeypatch):
-    OUTPUT_DIR = 'some_output_dir'
+    OUTPUT_DIR = Path('some_output_dir')
 
-    monkeypatch.setattr(sys, 'argv', sys.argv + ['--output-dir', OUTPUT_DIR])
+    monkeypatch.setattr(sys, 'argv', sys.argv + ['--output-dir', str(OUTPUT_DIR)])
     if also_set_environment:
         monkeypatch.setenv('CIBW_OUTPUT_DIR', 'not_this_output_dir')
 
