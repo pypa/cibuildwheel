@@ -90,7 +90,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         else:
             manylinux_versions = ['manylinux2014']
 
-    python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38']
+    python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38', 'cp39-cp39']
 
     if pm.machine() in ['x86_64', 'AMD64', 'x86']:
         python_abi_tags += ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73']
