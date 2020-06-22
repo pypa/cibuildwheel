@@ -1,6 +1,6 @@
-import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -18,7 +18,7 @@ class ArgsInterceptor:
         self.kwargs = kwargs
 
 
-MOCK_PACKAGE_DIR = 'some_package_dir'
+MOCK_PACKAGE_DIR = Path('some_package_dir')
 
 
 @pytest.fixture(autouse=True)
@@ -31,11 +31,16 @@ def mock_protection(monkeypatch):
     def fail_on_call(*args, **kwargs):
         raise RuntimeError("This should never be called")
 
+    def ignore_call(*args, **kwargs):
+        pass
+
     monkeypatch.setattr(subprocess, 'Popen', fail_on_call)
     monkeypatch.setattr(util, 'download', fail_on_call)
     monkeypatch.setattr(windows, 'build', fail_on_call)
     monkeypatch.setattr(linux, 'build', fail_on_call)
     monkeypatch.setattr(macos, 'build', fail_on_call)
+
+    monkeypatch.setattr(Path, 'mkdir', ignore_call)
 
 
 @pytest.fixture(autouse=True)
@@ -43,16 +48,16 @@ def fake_package_dir(monkeypatch):
     '''
     Monkey-patch enough for the main() function to run
     '''
-    real_os_path_exists = os.path.exists
+    real_path_exists = Path.exists
 
-    def mock_os_path_exists(path):
-        if path == os.path.join(MOCK_PACKAGE_DIR, 'setup.py'):
+    def mock_path_exists(path):
+        if path == MOCK_PACKAGE_DIR / 'setup.py':
             return True
         else:
-            return real_os_path_exists(path)
+            return real_path_exists(path)
 
-    monkeypatch.setattr(os.path, 'exists', mock_os_path_exists)
-    monkeypatch.setattr(sys, 'argv', ['cibuildwheel', MOCK_PACKAGE_DIR])
+    monkeypatch.setattr(Path, 'exists', mock_path_exists)
+    monkeypatch.setattr(sys, 'argv', ['cibuildwheel', str(MOCK_PACKAGE_DIR)])
 
 
 @pytest.fixture(params=['linux', 'macos', 'windows'])
