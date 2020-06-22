@@ -1,5 +1,7 @@
-import os
+from pathlib import Path
+
 import jinja2
+
 from typing import Union, Dict, Any
 
 
@@ -14,6 +16,8 @@ class TestProject:
 
     Write out to the filesystem using `generate`.
     '''
+    __test__ = False  # Have pytest ignore this class on `from .test_projects import TestProject`
+
     files: FilesDict
     template_context: TemplateContext
 
@@ -21,12 +25,12 @@ class TestProject:
         self.files = {}
         self.template_context = {}
 
-    def generate(self, path: str):
+    def generate(self, path: Path):
         for filename, content in self.files.items():
-            file_path = os.path.join(path, filename)
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            file_path = path / filename
+            file_path.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(file_path, 'w', encoding='utf8') as f:
+            with file_path.open('w', encoding='utf8') as f:
                 if isinstance(content, jinja2.Template):
                     content = content.render(self.template_context)
 
