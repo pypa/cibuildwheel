@@ -133,6 +133,30 @@ def build(options: BuildOptions) -> None:
 
             call(['docker', 'start', container_name])
 
+            if options.before_all:
+                call(
+                    ['docker', 'exec', '-i', container_name] + shell_cmd,
+                    universal_newlines=True,
+                    input='''
+                        PS4='    + '
+
+                        set -o errexit
+                        set -o xtrace
+
+                        # add a modern Python interpreter to PATH so it can be used by BEFORE_ALL
+                        # commands
+                        export PATH=/opt/python/cp38-cp38:$PATH
+
+                        {environment_exports}
+
+                        sh -c {before_all}
+
+                    '''.format(
+                        environment_exports='\n'.join(options.environment.as_shell_commands()),
+                        before_all=shlex.quote(prepare_command(options.before_all, project='/project', package=container_package_dir))
+                    )
+                )
+
             for config in platform_configs:
                 if options.dependency_constraints:
                     constraints_file = options.dependency_constraints.get_for_python_version(config.version)

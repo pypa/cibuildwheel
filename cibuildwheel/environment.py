@@ -1,6 +1,6 @@
 import bashlex  # type: ignore
 
-from typing import Dict, List
+from typing import Dict, List, Mapping
 
 from . import bashlex_eval
 
@@ -61,8 +61,8 @@ class ParsedEnvironment:
     def __init__(self, assignments: List[EnvironmentAssignment]):
         self.assignments = assignments
 
-    def as_dictionary(self, prev_environment: Dict[str, str]) -> Dict[str, str]:
-        environment = prev_environment.copy()
+    def as_dictionary(self, prev_environment: Mapping[str, str]) -> Dict[str, str]:
+        environment = dict(**prev_environment)
 
         for assignment in self.assignments:
             value = assignment.evaluated_value(environment=environment)
