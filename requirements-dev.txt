@@ -6,3 +6,5 @@ pymdown-extensions
 pip-tools
 requests
 click
+mypy
+typing-extensions

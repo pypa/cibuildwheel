@@ -1,17 +1,26 @@
 import shlex
 import subprocess
 
-from typing import Dict, NamedTuple
+from typing import Dict, NamedTuple, Callable, Optional
 
 import bashlex  # type: ignore
+
+
+# a function that takes a shell command and the environment, and returns the result
+EnvironmentExecutor = Callable[[str, Dict[str, str]], str]
+
+
+def local_environment_executor(command: str, env: Dict[str, str]) -> str:
+    return subprocess.check_output(shlex.split(command), env=env, universal_newlines=True)
 
 
 class NodeExecutionContext(NamedTuple):
     environment: Dict[str, str]
     input: str
+    executor: EnvironmentExecutor
 
 
-def evaluate(value: str, environment: Dict[str, str]) -> str:
+def evaluate(value: str, environment: Dict[str, str], executor: Optional[EnvironmentExecutor] = None) -> str:
     if not value:
         # empty string evaluates to empty string
         # (but trips up bashlex)
@@ -26,7 +35,7 @@ def evaluate(value: str, environment: Dict[str, str]) -> str:
 
     return evaluate_node(
         value_word_node,
-        context=NodeExecutionContext(environment=environment, input=value)
+        context=NodeExecutionContext(environment=environment, input=value, executor=executor or local_environment_executor)
     )
 
 
@@ -67,7 +76,7 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
 def evaluate_command_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     words = [evaluate_node(part, context=context) for part in node.parts]
     command = ' '.join(words)
-    return subprocess.check_output(shlex.split(command), env=context.environment, universal_newlines=True)
+    return context.executor(command, context.environment)
 
 
 def evaluate_parameter_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:

@@ -1,6 +1,6 @@
 import bashlex  # type: ignore
 
-from typing import Dict, List, Mapping
+from typing import Dict, List, Mapping, Optional
 
 from . import bashlex_eval
 
@@ -46,9 +46,9 @@ class EnvironmentAssignment:
         self.name = name
         self.value = value
 
-    def evaluated_value(self, environment: Dict[str, str]) -> str:
+    def evaluated_value(self, environment: Dict[str, str], executor: Optional[bashlex_eval.EnvironmentExecutor] = None) -> str:
         '''Returns the value of this assignment, as evaluated in the environment'''
-        return bashlex_eval.evaluate(self.value, environment=environment)
+        return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
 
     def as_shell_assignment(self) -> str:
         return f'export {self.name}={self.value}'
@@ -61,11 +61,13 @@ class ParsedEnvironment:
     def __init__(self, assignments: List[EnvironmentAssignment]):
         self.assignments = assignments
 
-    def as_dictionary(self, prev_environment: Mapping[str, str]) -> Dict[str, str]:
+    def as_dictionary(self,
+                      prev_environment: Mapping[str, str],
+                      executor: Optional[bashlex_eval.EnvironmentExecutor] = None) -> Dict[str, str]:
         environment = dict(**prev_environment)
 
         for assignment in self.assignments:
-            value = assignment.evaluated_value(environment=environment)
+            value = assignment.evaluated_value(environment=environment, executor=executor)
             environment[assignment.name] = value
 
         return environment
