@@ -1,5 +1,8 @@
 version: 2
 
+orbs:
+  win: circleci/windows@2.4.0
+
 jobs:
   flake8-mypy:
     docker:
@@ -50,6 +53,18 @@ jobs:
           command: venv/bin/python ./bin/run_tests.py
           no_output_timeout: 30m
 
+  windows-python3.7:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    environment:
+      PYTHON: python3
+    steps:
+      - checkout
+      - run:
+          name: Prepare the environment.
+          command: bash .circleci/prepare.sh
+
 workflows:
   version: 2
   all-tests:
@@ -57,3 +72,4 @@ workflows:
       - flake8-mypy
       - osx-python3.6
       - linux-python3.6
+      - windows-python3.7
