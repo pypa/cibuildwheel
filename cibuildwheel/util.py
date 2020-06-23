@@ -112,6 +112,7 @@ class BuildOptions(NamedTuple):
     output_dir: Path
     build_selector: BuildSelector
     environment: ParsedEnvironment
+    before_all: str
     before_build: Optional[str]
     repair_command: str
     manylinux_images: Optional[Dict[str, str]]
