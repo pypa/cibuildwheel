@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 orbs:
   win: circleci/windows@2.4.0
@@ -20,7 +20,7 @@ jobs:
           name: mypy
           command: mypy
 
-  osx-python3.6:
+  osx-python36:
     macos:
       xcode: "9.4.1"
     environment:
@@ -36,7 +36,7 @@ jobs:
           command: venv/bin/python ./bin/run_tests.py
           no_output_timeout: 30m
 
-  linux-python3.6:
+  linux-python36:
     docker:
       - image: circleci/python:3.6
     environment:
@@ -53,7 +53,7 @@ jobs:
           command: venv/bin/python ./bin/run_tests.py
           no_output_timeout: 30m
 
-  windows-python3.7:
+  windows-python37:
     executor:
       name: win/default
       shell: powershell.exe
@@ -70,6 +70,6 @@ workflows:
   all-tests:
     jobs:
       - flake8-mypy
-      - osx-python3.6
-      - linux-python3.6
-      - windows-python3.7
+      - osx-python36
+      - linux-python36
+      - windows-python37
