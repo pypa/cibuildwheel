@@ -625,7 +625,7 @@ optional arguments:
         var url = 'https://cibuildwheel.readthedocs.io/en/stable/options/#'+option.id;
         var namesMarkdown = $.map(optionNames, function(n) {
           return '[`'+n+'`]('+url+') '
-        }).join(' ')
+        }).join(' <br> ')
 
         markdown += '| '+namesMarkdown+' '
         markdown += '| '+option.description.trim()+' '
