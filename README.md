@@ -79,7 +79,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.4.2
+  - python3 -m pip install cibuildwheel==1.5.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -152,6 +152,24 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 1.5.0
+
+_24 June 2020_
+
+- 🌟 Add [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)
+  option, which lets you run a command on the build machine before any wheels
+  are built. This is especially useful when building on Linux, to `make`
+  something external to Python, or to `yum install` a dependency. (#342)
+- ✨ Added support for projects using pyproject.toml instead of setup.py
+  (#360, #358)
+- ✨ Added workaround to allow Python 3.5 on Windows to pull dependencies from
+  pyproject.toml. (#358)
+- 📚 Improved Github Actions examples and docs (#354, #362)
+- 🐛 Ensure pip wheel uses the specified package, and doesn't build a wheel
+  from PyPI (#369)
+- 🛠 Internal changes: using pathlib.Path, precommit hooks, testing
+  improvements.
+
 ### 1.4.2
 
 _25 May 2020_
@@ -174,7 +192,7 @@ _4 May 2020_
 
 _2 May 2020_
 
-- ✨ Deterministic builds. cibuildwheel now locks the versions of the tools it
+- 🌟 Deterministic builds. cibuildwheel now locks the versions of the tools it
   uses. This means that pinning your version of cibuildwheel pins the versions
   of pip, setuptools, manylinux etc. that are used under the hood. This should
   make things more reliable. But note that we don't control the entire build
@@ -204,7 +222,7 @@ _2 May 2020_
 
 _12 March 2020_
 
-- ✨ Add support for building on Github Actions! Check out the
+- 🌟 Add support for building on Github Actions! Check out the
   [docs](https://cibuildwheel.readthedocs.io/en/stable/setup/#github-actions)
   for information on how to set it up. (#194)
 - ✨ Add the `CIBW_BEFORE_TEST` option, which lets you run a command to
@@ -214,9 +232,9 @@ _12 March 2020_
 
 _8 March 2020_
 
-- ✨ Add support for building PyPy wheels, across Manylinux, macOS, and
+- 🌟 Add support for building PyPy wheels, across Manylinux, macOS, and
   Windows. (#185)
-- ✨ Added the ability to build ARM64 (aarch64), ppc64le, and s390x wheels,
+- 🌟 Added the ability to build ARM64 (aarch64), ppc64le, and s390x wheels,
   using manylinux2014 and Travis CI. (#273)
 - ✨ You can now build macOS wheels on Appveyor. (#230)
 - 🛠 Changed default macOS minimum target to 10.9, from 10.6. This allows the
@@ -237,7 +255,7 @@ _8 March 2020_
 
 _7 December 2019_
 
-- ✨ Add support for building manylinux2014 wheels. To use, set
+- 🌟 Add support for building manylinux2014 wheels. To use, set
   `CIBW_MANYLINUX_X86_64_IMAGE` and CIBW_MANYLINUX_I686_IMAGE to
   `manylinux2014`.
 - ✨ Add support for [Linux on Appveyor](https://www.appveyor.com/blog/2018/03/06/appveyor-for-linux/) (#204, #207)
@@ -250,8 +268,8 @@ _7 December 2019_
 
 _10 November 2019_
 
-- ✨ Add support for building Python 3.8 wheels! (#180)
-- ✨ Add support for building manylinux2010 wheels. cibuildwheel will now
+- 🌟 Add support for building Python 3.8 wheels! (#180)
+- 🌟 Add support for building manylinux2010 wheels. cibuildwheel will now
   build using the manylinux2010 images by default. If your project is still
   manylinux1 compatible, you should get both manylinux1 and manylinux2010
   wheels - you can upload both to PyPI. If you always require manylinux1 wheels, you can
@@ -287,7 +305,7 @@ _28 May 2019_
 
 _26 May 2019_
 
-- ✨ Add support for building on Azure pipelines! This lets you build all
+- 🌟 Add support for building on Azure pipelines! This lets you build all
   Linux, Mac and Windows wheels on one service, so it promises to be the
   easiest to set up! Check out the quickstart in the docs, or
   [cibuildwheel-azure-example](https://github.com/joerick/cibuildwheel-azure-example)
@@ -317,8 +335,8 @@ _3 February 2019_
 
 _23 September 2018_
 
-- ✨ Add `CIBW_BUILD` option, for specifying which specific builds to perform (#101)
-- ✨ Add support for building Mac and Linux on CircleCI (#91, #97)
+- 🌟 Add `CIBW_BUILD` option, for specifying which specific builds to perform (#101)
+- 🌟 Add support for building Mac and Linux on CircleCI (#91, #97)
 - 🛠 Improved support for building universal wheels (#95)
 - 🛠 Ensure log output is unbuffered and therefore in the correct order (#92)
 - 🛠 Improved error reporting for errors that occur inside a package's setup.py (#88)
