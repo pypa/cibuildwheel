@@ -92,7 +92,7 @@ class DockerContainer:
         to_path.mkdir(parents=True, exist_ok=True)
 
         subprocess.run(
-            f'docker exec -i -w {from_path} {self.container_name} tar cf - . | tar -xf -',
+            f'docker exec -i {self.container_name} tar -cC {from_path} -f - . | tar -xf -',
             shell=True,
             check=True,
             cwd=to_path
