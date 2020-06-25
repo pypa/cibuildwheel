@@ -4,27 +4,22 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from os import PathLike
 from pathlib import Path
-
-from typing import Dict, List, Optional, NamedTuple, Union
+from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 
 from .environment import ParsedEnvironment
-from .util import (
-    BuildOptions,
-    BuildSelector,
-    download,
-    get_build_verbosity_extra_flags,
-    get_pip_script,
-    prepare_command,
-)
+from .util import (BuildOptions, BuildSelector, download,
+                   get_build_verbosity_extra_flags, get_pip_script,
+                   prepare_command)
 
 
-def call(args: Union[str, List[str]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
+def call(args: Union[str, Sequence[Union[str, PathLike]]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
     # print the command executing for the logs
     if shell:
         print(f'+ {args}')
     else:
-        print('+ ' + ' '.join(shlex.quote(a) for a in args))
+        print('+ ' + ' '.join(shlex.quote(str(a)) for a in args))
 
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
@@ -103,7 +98,7 @@ def install_pypy(version: str, url: str) -> Path:
     if not installation_path.exists():
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
         download(url, downloaded_tar_bz2)
-        call(['tar', '-C', '/tmp', '-xf', str(downloaded_tar_bz2)])
+        call(['tar', '-C', '/tmp', '-xf', downloaded_tar_bz2])
 
     installation_bin_path = installation_path / 'bin'
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
@@ -113,7 +108,9 @@ def install_pypy(version: str, url: str) -> Path:
     return installation_bin_path
 
 
-def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
+def setup_python(python_configuration: PythonConfiguration,
+                 dependency_constraint_flags: Sequence[Union[str, PathLike]],
+                 environment: ParsedEnvironment) -> Dict[str, str]:
     if python_configuration.identifier.startswith('cp'):
         installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
     elif python_configuration.identifier.startswith('pp'):
@@ -146,7 +143,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
         exit(1)
 
     # install pip & wheel
-    call(['python', str(get_pip_script)] + dependency_constraint_flags, env=env, cwd="/tmp")
+    call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
     assert (installation_bin_path / 'pip').exists()
     call(['which', 'pip'], env=env)
     call(['pip', '--version'], env=env)
@@ -154,7 +151,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     if which_pip != '/tmp/cibw_bin/pip':
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
         exit(1)
-    call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate'] + dependency_constraint_flags, env=env)
+    call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
@@ -184,10 +181,10 @@ def build(options: BuildOptions) -> None:
     python_configurations = get_python_configurations(options.build_selector)
 
     for config in python_configurations:
-        dependency_constraint_flags = []
+        dependency_constraint_flags: Sequence[Union[str, PathLike]] = []
         if options.dependency_constraints:
             dependency_constraint_flags = [
-                '-c', str(options.dependency_constraints.get_for_python_version(config.version))
+                '-c', options.dependency_constraints.get_for_python_version(config.version)
             ]
 
         env = setup_python(config, dependency_constraint_flags, options.environment)
@@ -201,9 +198,17 @@ def build(options: BuildOptions) -> None:
         if built_wheel_dir.exists():
             shutil.rmtree(built_wheel_dir)
         built_wheel_dir.mkdir(parents=True)
+
         # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
         # see https://github.com/joerick/cibuildwheel/pull/369
-        call(['pip', 'wheel', str(options.package_dir.resolve()), '-w', str(built_wheel_dir), '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
+        call([
+            'pip', 'wheel',
+            options.package_dir.resolve(),
+            '-w', built_wheel_dir,
+            '--no-deps',
+            *get_build_verbosity_extra_flags(options.build_verbosity)
+        ], env=env)
+
         built_wheel = next(built_wheel_dir.glob('*.whl'))
 
         # repair the wheel
@@ -221,12 +226,12 @@ def build(options: BuildOptions) -> None:
         if options.test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
+            call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
             venv_dir = Path(tempfile.mkdtemp())
 
             # Use --no-download to ensure determinism by using seed libraries
             # built into virtualenv
-            call(['python', '-m', 'virtualenv', '--no-download', str(venv_dir)], env=env)
+            call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([

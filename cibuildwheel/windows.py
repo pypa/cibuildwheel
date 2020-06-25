@@ -3,30 +3,26 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from os import PathLike
 from pathlib import Path
+from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 from zipfile import ZipFile
 import toml
 
-from typing import Dict, List, Optional, NamedTuple
-
 from .environment import ParsedEnvironment
-from .util import (
-    BuildOptions,
-    BuildSelector,
-    download,
-    get_build_verbosity_extra_flags,
-    get_pip_script,
-    prepare_command,
-)
-
+from .util import (BuildOptions, BuildSelector, download,
+                   get_build_verbosity_extra_flags, get_pip_script,
+                   prepare_command)
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
-def shell(args: List[str], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> int:
-    print('+ ' + ' '.join(args))
-    return subprocess.check_call(' '.join(args), env=env, cwd=cwd, shell=True)
+def shell(args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = None,
+          cwd: Optional[str] = None) -> int:
+    command = ' '.join(str(a) for a in args)
+    print(f'+ {command}')
+    return subprocess.check_call(command, env=env, cwd=cwd, shell=True)
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
@@ -80,7 +76,7 @@ def extract_zip(zip_src: Path, dest: Path) -> None:
 def install_cpython(version: str, arch: str, nuget: Path) -> Path:
     nuget_args = get_nuget_args(version, arch)
     installation_path = Path(nuget_args[-1]) / (nuget_args[0] + '.' + version) / 'tools'
-    shell([str(nuget), 'install'] + nuget_args)
+    shell([nuget, 'install', *nuget_args])
     return installation_path
 
 
@@ -101,7 +97,7 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
     return installation_path
 
 
-def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: List[str], environment: ParsedEnvironment) -> Dict[str, str]:
+def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: Sequence[Union[str, PathLike]], environment: ParsedEnvironment) -> Dict[str, str]:
     nuget = Path('C:\\cibw\\nuget.exe')
     if not nuget.exists():
         download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
@@ -139,7 +135,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
 
     # make sure pip is installed
     if not (installation_path / 'Scripts' / 'pip.exe').exists():
-        shell(['python', str(get_pip_script)] + dependency_constraint_flags, env=env, cwd="C:\\cibw")
+        shell(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="C:\\cibw")
     assert (installation_path / 'Scripts' / 'pip.exe').exists()
     where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
     if where_pip.strip() != str(installation_path / 'Scripts' / 'pip.exe'):
@@ -147,9 +143,9 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
         exit(1)
 
     # prepare the Python environment
-    shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip'] + dependency_constraint_flags, env=env)
+    shell(['python', '-m', 'pip', 'install', '--upgrade', 'pip', *dependency_constraint_flags], env=env)
     shell(['pip', '--version'], env=env)
-    shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel'] + dependency_constraint_flags, env=env)
+    shell(['pip', 'install', '--upgrade', 'setuptools', 'wheel', *dependency_constraint_flags], env=env)
 
     return env
 
@@ -195,10 +191,10 @@ def build(options: BuildOptions) -> None:
 
     python_configurations = get_python_configurations(options.build_selector)
     for config in python_configurations:
-        dependency_constraint_flags = []
+        dependency_constraint_flags: Sequence[Union[str, PathLike]] = []
         if options.dependency_constraints:
             dependency_constraint_flags = [
-                '-c', str(options.dependency_constraints.get_for_python_version(config.version))
+                '-c', options.dependency_constraints.get_for_python_version(config.version)
             ]
 
         # install Python
@@ -220,7 +216,14 @@ def build(options: BuildOptions) -> None:
         built_wheel_dir.mkdir(parents=True)
         # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
         # see https://github.com/joerick/cibuildwheel/pull/369
-        shell(['pip', 'wheel', str(options.package_dir.resolve()), '-w', str(built_wheel_dir), '--no-deps'] + get_build_verbosity_extra_flags(options.build_verbosity), env=env)
+        shell([
+            'pip', 'wheel',
+            options.package_dir.resolve(),
+            '-w', built_wheel_dir,
+            '--no-deps',
+            *get_build_verbosity_extra_flags(options.build_verbosity)
+        ], env=env)
+
         built_wheel = next(built_wheel_dir.glob('*.whl'))
 
         # repair the wheel
@@ -238,12 +241,12 @@ def build(options: BuildOptions) -> None:
         if options.test_command:
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            shell(['pip', 'install', 'virtualenv'] + dependency_constraint_flags, env=env)
+            shell(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
             venv_dir = Path(tempfile.mkdtemp())
 
             # Use --no-download to ensure determinism by using seed libraries
             # built into virtualenv
-            shell(['python', '-m', 'virtualenv', '--no-download', str(venv_dir)], env=env)
+            shell(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env['PATH'] = os.pathsep.join([
