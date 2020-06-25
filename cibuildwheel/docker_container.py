@@ -112,24 +112,25 @@ class DockerContainer:
 
     def call(self, args: Sequence[Union[str, PathLike]], env: Dict[str, str] = {},
              capture_output=False, cwd: Optional[Union[str, PathLike]] = None) -> str:
-        env_exports = '\n'.join(f'export {k}={v}' for k, v in env.items())
         chdir = f'cd {cwd}' if cwd else ''
+        env_assignments = ' '.join(f'{shlex.quote(k)}={shlex.quote(v)}'
+                                   for k, v in env.items())
         command = ' '.join(shlex.quote(str(a)) for a in args)
         end_of_message = str(uuid.uuid4())
 
         # log the command we're executing
         print(f'    + {command}')
 
-        # Write a command to the remote shell. First we write the
-        # environment variables, exported inside the subshell. We change the
-        # cwd, if that's required. Then, the command is written. Finally, the
-        # remote shell is told to write a footer - this will show up in the
-        # output so we know when to stop reading, and will include the
-        # returncode of `command`.
+        # Write a command to the remote shell. First we change the
+        # cwd, if that's required. Then, we use the `env` utility to run
+        # `command` inside the specified environment. We use `env` because it
+        # can cope with spaces and strange characters in the name or value.
+        # Finally, the remote shell is told to write a footer - this will show
+        # up in the output so we know when to stop reading, and will include
+        # the returncode of `command`.
         self.bash_stdin.write(f'''(
-            {env_exports}
             {chdir}
-            {command}
+            env {env_assignments} {command}
             printf "%04d%s\n" $? {end_of_message}
         )
         ''')
