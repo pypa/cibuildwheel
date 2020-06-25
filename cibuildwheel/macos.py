@@ -201,16 +201,14 @@ def build(options: BuildOptions) -> None:
 
         # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
         # see https://github.com/joerick/cibuildwheel/pull/369
-        call(
-            [
-                'pip', 'wheel',
-                options.package_dir.resolve(),
-                '-w', built_wheel_dir,
-                '--no-deps',
-                *get_build_verbosity_extra_flags(options.build_verbosity)
-            ],
-            env=env,
-        )
+        call([
+            'pip', 'wheel',
+            options.package_dir.resolve(),
+            '-w', built_wheel_dir,
+            '--no-deps',
+            *get_build_verbosity_extra_flags(options.build_verbosity)
+        ], env=env)
+
         built_wheel = next(built_wheel_dir.glob('*.whl'))
 
         # repair the wheel

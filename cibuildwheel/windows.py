@@ -185,16 +185,13 @@ def build(options: BuildOptions) -> None:
         built_wheel_dir.mkdir(parents=True)
         # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
         # see https://github.com/joerick/cibuildwheel/pull/369
-        shell(
-            [
-                'pip', 'wheel',
-                options.package_dir.resolve(),
-                '-w', built_wheel_dir,
-                '--no-deps',
-                *get_build_verbosity_extra_flags(options.build_verbosity)
-            ],
-            env=env,
-        )
+        shell([
+            'pip', 'wheel',
+            options.package_dir.resolve(),
+            '-w', built_wheel_dir,
+            '--no-deps',
+            *get_build_verbosity_extra_flags(options.build_verbosity)
+        ], env=env)
 
         built_wheel = next(built_wheel_dir.glob('*.whl'))
 
