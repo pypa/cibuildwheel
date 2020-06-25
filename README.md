@@ -94,7 +94,7 @@ after_success:
     fi
 ```
 
-For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and also check out [the examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including how to build on GitHub Actions, Appveyor, Azure Pipelines, or CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
