@@ -79,7 +79,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.5.0
+  - python3 -m pip install cibuildwheel==1.5.1
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -151,6 +151,13 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.5.1
+
+_25 June 2020_
+
+- 🐛 Fix "OSError: [WinError 17] The system cannot move the file to a different
+  disk drive" on Github Actions (#388, #389)
 
 ### 1.5.0
 
