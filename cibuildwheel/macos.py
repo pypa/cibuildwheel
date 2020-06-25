@@ -212,7 +212,7 @@ def build(options: BuildOptions) -> None:
         repaired_wheel_dir.mkdir(parents=True)
         if built_wheel.name.endswith('none-any.whl') or not options.repair_command:
             # pure Python wheel or empty repair command
-            built_wheel.rename(repaired_wheel_dir / built_wheel.name)
+            shutil.move(str(built_wheel), repaired_wheel_dir)
         else:
             repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
             call(repair_command_prepared, env=env, shell=True)
@@ -262,4 +262,4 @@ def build(options: BuildOptions) -> None:
             shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
-        repaired_wheel.replace(options.output_dir / repaired_wheel.name)
+        shutil.move(str(repaired_wheel), options.output_dir)
