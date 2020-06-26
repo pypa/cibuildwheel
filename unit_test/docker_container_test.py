@@ -29,12 +29,13 @@ def test_environment():
 @pytest.mark.slow
 def test_container_removed():
     with DockerContainer(DEFAULT_IMAGE) as container:
+        # call a command to ensure it has started
         container.call(['true'])
-        docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, capture_output=True, universal_newlines=True).stdout
+        docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True).stdout
         assert container.name in docker_containers_listing
         old_container_name = container.name
 
-    docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, capture_output=True, universal_newlines=True).stdout
+    docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True).stdout
     assert old_container_name not in docker_containers_listing
 
 
