@@ -45,7 +45,7 @@ class DockerContainer:
             ],
             check=True,
         )
-        process = subprocess.Popen(
+        self.process = subprocess.Popen(
             [
                 'docker', 'start',
                 '--attach', '--interactive',
@@ -58,10 +58,9 @@ class DockerContainer:
             # variables. We choose 256kB.
             bufsize=262144,
         )
-        self.process = process
-        assert process.stdin and process.stdout
-        self.bash_stdin = process.stdin
-        self.bash_stdout = process.stdout
+        assert self.process.stdin and self.process.stdout
+        self.bash_stdin = self.process.stdin
+        self.bash_stdout = self.process.stdout
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

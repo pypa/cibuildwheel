@@ -135,7 +135,7 @@ def build(options: BuildOptions) -> None:
 
                     # put this config's python top of the list
                     python_bin = config.path / 'bin'
-                    env['PATH'] = f'{str(python_bin)}:{env["PATH"]}'
+                    env['PATH'] = f'{python_bin}:{env["PATH"]}'
 
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
 
@@ -159,16 +159,13 @@ def build(options: BuildOptions) -> None:
                     docker.call(['rm', '-rf', built_wheel_dir])
                     docker.call(['mkdir', '-p', built_wheel_dir])
 
-                    docker.call(
-                        [
-                            'pip', 'wheel',
-                            container_package_dir,
-                            '-w', built_wheel_dir,
-                            '--no-deps',
-                            *get_build_verbosity_extra_flags(options.build_verbosity)
-                        ],
-                        env=env,
-                    )
+                    docker.call([
+                        'pip', 'wheel',
+                        container_package_dir,
+                        '-w', built_wheel_dir,
+                        '--no-deps',
+                        *get_build_verbosity_extra_flags(options.build_verbosity)
+                    ], env=env)
 
                     built_wheel = docker.glob(built_wheel_dir / '*.whl')[0]
 
