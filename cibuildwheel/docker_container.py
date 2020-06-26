@@ -1,3 +1,4 @@
+import codecs
 import io
 import json
 import shlex
@@ -6,7 +7,7 @@ import sys
 import uuid
 from os import PathLike
 from pathlib import Path, PurePath
-from typing import IO, Dict, List, Optional, Sequence, TextIO, Union
+from typing import IO, Any, Dict, List, Optional, Sequence, TextIO, Union, cast
 
 
 class DockerContainer:
@@ -23,21 +24,21 @@ class DockerContainer:
     UTILITY_PYTHON = '/opt/python/cp38-cp38/bin/python'
 
     process: subprocess.Popen
-    bash_stdin: IO[str]
-    bash_stdout: IO[str]
+    bash_stdin: IO[bytes]
+    bash_stdout: IO[bytes]
 
     def __init__(self, docker_image: str, simulate_32_bit=False):
         self.docker_image = docker_image
         self.simulate_32_bit = simulate_32_bit
 
     def __enter__(self) -> 'DockerContainer':
-        self.container_name = f'cibuildwheel-{uuid.uuid4()}'
+        self.name = f'cibuildwheel-{uuid.uuid4()}'
         shell_args = ['linux32', '/bin/bash'] if self.simulate_32_bit else ['/bin/bash']
         subprocess.run(
             [
                 'docker', 'create',
                 '--env', 'CIBUILDWHEEL',
-                '--name', self.container_name,
+                '--name', self.name,
                 '-i',
                 '-v', '/:/host',  # ignored on CircleCI
                 self.docker_image,
@@ -49,13 +50,12 @@ class DockerContainer:
             [
                 'docker', 'start',
                 '--attach', '--interactive',
-                self.container_name,
+                self.name,
             ],
-            encoding='utf8',
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            bufsize=262144,
         )
+
         assert self.process.stdin and self.process.stdout
         self.bash_stdin = self.process.stdin
         self.bash_stdout = self.process.stdout
@@ -66,8 +66,8 @@ class DockerContainer:
         self.process.terminate()
         self.process.wait()
 
-        subprocess.run(['docker', 'rm', '--force', '-v', self.container_name])
-        self.container_name = None
+        subprocess.run(['docker', 'rm', '--force', '-v', self.name])
+        self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         # `docker cp` causes 'no space left on device' error when
@@ -77,13 +77,13 @@ class DockerContainer:
         if from_path.is_dir():
             self.call(['mkdir', '-p', to_path])
             subprocess.run(
-                f'tar cf - . | docker exec -i {self.container_name} tar -xC {to_path} -f -',
+                f'tar cf - . | docker exec -i {self.name} tar -xC {to_path} -f -',
                 shell=True,
                 check=True,
                 cwd=from_path)
         else:
             subprocess.run(
-                f'cat {from_path} | docker exec -i {self.container_name} sh -c "cat > {to_path}"',
+                f'cat {from_path} | docker exec -i {self.name} sh -c "cat > {to_path}"',
                 shell=True,
                 check=True)
 
@@ -92,7 +92,7 @@ class DockerContainer:
         to_path.mkdir(parents=True, exist_ok=True)
 
         subprocess.run(
-            f'docker exec -i {self.container_name} tar -cC {from_path} -f - . | tar -xf -',
+            f'docker exec -i {self.name} tar -cC {from_path} -f - . | tar -xf -',
             shell=True,
             check=True,
             cwd=to_path
@@ -125,23 +125,23 @@ class DockerContainer:
         # Finally, the remote shell is told to write a footer - this will show
         # up in the output so we know when to stop reading, and will include
         # the returncode of `command`.
-        self.bash_stdin.write(f'''(
+        self.bash_stdin.write(bytes(f'''(
             {chdir}
             env {env_assignments} {command}
             printf "%04d%s\n" $? {end_of_message}
         )
-        ''')
+        ''', encoding='utf8', errors='surrogateescape'))
         self.bash_stdin.flush()
 
         if capture_output:
-            output_io: TextIO = io.StringIO()
+            output_io: IO[bytes] = io.BytesIO()
         else:
-            output_io = sys.stdout
+            output_io = sys.stdout.buffer
 
         while True:
             line = self.bash_stdout.readline()
 
-            if line.endswith(end_of_message+'\n'):
+            if line.endswith(b'%s\n' % (bytes(end_of_message, encoding='utf8'))):
                 footer_offset = (
                     len(line)
                     - 1  # newline character
@@ -156,12 +156,15 @@ class DockerContainer:
             else:
                 output_io.write(line)
 
-        output = output_io.getvalue() if isinstance(output_io, io.StringIO) else None
+        if isinstance(output_io, io.BytesIO):
+            output = str(output_io.getvalue(), encoding='utf8', errors='surrogateescape')
+        else:
+            output = ''
 
         if returncode != 0:
             raise subprocess.CalledProcessError(returncode, args, output)
 
-        return output if output else ''
+        return output
 
     def get_environment(self) -> Dict[str, str]:
         return json.loads(self.call([
