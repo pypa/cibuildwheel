@@ -10,7 +10,7 @@ if __name__ == '__main__':
     os.chdir(Path(__file__).resolve().parents[1])
 
     # run the unit tests
-    subprocess.check_call([sys.executable, '-m', 'pytest', 'unit_test'])
+    subprocess.check_call([sys.executable, '-m', 'pytest', 'unit_test', '--runslow'])
 
     # run the integration tests
     subprocess.check_call([sys.executable, '-m', 'pytest', '-x', '--durations', '0', 'test'])
