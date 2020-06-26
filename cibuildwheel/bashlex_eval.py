@@ -1,10 +1,8 @@
 import shlex
 import subprocess
-
-from typing import Dict, NamedTuple, Callable, Optional, List, Sequence
+from typing import Callable, Dict, List, NamedTuple, Optional, Sequence
 
 import bashlex  # type: ignore
-
 
 # a function that takes a shell command and the environment, and returns the result
 EnvironmentExecutor = Callable[[str, Dict[str, str]], str]
