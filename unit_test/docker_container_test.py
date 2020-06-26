@@ -1,29 +1,33 @@
-import pytest
-from cibuildwheel.docker_container import DockerContainer
 import subprocess
-import time
 import textwrap
 
+import pytest
+
+from cibuildwheel.docker_container import DockerContainer
+
 DEFAULT_IMAGE = 'centos:6'
+
 
 @pytest.mark.slow
 def test_simple():
     with DockerContainer(DEFAULT_IMAGE) as container:
         assert container.call(['echo', 'hello'], capture_output=True) == 'hello\n'
 
+
 @pytest.mark.slow
 def test_no_lf():
     with DockerContainer(DEFAULT_IMAGE) as container:
         assert container.call(['printf', 'hello'], capture_output=True) == 'hello'
+
 
 @pytest.mark.slow
 def test_environment():
     with DockerContainer(DEFAULT_IMAGE) as container:
         assert container.call(['sh', '-c', 'echo $TEST_VAR'], env={'TEST_VAR': '1'}, capture_output=True) == '1\n'
 
+
 @pytest.mark.slow
 def test_container_removed():
-    start_time = time.time()
     with DockerContainer(DEFAULT_IMAGE) as container:
         container.call(['true'])
         docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, capture_output=True, universal_newlines=True).stdout
@@ -32,6 +36,7 @@ def test_container_removed():
 
     docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, capture_output=True, universal_newlines=True).stdout
     assert old_container_name not in docker_containers_listing
+
 
 @pytest.mark.slow
 def test_large_environment():
@@ -47,6 +52,7 @@ def test_large_environment():
     with DockerContainer(DEFAULT_IMAGE) as container:
         # check the length of d
         assert container.call(['sh', '-c', 'echo ${#d}'], env=large_environment, capture_output=True) == f'{long_env_var_length}\n'
+
 
 @pytest.mark.slow
 def test_binary_output():
@@ -81,5 +87,3 @@ def test_binary_output():
             capture_output=True,
         )
         assert output == binary_data_string
-
-

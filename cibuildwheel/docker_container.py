@@ -1,4 +1,3 @@
-import codecs
 import io
 import json
 import shlex
@@ -7,7 +6,7 @@ import sys
 import uuid
 from os import PathLike
 from pathlib import Path, PurePath
-from typing import IO, Any, Dict, List, Optional, Sequence, TextIO, Union, cast
+from typing import IO, Dict, List, Optional, Sequence, Union
 
 
 class DockerContainer:
