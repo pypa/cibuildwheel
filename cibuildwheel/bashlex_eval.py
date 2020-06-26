@@ -1,7 +1,7 @@
 import shlex
 import subprocess
 
-from typing import Dict, NamedTuple, Callable, Optional
+from typing import Dict, NamedTuple, Callable, Optional, List, Sequence
 
 import bashlex  # type: ignore
 
@@ -47,7 +47,7 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     elif node.kind == 'parameter':
         return evaluate_parameter_node(node, context=context)
     else:
-        raise ValueError(f'Unsupported bash construct: "{node.word}"')
+        raise ValueError(f'Unsupported bash construct: "{node.kind}"')
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
@@ -74,7 +74,34 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
 
 
 def evaluate_command_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
-    words = [evaluate_node(part, context=context) for part in node.parts]
+    if any(n.kind == 'operator' for n in node.parts):
+        return evaluate_nodes_as_compound_command(node.parts, context=context)
+    else:
+        return evaluate_nodes_as_simple_command(node.parts, context=context)
+
+
+def evaluate_nodes_as_compound_command(nodes: Sequence[bashlex.ast.node], context: NodeExecutionContext) -> str:
+    # bashlex doesn't support any operators besides ';' inside command
+    # substitutions, so we only need to handle that case. We do so assuming
+    # that `set -o errexit` is on, because it's easier to code!
+
+    result = ''
+    for node in nodes:
+        if node.kind == 'command':
+            result += evaluate_command_node(node, context=context)
+        elif node.kind == 'operator':
+            if node.op == ';':
+                pass
+            else:
+                raise ValueError(f'Unsupported bash operator: "{node.op}"')
+        else:
+            raise ValueError(f'Unsupported bash node in compound command: "{node.kind}"')
+
+    return result
+
+
+def evaluate_nodes_as_simple_command(nodes: List[bashlex.ast.node], context: NodeExecutionContext):
+    words = [evaluate_node(part, context=context) for part in nodes]
     command = ' '.join(words)
     return context.executor(command, context.environment)
 

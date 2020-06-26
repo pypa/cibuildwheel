@@ -44,7 +44,7 @@ def test(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_overridden_path(tmp_path):
+def test_overridden_path(tmp_path, capfd):
     project_dir = tmp_path / 'project'
     output_dir = tmp_path / 'output'
 
@@ -55,7 +55,10 @@ def test_overridden_path(tmp_path):
     # mess up PATH, somehow
     with pytest.raises(subprocess.CalledProcessError):
         utils.cibuildwheel_run(project_dir, output_dir=output_dir, add_env={
-            'CIBW_ENVIRONMENT': '''SOMETHING="$(mkdir new_path && touch new_path/python)" PATH="$(realpath new_path):$PATH"''',
+            'CIBW_ENVIRONMENT': '''SOMETHING="$(mkdir -p /new_path ; touch /new_path/python ; chmod +x /new_path/python)" PATH="/new_path:$PATH"''',
             'CIBW_ENVIRONMENT_WINDOWS': '''SOMETHING="$(mkdir new_path && type nul > new_path/python.exe)" PATH="$CD\\new_path;$PATH"''',
         })
+
     assert len(os.listdir(output_dir)) == 0
+    captured = capfd.readouterr()
+    assert "python available on PATH doesn't match our installed instance" in captured.err
