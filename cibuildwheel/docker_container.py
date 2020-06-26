@@ -54,8 +54,6 @@ class DockerContainer:
             encoding='utf8',
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            # make the input buffer large enough to carry a lot of environment
-            # variables. We choose 256kB.
             bufsize=262144,
         )
         assert self.process.stdin and self.process.stdout
