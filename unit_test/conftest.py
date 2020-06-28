@@ -3,19 +3,19 @@ import pytest
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--runslow", action="store_true", default=False, help="run slow tests"
+        "--run-docker", action="store_true", default=False, help="run docker tests"
     )
 
 
 def pytest_configure(config):
-    config.addinivalue_line("markers", "slow: mark test as slow to run")
+    config.addinivalue_line("markers", "docker: mark test requiring docker to run")
 
 
 def pytest_collection_modifyitems(config, items):
-    if config.getoption("--runslow"):
-        # --runslow given in cli: do not skip slow tests
+    if config.getoption("--run-docker"):
+        # --run-docker given in cli: do not skip docker tests
         return
-    skip_slow = pytest.mark.skip(reason="need --runslow option to run")
+    skip_docker = pytest.mark.skip(reason="need --run-docker option to run")
     for item in items:
-        if "slow" in item.keywords:
-            item.add_marker(skip_slow)
+        if "docker" in item.keywords:
+            item.add_marker(skip_docker)

@@ -8,25 +8,25 @@ from cibuildwheel.docker_container import DockerContainer
 DEFAULT_IMAGE = 'centos:6'
 
 
-@pytest.mark.slow
+@pytest.mark.docker
 def test_simple():
     with DockerContainer(DEFAULT_IMAGE) as container:
         assert container.call(['echo', 'hello'], capture_output=True) == 'hello\n'
 
 
-@pytest.mark.slow
+@pytest.mark.docker
 def test_no_lf():
     with DockerContainer(DEFAULT_IMAGE) as container:
         assert container.call(['printf', 'hello'], capture_output=True) == 'hello'
 
 
-@pytest.mark.slow
+@pytest.mark.docker
 def test_environment():
     with DockerContainer(DEFAULT_IMAGE) as container:
         assert container.call(['sh', '-c', 'echo $TEST_VAR'], env={'TEST_VAR': '1'}, capture_output=True) == '1\n'
 
 
-@pytest.mark.slow
+@pytest.mark.docker
 def test_container_removed():
     with DockerContainer(DEFAULT_IMAGE) as container:
         # call a command to ensure it has started
@@ -39,7 +39,7 @@ def test_container_removed():
     assert old_container_name not in docker_containers_listing
 
 
-@pytest.mark.slow
+@pytest.mark.docker
 def test_large_environment():
     # max environment variable size is 128kB
     long_env_var_length = 127*1024
@@ -55,7 +55,7 @@ def test_large_environment():
         assert container.call(['sh', '-c', 'echo ${#d}'], env=large_environment, capture_output=True) == f'{long_env_var_length}\n'
 
 
-@pytest.mark.slow
+@pytest.mark.docker
 def test_binary_output():
     with DockerContainer(DEFAULT_IMAGE) as container:
         # the centos image only has python 2.6, so the below embedded snippets
