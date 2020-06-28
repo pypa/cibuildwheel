@@ -41,7 +41,9 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     if node.kind == 'word':
         return evaluate_word_node(node, context=context)
     elif node.kind == 'commandsubstitution':
-        return evaluate_command_node(node.command, context=context)
+        node_result = evaluate_command_node(node.command, context=context)
+        # bash removes training newlines in command substitution
+        return node_result.rstrip()
     elif node.kind == 'parameter':
         return evaluate_parameter_node(node, context=context)
     else:
