@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import textwrap
 
@@ -5,7 +6,15 @@ import pytest
 
 from cibuildwheel.docker_container import DockerContainer
 
-DEFAULT_IMAGE = 'centos:6'
+pm = platform.machine()
+if pm == "x86_64":
+    DEFAULT_IMAGE = 'centos:7'
+elif pm == "aarch64":
+    DEFAULT_IMAGE = 'arm64v8/centos:7'
+elif pm == "ppc64le":
+    DEFAULT_IMAGE = 'ppc64le/centos:7'
+elif pm == "s390x":
+    DEFAULT_IMAGE = 's390x/clefos:7'
 
 
 @pytest.mark.docker
