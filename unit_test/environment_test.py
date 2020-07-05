@@ -97,8 +97,9 @@ def test_no_vars_pass_through():
 
 
 def test_operators_inside_eval():
-    environment_recipe = parse_environment('SOMETHING="$(echo a ; echo b ; echo c)"')
+    environment_recipe = parse_environment('SOMETHING="$(echo a; echo b; echo c)"')
 
-    environment_dict = environment_recipe.as_dictionary({})
+    # pass the existing process env so PATH is available
+    environment_dict = environment_recipe.as_dictionary(os.environ.copy())
 
-    assert environment_dict == {'SOMETHING': 'a\nb\nc'}
+    assert environment_dict.get('SOMETHING') == 'a\nb\nc'
