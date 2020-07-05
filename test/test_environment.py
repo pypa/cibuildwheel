@@ -54,10 +54,19 @@ def test_overridden_path(tmp_path, capfd):
 
     # mess up PATH, somehow
     with pytest.raises(subprocess.CalledProcessError):
-        utils.cibuildwheel_run(project_dir, output_dir=output_dir, add_env={
-            'CIBW_ENVIRONMENT': '''SOMETHING="$(mkdir -p new_path ; touch new_path/python ; chmod +x new_path/python)" PATH="$(pwd)/new_path:$PATH"''',
-            'CIBW_ENVIRONMENT_WINDOWS': '''SOMETHING="$(mkdir new_path ; fsutil file createnew new_path/python.exe 0)" PATH="$CD\\new_path;$PATH"''',
-        })
+        if utils.platform == 'linux':
+            utils.cibuildwheel_run(project_dir, output_dir=output_dir, add_env={
+                'CIBW_BEFORE_ALL': 'mkdir new_path && touch new_path/python && chmod +x new_path/python',
+                'CIBW_ENVIRONMENT': '''PATH="$(pwd)/new_path:$PATH"''',
+            })
+        else:
+            new_path = tmp_path / 'another_bin'
+            new_path.mkdir()
+            (new_path / 'python').touch(mode=0o777)
+
+            utils.cibuildwheel_run(project_dir, output_dir=output_dir, add_env={
+                'CIBW_ENVIRONMENT': f'''PATH="{new_path}{os.pathsep}$PATH"''',
+            })
 
     assert len(os.listdir(output_dir)) == 0
     captured = capfd.readouterr()
