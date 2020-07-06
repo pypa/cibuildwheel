@@ -1,3 +1,4 @@
+import copy
 import os
 import shutil
 import subprocess
@@ -29,6 +30,9 @@ def shell(args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = 
           cwd: Optional[str] = None) -> int:
     command = ' '.join(normalize(a, cwd) for a in args)
     print(f'+ {command}')
+    if env is not None:
+        env = copy.copy(env)
+        env["PATH"] = os.environ["PATH"]
     return subprocess.check_call(list(normalize(a, cwd) for a in args), env=env, cwd=cwd)
 
 
