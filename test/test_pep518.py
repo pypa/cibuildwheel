@@ -26,7 +26,7 @@ basic_project.files[
 ] = """
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools >= 42",
     "wheel",
     "requests==2.22.0; python_version<'3.6'",
     "requests==2.23.0; python_version>='3.6'"
