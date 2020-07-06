@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 from zipfile import ZipFile
 import toml
-import shlex
 
 from .environment import ParsedEnvironment
 from .util import (BuildOptions, BuildSelector, download,
@@ -173,7 +172,7 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             else []
         )
         if requirements:
-            escaped_requirements = [shlex.quote(s) for s in requirements]
+            escaped_requirements = [f'{s!r}' for s in requirements]
             shell(['pip', 'install'] + escaped_requirements, env=env)
 
 
