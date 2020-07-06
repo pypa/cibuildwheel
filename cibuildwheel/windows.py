@@ -172,7 +172,8 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             else []
         )
         if requirements:
-            shell(['pip', 'install'] + requirements, env=env)
+            escaped_requirements = [f'"{s}"' for s in requirements]
+            shell(['pip', 'install'] + escaped_requirements, env=env)
 
 
 def build(options: BuildOptions) -> None:
