@@ -22,7 +22,7 @@ def shell(args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = 
           cwd: Optional[str] = None) -> int:
     command = ' '.join(str(a) for a in args)
     print(f'+ {command}')
-    return subprocess.check_call(command, env=env, cwd=cwd, shell=True)
+    return subprocess.check_call(list(str(a) for a in args), env=env, cwd=cwd)
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
@@ -172,8 +172,7 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             else []
         )
         if requirements:
-            escaped_requirements = [f'"{s}"' for s in requirements]
-            shell(['pip', 'install'] + escaped_requirements, env=env)
+            shell(['pip', 'install'] + requirements, env=env)
 
 
 def build(options: BuildOptions) -> None:
