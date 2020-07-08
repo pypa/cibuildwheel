@@ -1,20 +1,24 @@
+from pathlib import Path, PurePath
 import platform
 import subprocess
 import textwrap
+from uuid import uuid4
 
 import pytest
 
 from cibuildwheel.docker_container import DockerContainer
 
+# for these tests we use manylinux2014 images, because they're available on
+# multi architectures and include python3.8
 pm = platform.machine()
 if pm == "x86_64":
-    DEFAULT_IMAGE = 'centos:7'
+    DEFAULT_IMAGE = 'quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b'
 elif pm == "aarch64":
-    DEFAULT_IMAGE = 'arm64v8/centos:7'
+    DEFAULT_IMAGE = 'quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b'
 elif pm == "ppc64le":
-    DEFAULT_IMAGE = 'ppc64le/centos:7'
+    DEFAULT_IMAGE = 'quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b'
 elif pm == "s390x":
-    DEFAULT_IMAGE = 's390x/clefos:7'
+    DEFAULT_IMAGE = 'quay.io/pypa/manylinux2014_s390x:2020-05-17-2f8ac3b'
 
 
 @pytest.mark.docker
@@ -38,8 +42,6 @@ def test_environment():
 @pytest.mark.docker
 def test_container_removed():
     with DockerContainer(DEFAULT_IMAGE) as container:
-        # call a command to ensure it has started
-        container.call(['true'])
         docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True).stdout
         assert container.name in docker_containers_listing
         old_container_name = container.name
@@ -67,8 +69,7 @@ def test_large_environment():
 @pytest.mark.docker
 def test_binary_output():
     with DockerContainer(DEFAULT_IMAGE) as container:
-        # the centos image only has python 2.6, so the below embedded snippets
-        # are in python2
+        # note: the below embedded snippets are in python2
 
         # check that we can pass though arbitrary binary data without erroring
         container.call(['/usr/bin/python2', '-c', textwrap.dedent('''
@@ -97,3 +98,29 @@ def test_binary_output():
             capture_output=True,
         )
         assert output == binary_data_string
+
+
+@pytest.mark.docker
+def test_file_operations(tmp_path: Path):
+    with DockerContainer(DEFAULT_IMAGE) as container:
+        # test copying a file in
+        test_binary_data = uuid4().bytes + uuid4().bytes + uuid4().bytes + uuid4().bytes
+
+        original_test_file = tmp_path / 'test.dat'
+        original_test_file.write_bytes(test_binary_data)
+
+        dst_file = PurePath('/tmp/test.dat')
+
+        container.copy_into(original_test_file, dst_file)
+
+        output = container.call(['cat', dst_file], capture_output=True)
+        assert test_binary_data == bytes(output, encoding='utf8', errors='surrogateescape')
+
+        # test copying a dir in
+        test_dir = tmp_path / 'test_dir'
+        new_test_file = tmp_path / 'test-new.dat'
+        container.copy_out(dst_file, new_test_file)
+
+        assert original_test_file.read_bytes() == new_test_file.read_bytes()
+
+        assert container.glob(PurePath('/tmp/*.dat')) == [dst_file]

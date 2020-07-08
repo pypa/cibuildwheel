@@ -58,6 +58,10 @@ class DockerContainer:
         assert self.process.stdin and self.process.stdout
         self.bash_stdin = self.process.stdin
         self.bash_stdout = self.process.stdout
+
+        # run a noop command to block until the container is responding
+        self.call(['/bin/true'])
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
