@@ -22,7 +22,7 @@ def shell(args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = 
           cwd: Optional[str] = None) -> int:
     command = ' '.join(str(a) for a in args)
     print(f'+ {command}')
-    return subprocess.check_call([str(s) for a in args], env=env, cwd=cwd, shell=True)
+    return subprocess.check_call([str(a) for a in args], env=env, cwd=cwd, shell=True)
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
