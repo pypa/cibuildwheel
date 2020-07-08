@@ -1,4 +1,3 @@
-import copy
 import os
 import shutil
 import subprocess
@@ -19,21 +18,11 @@ IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
-def normalize(x: [Union[str, PathLike]], cwd: Optional[PathLike]) -> str:
-    if hasattr(x, 'resolve'):
-        return str((cwd / x if cwd is not None else x).resolve())
-    else:
-        return x
-
-
 def shell(args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = None,
           cwd: Optional[str] = None) -> int:
-    command = ' '.join(normalize(a, cwd) for a in args)
+    command = ' '.join(str(a) for a in args)
     print(f'+ {command}')
-    if env is not None:
-        env = copy.copy(env)
-        env["PATH"] = os.environ["PATH"]
-    return subprocess.check_call(list(normalize(a, cwd) for a in args), env=env, cwd=cwd)
+    return subprocess.check_call([str(s) for a in args], env=env, cwd=cwd, shell=True)
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
