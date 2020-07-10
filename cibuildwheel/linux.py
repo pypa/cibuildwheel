@@ -167,7 +167,7 @@ def build(options: BuildOptions) -> None:
                         *get_build_verbosity_extra_flags(options.build_verbosity)
                     ], env=env)
 
-                    built_wheel = docker.glob(built_wheel_dir / '*.whl')[0]
+                    built_wheel = docker.glob(built_wheel_dir, '*.whl')[0]
 
                     repaired_wheel_dir = temp_dir / 'repaired_wheel'
                     docker.call(['rm', '-rf', repaired_wheel_dir])
@@ -179,7 +179,7 @@ def build(options: BuildOptions) -> None:
                         repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
                         docker.call(['sh', '-c', repair_command_prepared], env=env)
 
-                    repaired_wheels = docker.glob(repaired_wheel_dir / '*.whl')
+                    repaired_wheels = docker.glob(repaired_wheel_dir, '*.whl')
 
                     if options.test_command:
                         # set up a virtual environment to install and test from, to make sure

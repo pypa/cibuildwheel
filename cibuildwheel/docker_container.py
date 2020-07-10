@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import shlex
 import subprocess
 import sys
@@ -103,11 +104,13 @@ class DockerContainer:
             cwd=to_path
         )
 
-    def glob(self, pattern: PurePath) -> List[PurePath]:
+    def glob(self, path: PurePath, pattern: str) -> List[PurePath]:
+        glob_pattern = os.path.join(str(path), pattern)
+
         path_strs = json.loads(self.call([
             self.UTILITY_PYTHON,
             '-c',
-            f'import sys, json, glob; json.dump(glob.glob({str(pattern)!r}), sys.stdout)'
+            f'import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)'
         ], capture_output=True))
 
         return [PurePath(p) for p in path_strs]

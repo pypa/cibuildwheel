@@ -138,7 +138,7 @@ def test_dir_operations(tmp_path: Path):
         assert test_binary_data == bytes(output, encoding='utf8', errors='surrogateescape')
 
         # test glob
-        assert container.glob(dst_dir / '*.dat') == [dst_file]
+        assert container.glob(dst_dir, '*.dat') == [dst_file]
 
         # test copy dir out
         new_test_dir = tmp_path / 'test_dir_new'
