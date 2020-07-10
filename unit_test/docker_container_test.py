@@ -1,5 +1,7 @@
 from pathlib import Path, PurePath
 import platform
+import random
+import shutil
 import subprocess
 import textwrap
 from uuid import uuid4
@@ -104,8 +106,7 @@ def test_binary_output():
 def test_file_operations(tmp_path: Path):
     with DockerContainer(DEFAULT_IMAGE) as container:
         # test copying a file in
-        test_binary_data = uuid4().bytes + uuid4().bytes + uuid4().bytes + uuid4().bytes
-
+        test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / 'test.dat'
         original_test_file.write_bytes(test_binary_data)
 
@@ -116,11 +117,32 @@ def test_file_operations(tmp_path: Path):
         output = container.call(['cat', dst_file], capture_output=True)
         assert test_binary_data == bytes(output, encoding='utf8', errors='surrogateescape')
 
+@pytest.mark.docker
+def test_dir_operations(tmp_path: Path):
+    with DockerContainer(DEFAULT_IMAGE) as container:
+        test_binary_data = bytes(random.randrange(256) for _ in range(1000))
+        original_test_file = tmp_path / 'test.dat'
+        original_test_file.write_bytes(test_binary_data)
+
         # test copying a dir in
         test_dir = tmp_path / 'test_dir'
-        new_test_file = tmp_path / 'test-new.dat'
-        container.copy_out(dst_file, new_test_file)
+        test_dir.mkdir()
+        test_file = test_dir / 'test.dat'
+        shutil.copyfile(original_test_file, test_file)
 
-        assert original_test_file.read_bytes() == new_test_file.read_bytes()
+        dst_dir = PurePath('/tmp/test_dir')
+        dst_file = dst_dir / 'test.dat'
+        container.copy_into(test_dir, dst_dir)
 
-        assert container.glob(PurePath('/tmp/*.dat')) == [dst_file]
+        output = container.call(['cat', dst_file], capture_output=True)
+        assert test_binary_data == bytes(output, encoding='utf8', errors='surrogateescape')
+
+        # test glob
+        assert container.glob(dst_dir / '*.dat') == [dst_file]
+
+        # test copy dir out
+        new_test_dir = tmp_path / 'test_dir_new'
+        container.copy_out(dst_dir, new_test_dir)
+
+        assert test_binary_data == (new_test_dir / 'test.dat').read_bytes()
+

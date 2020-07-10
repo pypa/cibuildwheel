@@ -6,7 +6,7 @@ import sys
 import uuid
 from os import PathLike
 from pathlib import Path, PurePath
-from typing import IO, Dict, List, Optional, Sequence, Union
+from typing import Any, IO, Dict, List, Optional, Sequence, Union
 
 
 class DockerContainer:
@@ -77,16 +77,17 @@ class DockerContainer:
         # a container is running and the host filesystem is
         # mounted. https://github.com/moby/moby/issues/38995
         # Use `docker exec` instead.
+        quote = lambda p: shlex.quote(str(p))
         if from_path.is_dir():
             self.call(['mkdir', '-p', to_path])
             subprocess.run(
-                f'tar cf - . | docker exec -i {self.name} tar -xC {to_path} -f -',
+                f'tar cf - . | docker exec -i {self.name} tar -xC {quote(to_path)} -f -',
                 shell=True,
                 check=True,
                 cwd=from_path)
         else:
             subprocess.run(
-                f'cat {from_path} | docker exec -i {self.name} sh -c "cat > {to_path}"',
+                f'cat {quote(from_path)} | docker exec -i {self.name} sh -c "cat > {quote(to_path)}"',
                 shell=True,
                 check=True)
 
@@ -94,8 +95,9 @@ class DockerContainer:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
 
+        quote = lambda p: shlex.quote(str(p))
         subprocess.run(
-            f'docker exec -i {self.name} tar -cC {from_path} -f - . | tar -xf -',
+            f'docker exec -i {self.name} tar -cC {quote(from_path)} -f - . | tar -xf -',
             shell=True,
             check=True,
             cwd=to_path
