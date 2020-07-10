@@ -1,10 +1,9 @@
-from pathlib import Path, PurePath
 import platform
 import random
 import shutil
 import subprocess
 import textwrap
-from uuid import uuid4
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -117,6 +116,7 @@ def test_file_operations(tmp_path: Path):
         output = container.call(['cat', dst_file], capture_output=True)
         assert test_binary_data == bytes(output, encoding='utf8', errors='surrogateescape')
 
+
 @pytest.mark.docker
 def test_dir_operations(tmp_path: Path):
     with DockerContainer(DEFAULT_IMAGE) as container:
@@ -145,4 +145,3 @@ def test_dir_operations(tmp_path: Path):
         container.copy_out(dst_dir, new_test_dir)
 
         assert test_binary_data == (new_test_dir / 'test.dat').read_bytes()
-

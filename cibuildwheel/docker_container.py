@@ -7,7 +7,7 @@ import sys
 import uuid
 from os import PathLike
 from pathlib import Path, PurePath
-from typing import Any, IO, Dict, List, Optional, Sequence, Union
+from typing import IO, Dict, List, Optional, Sequence, Union
 
 
 class DockerContainer:
@@ -78,17 +78,17 @@ class DockerContainer:
         # a container is running and the host filesystem is
         # mounted. https://github.com/moby/moby/issues/38995
         # Use `docker exec` instead.
-        quote = lambda p: shlex.quote(str(p))
+
         if from_path.is_dir():
             self.call(['mkdir', '-p', to_path])
             subprocess.run(
-                f'tar cf - . | docker exec -i {self.name} tar -xC {quote(to_path)} -f -',
+                f'tar cf - . | docker exec -i {self.name} tar -xC {shell_quote(to_path)} -f -',
                 shell=True,
                 check=True,
                 cwd=from_path)
         else:
             subprocess.run(
-                f'cat {quote(from_path)} | docker exec -i {self.name} sh -c "cat > {quote(to_path)}"',
+                f'cat {shell_quote(from_path)} | docker exec -i {self.name} sh -c "cat > {shell_quote(to_path)}"',
                 shell=True,
                 check=True)
 
@@ -96,9 +96,8 @@ class DockerContainer:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
 
-        quote = lambda p: shlex.quote(str(p))
         subprocess.run(
-            f'docker exec -i {self.name} tar -cC {quote(from_path)} -f - . | tar -xf -',
+            f'docker exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -',
             shell=True,
             check=True,
             cwd=to_path
@@ -184,3 +183,7 @@ class DockerContainer:
     def environment_executor(self, command: str, environment: Dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
         return self.call(shlex.split(command), env=environment)
+
+
+def shell_quote(path: PurePath) -> str:
+    return shlex.quote(str(path))
