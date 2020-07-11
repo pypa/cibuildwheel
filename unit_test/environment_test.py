@@ -94,3 +94,12 @@ def test_no_vars_pass_through():
     environment_dict = environment_recipe.as_dictionary(prev_environment={'CIBUILDWHEEL': 'awesome'})
 
     assert environment_dict == {'CIBUILDWHEEL': 'awesome'}
+
+
+def test_operators_inside_eval():
+    environment_recipe = parse_environment('SOMETHING="$(echo a; echo b; echo c)"')
+
+    # pass the existing process env so PATH is available
+    environment_dict = environment_recipe.as_dictionary(os.environ.copy())
+
+    assert environment_dict.get('SOMETHING') == 'a\nb\nc'

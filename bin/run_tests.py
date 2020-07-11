@@ -10,7 +10,11 @@ if __name__ == '__main__':
     os.chdir(Path(__file__).resolve().parents[1])
 
     # run the unit tests
-    subprocess.check_call([sys.executable, '-m', 'pytest', 'unit_test'])
+    unit_test_args = [sys.executable, '-m', 'pytest', 'unit_test']
+    # run the docker unit tests only on Linux
+    if sys.platform.startswith('linux'):
+        unit_test_args += ['--run-docker']
+    subprocess.check_call(unit_test_args)
 
     # run the integration tests
     subprocess.check_call([sys.executable, '-m', 'pytest', '-x', '--durations', '0', 'test'])
