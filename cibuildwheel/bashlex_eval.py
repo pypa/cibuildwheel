@@ -69,6 +69,8 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
     # remove the None letters and concat
     value = ''.join(letters)
 
+    print('node value:', value)
+
     # apply bash-like quotes/whitespace treatment
     return ' '.join(word.strip() for word in shlex.split(value))
 
