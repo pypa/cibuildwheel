@@ -17,4 +17,5 @@ if __name__ == '__main__':
     subprocess.check_call(unit_test_args)
 
     # run the integration tests
-    subprocess.check_call([sys.executable, '-m', 'pytest', '-x', '--durations', '0', 'test'])
+    # TODO: REMOVE 'overridden'
+    subprocess.check_call([sys.executable, '-m', 'pytest', '-x', '--durations', '0', 'test', '-k', 'overridden'])
