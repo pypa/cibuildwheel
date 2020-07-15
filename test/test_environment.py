@@ -67,7 +67,7 @@ def test_overridden_path(tmp_path, capfd):
             utils.cibuildwheel_run(project_dir, output_dir=output_dir, add_env={
                 # use single-quotes for new_path, because on windows, paths with backslashes
                 # are interpreted by bash as escape sequences!
-                'CIBW_ENVIRONMENT': f'''PATH='{new_path}'{os.pathsep}"$PATH"''',
+                'CIBW_ENVIRONMENT': f'''PATH='{new_path}{os.pathsep}'$PATH''',
             })
 
     assert len(os.listdir(output_dir)) == 0
