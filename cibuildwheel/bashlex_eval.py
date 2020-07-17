@@ -66,8 +66,6 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
 
         value = value.replace(part_string, part_value, 1)
 
-    print('node value:', value)
-
     return value
 
 

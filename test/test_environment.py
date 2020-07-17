@@ -71,7 +71,4 @@ def test_overridden_path(tmp_path, capfd):
 
     assert len(os.listdir(output_dir)) == 0
     captured = capfd.readouterr()
-    # TODO: REMOVE THIS PRINT
-    print('captured.out', captured.out)
-    print('captured.err', captured.err)
     assert "python available on PATH doesn't match our installed instance" in captured.err
