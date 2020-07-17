@@ -65,7 +65,8 @@ def test_overridden_path(tmp_path, capfd):
             (new_path / 'python').touch(mode=0o777)
 
             utils.cibuildwheel_run(project_dir, output_dir=output_dir, add_env={
-                'CIBW_ENVIRONMENT': f'''PATH="{new_path}{os.pathsep}$PATH"''',
+                'NEW_PATH': str(new_path),
+                'CIBW_ENVIRONMENT': f'''PATH="$NEW_PATH{os.pathsep}$PATH"''',
             })
 
     assert len(os.listdir(output_dir)) == 0

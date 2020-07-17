@@ -103,3 +103,23 @@ def test_operators_inside_eval():
     environment_dict = environment_recipe.as_dictionary(os.environ.copy())
 
     assert environment_dict.get('SOMETHING') == 'a\nb\nc'
+
+
+def test_substitution_with_backslash():
+    environment_recipe = parse_environment('PATH2="somewhere_else;$PATH1"')
+
+    # pass the existing process env so PATH is available
+    environment_dict = environment_recipe.as_dictionary(prev_environment={
+        'PATH1': 'c:\\folder\\'
+    })
+
+    assert environment_dict.get('PATH2') == 'somewhere_else;c:\\folder\\'
+
+
+def test_awkwardly_quoted_variable():
+    environment_recipe = parse_environment('VAR2=something"like this""$VAR1"$VAR1$(echo "theres more")"$(echo "and more!")"')
+
+    # pass the existing process env so PATH is available
+    environment_dict = environment_recipe.as_dictionary({'VAR1': 'but wait'})
+
+    assert environment_dict.get('VAR2') == 'somethinglike thisbut waitbut waittheres moreand more!'

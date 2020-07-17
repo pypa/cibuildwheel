@@ -51,26 +51,22 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
-    word_start = node.pos[0]
-    word_end = node.pos[1]
-    word_string = context.input[word_start:word_end]
-    letters = list(word_string)
+    value = node.word
 
     for part in node.parts:
-        part_start = part.pos[0] - word_start
-        part_end = part.pos[1] - word_start
+        part_string = context.input[part.pos[0]:part.pos[1]]
+        part_value = evaluate_node(part, context=context)
 
-        # Set all the characters in the part to None
-        for i in range(part_start, part_end):
-            letters[i] = ''
+        if part_string not in value:
+            raise RuntimeError(
+                'bash parse failed. part "{}" not found in "{}". Word was "{}". Full input was "{}"'.format(
+                    part_string, value, node.word, context.input,
+                )
+            )
 
-        letters[part_start] = evaluate_node(part, context=context)
+        value = value.replace(part_string, part_value, 1)
 
-    # remove the None letters and concat
-    value = ''.join(letters)
-
-    # apply bash-like quotes/whitespace treatment
-    return ' '.join(word.strip() for word in shlex.split(value))
+    return value
 
 
 def evaluate_command_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
