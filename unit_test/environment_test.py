@@ -40,7 +40,7 @@ def test_inheritance():
 
 
 def test_shell_eval():
-    environment_recipe = parse_environment('VAR="$(echo "a test" string)"')
+    environment_recipe = parse_environment('VAR="$(echo "a   test" string)"')
 
     env_copy = os.environ.copy()
     env_copy.pop('VAR', None)
@@ -50,8 +50,8 @@ def test_shell_eval():
     )
     environment_cmds = environment_recipe.as_shell_commands()
 
-    assert environment_dict['VAR'] == 'a test string'
-    assert environment_cmds == ['export VAR="$(echo "a test" string)"']
+    assert environment_dict['VAR'] == 'a   test string'
+    assert environment_cmds == ['export VAR="$(echo "a   test" string)"']
 
 
 def test_shell_eval_and_env():
