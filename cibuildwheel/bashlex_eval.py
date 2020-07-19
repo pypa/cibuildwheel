@@ -97,7 +97,7 @@ def evaluate_nodes_as_compound_command(nodes: Sequence[bashlex.ast.node], contex
 
 
 def evaluate_nodes_as_simple_command(nodes: List[bashlex.ast.node], context: NodeExecutionContext):
-    words = [evaluate_node(part, context=context) for part in nodes]
+    words = [shlex.quote(evaluate_node(part, context=context)) for part in nodes]
     command = ' '.join(words)
     return context.executor(command, context.environment)
 
