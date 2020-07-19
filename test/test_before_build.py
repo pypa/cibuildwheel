@@ -38,18 +38,16 @@ def test(tmp_path):
     project_dir = tmp_path / 'project'
     project_with_before_build_asserts.generate(project_dir)
 
-    before_build = textwrap.dedent('''
-        python -c "import sys; open('{output_dir}pythonversion.txt', 'w').write(sys.version)" &&
-        python -c "import sys; open('{output_dir}pythonexecutable.txt', 'w').write(sys.executable)" &&
-        python -c "import os; open('{output_dir}cwd.txt', 'w').write(os.getcwd())"
-    ''')
+    before_build = ('''python -c "import sys; open('{output_dir}pythonversion.txt', 'w').write(sys.version)" && '''
+                    '''python -c "import sys; open('{output_dir}pythonexecutable.txt', 'w').write(sys.executable)" && '''
+                    '''python -c "import os; open('{output_dir}cwd.txt', 'w').write(os.getcwd())"''')
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         # write python version information to a temporary file, this is
         # checked in setup.py
-        'CIBW_BEFORE_BUILD': before_build.format(output_dir="/tmp/"),
-        'CIBW_BEFORE_BUILD_WINDOWS': before_build.format(output_dir="c:\\"),
+        'CIBW_BEFORE_BUILD': before_build.format(output_dir='/tmp/'),
+        'CIBW_BEFORE_BUILD_WINDOWS': before_build.format(output_dir=r'c:\\'),
     })
 
     # also check that we got the right wheels
