@@ -1,15 +1,14 @@
-import shlex
 import subprocess
 from typing import Callable, Dict, List, NamedTuple, Optional, Sequence
 
 import bashlex  # type: ignore
 
 # a function that takes a shell command and the environment, and returns the result
-EnvironmentExecutor = Callable[[str, Dict[str, str]], str]
+EnvironmentExecutor = Callable[[List[str], Dict[str, str]], str]
 
 
-def local_environment_executor(command: str, env: Dict[str, str]) -> str:
-    return subprocess.check_output(shlex.split(command), env=env, universal_newlines=True)
+def local_environment_executor(command: List[str], env: Dict[str, str]) -> str:
+    return subprocess.check_output(command, env=env, universal_newlines=True)
 
 
 class NodeExecutionContext(NamedTuple):
@@ -97,8 +96,7 @@ def evaluate_nodes_as_compound_command(nodes: Sequence[bashlex.ast.node], contex
 
 
 def evaluate_nodes_as_simple_command(nodes: List[bashlex.ast.node], context: NodeExecutionContext):
-    words = [shlex.quote(evaluate_node(part, context=context)) for part in nodes]
-    command = ' '.join(words)
+    command = [evaluate_node(part, context=context) for part in nodes]
     return context.executor(command, context.environment)
 
 

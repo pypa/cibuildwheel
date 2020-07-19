@@ -180,9 +180,9 @@ class DockerContainer:
             'import sys, json, os; json.dump(os.environ.copy(), sys.stdout)'
         ], capture_output=True))
 
-    def environment_executor(self, command: str, environment: Dict[str, str]) -> str:
+    def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
-        return self.call(shlex.split(command), env=environment)
+        return self.call(command, env=environment)
 
 
 def shell_quote(path: PurePath) -> str:
