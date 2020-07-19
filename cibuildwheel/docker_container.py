@@ -27,12 +27,14 @@ class DockerContainer:
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 
-    def __init__(self, docker_image: str, simulate_32_bit=False):
+    def __init__(self, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[Union[str, PathLike]] = None):
         self.docker_image = docker_image
         self.simulate_32_bit = simulate_32_bit
+        self.cwd = cwd
 
     def __enter__(self) -> 'DockerContainer':
         self.name = f'cibuildwheel-{uuid.uuid4()}'
+        cwd_args = ['-w', str(self.cwd)] if self.cwd else []
         shell_args = ['linux32', '/bin/bash'] if self.simulate_32_bit else ['/bin/bash']
         subprocess.run(
             [
@@ -41,6 +43,7 @@ class DockerContainer:
                 '--name', self.name,
                 '-i',
                 '-v', '/:/host',  # ignored on CircleCI
+                *cwd_args,
                 self.docker_image,
                 *shell_args
             ],
