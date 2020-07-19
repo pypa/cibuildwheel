@@ -79,7 +79,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.5.3
+  - python3 -m pip install cibuildwheel==1.5.4
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -151,6 +151,13 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.5.4
+
+_19 June 2020_
+
+- 🐛 Fix a bug that would cause command substitutions in CIBW_ENVIRONMENT
+  variables to not interpret quotes in commands correctly (#406, #408)
 
 ### 1.5.3
 
