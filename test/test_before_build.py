@@ -24,6 +24,12 @@ project_with_before_build_asserts = test_projects.new_c_project(
         print('sys.executable', sys.executable)
         # windows/mac are case insensitive
         assert os.path.realpath(stored_executable).lower() == os.path.realpath(sys.executable).lower()
+
+        if sys.platform == 'linux':
+            cwd_file = '/tmp/cwd.txt'
+            with open(cwd_file) as f:
+                stored_cwd = f.read()
+            assert stored_cwd == '/project'
     ''')
 )
 
@@ -32,12 +38,18 @@ def test(tmp_path):
     project_dir = tmp_path / 'project'
     project_with_before_build_asserts.generate(project_dir)
 
+    before_build = textwrap.dedent('''
+        python -c "import sys; open('{output_dir}pythonversion.txt', 'w').write(sys.version)" &&
+        python -c "import sys; open('{output_dir}pythonexecutable.txt', 'w').write(sys.executable)" &&
+        python -c "import os; open('{output_dir}cwd.txt', 'w').write(os.getcwd())"
+    ''')
+
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         # write python version information to a temporary file, this is
         # checked in setup.py
-        'CIBW_BEFORE_BUILD': '''python -c "import sys; open('/tmp/pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('/tmp/pythonexecutable.txt', 'w').write(sys.executable)"''',
-        'CIBW_BEFORE_BUILD_WINDOWS': '''python -c "import sys; open('c:\\pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('c:\\pythonexecutable.txt', 'w').write(sys.executable)"''',
+        'CIBW_BEFORE_BUILD': before_build.format(output_dir="/tmp/"),
+        'CIBW_BEFORE_BUILD_WINDOWS': before_build.format(output_dir="c:\\"),
     })
 
     # also check that we got the right wheels
