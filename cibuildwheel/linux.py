@@ -7,7 +7,7 @@ from pathlib import Path, PurePath
 from typing import List, NamedTuple, Union
 
 from .docker_container import DockerContainer
-from .util import (BuildOptions, BuildSelector,
+from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
                    get_build_verbosity_extra_flags, prepare_command)
 
 
@@ -174,11 +174,14 @@ def build(options: BuildOptions) -> None:
                     docker.call(['rm', '-rf', repaired_wheel_dir])
                     docker.call(['mkdir', '-p', repaired_wheel_dir])
 
-                    if built_wheel.name.endswith('none-any.whl') or not options.repair_command:
-                        docker.call(['mv', built_wheel, repaired_wheel_dir])
-                    else:
+                    if built_wheel.name.endswith('none-any.whl'):
+                        raise NonPlatformWheelError()
+
+                    if options.repair_command:
                         repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
                         docker.call(['sh', '-c', repair_command_prepared], env=env)
+                    else:
+                        docker.call(['mv', built_wheel, repaired_wheel_dir])
 
                     repaired_wheels = docker.glob(repaired_wheel_dir, '*.whl')
 

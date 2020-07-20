@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 
 from .environment import ParsedEnvironment
-from .util import (BuildOptions, BuildSelector, download,
+from .util import (BuildOptions, BuildSelector, NonPlatformWheelError, download,
                    get_build_verbosity_extra_flags, get_pip_script,
                    prepare_command)
 
@@ -215,12 +215,16 @@ def build(options: BuildOptions) -> None:
         if repaired_wheel_dir.exists():
             shutil.rmtree(repaired_wheel_dir)
         repaired_wheel_dir.mkdir(parents=True)
-        if built_wheel.name.endswith('none-any.whl') or not options.repair_command:
-            # pure Python wheel or empty repair command
-            shutil.move(str(built_wheel), repaired_wheel_dir)
-        else:
+
+        if built_wheel.name.endswith('none-any.whl'):
+            raise NonPlatformWheelError()
+
+        if options.repair_command:
             repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
             call(repair_command_prepared, env=env, shell=True)
+        else:
+            shutil.move(str(built_wheel), repaired_wheel_dir)
+
         repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
         if options.test_command:
