@@ -182,7 +182,7 @@ class DockerContainer:
 
     def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
-        return self.call(command, env=environment)
+        return self.call(command, env=environment, capture_output=True)
 
 
 def shell_quote(path: PurePath) -> str:

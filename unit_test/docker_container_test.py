@@ -8,6 +8,7 @@ from pathlib import Path, PurePath
 import pytest
 
 from cibuildwheel.docker_container import DockerContainer
+from cibuildwheel.environment import EnvironmentAssignment
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
@@ -145,3 +146,10 @@ def test_dir_operations(tmp_path: Path):
         container.copy_out(dst_dir, new_test_dir)
 
         assert test_binary_data == (new_test_dir / 'test.dat').read_bytes()
+
+
+@pytest.mark.docker
+def test_environment_executor():
+    with DockerContainer(DEFAULT_IMAGE) as container:
+        assignment = EnvironmentAssignment("TEST=$(echo 42)")
+        assert assignment.evaluated_value({}, container.environment_executor) == "42"
