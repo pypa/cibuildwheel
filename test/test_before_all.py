@@ -1,4 +1,5 @@
-import os
+import pytest
+import subprocess
 import textwrap
 
 from . import utils
@@ -21,7 +22,7 @@ def test(tmp_path):
     project_dir = tmp_path / 'project'
     project_with_before_build_asserts.generate(project_dir)
 
-    with open(os.path.join(project_dir, "text_info.txt"), mode='w') as ff:
+    with (project_dir / 'text_info.txt').open(mode='w') as ff:
         print("dummy text", file=ff)
 
     # build the wheels
@@ -33,6 +34,30 @@ def test(tmp_path):
     })
 
     # also check that we got the right wheels
-    os.remove(os.path.join(project_dir, "text_info.txt"))
+    (project_dir / 'text_info.txt').unlink()
+    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_failing_command(tmp_path):
+    project_dir = tmp_path / 'project'
+    test_projects.new_c_project().generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(project_dir, add_env={
+            'CIBW_BEFORE_ALL': 'false',
+            'CIBW_BEFORE_ALL_WINDOWS': 'exit /b 1',
+        })
+
+
+def test_cwd(tmp_path):
+    project_dir = tmp_path / 'project'
+    test_projects.new_c_project().generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
+        'CIBW_BEFORE_ALL': f'''python -c "import os; assert os.getcwd() == {str(project_dir)!r}"''',
+        'CIBW_BEFORE_ALL_LINUX': '''python -c "import os; assert os.getcwd() == '/project'"''',
+    })
+
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
     assert set(actual_wheels) == set(expected_wheels)

@@ -1,3 +1,5 @@
+import pytest
+import subprocess
 import textwrap
 
 from . import utils
@@ -24,12 +26,6 @@ project_with_before_build_asserts = test_projects.new_c_project(
         print('sys.executable', sys.executable)
         # windows/mac are case insensitive
         assert os.path.realpath(stored_executable).lower() == os.path.realpath(sys.executable).lower()
-
-        if sys.platform == 'linux':
-            cwd_file = '/tmp/cwd.txt'
-            with open(cwd_file) as f:
-                stored_cwd = f.read()
-            assert stored_cwd == '/project'
     ''')
 )
 
@@ -39,8 +35,7 @@ def test(tmp_path):
     project_with_before_build_asserts.generate(project_dir)
 
     before_build = ('''python -c "import sys; open('{output_dir}pythonversion.txt', 'w').write(sys.version)" && '''
-                    '''python -c "import sys; open('{output_dir}pythonexecutable.txt', 'w').write(sys.executable)" && '''
-                    '''python -c "import os; open('{output_dir}cwd.txt', 'w').write(os.getcwd())"''')
+                    '''python -c "import sys; open('{output_dir}pythonexecutable.txt', 'w').write(sys.executable)"''')
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
@@ -51,5 +46,29 @@ def test(tmp_path):
     })
 
     # also check that we got the right wheels
+    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_failing_command(tmp_path):
+    project_dir = tmp_path / 'project'
+    test_projects.new_c_project().generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(project_dir, add_env={
+            'CIBW_BEFORE_BUILD': 'false',
+            'CIBW_BEFORE_BUILD_WINDOWS': 'exit /b 1',
+        })
+
+
+def test_cwd(tmp_path):
+    project_dir = tmp_path / 'project'
+    test_projects.new_c_project().generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
+        'CIBW_BEFORE_BUILD': f'''python -c "import os; assert os.getcwd() == {str(project_dir)!r}"''',
+        'CIBW_BEFORE_BUILD_LINUX': '''python -c "import os; assert os.getcwd() == '/project'"''',
+    })
+
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
     assert set(actual_wheels) == set(expected_wheels)
