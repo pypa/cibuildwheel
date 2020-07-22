@@ -101,8 +101,8 @@ def build(options: BuildOptions) -> None:
     if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         raise Exception('package_dir must be inside the working directory')
 
-    project_path = '/project'
-    container_package_dir = PurePath(project_path) / abs_package_dir.relative_to(cwd)
+    project_path = PurePath('/project')
+    container_package_dir = project_path / abs_package_dir.relative_to(cwd)
     container_output_dir = PurePath('/output')
 
     for implementation, platform_tag, docker_image in platforms:
@@ -112,7 +112,7 @@ def build(options: BuildOptions) -> None:
 
         try:
             with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686'), cwd=project_path) as docker:
-                docker.copy_into(Path.cwd(), PurePath(project_path))
+                docker.copy_into(Path.cwd(), project_path)
 
                 if options.before_all:
                     env = docker.get_environment()
