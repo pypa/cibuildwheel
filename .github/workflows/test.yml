@@ -17,6 +17,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04, windows-latest, macos-latest]
         python_version: ['3.7']
+    timeout-minutes: 180
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2

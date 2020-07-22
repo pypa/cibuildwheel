@@ -21,6 +21,7 @@ jobs:
 
 - job: windows_36
   pool: {vmImage: 'vs2017-win2016'}
+  timeoutInMinutes: 180
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -33,6 +34,7 @@ jobs:
 
 - job: windows_38
   pool: {vmImage: 'vs2017-win2016'}
+  timeoutInMinutes: 180
   steps:
     - task: UsePythonVersion@0
       inputs:

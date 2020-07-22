@@ -110,8 +110,8 @@ def build(options: BuildOptions) -> None:
             continue
 
         try:
-            with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686')) as docker:
-                docker.copy_into(Path.cwd(), Path('/project'))
+            with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686'), cwd='/project') as docker:
+                docker.copy_into(Path.cwd(), PurePath('/project'))
 
                 if options.before_all:
                     env = docker.get_environment()

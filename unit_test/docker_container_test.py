@@ -42,6 +42,13 @@ def test_environment():
 
 
 @pytest.mark.docker
+def test_cwd():
+    with DockerContainer(DEFAULT_IMAGE, cwd='/cibuildwheel/working_directory') as container:
+        assert container.call(['pwd'], capture_output=True) == '/cibuildwheel/working_directory\n'
+        assert container.call(['pwd'], capture_output=True, cwd='/opt') == '/opt\n'
+
+
+@pytest.mark.docker
 def test_container_removed():
     with DockerContainer(DEFAULT_IMAGE) as container:
         docker_containers_listing = subprocess.run('docker container ls', shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True).stdout
