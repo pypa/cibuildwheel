@@ -144,14 +144,16 @@ def setup_python(python_configuration: PythonConfiguration,
         exit(1)
 
     # install pip & wheel
-    call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
-    assert (installation_bin_path / 'pip').exists()
-    call(['which', 'pip'], env=env)
-    call(['pip', '--version'], env=env)
     which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
     if which_pip != '/tmp/cibw_bin/pip':
-        print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-        exit(1)
+        call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
+        assert (installation_bin_path / 'pip').exists()
+        call(['which', 'pip'], env=env)
+        call(['pip', '--version'], env=env)
+        which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
+        if which_pip != '/tmp/cibw_bin/pip':
+            print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
+            exit(1)
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.

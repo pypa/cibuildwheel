@@ -84,7 +84,8 @@ def extract_zip(zip_src: Path, dest: Path) -> None:
 def install_cpython(version: str, arch: str, nuget: Path) -> Path:
     nuget_args = get_nuget_args(version, arch)
     installation_path = Path(nuget_args[-1]) / (nuget_args[0] + '.' + version) / 'tools'
-    call([nuget, 'install', *nuget_args])
+    if not installation_path.exists():
+        call([nuget, 'install', *nuget_args])
     return installation_path
 
 
