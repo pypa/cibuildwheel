@@ -101,8 +101,8 @@ def build(options: BuildOptions) -> None:
     if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         raise Exception('package_dir must be inside the working directory')
 
-    project_path = PurePath('/project')
-    container_package_dir = project_path / abs_package_dir.relative_to(cwd)
+    container_project_path = PurePath('/project')
+    container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
     container_output_dir = PurePath('/output')
 
     for implementation, platform_tag, docker_image in platforms:
@@ -111,15 +111,15 @@ def build(options: BuildOptions) -> None:
             continue
 
         try:
-            with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686'), cwd=project_path) as docker:
-                docker.copy_into(Path.cwd(), project_path)
+            with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686'), cwd=container_project_path) as docker:
+                docker.copy_into(Path.cwd(), container_project_path)
 
                 if options.before_all:
                     env = docker.get_environment()
                     env['PATH'] = f'/opt/python/cp38-cp38:{env["PATH"]}'
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
 
-                    before_all_prepared = prepare_command(options.before_all, project=project_path, package=container_package_dir)
+                    before_all_prepared = prepare_command(options.before_all, project=container_project_path, package=container_package_dir)
                     docker.call(['sh', '-c', before_all_prepared], env=env)
 
                 for config in platform_configs:
@@ -152,7 +152,7 @@ def build(options: BuildOptions) -> None:
                         exit(1)
 
                     if options.before_build:
-                        before_build_prepared = prepare_command(options.before_build, project=project_path, package=container_package_dir)
+                        before_build_prepared = prepare_command(options.before_build, project=container_project_path, package=container_package_dir)
                         docker.call(['sh', '-c', before_build_prepared], env=env)
 
                     temp_dir = PurePath('/tmp/cibuildwheel')
@@ -194,7 +194,7 @@ def build(options: BuildOptions) -> None:
                         virtualenv_env['PATH'] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
 
                         if options.before_test:
-                            before_test_prepared = prepare_command(options.before_test, project=project_path, package=container_package_dir)
+                            before_test_prepared = prepare_command(options.before_test, project=container_project_path, package=container_package_dir)
                             docker.call(['sh', '-c', before_test_prepared], env=virtualenv_env)
 
                         # Install the wheel we just built
@@ -211,7 +211,7 @@ def build(options: BuildOptions) -> None:
                             docker.call(['pip', 'install', *options.test_requires], env=virtualenv_env)
 
                         # Run the tests from a different directory
-                        test_command_prepared = prepare_command(options.test_command, project=project_path, package=container_package_dir)
+                        test_command_prepared = prepare_command(options.test_command, project=container_project_path, package=container_package_dir)
                         docker.call(['sh', '-c', test_command_prepared], cwd='/root', env=virtualenv_env)
 
                         # clean up test environment
