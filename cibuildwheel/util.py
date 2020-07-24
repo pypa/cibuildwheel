@@ -1,4 +1,5 @@
 import os
+import textwrap
 import urllib.request
 from fnmatch import fnmatch
 from pathlib import Path
@@ -126,3 +127,18 @@ class BuildOptions(NamedTuple):
 
 resources_dir = Path(__file__).resolve().parent / 'resources'
 get_pip_script = resources_dir / 'get-pip.py'
+
+
+class NonPlatformWheelError(Exception):
+    def __init__(self) -> None:
+        message = textwrap.dedent('''
+            cibuildwheel: Build failed because a pure Python wheel was generated.
+
+            If you intend to build a pure-Python wheel, you don't need cibuildwheel - use
+            `pip wheel -w DEST_DIR .` instead.
+
+            If you expected a platform wheel, check your project configuration, or run
+            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
+        ''')
+
+        super().__init__(message)
