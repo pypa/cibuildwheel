@@ -1,8 +1,9 @@
-from argparse import ArgumentParser
 import importlib
-import tempfile
-import sys
 import subprocess
+import sys
+import tempfile
+from argparse import ArgumentParser
+from pathlib import Path
 
 
 def main():
@@ -19,7 +20,7 @@ def main():
 
     project = getattr(importlib.import_module(module), name)
 
-    project_dir = tempfile.mkdtemp()
+    project_dir = Path(tempfile.mkdtemp())
     project.generate(project_dir)
 
     print('Project generated at', project_dir)

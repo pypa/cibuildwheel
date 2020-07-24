@@ -21,6 +21,7 @@ jobs:
 
 - job: windows_36
   pool: {vmImage: 'vs2017-win2016'}
+  timeoutInMinutes: 180
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -33,6 +34,7 @@ jobs:
 
 - job: windows_38
   pool: {vmImage: 'vs2017-win2016'}
+  timeoutInMinutes: 180
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -42,4 +44,3 @@ jobs:
     - bash: |
         python -m pip install -r requirements-dev.txt pytest-azurepipelines
         python ./bin/run_tests.py
-

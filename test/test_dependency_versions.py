@@ -1,4 +1,3 @@
-import os
 import re
 import pytest
 import textwrap
@@ -39,11 +38,9 @@ VERSION_REGEX = r'([\w-]+)==([^\s]+)'
 
 
 def get_versions_from_constraint_file(constraint_file):
-    with open(constraint_file, encoding='utf8') as f:
-        constraint_file_text = f.read()
+    constraint_file_text = constraint_file.read_text(encoding='utf8')
 
     versions = {}
-
     for package, version in re.findall(VERSION_REGEX, constraint_file_text):
         versions[package] = version
 
@@ -73,7 +70,7 @@ def test_pinned_versions(tmp_path, python_version):
         constraint_filename = 'constraints.txt'
         build_pattern = '[cp]p38-*'
 
-    constraint_file = os.path.join(cibuildwheel.util.resources_dir, constraint_filename)
+    constraint_file = cibuildwheel.util.resources_dir / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 
     for package in ['pip', 'setuptools', 'wheel', 'virtualenv']:

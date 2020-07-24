@@ -190,6 +190,28 @@ CIBW_ENVIRONMENT: "BUILD_TIME=$(date) SAMPLE_TEXT=\"sample text\""
 !!! note
     `cibuildwheel` always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
+### `CIBW_BEFORE_ALL` {: #before-all}
+> Execute a shell command on the build system before any wheels are built.
+
+Shell command to prepare a common part of the project (e.g. build or install libraries which does not depend on the specific version of Python).
+
+This option is very useful for the Linux build, where builds take place in isolated Docker containers managed by cibuildwheel. This command will run inside the container before the wheel builds start. Note, if you're building both x86_64 and i686 wheels (the default), your build uses two different Docker images. In that case, this command will execute twice - once per build container.
+
+The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
+
+On Windows and macOS, the version of Python available inside `CIBW_BEFORE_ALL` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
+
+Platform-specific variants also available:<br/>
+ `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+
+#### Examples
+```yaml
+# build third party library
+CIBW_BEFORE_ALL: make -C third_party_lib
+
+# install system library
+CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
+```
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
 > Execute a shell command preparing each wheel's build
@@ -603,7 +625,7 @@ optional arguments:
         var url = 'https://cibuildwheel.readthedocs.io/en/stable/options/#'+option.id;
         var namesMarkdown = $.map(optionNames, function(n) {
           return '[`'+n+'`]('+url+') '
-        }).join(' ')
+        }).join(' <br> ')
 
         markdown += '| '+namesMarkdown+' '
         markdown += '| '+option.description.trim()+' '

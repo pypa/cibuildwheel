@@ -1,0 +1,21 @@
+repos:
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.1
+    hooks:
+    - id: flake8
+      pass_filenames: true
+      # this seems to need to be here in addition to setup.cfg
+      exclude: cibuildwheel/resources/
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    - id: check-yaml
+    - id: check-merge-conflict
+    - id: end-of-file-fixer
+      exclude: cibuildwheel/resources/pinned_docker_images.cfg
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: ''  # Use the sha / tag you want to point at
+    hooks:
+    - id: mypy
+      files: cibuildwheel|test
+      exclude: cibuildwheel/resources

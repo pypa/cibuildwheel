@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
-import io
-import os
+from pathlib import Path
 
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-this_directory = os.path.dirname(__file__)
-with io.open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+this_directory = Path(__file__).parent
+long_description = (this_directory / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='cibuildwheel',
-    version='1.4.2',
-    install_requires=['bashlex!=0.13'],
+    version='1.5.5',
+    install_requires=['bashlex!=0.13', 'toml'],
     description="Build Python wheels on CI with minimal configuration.",
     long_description=long_description,
     long_description_content_type='text/markdown',

@@ -22,11 +22,13 @@ What does it do?
 | CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
 | CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
 | CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
+| CPython 3.9³    | 🛠 | 🛠  | 🛠  | 🛠 | 🛠 | 🛠  | 🛠  |    |
 | PyPy 2.7 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
 | PyPy 3.6 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
 
 <sup>¹ Not supported on Travis</sup><br>
-<sup>² Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup>
+<sup>² Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup><br>
+<sup>³ Python 3.9 is not yet ABI stable, so you shouldn't publish wheels with it yet. But if you want to check that your wheels build on Python 3.9, try our [`python3.9` branch](https://github.com/joerick/cibuildwheel/pull/382)!</sup>
 
 - Builds manylinux, macOS and Windows wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
@@ -77,7 +79,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.4.2
+  - python3 -m pip install cibuildwheel==1.5.5
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -92,7 +94,7 @@ after_success:
     fi
 ```
 
-For more information, including how to build on Appveyor, Azure, CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and also check out [the examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including how to build on GitHub Actions, Appveyor, Azure Pipelines, or CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
@@ -100,16 +102,19 @@ Options
 |   | Option | Description |
 |---|--------|-------------|
 | **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.readthedocs.io/en/stable/options/#platform)  | Override the auto-detected target platform |
-|   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
-| **Build environment** | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
+|   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  <br> [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
+| **Build customization** | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
+|   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
 |   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
 |   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each (non-pure Python) built wheel |
-|   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  [`CIBW_MANYLINUX_PYPY_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
+|   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_AARCH64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PPC64LE_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_S390X_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
+|   | [`CIBW_DEPENDENCY_VERSIONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)  | Specify how cibuildwheel controls the versions of the tools it uses |
 | **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
-|   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-test)  | Execute shell command to prepare test environment |
+|   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-test)  | Execute a shell command before testing each wheel |
 |   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
 |   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
 | **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-verbosity)  | Increase/decrease the output of pip wheel |
+
 
 Working examples
 ----------------
@@ -147,6 +152,62 @@ This is similar to static linking, so it might have some licence implications. C
 Changelog
 =========
 
+### 1.5.5
+
+_22 July 2020_
+
+- 🐛 Fix a bug that would cause command substitutions in CIBW_ENVIRONMENT to
+  produce no output on Linux (#411)
+- 🐛 Fix regression (introduced in 1.5.3) which caused BEFORE_BUILD and
+  BEFORE_ALL to be executed in the wrong directory (#410)
+
+### 1.5.4
+
+_19 June 2020_
+
+- 🐛 Fix a bug that would cause command substitutions in CIBW_ENVIRONMENT
+  variables to not interpret quotes in commands correctly (#406, #408)
+
+### 1.5.3
+
+_19 July 2020_
+
+- 🛠 Update CPython 3.8 to 3.8.3 (#405)
+- 🛠 Internal refactoring of Linux build, to move control flow into Python (#386)
+
+### 1.5.2
+
+_8 July 2020_
+
+- 🐛 Fix an issue on Windows where pyproject.toml would cause an error when
+  some requirements formats were used. (#401)
+- 🛠 Update CPython 3.7 to 3.7.8 (#394)
+
+### 1.5.1
+
+_25 June 2020_
+
+- 🐛 Fix "OSError: [WinError 17] The system cannot move the file to a different
+  disk drive" on Github Actions (#388, #389)
+
+### 1.5.0
+
+_24 June 2020_
+
+- 🌟 Add [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)
+  option, which lets you run a command on the build machine before any wheels
+  are built. This is especially useful when building on Linux, to `make`
+  something external to Python, or to `yum install` a dependency. (#342)
+- ✨ Added support for projects using pyproject.toml instead of setup.py
+  (#360, #358)
+- ✨ Added workaround to allow Python 3.5 on Windows to pull dependencies from
+  pyproject.toml. (#358)
+- 📚 Improved Github Actions examples and docs (#354, #362)
+- 🐛 Ensure pip wheel uses the specified package, and doesn't build a wheel
+  from PyPI (#369)
+- 🛠 Internal changes: using pathlib.Path, precommit hooks, testing
+  improvements.
+
 ### 1.4.2
 
 _25 May 2020_
@@ -169,7 +230,7 @@ _4 May 2020_
 
 _2 May 2020_
 
-- ✨ Deterministic builds. cibuildwheel now locks the versions of the tools it
+- 🌟 Deterministic builds. cibuildwheel now locks the versions of the tools it
   uses. This means that pinning your version of cibuildwheel pins the versions
   of pip, setuptools, manylinux etc. that are used under the hood. This should
   make things more reliable. But note that we don't control the entire build
@@ -199,7 +260,7 @@ _2 May 2020_
 
 _12 March 2020_
 
-- ✨ Add support for building on Github Actions! Check out the
+- 🌟 Add support for building on Github Actions! Check out the
   [docs](https://cibuildwheel.readthedocs.io/en/stable/setup/#github-actions)
   for information on how to set it up. (#194)
 - ✨ Add the `CIBW_BEFORE_TEST` option, which lets you run a command to
@@ -209,9 +270,9 @@ _12 March 2020_
 
 _8 March 2020_
 
-- ✨ Add support for building PyPy wheels, across Manylinux, macOS, and
+- 🌟 Add support for building PyPy wheels, across Manylinux, macOS, and
   Windows. (#185)
-- ✨ Added the ability to build ARM64 (aarch64), ppc64le, and s390x wheels,
+- 🌟 Added the ability to build ARM64 (aarch64), ppc64le, and s390x wheels,
   using manylinux2014 and Travis CI. (#273)
 - ✨ You can now build macOS wheels on Appveyor. (#230)
 - 🛠 Changed default macOS minimum target to 10.9, from 10.6. This allows the
@@ -232,7 +293,7 @@ _8 March 2020_
 
 _7 December 2019_
 
-- ✨ Add support for building manylinux2014 wheels. To use, set
+- 🌟 Add support for building manylinux2014 wheels. To use, set
   `CIBW_MANYLINUX_X86_64_IMAGE` and CIBW_MANYLINUX_I686_IMAGE to
   `manylinux2014`.
 - ✨ Add support for [Linux on Appveyor](https://www.appveyor.com/blog/2018/03/06/appveyor-for-linux/) (#204, #207)
@@ -245,8 +306,8 @@ _7 December 2019_
 
 _10 November 2019_
 
-- ✨ Add support for building Python 3.8 wheels! (#180)
-- ✨ Add support for building manylinux2010 wheels. cibuildwheel will now
+- 🌟 Add support for building Python 3.8 wheels! (#180)
+- 🌟 Add support for building manylinux2010 wheels. cibuildwheel will now
   build using the manylinux2010 images by default. If your project is still
   manylinux1 compatible, you should get both manylinux1 and manylinux2010
   wheels - you can upload both to PyPI. If you always require manylinux1 wheels, you can
@@ -282,7 +343,7 @@ _28 May 2019_
 
 _26 May 2019_
 
-- ✨ Add support for building on Azure pipelines! This lets you build all
+- 🌟 Add support for building on Azure pipelines! This lets you build all
   Linux, Mac and Windows wheels on one service, so it promises to be the
   easiest to set up! Check out the quickstart in the docs, or
   [cibuildwheel-azure-example](https://github.com/joerick/cibuildwheel-azure-example)
@@ -312,8 +373,8 @@ _3 February 2019_
 
 _23 September 2018_
 
-- ✨ Add `CIBW_BUILD` option, for specifying which specific builds to perform (#101)
-- ✨ Add support for building Mac and Linux on CircleCI (#91, #97)
+- 🌟 Add `CIBW_BUILD` option, for specifying which specific builds to perform (#101)
+- 🌟 Add support for building Mac and Linux on CircleCI (#91, #97)
 - 🛠 Improved support for building universal wheels (#95)
 - 🛠 Ensure log output is unbuffered and therefore in the correct order (#92)
 - 🛠 Improved error reporting for errors that occur inside a package's setup.py (#88)

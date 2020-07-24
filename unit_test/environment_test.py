@@ -40,7 +40,7 @@ def test_inheritance():
 
 
 def test_shell_eval():
-    environment_recipe = parse_environment('VAR="$(echo "a test" string)"')
+    environment_recipe = parse_environment('VAR="$(echo "a   test" string)"')
 
     env_copy = os.environ.copy()
     env_copy.pop('VAR', None)
@@ -50,8 +50,8 @@ def test_shell_eval():
     )
     environment_cmds = environment_recipe.as_shell_commands()
 
-    assert environment_dict['VAR'] == 'a test string'
-    assert environment_cmds == ['export VAR="$(echo "a test" string)"']
+    assert environment_dict['VAR'] == 'a   test string'
+    assert environment_cmds == ['export VAR="$(echo "a   test" string)"']
 
 
 def test_shell_eval_and_env():
@@ -94,3 +94,32 @@ def test_no_vars_pass_through():
     environment_dict = environment_recipe.as_dictionary(prev_environment={'CIBUILDWHEEL': 'awesome'})
 
     assert environment_dict == {'CIBUILDWHEEL': 'awesome'}
+
+
+def test_operators_inside_eval():
+    environment_recipe = parse_environment('SOMETHING="$(echo a; echo b; echo c)"')
+
+    # pass the existing process env so PATH is available
+    environment_dict = environment_recipe.as_dictionary(os.environ.copy())
+
+    assert environment_dict.get('SOMETHING') == 'a\nb\nc'
+
+
+def test_substitution_with_backslash():
+    environment_recipe = parse_environment('PATH2="somewhere_else;$PATH1"')
+
+    # pass the existing process env so PATH is available
+    environment_dict = environment_recipe.as_dictionary(prev_environment={
+        'PATH1': 'c:\\folder\\'
+    })
+
+    assert environment_dict.get('PATH2') == 'somewhere_else;c:\\folder\\'
+
+
+def test_awkwardly_quoted_variable():
+    environment_recipe = parse_environment('VAR2=something"like this""$VAR1"$VAR1$(echo "theres more")"$(echo "and more!")"')
+
+    # pass the existing process env so PATH is available
+    environment_dict = environment_recipe.as_dictionary({'VAR1': 'but wait'})
+
+    assert environment_dict.get('VAR2') == 'somethinglike thisbut waitbut waittheres moreand more!'
