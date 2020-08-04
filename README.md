@@ -224,9 +224,8 @@ _25 May 2020_
 _4 May 2020_
 
 - 🐛 Fix a bug causing programs running inside the i686 manylinux images to
-  think they were running x86_64 and target the wrong architecture. (#336,
+  think they were running x86_64 and target the wrong architecture. (#336, #338)
   
-  #338)
 
 ### 1.4.0
 
