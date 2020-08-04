@@ -137,6 +137,7 @@ Here are some repos that use cibuildwheel.
 - [aiortc](https://github.com/aiortc/aiortc)
 - [aioquic](https://github.com/aiortc/aioquic)
 - [pikepdf](https://github.com/pikepdf/pikepdf)
+- [fathon](https://github.com/stfbnc/fathon)
 
 > Add your repo here! Send a PR.
 
