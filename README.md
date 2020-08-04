@@ -137,6 +137,7 @@ Here are some repos that use cibuildwheel.
 - [aiortc](https://github.com/aiortc/aiortc)
 - [aioquic](https://github.com/aiortc/aioquic)
 - [pikepdf](https://github.com/pikepdf/pikepdf)
+- [fathon](https://github.com/stfbnc/fathon)
 
 > Add your repo here! Send a PR.
 
@@ -224,6 +225,7 @@ _4 May 2020_
 
 - 🐛 Fix a bug causing programs running inside the i686 manylinux images to
   think they were running x86_64 and target the wrong architecture. (#336,
+  
   #338)
 
 ### 1.4.0
