@@ -1,6 +1,7 @@
 
 linux:
-  image: docker
+  image: python:3.8
   script:
+    - curl -sSL https://get.docker.com/ | sh
     - python -m pip install -r requirements-dev.txt
     - python ./bin/run_tests.py
