@@ -234,7 +234,7 @@ def build(options: BuildOptions) -> None:
 
 def troubleshoot(package_dir: Path, error: Exception) -> None:
     if (isinstance(error, subprocess.CalledProcessError) and error.cmd[0:2] == ['pip', 'wheel']):
-        # the bash script failed
+        # the 'pip wheel' step failed.
         print('Checking for common errors...')
         so_files = list(package_dir.glob('**/*.so'))
 
