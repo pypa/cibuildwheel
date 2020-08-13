@@ -233,7 +233,7 @@ def build(options: BuildOptions) -> None:
 
 
 def troubleshoot(package_dir: Path, error: Exception) -> None:
-    if (isinstance(error, subprocess.CalledProcessError) and 'exec' in error.cmd):
+    if (isinstance(error, subprocess.CalledProcessError) and error.cmd[0:2] == ['pip', 'wheel']):
         # the bash script failed
         print('Checking for common errors...')
         so_files = list(package_dir.glob('**/*.so'))
@@ -247,7 +247,7 @@ def troubleshoot(package_dir: Path, error: Exception) -> None:
 
                   If you're using Cython and have previously done an in-place build,
                   remove those build files (*.so and *.c) before starting cibuildwheel.
-            '''))
+            '''), file=sys.stderr)
 
             print('  Files detected:')
             print('\n'.join([f'    {f}' for f in so_files]))
