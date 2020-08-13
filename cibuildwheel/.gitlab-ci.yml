@@ -1,0 +1,6 @@
+
+linux:
+  image: docker
+  script:
+    - python -m pip install -r requirements-dev.txt
+    - python ./bin/run_tests.py
