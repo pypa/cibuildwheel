@@ -1,4 +1,3 @@
-
 linux:
   image: python:3.8
   services:
@@ -14,3 +13,15 @@ linux:
     - curl -sSL https://get.docker.com/ | sh
     - python -m pip install -r requirements-dev.txt
     - python ./bin/run_tests.py
+
+windows:
+  tags:
+    - shared-windows
+    - windows
+    - windows-1809
+  variables:
+    - PYTHON=C:\\Python36\\python
+  script:
+    - choco install python3 --version 3.6.8 --no-progress -y
+    - $PYTHON -m pip install -r requirements-dev.txt
+    - $PYTHON ./bin/run_tests.py
