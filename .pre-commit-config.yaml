@@ -14,8 +14,9 @@ repos:
     - id: end-of-file-fixer
       exclude: cibuildwheel/resources/pinned_docker_images.cfg
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: ''  # Use the sha / tag you want to point at
+    rev: v0.782
     hooks:
     - id: mypy
-      files: cibuildwheel|test
-      exclude: cibuildwheel/resources
+      files: cibuildwheel/|test/
+      entry: mypy
+      pass_filenames: false
