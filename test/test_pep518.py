@@ -1,6 +1,7 @@
 import textwrap
 from . import test_projects
 from . import utils
+import os
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
@@ -51,3 +52,5 @@ def test_pep518(tmp_path):
 
     assert not (project_dir / "42").exists()
     assert not (project_dir / "4.1.2").exists()
+
+    assert len(os.listdir(project_dir)) == len(basic_project.files)

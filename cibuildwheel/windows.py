@@ -179,9 +179,12 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
         )
 
         if requirements:
-            # Workaround for bug when ]>= is present, #421
-            requirements = [r.replace("]", "] ") for r in requirements]
-            call(['pip', 'install'] + requirements, env=env)
+            with tempfile.TemporaryDirectory() as d:
+                reqfile = Path(d) / "requirements.txt"
+                with reqfile.open("w") as f:
+                    for r in requirements:
+                        print(r, file=f)
+                call(['pip', 'install', '-r', str(reqfile)], env=env)
 
 
 def build(options: BuildOptions) -> None:
