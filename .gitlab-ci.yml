@@ -20,7 +20,7 @@ windows:
     - windows
     - windows-1809
   variables:
-    - PYTHON=C:\\Python36\\python
+    PYTHON: C:\\Python36\\python
   script:
     - choco install python3 --version 3.6.8 --no-progress -y
     - $PYTHON -m pip install -r requirements-dev.txt
