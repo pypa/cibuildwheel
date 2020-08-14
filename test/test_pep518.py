@@ -27,6 +27,7 @@ basic_project.files[
 [build-system]
 requires = [
     "setuptools >= 42",
+    "setuptools_scm[toml]>=4.1.2",
     "wheel",
     "requests==2.22.0; python_version<'3.6'",
     "requests==2.23.0; python_version>='3.6'"
@@ -47,3 +48,6 @@ def test_pep518(tmp_path):
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
+
+    assert not (project_dir / "42").exists()
+    assert not (project_dir / "4.1.2").exists()

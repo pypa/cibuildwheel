@@ -177,8 +177,11 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             if 'build-system' in data
             else []
         )
+
         if requirements:
-            shell(['pip', 'install'] + requirements, env=env)
+            # Workaround for bug when ]>= is present, #421
+            requirements = [r.replace("]", "] ") for r in requirements]
+            call(['pip', 'install'] + requirements, env=env)
 
 
 def build(options: BuildOptions) -> None:
