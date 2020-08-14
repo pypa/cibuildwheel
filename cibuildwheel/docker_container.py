@@ -117,11 +117,12 @@ class DockerContainer:
 
         return [PurePath(p) for p in path_strs]
 
-    def call(self, args: Sequence[Union[str, PathLike]], env: Dict[str, str] = {},
+    def call(self, args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = None,
              capture_output=False, cwd: Optional[Union[str, PathLike]] = None) -> str:
+
         chdir = f'cd {cwd}' if cwd else ''
         env_assignments = ' '.join(f'{shlex.quote(k)}={shlex.quote(v)}'
-                                   for k, v in env.items())
+                                   for k, v in env.items()) if env is not None else ''
         command = ' '.join(shlex.quote(str(a)) for a in args)
         end_of_message = str(uuid.uuid4())
 

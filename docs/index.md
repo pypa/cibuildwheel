@@ -2,9 +2,9 @@
 title: Home
 ---
 
-{% 
+{%
    includemarkdown "../README.md"
-   start="<!--intro-start-->" 
+   start="<!--intro-start-->"
    end="<!--intro-end-->"
 %}
 
