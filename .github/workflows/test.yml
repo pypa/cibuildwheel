@@ -8,7 +8,7 @@ on:
 
 jobs:
   pre-commit:
-    name: Format
+    name: Pre-commit checks (mypy, flake8, etc.)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
