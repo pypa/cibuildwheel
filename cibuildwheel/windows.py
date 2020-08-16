@@ -177,8 +177,14 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             if 'build-system' in data
             else []
         )
+
         if requirements:
-            shell(['pip', 'install'] + requirements, env=env)
+            with tempfile.TemporaryDirectory() as d:
+                reqfile = Path(d) / "requirements.txt"
+                with reqfile.open("w") as f:
+                    for r in requirements:
+                        print(r, file=f)
+                call(['pip', 'install', '-r', reqfile], env=env)
 
 
 def build(options: BuildOptions) -> None:

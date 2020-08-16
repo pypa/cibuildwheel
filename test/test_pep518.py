@@ -1,6 +1,7 @@
 import textwrap
 from . import test_projects
 from . import utils
+import os
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
@@ -27,6 +28,7 @@ basic_project.files[
 [build-system]
 requires = [
     "setuptools >= 42",
+    "setuptools_scm[toml]>=4.1.2",
     "wheel",
     "requests==2.22.0; python_version<'3.6'",
     "requests==2.23.0; python_version>='3.6'"
@@ -47,3 +49,10 @@ def test_pep518(tmp_path):
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
+
+    # These checks ensure an extra file is not created when using custom
+    # workaround; see https://github.com/joerick/cibuildwheel/issues/421
+    assert not (project_dir / "42").exists()
+    assert not (project_dir / "4.1.2").exists()
+
+    assert len(os.listdir(project_dir)) == len(basic_project.files)
