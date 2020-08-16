@@ -184,7 +184,7 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
                 with reqfile.open("w") as f:
                     for r in requirements:
                         print(r, file=f)
-                call(['pip', 'install', '-r', str(reqfile)], env=env)
+                call(['pip', 'install', '-r', reqfile], env=env)
 
 
 def build(options: BuildOptions) -> None:
