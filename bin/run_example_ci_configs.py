@@ -64,7 +64,7 @@ services = [
     ),
     CIService(
         name='gitlab',
-        src_config_path='gitlab-minimal.yml',
+        src_config_path='examples/gitlab-minimal.yml',
         dst_config_path='.gitlab-ci.yml',
         badge_md='[![Gitlab](https://gitlab.com/joerick/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/joerick/cibuildwheel/-/commits/{branch})'
     ),
