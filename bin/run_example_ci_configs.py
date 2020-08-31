@@ -62,8 +62,12 @@ services = [
         dst_config_path='.travis.yml',
         badge_md='[![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch={branch})](https://travis-ci.org/joerick/cibuildwheel)',
     ),
-    # CIService(
-    # name='gitlab', src_config_path='gitlab-minimal.yml', dst_config_path='.gitlab-ci.yml'),
+    CIService(
+        name='gitlab',
+        src_config_path='gitlab-minimal.yml',
+        dst_config_path='.gitlab-ci.yml',
+        badge_md='[![Gitlab](https://gitlab.com/joerick/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/joerick/cibuildwheel/-/commits/{branch})'
+    ),
 ]
 
 
