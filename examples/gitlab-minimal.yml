@@ -26,6 +26,7 @@ windows:
   script:
     - choco install python --version 3.8.5 -y
     - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+    - python -m pip install cibuildwheel
     - cibuildwheel --output-dir wheelhouse
   artifacts:
     paths:
