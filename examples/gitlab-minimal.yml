@@ -24,7 +24,9 @@ windows:
     - windows
     - windows-1809
   script:
-    - choco install python --version 3.8.5 -y
+    - choco install python2 vcredist2008 -f -y
+    - choco install --ignore-dependencies vcpython27 -f -y
+    - choco install python --version 3.8.5 -f -y
     - $env:PATH="C:\Python38;C:\Python38\Scripts;$env:PATH"
     - python -m pip install cibuildwheel
     - cibuildwheel --output-dir wheelhouse

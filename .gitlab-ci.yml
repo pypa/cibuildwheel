@@ -19,9 +19,10 @@ windows:
     - shared-windows
     - windows
     - windows-1809
-  variables:
-    PYTHON: C:\\Python36\\python
   script:
+    - choco install python2 vcredist2008 -f -y
+    - choco install --ignore-dependencies vcpython27 -f -y
     - choco install python3 --version 3.6.8 --no-progress -y
-    - $PYTHON -m pip install -r requirements-dev.txt
-    - $PYTHON ./bin/run_tests.py
+    - $env:PATH="C:\Python36;C:\Python36\Scripts;$env:PATH"
+    - python -m pip install -r requirements-dev.txt
+    - python ./bin/run_tests.py
