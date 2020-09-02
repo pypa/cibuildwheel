@@ -66,6 +66,19 @@ Commit this file, enable building of your repo on CircleCI, and push.
 
 CircleCI will store the built wheels for you - you can access them from the project console. Check out the CircleCI [docs](https://circleci.com/docs/2.0/configuration-reference/#section=configuration) for more info on this config file.
 
+# Gitlab CI [linux] {: #gitlab-ci}
+
+To build Linux wheels on Gitlab CI, create a `.gitlab-ci.yml` file in your repo,
+
+> .gitlab-ci.yml
+```yaml
+{% include "../examples/gitlab-minimal.yml" %}
+```
+
+Commit this file, and push to Gitlab. The pipeline should start automatically.
+
+Gitlab will store the built wheels for you - you can access them from the Pipelines view. Check out the Gitlab [docs](https://docs.gitlab.com/ee/ci/yaml/) for more info on this config file.
+
 # AppVeyor [linux/mac/windows] {: #appveyor}
 
 To build Linux, Mac, and Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
