@@ -17,18 +17,19 @@ What does it do?
 
 |   | macOS x86_64 | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
 |---|---|---|---|---|---|---|---|---|
-| CPython 2.7     | ✅ | ✅¹ | ✅¹ | ✅ | ✅ |     |     |     |
-| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
-| CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
-| CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
-| CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅  | ✅  | ✅² |
-| CPython 3.9³    | 🛠 | 🛠  | 🛠  | 🛠 | 🛠 | 🛠  | 🛠  |    |
-| PyPy 2.7 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
-| PyPy 3.6 v7.3.0 | ✅ |     | ✅  | ✅ |    |     |     |     |
+| CPython 2.7     | ✅ | ✅¹ | ✅¹ | ✅ | ✅ |    |    |    |
+| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
+| CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
+| CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
+| CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
+| CPython 3.9     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅⁴ | ✅³ |
+| PyPy 2.7 v7.3.0 | ✅ |    | ✅  | ✅ |    |    |    |    |
+| PyPy 3.6 v7.3.0 | ✅ |    | ✅  | ✅ |    |    |    |    |
 
 <sup>¹ Not supported on Travis</sup><br>
-<sup>² Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup><br>
-<sup>³ Python 3.9 is not yet ABI stable, so you shouldn't publish wheels with it yet. But if you want to check that your wheels build on Python 3.9, try our [`python3.9` branch](https://github.com/joerick/cibuildwheel/pull/382)!</sup>
+<sup>² Only supported on Travis</sup><br>
+<sup>³ Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup><br>
+<sup>⁴ Only Python 3.9 beta 3 is supported, until <a href="https://github.com/pypa/manylinux/issues/758">a bug</a> in building the manylinux2014 is fixed</sup><br>
 
 - Builds manylinux, macOS and Windows wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
