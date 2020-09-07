@@ -58,6 +58,8 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.7.8', arch='64', identifier='cp37-win_amd64', url=None),
         PythonConfiguration(version='3.8.4', arch='32', identifier='cp38-win32', url=None),
         PythonConfiguration(version='3.8.4', arch='64', identifier='cp38-win_amd64', url=None),
+        PythonConfiguration(version='3.9.0-rc1', arch='32', identifier='cp39-win32', url=None),
+        PythonConfiguration(version='3.9.0-rc1', arch='64', identifier='cp39-win_amd64', url=None),
         # PyPy
         PythonConfiguration(version='2.7', arch='32', identifier='pp27-win32', url='https://downloads.python.org/pypy/pypy2.7-v7.3.1-win32.zip'),
         PythonConfiguration(version='3.6', arch='32', identifier='pp36-win32', url='https://downloads.python.org/pypy/pypy3.6-v7.3.1-win32.zip'),
@@ -177,8 +179,14 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             if 'build-system' in data
             else []
         )
+
         if requirements:
-            shell(['pip', 'install'] + requirements, env=env)
+            with tempfile.TemporaryDirectory() as d:
+                reqfile = Path(d) / "requirements.txt"
+                with reqfile.open("w") as f:
+                    for r in requirements:
+                        print(r, file=f)
+                call(['pip', 'install', '-r', reqfile], env=env)
 
 
 def build(options: BuildOptions) -> None:

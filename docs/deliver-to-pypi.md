@@ -9,14 +9,14 @@ After you've built your wheels, you'll probably want to deliver them to PyPI.
 On your development machine, do the following...
 
 ```bash
-# Clear out your 'dist' folder. 
+# Clear out your 'dist' folder.
 rm -rf dist
 # Make a source distribution
 python setup.py sdist
 
 # 🏃🏻
 # Go and download your wheel files from wherever you put them. e.g. your CI
-# provider can be configured to store them for you. Put them all into the 
+# provider can be configured to store them for you. Put them all into the
 # 'dist' folder.
 
 # Upload using 'twine' (you may need to 'pip install twine')

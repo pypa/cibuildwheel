@@ -7,6 +7,14 @@ on:
       - 'docs/**'
 
 jobs:
+  pre-commit:
+    name: Pre-commit checks (mypy, flake8, etc.)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - uses: pre-commit/action@v2.0.0
+
   test:
     # skip branch builds on joerick/cibuildwheel, but always build `master` and pull requests
     if: github.repository != 'joerick/cibuildwheel' || github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
