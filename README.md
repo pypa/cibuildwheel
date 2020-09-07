@@ -38,7 +38,7 @@ What does it do?
 Usage
 -----
 
-`cibuildwheel` currently works on **Travis CI**, **Azure Pipelines**, **AppVeyor** and **GitHub Actions** to build wheels for all three supported platforms (Linux, macOS, Windows). On **CircleCI** Linux and macOS wheels can be built.
+`cibuildwheel` currently works on **Travis CI**, **Azure Pipelines**, **AppVeyor**, **GitHub Actions**, **CircleCI**, and **Gitlab CI**. Check the table below for supported platforms on each service:
 
 |                 | Linux | macOS | Windows |
 |-----------------|-------|-------|---------|
@@ -47,8 +47,9 @@ Usage
 | AppVeyor        | ✅    | ✅    | ✅      |
 | GitHub Actions  | ✅    | ✅    | ✅      |
 | CircleCI        | ✅    | ✅    |         |
+| Gitlab CI       | ✅    |       |         |
 
-`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like Travis CI, CircleCI, Azure Pipelines and AppVeyor are ideal.
+`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal.
 
 <!--intro-end-->
 

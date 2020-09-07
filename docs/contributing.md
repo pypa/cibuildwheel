@@ -28,3 +28,39 @@ cibuildwheel doesn't really do anything itself - it's always deferring to other 
 We're not responsible for errors in those tools, for fixing errors/crashes there. But cibuildwheel's job is providing users with an 'integrated' user experience across those tools. We provide an abstraction. The user says 'build me some wheels', not 'open the docker container, build a wheel with pip, fix up the symbols with auditwheel' etc.  However, errors have a habit of breaking abstractions. And this is where users get confused, because the mechanism of cibuildwheel is laid bare, and they must understand a little bit how it works to debug.
 
 So, if we can, I'd like to improve the experience on errors as well. In [this](https://github.com/joerick/cibuildwheel/issues/139) case, it takes a bit of knowledge to understand that the linux builds are happening in a totally different OS via docker, that the linked symbols won't match, that auditwheel will fail because of this. A problem with how the tools fit together, instead of the tools themselves.
+
+Maintainer notes
+----------------
+
+## Testing minimal configs
+
+cibuildwheel's _minimal_ example configs can be tested on a simple project on cibuildwheel's existing CI. These should be run whenever the minimal configs change.
+
+To test minimal configs, make sure you have a clean git repo, then run the script:
+
+    bin/run_example_ci_configs.py
+
+The script will create an isolated 'orphan' commit containing all the minimal config CI files, and a simple C extension project, and push that to a branch on the `origin` repo. The project's CI is already set up to run on branch push, so will begin testing.
+
+The script then outputs a Markdown table that can be copy/pasted into a PR to monitor and record the test.
+
+## Making a release
+
+Before making a release, ensure pinned dependencies are up-to-date. Run the script:
+
+    bin/make_dependency_update_pr.py
+
+If updates are needed, this will push a PR with those updates for the CI to test. Once green, merge this PR.
+
+Then, increment the project version number using:
+
+    bin/bump_version.py
+
+You'll be prompted to enter the new version number. Update the changelog when prompted. The script will create a 'bump version' commit and version tag.
+
+Finally, cut the release and upload to PyPI/Github.
+
+    rm -rf dist
+    python setup.py sdist bdist_wheel
+    twine upload dist/*
+    git push && git push --tags
