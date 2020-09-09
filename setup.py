@@ -19,6 +19,10 @@ setup(
     author="Joe Rickerby",
     author_email='joerick@mac.com',
     url='https://github.com/joerick/cibuildwheel',
+    project_urls={
+        'Changelog': 'https://github.com/joerick/cibuildwheel#changelog',
+        'Documentation': 'https://cibuildwheel.readthedocs.io/',
+    },
     packages=['cibuildwheel', ],
     license="BSD",
     zip_safe=False,
