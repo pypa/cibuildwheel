@@ -81,7 +81,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.5.5
+  - python3 -m pip install cibuildwheel==1.6.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -154,6 +154,26 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.6.0
+
+_9 September 2020_
+
+- 🌟 Add Python 3.9 support! This initial support uses release candidate
+  builds. You should can preparing your library for Python 3.9 now, ahead of
+  the official release. (#382)
+
+  Minor note - if you're building PPC64LE wheels, the manylinux image pinned
+  by this version is
+  [still on Python 3.9b3](https://github.com/pypa/manylinux/issues/758), not a
+  release candidate. We'd advise holding off on distributing 3.9 ppc64le wheels
+  until a subsequent version of cibuildwheel.
+- 🌟 Add Gitlab CI support. Gitlab CI can now build Linux wheels, using
+  cibuildwheel. (#419)
+- 🐛 Fix a bug that causes pyproject.toml dependencies to fail to install on
+  Windows (#420)
+- 📚 Added some information about Windows VC++ runtimes and how they relate
+  to wheels.
 
 ### 1.5.5
 
