@@ -160,7 +160,7 @@ Changelog
 _9 September 2020_
 
 - 🌟 Add Python 3.9 support! This initial support uses release candidate
-  builds. You should can preparing your library for Python 3.9 now, ahead of
+  builds. You can start publishing wheels for Python 3.9 now, ahead of
   the official release. (#382)
 
   Minor note - if you're building PPC64LE wheels, the manylinux image pinned
