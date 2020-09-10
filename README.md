@@ -23,8 +23,9 @@ What does it do?
 | CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
 | CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
 | CPython 3.9     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| PyPy 2.7 v7.3.0 | ✅ |    | ✅  | ✅ |    |    |    |    |
-| PyPy 3.6 v7.3.0 | ✅ |    | ✅  | ✅ |    |    |    |    |
+| PyPy 2.7 v7.3.2 | ✅ |    | ✅  | ✅ |    |    |    |    |
+| PyPy 3.6 v7.3.2 | ✅ |    | ✅  | ✅ |    |    |    |    |
+| PyPy 3.7 (alpha) v7.3.2 | ✅ |    | ✅  | ✅ |    |    |    |    |
 
 <sup>¹ Not supported on Travis</sup><br>
 <sup>² Only supported on Travis</sup><br>
