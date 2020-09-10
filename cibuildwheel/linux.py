@@ -60,6 +60,7 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.9', identifier='cp39-manylinux_i686', path_str='/opt/python/cp39-cp39'),
         PythonConfiguration(version='2.7', identifier='pp27-manylinux_x86_64', path_str='/opt/python/pp27-pypy_73'),
         PythonConfiguration(version='3.6', identifier='pp36-manylinux_x86_64', path_str='/opt/python/pp36-pypy36_pp73'),
+        PythonConfiguration(version='3.7', identifier='pp37-manylinux_x86_64', path_str='/opt/python/pp37-pypy37_pp73'),
         PythonConfiguration(version='3.5', identifier='cp35-manylinux_aarch64', path_str='/opt/python/cp35-cp35m'),
         PythonConfiguration(version='3.6', identifier='cp36-manylinux_aarch64', path_str='/opt/python/cp36-cp36m'),
         PythonConfiguration(version='3.7', identifier='cp37-manylinux_aarch64', path_str='/opt/python/cp37-cp37m'),
