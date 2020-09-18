@@ -140,6 +140,7 @@ Here are some repos that use cibuildwheel.
 - [aioquic](https://github.com/aiortc/aioquic)
 - [pikepdf](https://github.com/pikepdf/pikepdf)
 - [fathon](https://github.com/stfbnc/fathon)
+- [etebase-py](https://github.com/etesync/etebase-py)
 
 > Add your repo here! Send a PR.
 
