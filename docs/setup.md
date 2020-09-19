@@ -48,7 +48,7 @@ Commit this file, enable building of your repo on Travis CI, and push.
 
 Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).
 
-[`examples/travis-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/travis-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
+[`examples/travis-ci-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/travis-ci-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
 
 # CircleCI [linux/mac] {: #circleci}
 
