@@ -123,7 +123,7 @@ Working examples
 
 Here are some repos that use cibuildwheel.
 
-- [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext)
+- [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext) - A simple C extension, without external dependencies, built on Travis CI/Appveyor.
 - [websockets](https://github.com/aaugustin/websockets)
 - [Parselmouth](https://github.com/YannickJadoul/Parselmouth)
 - [python-admesh](https://github.com/admesh/python-admesh)
@@ -140,9 +140,11 @@ Here are some repos that use cibuildwheel.
 - [aioquic](https://github.com/aiortc/aioquic)
 - [pikepdf](https://github.com/pikepdf/pikepdf)
 - [fathon](https://github.com/stfbnc/fathon)
-- [etebase-py](https://github.com/etesync/etebase-py)
+- [etebase-py](https://github.com/etesync/etebase-py) - Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI.
 
 > Add your repo here! Send a PR.
+> 
+> <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
 
 Legal note
 ----------
