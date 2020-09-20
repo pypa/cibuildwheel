@@ -74,6 +74,8 @@ jobs:
       before_install:
         - choco install python --version 3.8.0
         - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+        # make sure it's on PATH as 'python3'
+        - ln -s /c/Python38/python.exe /c/Python38/python3.exe
 
 env:
   global:
@@ -143,7 +145,7 @@ Here are some repos that use cibuildwheel.
 - [etebase-py](https://github.com/etesync/etebase-py) - Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI.
 
 > Add your repo here! Send a PR.
-> 
+>
 > <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
 
 Legal note
