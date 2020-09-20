@@ -272,7 +272,4 @@ def build(options: BuildOptions) -> None:
             shutil.rmtree(venv_dir)
 
         # we're all done here; move it to output (overwrite existing)
-        repaired_wheel_output_path = os.path.join(options.output_dir, str(repaired_wheel))
-        if os.path.exists(repaired_wheel_output_path):
-            os.remove(repaired_wheel_output_path)
-        shutil.move(str(repaired_wheel), options.output_dir)
+        os.replace(str(repaired_wheel), os.path.join(options.output_dir, str(repaired_wheel)))
