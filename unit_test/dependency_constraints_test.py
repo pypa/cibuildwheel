@@ -12,5 +12,4 @@ def test_defaults():
     assert dependency_constraints.base_file_path.samefile(resources_dir / 'constraints.txt')
     assert dependency_constraints.get_for_python_version('3.8').samefile(resources_dir / 'constraints.txt')
     assert dependency_constraints.get_for_python_version('3.6').samefile(resources_dir / 'constraints-python36.txt')
-    assert dependency_constraints.get_for_python_version('3.5').samefile(resources_dir / 'constraints-python35.txt')
     assert dependency_constraints.get_for_python_version('2.7').samefile(resources_dir / 'constraints-python27.txt')

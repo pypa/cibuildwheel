@@ -7,7 +7,6 @@ from os import PathLike
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 from zipfile import ZipFile
-import toml
 
 from .environment import ParsedEnvironment
 from .util import (BuildOptions, BuildSelector, NonPlatformWheelError, download,
@@ -50,8 +49,6 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         # CPython
         PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),
         PythonConfiguration(version='2.7.18', arch='64', identifier='cp27-win_amd64', url=None),
-        PythonConfiguration(version='3.5.4', arch='32', identifier='cp35-win32', url=None),
-        PythonConfiguration(version='3.5.4', arch='64', identifier='cp35-win_amd64', url=None),
         PythonConfiguration(version='3.6.8', arch='32', identifier='cp36-win32', url=None),
         PythonConfiguration(version='3.6.8', arch='64', identifier='cp36-win_amd64', url=None),
         PythonConfiguration(version='3.7.8', arch='32', identifier='cp37-win32', url=None),
@@ -158,37 +155,6 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     return env
 
 
-def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
-    """
-    Python 3.5 PEP 518 hack (see https://github.com/pypa/pip/issues/8392#issuecomment-639563494)
-    Basically, nuget's Python is an embedded Python distribution, which is not supported by pip.
-    Before version 3.6, there was no way to disable the "embedded" behavior, including the ignoring
-    of environment variables, including the ones pip uses to setup PEP 518 builds.
-
-    The fix here is as suggested in that issue; we manually setup the PEP 518 requirements. Since we
-    are in a fresh environment (except for pinned cibuildweel dependencies), the build is already
-    mostly "isolated".
-    """
-
-    pyproject_path = package_dir / 'pyproject.toml'
-
-    if pyproject_path.exists():
-        data = toml.load(pyproject_path)
-        requirements = (
-            data['build-system'].get('requires', [])
-            if 'build-system' in data
-            else []
-        )
-
-        if requirements:
-            with tempfile.TemporaryDirectory() as d:
-                reqfile = Path(d) / "requirements.txt"
-                with reqfile.open("w") as f:
-                    for r in requirements:
-                        print(r, file=f)
-                call(['pip', 'install', '-r', reqfile], env=env)
-
-
 def build(options: BuildOptions) -> None:
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
@@ -218,11 +184,6 @@ def build(options: BuildOptions) -> None:
         if options.before_build:
             before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
             shell(before_build_prepared, env=env)
-
-        # activate the PEP 518 patch if on Windows Python 3.5
-        # (will only have an effect if PEP 517 builds are used):
-        if config.version.startswith('3.5'):
-            pep_518_cp35_workaround(options.package_dir, env)
 
         # build the wheel
         if built_wheel_dir.exists():

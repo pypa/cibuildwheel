@@ -71,7 +71,7 @@ This option can also be set using the command-line option `--platform`.
 
 > Choose the Python versions to build
 
-Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux_x86_64` or `cp35-macosx_x86_64` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
+Space-separated list of builds to build and skip. Each build has an identifier like `cp27-manylinux_x86_64` or `cp36-macosx_x86_64` - you can list specific ones to build and `cibuildwheel` will only build those, and/or list ones to skip and `cibuildwheel` won't try to build them.
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
@@ -82,7 +82,6 @@ When setting the options, you can use shell-style globbing syntax (as per [`fnma
 |                 | macOS 64bit         | Manylinux x86 64bit    | Manylinux x86 32bit  | Windows 64bit   | Windows 32bit  | Manylinux Armv8 64bit  | Manylinux PPC64LE      | Manylinux s390x      |
 |-----------------|---------------------|------------------------|----------------------|-----------------|----------------|------------------------|------------------------|----------------------|
 | Python 2.7      | cp27-macosx_x86_64  | cp27-manylinux_x86_64  | cp27-manylinux_i686  | cp27-win_amd64  | cp27-win32     |                        |                        |                      |
-| Python 3.5      | cp35-macosx_x86_64  | cp35-manylinux_x86_64  | cp35-manylinux_i686  | cp35-win_amd64  | cp35-win32     | cp35-manylinux_aarch64 | cp35-manylinux_ppc64le | cp35-manylinux_s390x |
 | Python 3.6      | cp36-macosx_x86_64  | cp36-manylinux_x86_64  | cp36-manylinux_i686  | cp36-win_amd64  | cp36-win32     | cp36-manylinux_aarch64 | cp36-manylinux_ppc64le | cp36-manylinux_s390x |
 | Python 3.7      | cp37-macosx_x86_64  | cp37-manylinux_x86_64  | cp37-manylinux_i686  | cp37-win_amd64  | cp37-win32     | cp37-manylinux_aarch64 | cp37-manylinux_ppc64le | cp37-manylinux_s390x |
 | Python 3.8      | cp38-macosx_x86_64  | cp38-manylinux_x86_64  | cp38-manylinux_i686  | cp38-win_amd64  | cp38-win32     | cp38-manylinux_aarch64 | cp38-manylinux_ppc64le | cp38-manylinux_s390x |
@@ -115,8 +114,8 @@ CIBW_SKIP: cp27-win*
 # Skip Python 2.7 on 32-bit Windows
 CIBW_SKIP: cp27-win32
 
-# Skip Python 2.7 and Python 3.5
-CIBW_SKIP: cp27-* cp35-*
+# Skip Python 2.7 and Python 3.6
+CIBW_SKIP: cp27-* cp36-*
 
 # Skip Python 3.6 on Linux
 CIBW_SKIP: cp36-manylinux*

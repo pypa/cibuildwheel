@@ -47,7 +47,7 @@ def get_versions_from_constraint_file(constraint_file):
     return versions
 
 
-@pytest.mark.parametrize('python_version', ['2.7', '3.5', '3.6', '3.8'])
+@pytest.mark.parametrize('python_version', ['2.7', '3.6', '3.8'])
 def test_pinned_versions(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
@@ -60,9 +60,6 @@ def test_pinned_versions(tmp_path, python_version):
     if python_version == '2.7':
         constraint_filename = 'constraints-python27.txt'
         build_pattern = '[cp]p27-*'
-    elif python_version == '3.5':
-        constraint_filename = 'constraints-python35.txt'
-        build_pattern = '[cp]p35-*'
     elif python_version == '3.6':
         constraint_filename = 'constraints-python36.txt'
         build_pattern = '[cp]p36-*'
@@ -91,9 +88,6 @@ def test_pinned_versions(tmp_path, python_version):
     if python_version == '2.7':
         expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                            if '-cp27' in w or '-pp27' in w]
-    elif python_version == '3.5':
-        expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                           if '-cp35' in w or '-pp35' in w]
     elif python_version == '3.6':
         expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                            if '-cp36' in w or '-pp36' in w]

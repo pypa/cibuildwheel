@@ -18,7 +18,6 @@ What does it do?
 |   | macOS x86_64 | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
 |---|---|---|---|---|---|---|---|---|
 | CPython 2.7     | ✅ | ✅¹ | ✅¹ | ✅ | ✅ |    |    |    |
-| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
 | CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
 | CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
 | CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |

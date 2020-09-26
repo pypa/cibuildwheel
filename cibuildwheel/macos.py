@@ -34,7 +34,6 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
-        PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.8/python-3.7.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.4/python-3.8.4-macosx10.9.pkg'),
@@ -76,11 +75,6 @@ def install_cpython(version: str, url: str) -> Path:
         download(url, Path('/tmp/Python.pkg'))
         # install
         call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
-        # patch open ssl
-        if version == '3.5':
-            open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-{version}-openssl-v1.0.2u.tar.gz'
-            download(open_ssl_patch_url, Path('/tmp/python-patch.tar.gz'))
-            call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
 
     installation_bin_path = Path(f'/Library/Frameworks/Python.framework/Versions/{version}/bin')
     python_executable = 'python3' if version[0] == '3' else 'python'
@@ -155,16 +149,8 @@ def setup_python(python_configuration: PythonConfiguration,
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
-    # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
-    # inconsistencies if it's left unset.
+    # Pypy defaults to 10.7, causing inconsistencies if it's left unset.
     env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
-
-    if python_configuration.version == '3.5':
-        # Cross-compilation platform override - CPython 3.5 has an
-        # i386/x86_64 version of Python, but we only want a x64_64 build
-        env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
-        # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
-        env.setdefault('ARCHFLAGS', '-arch x86_64')
 
     return env
 
