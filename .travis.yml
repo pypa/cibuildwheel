@@ -28,6 +28,7 @@ jobs:
 
     - name: macOS | x86_64 | Python 3.x
       os: osx
+      osx_image: xcode10.2
       env: PYTHON=python3
 
     - name: Windows | x86_64 | Python 3.6
