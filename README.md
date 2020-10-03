@@ -539,6 +539,7 @@ Maintainers
 - Joe Rickerby [@joerick](https://github.com/joerick)
 - Yannick Jadoul [@YannickJadoul](https://github.com/YannickJadoul)
 - Matthieu Darbois [@mayeut](https://github.com/mayeut)
+- Henry Schreiner [@henryiii](https://github.com/henryiii)
 
 Credits
 -------
