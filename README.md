@@ -67,6 +67,8 @@ jobs:
     - services: docker
     # and a mac build
     - os: osx
+      # PyPy 7.3.2 needs macOS >= 10.14
+      osx_image: xcode10.2
       language: shell
     # and a windows build
     - os: windows

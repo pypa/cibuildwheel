@@ -64,6 +64,8 @@ jobs:
     - stage: deploy
       name: Build and deploy macOS wheels
       os: osx
+      # PyPy 7.3.2 needs macOS >= 10.14
+      osx_image: xcode10.2
       language: shell
       install: python3 -m pip install cibuildwheel==1.6.1
       script: python3 -m cibuildwheel --output-dir wheelhouse
