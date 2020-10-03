@@ -16,7 +16,7 @@ init:
 - ps: |
       $BRANCH = if ($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) { $env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH } else { $env:APPVEYOR_REPO_BRANCH }
       if (-not ($BRANCH -eq 'master' -or $BRANCH.ToLower().StartsWith('appveyor-'))) {
-        $env:PYTEST_ADDOPTS='-k "unit_test or _basic" --suppress-no-test-exit-code'
+        $env:PYTEST_ADDOPTS='-k "unit_test or test_0_basic" --suppress-no-test-exit-code'
       }
 
 install: python -m pip install -r requirements-dev.txt pytest-custom-exit-code
