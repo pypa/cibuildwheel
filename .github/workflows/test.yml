@@ -22,6 +22,7 @@ jobs:
     name: Test cibuildwheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-18.04, windows-latest, macos-latest]
         python_version: ['3.7']
