@@ -142,7 +142,7 @@ Here are some repos that use cibuildwheel.
 - [pikepdf](https://github.com/pikepdf/pikepdf)
 - [fathon](https://github.com/stfbnc/fathon)
 - [etebase-py](https://github.com/etesync/etebase-py) - Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI.
-
+- [xmlstarlet](https://github.com/dimitern/xmlstarlet) - Python CFFI bindings to XMLStarlet XML processing CLI.
 > Add your repo here! Send a PR.
 >
 > <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
