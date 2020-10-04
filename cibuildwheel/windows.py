@@ -17,6 +17,8 @@ from .util import (BuildOptions, BuildSelector, NonPlatformWheelError, download,
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
+INSTALL_PATH = 'C:\\cibw'
+
 
 def call(args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = None,
          cwd: Optional[str] = None) -> None:
@@ -35,7 +37,7 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
     python_name = 'python' if version[0] == '3' else 'python2'
     if arch == '32':
         python_name = python_name + 'x86'
-    return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
+    return [python_name, '-Version', version, '-OutputDirectory', INSTALL_PATH + '\\python']
 
 
 class PythonConfiguration(NamedTuple):
@@ -95,9 +97,9 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
     zip_filename = url.rsplit('/', 1)[-1]
     extension = ".zip"
     assert zip_filename.endswith(extension)
-    installation_path = Path('C:\\cibw') / zip_filename[:-len(extension)]
+    installation_path = Path(INSTALL_PATH) / zip_filename[:-len(extension)]
     if not installation_path.exists():
-        pypy_zip = Path('C:\\cibw') / zip_filename
+        pypy_zip = Path(INSTALL_PATH) / zip_filename
         download(url, pypy_zip)
         # Extract to the parent directory because the zip file still contains a directory
         extract_zip(pypy_zip, installation_path.parent)
@@ -107,7 +109,7 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
 
 
 def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: Sequence[Union[str, PathLike]], environment: ParsedEnvironment) -> Dict[str, str]:
-    nuget = Path('C:\\cibw\\nuget.exe')
+    nuget = Path(INSTALL_PATH + '\\nuget.exe')
     if not nuget.exists():
         download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
 
@@ -144,7 +146,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
 
     # make sure pip is installed
     if not (installation_path / 'Scripts' / 'pip.exe').exists():
-        call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="C:\\cibw")
+        call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd=INSTALL_PATH)
     assert (installation_path / 'Scripts' / 'pip.exe').exists()
     where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
     if where_pip.strip() != str(installation_path / 'Scripts' / 'pip.exe'):
@@ -196,7 +198,7 @@ def build(options: BuildOptions) -> None:
     repaired_wheel_dir = temp_dir / 'repaired_wheel'
 
     # install nuget as best way to provide python
-    nuget = Path('C:\\cibw\\nuget.exe')
+    nuget = Path(INSTALL_PATH + '\\nuget.exe')
     download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
 
     if options.before_all:
