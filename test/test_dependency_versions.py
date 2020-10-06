@@ -66,6 +66,9 @@ def test_pinned_versions(tmp_path, python_version):
     elif python_version == '3.6':
         constraint_filename = 'constraints-python36.txt'
         build_pattern = '[cp]p36-*'
+    elif python_version == '3.7':
+        constraint_filename = 'constraints-python37.txt'
+        build_pattern = '[cp]p37-*'
     else:
         constraint_filename = 'constraints.txt'
         build_pattern = '[cp]p38-*'

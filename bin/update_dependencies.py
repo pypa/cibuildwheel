@@ -19,7 +19,7 @@ subprocess.check_call([
     '--upgrade',
     'cibuildwheel/resources/constraints.in',
 ])
-for python_version in ['27', '35', '36']:
+for python_version in ['27', '35', '36', '37']:
     subprocess.check_call([
         f'./env{python_version}/bin/pip-compile',
         '--allow-unsafe',

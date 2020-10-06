@@ -10,17 +10,17 @@ contextlib2==0.6.0.post1  # via importlib-metadata, importlib-resources
 delocate==0.8.2           # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.1            # via virtualenv
 filelock==3.0.12          # via virtualenv
-importlib-metadata==1.7.0  # via virtualenv
+importlib-metadata==2.0.0  # via virtualenv
 importlib-resources==3.0.0  # via virtualenv
 pathlib2==2.3.5           # via importlib-metadata, importlib-resources, virtualenv
 scandir==1.10.0           # via pathlib2
 singledispatch==3.4.0.3   # via importlib-resources
 six==1.15.0               # via pathlib2, virtualenv
 typing==3.7.4.3           # via importlib-resources
-virtualenv==20.0.31       # via -r cibuildwheel/resources/constraints.in
+virtualenv==20.0.33       # via -r cibuildwheel/resources/constraints.in
 wheel==0.35.1             # via -r cibuildwheel/resources/constraints.in, delocate
 zipp==1.2.0               # via importlib-metadata, importlib-resources
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==20.2.2               # via -r cibuildwheel/resources/constraints.in
+pip==20.2.3               # via -r cibuildwheel/resources/constraints.in
 setuptools==44.1.1        # via -r cibuildwheel/resources/constraints.in
