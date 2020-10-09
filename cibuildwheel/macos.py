@@ -85,8 +85,8 @@ def install_cpython(version: str, url: str) -> Path:
             open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-{version}-openssl-v1.0.2u.tar.gz'
             download(open_ssl_patch_url, Path('/tmp/python-patch.tar.gz'))
             call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
-        else:
-            call(["sudo", str(installation_bin_path/python_executable), str(install_certifi_script)])
+
+        call(["sudo", str(installation_bin_path/python_executable), str(install_certifi_script)])
 
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
     make_symlinks(installation_bin_path, python_executable, pip_executable)
