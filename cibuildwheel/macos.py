@@ -11,7 +11,7 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 from .environment import ParsedEnvironment
 from .util import (BuildOptions, BuildSelector, NonPlatformWheelError, download,
                    get_build_verbosity_extra_flags, get_pip_script,
-                   prepare_command, instal_certifi_script)
+                   prepare_command, install_certifi_script)
 
 
 def call(args: Union[str, Sequence[Union[str, PathLike]]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
@@ -86,7 +86,7 @@ def install_cpython(version: str, url: str) -> Path:
             download(open_ssl_patch_url, Path('/tmp/python-patch.tar.gz'))
             call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
         else:
-            call(["sudo", str(installation_bin_path/python_executable), str(instal_certifi_script)])
+            call(["sudo", str(installation_bin_path/python_executable), str(install_certifi_script)])
 
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
     make_symlinks(installation_bin_path, python_executable, pip_executable)
