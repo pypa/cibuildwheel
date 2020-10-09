@@ -27,7 +27,8 @@ def test(tmp_path):
     project_dir = tmp_path / 'project'
     project_with_ssl_tests.generate(project_dir)
 
-    actual_wheels = utils.cibuildwheel_run(project_dir)
+    actual_wheels = utils.cibuildwheel_run(project_dir, env={"CIBW_SKIP": "cp35*"})
 
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    expected_wheels = [x for x in expected_wheels if "cp35" not in x]
     assert set(actual_wheels) == set(expected_wheels)
