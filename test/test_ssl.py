@@ -13,11 +13,10 @@ project_with_ssl_tests = test_projects.new_c_project(
         else:
             from urllib.request import urlopen
 
-        if sys.version_info[0:2] == (3, 3):
-            data = urlopen("https://www.nist.gov")
-        else:
-            context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-            data = urlopen("https://www.nist.gov", context=context)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        data = urlopen("https://www.nist.gov", context=context)
+        data = urlopen("https://raw.githubusercontent.com/joerick/cibuildwheel/master/CI.md", context=context)
+        data = urlopen("https://raw.githubusercontent.com/joerick/cibuildwheel/master/CI.md")
     ''')
 )
 
