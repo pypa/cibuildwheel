@@ -27,7 +27,7 @@ def main():
     import certifi
     # change working directory to the default SSL directory
     if sys.version_info[0:2] == (3, 5):
-        os.makedirs(openssl_dir, exist_ok=True, mode=755)
+        os.makedirs(openssl_dir, exist_ok=True, mode=775)
     os.chdir(openssl_dir)
     relpath_to_certifi_cafile = os.path.relpath(certifi.where())
     print(" -- removing any existing file or link")
