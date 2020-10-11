@@ -107,6 +107,9 @@ class DependencyConstraints:
         else:
             return self.base_file_path
 
+    def __str__(self):
+        return f"File '{self.base_file_path}'"
+
 
 class BuildOptions(NamedTuple):
     package_dir: Path
