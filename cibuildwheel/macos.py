@@ -82,7 +82,7 @@ def install_cpython(version: str, url: str) -> Path:
         call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
         # patch open ssl
         if version == '3.5':
-            open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.0.2u/patch-macos-python-{version}-openssl-v1.0.2u.tar.gz'
+            open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.1.1h/patch-macos-python-{version}-openssl-v1.1.1h.tar.gz'
             download(open_ssl_patch_url, Path('/tmp/python-patch.tar.gz'))
             call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
 
