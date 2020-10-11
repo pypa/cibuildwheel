@@ -7,6 +7,7 @@ import cibuildwheel
 from packaging.version import Version, InvalidVersion
 import subprocess
 import glob
+import urllib.parse
 
 config = [
     # file path, version find/replace format
@@ -87,6 +88,24 @@ def bump_version():
 
     print('Files updated. If you want to update the changelog as part of this')
     print('commit, do that now.')
+    print()
+
+    try:
+        commit_date_str = subprocess.run([
+            'git',
+            'show', '-s', '--pretty=format:%ci',
+            f'v{current_version}^{{commit}}'
+        ], check=True, capture_output=True, encoding='utf8').stdout
+        commit_date_parts = commit_date_str.split(' ')
+
+        url = 'https://github.com/joerick/cibuildwheel/pulls?' + urllib.parse.urlencode({
+            'q': f'is:pr merged:>{commit_date_parts[0]}T{commit_date_parts[1]}{commit_date_parts[2]}',
+        })
+        print(f'PRs merged since last release:\n  {url}')
+        print()
+    except subprocess.CalledProcessError as e:
+        print(e)
+        print('Failed to get previous version tag information.')
 
     while input('Type "done" to continue: ').strip().lower() != 'done':
         pass
