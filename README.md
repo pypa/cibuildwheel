@@ -85,7 +85,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.6.2
+  - python3 -m pip install cibuildwheel==1.6.3
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -161,6 +161,13 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.6.3
+
+_12 October 2020_
+
+- 🐛 Fix missing SSL certificates on macOS (#447)
+- 🛠 Update OpenSSL Python 3.5 patch to 1.1.1h on macOS (#449)
 
 ### 1.6.2
 
