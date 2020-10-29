@@ -127,6 +127,7 @@ Working examples
 
 Here are some repos that use cibuildwheel.
 
+- [Matplotlib](https://github.com/matplotlib/matplotlib)
 - [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext) - A simple C extension, without external dependencies, built on Travis CI/Appveyor.
 - [websockets](https://github.com/aaugustin/websockets)
 - [Parselmouth](https://github.com/YannickJadoul/Parselmouth)
@@ -136,6 +137,7 @@ Here are some repos that use cibuildwheel.
 - [AutoPy](https://github.com/autopilot-rs/autopy)
 - [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
+- [twisted-iocpsupport](https://github.com/twisted/twisted-iocpsupport)
 - [gmic-py](https://github.com/dtschump/gmic-py)
 - [creme](https://github.com/creme-ml/creme)
 - [PyAV](https://github.com/PyAV-Org/PyAV)
@@ -145,6 +147,8 @@ Here are some repos that use cibuildwheel.
 - [fathon](https://github.com/stfbnc/fathon)
 - [etebase-py](https://github.com/etesync/etebase-py) - Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI.
 - [xmlstarlet](https://github.com/dimitern/xmlstarlet) - Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions.
+- [bx-python](https://github.com/bxlab/bx-python)
+
 > Add your repo here! Send a PR.
 >
 > <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
