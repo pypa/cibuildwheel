@@ -127,7 +127,7 @@ Working examples
 
 Here are some repos that use cibuildwheel.
 
-- [Matplotlib](https://github.com/matplotlib/matplotlib)
+- [Matplotlib](https://github.com/matplotlib/matplotlib) - The venerable Matplotlib, a Python library with C++ portions, built for Linux, Mac, and Windows on Github Actions.
 - [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext) - A simple C extension, without external dependencies, built on Travis CI/Appveyor.
 - [websockets](https://github.com/aaugustin/websockets)
 - [Parselmouth](https://github.com/YannickJadoul/Parselmouth)
@@ -137,7 +137,7 @@ Here are some repos that use cibuildwheel.
 - [AutoPy](https://github.com/autopilot-rs/autopy)
 - [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
 - [TgCrypto](https://github.com/pyrogram/tgcrypto)
-- [twisted-iocpsupport](https://github.com/twisted/twisted-iocpsupport)
+- [twisted-iocpsupport](https://github.com/twisted/twisted-iocpsupport) - A submodule of Twisted that hooks into native C APIs using Cython. Built on Github CI for Windows.
 - [gmic-py](https://github.com/dtschump/gmic-py)
 - [creme](https://github.com/creme-ml/creme)
 - [PyAV](https://github.com/PyAV-Org/PyAV)
@@ -147,7 +147,7 @@ Here are some repos that use cibuildwheel.
 - [fathon](https://github.com/stfbnc/fathon)
 - [etebase-py](https://github.com/etesync/etebase-py) - Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI.
 - [xmlstarlet](https://github.com/dimitern/xmlstarlet) - Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions.
-- [bx-python](https://github.com/bxlab/bx-python)
+- [bx-python](https://github.com/bxlab/bx-python) - A library that includes Cython extensions, built on Travis CI for Mac and Linux.
 
 > Add your repo here! Send a PR.
 >
