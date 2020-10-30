@@ -5,20 +5,20 @@ import ssl
 from cibuildwheel.util import download
 
 
-DONWLOAD_URL = 'https://raw.githubusercontent.com/joerick/cibuildwheel/v1.6.3/requirements-dev.txt'
+DOWNLOAD_URL = 'https://raw.githubusercontent.com/joerick/cibuildwheel/v1.6.3/requirements-dev.txt'
 
 
 def test_download(monkeypatch, tmp_path):
     monkeypatch.delenv('SSL_CERT_FILE', raising=False)
     dest = tmp_path / 'file.txt'
-    download(DONWLOAD_URL, dest)
+    download(DOWNLOAD_URL, dest)
     assert len(dest.read_bytes()) == 134
 
 
 def test_download_good_ssl_cert_file(monkeypatch, tmp_path):
     monkeypatch.setenv('SSL_CERT_FILE', certifi.where())
     dest = tmp_path / 'file.txt'
-    download(DONWLOAD_URL, dest)
+    download(DOWNLOAD_URL, dest)
     assert len(dest.read_bytes()) == 134
 
 
@@ -28,4 +28,4 @@ def test_download_bad_ssl_cert_file(monkeypatch, tmp_path):
     monkeypatch.setenv('SSL_CERT_FILE', str(bad_cafile))
     dest = tmp_path / 'file.txt'
     with pytest.raises(ssl.SSLError):
-        download(DONWLOAD_URL, dest)
+        download(DOWNLOAD_URL, dest)
