@@ -1,6 +1,8 @@
 import os
 import textwrap
+import certifi
 import urllib.request
+import ssl
 from fnmatch import fnmatch
 from pathlib import Path
 from time import sleep
@@ -66,10 +68,14 @@ def download(url: str, dest: Path) -> None:
     if not dest_dir.exists():
         dest_dir.mkdir(parents=True)
 
+    # we've had issues when relying on the host OS' CA certificates on Windows,
+    # so we use certifi (this sounds odd but requests also does this by default)
+    cafile = os.environ.get('SSL_CERT_FILE', certifi.where())
+    context = ssl.create_default_context(cafile=cafile)
     repeat_num = 3
     for i in range(repeat_num):
         try:
-            response = urllib.request.urlopen(url)
+            response = urllib.request.urlopen(url, context=context)
         except Exception:
             if i == repeat_num - 1:
                 raise
