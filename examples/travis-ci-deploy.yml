@@ -27,7 +27,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.6.3
+  - python3 -m pip install cibuildwheel==1.6.4
 
 script:
   # build the wheels, put them into './wheelhouse'

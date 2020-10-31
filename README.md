@@ -85,7 +85,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.6.3
+  - python3 -m pip install cibuildwheel==1.6.4
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -161,6 +161,13 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.6.4
+
+_31 October 2020_
+
+- 🐛 Fix crash on Appveyor during nuget install due to old system CA
+  certificates. We now use certifi's CA certs to download files. (#455)
 
 ### 1.6.3
 
