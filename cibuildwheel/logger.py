@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 import os
 import time
-import typing
 
 FOLD_PATTERNS = {
     'azure': ['##[group]{name}', '##[endgroup]'],
