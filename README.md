@@ -130,7 +130,7 @@ Here are some repos that use cibuildwheel.
 - [Matplotlib](https://github.com/matplotlib/matplotlib) - The venerable Matplotlib, a Python library with C++ portions, built for Linux, Mac, and Windows on Github Actions.
 - [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext) - A simple C extension, without external dependencies, built on Travis CI/Appveyor.
 - [websockets](https://github.com/aaugustin/websockets)
-- [Parselmouth](https://github.com/YannickJadoul/Parselmouth)
+- [Parselmouth](https://github.com/YannickJadoul/Parselmouth) - A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels; all platforms built on Github Actions.
 - [python-admesh](https://github.com/admesh/python-admesh)
 - [pybase64](https://github.com/mayeut/pybase64)
 - [KDEpy](https://github.com/tommyod/KDEpy)
