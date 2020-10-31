@@ -18,6 +18,10 @@ jobs:
         with:
           python-version: '3.7'
 
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+
       - name: Generate sample project
         run: |
           python -m test.test_projects test_0_basic.basic_project sample_project
