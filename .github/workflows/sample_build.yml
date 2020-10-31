@@ -1,0 +1,28 @@
+name: Sample build
+
+on: [push, pull_request]
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.7'
+
+      - name: Generate sample project
+        run: |
+          python -m test.test_projects test_0_basic.basic_project sample_project
+
+      - name: Build wheels
+        run: |
+          cd sample_project
+          python -m cibuildwheel --output-dir wheelhouse
