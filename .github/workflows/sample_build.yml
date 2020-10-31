@@ -24,7 +24,7 @@ jobs:
 
       - name: Generate sample project
         run: |
-          python -m test.test_projects test_0_basic.basic_project sample_project
+          python -m test.test_projects test.test_0_basic.basic_project sample_project
 
       - name: Build wheels
         run: |
