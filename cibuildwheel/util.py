@@ -42,7 +42,10 @@ class BuildSelector:
         return match_any(self.build_patterns) and not match_any(self.skip_patterns)
 
     def __repr__(self) -> str:
-        return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+        if not self.skip_patterns:
+            return f'BuildSelector({" ".join(self.build_patterns)!r})'
+        else:
+            return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -113,8 +116,8 @@ class DependencyConstraints:
         else:
             return self.base_file_path
 
-    def __str__(self):
-        return f"File '{self.base_file_path}'"
+    def __repr__(self):
+        return f'DependencyConstraints({self.base_file_path!r})'
 
 
 class BuildOptions(NamedTuple):
