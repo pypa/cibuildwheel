@@ -1,6 +1,7 @@
-from contextlib import contextmanager
 import os
 import time
+import re
+from typing import Optional
 
 FOLD_PATTERNS = {
     'azure': ['##[group]{name}', '##[endgroup]'],
@@ -21,6 +22,13 @@ PLATFORM_IDENTIFIER_DESCIPTIONS = {
 
 
 class Logger:
+    fold_mode: str
+    colors_enabled: bool
+    active_build_identifier: Optional[str] = None
+    build_start_time: Optional[float] = 0
+    step_start_time: Optional[float] = 0
+    active_fold_group_id: Optional[str] = None
+
     def __init__(self):
         if 'AZURE_HTTP_USER_AGENT' in os.environ:
             self.fold_mode = 'azure'
@@ -42,43 +50,52 @@ class Logger:
             self.fold_mode = 'disabled'
             self.colors_enabled = False
 
-    @contextmanager
-    def build(self, identifier: str):
+    def build_start(self, identifier: str):
         c = self.colors
+        print()
         print(f'{c.bold}Building {build_description_from_identifier(identifier)} wheel{c.end}')
         print(f'Identifier: {identifier}')
+        print()
 
-        start_time = time.time()
-        try:
-            yield
-            duration = time.time() - start_time
-            print(f'{c.green}Build {c.bg_grey}{identifier}{c.end}{c.green} completed in {duration:.2f}s{c.end}')
-        except Exception:
-            duration = time.time() - start_time
-            print(f'{c.red}Build {c.bg_grey}{identifier}{c.end}{c.red} failed in {duration:.2f}s{c.end}')
-            raise
+        self.build_start_time = time.time()
+        self.active_build_identifier = identifier
 
-    @contextmanager
-    def step(self, name: str):
+    def build_end(self):
+        assert self.build_start_time is not None
+        self.build_step_end()
+
         c = self.colors
-        start_time = time.time()
+        duration = time.time() - self.build_start_time
+        print(f'{c.green}Build {c.bg_grey}{self.active_build_identifier}{c.end}{c.green} completed in {duration:.2f}s{c.end}')
+        print()
+        print('---')
+        self.build_start_time = None
 
-        try:
-            with self.fold_group(name):
-                yield
-            duration = time.time() - start_time
-            print(f'{c.green}✓ {c.faint}[{duration:.2f}]{c.end}')
-        except Exception:
-            raise
+    def build_step(self, step_description: str):
+        self.build_step_end()
+        self.step_start_time = time.time()
+        self.start_fold_group(step_description)
 
-    @contextmanager
-    def fold_group(self, name: str):
-        fold_start_pattern, fold_end_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))
-        print(fold_start_pattern.format(name=name))
-        try:
-            yield
-        finally:
-            print(fold_end_pattern.format(name=name))
+    def build_step_end(self):
+        if self.step_start_time is not None:
+            self.end_fold_group()
+            c = self.colors
+            duration = time.time() - self.step_start_time
+            print(f'{c.green}✓ {c.faint}[{duration:.2f}s]{c.end}'.rjust(78))
+            self.step_start_time = None
+
+    def start_fold_group(self, name: str):
+        self.end_fold_group()
+        self.active_fold_group_id = re.sub(r'[^A-Za-z]', '', name)
+        fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[0]
+        print(fold_start_pattern.format(name=self.active_fold_group_id))
+        print()
+
+    def end_fold_group(self):
+        if self.active_fold_group_id:
+            fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[1]
+            print(fold_start_pattern.format(name=self.active_fold_group_id))
+            self.active_fold_group_id = None
 
     @property
     def colors(self):
@@ -88,7 +105,7 @@ class Logger:
             return colors_disabled
 
 
-def build_description_from_identifier(identifier):
+def build_description_from_identifier(identifier: str):
     python_identifier, _, platform_identifier = identifier.partition('-')
 
     build_description = ''
@@ -130,7 +147,7 @@ class Colors():
     end = '\033[0m'
 
     class Disabled:
-        def __getattr__(self, attr):
+        def __getattr__(self, attr: str):
             return ''
 
 
