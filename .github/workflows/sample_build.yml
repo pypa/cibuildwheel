@@ -4,11 +4,11 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build wheels [${{ matrix.result }}]
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
-        os: [ubuntu-18.04]
+        result: [success, failure]
 
     steps:
       - uses: actions/checkout@v2
@@ -27,6 +27,15 @@ jobs:
           python -m test.test_projects test.test_0_basic.basic_project sample_project
 
       - name: Build wheels
+        if: matrix.result == 'success'
         run: |
           cd sample_project
           python -m cibuildwheel --output-dir wheelhouse
+
+      - name: Build wheels [expected failure]
+        if: matrix.result == 'failure'
+        run: |
+          cd sample_project
+          # sabotage the project to cause an error
+          echo '>' >> setup.py
+          python -m cibuildwheel --output-dir wheelhouse || true
