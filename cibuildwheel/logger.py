@@ -1,7 +1,7 @@
 import os
 import time
 import sys
-from typing import Optional
+from typing import Optional, Union
 
 DEFAULT_FOLD_PATTERN = ('{name}', '')
 FOLD_PATTERNS = {
@@ -78,25 +78,39 @@ class Logger:
     def step(self, step_description: str):
         self.step_end()
         self.step_start_time = time.time()
-        self.start_fold_group(step_description)
+        self._start_fold_group(step_description)
 
-    def step_end(self):
+    def step_end(self, success=True):
         if self.step_start_time is not None:
-            self.end_fold_group()
+            self._end_fold_group()
             c = self.colors
             duration = time.time() - self.step_start_time
-            print(f'{c.green}✓ {c.end}{duration:.2f}s'.rjust(78))
+            if success:
+                print(f'{c.green}✓ {c.end}{duration:.2f}s'.rjust(78))
+            else:
+                print(f'{c.red}✕ {c.end}{duration:.2f}s'.rjust(78))
+
             self.step_start_time = None
 
-    def start_fold_group(self, name: str):
-        self.end_fold_group()
+    def error(self, error: Union[Exception, str]):
+        self.step_end(success=False)
+        print()
+
+        if self.fold_mode == 'github':
+            print(f'::error::{error}')
+        else:
+            c = self.colors
+            print(f'{c.bright_red}Error{c.end} {error}')
+
+    def _start_fold_group(self, name: str):
+        self._end_fold_group()
         self.active_fold_group_name = name
         fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[0]
 
         print(fold_start_pattern.format(name=self.active_fold_group_name))
         print()
 
-    def end_fold_group(self):
+    def _end_fold_group(self):
         if self.active_fold_group_name:
             fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[1]
             print(fold_start_pattern.format(name=self.active_fold_group_name))
@@ -142,6 +156,7 @@ class Colors():
     yellow = '\033[33m'
     blue = '\033[34m'
     cyan = '\033[36m'
+    bright_red = '\033[91m'
     bright_green = '\033[92m'
     white = '\033[37m\033[97m'
 

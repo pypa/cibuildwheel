@@ -259,8 +259,7 @@ def build(options: BuildOptions) -> None:
                 docker.copy_out(container_output_dir, options.output_dir)
                 log.step_end()
         except subprocess.CalledProcessError as error:
-            print(f'::error::{error}')
-            print(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+            log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
             troubleshoot(options.package_dir, error)
             exit(1)
 
