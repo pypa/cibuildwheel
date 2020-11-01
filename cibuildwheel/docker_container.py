@@ -57,6 +57,9 @@ class DockerContainer:
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
+            # output the subcommand stderr to our stdout. Avoids ordering
+            # problems between log messages on stderr and stdout
+            stderr=sys.stdout,
         )
 
         assert self.process.stdin and self.process.stdout
