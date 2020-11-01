@@ -1,6 +1,6 @@
 import os
 import time
-import re
+import sys
 from typing import Optional
 
 FOLD_PATTERNS = {
@@ -64,10 +64,6 @@ class Logger:
         assert self.build_start_time is not None
         self.step_end()
 
-        c = self.colors
-        duration = time.time() - self.build_start_time
-        print()
-        print(f'{c.green}Build {c.bg_grey}{self.active_build_identifier}{c.end}{c.green} completed in {duration:.2f}s{c.end}')
         print()
         print('---')
         print()
@@ -83,20 +79,22 @@ class Logger:
             self.end_fold_group()
             c = self.colors
             duration = time.time() - self.step_start_time
-            print(f'{c.green}✓ {c.faint}[{duration:.2f}s]{c.end}'.rjust(78))
+            print(f'{c.green}✓ {c.end}{duration:.2f}s'.rjust(78))
             self.step_start_time = None
 
     def start_fold_group(self, name: str):
         self.end_fold_group()
         self.active_fold_group_name = name
         fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[0]
-        print(fold_start_pattern.format(name=self.active_fold_group_name))
+
+        # output to stderr because stdout is a little slower
+        print(fold_start_pattern.format(name=self.active_fold_group_name), file=sys.stderr)
         print()
 
     def end_fold_group(self):
         if self.active_fold_group_name:
             fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[1]
-            print(fold_start_pattern.format(name=self.active_fold_group_name))
+            print(fold_start_pattern.format(name=self.active_fold_group_name), file=sys.stderr)
             self.active_fold_group_name = None
 
     @property
