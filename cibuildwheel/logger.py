@@ -63,11 +63,16 @@ class Logger:
 
     def build_end(self):
         assert self.build_start_time is not None
+        assert self.active_build_identifier is not None
         self.step_end()
 
+        c = self.colors
+        duration = time.time() - self.build_start_time
+
         print()
-        print('---')
+        print(f'{c.green}✓ {c.end}{self.active_build_identifier} finished in {duration:.2f}s')
         self.build_start_time = None
+        self.active_build_identifier = None
 
     def step(self, step_description: str):
         self.step_end()
