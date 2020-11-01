@@ -87,14 +87,16 @@ class Logger:
         self.active_fold_group_name = name
         fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[0]
 
-        # output to stderr because stdout is a little slower
-        print(fold_start_pattern.format(name=self.active_fold_group_name), file=sys.stderr)
+        print(fold_start_pattern.format(name=self.active_fold_group_name))
         print()
+        # flush to ensure it's output before continuing
+        sys.stdout.flush()
 
     def end_fold_group(self):
         if self.active_fold_group_name:
             fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[1]
-            print(fold_start_pattern.format(name=self.active_fold_group_name), file=sys.stderr)
+            print(fold_start_pattern.format(name=self.active_fold_group_name))
+            sys.stdout.flush()
             self.active_fold_group_name = None
 
     @property
