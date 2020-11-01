@@ -25,9 +25,9 @@ class Logger:
     fold_mode: str
     colors_enabled: bool
     active_build_identifier: Optional[str] = None
-    build_start_time: Optional[float] = 0
-    step_start_time: Optional[float] = 0
-    active_fold_group_id: Optional[str] = None
+    build_start_time: Optional[float] = None
+    step_start_time: Optional[float] = None
+    active_fold_group_name: Optional[str] = None
 
     def __init__(self):
         if 'AZURE_HTTP_USER_AGENT' in os.environ:
@@ -54,7 +54,7 @@ class Logger:
         c = self.colors
         print()
         print(f'{c.bold}Building {build_description_from_identifier(identifier)} wheel{c.end}')
-        print(f'Identifier: {identifier}')
+        print(f'Identifier: {c.bg_grey}{identifier}{c.end}')
         print()
 
         self.build_start_time = time.time()
@@ -62,21 +62,23 @@ class Logger:
 
     def build_end(self):
         assert self.build_start_time is not None
-        self.build_step_end()
+        self.step_end()
 
         c = self.colors
         duration = time.time() - self.build_start_time
+        print()
         print(f'{c.green}Build {c.bg_grey}{self.active_build_identifier}{c.end}{c.green} completed in {duration:.2f}s{c.end}')
         print()
         print('---')
+        print()
         self.build_start_time = None
 
-    def build_step(self, step_description: str):
-        self.build_step_end()
+    def step(self, step_description: str):
+        self.step_end()
         self.step_start_time = time.time()
         self.start_fold_group(step_description)
 
-    def build_step_end(self):
+    def step_end(self):
         if self.step_start_time is not None:
             self.end_fold_group()
             c = self.colors
@@ -86,16 +88,16 @@ class Logger:
 
     def start_fold_group(self, name: str):
         self.end_fold_group()
-        self.active_fold_group_id = re.sub(r'[^A-Za-z]', '', name)
+        self.active_fold_group_name = name
         fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[0]
-        print(fold_start_pattern.format(name=self.active_fold_group_id))
+        print(fold_start_pattern.format(name=self.active_fold_group_name))
         print()
 
     def end_fold_group(self):
-        if self.active_fold_group_id:
+        if self.active_fold_group_name:
             fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[1]
-            print(fold_start_pattern.format(name=self.active_fold_group_id))
-            self.active_fold_group_id = None
+            print(fold_start_pattern.format(name=self.active_fold_group_name))
+            self.active_fold_group_name = None
 
     @property
     def colors(self):
@@ -139,7 +141,7 @@ class Colors():
     bright_green = '\033[92m'
     white = '\033[37m\033[97m'
 
-    bg_grey = '\033[48;5;244m'
+    bg_grey = '\033[48;5;235m'
 
     bold = '\033[1m'
     faint = '\033[2m'

@@ -120,11 +120,16 @@ def build(options: BuildOptions) -> None:
             continue
 
         try:
+            log.step(f'Starting Docker image {docker_image}...')
             with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686'), cwd=container_project_path) as docker:
+                log.step_end()
+
+                log.step('Copying project into Docker...')
                 docker.copy_into(Path.cwd(), container_project_path)
+                log.step_end()
 
                 if options.before_all:
-                    log.build_step('Running before_all...')
+                    log.step('Running before_all...')
 
                     env = docker.get_environment()
                     env['PATH'] = f'/opt/python/cp38-cp38:{env["PATH"]}'
@@ -133,7 +138,7 @@ def build(options: BuildOptions) -> None:
                     before_all_prepared = prepare_command(options.before_all, project=container_project_path, package=container_package_dir)
                     docker.call(['sh', '-c', before_all_prepared], env=env)
 
-                    log.build_step_end()
+                    log.step_end()
 
                 for config in platform_configs:
                     log.build_start(config.identifier)
@@ -153,7 +158,7 @@ def build(options: BuildOptions) -> None:
                     python_bin = config.path / 'bin'
                     env['PATH'] = f'{python_bin}:{env["PATH"]}'
 
-                    log.build_step('Setting up build environment...')
+                    log.step('Setting up build environment...')
 
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
 
@@ -169,11 +174,11 @@ def build(options: BuildOptions) -> None:
                         exit(1)
 
                     if options.before_build:
-                        log.build_step('Running before_build...')
+                        log.step('Running before_build...')
                         before_build_prepared = prepare_command(options.before_build, project=container_project_path, package=container_package_dir)
                         docker.call(['sh', '-c', before_build_prepared], env=env)
 
-                    log.build_step('Building wheel...')
+                    log.step('Building wheel...')
 
                     temp_dir = PurePath('/tmp/cibuildwheel')
                     built_wheel_dir = temp_dir / 'built_wheel'
@@ -198,7 +203,7 @@ def build(options: BuildOptions) -> None:
                         raise NonPlatformWheelError()
 
                     if options.repair_command:
-                        log.build_step('Repairing wheel...')
+                        log.step('Repairing wheel...')
                         repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
                         docker.call(['sh', '-c', repair_command_prepared], env=env)
                     else:
@@ -207,7 +212,7 @@ def build(options: BuildOptions) -> None:
                     repaired_wheels = docker.glob(repaired_wheel_dir, '*.whl')
 
                     if options.test_command:
-                        log.build_step('Testing wheel...')
+                        log.step('Testing wheel...')
 
                         # set up a virtual environment to install and test from, to make sure
                         # there are no dependencies that were pulled in at build time.
@@ -249,10 +254,10 @@ def build(options: BuildOptions) -> None:
 
                     log.build_end()
 
-                log.build_step('Copying wheels back to host...')
+                log.step('Copying wheels back to host...')
                 # copy the output back into the host
                 docker.copy_out(container_output_dir, options.output_dir)
-                log.build_step_end()
+                log.step_end()
         except subprocess.CalledProcessError as error:
             print(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
             troubleshoot(options.package_dir, error)
