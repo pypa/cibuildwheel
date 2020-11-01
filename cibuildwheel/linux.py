@@ -152,13 +152,13 @@ def build(options: BuildOptions) -> None:
                         docker.copy_into(constraints_file, container_constraints_file)
                         dependency_constraint_flags = ['-c', container_constraints_file]
 
+                    log.step('Setting up build environment...')
+
                     env = docker.get_environment()
 
                     # put this config's python top of the list
                     python_bin = config.path / 'bin'
                     env['PATH'] = f'{python_bin}:{env["PATH"]}'
-
-                    log.step('Setting up build environment...')
 
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
 

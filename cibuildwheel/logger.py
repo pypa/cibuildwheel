@@ -52,9 +52,10 @@ class Logger:
 
     def build_start(self, identifier: str):
         c = self.colors
+        description = build_description_from_identifier(identifier)
         print()
-        print(f'{c.bold}Building {build_description_from_identifier(identifier)} wheel{c.end}')
-        print(f'Identifier: {c.bg_grey}{identifier}{c.end}')
+        print(f'{c.bold}{c.blue}Building {identifier} wheel{c.end}')
+        print(f'{description}')
         print()
 
         self.build_start_time = time.time()
@@ -66,7 +67,6 @@ class Logger:
 
         print()
         print('---')
-        print()
         self.build_start_time = None
 
     def step(self, step_description: str):
