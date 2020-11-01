@@ -3,10 +3,11 @@ import time
 import sys
 from typing import Optional
 
+DEFAULT_FOLD_PATTERN = ('{name}', '')
 FOLD_PATTERNS = {
-    'azure': ['##[group]{name}', '##[endgroup]'],
-    'travis': ['travis_fold:start:{name}', 'travis_fold:end:{name}'],
-    'github': ['::group::{name}', '::endgroup::{name}'],
+    'azure': ('##[group]{name}', '##[endgroup]'),
+    'travis': ('travis_fold:start:{name}', 'travis_fold:end:{name}'),
+    'github': ('::group::{name}', '::endgroup::{name}'),
 }
 
 PLATFORM_IDENTIFIER_DESCIPTIONS = {
@@ -48,7 +49,7 @@ class Logger:
 
         else:
             self.fold_mode = 'disabled'
-            self.colors_enabled = False
+            self.colors_enabled = file_supports_color(sys.stdout)
 
     def build_start(self, identifier: str):
         c = self.colors
@@ -90,16 +91,14 @@ class Logger:
     def start_fold_group(self, name: str):
         self.end_fold_group()
         self.active_fold_group_name = name
-        fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[0]
+        fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[0]
 
         print(fold_start_pattern.format(name=self.active_fold_group_name))
         print()
-        # flush to ensure it's output before continuing
-        sys.stdout.flush()
 
     def end_fold_group(self):
         if self.active_fold_group_name:
-            fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, ('', ''))[1]
+            fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[1]
             print(fold_start_pattern.format(name=self.active_fold_group_name))
             sys.stdout.flush()
             self.active_fold_group_name = None
@@ -160,3 +159,19 @@ class Colors():
 
 colors_enabled = Colors()
 colors_disabled = Colors.Disabled()
+
+
+def file_supports_color(file_obj):
+    """
+    Returns True if the running system's terminal supports color.
+    """
+    plat = sys.platform
+    supported_platform = (plat != 'win32' or 'ANSICON' in os.environ)
+
+    is_a_tty = file_is_a_tty(file_obj)
+
+    return (supported_platform and is_a_tty)
+
+
+def file_is_a_tty(file_obj):
+    return hasattr(file_obj, 'isatty') and file_obj.isatty()
