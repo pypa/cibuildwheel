@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-18.04
     continue-on-error: ${{ matrix.allow_fail }}
     strategy:
-      fail_fast: false
+      fail-fast: false
       matrix:
         include:
           - result: success
