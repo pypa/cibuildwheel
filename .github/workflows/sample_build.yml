@@ -6,9 +6,14 @@ jobs:
   build_wheels:
     name: Build wheels [${{ matrix.result }}]
     runs-on: ubuntu-18.04
+    continue-on-error: ${{ matrix.allow_fail }}
     strategy:
+      fail_fast: false
       matrix:
-        result: [success, failure]
+        include:
+          - result: success
+          - result: failure
+            allow_fail: true
 
     steps:
       - uses: actions/checkout@v2
