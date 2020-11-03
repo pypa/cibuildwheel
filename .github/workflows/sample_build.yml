@@ -12,6 +12,7 @@ jobs:
       matrix:
         include:
           - result: success
+            allow_fail: false
           - result: failure
             allow_fail: true
 
