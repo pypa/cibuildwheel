@@ -26,20 +26,26 @@ jobs:
         run: |
           python -m test.test_projects test.test_testing.project_with_a_test sample_project
 
-      - name: Build wheels
-        if: matrix.result == 'success'
-        run: |
-          cd sample_project
-          python -m cibuildwheel --output-dir wheelhouse
-
-      - name: Build wheels [expected failure]
+      - name: Add a failing test
         if: matrix.result == 'failure'
         run: |
           cd sample_project
-          # adjust the project to cause an error
           echo '
           class AnotherTest:
               def test_something(self):
                   self.fail("sabotage!")
           ' >> test/spam_test.py
-          python -m cibuildwheel --output-dir wheelhouse || true
+
+      - name: Build & test wheels
+        run: |
+          cd sample_project
+          if $should_fail; then
+            # prefix with ! to expect failure
+            ! python -m cibuildwheel --output-dir wheelhouse
+          else
+            python -m cibuildwheel --output-dir wheelhouse
+          fi
+        env:
+          CIBW_TEST_COMMAND: nosetests {project}/test
+          CIBW_TEST_REQUIRES: nose
+          should_fail: ${{ matrix.result == 'failure' }}
