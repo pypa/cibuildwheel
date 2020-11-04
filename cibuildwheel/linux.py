@@ -264,12 +264,6 @@ def build(options: BuildOptions) -> None:
             exit(1)
 
 
-def build_one(options: BuildOptions, config: PythonConfiguration, docker: DockerContainer,
-              container_project_path: PurePath, container_package_dir: PurePath,
-              container_output_dir: PurePath, log: Logger):
-    pass
-
-
 def troubleshoot(package_dir: Path, error: Exception) -> None:
     if (isinstance(error, subprocess.CalledProcessError) and error.cmd[0:2] == ['pip', 'wheel']):
         # the 'pip wheel' step failed.

@@ -11,11 +11,11 @@ FOLD_PATTERNS = {
 }
 
 PLATFORM_IDENTIFIER_DESCIPTIONS = {
-    'manylinux_x86_64': 'Manylinux x86_64',
-    'manylinux_i686': 'Manylinux i686',
-    'manylinux_aarch64': 'Manylinux aarch64',
-    'manylinux_ppc64le': 'Manylinux ppc64le',
-    'manylinux_s390x': 'Manylinux s390x',
+    'manylinux_x86_64': 'manylinux x86_64',
+    'manylinux_i686': 'manylinux i686',
+    'manylinux_aarch64': 'manylinux aarch64',
+    'manylinux_ppc64le': 'manylinux ppc64le',
+    'manylinux_s390x': 'manylinux s390x',
     'win32': 'Windows 32bit',
     'win_amd64': 'Windows 64bit',
     'macosx_x86_64': 'macOS x86_64',
@@ -108,7 +108,6 @@ class Logger:
         fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[0]
 
         print(fold_start_pattern.format(name=self.active_fold_group_name))
-        print()
 
     def _end_fold_group(self):
         if self.active_fold_group_name:
