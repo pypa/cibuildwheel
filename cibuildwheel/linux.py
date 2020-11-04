@@ -122,11 +122,9 @@ def build(options: BuildOptions) -> None:
         try:
             log.step(f'Starting Docker image {docker_image}...')
             with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686'), cwd=container_project_path) as docker:
-                log.step_end()
 
                 log.step('Copying project into Docker...')
                 docker.copy_into(Path.cwd(), container_project_path)
-                log.step_end()
 
                 if options.before_all:
                     log.step('Running before_all...')
@@ -137,8 +135,6 @@ def build(options: BuildOptions) -> None:
 
                     before_all_prepared = prepare_command(options.before_all, project=container_project_path, package=container_package_dir)
                     docker.call(['sh', '-c', before_all_prepared], env=env)
-
-                    log.step_end()
 
                 for config in platform_configs:
                     log.build_start(config.identifier)
