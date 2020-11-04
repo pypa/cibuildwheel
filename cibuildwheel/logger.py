@@ -52,6 +52,7 @@ class Logger:
             self.colors_enabled = file_supports_color(sys.stdout)
 
     def build_start(self, identifier: str):
+        self.step_end()
         c = self.colors
         description = build_description_from_identifier(identifier)
         print()
