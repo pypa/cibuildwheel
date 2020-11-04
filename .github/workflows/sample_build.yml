@@ -4,17 +4,11 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels [${{ matrix.result }}]
+    name: Sample build [${{ matrix.result }}]
     runs-on: ubuntu-18.04
-    continue-on-error: ${{ matrix.allow_fail }}
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          - result: success
-            allow_fail: false
-          - result: failure
-            allow_fail: true
+        result: [success, failure]
 
     steps:
       - uses: actions/checkout@v2
@@ -30,7 +24,7 @@ jobs:
 
       - name: Generate sample project
         run: |
-          python -m test.test_projects test.test_0_basic.basic_project sample_project
+          python -m test.test_projects test.test_testing.project_with_a_test sample_project
 
       - name: Build wheels
         if: matrix.result == 'success'
@@ -42,6 +36,10 @@ jobs:
         if: matrix.result == 'failure'
         run: |
           cd sample_project
-          # sabotage the project to cause an error
-          echo '>' >> setup.py
-          python -m cibuildwheel --output-dir wheelhouse
+          # adjust the project to cause an error
+          echo '
+          class AnotherTest:
+              def test_something(self):
+                  self.fail("sabotage!")
+          ' >> test/spam_test.py
+          python -m cibuildwheel --output-dir wheelhouse || true
