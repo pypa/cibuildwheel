@@ -13,12 +13,14 @@ basic_project = test_projects.new_c_project(
 )
 
 
-def test(tmp_path):
+def test(tmp_path, capfd):
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
 
-    # build the wheels
-    actual_wheels = utils.cibuildwheel_run(project_dir)
+    # build the wheels, and let the output passthrough to the caller, so
+    # we can see how it looks
+    with capfd.disabled():
+        actual_wheels = utils.cibuildwheel_run(project_dir)
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
