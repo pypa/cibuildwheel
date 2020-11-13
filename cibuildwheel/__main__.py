@@ -98,7 +98,6 @@ def main() -> None:
     print('locale.getpreferredencoding()', locale.getpreferredencoding())
     print('sys.getfilesystemencoding()', sys.getfilesystemencoding())
     print('os.environ["PYTHONIOENCODING"]', os.environ.get("PYTHONIOENCODING"))
-    print('chr(246), chr(9786), chr(9787)', chr(246), chr(9786), chr(9787))
     # TODO end
 
     detect_obsolete_options()
