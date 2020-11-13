@@ -1,14 +1,14 @@
 name: Test
 
 on:
-  push: {}
+  push:
+    branches:
+      - master
   pull_request:
     paths-ignore:
       - 'docs/**'
-    branches:
-      # PRs from branches on the origin repo get a build from the 'push'
-      # trigger. So the pull_request trigger is limited to fork branches
-      - '**:**'
+  workflow_dispatch:
+    # allow manual runs on branches without a PR
 
 jobs:
   pre-commit:
