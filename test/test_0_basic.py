@@ -1,3 +1,4 @@
+from cibuildwheel.logger import Logger
 import textwrap
 import platform
 from . import test_projects
@@ -20,7 +21,12 @@ def test(tmp_path, capfd):
     # build the wheels, and let the output passthrough to the caller, so
     # we can see how it looks
     with capfd.disabled():
+        logger = Logger()
+        logger._start_fold_group('Sample build')
+
         actual_wheels = utils.cibuildwheel_run(project_dir)
+
+        logger._end_fold_group()
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
