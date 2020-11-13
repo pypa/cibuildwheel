@@ -93,7 +93,6 @@ def main() -> None:
 
     # TODO remove this encoding stuff
     import locale
-    import os
     print(sys.stdout.encoding)
     print(sys.stdout.isatty())
     print(locale.getpreferredencoding())
