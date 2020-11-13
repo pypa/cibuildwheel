@@ -117,7 +117,7 @@ class DependencyConstraints:
             return self.base_file_path
 
     def __repr__(self):
-        return f'DependencyConstraints({self.base_file_path!r})'
+        return f'{self.__class__.__name__}{self.base_file_path!r})'
 
 
 class BuildOptions(NamedTuple):
