@@ -1,7 +1,7 @@
 import os
-import time
-import sys
 import re
+import sys
+import time
 from typing import Optional, Union
 
 DEFAULT_FOLD_PATTERN = ('{name}', '')
@@ -140,6 +140,13 @@ class Logger:
             return colors_enabled
         else:
             return colors_disabled
+
+
+'''
+Global instance of the Logger.
+'''
+# (there's only one stdout per-process, so a global instance is justified)
+log = Logger()
 
 
 def build_description_from_identifier(identifier: str):

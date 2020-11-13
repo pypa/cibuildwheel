@@ -1,4 +1,3 @@
-from cibuildwheel.logger import Logger
 import platform
 import subprocess
 import sys
@@ -8,6 +7,7 @@ from pathlib import Path, PurePath
 from typing import List, NamedTuple, Union
 
 from .docker_container import DockerContainer
+from .logger import log
 from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
                    get_build_verbosity_extra_flags, prepare_command)
 
@@ -111,8 +111,6 @@ def build(options: BuildOptions) -> None:
     container_project_path = PurePath('/project')
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
     container_output_dir = PurePath('/output')
-
-    log = Logger()
 
     for implementation, platform_tag, docker_image in platforms:
         platform_configs = [c for c in python_configurations if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)]

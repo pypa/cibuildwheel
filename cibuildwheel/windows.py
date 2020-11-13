@@ -7,11 +7,13 @@ from os import PathLike
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 from zipfile import ZipFile
+
 import toml
 
 from .environment import ParsedEnvironment
-from .util import (BuildOptions, BuildSelector, NonPlatformWheelError, download,
-                   get_build_verbosity_extra_flags, get_pip_script,
+from .logger import log
+from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
+                   download, get_build_verbosity_extra_flags, get_pip_script,
                    prepare_command)
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
@@ -109,17 +111,23 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
 def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: Sequence[Union[str, PathLike]], environment: ParsedEnvironment) -> Dict[str, str]:
     nuget = Path('C:\\cibw\\nuget.exe')
     if not nuget.exists():
+        log.step('Downloading nuget...')
         download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
 
-    if python_configuration.identifier.startswith('cp'):
+    implementation_id = python_configuration.identifier.split("-")[0]
+    log.step(f'Installing Python {implementation_id}...')
+
+    if implementation_id.startswith('cp'):
         installation_path = install_cpython(python_configuration.version, python_configuration.arch, nuget)
-    elif python_configuration.identifier.startswith('pp'):
+    elif implementation_id.startswith('pp'):
         assert python_configuration.url is not None
         installation_path = install_pypy(python_configuration.version, python_configuration.arch, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
 
     assert (installation_path / 'python.exe').exists()
+
+    log.step('Setting up build environment...')
 
     # set up PATH and environment variables for run_with_env
     env = os.environ.copy()
@@ -151,7 +159,8 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
         exit(1)
 
-    # prepare the Python environment
+    log.step('Installing build tools...')
+
     call(['python', '-m', 'pip', 'install', '--upgrade', 'pip', *dependency_constraint_flags], env=env)
     call(['pip', '--version'], env=env)
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', *dependency_constraint_flags], env=env)
@@ -182,6 +191,7 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
         )
 
         if requirements:
+            log.step('Performing PEP518 workaround...')
             with tempfile.TemporaryDirectory() as d:
                 reqfile = Path(d) / "requirements.txt"
                 with reqfile.open("w") as f:
@@ -195,114 +205,122 @@ def build(options: BuildOptions) -> None:
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'
 
-    # install nuget as best way to provide python
-    nuget = Path('C:\\cibw\\nuget.exe')
-    download('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', nuget)
+    try:
+        if options.before_all:
+            log.step('Running before_all...')
+            env = options.environment.as_dictionary(prev_environment=os.environ)
+            before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
+            shell(before_all_prepared, env=env)
 
-    if options.before_all:
-        env = options.environment.as_dictionary(prev_environment=os.environ)
-        before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
-        shell(before_all_prepared, env=env)
+        python_configurations = get_python_configurations(options.build_selector)
 
-    python_configurations = get_python_configurations(options.build_selector)
-    for config in python_configurations:
-        dependency_constraint_flags: Sequence[Union[str, PathLike]] = []
-        if options.dependency_constraints:
-            dependency_constraint_flags = [
-                '-c', options.dependency_constraints.get_for_python_version(config.version)
-            ]
+        for config in python_configurations:
+            log.build_start(config.identifier)
 
-        # install Python
-        env = setup_python(config, dependency_constraint_flags, options.environment)
+            dependency_constraint_flags: Sequence[Union[str, PathLike]] = []
+            if options.dependency_constraints:
+                dependency_constraint_flags = [
+                    '-c', options.dependency_constraints.get_for_python_version(config.version)
+                ]
 
-        # run the before_build command
-        if options.before_build:
-            before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
-            shell(before_build_prepared, env=env)
+            # install Python
+            env = setup_python(config, dependency_constraint_flags, options.environment)
 
-        # activate the PEP 518 patch if on Windows Python 3.5
-        # (will only have an effect if PEP 517 builds are used):
-        if config.version.startswith('3.5'):
-            pep_518_cp35_workaround(options.package_dir, env)
+            # run the before_build command
+            if options.before_build:
+                log.step('Running before_build...')
+                before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
+                shell(before_build_prepared, env=env)
 
-        # build the wheel
-        if built_wheel_dir.exists():
-            shutil.rmtree(built_wheel_dir)
-        built_wheel_dir.mkdir(parents=True)
-        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-        # see https://github.com/joerick/cibuildwheel/pull/369
-        call([
-            'pip', 'wheel',
-            options.package_dir.resolve(),
-            '-w', built_wheel_dir,
-            '--no-deps',
-            *get_build_verbosity_extra_flags(options.build_verbosity)
-        ], env=env)
+            # activate the PEP 518 patch if on Windows Python 3.5
+            # (will only have an effect if PEP 517 builds are used):
+            if config.version.startswith('3.5'):
+                pep_518_cp35_workaround(options.package_dir, env)
 
-        built_wheel = next(built_wheel_dir.glob('*.whl'))
+            log.step('Building wheel...')
+            if built_wheel_dir.exists():
+                shutil.rmtree(built_wheel_dir)
+            built_wheel_dir.mkdir(parents=True)
+            # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+            # see https://github.com/joerick/cibuildwheel/pull/369
+            call([
+                'pip', 'wheel',
+                options.package_dir.resolve(),
+                '-w', built_wheel_dir,
+                '--no-deps',
+                *get_build_verbosity_extra_flags(options.build_verbosity)
+            ], env=env)
 
-        # repair the wheel
-        if repaired_wheel_dir.exists():
-            shutil.rmtree(repaired_wheel_dir)
-        repaired_wheel_dir.mkdir(parents=True)
+            built_wheel = next(built_wheel_dir.glob('*.whl'))
 
-        if built_wheel.name.endswith('none-any.whl'):
-            raise NonPlatformWheelError()
+            # repair the wheel
+            if repaired_wheel_dir.exists():
+                shutil.rmtree(repaired_wheel_dir)
+            repaired_wheel_dir.mkdir(parents=True)
 
-        if options.repair_command:
-            repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
-            shell(repair_command_prepared, env=env)
-        else:
-            shutil.move(str(built_wheel), repaired_wheel_dir)
+            if built_wheel.name.endswith('none-any.whl'):
+                raise NonPlatformWheelError()
 
-        repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
+            if options.repair_command:
+                log.step('Repairing wheel...')
+                repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
+                shell(repair_command_prepared, env=env)
+            else:
+                shutil.move(str(built_wheel), repaired_wheel_dir)
 
-        if options.test_command:
-            # set up a virtual environment to install and test from, to make sure
-            # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
-            venv_dir = Path(tempfile.mkdtemp())
+            repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
-            # Use --no-download to ensure determinism by using seed libraries
-            # built into virtualenv
-            call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
+            if options.test_command:
+                log.step('Testing wheel...')
+                # set up a virtual environment to install and test from, to make sure
+                # there are no dependencies that were pulled in at build time.
+                call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
+                venv_dir = Path(tempfile.mkdtemp())
 
-            virtualenv_env = env.copy()
-            virtualenv_env['PATH'] = os.pathsep.join([
-                str(venv_dir / 'Scripts'),
-                virtualenv_env['PATH'],
-            ])
+                # Use --no-download to ensure determinism by using seed libraries
+                # built into virtualenv
+                call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
-            # check that we are using the Python from the virtual environment
-            call(['which', 'python'], env=virtualenv_env)
+                virtualenv_env = env.copy()
+                virtualenv_env['PATH'] = os.pathsep.join([
+                    str(venv_dir / 'Scripts'),
+                    virtualenv_env['PATH'],
+                ])
 
-            if options.before_test:
-                before_test_prepared = prepare_command(
-                    options.before_test,
-                    project='.',
-                    package=options.package_dir
+                # check that we are using the Python from the virtual environment
+                call(['which', 'python'], env=virtualenv_env)
+
+                if options.before_test:
+                    before_test_prepared = prepare_command(
+                        options.before_test,
+                        project='.',
+                        package=options.package_dir
+                    )
+                    shell(before_test_prepared, env=virtualenv_env)
+
+                # install the wheel
+                call(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
+
+                # test the wheel
+                if options.test_requires:
+                    call(['pip', 'install'] + options.test_requires, env=virtualenv_env)
+
+                # run the tests from c:\, with an absolute path in the command
+                # (this ensures that Python runs the tests against the installed wheel
+                # and not the repo code)
+                test_command_prepared = prepare_command(
+                    options.test_command,
+                    project=Path('.').resolve(),
+                    package=options.package_dir.resolve()
                 )
-                shell(before_test_prepared, env=virtualenv_env)
+                shell(test_command_prepared, cwd='c:\\', env=virtualenv_env)
 
-            # install the wheel
-            call(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
+                # clean up
+                shutil.rmtree(venv_dir)
 
-            # test the wheel
-            if options.test_requires:
-                call(['pip', 'install'] + options.test_requires, env=virtualenv_env)
-
-            # run the tests from c:\, with an absolute path in the command
-            # (this ensures that Python runs the tests against the installed wheel
-            # and not the repo code)
-            test_command_prepared = prepare_command(
-                options.test_command,
-                project=Path('.').resolve(),
-                package=options.package_dir.resolve()
-            )
-            shell(test_command_prepared, cwd='c:\\', env=virtualenv_env)
-
-            # clean up
-            shutil.rmtree(venv_dir)
-
-        # we're all done here; move it to output (remove if already exists)
-        shutil.move(str(repaired_wheel), options.output_dir)
+            # we're all done here; move it to output (remove if already exists)
+            shutil.move(str(repaired_wheel), options.output_dir)
+            log.build_end()
+    except subprocess.CalledProcessError as error:
+        log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+        exit(1)
