@@ -54,11 +54,6 @@ def strtobool(val: str) -> bool:
 
 
 def main() -> None:
-    if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
-        # the encoding on Windows can be a 1-byte charmap, but all CIs support
-        # utf8, so we hardcode that
-        sys.stdout.reconfigure(encoding='utf8')
-
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
         epilog='''

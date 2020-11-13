@@ -34,6 +34,11 @@ class Logger:
     active_fold_group_name: Optional[str] = None
 
     def __init__(self):
+        if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
+            # the encoding on Windows can be a 1-byte charmap, but all CIs
+            # support utf8, so we hardcode that
+            sys.stdout.reconfigure(encoding='utf8')
+
         self.unicode_enabled = file_supports_unicode(sys.stdout)
 
         if 'AZURE_HTTP_USER_AGENT' in os.environ:
