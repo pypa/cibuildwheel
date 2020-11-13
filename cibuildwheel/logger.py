@@ -1,3 +1,4 @@
+import codecs
 import os
 import re
 import sys
@@ -26,12 +27,15 @@ PLATFORM_IDENTIFIER_DESCIPTIONS = {
 class Logger:
     fold_mode: str
     colors_enabled: bool
+    unicode_enabled: bool
     active_build_identifier: Optional[str] = None
     build_start_time: Optional[float] = None
     step_start_time: Optional[float] = None
     active_fold_group_name: Optional[str] = None
 
     def __init__(self):
+        self.unicode_enabled = file_supports_unicode(sys.stdout)
+
         if 'AZURE_HTTP_USER_AGENT' in os.environ:
             self.fold_mode = 'azure'
             self.colors_enabled = True
@@ -70,10 +74,11 @@ class Logger:
         self.step_end()
 
         c = self.colors
+        s = self.symbols
         duration = time.time() - self.build_start_time
 
         print()
-        print(f'{c.green}✓ {c.end}{self.active_build_identifier} finished in {duration:.2f}s')
+        print(f'{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration:.2f}s')
         self.build_start_time = None
         self.active_build_identifier = None
 
@@ -86,11 +91,12 @@ class Logger:
         if self.step_start_time is not None:
             self._end_fold_group()
             c = self.colors
+            s = self.symbols
             duration = time.time() - self.step_start_time
             if success:
-                print(f'{c.green}✓ {c.end}{duration:.2f}s'.rjust(78))
+                print(f'{c.green}{s.done} {c.end}{duration:.2f}s'.rjust(78))
             else:
-                print(f'{c.red}✕ {c.end}{duration:.2f}s'.rjust(78))
+                print(f'{c.red}{s.error} {c.end}{duration:.2f}s'.rjust(78))
 
             self.step_start_time = None
 
@@ -137,9 +143,16 @@ class Logger:
     @property
     def colors(self):
         if self.colors_enabled:
-            return colors_enabled
+            return Colors.enabled
         else:
-            return colors_disabled
+            return Colors.disabled
+
+    @property
+    def symbols(self):
+        if self.unicode_enabled:
+            return Symbols.unicode
+        else:
+            return Symbols.ascii
 
 
 def build_description_from_identifier(identifier: str):
@@ -167,30 +180,43 @@ def build_description_from_identifier(identifier: str):
     return build_description
 
 
-class Colors():
-    red = '\033[31m'
-    green = '\033[32m'
-    yellow = '\033[33m'
-    blue = '\033[34m'
-    cyan = '\033[36m'
-    bright_red = '\033[91m'
-    bright_green = '\033[92m'
-    white = '\033[37m\033[97m'
+class Colors:
+    class Enabled:
+        red = '\033[31m'
+        green = '\033[32m'
+        yellow = '\033[33m'
+        blue = '\033[34m'
+        cyan = '\033[36m'
+        bright_red = '\033[91m'
+        bright_green = '\033[92m'
+        white = '\033[37m\033[97m'
 
-    bg_grey = '\033[48;5;235m'
+        bg_grey = '\033[48;5;235m'
 
-    bold = '\033[1m'
-    faint = '\033[2m'
+        bold = '\033[1m'
+        faint = '\033[2m'
 
-    end = '\033[0m'
+        end = '\033[0m'
 
     class Disabled:
-        def __getattr__(self, attr: str):
+        def __getattr__(self, attr: str) -> str:
             return ''
 
+    enabled = Enabled()
+    disabled = Disabled()
 
-colors_enabled = Colors()
-colors_disabled = Colors.Disabled()
+
+class Symbols:
+    class Unicode:
+        done = '✓'
+        error = '✕'
+
+    class Ascii:
+        done = 'done'
+        error = 'failed'
+
+    unicode = Unicode()
+    ascii = Ascii()
 
 
 def file_supports_color(file_obj):
@@ -207,6 +233,16 @@ def file_supports_color(file_obj):
 
 def file_is_a_tty(file_obj):
     return hasattr(file_obj, 'isatty') and file_obj.isatty()
+
+
+def file_supports_unicode(file_obj):
+    encoding = getattr(file_obj, 'encoding', None)
+    if not encoding:
+        return False
+
+    codec_info = codecs.lookup(encoding)
+
+    return ('utf' in codec_info.name)
 
 
 '''
