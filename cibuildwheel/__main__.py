@@ -93,12 +93,12 @@ def main() -> None:
 
     # TODO remove this encoding stuff
     import locale
-    print(sys.stdout.encoding)
-    print(sys.stdout.isatty())
-    print(locale.getpreferredencoding())
-    print(sys.getfilesystemencoding())
-    print(os.environ["PYTHONIOENCODING"])
-    print(chr(246), chr(9786), chr(9787))
+    print('sys.stdout.encoding', sys.stdout.encoding)
+    print('sys.stdout.isatty()', sys.stdout.isatty())
+    print('locale.getpreferredencoding()', locale.getpreferredencoding())
+    print('sys.getfilesystemencoding()', sys.getfilesystemencoding())
+    print('os.environ["PYTHONIOENCODING"]', os.environ.get("PYTHONIOENCODING"))
+    print('chr(246), chr(9786), chr(9787)', chr(246), chr(9786), chr(9787))
     # TODO end
 
     detect_obsolete_options()
