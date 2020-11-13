@@ -91,15 +91,6 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # TODO remove this encoding stuff
-    import locale
-    print('sys.stdout.encoding', sys.stdout.encoding)
-    print('sys.stdout.isatty()', sys.stdout.isatty())
-    print('locale.getpreferredencoding()', locale.getpreferredencoding())
-    print('sys.getfilesystemencoding()', sys.getfilesystemencoding())
-    print('os.environ["PYTHONIOENCODING"]', os.environ.get("PYTHONIOENCODING"))
-    # TODO end
-
     detect_obsolete_options()
 
     if args.platform != 'auto':
