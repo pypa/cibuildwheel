@@ -142,13 +142,6 @@ class Logger:
             return colors_disabled
 
 
-'''
-Global instance of the Logger.
-'''
-# (there's only one stdout per-process, so a global instance is justified)
-log = Logger()
-
-
 def build_description_from_identifier(identifier: str):
     python_identifier, _, platform_identifier = identifier.partition('-')
 
@@ -214,3 +207,10 @@ def file_supports_color(file_obj):
 
 def file_is_a_tty(file_obj):
     return hasattr(file_obj, 'isatty') and file_obj.isatty()
+
+
+'''
+Global instance of the Logger.
+'''
+# (there's only one stdout per-process, so a global instance is justified)
+log = Logger()
