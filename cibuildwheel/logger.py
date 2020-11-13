@@ -1,12 +1,13 @@
 import os
 import time
 import sys
+import re
 from typing import Optional, Union
 
 DEFAULT_FOLD_PATTERN = ('{name}', '')
 FOLD_PATTERNS = {
     'azure': ('##[group]{name}', '##[endgroup]'),
-    'travis': ('travis_fold:start:{name}', 'travis_fold:end:{name}'),
+    'travis': ('travis_fold:start:{identifier}\n{name}', 'travis_fold:end:{identifier}'),
     'github': ('::group::{name}', '::endgroup::{name}'),
 }
 
@@ -107,15 +108,31 @@ class Logger:
         self._end_fold_group()
         self.active_fold_group_name = name
         fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[0]
+        identifier = self._fold_group_identifier(name)
 
-        print(fold_start_pattern.format(name=self.active_fold_group_name))
+        print(fold_start_pattern.format(name=self.active_fold_group_name, identifier=identifier))
 
     def _end_fold_group(self):
         if self.active_fold_group_name:
             fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[1]
-            print(fold_start_pattern.format(name=self.active_fold_group_name))
+            identifier = self._fold_group_identifier(self.active_fold_group_name)
+            print(fold_start_pattern.format(name=self.active_fold_group_name, identifier=identifier))
             sys.stdout.flush()
             self.active_fold_group_name = None
+
+    def _fold_group_identifier(self, name: str):
+        '''
+        Travis doesn't like fold groups identifiers that have spaces in. This
+        method converts them to ascii identifiers
+        '''
+        # whitespace to dashes
+        identifier = re.sub(r'\s+', '-', name)
+        # remove non-alphanum
+        identifier = re.sub(r'[^A-Za-z\d]+', r'', identifier)
+        # trim dashes
+        identifier = identifier.strip('-')
+        # lowercase
+        return identifier.lower()
 
     @property
     def colors(self):
