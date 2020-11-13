@@ -35,6 +35,7 @@ jobs:
           choco install vcpython27 -f -y
 
       - name: Generate sample project
+        shell: bash
         run: |
           if $should_fail; then
             python -m test.test_projects test.test_testing.project_with_a_failing_test sample_project
@@ -45,6 +46,7 @@ jobs:
           should_fail: ${{ matrix.result == 'failure' }}
 
       - name: Build & test wheels
+        shell: bash
         run: |
           cd sample_project
           if $should_fail; then
