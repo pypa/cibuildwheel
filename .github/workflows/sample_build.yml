@@ -1,6 +1,12 @@
 name: Sample build
 
-on: [push, pull_request]
+on:
+  push: {}
+  pull_request:
+    branches:
+      # PRs from branches on the origin repo get a build from the 'push'
+      # trigger. So the pull_request trigger is limited to fork branches
+    - '**:**'
 
 jobs:
   build_wheels:
