@@ -125,14 +125,14 @@ class Logger:
         Travis doesn't like fold groups identifiers that have spaces in. This
         method converts them to ascii identifiers
         '''
-        # whitespace to dashes
-        identifier = re.sub(r'\s+', '-', name)
+        # whitespace to underscores
+        identifier = re.sub(r'\s+', '_', name)
         # remove non-alphanum
-        identifier = re.sub(r'[^A-Za-z\d]+', r'', identifier)
-        # trim dashes
-        identifier = identifier.strip('-')
-        # lowercase
-        return identifier.lower()
+        identifier = re.sub(r'[^A-Za-z\d_]+', '', identifier)
+        # trim underscores
+        identifier = identifier.strip('_')
+        # lowercase, shorten
+        return identifier.lower()[:20]
 
     @property
     def colors(self):
