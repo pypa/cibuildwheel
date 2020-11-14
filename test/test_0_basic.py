@@ -14,7 +14,19 @@ basic_project = test_projects.new_c_project(
 )
 
 
-def test(tmp_path, capfd):
+def test(tmp_path):
+    project_dir = tmp_path / 'project'
+    basic_project.generate(project_dir)
+
+    # build the wheels
+    actual_wheels = utils.cibuildwheel_run(project_dir)
+
+    # check that the expected wheels are produced
+    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_sample_build(tmp_path, capfd):
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
 
@@ -22,15 +34,11 @@ def test(tmp_path, capfd):
     # we can see how it looks
     with capfd.disabled():
         logger = Logger()
-        logger._start_fold_group('Sample build')
-
-        actual_wheels = utils.cibuildwheel_run(project_dir)
-
-        logger._end_fold_group()
-
-    # check that the expected wheels are produced
-    expected_wheels = utils.expected_wheels('spam', '0.1.0')
-    assert set(actual_wheels) == set(expected_wheels)
+        logger.step('test_sample_build')
+        try:
+            utils.cibuildwheel_run(project_dir)
+        finally:
+            logger.step_end()
 
 
 def test_build_identifiers(tmp_path):
