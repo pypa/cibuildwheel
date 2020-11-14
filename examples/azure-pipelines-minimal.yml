@@ -7,8 +7,9 @@ jobs:
         set -o errexit
         python3 -m pip install --upgrade pip
         pip3 install cibuildwheel==1.6.4
-    - displayName: Build wheels
-      bash: cibuildwheel --output-dir wheelhouse .
+      displayName: Install dependencies
+    - bash: cibuildwheel --output-dir wheelhouse .
+      displayName: Build wheels
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
 
@@ -16,13 +17,13 @@ jobs:
   pool: {vmImage: 'macOS-10.15'}
   steps:
     - task: UsePythonVersion@0
-    - displayName: Install dependencies
-      bash: |
+    - bash: |
         set -o errexit
         python3 -m pip install --upgrade pip
         python3 -m pip install cibuildwheel==1.6.4
-    - displayName: Build wheels
-      bash: cibuildwheel --output-dir wheelhouse .
+      displayName: Install dependencies
+    - bash: cibuildwheel --output-dir wheelhouse .
+      displayName: Build wheels
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: wheelhouse}
 
@@ -36,7 +37,8 @@ jobs:
         set -o errexit
         python -m pip install --upgrade pip
         pip install cibuildwheel==1.6.4
-    - displayName: Build wheels
-      bash: cibuildwheel --output-dir wheelhouse .
+      displayName: Install dependencies
+    - bash: cibuildwheel --output-dir wheelhouse .
+      displayName: Build wheels
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
