@@ -1,8 +1,9 @@
-from cibuildwheel.logger import Logger
-import textwrap
 import platform
-from . import test_projects
-from . import utils
+import textwrap
+import pytest
+
+from cibuildwheel.logger import Logger
+from . import test_projects, utils
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent('''
@@ -26,6 +27,7 @@ def test(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
+@pytest.mark.skip(reason='to keep test output clean')
 def test_sample_build(tmp_path, capfd):
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
