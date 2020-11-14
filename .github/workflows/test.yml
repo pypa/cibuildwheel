@@ -1,10 +1,14 @@
 name: Test
 
 on:
-  push: {}
+  push:
+    branches:
+      - master
   pull_request:
     paths-ignore:
       - 'docs/**'
+  workflow_dispatch:
+    # allow manual runs on branches without a PR
 
 jobs:
   pre-commit:
@@ -16,9 +20,6 @@ jobs:
     - uses: pre-commit/action@v2.0.0
 
   test:
-    # skip branch builds on joerick/cibuildwheel, but always build `master` and pull requests
-    if: github.repository != 'joerick/cibuildwheel' || github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
-
     name: Test cibuildwheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
