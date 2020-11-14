@@ -122,6 +122,8 @@ class Logger:
         identifier = self._fold_group_identifier(name)
 
         print(fold_start_pattern.format(name=self.active_fold_group_name, identifier=identifier))
+        print()
+        sys.stdout.flush()
 
     def _end_fold_group(self):
         if self.active_fold_group_name:
