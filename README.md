@@ -40,7 +40,7 @@ Usage
 
 `cibuildwheel` currently works on **Travis CI**, **Azure Pipelines**, **AppVeyor**, **GitHub Actions**, **CircleCI**, and **Gitlab CI**. Check the table below for supported platforms on each service:
 
-|                 | Linux | macOS | Windows | Supports ARM |
+|                 | Linux | macOS | Windows | Linux ARM |
 |-----------------|-------|-------|---------|--------------|
 | Azure Pipelines | ✅    | ✅    | ✅      | ✴️¹           |
 | Travis CI       | ✅    | ✅    | ✅      | ✅           |
