@@ -20,4 +20,4 @@ if __name__ == '__main__':
     project_dir = tempfile.mkdtemp()
     subprocess.run([sys.executable, '-m', 'test.test_projects', options.PROJECT_PYTHON_PATH, project_dir], check=True)
 
-    subprocess.run(['cibuildwheel'], check=True, cwd=project_dir)
+    exit(subprocess.run(['cibuildwheel'], cwd=project_dir).returncode)
