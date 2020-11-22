@@ -22,7 +22,8 @@ def call(args: Union[str, Sequence[Union[str, PathLike]]], env: Optional[Dict[st
     else:
         print('+ ' + ' '.join(shlex.quote(str(a)) for a in args))
 
-    return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
+    # run the process. Subprocess stderr is routed to stdout to keep output interleaved
+    return subprocess.check_call(args, env=env, cwd=cwd, shell=shell, stderr=subprocess.STDOUT)
 
 
 class PythonConfiguration(NamedTuple):

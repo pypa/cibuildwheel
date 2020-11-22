@@ -25,12 +25,13 @@ def call(args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = N
     print('+ ' + ' '.join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
     # https://bugs.python.org/issue8557
-    subprocess.check_call([str(a) for a in args], env=env, cwd=cwd, shell=True)
+    subprocess.check_call([str(a) for a in args], env=env, cwd=cwd, shell=True, stderr=subprocess.STDOUT)
 
 
 def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> None:
     print(f'+ {command}')
-    subprocess.check_call(command, env=env, cwd=cwd, shell=True)
+    # route stderr to stdout so output remains interleaved
+    subprocess.check_call(command, env=env, cwd=cwd, shell=True, stderr=subprocess.STDOUT)
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
