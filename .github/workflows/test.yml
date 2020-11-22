@@ -37,10 +37,21 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install -r requirements-dev.txt
+
     - name: Install Visual C++ for Python 2.7
       if: runner.os == 'Windows'
       run: |
         choco install vcpython27 -f -y
+
+    - name: Get PR labels
+      id: pr-labels
+      uses: joerick/pr-labels-action@v1.0.5
+
+    - name: Sample build
+      if: contains(steps.pr-labels.outputs.labels, ' ci-sample-build ')
+      run: |
+        python bin/sample_build.py
+
     - name: Test cibuildwheel
       run: |
         python ./bin/run_tests.py
