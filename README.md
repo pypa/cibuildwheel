@@ -23,9 +23,9 @@ What does it do?
 | CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
 | CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
 | CPython 3.9     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| PyPy 2.7 v7.3.2 | ✅ |    | ✅  | ✅ |    |    |    |    |
-| PyPy 3.6 v7.3.2 | ✅ |    | ✅  | ✅ |    |    |    |    |
-| PyPy 3.7 (alpha) v7.3.2 | ✅ |    | ✅  | ✅ |    |    |    |    |
+| PyPy 2.7 v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
+| PyPy 3.6 v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
+| PyPy 3.7 (beta) v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
 
 <sup>¹ Not supported on Travis</sup><br>
 <sup>² Only supported on Travis</sup><br>
@@ -67,8 +67,6 @@ jobs:
     - services: docker
     # and a mac build
     - os: osx
-      # PyPy 7.3.2 needs macOS >= 10.14
-      osx_image: xcode10.2
       language: shell
     # and a windows build
     - os: windows
