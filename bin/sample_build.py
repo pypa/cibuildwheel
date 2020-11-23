@@ -15,7 +15,6 @@ if __name__ == '__main__':
     parser.add_argument('project_python_path', nargs='?', default='test.test_0_basic.basic_project')
 
     options = parser.parse_args()
-    print(options)
 
     project_dir = tempfile.mkdtemp()
     subprocess.run([
