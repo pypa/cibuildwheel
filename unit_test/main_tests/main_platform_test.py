@@ -11,7 +11,11 @@ def test_unknown_platform_non_ci(monkeypatch, capsys):
     monkeypatch.delenv('CI', raising=False)
     monkeypatch.delenv('BITRISE_BUILD_NUMBER', raising=False)
     monkeypatch.delenv('AZURE_HTTP_USER_AGENT', raising=False)
-    monkeypatch.delenv('GITHUB_WORKFLOW', raising=False)
+    monkeypatch.delenv('TRAVIS', raising=False)
+    monkeypatch.delenv('APPVEYOR', raising=False)
+    monkeypatch.delenv('GITHUB_ACTIONS', raising=False)
+    monkeypatch.delenv('GITLAB_CI', raising=False)
+    monkeypatch.delenv('CIRCLECI', raising=False)
     monkeypatch.delenv('CIBW_PLATFORM', raising=False)
 
     with pytest.raises(SystemExit) as exit:
