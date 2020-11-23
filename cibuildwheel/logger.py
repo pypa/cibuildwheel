@@ -5,6 +5,8 @@ import sys
 import time
 from typing import Optional, Union
 
+from cibuildwheel.util import CIProvider, detect_ci_provider
+
 DEFAULT_FOLD_PATTERN = ('{name}', '')
 FOLD_PATTERNS = {
     'azure': ('##[group]{name}', '##[endgroup]'),
@@ -41,19 +43,21 @@ class Logger:
 
         self.unicode_enabled = file_supports_unicode(sys.stdout)
 
-        if 'AZURE_HTTP_USER_AGENT' in os.environ:
+        ci_provider = detect_ci_provider()
+
+        if ci_provider == CIProvider.azure_pipelines:
             self.fold_mode = 'azure'
             self.colors_enabled = True
 
-        elif 'GITHUB_ACTIONS' in os.environ:
+        elif ci_provider == CIProvider.github_actions:
             self.fold_mode = 'github'
             self.colors_enabled = True
 
-        elif 'TRAVIS' in os.environ:
+        elif ci_provider == CIProvider.travis_ci:
             self.fold_mode = 'travis'
             self.colors_enabled = True
 
-        elif 'APPVEYOR' in os.environ:
+        elif ci_provider == CIProvider.appveyor:
             self.fold_mode = 'disabled'
             self.colors_enabled = True
 
