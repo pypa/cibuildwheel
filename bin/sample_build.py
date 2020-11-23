@@ -12,12 +12,15 @@ if __name__ == '__main__':
     os.chdir(Path(__file__).resolve().parents[1])
 
     parser = argparse.ArgumentParser(description='Runs a sample build')
-    parser.add_argument('PROJECT_PYTHON_PATH', nargs='?', default='test.test_0_basic.basic_project')
+    parser.add_argument('project_python_path', nargs='?', default='test.test_0_basic.basic_project')
 
     options = parser.parse_args()
     print(options)
 
     project_dir = tempfile.mkdtemp()
-    subprocess.run([sys.executable, '-m', 'test.test_projects', options.PROJECT_PYTHON_PATH, project_dir], check=True)
+    subprocess.run([
+        sys.executable, '-m', 'test.test_projects',
+        options.project_python_path, project_dir
+    ], check=True)
 
     exit(subprocess.run(['cibuildwheel'], cwd=project_dir).returncode)
