@@ -26,10 +26,12 @@ def test(tmp_path):
         print("dummy text", file=ff)
 
     # build the wheels
+    before_all_command = '''python -c "import os;open('{project}/text_info.txt', 'w').write('sample text '+os.environ.get('TEST_VAL', ''))"'''
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         # write python version information to a temporary file, this is
         # checked in setup.py
-        'CIBW_BEFORE_ALL': '''python -c "import os;open('{project}/text_info.txt', 'w').write('sample text '+os.environ.get('TEST_VAL', ''))"''',
+        'CIBW_BEFORE_ALL': before_all_command,
+        'CIBW_BEFORE_ALL_LINUX': before_all_command + ''' && python -c "import sys; assert sys.version_info >= (3, 6)"''',
         'CIBW_ENVIRONMENT': "TEST_VAL='123'"
     })
 

@@ -122,7 +122,7 @@ def build(options: BuildOptions) -> None:
 
                 if options.before_all:
                     env = docker.get_environment()
-                    env['PATH'] = f'/opt/python/cp38-cp38:{env["PATH"]}'
+                    env['PATH'] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
 
                     before_all_prepared = prepare_command(options.before_all, project=container_project_path, package=container_package_dir)
