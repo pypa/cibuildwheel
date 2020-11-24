@@ -45,7 +45,7 @@ jobs:
 
     - name: Get PR labels
       id: pr-labels
-      uses: joerick/pr-labels-action@v1.0.5
+      uses: joerick/pr-labels-action@v1.0.6
 
     - name: Sample build
       if: contains(steps.pr-labels.outputs.labels, ' ci-sample-build ')
