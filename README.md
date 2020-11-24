@@ -49,7 +49,7 @@ Usage
 | CircleCI        | ✅    | ✅    |         |              |
 | Gitlab CI       | ✅    |       |         |              |
 
-<sup>¹ Supported with a "third-party build host".</sup><br>
+<sup>¹ Requires a "third-party build host"; expected to work with cibuildwheel but not directly tested by our CI.</sup><br>
 
 `cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal.
 
