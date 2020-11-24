@@ -40,14 +40,16 @@ Usage
 
 `cibuildwheel` currently works on **Travis CI**, **Azure Pipelines**, **AppVeyor**, **GitHub Actions**, **CircleCI**, and **Gitlab CI**. Check the table below for supported platforms on each service:
 
-|                 | Linux | macOS | Windows |
-|-----------------|-------|-------|---------|
-| Azure Pipelines | ✅    | ✅    | ✅      |
-| Travis CI       | ✅    | ✅    | ✅      |
-| AppVeyor        | ✅    | ✅    | ✅      |
-| GitHub Actions  | ✅    | ✅    | ✅      |
-| CircleCI        | ✅    | ✅    |         |
-| Gitlab CI       | ✅    |       |         |
+|                 | Linux | macOS | Windows | Linux ARM |
+|-----------------|-------|-------|---------|--------------|
+| Azure Pipelines | ✅    | ✅    | ✅      | ✴️¹           |
+| Travis CI       | ✅    | ✅    | ✅      | ✅           |
+| AppVeyor        | ✅    | ✅    | ✅      |              |
+| GitHub Actions  | ✅    | ✅    | ✅      | ✴️¹           |
+| CircleCI        | ✅    | ✅    |         |              |
+| Gitlab CI       | ✅    |       |         |              |
+
+<sup>¹ Requires a "third-party build host"; expected to work with cibuildwheel but not directly tested by our CI.</sup><br>
 
 `cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal.
 
