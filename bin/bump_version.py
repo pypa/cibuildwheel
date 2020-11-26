@@ -20,6 +20,25 @@ config = [
 
 @click.command()
 def bump_version():
+    current_version = cibuildwheel.__version__
+
+    try:
+        commit_date_str = subprocess.run([
+            'git',
+            'show', '-s', '--pretty=format:%ci',
+            f'v{current_version}^{{commit}}'
+        ], check=True, capture_output=True, encoding='utf8').stdout
+        commit_date_parts = commit_date_str.split(' ')
+
+        url = 'https://github.com/joerick/cibuildwheel/pulls?' + urllib.parse.urlencode({
+            'q': f'is:pr merged:>{commit_date_parts[0]}T{commit_date_parts[1]}{commit_date_parts[2]}',
+        })
+        print(f'PRs merged since last release:\n  {url}')
+        print()
+    except subprocess.CalledProcessError as e:
+        print(e)
+        print('Failed to get previous version tag information.')
+
     git_changes_result = subprocess.run(['git diff-index --quiet HEAD --'], shell=True)
     repo_has_uncommitted_changes = git_changes_result.returncode != 0
 
@@ -27,7 +46,6 @@ def bump_version():
         print('error: Uncommitted changes detected.')
         exit(1)
 
-    current_version = cibuildwheel.__version__
     print(              'Current version:', current_version)  # noqa
     new_version = input('    New version: ').strip()
 
@@ -89,23 +107,6 @@ def bump_version():
     print('Files updated. If you want to update the changelog as part of this')
     print('commit, do that now.')
     print()
-
-    try:
-        commit_date_str = subprocess.run([
-            'git',
-            'show', '-s', '--pretty=format:%ci',
-            f'v{current_version}^{{commit}}'
-        ], check=True, capture_output=True, encoding='utf8').stdout
-        commit_date_parts = commit_date_str.split(' ')
-
-        url = 'https://github.com/joerick/cibuildwheel/pulls?' + urllib.parse.urlencode({
-            'q': f'is:pr merged:>{commit_date_parts[0]}T{commit_date_parts[1]}{commit_date_parts[2]}',
-        })
-        print(f'PRs merged since last release:\n  {url}')
-        print()
-    except subprocess.CalledProcessError as e:
-        print(e)
-        print('Failed to get previous version tag information.')
 
     while input('Type "done" to continue: ').strip().lower() != 'done':
         pass
