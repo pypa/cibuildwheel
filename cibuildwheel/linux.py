@@ -7,6 +7,7 @@ from pathlib import Path, PurePath
 from typing import List, NamedTuple, Union
 
 from .docker_container import DockerContainer
+from .logger import log
 from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
                    get_build_verbosity_extra_flags, prepare_command)
 
@@ -83,7 +84,7 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
 
 def build(options: BuildOptions) -> None:
     try:
-        subprocess.check_call(['docker', '--version'])
+        subprocess.check_output(['docker', '--version'])
     except Exception:
         print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
               'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
@@ -117,10 +118,15 @@ def build(options: BuildOptions) -> None:
             continue
 
         try:
+            log.step(f'Starting Docker image {docker_image}...')
             with DockerContainer(docker_image, simulate_32_bit=platform_tag.endswith('i686'), cwd=container_project_path) as docker:
+
+                log.step('Copying project into Docker...')
                 docker.copy_into(Path.cwd(), container_project_path)
 
                 if options.before_all:
+                    log.step('Running before_all...')
+
                     env = docker.get_environment()
                     env['PATH'] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
@@ -129,6 +135,8 @@ def build(options: BuildOptions) -> None:
                     docker.call(['sh', '-c', before_all_prepared], env=env)
 
                 for config in platform_configs:
+                    log.build_start(config.identifier)
+
                     dependency_constraint_flags: List[Union[str, PathLike]] = []
 
                     if options.dependency_constraints:
@@ -137,6 +145,8 @@ def build(options: BuildOptions) -> None:
 
                         docker.copy_into(constraints_file, container_constraints_file)
                         dependency_constraint_flags = ['-c', container_constraints_file]
+
+                    log.step('Setting up build environment...')
 
                     env = docker.get_environment()
 
@@ -158,8 +168,11 @@ def build(options: BuildOptions) -> None:
                         exit(1)
 
                     if options.before_build:
+                        log.step('Running before_build...')
                         before_build_prepared = prepare_command(options.before_build, project=container_project_path, package=container_package_dir)
                         docker.call(['sh', '-c', before_build_prepared], env=env)
+
+                    log.step('Building wheel...')
 
                     temp_dir = PurePath('/tmp/cibuildwheel')
                     built_wheel_dir = temp_dir / 'built_wheel'
@@ -184,6 +197,7 @@ def build(options: BuildOptions) -> None:
                         raise NonPlatformWheelError()
 
                     if options.repair_command:
+                        log.step('Repairing wheel...')
                         repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
                         docker.call(['sh', '-c', repair_command_prepared], env=env)
                     else:
@@ -192,6 +206,8 @@ def build(options: BuildOptions) -> None:
                     repaired_wheels = docker.glob(repaired_wheel_dir, '*.whl')
 
                     if options.test_command:
+                        log.step('Testing wheel...')
+
                         # set up a virtual environment to install and test from, to make sure
                         # there are no dependencies that were pulled in at build time.
                         docker.call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
@@ -230,10 +246,14 @@ def build(options: BuildOptions) -> None:
                     docker.call(['mkdir', '-p', container_output_dir])
                     docker.call(['mv', *repaired_wheels, container_output_dir])
 
+                    log.build_end()
+
+                log.step('Copying wheels back to host...')
                 # copy the output back into the host
                 docker.copy_out(container_output_dir, options.output_dir)
+                log.step_end()
         except subprocess.CalledProcessError as error:
-            print(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+            log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
             troubleshoot(options.package_dir, error)
             exit(1)
 

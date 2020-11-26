@@ -1,13 +1,14 @@
 import os
-import textwrap
-import certifi
-import urllib.request
 import ssl
+import textwrap
+import urllib.request
+from enum import Enum
 from fnmatch import fnmatch
 from pathlib import Path
 from time import sleep
-
 from typing import Dict, List, NamedTuple, Optional, Union
+
+import certifi
 
 from .environment import ParsedEnvironment
 
@@ -42,7 +43,10 @@ class BuildSelector:
         return match_any(self.build_patterns) and not match_any(self.skip_patterns)
 
     def __repr__(self) -> str:
-        return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+        if not self.skip_patterns:
+            return f'BuildSelector({" ".join(self.build_patterns)!r})'
+        else:
+            return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -113,8 +117,8 @@ class DependencyConstraints:
         else:
             return self.base_file_path
 
-    def __str__(self):
-        return f"File '{self.base_file_path}'"
+    def __repr__(self):
+        return f'{self.__class__.__name__}{self.base_file_path!r})'
 
 
 class BuildOptions(NamedTuple):
@@ -152,3 +156,38 @@ class NonPlatformWheelError(Exception):
         ''')
 
         super().__init__(message)
+
+
+def strtobool(val: str) -> bool:
+    if val.lower() in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    return False
+
+
+class CIProvider(str, Enum):
+    travis_ci = 'travis'
+    appveyor = 'appveyor'
+    circle_ci = 'circle_ci'
+    azure_pipelines = 'azure_pipelines'
+    github_actions = 'github_actions'
+    gitlab = 'gitlab'
+    other = 'other'
+
+
+def detect_ci_provider() -> Optional[CIProvider]:
+    if 'TRAVIS' in os.environ:
+        return CIProvider.travis_ci
+    elif 'APPVEYOR' in os.environ:
+        return CIProvider.appveyor
+    elif 'CIRCLECI' in os.environ:
+        return CIProvider.circle_ci
+    elif 'AZURE_HTTP_USER_AGENT' in os.environ:
+        return CIProvider.azure_pipelines
+    elif 'GITHUB_ACTIONS' in os.environ:
+        return CIProvider.github_actions
+    elif 'GITLAB_CI' in os.environ:
+        return CIProvider.gitlab
+    elif strtobool(os.environ.get('CI', 'false')):
+        return CIProvider.other
+    else:
+        return None

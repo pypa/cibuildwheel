@@ -103,15 +103,26 @@ def test_extras_require(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
+project_with_a_failing_test = test_projects.new_c_project()
+project_with_a_failing_test.files['test/spam_test.py'] = r'''
+from unittest import TestCase
+
+class TestSpam(TestCase):
+    def test_something(self):
+        self.fail('this test is supposed to fail')
+'''
+
+
 def test_failing_test(tmp_path):
     """Ensure a failing test causes cibuildwheel to error out and exit"""
     project_dir = tmp_path / 'project'
     output_dir = tmp_path / 'output'
-    project_with_a_test.generate(project_dir)
+    project_with_a_failing_test.generate(project_dir)
 
     with pytest.raises(subprocess.CalledProcessError):
         utils.cibuildwheel_run(project_dir, output_dir=output_dir, add_env={
-            'CIBW_TEST_COMMAND': 'false',
+            'CIBW_TEST_REQUIRES': 'nose',
+            'CIBW_TEST_COMMAND': 'nosetests {project}/test',
             # manylinux1 has a version of bash that's been shown to have
             # problems with this, so let's check that.
             'CIBW_MANYLINUX_I686_IMAGE': 'manylinux1',

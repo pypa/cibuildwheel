@@ -21,6 +21,7 @@ from cibuildwheel.util import (
     BuildSelector,
     DependencyConstraints,
     Unbuffered,
+    detect_ci_provider,
     resources_dir,
 )
 
@@ -45,12 +46,6 @@ def get_option_from_environment(option_name: str, platform: Optional[str] = None
             return option
 
     return os.environ.get(option_name, default)
-
-
-def strtobool(val: str) -> bool:
-    if val.lower() in ('y', 'yes', 't', 'true', 'on', '1'):
-        return True
-    return False
 
 
 def main() -> None:
@@ -96,13 +91,14 @@ def main() -> None:
     if args.platform != 'auto':
         platform = args.platform
     else:
-        ci = strtobool(os.environ.get('CI', 'false')) or 'BITRISE_BUILD_NUMBER' in os.environ or 'AZURE_HTTP_USER_AGENT' in os.environ or 'GITHUB_WORKFLOW' in os.environ
-        if not ci:
-            print('cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server, '
-                  'Travis CI, AppVeyor, Azure Pipelines, GitHub Actions and CircleCI are supported. You '
-                  'can run on your development machine or other CI providers using the --platform argument. '
-                  'Check --help output for more information.',
-                  file=sys.stderr)
+        ci_provider = detect_ci_provider()
+        if ci_provider is None:
+            print(textwrap.dedent('''
+                cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server;
+                Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, and Gitlab are
+                supported. You can run on your development machine or other CI providers using the
+                --platform argument. Check --help output for more information.
+            '''), file=sys.stderr)
             exit(2)
         if sys.platform.startswith('linux'):
             platform = 'linux'

@@ -1,7 +1,9 @@
-import textwrap
 import platform
-from . import test_projects
-from . import utils
+import textwrap
+import pytest
+
+from cibuildwheel.logger import Logger
+from . import test_projects, utils
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent('''
@@ -23,6 +25,22 @@ def test(tmp_path):
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels('spam', '0.1.0')
     assert set(actual_wheels) == set(expected_wheels)
+
+
+@pytest.mark.skip(reason='to keep test output clean')
+def test_sample_build(tmp_path, capfd):
+    project_dir = tmp_path / 'project'
+    basic_project.generate(project_dir)
+
+    # build the wheels, and let the output passthrough to the caller, so
+    # we can see how it looks
+    with capfd.disabled():
+        logger = Logger()
+        logger.step('test_sample_build')
+        try:
+            utils.cibuildwheel_run(project_dir)
+        finally:
+            logger.step_end()
 
 
 def test_build_identifiers(tmp_path):

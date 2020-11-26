@@ -73,7 +73,7 @@ class DockerContainer:
         self.process.terminate()
         self.process.wait()
 
-        subprocess.run(['docker', 'rm', '--force', '-v', self.name])
+        subprocess.run(['docker', 'rm', '--force', '-v', self.name], stdout=subprocess.DEVNULL)
         self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:

@@ -9,9 +9,10 @@ from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 
 from .environment import ParsedEnvironment
-from .util import (BuildOptions, BuildSelector, NonPlatformWheelError, download,
-                   get_build_verbosity_extra_flags, get_pip_script,
-                   prepare_command, install_certifi_script)
+from .logger import log
+from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
+                   download, get_build_verbosity_extra_flags, get_pip_script,
+                   install_certifi_script, prepare_command)
 
 
 def call(args: Union[str, Sequence[Union[str, PathLike]]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
@@ -116,12 +117,17 @@ def install_pypy(version: str, url: str) -> Path:
 def setup_python(python_configuration: PythonConfiguration,
                  dependency_constraint_flags: Sequence[Union[str, PathLike]],
                  environment: ParsedEnvironment) -> Dict[str, str]:
-    if python_configuration.identifier.startswith('cp'):
+    implementation_id = python_configuration.identifier.split("-")[0]
+    log.step(f'Installing Python {implementation_id}...')
+
+    if implementation_id.startswith('cp'):
         installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
-    elif python_configuration.identifier.startswith('pp'):
+    elif implementation_id.startswith('pp'):
         installation_bin_path = install_pypy(python_configuration.version, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
+
+    log.step('Setting up build environment...')
 
     env = os.environ.copy()
     env['PATH'] = os.pathsep.join([
@@ -156,7 +162,6 @@ def setup_python(python_configuration: PythonConfiguration,
     if which_pip != '/tmp/cibw_bin/pip':
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
         exit(1)
-    call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
@@ -170,6 +175,9 @@ def setup_python(python_configuration: PythonConfiguration,
         # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
         env.setdefault('ARCHFLAGS', '-arch x86_64')
 
+    log.step('Installing build tools...')
+    call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
+
     return env
 
 
@@ -178,102 +186,111 @@ def build(options: BuildOptions) -> None:
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'
 
-    if options.before_all:
-        env = options.environment.as_dictionary(prev_environment=os.environ)
-        before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
-        call([before_all_prepared], shell=True, env=env)
+    try:
+        if options.before_all:
+            log.step('Running before_all...')
+            env = options.environment.as_dictionary(prev_environment=os.environ)
+            before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
+            call([before_all_prepared], shell=True, env=env)
 
-    python_configurations = get_python_configurations(options.build_selector)
+        python_configurations = get_python_configurations(options.build_selector)
 
-    for config in python_configurations:
-        dependency_constraint_flags: Sequence[Union[str, PathLike]] = []
-        if options.dependency_constraints:
-            dependency_constraint_flags = [
-                '-c', options.dependency_constraints.get_for_python_version(config.version)
-            ]
+        for config in python_configurations:
+            log.build_start(config.identifier)
 
-        env = setup_python(config, dependency_constraint_flags, options.environment)
+            dependency_constraint_flags: Sequence[Union[str, PathLike]] = []
+            if options.dependency_constraints:
+                dependency_constraint_flags = [
+                    '-c', options.dependency_constraints.get_for_python_version(config.version)
+                ]
 
-        # run the before_build command
-        if options.before_build:
-            before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
-            call(before_build_prepared, env=env, shell=True)
+            env = setup_python(config, dependency_constraint_flags, options.environment)
 
-        # build the wheel
-        if built_wheel_dir.exists():
-            shutil.rmtree(built_wheel_dir)
-        built_wheel_dir.mkdir(parents=True)
+            if options.before_build:
+                log.step('Running before_build...')
+                before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
+                call(before_build_prepared, env=env, shell=True)
 
-        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-        # see https://github.com/joerick/cibuildwheel/pull/369
-        call([
-            'pip', 'wheel',
-            options.package_dir.resolve(),
-            '-w', built_wheel_dir,
-            '--no-deps',
-            *get_build_verbosity_extra_flags(options.build_verbosity)
-        ], env=env)
+            log.step('Building wheel...')
+            if built_wheel_dir.exists():
+                shutil.rmtree(built_wheel_dir)
+            built_wheel_dir.mkdir(parents=True)
 
-        built_wheel = next(built_wheel_dir.glob('*.whl'))
+            # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+            # see https://github.com/joerick/cibuildwheel/pull/369
+            call([
+                'pip', 'wheel',
+                options.package_dir.resolve(),
+                '-w', built_wheel_dir,
+                '--no-deps',
+                *get_build_verbosity_extra_flags(options.build_verbosity)
+            ], env=env)
 
-        # repair the wheel
-        if repaired_wheel_dir.exists():
-            shutil.rmtree(repaired_wheel_dir)
-        repaired_wheel_dir.mkdir(parents=True)
+            built_wheel = next(built_wheel_dir.glob('*.whl'))
 
-        if built_wheel.name.endswith('none-any.whl'):
-            raise NonPlatformWheelError()
+            if repaired_wheel_dir.exists():
+                shutil.rmtree(repaired_wheel_dir)
+            repaired_wheel_dir.mkdir(parents=True)
 
-        if options.repair_command:
-            repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
-            call(repair_command_prepared, env=env, shell=True)
-        else:
-            shutil.move(str(built_wheel), repaired_wheel_dir)
+            if built_wheel.name.endswith('none-any.whl'):
+                raise NonPlatformWheelError()
 
-        repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
+            if options.repair_command:
+                log.step('Repairing wheel...')
+                repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
+                call(repair_command_prepared, env=env, shell=True)
+            else:
+                shutil.move(str(built_wheel), repaired_wheel_dir)
 
-        if options.test_command:
-            # set up a virtual environment to install and test from, to make sure
-            # there are no dependencies that were pulled in at build time.
-            call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
-            venv_dir = Path(tempfile.mkdtemp())
+            repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
-            # Use --no-download to ensure determinism by using seed libraries
-            # built into virtualenv
-            call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
+            if options.test_command:
+                log.step('Testing wheel...')
+                # set up a virtual environment to install and test from, to make sure
+                # there are no dependencies that were pulled in at build time.
+                call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
+                venv_dir = Path(tempfile.mkdtemp())
 
-            virtualenv_env = env.copy()
-            virtualenv_env['PATH'] = os.pathsep.join([
-                str(venv_dir / 'bin'),
-                virtualenv_env['PATH'],
-            ])
+                # Use --no-download to ensure determinism by using seed libraries
+                # built into virtualenv
+                call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
-            # check that we are using the Python from the virtual environment
-            call(['which', 'python'], env=virtualenv_env)
+                virtualenv_env = env.copy()
+                virtualenv_env['PATH'] = os.pathsep.join([
+                    str(venv_dir / 'bin'),
+                    virtualenv_env['PATH'],
+                ])
 
-            if options.before_test:
-                before_test_prepared = prepare_command(options.before_test, project='.', package=options.package_dir)
-                call(before_test_prepared, env=virtualenv_env, shell=True)
+                # check that we are using the Python from the virtual environment
+                call(['which', 'python'], env=virtualenv_env)
 
-            # install the wheel
-            call(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
+                if options.before_test:
+                    before_test_prepared = prepare_command(options.before_test, project='.', package=options.package_dir)
+                    call(before_test_prepared, env=virtualenv_env, shell=True)
 
-            # test the wheel
-            if options.test_requires:
-                call(['pip', 'install'] + options.test_requires, env=virtualenv_env)
+                # install the wheel
+                call(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
 
-            # run the tests from $HOME, with an absolute path in the command
-            # (this ensures that Python runs the tests against the installed wheel
-            # and not the repo code)
-            test_command_prepared = prepare_command(
-                options.test_command,
-                project=Path('.').resolve(),
-                package=options.package_dir.resolve()
-            )
-            call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+                # test the wheel
+                if options.test_requires:
+                    call(['pip', 'install'] + options.test_requires, env=virtualenv_env)
 
-            # clean up
-            shutil.rmtree(venv_dir)
+                # run the tests from $HOME, with an absolute path in the command
+                # (this ensures that Python runs the tests against the installed wheel
+                # and not the repo code)
+                test_command_prepared = prepare_command(
+                    options.test_command,
+                    project=Path('.').resolve(),
+                    package=options.package_dir.resolve()
+                )
+                call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
 
-        # we're all done here; move it to output (overwrite existing)
-        shutil.move(str(repaired_wheel), options.output_dir)
+                # clean up
+                shutil.rmtree(venv_dir)
+
+            # we're all done here; move it to output (overwrite existing)
+            shutil.move(str(repaired_wheel), options.output_dir)
+            log.build_end()
+    except subprocess.CalledProcessError as error:
+        log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+        exit(1)
