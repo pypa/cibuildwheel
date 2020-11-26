@@ -85,7 +85,7 @@ env:
     # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
 
 install:
-  - python3 -m pip install cibuildwheel==1.6.4
+  - python3 -m pip install cibuildwheel==1.7.0
 
 script:
   # build the wheels, put them into './wheelhouse'
@@ -164,6 +164,16 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+### 1.7.0
+
+_26 November 2020_
+
+- ✨ New logging format, that uses 'fold groups' in CI services that support
+  it. (#458)
+- 🛠 Update PyPy to 7.3.3 (#460)
+- 🐛 Fix a bug where CIBW_BEFORE_ALL runs with a very old version of Python on
+  Linux. (#464)
 
 ### 1.6.4
 
