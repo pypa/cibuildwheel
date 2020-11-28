@@ -136,6 +136,7 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
+    use_binfmt: bool
 
 
 resources_dir = Path(__file__).resolve().parent / 'resources'

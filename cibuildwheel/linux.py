@@ -54,7 +54,7 @@ class PythonConfiguration(NamedTuple):
         return PurePath(self.path_str)
 
 
-def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
+def get_python_configurations(build_selector: BuildSelector, use_binfmt: bool = False) -> List[PythonConfiguration]:
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27m'),
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27mu'),
@@ -90,8 +90,8 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
     ]
     # skip builds as required
-    return [c for c in python_configurations if (matches_platform(c.identifier) or
-            matches_qemu_capable(c.identifier)) and build_selector(c.identifier)]
+    return [c for c in python_configurations if (matches_platform(c.identifier)
+            or (use_binfmt and matches_qemu_capable(c.identifier))) and build_selector(c.identifier)]
 
 
 def build(options: BuildOptions) -> None:
@@ -104,8 +104,12 @@ def build(options: BuildOptions) -> None:
               file=sys.stderr)
         exit(2)
 
+    if options.use_binfmt:
+        log.step('Installing binfmt...')
+        subprocess.check_output(['docker', 'run', '--rm', '--privileged', 'docker/binfmt:a7996909642ee92942dcd6cff44b9b95f08dad64'])
+
     assert options.manylinux_images is not None
-    python_configurations = get_python_configurations(options.build_selector)
+    python_configurations = get_python_configurations(options.build_selector, options.use_binfmt)
     platforms = [
         ('cp', 'manylinux_x86_64', options.manylinux_images['x86_64']),
         ('cp', 'manylinux_i686', options.manylinux_images['i686']),

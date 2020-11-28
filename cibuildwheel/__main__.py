@@ -79,6 +79,12 @@ def main() -> None:
                             considered the 'project' and is copied into the Docker container on
                             Linux. Default: the working directory.
                         ''')
+    parser.add_argument('--use-binfmt',
+                        default=False,
+                        action='store_true',
+                        help='''
+                            Use QEMU Emulation to run the Docker images of other architectures.
+                        ''')
 
     parser.add_argument('--print-build-identifiers',
                         action='store_true',
@@ -168,8 +174,11 @@ def main() -> None:
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         exit(2)
 
+    # qemu is only available on linux platforms
+    use_binfmt = args.use_binfmt and platform == 'linux'
+
     if args.print_build_identifiers:
-        print_build_identifiers(platform, build_selector)
+        print_build_identifiers(platform, build_selector, use_binfmt)
         exit(0)
 
     manylinux_images: Optional[Dict[str, str]] = None
@@ -216,6 +225,7 @@ def main() -> None:
         environment=environment,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images,
+        use_binfmt=use_binfmt
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
@@ -284,10 +294,10 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
     print('\nHere we go!\n')
 
 
-def print_build_identifiers(platform: str, build_selector: BuildSelector) -> None:
+def print_build_identifiers(platform: str, build_selector: BuildSelector, use_binfmt: bool) -> None:
     python_configurations: List[Any] = []
     if platform == 'linux':
-        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector)
+        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, use_binfmt)
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
     elif platform == 'macos':
