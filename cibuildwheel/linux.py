@@ -33,6 +33,17 @@ def matches_platform(identifier: str) -> bool:
     return False
 
 
+def matches_qemu_capable(identifier: str) -> bool:
+    arch = identifier.split('_')[-1]
+    qemu_platform = Path(f"/proc/sys/fs/binfmt_misc/qemu-{arch}")
+
+    if not qemu_platform.exists():
+        return False
+
+    contents = open(qemu_platform, "r").readlines()
+    return contents[0].strip() == "enabled"
+
+
 class PythonConfiguration(NamedTuple):
     version: str
     identifier: str
@@ -79,7 +90,8 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
     ]
     # skip builds as required
-    return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
+    return [c for c in python_configurations if (matches_platform(c.identifier) or
+            matches_qemu_capable(c.identifier)) and build_selector(c.identifier)]
 
 
 def build(options: BuildOptions) -> None:
