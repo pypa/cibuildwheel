@@ -148,6 +148,7 @@ Here are some repos that use cibuildwheel.
 - [etebase-py](https://github.com/etesync/etebase-py) - Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI.
 - [xmlstarlet](https://github.com/dimitern/xmlstarlet) - Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions.
 - [bx-python](https://github.com/bxlab/bx-python) - A library that includes Cython extensions, built on Travis CI for Mac and Linux.
+- [coverage.py](https://github.com/nedbat/coveragepy) - The coverage tool for Python.
 
 > Add your repo here! Send a PR.
 >
