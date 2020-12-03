@@ -127,30 +127,32 @@ Working examples
 
 Here are some repos that use cibuildwheel.
 
+
 | Name                    | Stars                          | Notes |
 |-------------------------|--------------------------------|:------|
 | [Matplotlib][]          | ![Matplotlib stars][]          | The venerable Matplotlib, a Python library with C++ portions, built for Linux, Mac, and Windows on Github Actions. |
-| [pyinstrument_cext][]   | ![pyinstrument_cext stars][]   | A simple C extension, without external dependencies, built on Travis CI/Appveyor. |
-| [websockets][]          | ![websockets stars][]          | |
-| [Parselmouth][]         | ![Parselmouth stars][]         |  A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels; all platforms built on Github Actions. |
-| [python-admesh][]       | ![python-admesh stars][]       | |
-| [pybase64][]            | ![pybase64 stars][]            |
-| [KDEpy][]               | ![KDEpy stars][]               |
-| [AutoPy][]              | ![AutoPy stars][]              |
-| [apriltags2-ethz][]     | ![apriltags2-ethz stars][]     | |
-| [TgCrypto][]            | ![TgCrypto stars][]            | |
 | [twisted-iocpsupport][] | ![twisted-iocpsupport stars][] | A submodule of Twisted that hooks into native C APIs using Cython. Built on Github CI for Windows. |
-| [gmic-py][]             | ![gmic-py stars][]             | |
-| [creme][]               | ![creme stars][]               | |
-| [PyAV][]                | ![PyAV stars][]                | |
+| [websockets][]          | ![websockets stars][]          | |
 | [aiortc][]              | ![aiortc stars][]              | |
 | [aioquic][]             | ![aioquic stars][]             | |
-| [pikepdf][]             | ![pikepdf stars][]             | |
-| [fathon][]              | ![fathon stars][]              | |
-| [etebase-py][]          | ![etebase-py stars][]          | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI. |
-| [xmlstarlet][]          | ![xmlstarlet stars][]          | Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions. |
-| [bx-python][]           | ![bx-python stars][]           |  A library that includes Cython extensions, built on Travis CI for Mac and Linux. |
 | [coverage.py][]         | ![coverage.py stars][]         | The coverage tool for Python. |
+| [PyAV][]                | ![PyAV stars][]                | |
+| [creme][]               | ![creme stars][]               | |
+| [AutoPy][]              | ![AutoPy stars][]              | |
+| [pikepdf][]             | ![pikepdf stars][]             | |
+| [Parselmouth][]         | ![Parselmouth stars][]         |  A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels; all platforms built on Github Actions. |
+| [KDEpy][]               | ![KDEpy stars][]               | |
+| [bx-python][]           | ![bx-python stars][]           |  A library that includes Cython extensions, built on Travis CI for Mac and Linux. |
+| [pybase64][]            | ![pybase64 stars][]            | |
+| [TgCrypto][]            | ![TgCrypto stars][]            | |
+| [etebase-py][]          | ![etebase-py stars][]          | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI. |
+| [gmic-py][]             | ![gmic-py stars][]             | |
+| [fathon][]              | ![fathon stars][]              | |
+| [pyinstrument_cext][]   | ![pyinstrument_cext stars][]   | A simple C extension, without external dependencies, built on Travis CI/Appveyor. |
+| [python-admesh][]       | ![python-admesh stars][]       | |
+| [xmlstarlet][]          | ![xmlstarlet stars][]          | Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions. |
+| [apriltags2-ethz][]     | ![apriltags2-ethz stars][]     | |
+
 
 [Matplotlib]: https://github.com/matplotlib/matplotlib
 [pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
