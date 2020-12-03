@@ -127,28 +127,77 @@ Working examples
 
 Here are some repos that use cibuildwheel.
 
-- [Matplotlib](https://github.com/matplotlib/matplotlib) - The venerable Matplotlib, a Python library with C++ portions, built for Linux, Mac, and Windows on Github Actions.
-- [pyinstrument_cext](https://github.com/joerick/pyinstrument_cext) - A simple C extension, without external dependencies, built on Travis CI/Appveyor.
-- [websockets](https://github.com/aaugustin/websockets)
-- [Parselmouth](https://github.com/YannickJadoul/Parselmouth) - A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels; all platforms built on Github Actions.
-- [python-admesh](https://github.com/admesh/python-admesh)
-- [pybase64](https://github.com/mayeut/pybase64)
-- [KDEpy](https://github.com/tommyod/KDEpy)
-- [AutoPy](https://github.com/autopilot-rs/autopy)
-- [apriltags2-ethz](https://github.com/safijari/apriltags2_ethz)
-- [TgCrypto](https://github.com/pyrogram/tgcrypto)
-- [twisted-iocpsupport](https://github.com/twisted/twisted-iocpsupport) - A submodule of Twisted that hooks into native C APIs using Cython. Built on Github CI for Windows.
-- [gmic-py](https://github.com/dtschump/gmic-py)
-- [creme](https://github.com/creme-ml/creme)
-- [PyAV](https://github.com/PyAV-Org/PyAV)
-- [aiortc](https://github.com/aiortc/aiortc)
-- [aioquic](https://github.com/aiortc/aioquic)
-- [pikepdf](https://github.com/pikepdf/pikepdf)
-- [fathon](https://github.com/stfbnc/fathon)
-- [etebase-py](https://github.com/etesync/etebase-py) - Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI.
-- [xmlstarlet](https://github.com/dimitern/xmlstarlet) - Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions.
-- [bx-python](https://github.com/bxlab/bx-python) - A library that includes Cython extensions, built on Travis CI for Mac and Linux.
-- [coverage.py](https://github.com/nedbat/coveragepy) - The coverage tool for Python.
+| Name                    | Stars                          | Notes |
+|-------------------------|--------------------------------|:------|
+| [Matplotlib][]          | ![Matplotlib stars][]          | The venerable Matplotlib, a Python library with C++ portions, built for Linux, Mac, and Windows on Github Actions. |
+| [pyinstrument_cext][]   | ![pyinstrument_cext stars][]   | A simple C extension, without external dependencies, built on Travis CI/Appveyor. |
+| [websockets][]          | ![websockets stars][]          | |
+| [Parselmouth][]         | ![Parselmouth stars][]         |  A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels; all platforms built on Github Actions. |
+| [python-admesh][]       | ![python-admesh stars][]       | |
+| [pybase64][]            | ![pybase64 stars][]            |
+| [KDEpy][]               | ![KDEpy stars][]               |
+| [AutoPy][]              | ![AutoPy stars][]              |
+| [apriltags2-ethz][]     | ![apriltags2-ethz stars][]     | |
+| [TgCrypto][]            | ![TgCrypto stars][]            | |
+| [twisted-iocpsupport][] | ![twisted-iocpsupport stars][] | A submodule of Twisted that hooks into native C APIs using Cython. Built on Github CI for Windows. |
+| [gmic-py][]             | ![gmic-py stars][]             | |
+| [creme][]               | ![creme stars][]               | |
+| [PyAV][]                | ![PyAV stars][]                | |
+| [aiortc][]              | ![aiortc stars][]              | |
+| [aioquic][]             | ![aioquic stars][]             | |
+| [pikepdf][]             | ![pikepdf stars][]             | |
+| [fathon][]              | ![fathon stars][]              | |
+| [etebase-py][]          | ![etebase-py stars][]          | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI. |
+| [xmlstarlet][]          | ![xmlstarlet stars][]          | Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions. |
+| [bx-python][]           | ![bx-python stars][]           |  A library that includes Cython extensions, built on Travis CI for Mac and Linux. |
+| [coverage.py][]         | ![coverage.py stars][]         | The coverage tool for Python. |
+
+[Matplotlib]: https://github.com/matplotlib/matplotlib
+[pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
+[websockets]: https://github.com/aaugustin/websockets
+[Parselmouth]: https://github.com/YannickJadoul/Parselmouth
+[python-admesh]: https://github.com/admesh/python-admesh
+[pybase64]: https://github.com/mayeut/pybase64
+[KDEpy]: https://github.com/tommyod/KDEpy
+[AutoPy]: https://github.com/autopilot-rs/autopy
+[apriltags2-ethz]: https://github.com/safijari/apriltags2_ethz
+[TgCrypto]: https://github.com/pyrogram/tgcrypto
+[twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
+[gmic-py]: https://github.com/dtschump/gmic-py
+[creme]: https://github.com/creme-ml/creme
+[PyAV]: https://github.com/PyAV-Org/PyAV
+[aiortc]: https://github.com/aiortc/aiortc
+[aioquic]: https://github.com/aiortc/aioquic
+[pikepdf]: https://github.com/pikepdf/pikepdf
+[fathon]: https://github.com/stfbnc/fathon
+[etebase-py]: https://github.com/etesync/etebase-py
+[xmlstarlet]: https://github.com/dimitern/xmlstarlet
+[bx-python]: https://github.com/bxlab/bx-python
+[coverage.py]: https://github.com/nedbat/coveragepy
+
+[Matplotlib stars]: https://img.shields.io/github/stars/matplotlib/matplotlib?label=%20&style=social
+[pyinstrument_cext stars]: https://img.shields.io/github/stars/joerick/pyinstrument_cext?label=%20&style=social
+[websockets stars]: https://img.shields.io/github/stars/aaugustin/websockets?label=%20&style=social
+[Parselmouth stars]: https://img.shields.io/github/stars/YannickJadoul/Parselmouth?label=%20&style=social
+[python-admesh stars]: https://img.shields.io/github/stars/admesh/python-admesh?label=%20&style=social
+[pybase64 stars]: https://img.shields.io/github/stars/mayeut/pybase64?label=%20&style=social
+[KDEpy stars]: https://img.shields.io/github/stars/tommyod/KDEpy?label=%20&style=social
+[AutoPy stars]: https://img.shields.io/github/stars/autopilot-rs/autopy?label=%20&style=social
+[apriltags2-ethz stars]: https://img.shields.io/github/stars/safijari/apriltags2_ethz?label=%20&style=social
+[TgCrypto stars]: https://img.shields.io/github/stars/pyrogram/tgcrypto?label=%20&style=social
+[twisted-iocpsupport stars]: https://img.shields.io/github/stars/twisted/twisted?label=%20&style=social
+[gmic-py stars]: https://img.shields.io/github/stars/dtschump/gmic-py?label=%20&style=social
+[creme stars]: https://img.shields.io/github/stars/creme-ml/creme?label=%20&style=social
+[PyAV stars]: https://img.shields.io/github/stars/PyAV-Org/PyAV?label=%20&style=social
+[aiortc stars]: https://img.shields.io/github/stars/aiortc/aiortc?label=%20&style=social
+[aioquic stars]: https://img.shields.io/github/stars/aiortc/aioquic?label=%20&style=social
+[pikepdf stars]: https://img.shields.io/github/stars/pikepdf/pikepdf?label=%20&style=social
+[fathon stars]: https://img.shields.io/github/stars/stfbnc/fathon?label=%20&style=social
+[etebase-py stars]: https://img.shields.io/github/stars/etesync/etebase-py?label=%20&style=social
+[xmlstarlet stars]: https://img.shields.io/github/stars/dimitern/xmlstarlet?label=%20&style=social
+[bx-python stars]: https://img.shields.io/github/stars/bxlab/bx-python?label=%20&style=social
+[coverage.py stars]: https://img.shields.io/github/stars/nedbat/coveragepy?label=%20&style=social
+
 
 > Add your repo here! Send a PR.
 >
