@@ -105,103 +105,114 @@ For more information, including how to build on GitHub Actions, Appveyor, Azure 
 Options
 -------
 
-|   | Option | Description |
-|---|--------|-------------|
-| **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.readthedocs.io/en/stable/options/#platform)  | Override the auto-detected target platform |
-|   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  <br> [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
-| **Build customization** | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
-|   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
-|   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
-|   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each (non-pure Python) built wheel |
-|   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_AARCH64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PPC64LE_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_S390X_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
-|   | [`CIBW_DEPENDENCY_VERSIONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)  | Specify how cibuildwheel controls the versions of the tools it uses |
-| **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
-|   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-test)  | Execute a shell command before testing each wheel |
-|   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
-|   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
-| **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-verbosity)  | Increase/decrease the output of pip wheel |
+<!-- START bin.project.py -->
 
-
-Working examples
-----------------
-
-Here are some repos that use cibuildwheel.
-
-
-| Name                    | Stars                          | Notes |
-|-------------------------|--------------------------------|:------|
-| [Matplotlib][]          | ![Matplotlib stars][]          | The venerable Matplotlib, a Python library with C++ portions, built for Linux, Mac, and Windows on Github Actions. |
-| [twisted-iocpsupport][] | ![twisted-iocpsupport stars][] | A submodule of Twisted that hooks into native C APIs using Cython. Built on Github CI for Windows. |
-| [websockets][]          | ![websockets stars][]          | |
-| [aiortc][]              | ![aiortc stars][]              | |
-| [aioquic][]             | ![aioquic stars][]             | |
-| [coverage.py][]         | ![coverage.py stars][]         | The coverage tool for Python. |
-| [PyAV][]                | ![PyAV stars][]                | |
-| [creme][]               | ![creme stars][]               | |
-| [AutoPy][]              | ![AutoPy stars][]              | |
-| [pikepdf][]             | ![pikepdf stars][]             | |
-| [Parselmouth][]         | ![Parselmouth stars][]         |  A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels; all platforms built on Github Actions. |
-| [KDEpy][]               | ![KDEpy stars][]               | |
-| [bx-python][]           | ![bx-python stars][]           |  A library that includes Cython extensions, built on Travis CI for Mac and Linux. |
-| [pybase64][]            | ![pybase64 stars][]            | |
-| [TgCrypto][]            | ![TgCrypto stars][]            | |
-| [etebase-py][]          | ![etebase-py stars][]          | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed, built on Travis CI. |
-| [gmic-py][]             | ![gmic-py stars][]             | |
-| [fathon][]              | ![fathon stars][]              | |
-| [pyinstrument_cext][]   | ![pyinstrument_cext stars][]   | A simple C extension, without external dependencies, built on Travis CI/Appveyor. |
-| [python-admesh][]       | ![python-admesh stars][]       | |
-| [xmlstarlet][]          | ![xmlstarlet stars][]          | Python 3.6+ CFFI bindings with true MSVC build and GitHub Actions. |
-| [apriltags2-ethz][]     | ![apriltags2-ethz stars][]     | |
-
+| Name                    | Stars&nbsp; | CI | OS | Notes |
+|-------------------------|-------|----|----|:------|
+| [Matplotlib][]          | ![Matplotlib stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
+| [twisted-iocpsupport][] | ![twisted-iocpsupport stars][] | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
+| [websockets][]          | ![websockets stars][] |  |  |  |
+| [aiortc][]              | ![aiortc stars][] |  |  |  |
+| [coverage.py][]         | ![coverage.py stars][] |  |  | The coverage tool for Python |
+| [creme][]               | ![creme stars][] |  |  |  |
+| [PyAV][]                | ![PyAV stars][] |  |  |  |
+| [aioquic][]             | ![aioquic stars][] |  |  |  |
+| [AutoPy][]              | ![AutoPy stars][] |  |  |  |
+| [pikepdf][]             | ![pikepdf stars][] |  |  |  |
+| [Parselmouth][]         | ![Parselmouth stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
+| [KDEpy][]               | ![KDEpy stars][] |  |  |  |
+| [bx-python][]           | ![bx-python stars][] | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
+| [pybase64][]            | ![pybase64 stars][] |  |  |  |
+| [TgCrypto][]            | ![TgCrypto stars][] |  |  |  |
+| [etebase-py][]          | ![etebase-py stars][] | ![travisci icon][] |  | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
+| [gmic-py][]             | ![gmic-py stars][] |  |  |  |
+| [fathon][]              | ![fathon stars][] |  |  |  |
+| [pyinstrument_cext][]   | ![pyinstrument_cext stars][] | ![travisci icon][] ![appveyor icon][] |  | A simple C extension, without external dependencies |
+| [python-admesh][]       | ![python-admesh stars][] |  |  |  |
+| [xmlstarlet][]          | ![xmlstarlet stars][] | ![github icon][] |  | Python 3.6+ CFFI bindings with true MSVC build. |
+| [apriltags2-ethz][]     | ![apriltags2-ethz stars][] |  |  |  |
 
 [Matplotlib]: https://github.com/matplotlib/matplotlib
-[pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
-[websockets]: https://github.com/aaugustin/websockets
-[Parselmouth]: https://github.com/YannickJadoul/Parselmouth
-[python-admesh]: https://github.com/admesh/python-admesh
-[pybase64]: https://github.com/mayeut/pybase64
-[KDEpy]: https://github.com/tommyod/KDEpy
-[AutoPy]: https://github.com/autopilot-rs/autopy
-[apriltags2-ethz]: https://github.com/safijari/apriltags2_ethz
-[TgCrypto]: https://github.com/pyrogram/tgcrypto
+[Matplotlib stars]: https://img.shields.io/github/stars/matplotlib/matplotlib?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
-[gmic-py]: https://github.com/dtschump/gmic-py
-[creme]: https://github.com/creme-ml/creme
-[PyAV]: https://github.com/PyAV-Org/PyAV
+[twisted-iocpsupport stars]: https://img.shields.io/github/stars/twisted/twisted?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[websockets]: https://github.com/aaugustin/websockets
+[websockets stars]: https://img.shields.io/github/stars/aaugustin/websockets?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [aiortc]: https://github.com/aiortc/aiortc
-[aioquic]: https://github.com/aiortc/aioquic
-[pikepdf]: https://github.com/pikepdf/pikepdf
-[fathon]: https://github.com/stfbnc/fathon
-[etebase-py]: https://github.com/etesync/etebase-py
-[xmlstarlet]: https://github.com/dimitern/xmlstarlet
-[bx-python]: https://github.com/bxlab/bx-python
+[aiortc stars]: https://img.shields.io/github/stars/aiortc/aiortc?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [coverage.py]: https://github.com/nedbat/coveragepy
+[coverage.py stars]: https://img.shields.io/github/stars/nedbat/coveragepy?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[creme]: https://github.com/creme-ml/creme
+[creme stars]: https://img.shields.io/github/stars/creme-ml/creme?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[PyAV]: https://github.com/PyAV-Org/PyAV
+[PyAV stars]: https://img.shields.io/github/stars/PyAV-Org/PyAV?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[aioquic]: https://github.com/aiortc/aioquic
+[aioquic stars]: https://img.shields.io/github/stars/aiortc/aioquic?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[AutoPy]: https://github.com/autopilot-rs/autopy
+[AutoPy stars]: https://img.shields.io/github/stars/autopilot-rs/autopy?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[pikepdf]: https://github.com/pikepdf/pikepdf
+[pikepdf stars]: https://img.shields.io/github/stars/pikepdf/pikepdf?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[Parselmouth]: https://github.com/YannickJadoul/Parselmouth
+[Parselmouth stars]: https://img.shields.io/github/stars/YannickJadoul/Parselmouth?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[KDEpy]: https://github.com/tommyod/KDEpy
+[KDEpy stars]: https://img.shields.io/github/stars/tommyod/KDEpy?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[bx-python]: https://github.com/bxlab/bx-python
+[bx-python stars]: https://img.shields.io/github/stars/bxlab/bx-python?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[pybase64]: https://github.com/mayeut/pybase64
+[pybase64 stars]: https://img.shields.io/github/stars/mayeut/pybase64?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[TgCrypto]: https://github.com/pyrogram/tgcrypto
+[TgCrypto stars]: https://img.shields.io/github/stars/pyrogram/tgcrypto?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[etebase-py]: https://github.com/etesync/etebase-py
+[etebase-py stars]: https://img.shields.io/github/stars/etesync/etebase-py?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[gmic-py]: https://github.com/dtschump/gmic-py
+[gmic-py stars]: https://img.shields.io/github/stars/dtschump/gmic-py?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[fathon]: https://github.com/stfbnc/fathon
+[fathon stars]: https://img.shields.io/github/stars/stfbnc/fathon?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
+[pyinstrument_cext stars]: https://img.shields.io/github/stars/joerick/pyinstrument_cext?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[python-admesh]: https://github.com/admesh/python-admesh
+[python-admesh stars]: https://img.shields.io/github/stars/admesh/python-admesh?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[xmlstarlet]: https://github.com/dimitern/xmlstarlet
+[xmlstarlet stars]: https://img.shields.io/github/stars/dimitern/xmlstarlet?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[apriltags2-ethz]: https://github.com/safijari/apriltags2_ethz
+[apriltags2-ethz stars]: https://img.shields.io/github/stars/safijari/apriltags2_ethz?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 
-[Matplotlib stars]: https://img.shields.io/github/stars/matplotlib/matplotlib?label=%20&style=social
-[pyinstrument_cext stars]: https://img.shields.io/github/stars/joerick/pyinstrument_cext?label=%20&style=social
-[websockets stars]: https://img.shields.io/github/stars/aaugustin/websockets?label=%20&style=social
-[Parselmouth stars]: https://img.shields.io/github/stars/YannickJadoul/Parselmouth?label=%20&style=social
-[python-admesh stars]: https://img.shields.io/github/stars/admesh/python-admesh?label=%20&style=social
-[pybase64 stars]: https://img.shields.io/github/stars/mayeut/pybase64?label=%20&style=social
-[KDEpy stars]: https://img.shields.io/github/stars/tommyod/KDEpy?label=%20&style=social
-[AutoPy stars]: https://img.shields.io/github/stars/autopilot-rs/autopy?label=%20&style=social
-[apriltags2-ethz stars]: https://img.shields.io/github/stars/safijari/apriltags2_ethz?label=%20&style=social
-[TgCrypto stars]: https://img.shields.io/github/stars/pyrogram/tgcrypto?label=%20&style=social
-[twisted-iocpsupport stars]: https://img.shields.io/github/stars/twisted/twisted?label=%20&style=social
-[gmic-py stars]: https://img.shields.io/github/stars/dtschump/gmic-py?label=%20&style=social
-[creme stars]: https://img.shields.io/github/stars/creme-ml/creme?label=%20&style=social
-[PyAV stars]: https://img.shields.io/github/stars/PyAV-Org/PyAV?label=%20&style=social
-[aiortc stars]: https://img.shields.io/github/stars/aiortc/aiortc?label=%20&style=social
-[aioquic stars]: https://img.shields.io/github/stars/aiortc/aioquic?label=%20&style=social
-[pikepdf stars]: https://img.shields.io/github/stars/pikepdf/pikepdf?label=%20&style=social
-[fathon stars]: https://img.shields.io/github/stars/stfbnc/fathon?label=%20&style=social
-[etebase-py stars]: https://img.shields.io/github/stars/etesync/etebase-py?label=%20&style=social
-[xmlstarlet stars]: https://img.shields.io/github/stars/dimitern/xmlstarlet?label=%20&style=social
-[bx-python stars]: https://img.shields.io/github/stars/bxlab/bx-python?label=%20&style=social
-[coverage.py stars]: https://img.shields.io/github/stars/nedbat/coveragepy?label=%20&style=social
+[apple icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/apple.svg
+[linux icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/linux.svg
+[windows icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/windows.svg
+[travisci icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/travisci.svg
+[appveyor icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/appveyor.svg
+[circleci icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/circleci.svg
+[github icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/github.svg
+[azure-pipelines icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/azure-pipelines.svg
+[gitlab icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/gitlab.svg
 
+<!-- Matplotlib: 12714, last pushed 0 days ago -->
+<!-- twisted-iocpsupport: 4099, last pushed 5 days ago -->
+<!-- websockets: 3046, last pushed 3 days ago -->
+<!-- aiortc: 2046, last pushed 2 days ago -->
+<!-- coverage.py: 1421, last pushed 0 days ago -->
+<!-- creme: 1153, last pushed 2 days ago -->
+<!-- PyAV: 1105, last pushed 23 days ago -->
+<!-- aioquic: 538, last pushed 30 days ago -->
+<!-- AutoPy: 500, last pushed 86 days ago -->
+<!-- pikepdf: 468, last pushed 3 days ago -->
+<!-- Parselmouth: 423, last pushed 7 days ago -->
+<!-- KDEpy: 223, last pushed 4 days ago -->
+<!-- bx-python: 95, last pushed 67 days ago -->
+<!-- pybase64: 51, last pushed 0 days ago -->
+<!-- TgCrypto: 48, last pushed 17 days ago -->
+<!-- etebase-py: 39, last pushed 3 days ago -->
+<!-- gmic-py: 15, last pushed 0 days ago -->
+<!-- fathon: 15, last pushed 41 days ago -->
+<!-- pyinstrument_cext: 8, last pushed 9 days ago -->
+<!-- python-admesh: 8, last pushed 894 days ago -->
+<!-- xmlstarlet: 7, last pushed 10 days ago -->
+<!-- apriltags2-ethz: 1, last pushed 567 days ago -->
 
-> Add your repo here! Send a PR.
+<!-- END bin.project.py -->
+
+> Add your repo here! Send a PR, adding your information to `bin/projects.yml`.
 >
 > <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
 

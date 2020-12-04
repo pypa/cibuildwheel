@@ -2,7 +2,7 @@
 # name: required, printed name
 # gh: Github repo (eventually a url: could be added for non-github projects)
 # stars: Github repo (optional, if different from package, such as for Twisted)
-# os: Operating system list, [windows, macos, linux] (optional)
+# os: Operating system list, [windows, apple, linux] (optional)
 # ci: [appveyor, github, azure-pipelines, circleci, gitlab, travisci] (optional)
 # notes: (text, optional)
 
@@ -10,7 +10,7 @@
   gh: matplotlib/matplotlib
   notes: The venerable Matplotlib, a Python library with C++ portions
   ci: [github]
-  os: [windows, macos, linux]
+  os: [windows, apple, linux]
 
 - name: pyinstrument_cext
   gh: joerick/pyinstrument_cext
@@ -24,7 +24,7 @@
   gh: YannickJadoul/Parselmouth
   notes: A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels.
   ci: [github]
-  os: [windows, macos, linux]
+  os: [windows, apple, linux]
 
 - name: python-admesh
   gh: admesh/python-admesh
@@ -86,7 +86,7 @@
   gh: bxlab/bx-python
   notes: A library that includes Cython extensions.
   ci: [travisci]
-  os: [macos, linux]
+  os: [apple, linux]
 
 - name: coverage.py
   gh: nedbat/coveragepy

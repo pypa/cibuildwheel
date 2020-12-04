@@ -2,6 +2,7 @@
 
 import json
 from typing import Dict, Any, List
+from datetime import datetime
 
 import click
 import requests
@@ -16,8 +17,7 @@ def get_info(gh: str) -> Dict[str, Any]:
 
 class Project:
     NAME: int = 0
-    STARS: int = 0
-    NOTES: int = 5
+    ONLINE: bool = True
 
     def __init__(self, config: Dict[str, Any]):
         self.name: str = config["name"]
@@ -27,23 +27,28 @@ class Project:
         self.ci: List[str] = config.get("ci", [])
         self.os: List[str] = config.get("os", [])
 
-        info = get_info(self.stars_repo)
-        self.num_stars = info["stargazers_count"]
+        if self.ONLINE:
+            info = get_info(self.stars_repo)
+            self.num_stars = info["stargazers_count"]
+            self.pushed_at = datetime.strptime(info["pushed_at"], "%Y-%m-%dT%H:%M:%SZ")
+        else:
+            self.num_stars = 0
+            self.pushed_at = datetime.utcnow()
 
         name_len = len(self.name) + 4
-        stars_len = name_len + 6
-
         self.__class__.NAME = max(self.__class__.NAME, name_len)
-        self.__class__.STARS = max(self.__class__.STARS, stars_len)
 
     def __lt__(self, other: "Project") -> bool:
-        return self.num_stars < other.num_stars
+        if self.ONLINE:
+            return self.num_stars < other.num_stars
+        else:
+            return self.name < other.name
 
     @classmethod
     def header(cls):
         return (
-            f"| {'Name':{cls.NAME}} | {'Stars':{cls.STARS}} | {'Notes':{cls.NOTES}} |\n"
-            f"|{'':-^{cls.NAME+2}}|{'':-^{cls.STARS+2}}|:{'':-^{cls.NOTES+1}}|"
+            f"| {'Name':{cls.NAME}} | Stars&nbsp; | CI | OS | Notes |\n"
+            f"|{'':-^{cls.NAME+2  }}|-------|----|----|:------|"
         )
 
     @property
@@ -52,28 +57,38 @@ class Project:
 
     @property
     def starslink(self) -> str:
-        return f"[{self.name} stars][]"
+        return f"![{self.name} stars][]"
 
     @property
     def url(self) -> str:
         return f"https://github.com/{self.gh}"
 
     @property
+    def ci_icons(self) -> str:
+        return " ".join(f"![{icon} icon][]" for icon in self.ci)
+
+    @property
+    def os_icons(self) -> str:
+        return " ".join(f"![{icon} icon][]" for icon in self.os)
+
+    @property
     def starsimg(self) -> str:
-        return f"https://img.shields.io/github/stars/{self.gh}label=%20&style=social"
+        return f"https://img.shields.io/github/stars/{self.stars_repo}?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square"
 
     def table_row(self) -> str:
-        return f"| {self.namelink: <{self.NAME}} | {self.starslink: <{self.STARS}} | {self.notes: <{self.NOTES}} |"
+        return f"| {self.namelink: <{self.NAME}} | {self.starslink} | {self.ci_icons} | {self.os_icons} | {self.notes} |"
 
     def links(self) -> str:
         return f"[{self.name}]: {self.url}\n" f"[{self.name} stars]: {self.starsimg}"
 
     def info(self) -> str:
-        return f"<!-- {self.name}: {self.num_stars} -->"
+        days = (datetime.utcnow() - self.pushed_at).days
+        return f"<!-- {self.name}: {self.num_stars}, last pushed {days} days ago -->"
 
 
-def print_projects(config: List[Dict[str, Any]], *, debug: bool = False) -> None:
-    projects = sorted((Project(item) for item in config), reverse=True)
+def print_projects(config: List[Dict[str, Any]], *, debug: bool = False, online: bool = True) -> None:
+    Project.ONLINE = online
+    projects = sorted((Project(item) for item in config), reverse=online)
 
     print(Project.header())
     for project in projects:
@@ -82,6 +97,10 @@ def print_projects(config: List[Dict[str, Any]], *, debug: bool = False) -> None
     print()
     for project in projects:
         print(project.links())
+
+    print()
+    for icon in {"appveyor", "github", "azure-pipelines", "circleci", "gitlab", "travisci", "windows", "apple", "linux"}:
+        print(f"[{icon} icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/{icon}.svg")
 
     if debug:
         print()
@@ -92,9 +111,10 @@ def print_projects(config: List[Dict[str, Any]], *, debug: bool = False) -> None
 @click.command()
 @click.argument("input", type=click.File("r"))
 @click.option("--debug/--no-debug")
-def projects(input, debug):
+@click.option("--online/--no-online", default=True)
+def projects(input: click.File, debug: bool, online: bool) -> None:
     config = yaml.safe_load(input)
-    print_projects(config, debug=debug)
+    print_projects(config, debug=debug, online=online)
 
 
 if __name__ == "__main__":
