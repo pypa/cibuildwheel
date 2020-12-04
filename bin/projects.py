@@ -1,25 +1,42 @@
 #!/usr/bin/env python3
 
-import json
-from typing import Dict, Any, List
+"""
+Convert a yaml project list into a nice table.
+
+Suggested usage:
+
+    ./bin/projects.py bin/projects.yml --online --auth $GITHUB_API_TOKEN --readme README.md
+    git diff
+"""
+
+import builtins
+import functools
 from datetime import datetime
+from io import StringIO
+from typing import Dict, Any, List, Optional, TextIO
 
 import click
-import requests
 import yaml
+from github import Github
 
 
-def get_info(gh: str) -> Dict[str, Any]:
-    url = f"https://api.github.com/repos/{gh}"
-    req = requests.get(url)
-    return json.loads(req.content)
+ICONS = (
+    "appveyor",
+    "github",
+    "azure-pipelines",
+    "circleci",
+    "gitlab",
+    "travisci",
+    "windows",
+    "apple",
+    "linux",
+)
 
 
 class Project:
     NAME: int = 0
-    ONLINE: bool = True
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], github: Optional[Github] = None):
         try:
             self.name: str = config["name"]
             self.gh: str = config["gh"]
@@ -32,18 +49,15 @@ class Project:
         self.ci: List[str] = config.get("ci", [])
         self.os: List[str] = config.get("os", [])
 
-        if self.ONLINE:
-            info = get_info(self.stars_repo)
-            try:
-                self.num_stars = info["stargazers_count"]
-                self.pushed_at = datetime.strptime(info["pushed_at"], "%Y-%m-%dT%H:%M:%SZ")
-                if not self.notes:
-                    notes = info["description"]
-                    if notes:
-                        self.notes = f":closed_book: {notes}"
-            except KeyError:
-                print("Invalid response from Github:", info)
-                raise
+        self.online = github is not None
+        if github is not None:
+            repo = github.get_repo(self.stars_repo)
+            self.num_stars = repo.stargazers_count
+            self.pushed_at = repo.pushed_at
+            if not self.notes:
+                notes = repo.description
+                if notes:
+                    self.notes = f":closed_book: {notes}"
         else:
             self.num_stars = 0
             self.pushed_at = datetime.utcnow()
@@ -52,13 +66,13 @@ class Project:
         self.__class__.NAME = max(self.__class__.NAME, name_len)
 
     def __lt__(self, other: "Project") -> bool:
-        if self.ONLINE:
+        if self.online:
             return self.num_stars < other.num_stars
         else:
             return self.name < other.name
 
     @classmethod
-    def header(cls):
+    def header(cls) -> str:
         return (
             f"| {'Name':{cls.NAME}} | Stars&nbsp; | CI | OS | Notes |\n"
             f"|{'':-^{cls.NAME+2  }}|-------|----|----|:------|"
@@ -99,9 +113,15 @@ class Project:
         return f"<!-- {self.name}: {self.num_stars}, last pushed {days} days ago -->"
 
 
-def print_projects(config: List[Dict[str, Any]], *, debug: bool = False, online: bool = True) -> None:
-    Project.ONLINE = online
-    projects = sorted((Project(item) for item in config), reverse=online)
+def str_projects(
+    config: List[Dict[str, Any]], *, online: bool = True, auth: Optional[str] = None
+) -> str:
+    io = StringIO()
+    print = functools.partial(builtins.print, file=io)
+
+    github = Github(auth) if online else None
+
+    projects = sorted((Project(item, github) for item in config), reverse=online)
 
     print(Project.header())
     for project in projects:
@@ -112,22 +132,41 @@ def print_projects(config: List[Dict[str, Any]], *, debug: bool = False, online:
         print(project.links())
 
     print()
-    for icon in {"appveyor", "github", "azure-pipelines", "circleci", "gitlab", "travisci", "windows", "apple", "linux"}:
-        print(f"[{icon} icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/{icon}.svg")
+    for icon in ICONS:
+        print(
+            f"[{icon} icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/{icon}.svg"
+        )
 
-    if debug:
-        print()
-        for project in projects:
-            print(project.info())
+    print()
+    for project in projects:
+        print(project.info())
+
+    return io.getvalue()
 
 
 @click.command()
 @click.argument("input", type=click.File("r"))
-@click.option("--debug/--no-debug")
-@click.option("--online/--no-online", default=True)
-def projects(input: click.File, debug: bool, online: bool) -> None:
+@click.option("--online/--no-online", default=True, help="Get info from GitHub")
+@click.option("--auth", help="GitHub authentication token")
+@click.option("--readme", type=click.File("r+"), help="Modify a readme file if given")
+def projects(
+    input: TextIO, online: bool, auth: Optional[str], readme: Optional[TextIO]
+) -> None:
     config = yaml.safe_load(input)
-    print_projects(config, debug=debug, online=online)
+    output = str_projects(config, online=online, auth=auth)
+
+    if readme is None:
+        print(output)
+    else:
+        text = readme.read()
+        start_str = "<!-- START bin/project.py -->\n"
+        start = text.find(start_str)
+        end = text.find("<!-- END bin/project.py -->\n")
+        new_text = f"{text[:start + len(start_str)]}\n{output}\n{text[end:]}"
+
+        readme.seek(0)
+        readme.write(new_text)
+        readme.truncate()
 
 
 if __name__ == "__main__":

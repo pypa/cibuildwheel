@@ -29,8 +29,9 @@
   ci: [github]
   os: [windows, apple, linux]
 
-- name: python-admesh
-  gh: admesh/python-admesh
+# Seems to be defunct
+# - name: python-admesh
+#   gh: admesh/python-admesh
 
 - name: pybase64
   gh: mayeut/pybase64

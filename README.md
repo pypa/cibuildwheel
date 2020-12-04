@@ -105,7 +105,7 @@ For more information, including how to build on GitHub Actions, Appveyor, Azure 
 Options
 -------
 
-<!-- START bin.project.py -->
+<!-- START bin/project.py -->
 
 | Name                    | Stars&nbsp; | CI | OS | Notes |
 |-------------------------|-------|----|----|:------|
@@ -210,7 +210,8 @@ Options
 <!-- xmlstarlet: 7, last pushed 10 days ago -->
 <!-- apriltags2-ethz: 1, last pushed 567 days ago -->
 
-<!-- END bin.project.py -->
+
+<!-- END bin/project.py -->
 
 > Add your repo here! Send a PR, adding your information to `bin/projects.yml`.
 >
