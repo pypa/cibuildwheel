@@ -23,7 +23,7 @@ from github import Github
 ICONS = (
     "appveyor",
     "github",
-    "azure-pipelines",
+    "azurepipelines",
     "circleci",
     "gitlab",
     "travisci",

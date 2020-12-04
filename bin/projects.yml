@@ -3,7 +3,7 @@
 # gh: Github repo (eventually a url: could be added for non-github projects)
 # stars: Github repo (optional, if different from package, such as for Twisted)
 # os: Operating system list, [windows, apple, linux] (optional)
-# ci: [appveyor, github, azure-pipelines, circleci, gitlab, travisci] (optional)
+# ci: [appveyor, github, azurepipelines, circleci, gitlab, travisci] (optional)
 # notes: (text, optional)
 
 - name: Matplotlib
@@ -20,7 +20,7 @@
 
 - name: websockets
   gh: aaugustin/websockets
-  ci: [travicci]
+  ci: [travisci]
   os: [apple, linux]
 
 - name: Parselmouth
@@ -35,7 +35,7 @@
 
 - name: pybase64
   gh: mayeut/pybase64
-  ci: [travicci, appveyor]
+  ci: [travisci, appveyor]
   os: [windows, apple, linux]
 
 
@@ -46,7 +46,7 @@
 
 - name: AutoPy
   gh: autopilot-rs/autopy
-  ci: [travicci]
+  ci: [travisci]
   os: [windows, apple, linux]
   notes: Includes a Windows Travis build.
 
@@ -56,7 +56,7 @@
 
 - name: TgCrypto
   gh: pyrogram/tgcrypto
-  ci: [travicci]
+  ci: [travisci]
   os: [windows, apple, linux]
   notes: Includes a Windows Travis build.
 
@@ -92,7 +92,7 @@
 
 - name: pikepdf
   gh: pikepdf/pikepdf
-  ci: [azure-pipelines]
+  ci: [azurepipelines]
   os: [windows, apple, linux]
 
 - name: fathon
@@ -141,7 +141,7 @@
 
 - name: h5py
   gh: h5py/h5py
-  ci: [azure-pipelines]
+  ci: [azurepipelines]
   os: [windows, apple, linux]
 
 - name: pyzmq
