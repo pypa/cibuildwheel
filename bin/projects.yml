@@ -15,10 +15,13 @@
 - name: pyinstrument_cext
   gh: joerick/pyinstrument_cext
   ci: [travisci, appveyor]
+  os: [windows, apple, linux]
   notes: A simple C extension, without external dependencies
 
 - name: websockets
   gh: aaugustin/websockets
+  ci: [travicci]
+  os: [apple, linux]
 
 - name: Parselmouth
   gh: YannickJadoul/Parselmouth
@@ -31,18 +34,30 @@
 
 - name: pybase64
   gh: mayeut/pybase64
+  ci: [travicci, appveyor]
+  os: [windows, apple, linux]
+
 
 - name: KDEpy
   gh: tommyod/KDEpy
+  ci: [github]
+  os: [windows, apple, linux]
 
 - name: AutoPy
   gh: autopilot-rs/autopy
+  ci: [travicci]
+  os: [windows, apple, linux]
+  notes: Includes a Windows Travis build.
 
-- name: apriltags2-ethz
-  gh: safijari/apriltags2_ethz
+# Seems to be defunct
+# - name: apriltags2-ethz
+#  gh: safijari/apriltags2_ethz
 
 - name: TgCrypto
   gh: pyrogram/tgcrypto
+  ci: [travicci]
+  os: [windows, apple, linux]
+  notes: Includes a Windows Travis build.
 
 - name: twisted-iocpsupport
   gh: twisted/twisted-iocpsupport
@@ -59,28 +74,42 @@
 
 - name: PyAV
   gh: PyAV-Org/PyAV
+  ci: [github]
+  os: [windows, apple, linux]
+  notes: Pythonic bindings for FFmpeg's libraries.
 
 - name: aiortc
   gh: aiortc/aiortc
+  ci: [github]
+  os: [apple, linux]
+  notes: WebRTC and ORTC implementation for Python using asyncio.
 
 - name: aioquic
   gh: aiortc/aioquic
+  ci: [github]
+  os: [windows, apple, linux]
 
 - name: pikepdf
   gh: pikepdf/pikepdf
+  ci: [azure-pipelines]
+  os: [windows, apple, linux]
 
 - name: fathon
   gh: stfbnc/fathon
+  ci: [travisci]
+  os: [apple, linux]
 
 - name: etebase-py
   gh: etesync/etebase-py
   notes: Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed.
   ci: [travisci]
+  os: [linux]
 
 - name: xmlstarlet
   gh: dimitern/xmlstarlet
   notes: Python 3.6+ CFFI bindings with true MSVC build.
   ci: [github]
+  os: [windows, apple, linux]
 
 - name: bx-python
   gh: bxlab/bx-python
@@ -90,4 +119,77 @@
 
 - name: coverage.py
   gh: nedbat/coveragepy
+  ci: [github]
+  os: [windows, apple, linux]
   notes: The coverage tool for Python
+
+- name: scikit-learn
+  gh: scikit-learn/scikit-learn
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: scikit-image
+  gh: scikit-image/scikit-image
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: google/neuroglancer
+  gh: google/neuroglancer
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: h5py
+  gh: h5py/h5py
+  ci: [azure-pipelines]
+  os: [windows, apple, linux]
+
+- name: pyzmq
+  gh: zeromq/pyzmq
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: python-rapidjson
+  gh: python-rapidjson/python-rapidjson
+  ci: [travisci, gitlab, appveyor]
+  os: [windows, linux]
+
+- name: jq.py
+  gh: mwilliamson/jq.py
+  ci: [travisci]
+  os: [apple, linux]
+
+- name: pybind11:python_example
+  gh: pybind/python_example
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: pybind11:cmake_example
+  gh: pybind/cmake_example
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: pybind11:scikit_build_example
+  gh: pybind/scikit_build_example
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: iminuit
+  gh: scikit-hep/iminuit
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: pyjet
+  gh: scikit-hep/pyjet
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: numpythia
+  gh: scikit-hep/numpythia
+  ci: [github]
+  os: [apple, linux]
+
+- name: boost-histogram
+  gh: scikit-hep/boost-histogram
+  ci: [github, travisci]
+  os: [windows, apple, linux]
+  notes: Supports full range of wheels, including PyPy and alternate archs.

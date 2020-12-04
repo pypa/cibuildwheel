@@ -20,8 +20,13 @@ class Project:
     ONLINE: bool = True
 
     def __init__(self, config: Dict[str, Any]):
-        self.name: str = config["name"]
-        self.gh: str = config["gh"]
+        try:
+            self.name: str = config["name"]
+            self.gh: str = config["gh"]
+        except KeyError:
+            print("Invalid config, needs at least gh and name!", config)
+            raise
+
         self.stars_repo: str = config.get("stars", self.gh)
         self.notes: str = config.get("notes", "")
         self.ci: List[str] = config.get("ci", [])
@@ -29,8 +34,16 @@ class Project:
 
         if self.ONLINE:
             info = get_info(self.stars_repo)
-            self.num_stars = info["stargazers_count"]
-            self.pushed_at = datetime.strptime(info["pushed_at"], "%Y-%m-%dT%H:%M:%SZ")
+            try:
+                self.num_stars = info["stargazers_count"]
+                self.pushed_at = datetime.strptime(info["pushed_at"], "%Y-%m-%dT%H:%M:%SZ")
+                if not self.notes:
+                    notes = info["description"]
+                    if notes:
+                        self.notes = f":closed_book: {notes}"
+            except KeyError:
+                print("Invalid response from Github:", info)
+                raise
         else:
             self.num_stars = 0
             self.pushed_at = datetime.utcnow()
