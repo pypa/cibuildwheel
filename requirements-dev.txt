@@ -7,4 +7,5 @@ pip-tools
 requests
 click
 mypy
+pyyaml
 typing-extensions

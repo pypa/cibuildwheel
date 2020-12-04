@@ -1,0 +1,93 @@
+# Fields:
+# name: required, printed name
+# gh: Github repo (eventually a url: could be added for non-github projects)
+# stars: Github repo (optional, if different from package, such as for Twisted)
+# os: Operating system list, [windows, macos, linux] (optional)
+# ci: [appveyor, github, azure-pipelines, circleci, gitlab, travisci] (optional)
+# notes: (text, optional)
+
+- name: Matplotlib
+  gh: matplotlib/matplotlib
+  notes: The venerable Matplotlib, a Python library with C++ portions
+  ci: [github]
+  os: [windows, macos, linux]
+
+- name: pyinstrument_cext
+  gh: joerick/pyinstrument_cext
+  ci: [travisci, appveyor]
+  notes: A simple C extension, without external dependencies
+
+- name: websockets
+  gh: aaugustin/websockets
+
+- name: Parselmouth
+  gh: YannickJadoul/Parselmouth
+  notes: A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels.
+  ci: [github]
+  os: [windows, macos, linux]
+
+- name: python-admesh
+  gh: admesh/python-admesh
+
+- name: pybase64
+  gh: mayeut/pybase64
+
+- name: KDEpy
+  gh: tommyod/KDEpy
+
+- name: AutoPy
+  gh: autopilot-rs/autopy
+
+- name: apriltags2-ethz
+  gh: safijari/apriltags2_ethz
+
+- name: TgCrypto
+  gh: pyrogram/tgcrypto
+
+- name: twisted-iocpsupport
+  gh: twisted/twisted-iocpsupport
+  stars: twisted/twisted
+  notes: A submodule of Twisted that hooks into native C APIs using Cython.
+  ci: [github]
+  os: [windows]
+
+- name: gmic-py
+  gh: dtschump/gmic-py
+
+- name: creme
+  gh: creme-ml/creme
+
+- name: PyAV
+  gh: PyAV-Org/PyAV
+
+- name: aiortc
+  gh: aiortc/aiortc
+
+- name: aioquic
+  gh: aiortc/aioquic
+
+- name: pikepdf
+  gh: pikepdf/pikepdf
+
+- name: fathon
+  gh: stfbnc/fathon
+
+- name: etebase-py
+  gh: etesync/etebase-py
+  notes: Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed.
+  ci: [travisci]
+
+- name: xmlstarlet
+  gh: dimitern/xmlstarlet
+  notes: Python 3.6+ CFFI bindings with true MSVC build.
+  ci: [github]
+
+- name: bx-python
+  gh: bxlab/bx-python
+  notes: A library that includes Cython extensions.
+  ci: [travisci]
+  os: [macos, linux]
+
+- name: coverage.py
+  gh: nedbat/coveragepy
+  notes: The coverage tool for Python
