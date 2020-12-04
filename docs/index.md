@@ -3,7 +3,7 @@ title: Home
 ---
 
 {%
-   includemarkdown "../README.md"
+   include-markdown "../README.md"
    start="<!--intro-start-->"
    end="<!--intro-end-->"
 %}
