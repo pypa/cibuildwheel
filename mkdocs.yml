@@ -32,4 +32,4 @@ markdown_extensions:
       repo_url_shortener: True
 
 plugins:
-  - importmarkdown
+  - include-markdown
