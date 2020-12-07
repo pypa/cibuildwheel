@@ -67,11 +67,14 @@
   ci: [github]
   os: [windows]
 
-- name: gmic-py
-  gh: dtschump/gmic-py
+# cibuildwheel moved to backup folder
+# - name: gmic-py
+# gh: myselfhimself/gmic-py
 
-- name: creme
-  gh: creme-ml/creme
+- name: River
+  gh: online-ml/river
+  ci: [github]
+  os: [windows, apple, linux]
 
 - name: PyAV
   gh: PyAV-Org/PyAV

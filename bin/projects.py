@@ -74,8 +74,8 @@ class Project:
     @classmethod
     def header(cls) -> str:
         return (
-            f"| {'Name':{cls.NAME}} | Stars&nbsp; | CI | OS | Notes |\n"
-            f"|{'':-^{cls.NAME+2  }}|-------|----|----|:------|"
+            f"| {'Name':{cls.NAME}} | CI | OS | Notes |\n"
+            f"|{'':-^{cls.NAME+2  }}|----|----|:------|"
         )
 
     @property
@@ -98,15 +98,11 @@ class Project:
     def os_icons(self) -> str:
         return " ".join(f"![{icon} icon][]" for icon in self.os)
 
-    @property
-    def starsimg(self) -> str:
-        return f"https://img.shields.io/github/stars/{self.stars_repo}?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square"
-
     def table_row(self) -> str:
-        return f"| {self.namelink: <{self.NAME}} | {self.starslink} | {self.ci_icons} | {self.os_icons} | {self.notes} |"
+        return f"| {self.namelink: <{self.NAME}} | {self.ci_icons} | {self.os_icons} | {self.notes} |"
 
     def links(self) -> str:
-        return f"[{self.name}]: {self.url}\n" f"[{self.name} stars]: {self.starsimg}"
+        return f"[{self.name}]: {self.url}"
 
     def info(self) -> str:
         days = (datetime.utcnow() - self.pushed_at).days

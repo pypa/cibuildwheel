@@ -107,111 +107,75 @@ Options
 
 <!-- START bin/project.py -->
 
-| Name                              | Stars&nbsp; | CI | OS | Notes |
-|-----------------------------------|-------|----|----|:------|
-| [scikit-learn][]                  | ![scikit-learn stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: scikit-learn: machine learning in Python |
-| [Matplotlib][]                    | ![Matplotlib stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
-| [twisted-iocpsupport][]           | ![twisted-iocpsupport stars][] | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
-| [scikit-image][]                  | ![scikit-image stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Image processing in Python |
-| [websockets][]                    | ![websockets stars][] | ![travisci icon][] | ![apple icon][] ![linux icon][] | :closed_book: Library for building WebSocket servers and clients in Python |
-| [pyzmq][]                         | ![pyzmq stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: PyZMQ:  Python bindings for zeromq |
-| [aiortc][]                        | ![aiortc stars][] | ![github icon][] | ![apple icon][] ![linux icon][] | WebRTC and ORTC implementation for Python using asyncio. |
-| [h5py][]                          | ![h5py stars][] | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: HDF5 for Python -- The h5py package is a Pythonic interface to the HDF5 binary data format. |
-| [coverage.py][]                   | ![coverage.py stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The coverage tool for Python |
-| [creme][]                         | ![creme stars][] |  |  | :closed_book: 🌊 Online machine learning in Python |
-| [PyAV][]                          | ![PyAV stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Pythonic bindings for FFmpeg's libraries. |
-| [google/neuroglancer][]           | ![google/neuroglancer stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: WebGL-based viewer for volumetric data |
-| [aioquic][]                       | ![aioquic stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: QUIC and HTTP/3 implementation in Python |
-| [AutoPy][]                        | ![AutoPy stars][] | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
-| [pikepdf][]                       | ![pikepdf stars][] | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: A Python library for reading and writing PDF, powered by qpdf |
-| [Parselmouth][]                   | ![Parselmouth stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
-| [python-rapidjson][]              | ![python-rapidjson stars][] | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | :closed_book: Python wrapper around rapidjson |
-| [KDEpy][]                         | ![KDEpy stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Kernel Density Estimation in Python |
-| [pybind11:python_example][]       | ![pybind11:python_example stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Example pybind11 module built with a Python-based build system |
-| [pybind11:cmake_example][]        | ![pybind11:cmake_example stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Example pybind11 module built with a CMake-based build system |
-| [iminuit][]                       | ![iminuit stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Jupyter-friendly Python interface for C++ MINUIT2 |
-| [jq.py][]                         | ![jq.py stars][] | ![travisci icon][] | ![apple icon][] ![linux icon][] | :closed_book: Python bindings for jq |
-| [bx-python][]                     | ![bx-python stars][] | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
-| [boost-histogram][]               | ![boost-histogram stars][] | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
-| [pybase64][]                      | ![pybase64 stars][] | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Fast Base64 encoding/decoding in Python |
-| [TgCrypto][]                      | ![TgCrypto stars][] | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
-| [etebase-py][]                    | ![etebase-py stars][] | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
-| [pyjet][]                         | ![pyjet stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: The interface between FastJet and NumPy |
-| [numpythia][]                     | ![numpythia stars][] | ![github icon][] | ![apple icon][] ![linux icon][] | :closed_book: The interface between PYTHIA and NumPy |
-| [gmic-py][]                       | ![gmic-py stars][] |  |  | :closed_book: Python binding for the G'MIC Image Processing Framework |
-| [fathon][]                        | ![fathon stars][] | ![travisci icon][] | ![apple icon][] ![linux icon][] | :closed_book: python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
-| [pyinstrument_cext][]             | ![pyinstrument_cext stars][] | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A simple C extension, without external dependencies |
-| [xmlstarlet][]                    | ![xmlstarlet stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
-| [pybind11:scikit_build_example][] | ![pybind11:scikit_build_example stars][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: An example combining scikit-build and pybind11 |
+| Name                              | CI | OS | Notes |
+|-----------------------------------|----|----|:------|
+| [scikit-learn][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: scikit-learn: machine learning in Python |
+| [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
+| [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
+| [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Image processing in Python |
+| [websockets][]                    | ![travisci icon][] | ![apple icon][] ![linux icon][] | :closed_book: Library for building WebSocket servers and clients in Python |
+| [pyzmq][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: PyZMQ:  Python bindings for zeromq |
+| [aiortc][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | WebRTC and ORTC implementation for Python using asyncio. |
+| [h5py][]                          | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: HDF5 for Python -- The h5py package is a Pythonic interface to the HDF5 binary data format. |
+| [coverage.py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The coverage tool for Python |
+| [River][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: 🌊 Online machine learning in Python |
+| [PyAV][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Pythonic bindings for FFmpeg's libraries. |
+| [google/neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: WebGL-based viewer for volumetric data |
+| [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: QUIC and HTTP/3 implementation in Python |
+| [AutoPy][]                        | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
+| [pikepdf][]                       | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: A Python library for reading and writing PDF, powered by qpdf |
+| [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
+| [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | :closed_book: Python wrapper around rapidjson |
+| [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Kernel Density Estimation in Python |
+| [pybind11:python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Example pybind11 module built with a Python-based build system |
+| [pybind11:cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Example pybind11 module built with a CMake-based build system |
+| [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Jupyter-friendly Python interface for C++ MINUIT2 |
+| [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | :closed_book: Python bindings for jq |
+| [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
+| [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
+| [pybase64][]                      | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: Fast Base64 encoding/decoding in Python |
+| [TgCrypto][]                      | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
+| [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
+| [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: The interface between FastJet and NumPy |
+| [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | :closed_book: The interface between PYTHIA and NumPy |
+| [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | :closed_book: python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
+| [pyinstrument_cext][]             | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A simple C extension, without external dependencies |
+| [xmlstarlet][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
+| [pybind11:scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | :closed_book: An example combining scikit-build and pybind11 |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
-[scikit-learn stars]: https://img.shields.io/github/stars/scikit-learn/scikit-learn?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [Matplotlib]: https://github.com/matplotlib/matplotlib
-[Matplotlib stars]: https://img.shields.io/github/stars/matplotlib/matplotlib?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
-[twisted-iocpsupport stars]: https://img.shields.io/github/stars/twisted/twisted?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [scikit-image]: https://github.com/scikit-image/scikit-image
-[scikit-image stars]: https://img.shields.io/github/stars/scikit-image/scikit-image?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [websockets]: https://github.com/aaugustin/websockets
-[websockets stars]: https://img.shields.io/github/stars/aaugustin/websockets?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pyzmq]: https://github.com/zeromq/pyzmq
-[pyzmq stars]: https://img.shields.io/github/stars/zeromq/pyzmq?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [aiortc]: https://github.com/aiortc/aiortc
-[aiortc stars]: https://img.shields.io/github/stars/aiortc/aiortc?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [h5py]: https://github.com/h5py/h5py
-[h5py stars]: https://img.shields.io/github/stars/h5py/h5py?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [coverage.py]: https://github.com/nedbat/coveragepy
-[coverage.py stars]: https://img.shields.io/github/stars/nedbat/coveragepy?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
-[creme]: https://github.com/creme-ml/creme
-[creme stars]: https://img.shields.io/github/stars/creme-ml/creme?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
+[River]: https://github.com/online-ml/river
 [PyAV]: https://github.com/PyAV-Org/PyAV
-[PyAV stars]: https://img.shields.io/github/stars/PyAV-Org/PyAV?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [google/neuroglancer]: https://github.com/google/neuroglancer
-[google/neuroglancer stars]: https://img.shields.io/github/stars/google/neuroglancer?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [aioquic]: https://github.com/aiortc/aioquic
-[aioquic stars]: https://img.shields.io/github/stars/aiortc/aioquic?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [AutoPy]: https://github.com/autopilot-rs/autopy
-[AutoPy stars]: https://img.shields.io/github/stars/autopilot-rs/autopy?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pikepdf]: https://github.com/pikepdf/pikepdf
-[pikepdf stars]: https://img.shields.io/github/stars/pikepdf/pikepdf?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
-[Parselmouth stars]: https://img.shields.io/github/stars/YannickJadoul/Parselmouth?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
-[python-rapidjson stars]: https://img.shields.io/github/stars/python-rapidjson/python-rapidjson?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [KDEpy]: https://github.com/tommyod/KDEpy
-[KDEpy stars]: https://img.shields.io/github/stars/tommyod/KDEpy?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pybind11:python_example]: https://github.com/pybind/python_example
-[pybind11:python_example stars]: https://img.shields.io/github/stars/pybind/python_example?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pybind11:cmake_example]: https://github.com/pybind/cmake_example
-[pybind11:cmake_example stars]: https://img.shields.io/github/stars/pybind/cmake_example?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [iminuit]: https://github.com/scikit-hep/iminuit
-[iminuit stars]: https://img.shields.io/github/stars/scikit-hep/iminuit?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [jq.py]: https://github.com/mwilliamson/jq.py
-[jq.py stars]: https://img.shields.io/github/stars/mwilliamson/jq.py?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [bx-python]: https://github.com/bxlab/bx-python
-[bx-python stars]: https://img.shields.io/github/stars/bxlab/bx-python?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
-[boost-histogram stars]: https://img.shields.io/github/stars/scikit-hep/boost-histogram?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pybase64]: https://github.com/mayeut/pybase64
-[pybase64 stars]: https://img.shields.io/github/stars/mayeut/pybase64?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [TgCrypto]: https://github.com/pyrogram/tgcrypto
-[TgCrypto stars]: https://img.shields.io/github/stars/pyrogram/tgcrypto?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [etebase-py]: https://github.com/etesync/etebase-py
-[etebase-py stars]: https://img.shields.io/github/stars/etesync/etebase-py?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pyjet]: https://github.com/scikit-hep/pyjet
-[pyjet stars]: https://img.shields.io/github/stars/scikit-hep/pyjet?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [numpythia]: https://github.com/scikit-hep/numpythia
-[numpythia stars]: https://img.shields.io/github/stars/scikit-hep/numpythia?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
-[gmic-py]: https://github.com/dtschump/gmic-py
-[gmic-py stars]: https://img.shields.io/github/stars/dtschump/gmic-py?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [fathon]: https://github.com/stfbnc/fathon
-[fathon stars]: https://img.shields.io/github/stars/stfbnc/fathon?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
-[pyinstrument_cext stars]: https://img.shields.io/github/stars/joerick/pyinstrument_cext?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [xmlstarlet]: https://github.com/dimitern/xmlstarlet
-[xmlstarlet stars]: https://img.shields.io/github/stars/dimitern/xmlstarlet?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 [pybind11:scikit_build_example]: https://github.com/pybind/scikit_build_example
-[pybind11:scikit_build_example stars]: https://img.shields.io/github/stars/pybind/scikit_build_example?color=rgba%28255%2C%20255%2C%20255%2C%200%29&label=%20&logo=reverbnation&logoColor=%23333&style=flat-square
 
 [appveyor icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/appveyor.svg
 [github icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/github.svg
@@ -223,40 +187,39 @@ Options
 [apple icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/apple.svg
 [linux icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/linux.svg
 
-<!-- scikit-learn: 43275, last pushed 0 days ago -->
-<!-- Matplotlib: 12714, last pushed 0 days ago -->
-<!-- twisted-iocpsupport: 4100, last pushed 5 days ago -->
-<!-- scikit-image: 4073, last pushed 0 days ago -->
-<!-- websockets: 3047, last pushed 4 days ago -->
-<!-- pyzmq: 2650, last pushed 1 days ago -->
-<!-- aiortc: 2046, last pushed 2 days ago -->
-<!-- h5py: 1450, last pushed 1 days ago -->
-<!-- coverage.py: 1421, last pushed 0 days ago -->
-<!-- creme: 1153, last pushed 3 days ago -->
-<!-- PyAV: 1105, last pushed 23 days ago -->
+<!-- scikit-learn: 43307, last pushed 0 days ago -->
+<!-- Matplotlib: 12725, last pushed 0 days ago -->
+<!-- twisted-iocpsupport: 4100, last pushed 0 days ago -->
+<!-- scikit-image: 4078, last pushed 0 days ago -->
+<!-- websockets: 3058, last pushed 6 days ago -->
+<!-- pyzmq: 2651, last pushed 4 days ago -->
+<!-- aiortc: 2052, last pushed 5 days ago -->
+<!-- h5py: 1450, last pushed 4 days ago -->
+<!-- coverage.py: 1424, last pushed 0 days ago -->
+<!-- River: 1162, last pushed 0 days ago -->
+<!-- PyAV: 1106, last pushed 26 days ago -->
 <!-- google/neuroglancer: 545, last pushed 0 days ago -->
-<!-- aioquic: 538, last pushed 30 days ago -->
-<!-- AutoPy: 500, last pushed 86 days ago -->
-<!-- pikepdf: 468, last pushed 4 days ago -->
-<!-- Parselmouth: 423, last pushed 7 days ago -->
-<!-- python-rapidjson: 405, last pushed 5 days ago -->
-<!-- KDEpy: 224, last pushed 5 days ago -->
-<!-- pybind11:python_example: 217, last pushed 25 days ago -->
-<!-- pybind11:cmake_example: 214, last pushed 8 days ago -->
-<!-- iminuit: 163, last pushed 0 days ago -->
-<!-- jq.py: 137, last pushed 54 days ago -->
-<!-- bx-python: 95, last pushed 68 days ago -->
-<!-- boost-histogram: 60, last pushed 0 days ago -->
+<!-- aioquic: 538, last pushed 33 days ago -->
+<!-- AutoPy: 501, last pushed 89 days ago -->
+<!-- pikepdf: 471, last pushed 6 days ago -->
+<!-- Parselmouth: 424, last pushed 10 days ago -->
+<!-- python-rapidjson: 406, last pushed 1 days ago -->
+<!-- KDEpy: 224, last pushed 7 days ago -->
+<!-- pybind11:python_example: 218, last pushed 27 days ago -->
+<!-- pybind11:cmake_example: 216, last pushed 11 days ago -->
+<!-- iminuit: 164, last pushed 0 days ago -->
+<!-- jq.py: 137, last pushed 57 days ago -->
+<!-- bx-python: 95, last pushed 70 days ago -->
+<!-- boost-histogram: 60, last pushed 3 days ago -->
 <!-- pybase64: 51, last pushed 0 days ago -->
-<!-- TgCrypto: 48, last pushed 17 days ago -->
-<!-- etebase-py: 39, last pushed 3 days ago -->
-<!-- pyjet: 27, last pushed 10 days ago -->
-<!-- numpythia: 23, last pushed 9 days ago -->
-<!-- gmic-py: 15, last pushed 0 days ago -->
-<!-- fathon: 15, last pushed 41 days ago -->
-<!-- pyinstrument_cext: 8, last pushed 10 days ago -->
-<!-- xmlstarlet: 7, last pushed 10 days ago -->
-<!-- pybind11:scikit_build_example: 1, last pushed 23 days ago -->
+<!-- TgCrypto: 48, last pushed 19 days ago -->
+<!-- etebase-py: 39, last pushed 6 days ago -->
+<!-- pyjet: 27, last pushed 12 days ago -->
+<!-- numpythia: 23, last pushed 11 days ago -->
+<!-- fathon: 16, last pushed 44 days ago -->
+<!-- pyinstrument_cext: 9, last pushed 12 days ago -->
+<!-- xmlstarlet: 7, last pushed 0 days ago -->
+<!-- pybind11:scikit_build_example: 1, last pushed 25 days ago -->
 
 <!-- END bin/project.py -->
 
