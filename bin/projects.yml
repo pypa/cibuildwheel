@@ -35,7 +35,7 @@
 
 - name: pybase64
   gh: mayeut/pybase64
-  ci: [travisci, appveyor]
+  ci: [github]
   os: [windows, apple, linux]
 
 
