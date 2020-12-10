@@ -184,6 +184,7 @@ def build(options: BuildOptions) -> None:
                         container_package_dir,
                         '-w', built_wheel_dir,
                         '--no-deps',
+                        '--no-clean' if options.no_clean else '',
                         *get_build_verbosity_extra_flags(options.build_verbosity)
                     ], env=env)
 

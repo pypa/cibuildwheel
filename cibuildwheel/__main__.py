@@ -84,6 +84,10 @@ def main() -> None:
                         action='store_true',
                         help='Print the build identifiers matched by the current invocation and exit.')
 
+    parser.add_argument('--no-clean',
+                        action='store_true',
+                        help='Pass along --no-clean option to pip wheel so the build directory is not removed')
+
     args = parser.parse_args()
 
     detect_obsolete_options()
@@ -216,6 +220,7 @@ def main() -> None:
         environment=environment,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images,
+        no_clean=args.no_clean
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
