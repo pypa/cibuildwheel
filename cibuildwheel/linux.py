@@ -1,4 +1,5 @@
 import platform
+import re
 import subprocess
 import sys
 import textwrap
@@ -12,27 +13,15 @@ from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
                    get_build_verbosity_extra_flags, prepare_command)
 
 
-def matches_platform(identifier: str) -> bool:
-    output = subprocess.check_output(['docker', '--version'])
-    print("We found support for these platforms:", output)
-    pm = platform.machine()
-    if pm == "x86_64":
-        # x86_64 machines can run i686 docker containers
-        if identifier.endswith('x86_64') or identifier.endswith('i686'):
-            return True
-    elif pm == "i686":
-        if identifier.endswith('i686'):
-            return True
-    elif pm == "aarch64":
-        if identifier.endswith('aarch64'):
-            return True
-    elif pm == "ppc64le":
-        if identifier.endswith('ppc64le'):
-            return True
-    elif pm == "s390x":
-        if identifier.endswith('s390x'):
-            return True
-    return False
+re_pattern = re.compile(r'[cp]p\d{2}-manylinux_(\w*)')
+
+
+def matches_platform(identifier: str, supported_platforms: List[str]) -> bool:
+    matched_architecture = re_pattern.search(identifier)
+    id_architecture = matched_architecture.group(1) if matched_architecture else ''
+    # x86_64 machines can run i686 docker containers
+    id_architecture = id_architecture if id_architecture == 'i686' else 'x86_64'
+    return id_architecture in supported_platforms
 
 
 class PythonConfiguration(NamedTuple):
@@ -80,8 +69,14 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.8', identifier='cp38-manylinux_s390x', path_str='/opt/python/cp38-cp38'),
         PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
     ]
+
     # skip builds as required
-    return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
+    target_archs = [platform.machine()]
+    return [
+        c for c in python_configurations
+        if matches_platform(c.identifier, target_archs)
+        and build_selector(c.identifier)
+    ]
 
 
 def build(options: BuildOptions) -> None:
