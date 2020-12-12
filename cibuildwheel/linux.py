@@ -13,6 +13,8 @@ from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
 
 
 def matches_platform(identifier: str) -> bool:
+    output = subprocess.check_output(['docker', '--version'])
+    print("We found support for these platforms:", output)
     pm = platform.machine()
     if pm == "x86_64":
         # x86_64 machines can run i686 docker containers
