@@ -58,7 +58,7 @@ Usage
 Example setup
 -------------
 
-To build manylinux, macOS, and Windows wheels on Github and make them availble for download after the job runs, you could use this `.github/workflows/wheels.yml`:
+To build manylinux, macOS, and Windows wheels on Github Actions, you could use this `.github/workflows/wheels.yml`:
 
 ```yaml
 name: Build
@@ -71,7 +71,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, windows-latest, macos-latest]
+        os: [ubuntu-20.04, windows-2019, macOS-10.15]
 
     steps:
       - uses: actions/checkout@v2
@@ -82,11 +82,9 @@ jobs:
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==1.7.1
 
-      - name: Install Visual C++ for Python 2.7
-        if: runner.os == 'Windows'
-        run: choco install vcpython27 -f -y
-
       - name: Build wheels
+        env:
+          CIBW_SKIP: "?p25-*" # Skip building Python 2.7 wheels on all platforms
         run: python -m cibuildwheel --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v2
