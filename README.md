@@ -125,6 +125,8 @@ Options
 Working examples
 ----------------
 
+<!--working-examples-start-->
+
 Here are some repos that use cibuildwheel.
 
 <!-- START bin/projects.py -->
@@ -251,6 +253,8 @@ Here are some repos that use cibuildwheel.
 >
 > <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
 
+<!--working-examples-end-->
+
 Legal note
 ----------
 
@@ -262,6 +266,8 @@ This is similar to static linking, so it might have some licence implications. C
 
 Changelog
 =========
+
+<!--changelog-start-->
 
 ### 1.7.1
 
@@ -669,6 +675,8 @@ _13 April 2017_
 _31 March 2017_
 
 - 🌟 First public release!
+
+<!--changelog-end-->
 
 Contributing
 ============
