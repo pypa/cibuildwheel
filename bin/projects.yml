@@ -137,7 +137,7 @@
   ci: [github]
   os: [windows, apple, linux]
 
-- name: google/neuroglancer
+- name: google neuroglancer
   gh: google/neuroglancer
   ci: [github]
   os: [windows, apple, linux]
@@ -162,17 +162,17 @@
   ci: [travisci]
   os: [apple, linux]
 
-- name: pybind11:python_example
+- name: pybind11 python_example
   gh: pybind/python_example
   ci: [github]
   os: [windows, apple, linux]
 
-- name: pybind11:cmake_example
+- name: pybind11 cmake_example
   gh: pybind/cmake_example
   ci: [github]
   os: [windows, apple, linux]
 
-- name: pybind11:scikit_build_example
+- name: pybind11 scikit_build_example
   gh: pybind/scikit_build_example
   ci: [github]
   os: [windows, apple, linux]
