@@ -5,7 +5,7 @@ Convert a yaml project list into a nice table.
 
 Suggested usage:
 
-    ./bin/projects.py bin/projects.yml --online --auth $GITHUB_API_TOKEN --readme README.md
+    ./bin/projects.py docs/data/projects.yml --online --auth $GITHUB_API_TOKEN --readme README.md
     git diff
 """
 
@@ -18,6 +18,9 @@ from typing import Dict, Any, List, Optional, TextIO
 import click
 import yaml
 from github import Github
+import urllib.request
+import xml.dom.minidom
+from pathlib import Path
 
 
 ICONS = (
@@ -110,11 +113,37 @@ class Project:
         return f"<!-- {self.name}: {self.num_stars}, last pushed {days} days ago -->"
 
 
+def fetch_icon(icon_name: str) -> None:
+    url = f'https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/{icon_name}.svg'
+    with urllib.request.urlopen(url) as f:
+        original_svg_data = f.read()
+
+    document = xml.dom.minidom.parseString(original_svg_data)
+    svgElement = document.documentElement
+    assert svgElement.nodeName == 'svg'
+    svgElement.setAttribute('width', '16px')
+    svgElement.setAttribute('fill', '#606060')
+
+    icon_path = path_for_icon(icon_name)
+    icon_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(path_for_icon(icon_name), 'w') as f:
+        f.write(svgElement.toxml())
+
+
+def path_for_icon(icon_name: str) -> Path:
+    return Path('.') / 'docs' / 'data' / 'readme_icons' / f'{icon_name}.svg'
+
+
 def str_projects(
     config: List[Dict[str, Any]], *, online: bool = True, auth: Optional[str] = None
 ) -> str:
     io = StringIO()
     print = functools.partial(builtins.print, file=io)
+
+    if online:
+        for icon in ICONS:
+            fetch_icon(icon)
 
     github = Github(auth) if online else None
 
@@ -130,9 +159,7 @@ def str_projects(
 
     print()
     for icon in ICONS:
-        print(
-            f"[{icon} icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/{icon}.svg"
-        )
+        print(f"[{icon} icon]: {path_for_icon(icon).as_posix()}")
 
     print()
     for project in projects:

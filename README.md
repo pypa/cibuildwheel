@@ -201,29 +201,29 @@ Here are some repos that use cibuildwheel.
 [xmlstarlet]: https://github.com/dimitern/xmlstarlet
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 
-[appveyor icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/appveyor.svg
-[github icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/github.svg
-[azurepipelines icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/azurepipelines.svg
-[circleci icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/circleci.svg
-[gitlab icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/gitlab.svg
-[travisci icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/travisci.svg
-[windows icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/windows.svg
-[apple icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/apple.svg
-[linux icon]: https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/linux.svg
+[appveyor icon]: docs/data/readme_icons/appveyor.svg
+[github icon]: docs/data/readme_icons/github.svg
+[azurepipelines icon]: docs/data/readme_icons/azurepipelines.svg
+[circleci icon]: docs/data/readme_icons/circleci.svg
+[gitlab icon]: docs/data/readme_icons/gitlab.svg
+[travisci icon]: docs/data/readme_icons/travisci.svg
+[windows icon]: docs/data/readme_icons/windows.svg
+[apple icon]: docs/data/readme_icons/apple.svg
+[linux icon]: docs/data/readme_icons/linux.svg
 
-<!-- scikit-learn: 43356, last pushed 0 days ago -->
+<!-- scikit-learn: 43359, last pushed 0 days ago -->
 <!-- Matplotlib: 12734, last pushed 0 days ago -->
 <!-- twisted-iocpsupport: 4107, last pushed 0 days ago -->
 <!-- scikit-image: 4085, last pushed 0 days ago -->
 <!-- websockets: 3065, last pushed 0 days ago -->
-<!-- pyzmq: 2655, last pushed 8 days ago -->
+<!-- pyzmq: 2655, last pushed 9 days ago -->
 <!-- aiortc: 2058, last pushed 10 days ago -->
-<!-- h5py: 1451, last pushed 0 days ago -->
-<!-- coverage.py: 1428, last pushed 3 days ago -->
-<!-- River: 1173, last pushed 0 days ago -->
+<!-- h5py: 1451, last pushed 1 days ago -->
+<!-- coverage.py: 1429, last pushed 3 days ago -->
+<!-- River: 1174, last pushed 0 days ago -->
 <!-- PyAV: 1107, last pushed 2 days ago -->
 <!-- google neuroglancer: 545, last pushed 2 days ago -->
-<!-- aioquic: 543, last pushed 37 days ago -->
+<!-- aioquic: 543, last pushed 38 days ago -->
 <!-- AutoPy: 503, last pushed 94 days ago -->
 <!-- pikepdf: 477, last pushed 3 days ago -->
 <!-- Parselmouth: 429, last pushed 15 days ago -->
@@ -232,7 +232,7 @@ Here are some repos that use cibuildwheel.
 <!-- pybind11 python_example: 219, last pushed 32 days ago -->
 <!-- pybind11 cmake_example: 217, last pushed 16 days ago -->
 <!-- iminuit: 164, last pushed 3 days ago -->
-<!-- jq.py: 137, last pushed 61 days ago -->
+<!-- jq.py: 137, last pushed 62 days ago -->
 <!-- bx-python: 95, last pushed 75 days ago -->
 <!-- boost-histogram: 60, last pushed 0 days ago -->
 <!-- pybase64: 52, last pushed 2 days ago -->
@@ -240,7 +240,7 @@ Here are some repos that use cibuildwheel.
 <!-- etebase-py: 39, last pushed 0 days ago -->
 <!-- pyjet: 27, last pushed 17 days ago -->
 <!-- numpythia: 23, last pushed 16 days ago -->
-<!-- fathon: 17, last pushed 48 days ago -->
+<!-- fathon: 17, last pushed 49 days ago -->
 <!-- pyinstrument_cext: 9, last pushed 17 days ago -->
 <!-- xmlstarlet: 7, last pushed 5 days ago -->
 <!-- pybind11 scikit_build_example: 1, last pushed 30 days ago -->
