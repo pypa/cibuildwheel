@@ -56,8 +56,8 @@ class Project:
             self.pushed_at = repo.pushed_at
             if not self.notes:
                 notes = repo.description
-                if notes:
-                    self.notes = f":closed_book: {notes}"
+                if repo.description:
+                    self.notes = notes
         else:
             self.num_stars = 0
             self.pushed_at = datetime.utcnow()
