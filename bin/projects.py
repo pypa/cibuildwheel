@@ -99,7 +99,8 @@ class Project:
         return " ".join(f"![{icon} icon][]" for icon in self.os)
 
     def table_row(self) -> str:
-        return f"| {self.namelink: <{self.NAME}} | {self.ci_icons} | {self.os_icons} | {self.notes} |"
+        notes = self.notes.replace('\n', ' ')
+        return f"| {self.namelink: <{self.NAME}} | {self.ci_icons} | {self.os_icons} | {notes} |"
 
     def links(self) -> str:
         return f"[{self.name}]: {self.url}"

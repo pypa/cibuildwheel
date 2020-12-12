@@ -21,7 +21,11 @@
 - name: websockets
   gh: aaugustin/websockets
   ci: [travisci]
+  ci_config: .travis.yml
   os: [apple, linux]
+  notes: |
+    Library for building WebSocket servers and clients. Mostly written in
+    Python, with a small C 'speedups' extension module.
 
 - name: Parselmouth
   gh: YannickJadoul/Parselmouth
@@ -131,11 +135,20 @@
   gh: scikit-learn/scikit-learn
   ci: [github]
   os: [windows, apple, linux]
+  ci_config: .github/workflows/wheels.yml
+  notes: |
+    The machine learning library. A complex but clean config using many of
+    cibuildwheel's features to build a large project with Cython and C++
+    extensions.
 
 - name: scikit-image
   gh: scikit-image/scikit-image
   ci: [github]
   os: [windows, apple, linux]
+  ci_config: .github/workflows/cibuildwheel.yml
+  notes: |
+    Image processing library. Uses cibuildwheel to build and test a project
+    that uses Cython with platform-native code.
 
 - name: google neuroglancer
   gh: google/neuroglancer
@@ -151,6 +164,9 @@
   gh: zeromq/pyzmq
   ci: [github]
   os: [windows, apple, linux]
+  ci_config: .github/workflows/wheels.yml
+  notes: |
+    Python bindings for zeromq, the networking library. Uses Cython and CFFI.
 
 - name: python-rapidjson
   gh: python-rapidjson/python-rapidjson
