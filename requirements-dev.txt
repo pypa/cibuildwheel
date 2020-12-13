@@ -7,4 +7,6 @@ pip-tools
 requests
 click
 mypy
+pyyaml
+pygithub
 typing-extensions

@@ -13,7 +13,7 @@ repos:
   - id: check-merge-conflict
   - id: check-yaml
   - id: end-of-file-fixer
-    exclude: cibuildwheel/resources/pinned_docker_images.cfg
+    exclude: (cibuildwheel/resources/pinned_docker_images.cfg)|(.svg$)
   - id: mixed-line-ending
   - id: trailing-whitespace
 
@@ -21,5 +21,5 @@ repos:
   rev: v0.782
   hooks:
   - id: mypy
-    files: cibuildwheel/|test/
+    files: ^(cibuildwheel/|test/|bin/projects.py)
     pass_filenames: false

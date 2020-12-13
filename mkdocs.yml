@@ -20,7 +20,9 @@ nav:
   - deliver-to-pypi.md
   - cpp_standards.md
   - faq.md
+  - working-examples.md
   - contributing.md
+  - changelog.md
 
 markdown_extensions:
   - fenced_code
