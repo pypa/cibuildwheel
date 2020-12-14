@@ -83,16 +83,16 @@ jobs:
         run: python -m pip install cibuildwheel==1.7.1
 
       - name: Build wheels
-        env:
-          CIBW_SKIP: "?p25-*" # Skip building Python 2.7 wheels on all platforms
         run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_SKIP: "cp27-* pp27-*"  # skip Python 2.7 wheels
 
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
 ```
 
-You can add a deploy job using [pypa/gh-action-pypi-publish](https://github.com/pypa/gh-action-pypi-publish). For more information, including a full example of building on GitHub Actions with PyPI deploy, Travis CI, Appveyor, Azure Pipelines, or CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including building on Python 2, PyPI deployment, and the use of other CI services like Travis CI, Appveyor, Azure Pipelines, or CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
