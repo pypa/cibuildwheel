@@ -9,7 +9,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports Azure Pipelines, Travis CI, AppVeyor, GitHub Actions and CircleCI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
 
 
 What does it do?
@@ -58,49 +58,41 @@ Usage
 Example setup
 -------------
 
-To build manylinux, macOS, and Windows wheels on Travis CI and upload them to PyPI whenever you tag a version, you could use this `.travis.yml`:
+To build manylinux, macOS, and Windows wheels on Github Actions, you could use this `.github/workflows/wheels.yml`:
 
 ```yaml
-language: python
+name: Build
+
+on: [push, pull_request]
 
 jobs:
-  include:
-    # perform a linux build
-    - services: docker
-    # and a mac build
-    - os: osx
-      language: shell
-    # and a windows build
-    - os: windows
-      language: shell
-      before_install:
-        - choco install python --version 3.8.0
-        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
-        # make sure it's on PATH as 'python3'
-        - ln -s /c/Python38/python.exe /c/Python38/python3.exe
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macOS-10.15]
 
-env:
-  global:
-    - TWINE_USERNAME=__token__
-    # Note: TWINE_PASSWORD is set to a PyPI API token in Travis settings
+    steps:
+      - uses: actions/checkout@v2
 
-install:
-  - python3 -m pip install cibuildwheel==1.7.1
+      - uses: actions/setup-python@v2
+        name: Install Python
 
-script:
-  # build the wheels, put them into './wheelhouse'
-  - python3 -m cibuildwheel --output-dir wheelhouse
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==1.7.1
 
-after_success:
-  # if the release was tagged, upload them to PyPI
-  - |
-    if [[ $TRAVIS_TAG ]]; then
-      python3 -m pip install twine
-      python3 -m twine upload wheelhouse/*.whl
-    fi
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_SKIP: "cp27-* pp27-*"  # skip Python 2.7 wheels
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
 ```
 
-For more information, including how to build on GitHub Actions, Appveyor, Azure Pipelines, or CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including building on Python 2, PyPI deployment, and the use of other CI services like Travis CI, Appveyor, Azure Pipelines, or CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
