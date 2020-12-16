@@ -9,18 +9,18 @@ from typing import List, NamedTuple, Union
 
 from .docker_container import DockerContainer
 from .logger import log
-from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
-                   get_build_verbosity_extra_flags, prepare_command)
+from .util import (
+    Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
+    get_build_verbosity_extra_flags, prepare_command,
+)
 
 
 re_pattern = re.compile(r'[cp]p\d{2}-manylinux_(\w*)')
 
 
-def matches_platform(identifier: str, supported_platforms: List[str]) -> bool:
+def matches_platform(identifier: str, supported_platforms: List[Architecture]) -> bool:
     matched_architecture = re_pattern.search(identifier)
     id_architecture = matched_architecture.group(1) if matched_architecture else ''
-    # x86_64 machines can run i686 docker containers
-    id_architecture = id_architecture if id_architecture == 'i686' else 'x86_64'
     return id_architecture in supported_platforms
 
 
@@ -34,7 +34,9 @@ class PythonConfiguration(NamedTuple):
         return PurePath(self.path_str)
 
 
-def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
+def get_python_configurations(
+    build_selector: BuildSelector, architectures: List[Architecture]
+) -> List[PythonConfiguration]:
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27m'),
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27mu'),
@@ -71,7 +73,11 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
     ]
 
     # skip builds as required
-    target_archs = [platform.machine()]
+    target_archs = architectures or [Architecture(platform.machine())]
+    # x86_64 machines can run i686 docker containers
+    if Architecture.i686 not in target_archs and Architecture.x86_64 in target_archs:
+        target_archs.append(Architecture.i686)
+    print("matching platforms to architectures: ", target_archs)
     return [
         c for c in python_configurations
         if matches_platform(c.identifier, target_archs)
@@ -90,7 +96,7 @@ def build(options: BuildOptions) -> None:
         exit(2)
 
     assert options.manylinux_images is not None
-    python_configurations = get_python_configurations(options.build_selector)
+    python_configurations = get_python_configurations(options.build_selector, options.architectures)
     platforms = [
         ('cp', 'manylinux_x86_64', options.manylinux_images['x86_64']),
         ('cp', 'manylinux_i686', options.manylinux_images['i686']),

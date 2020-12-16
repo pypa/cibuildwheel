@@ -121,7 +121,16 @@ class DependencyConstraints:
         return f'{self.__class__.__name__}{self.base_file_path!r})'
 
 
+class Architecture(str, Enum):
+    x86_64 = 'x86_64'
+    i686 = 'i686'
+    aarch64 = 'aarch64'
+    ppc64le = 'ppc64le'
+    s390x = 's390x'
+
+
 class BuildOptions(NamedTuple):
+    architectures: List[Architecture]
     package_dir: Path
     output_dir: Path
     build_selector: BuildSelector

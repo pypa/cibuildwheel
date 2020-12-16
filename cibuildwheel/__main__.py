@@ -17,6 +17,7 @@ from cibuildwheel.environment import (
     parse_environment,
 )
 from cibuildwheel.util import (
+    Architecture,
     BuildOptions,
     BuildSelector,
     DependencyConstraints,
@@ -67,6 +68,22 @@ def main() -> None:
                             run in Windows, and it will build and test for all versions of
                             Python. Default: auto.
                         ''')
+
+    parser.add_argument(
+        '-a',
+        '--architectures',
+        choices=[arch.value for arch in Architecture],
+        default=[],
+        help='''
+            Comma-separated list of CPU architectures to build for.
+            If unspecified, builds the architectures natively supported
+            on this machine. Set this option to build an architecture
+            via emulation, for example, using binfmt_misc and qemu.
+        ''',
+        action="extend",
+        nargs="+",
+        type=Architecture,
+    )
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
@@ -169,7 +186,7 @@ def main() -> None:
         exit(2)
 
     if args.print_build_identifiers:
-        print_build_identifiers(platform, build_selector)
+        print_build_identifiers(platform, build_selector, args.architectures)
         exit(0)
 
     manylinux_images: Optional[Dict[str, str]] = None
@@ -202,6 +219,7 @@ def main() -> None:
             manylinux_images[build_platform] = image
 
     build_options = BuildOptions(
+        architectures=args.architectures,
         package_dir=package_dir,
         output_dir=output_dir,
         test_command=test_command,
@@ -284,10 +302,12 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
     print('\nHere we go!\n')
 
 
-def print_build_identifiers(platform: str, build_selector: BuildSelector) -> None:
+def print_build_identifiers(
+    platform: str, build_selector: BuildSelector, architectures: List[Architecture]
+) -> None:
     python_configurations: List[Any] = []
     if platform == 'linux':
-        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector)
+        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
     elif platform == 'macos':
