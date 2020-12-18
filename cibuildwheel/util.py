@@ -122,6 +122,7 @@ class DependencyConstraints:
 
 
 class Architecture(str, Enum):
+    auto = 'auto'  # gets expanded to the native arch, possibly 32+64 bit
     x86_64 = 'x86_64'
     i686 = 'i686'
     aarch64 = 'aarch64'

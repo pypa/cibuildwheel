@@ -70,19 +70,16 @@ def main() -> None:
                         ''')
 
     parser.add_argument(
-        '-a',
-        '--architectures',
-        choices=[arch.value for arch in Architecture],
-        default=[],
+        '--archs',
+        default=os.environ.get("CIBW_ARCHS", 'auto'),
         help='''
             Comma-separated list of CPU architectures to build for.
             If unspecified, builds the architectures natively supported
             on this machine. Set this option to build an architecture
             via emulation, for example, using binfmt_misc and qemu.
-        ''',
-        action="extend",
-        nargs="+",
-        type=Architecture,
+            Default: auto
+            Choices: auto, {}
+        '''.format(", ".join(a.name for a in Architecture)),
     )
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
@@ -185,8 +182,10 @@ def main() -> None:
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         exit(2)
 
+    archs = [Architecture(a) for a in args.archs.split(",")]
+
     if args.print_build_identifiers:
-        print_build_identifiers(platform, build_selector, args.architectures)
+        print_build_identifiers(platform, build_selector, archs)
         exit(0)
 
     manylinux_images: Optional[Dict[str, str]] = None
@@ -219,7 +218,7 @@ def main() -> None:
             manylinux_images[build_platform] = image
 
     build_options = BuildOptions(
-        architectures=args.architectures,
+        architectures=archs,
         package_dir=package_dir,
         output_dir=output_dir,
         test_command=test_command,

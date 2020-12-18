@@ -18,10 +18,10 @@ from .util import (
 re_pattern = re.compile(r'[cp]p\d{2}-manylinux_(\w*)')
 
 
-def matches_platform(identifier: str, supported_platforms: List[Architecture]) -> bool:
+def matches_platform(identifier: str, architectures: List[Architecture]) -> bool:
     matched_architecture = re_pattern.search(identifier)
     id_architecture = matched_architecture.group(1) if matched_architecture else ''
-    return id_architecture in supported_platforms
+    return id_architecture in architectures
 
 
 class PythonConfiguration(NamedTuple):
@@ -73,10 +73,16 @@ def get_python_configurations(
     ]
 
     # skip builds as required
-    target_archs = architectures or [Architecture(platform.machine())]
-    # x86_64 machines can run i686 docker containers
-    if Architecture.i686 not in target_archs and Architecture.x86_64 in target_archs:
-        target_archs.append(Architecture.i686)
+    target_archs = architectures
+
+    if Architecture.auto in architectures:
+        target_archs.remove(Architecture.auto)
+        native_architecture = Architecture(platform.machine())
+        target_archs.append(native_architecture)
+        # x86_64 machines can run i686 docker containers
+        if native_architecture == Architecture.x86_64:
+            target_archs.append(Architecture.i686)
+
     print("matching platforms to architectures: ", target_archs)
     return [
         c for c in python_configurations
