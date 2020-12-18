@@ -42,6 +42,8 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.4/python-3.8.4-macosx10.9.pkg'),
         # TODO: Find some better way to select Universal2 vs. regular (note that this works on 10.9+, regardless of the name)
         PythonConfiguration(version='3.9', identifier='cp39-macosx_x86_64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
+        PythonConfiguration(version='3.9', identifier='cp39-macosx_universal2', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
+        PythonConfiguration(version='3.9', identifier='cp39-macosx_arm64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
         # PyPy
         # TODO: may not support 11.0 yet
         # PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-osx64.tar.bz2'),
@@ -177,6 +179,14 @@ def setup_python(python_configuration: PythonConfiguration,
         env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
         # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
         env.setdefault('ARCHFLAGS', '-arch x86_64')
+
+    if python_configuration.version == '3.9':
+        if python_configuration.identifier.endswith('x86_64'):
+            env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
+            env.setdefault('ARCHFLAGS', '-arch x86_64')
+        elif python_configuration.identifier.endswith('arm64'):
+            env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-11.0-arm64')
+            env.setdefault('ARCHFLAGS', '-arch arm64')
 
     log.step('Installing build tools...')
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
