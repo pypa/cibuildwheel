@@ -23,6 +23,8 @@ PLATFORM_IDENTIFIER_DESCIPTIONS = {
     'win32': 'Windows 32bit',
     'win_amd64': 'Windows 64bit',
     'macosx_x86_64': 'macOS x86_64',
+    'macosx_universal2': 'macOS Universal 2 - x86_64 and arm64',
+    'macosx_arm64': 'macOS arm64 - Apple Silicon',
 }
 
 
