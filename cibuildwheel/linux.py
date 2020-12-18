@@ -83,7 +83,6 @@ def get_python_configurations(
         if native_architecture == Architecture.x86_64:
             target_archs.append(Architecture.i686)
 
-    print("matching platforms to architectures: ", target_archs)
     return [
         c for c in python_configurations
         if matches_platform(c.identifier, target_archs)
