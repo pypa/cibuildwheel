@@ -12,21 +12,39 @@ os.chdir('..')
 
 # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
 # regenerate the constraints files
-os.environ['CUSTOM_COMPILE_COMMAND'] = "bin/update_constraints.py"
+os.environ['CUSTOM_COMPILE_COMMAND'] = "bin/update_dependencies.py"
 subprocess.check_call([
     'pip-compile',
     '--allow-unsafe',
     '--upgrade',
     'cibuildwheel/resources/constraints.in',
 ])
-for python_version in ['27', '35', '36', '37']:
-    subprocess.check_call([
-        f'./env{python_version}/bin/pip-compile',
-        '--allow-unsafe',
-        '--upgrade',
-        'cibuildwheel/resources/constraints.in',
-        '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
-    ])
+
+if 'GITHUB_ACTIONS' in os.environ:
+    image = 'quay.io/pypa/manylinux2010_x86_64:2020-12-19-8df9e2d'
+    subprocess.check_call(['docker', 'pull', image])
+    for python_version in ['27', '35', '36', '37']:
+        python_path = f'/opt/python/cp{python_version}-cp{python_version}m/bin/'
+        subprocess.check_call([
+            'docker', 'run', '--rm',
+            '-e', 'CUSTOM_COMPILE_COMMAND',
+            '-v', f'{os.getcwd()}:/volume',
+            '--workdir', '/volume', image,
+            'bash', '-c',
+            f'{python_path}pip install pip-tools &&'
+            f'{python_path}pip-compile --allow-unsafe --upgrade '
+            'cibuildwheel/resources/constraints.in '
+            f'--output-file cibuildwheel/resources/constraints-python{python_version}.txt'
+        ])
+else:
+    for python_version in ['27', '35', '36', '37']:
+        subprocess.check_call([
+            f'./env{python_version}/bin/pip-compile',
+            '--allow-unsafe',
+            '--upgrade',
+            'cibuildwheel/resources/constraints.in',
+            '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
+        ])
 
 Image = namedtuple('Image', [
     'manylinux_version',
