@@ -3,6 +3,7 @@
 import configparser
 import os
 import subprocess
+import sys
 from collections import namedtuple
 
 import requests
@@ -20,7 +21,16 @@ subprocess.check_call([
     'cibuildwheel/resources/constraints.in',
 ])
 
-if 'GITHUB_ACTIONS' in os.environ:
+if '--no-docker' in sys.argv:
+    for python_version in ['27', '35', '36', '37']:
+        subprocess.check_call([
+            f'./env{python_version}/bin/pip-compile',
+            '--allow-unsafe',
+            '--upgrade',
+            'cibuildwheel/resources/constraints.in',
+            '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
+        ])
+else:
     image = 'quay.io/pypa/manylinux2010_x86_64:2020-12-19-8df9e2d'
     subprocess.check_call(['docker', 'pull', image])
     for python_version in ['27', '35', '36', '37']:
@@ -35,15 +45,6 @@ if 'GITHUB_ACTIONS' in os.environ:
             f'{python_path}pip-compile --allow-unsafe --upgrade '
             'cibuildwheel/resources/constraints.in '
             f'--output-file cibuildwheel/resources/constraints-python{python_version}.txt'
-        ])
-else:
-    for python_version in ['27', '35', '36', '37']:
-        subprocess.check_call([
-            f'./env{python_version}/bin/pip-compile',
-            '--allow-unsafe',
-            '--upgrade',
-            'cibuildwheel/resources/constraints.in',
-            '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
         ])
 
 Image = namedtuple('Image', [
