@@ -1,4 +1,3 @@
-import platform
 import re
 import subprocess
 import sys
@@ -74,14 +73,6 @@ def get_python_configurations(
 
     # skip builds as required
     target_archs = architectures
-
-    if Architecture.auto in architectures:
-        target_archs.remove(Architecture.auto)
-        native_architecture = Architecture(platform.machine())
-        target_archs.append(native_architecture)
-        # x86_64 machines can run i686 docker containers
-        if native_architecture == Architecture.x86_64:
-            target_archs.append(Architecture.i686)
 
     return [
         c for c in python_configurations

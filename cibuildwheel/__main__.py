@@ -71,7 +71,7 @@ def main() -> None:
 
     parser.add_argument(
         '--archs',
-        default=os.environ.get("CIBW_ARCHS", 'auto'),
+        default=None,
         help='''
             Comma-separated list of CPU architectures to build for.
             If unspecified, builds the architectures natively supported
@@ -182,7 +182,11 @@ def main() -> None:
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         exit(2)
 
-    archs = [Architecture(a) for a in args.archs.split(",")]
+    if args.archs is not None:
+        archs_config_str = args.archs
+    else:
+        archs_config_str = get_option_from_environment('CIBW_ARCHS', platform=platform, default='auto')
+    archs = Architecture.parse_config(archs_config_str, platform=platform)
 
     if args.print_build_identifiers:
         print_build_identifiers(platform, build_selector, archs)

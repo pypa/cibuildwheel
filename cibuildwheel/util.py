@@ -1,4 +1,6 @@
 import os
+import platform as platform_module
+import re
 import ssl
 import textwrap
 import urllib.request
@@ -122,12 +124,32 @@ class DependencyConstraints:
 
 
 class Architecture(str, Enum):
-    auto = 'auto'  # gets expanded to the native arch, possibly 32+64 bit
     x86_64 = 'x86_64'
     i686 = 'i686'
     aarch64 = 'aarch64'
     ppc64le = 'ppc64le'
     s390x = 's390x'
+    win32 = 'win32'
+    win_amd64 = 'win_amd64'
+
+    @staticmethod
+    def parse_config(config: str, platform: str) -> 'List[Architecture]':
+        result = []
+        for arch_str in re.split(r'[\s,]+', config):
+            if arch_str == 'auto':
+                result += Architecture.auto_archs(platform=platform)
+            else:
+                result.append(Architecture(arch_str))
+        return result
+
+    @staticmethod
+    def auto_archs(platform: str) -> 'List[Architecture]':
+        native_architecture = Architecture(platform_module.machine())
+        result = [native_architecture]
+        # x86_64 machines can run i686 docker containers
+        if platform == 'linux' and native_architecture == Architecture.x86_64:
+            result.append(Architecture.i686)
+        return result
 
 
 class BuildOptions(NamedTuple):
