@@ -14,4 +14,4 @@ wheel==0.36.2             # via -r cibuildwheel/resources/constraints.in, deloca
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==20.3.3               # via -r cibuildwheel/resources/constraints.in
-setuptools==51.0.0        # via -r cibuildwheel/resources/constraints.in
+setuptools==51.1.0        # via -r cibuildwheel/resources/constraints.in
