@@ -149,9 +149,11 @@ class Architecture(str, Enum):
     def auto_archs(platform: str) -> 'List[Architecture]':
         native_architecture = Architecture(platform_module.machine())
         result = [native_architecture]
-        # x86_64 machines can run i686 docker containers
         if platform == 'linux' and native_architecture == Architecture.x86_64:
+            # x86_64 machines can run i686 docker containers
             result.append(Architecture.i686)
+        if platform == 'windows' and native_architecture == Architecture.amd64:
+            result.append(Architecture.x86)
         return result
 
 
