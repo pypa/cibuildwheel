@@ -76,7 +76,7 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
 
 
 def expected_wheels(package_name, package_version, manylinux_versions=None,
-                    macosx_deployment_target='10.9'):
+                    macosx_deployment_target='10.9', machine_arch=None):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -85,15 +85,18 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
+    if machine_arch is None:
+        machine_arch = pm.machine()
+
     if manylinux_versions is None:
-        if pm.machine() == 'x86_64':
+        if machine_arch == 'x86_64':
             manylinux_versions = ['manylinux1', 'manylinux2010']
         else:
             manylinux_versions = ['manylinux2014']
 
     python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38', 'cp39-cp39']
 
-    if pm.machine() in ['x86_64', 'AMD64', 'x86']:
+    if machine_arch in ['x86_64', 'AMD64', 'x86']:
         python_abi_tags += ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73', 'pp37-pypy37_pp73']
 
         if platform == 'linux':
@@ -105,9 +108,9 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         platform_tags = []
 
         if platform == 'linux':
-            architectures = [pm.machine()]
+            architectures = [machine_arch]
 
-            if pm.machine() == 'x86_64' and python_abi_tag.startswith('cp'):
+            if machine_arch == 'x86_64' and python_abi_tag.startswith('cp'):
                 architectures.append('i686')
 
             platform_tags = [
