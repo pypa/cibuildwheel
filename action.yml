@@ -1,0 +1,26 @@
+name: cibuildwheel
+description: 'Installs and runs cibuildwheel on the current runner'
+inputs:
+  package-dir:
+    description: 'Input directory, defaults to "."'
+    required: false
+    default: .
+  output-dir:
+    description: 'Folder to place the outputs in, defaults to "wheelhouse"'
+    required: false
+    default: wheelhouse
+branding:
+  icon: package
+  color: yellow
+
+runs:
+  using: composite
+  steps:
+
+    # This needs powershell-core because github.action path is a Windows-style
+    # path on Windows.  Powershell-core understands both types of paths.
+    - run: python -m pip install ${{ github.action_path }}
+      shell: pwsh
+
+    - run: python -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
+      shell: bash
