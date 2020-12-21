@@ -48,13 +48,6 @@ jobs:
       id: pr-labels
       uses: joerick/pr-labels-action@v1.0.6
 
-    - name: Set up QEMU
-      id: qemu
-      uses: docker/setup-qemu-action@v1
-      with:
-        platforms: all
-      if: runner.os == 'Linux'
-
     - name: Sample build
       if: contains(steps.pr-labels.outputs.labels, ' ci-sample-build ')
       run: |
@@ -63,3 +56,24 @@ jobs:
     - name: Test cibuildwheel
       run: |
         python ./bin/run_tests.py
+
+  test-emulated:
+    name: Test emulated cibuildwheel using qemu
+    runs-on: ubuntu-20.04
+    timeout-minutes: 180
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - name: Install dependencies
+      run: |
+        python -m pip install -r requirements-dev.txt
+
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v1
+      with:
+        platforms: all
+
+    - name: Run the emulation tests
+      run: |
+        pytest --run-emulation test/test_emulation.py
