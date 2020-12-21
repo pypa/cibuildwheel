@@ -93,3 +93,21 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
     build_options = intercepted_build_args.args[0]
 
     assert build_options.architectures == [Architecture.ppc64le]
+
+
+def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
+    monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
+    monkeypatch.setenv('CIBW_ARCHS', 'unused')
+    monkeypatch.setenv('CIBW_ARCHS_LINUX', 'ppc64le')
+    monkeypatch.setenv('CIBW_ARCHS_WINDOWS', 'x86')
+    monkeypatch.setenv('CIBW_ARCHS_MACOS', 'x86_64')
+
+    main()
+    build_options = intercepted_build_args.args[0]
+
+    if platform == 'linux':
+        assert build_options.architectures == [Architecture.ppc64le]
+    elif platform == 'windows':
+        assert build_options.architectures == [Architecture.x86]
+    elif platform == 'macos':
+        assert build_options.architectures == [Architecture.x86_64]

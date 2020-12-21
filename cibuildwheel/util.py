@@ -124,13 +124,16 @@ class DependencyConstraints:
 
 
 class Architecture(str, Enum):
+    # mac/linux archs
     x86_64 = 'x86_64'
     i686 = 'i686'
     aarch64 = 'aarch64'
     ppc64le = 'ppc64le'
     s390x = 's390x'
-    win32 = 'win32'
-    win_amd64 = 'win_amd64'
+
+    # windows archs
+    x86 = 'x86'
+    amd64 = 'AMD64'
 
     @staticmethod
     def parse_config(config: str, platform: str) -> 'List[Architecture]':
