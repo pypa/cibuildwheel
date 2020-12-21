@@ -58,7 +58,7 @@ jobs:
 
   test-emulated:
     name: Test emulated cibuildwheel using qemu
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v2
