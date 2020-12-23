@@ -81,3 +81,56 @@ To add the `/d2FH4-` flag to a standard `setup.py` using `setuptools`, the `extr
 ```
 
 To investigate the dependencies of a C extension (i.e., the `.pyd` file, a DLL in disguise) on Windows, [Dependency Walker](http://www.dependencywalker.com/) is a great tool.
+
+
+### Automatic updates {: #automatic-updates}
+
+Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worse-case scenario, it could occur during a release.
+There are two suggested methods for keeping cibuildwheel up to date that instead involve scheduled pull requests using GitHub's dependabot.
+
+#### Option 1: GitHub Action
+
+If you use GitHub Actions for builds, you can use cibuildwheel as an action:
+
+```yaml
+uses: joerick/cibuildwheel@v1.7.1
+```
+
+This is a composite step that just installs and runs cibuildwheel. You can set command-line options as `with:` parameters, and use `env:` as normal.
+
+Then, your `dependabot.yml` file could look like this:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # Optional: Official actions have moving tags like v1;
+      # if you use those, you don't need updates.
+      - dependency-name: "actions/*"
+```
+
+#### Option 2: Requirement files
+
+The second option, and the only one that supports other CI systems, is using a `requirements-*.txt` file. The file should have a distinct name and have only one entry:
+
+```bash
+# requirements-cibw.txt
+cibuildwheel==1.7.1
+```
+
+Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `dependabot.yml` file could look like this:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+```
+
+This will also try to update other pins in all requirement files, so be sure you want to do that. The only control you have over the files used is via the directory option.

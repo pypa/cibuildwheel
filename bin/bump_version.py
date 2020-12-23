@@ -11,10 +11,13 @@ import urllib.parse
 
 config = [
     # file path, version find/replace format
-    ('cibuildwheel/__init__.py', "__version__ = '{}'"),
-    ('setup.py', "version='{}'"),
     ('README.md', "cibuildwheel=={}"),
+    ('cibuildwheel/__init__.py', "__version__ = '{}'"),
+    ('docs/faq.md', "cibuildwheel=={}"),
+    ('docs/faq.md', "cibuildwheel@v{}"),
+    ('docs/setup.md', "cibuildwheel@v{}"),
     ('examples/*', "cibuildwheel=={}"),
+    ('setup.py', "version='{}'"),
 ]
 
 
