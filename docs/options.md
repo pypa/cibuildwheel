@@ -155,6 +155,28 @@ CIBW_SKIP: pp*
   }
 </style>
 
+### `CIBW_ARCHS_LINUX` {: #archs}
+> Build non-native architectures
+
+A space-separated list of architectures to build. Use this in conjunction with
+emulation, such as that provided by [docker/setup-qemu-action][setup-qemu-action]
+or [tonistiigi/binfmt][tonistiigi/binfmt], to build architectures other than
+those your machine natively supports.
+
+Options: `auto` `x86_64` `i686` `aarch64` `ppc64le` `s390x`
+
+Default: `auto`, meaning the native archs supported on the build machine. For
+example, on an `x86_64` machine, `auto` expands to `x86_64` and `i686`.
+
+[setup-qemu-action]: https://github.com/docker/setup-qemu-action
+[binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
+
+#### Examples
+
+```yaml
+# On an intel runner with qemu installed, build Intel and ARM wheels
+CIBW_ARCHS_LINUX: "auto aarch64"
+```
 
 ## Build customization
 
@@ -488,7 +510,8 @@ CIBW_BUILD_VERBOSITY: 1
 
 ```text
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
-                    [--output-dir OUTPUT_DIR] [--print-build-identifiers]
+                    [--archs ARCHS] [--output-dir OUTPUT_DIR]
+                    [--print-build-identifiers]
                     [package_dir]
 
 Build wheels for all the platforms.
@@ -510,6 +533,12 @@ optional arguments:
                         don't run on your development machine. For "windows",
                         you need to run in Windows, and it will build and test
                         for all versions of Python. Default: auto.
+  --archs ARCHS         Comma-separated list of CPU architectures to build
+                        for. If unspecified, builds the architectures natively
+                        supported on this machine. Set this option to build an
+                        architecture via emulation, for example, using
+                        binfmt_misc and qemu. Default: auto Choices: auto,
+                        x86_64, i686, aarch64, ppc64le, s390x, x86, AMD64
   --output-dir OUTPUT_DIR
                         Destination folder for the wheels.
   --print-build-identifiers
