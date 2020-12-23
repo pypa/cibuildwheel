@@ -133,7 +133,7 @@ class Architecture(str, Enum):
 
     # windows archs
     x86 = 'x86'
-    amd64 = 'AMD64'
+    AMD64 = 'AMD64'
 
     @staticmethod
     def parse_config(config: str, platform: str) -> 'List[Architecture]':
@@ -152,7 +152,7 @@ class Architecture(str, Enum):
         if platform == 'linux' and native_architecture == Architecture.x86_64:
             # x86_64 machines can run i686 docker containers
             result.append(Architecture.i686)
-        if platform == 'windows' and native_architecture == Architecture.amd64:
+        if platform == 'windows' and native_architecture == Architecture.AMD64:
             result.append(Architecture.x86)
         return result
 
