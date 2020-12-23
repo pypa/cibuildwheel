@@ -8,6 +8,7 @@ import sys
 import textwrap
 import time
 import click
+from glob import glob
 from collections import namedtuple
 from urllib.parse import quote
 
@@ -30,49 +31,67 @@ def generate_basic_project(path):
     project.generate(path)
 
 
-CIService = namedtuple('CIService', 'name src_config_path dst_config_path badge_md')
+CIService = namedtuple('CIService', 'name dst_config_path badge_md')
 services = [
     CIService(
         name='appveyor',
-        src_config_path='examples/appveyor-minimal.yml',
         dst_config_path='appveyor.yml',
         badge_md='[![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/{branch}?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/{branch})',
     ),
     CIService(
         name='azure-pipelines',
-        src_config_path='examples/azure-pipelines-minimal.yml',
         dst_config_path='azure-pipelines.yml',
         badge_md='[![Build Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName={branch})](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName={branch})',
     ),
     CIService(
-        name='circle-ci',
-        src_config_path='examples/circleci-minimal.yml',
+        name='circleci',
         dst_config_path='.circleci/config.yml',
         badge_md='[![CircleCI](https://circleci.com/gh/joerick/cibuildwheel/tree/{branch_escaped}.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel/tree/{branch})',
     ),
     CIService(
         name='github',
-        src_config_path='examples/github-minimal.yml',
         dst_config_path='.github/workflows/example.yml',
         badge_md='[![Build](https://github.com/joerick/cibuildwheel/workflows/Build/badge.svg?branch={branch})](https://github.com/joerick/cibuildwheel/actions)',
     ),
     CIService(
         name='travis-ci',
-        src_config_path='examples/travis-ci-minimal.yml',
         dst_config_path='.travis.yml',
         badge_md='[![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch={branch})](https://travis-ci.org/joerick/cibuildwheel)',
     ),
     CIService(
         name='gitlab',
-        src_config_path='examples/gitlab-minimal.yml',
         dst_config_path='.gitlab-ci.yml',
         badge_md='[![Gitlab](https://gitlab.com/joerick/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/joerick/cibuildwheel/-/commits/{branch})'
     ),
 ]
 
 
+def ci_service_for_config_file(config_file):
+    for service in services:
+        if Path(config_file).name.startswith(service.name+'-'):
+            return service
+    raise ValueError(f'unknown ci service for config file {config_file}')
+
+
 @click.command()
-def run_example_ci_configs():
+@click.argument('config_files', nargs=-1, type=click.Path())
+def run_example_ci_configs(config_files=None):
+    '''
+        Test the example configs. If no files are specified, will test
+        examples/*-minimal.yml
+    '''
+
+    if len(config_files) == 0:
+        config_files = glob('examples/*-minimal.yml')
+
+    # check each CI service has at most 1 config file
+    configs_by_service = {}
+    for config_file in config_files:
+        service = ci_service_for_config_file(config_file)
+        if service.name in configs_by_service:
+            raise Exception('You cannot specify more than one config per CI service')
+        configs_by_service[service.name] = config_file
+
     if git_repo_has_changes():
         print('Your git repo has uncommitted changes. Commit or stash before continuing.')
         exit(1)
@@ -91,18 +110,19 @@ def run_example_ci_configs():
         example_project = Path('example_root')
         generate_basic_project(example_project)
 
-        for service in services:
-            src_config_file = Path(service.src_config_path)
+        for config_file in config_files:
+            service = ci_service_for_config_file(config_file)
+            src_config_file = Path(config_file)
             dst_config_file = example_project / service.dst_config_path
 
             dst_config_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(src_config_file, dst_config_file)
 
         run(['git', 'add', example_project], check=True)
-        run(['git', 'commit', '-m', textwrap.dedent(f'''
+        run(['git', 'commit', '--no-verify', '-m', textwrap.dedent(f'''
             Test example minimal configs
 
-            Testing files: {[s.src_config_path for s in services]}
+            Testing files: {config_files}
             Generated from branch: {previous_branch}
             Time: {timestamp}
         ''')], check=True)
@@ -116,9 +136,10 @@ def run_example_ci_configs():
         print('> ')
         print('> | Service | Config | Status |')
         print('> |---|---|---|')
-        for service in services:
+        for config_file in config_files:
+            service = ci_service_for_config_file(config_file)
             badge = service.badge_md.format(branch=branch_name, branch_escaped=quote(branch_name, safe=''))
-            print(f'> | {service.name} | `{service.src_config_path}` | {badge} |')
+            print(f'> | {service.name} | `{config_file}` | {badge} |')
         print('> ')
         print('> Generated by `bin/run_example_ci_config.py`')
         print()
