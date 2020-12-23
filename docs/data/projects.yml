@@ -213,3 +213,19 @@
   ci: [github, travisci]
   os: [windows, apple, linux]
   notes: Supports full range of wheels, including PyPy and alternate archs.
+
+- name: Rtree
+  gh: Toblerity/rtree
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: psutil
+  gh: giampaolo/psutil
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: Dependency Injector
+  gh: ets-labs/python-dependency-injector
+  ci: [travisci]
+  os: [windows, apple, linux]
+  notes: Dependency injection framework for Python, uses Windows TravisCI
