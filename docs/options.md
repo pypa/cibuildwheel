@@ -160,8 +160,8 @@ CIBW_SKIP: pp*
 
 A space-separated list of architectures to build. Use this in conjunction with
 emulation, such as that provided by [docker/setup-qemu-action][setup-qemu-action]
-or [tonistiigi/binfmt][tonistiigi/binfmt], to build architectures other than
-those your machine natively supports.
+or [tonistiigi/binfmt][binfmt], to build architectures other than those your
+machine natively supports.
 
 Options: `auto` `x86_64` `i686` `aarch64` `ppc64le` `s390x`
 
