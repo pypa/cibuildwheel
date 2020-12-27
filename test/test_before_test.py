@@ -37,6 +37,8 @@ class TestBeforeTest(TestCase):
 def test(tmp_path):
     project_dir = tmp_path / 'project'
     before_test_project.generate(project_dir)
+    test_project_dir = project_dir / 'dependency'
+    test_projects.new_c_project().generate(test_project_dir)
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
@@ -44,7 +46,7 @@ def test(tmp_path):
         # checked in setup.py
         'CIBW_BEFORE_TEST': '''python -c "import sys; open('/tmp/pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('/tmp/pythonprefix.txt', 'w').write(sys.prefix)"''',
         'CIBW_BEFORE_TEST_WINDOWS': '''python -c "import sys; open('c:\\pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('c:\\pythonprefix.txt', 'w').write(sys.prefix)"''',
-        'CIBW_TEST_REQUIRES': 'nose',
+        'CIBW_TEST_REQUIRES': 'nose, {project}/dependency',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
         'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
