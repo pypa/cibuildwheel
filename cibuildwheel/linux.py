@@ -142,7 +142,7 @@ def build(options: BuildOptions) -> None:
                     if config.identifier.startswith("pp"):
                         patch_list = pypy_patch(config.path, config.version)
                         for file_path, patch_path in patch_list:
-                            patch_docker_path = PurePath("/pypy_venv_1.patch")
+                            patch_docker_path = PurePath("/pypy_venv.patch")
                             docker.copy_into(patch_path, patch_docker_path)
                             docker.call(["patch", file_path, patch_docker_path, "-N"])
 

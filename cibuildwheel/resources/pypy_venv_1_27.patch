@@ -1,0 +1,12 @@
+--- a/lib-python/2.7/sysconfig.py
++++ b/lib-python/2.7/sysconfig.py
+@@ -553,9 +553,6 @@ def get_config_vars(*args):
+             if type_ == imp.C_EXTENSION:
+                 _CONFIG_VARS['SOABI'] = suffix.split('.')[1]
+                 break
+-        _CONFIG_VARS['INCLUDEPY'] = os.path.join(_CONFIG_VARS['prefix'],
+-                                                 'include')
+-
+     if args:
+         vals = []
+         for name in args:
