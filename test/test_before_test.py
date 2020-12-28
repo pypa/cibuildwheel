@@ -44,9 +44,9 @@ def test(tmp_path):
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         # write python version information to a temporary file, this is
         # checked in setup.py
-        'CIBW_BEFORE_TEST': '''python -c "import sys; open('/tmp/pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('/tmp/pythonprefix.txt', 'w').write(sys.prefix)"''',
-        'CIBW_BEFORE_TEST_WINDOWS': '''python -c "import sys; open('c:\\pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('c:\\pythonprefix.txt', 'w').write(sys.prefix)"''',
-        'CIBW_TEST_REQUIRES': 'nose, {project}/dependency',
+        'CIBW_BEFORE_TEST': '''python -c "import sys; open('/tmp/pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('/tmp/pythonprefix.txt', 'w').write(sys.prefix)" && python -m pip install {project}/dependency''',
+        'CIBW_BEFORE_TEST_WINDOWS': '''python -c "import sys; open('c:\\pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('c:\\pythonprefix.txt', 'w').write(sys.prefix)" && python -m pip install {project}/dependency''',
+        'CIBW_TEST_REQUIRES': 'nose',
         # the 'false ||' bit is to ensure this command runs in a shell on
         # mac/linux.
         'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
