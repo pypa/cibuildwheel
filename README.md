@@ -80,7 +80,7 @@ jobs:
         name: Install Python
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.7.1
+        run: python -m pip install cibuildwheel==1.7.2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -260,6 +260,16 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### 1.7.2
+
+_21 December 2020_
+
+- 🛠 Update dependencies, notably wheel==0.36.2 and pip==20.3.3, and CPython to
+  their latest bugfix releases (#489)
+- 📚 Switch to a Github example in the README (#479)
+- 📚 Create Working Examples table, with many projects that use cibuildwheel (#474)
+- 📚 Import Working Examples table and Changelog to docs
 
 ### 1.7.1
 

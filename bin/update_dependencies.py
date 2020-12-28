@@ -2,7 +2,9 @@
 
 import configparser
 import os
+import shutil
 import subprocess
+import sys
 from collections import namedtuple
 
 import requests
@@ -12,21 +14,39 @@ os.chdir('..')
 
 # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
 # regenerate the constraints files
-os.environ['CUSTOM_COMPILE_COMMAND'] = "bin/update_constraints.py"
-subprocess.check_call([
-    'pip-compile',
-    '--allow-unsafe',
-    '--upgrade',
-    'cibuildwheel/resources/constraints.in',
-])
-for python_version in ['27', '35', '36', '37']:
-    subprocess.check_call([
-        f'./env{python_version}/bin/pip-compile',
-        '--allow-unsafe',
-        '--upgrade',
-        'cibuildwheel/resources/constraints.in',
-        '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
-    ])
+os.environ['CUSTOM_COMPILE_COMMAND'] = "bin/update_dependencies.py"
+
+PYTHON_VERSIONS = ['27', '35', '36', '37', '38', '39']
+
+if '--no-docker' in sys.argv:
+    for python_version in PYTHON_VERSIONS:
+        subprocess.check_call([
+            f'./env{python_version}/bin/pip-compile',
+            '--allow-unsafe',
+            '--upgrade',
+            'cibuildwheel/resources/constraints.in',
+            '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
+        ])
+else:
+    image = 'quay.io/pypa/manylinux2010_x86_64:latest'
+    subprocess.check_call(['docker', 'pull', image])
+    for python_version in PYTHON_VERSIONS:
+        abi_flags = '' if int(python_version) >= 38 else 'm'
+        python_path = f'/opt/python/cp{python_version}-cp{python_version}{abi_flags}/bin/'
+        subprocess.check_call([
+            'docker', 'run', '--rm',
+            '-e', 'CUSTOM_COMPILE_COMMAND',
+            '-v', f'{os.getcwd()}:/volume',
+            '--workdir', '/volume', image,
+            'bash', '-c',
+            f'{python_path}pip install pip-tools &&'
+            f'{python_path}pip-compile --allow-unsafe --upgrade '
+            'cibuildwheel/resources/constraints.in '
+            f'--output-file cibuildwheel/resources/constraints-python{python_version}.txt'
+        ])
+
+# default constraints.txt
+shutil.copyfile(f'cibuildwheel/resources/constraints-python{PYTHON_VERSIONS[-1]}.txt', 'cibuildwheel/resources/constraints.txt')
 
 Image = namedtuple('Image', [
     'manylinux_version',

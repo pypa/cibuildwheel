@@ -38,8 +38,8 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         # TODO: figure out what's going on in CPython 3.5 on macOS 11. or, remove it :)
         # PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.8/python-3.7.8-macosx10.9.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.4/python-3.8.4-macosx10.9.pkg'),
+        PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg'),
+        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.7/python-3.8.7-macosx10.9.pkg'),
         # TODO: Find some better way to select Universal2 vs. regular (note that this works on 10.9+, regardless of the name)
         PythonConfiguration(version='3.9', identifier='cp39-macosx_x86_64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
         PythonConfiguration(version='3.9', identifier='cp39-macosx_universal2', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),

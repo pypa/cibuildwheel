@@ -3,7 +3,7 @@ title: Working examples
 ---
 
 {%
-   includemarkdown "../README.md"
+   include-markdown "../README.md"
    start="<!--working-examples-start-->"
    end="<!--working-examples-end-->"
 %}

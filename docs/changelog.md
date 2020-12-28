@@ -3,7 +3,7 @@ title: Changelog
 ---
 
 {%
-   includemarkdown "../README.md"
+   include-markdown "../README.md"
    start="<!--changelog-start-->"
    end="<!--changelog-end-->"
 %}
