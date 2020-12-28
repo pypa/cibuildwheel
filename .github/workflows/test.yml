@@ -53,6 +53,11 @@ jobs:
       run: |
         python bin/sample_build.py
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: sample_wheels
+        path: wheelhouse
+
     - name: Test cibuildwheel
       run: |
         python ./bin/run_tests.py
