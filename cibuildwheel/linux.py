@@ -1,4 +1,3 @@
-import re
 import subprocess
 import sys
 import textwrap
@@ -12,15 +11,6 @@ from .util import (
     Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
     get_build_verbosity_extra_flags, prepare_command,
 )
-
-
-re_pattern = re.compile(r'[cp]p\d{2}-manylinux_(\w*)')
-
-
-def matches_platform(identifier: str, architectures: List[Architecture]) -> bool:
-    matched_architecture = re_pattern.search(identifier)
-    id_architecture = matched_architecture.group(1) if matched_architecture else ''
-    return id_architecture in architectures
 
 
 class PythonConfiguration(NamedTuple):
@@ -71,12 +61,11 @@ def get_python_configurations(
         PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
     ]
 
-    # skip builds as required
-    target_archs = architectures
-
+    # return all configurations whose arch is in our `architectures` list,
+    # and match the build/skip rules
     return [
         c for c in python_configurations
-        if matches_platform(c.identifier, target_archs)
+        if any(c.identifier.endswith(arch) for arch in architectures)
         and build_selector(c.identifier)
     ]
 
