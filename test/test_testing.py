@@ -66,7 +66,8 @@ class TestSpam(TestCase):
             self.assertEqual(platform.machine(), "i686")
 
     def test_time_to_remove_the_pypy_venv_patch(self):
-        assert not hasattr(sys, "pypy_version_info") or (sys.pypy_version_info < (7,3,4) and sys.platform == "darwin")
+        if sys.platform == "darwin":
+            assert not hasattr(sys, "pypy_version_info") or sys.pypy_version_info < (7,3,4)
 '''
 
 
