@@ -191,10 +191,3 @@ def detect_ci_provider() -> Optional[CIProvider]:
         return CIProvider.other
     else:
         return None
-
-
-def pypy_patch(version):
-    if version.startswith("3"):
-        return Path(os.path.join(os.path.abspath(os.path.dirname(__file__)), "resources", "pypy_venv.patch"))
-    else:
-        return Path(os.path.join(os.path.abspath(os.path.dirname(__file__)), "resources", "pypy_venv_27.patch"))

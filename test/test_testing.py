@@ -64,6 +64,9 @@ class TestSpam(TestCase):
         bits = struct.calcsize("P") * 8
         if bits == 32:
             self.assertEqual(platform.machine(), "i686")
+
+    def test_time_to_remove_the_pypy_venv_patch(self):
+        assert not hasattr(sys, "pypy_version_info") or sys.pypy_version_info < (7,3,4)
 '''
 
 

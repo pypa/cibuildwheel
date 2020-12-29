@@ -9,8 +9,7 @@ from typing import List, NamedTuple, Union
 from .docker_container import DockerContainer
 from .logger import log
 from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
-                   get_build_verbosity_extra_flags, prepare_command,
-                   pypy_patch)
+                   get_build_verbosity_extra_flags, prepare_command)
 
 
 def matches_platform(identifier: str) -> bool:
@@ -140,8 +139,10 @@ def build(options: BuildOptions) -> None:
 
                     dependency_constraint_flags: List[Union[str, PathLike]] = []
                     if config.identifier.startswith("pp"):
-                        patch_path = pypy_patch(config.version)
-                        patch_docker_path = PurePath("/pypy_venv.patch")
+                        # Patch PyPy to make sure headers get installed into a venv
+                        patch_version = '_27' if config.version == '2.7' else ''
+                        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+                        patch_docker_path = PurePath('/pypy_venv.patch')
                         docker.copy_into(patch_path, patch_docker_path)
                         docker.call(['patch', '-N', '-d', config.path, patch_docker_path])
 

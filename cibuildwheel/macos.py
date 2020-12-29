@@ -12,7 +12,7 @@ from .environment import ParsedEnvironment
 from .logger import log
 from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
-                   install_certifi_script, prepare_command, pypy_patch)
+                   install_certifi_script, prepare_command)
 
 
 def call(args: Union[str, Sequence[Union[str, PathLike]]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
@@ -105,7 +105,9 @@ def install_pypy(version: str, url: str) -> Path:
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
         download(url, downloaded_tar_bz2)
         call(['tar', '-C', '/tmp', '-xf', downloaded_tar_bz2])
-        patch_path = pypy_patch(version)
+        # Patch PyPy to make sure headers get installed into a venv
+        patch_version = '_27' if version == '2.7' else ''
+        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
         call(['patch', '-N', '-d', installation_path, patch_path])
 
     installation_bin_path = installation_path / 'bin'
