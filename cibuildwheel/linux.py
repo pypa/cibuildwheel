@@ -144,7 +144,10 @@ def build(options: BuildOptions) -> None:
                         patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
                         patch_docker_path = PurePath('/pypy_venv.patch')
                         docker.copy_into(patch_path, patch_docker_path)
-                        docker.call(['patch', '-N', '-d', config.path, patch_docker_path])
+                        try:
+                            docker.call(['patch', '-N', '-d', config.path, patch_docker_path])
+                        except subprocess.CalledProcessError:
+                            print("PyPy patch not applied", file=sys.stderr)
 
                     if options.dependency_constraints:
                         constraints_file = options.dependency_constraints.get_for_python_version(config.version)
