@@ -1,3 +1,17 @@
+diff --git a/lib-python/3/sysconfig.py b/lib-python/3/sysconfig.py
+index 0d08cde66b4150e1772c13fdc6fe34d079c2b10d..30c77d165a2505d98bc7660ff0cc3b728f56c682 100644
+--- a/lib-python/3/sysconfig.py
++++ b/lib-python/3/sysconfig.py
+@@ -618,9 +618,6 @@ def get_config_vars(*args):
+             import _osx_support
+             _osx_support.customize_config_vars(_CONFIG_VARS)
+
+-        _CONFIG_VARS['INCLUDEPY'] = os.path.join(_CONFIG_VARS['prefix'],
+-                                                 'include')
+-
+     if args:
+         vals = []
+         for name in args:
 diff --git a/lib_pypy/_sysconfigdata.py b/lib_pypy/_sysconfigdata.py
 index f1cca41a4b7553819bb1a2a63af1c1a9b8591ce9..a34216e8e12b82abd72fabdd7793b3e8bb19bbcf 100644
 --- a/lib_pypy/_sysconfigdata.py

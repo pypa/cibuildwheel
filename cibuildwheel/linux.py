@@ -140,11 +140,10 @@ def build(options: BuildOptions) -> None:
 
                     dependency_constraint_flags: List[Union[str, PathLike]] = []
                     if config.identifier.startswith("pp"):
-                        patch_list = pypy_patch(config.path, config.version)
-                        for file_path, patch_path in patch_list:
-                            patch_docker_path = PurePath("/pypy_venv.patch")
-                            docker.copy_into(patch_path, patch_docker_path)
-                            docker.call(["patch", file_path, patch_docker_path, "-N"])
+                        patch_path = pypy_patch(config.version)
+                        patch_docker_path = PurePath("/pypy_venv.patch")
+                        docker.copy_into(patch_path, patch_docker_path)
+                        docker.call(['patch', '-N', '-d', config.path, patch_docker_path])
 
                     if options.dependency_constraints:
                         constraints_file = options.dependency_constraints.get_for_python_version(config.version)

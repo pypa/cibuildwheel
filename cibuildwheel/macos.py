@@ -105,9 +105,8 @@ def install_pypy(version: str, url: str) -> Path:
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
         download(url, downloaded_tar_bz2)
         call(['tar', '-C', '/tmp', '-xf', downloaded_tar_bz2])
-        patch_list = pypy_patch(installation_path, version)
-        for file_path, patch_path in patch_list:
-            call(["patch", file_path, patch_path, "-N"])
+        patch_path = pypy_patch(version)
+        call(['patch', '-N', '-d', installation_path, patch_path])
 
     installation_bin_path = installation_path / 'bin'
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
