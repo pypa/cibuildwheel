@@ -123,7 +123,7 @@ class DependencyConstraints:
         return f'{self.__class__.__name__}{self.base_file_path!r})'
 
 
-class Architecture(str, Enum):
+class Architecture(Enum):
     # mac/linux archs
     x86_64 = 'x86_64'
     i686 = 'i686'
@@ -201,7 +201,7 @@ def strtobool(val: str) -> bool:
     return False
 
 
-class CIProvider(str, Enum):
+class CIProvider(Enum):
     travis_ci = 'travis'
     appveyor = 'appveyor'
     circle_ci = 'circle_ci'

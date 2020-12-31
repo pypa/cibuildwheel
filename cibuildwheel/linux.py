@@ -65,7 +65,7 @@ def get_python_configurations(
     # and match the build/skip rules
     return [
         c for c in python_configurations
-        if any(c.identifier.endswith(arch) for arch in architectures)
+        if any(c.identifier.endswith(arch.value) for arch in architectures)
         and build_selector(c.identifier)
     ]
 
