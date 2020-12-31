@@ -1,3 +1,4 @@
+import subprocess
 import pytest
 from . import utils
 from . import test_projects
@@ -33,3 +34,20 @@ def test(tmp_path):
         + utils.expected_wheels('spam', '0.1.0', machine_arch='s390x')
     )
     assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_setting_arch_on_other_platforms(tmp_path, capfd):
+    if utils.platform == 'linux':
+        pytest.skip('this test checks the behaviour on platforms other than linux')
+
+    project_dir = tmp_path / 'project'
+    project_with_a_test.generate(project_dir)
+
+    # build and test the wheels
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(project_dir, add_env={
+            'CIBW_ARCHS': 'aarch64',
+        })
+
+    captured = capfd.readouterr()
+    assert "Invalid archs option" in captured.err
