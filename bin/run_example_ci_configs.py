@@ -67,9 +67,12 @@ services = [
 
 
 def ci_service_for_config_file(config_file):
+    service_name = Path(config_file).name.rsplit('-', 1)[0]
+
     for service in services:
-        if Path(config_file).name.startswith(service.name+'-'):
+        if service.name == service_name:
             return service
+
     raise ValueError(f'unknown ci service for config file {config_file}')
 
 
