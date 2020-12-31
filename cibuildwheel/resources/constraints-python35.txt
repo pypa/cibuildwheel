@@ -4,17 +4,33 @@
 #
 #    bin/update_dependencies.py
 #
-appdirs==1.4.4            # via virtualenv
-delocate==0.8.2           # via -r cibuildwheel/resources/constraints.in
-distlib==0.3.1            # via virtualenv
-filelock==3.0.12          # via virtualenv
-importlib-metadata==2.1.1  # via virtualenv
-importlib-resources==3.2.1  # via virtualenv
-six==1.15.0               # via virtualenv
-virtualenv==20.2.2        # via -r cibuildwheel/resources/constraints.in
-wheel==0.36.2             # via -r cibuildwheel/resources/constraints.in, delocate
-zipp==1.2.0               # via importlib-metadata, importlib-resources
+appdirs==1.4.4
+    # via virtualenv
+delocate==0.8.2
+    # via -r cibuildwheel/resources/constraints.in
+distlib==0.3.1
+    # via virtualenv
+filelock==3.0.12
+    # via virtualenv
+importlib-metadata==2.1.1
+    # via virtualenv
+importlib-resources==3.2.1
+    # via virtualenv
+six==1.15.0
+    # via virtualenv
+virtualenv==20.2.2
+    # via -r cibuildwheel/resources/constraints.in
+wheel==0.36.2
+    # via
+    #   -r cibuildwheel/resources/constraints.in
+    #   delocate
+zipp==1.2.0
+    # via
+    #   importlib-metadata
+    #   importlib-resources
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==20.3.3               # via -r cibuildwheel/resources/constraints.in
-setuptools==50.3.2        # via -r cibuildwheel/resources/constraints.in
+pip==20.3.3
+    # via -r cibuildwheel/resources/constraints.in
+setuptools==50.3.2
+    # via -r cibuildwheel/resources/constraints.in
