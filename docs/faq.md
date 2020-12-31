@@ -35,9 +35,9 @@ is via the [docker/setup-qemu-action][setup-qemu-action] on Github Actions or
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
 
 Check out the following config for an example of how to set it up on Github
-Actions. Once qemu is set up and registered, you just need to set the
-`CIBW_ARCHS_LINUX` variable, and the other architectures are emulated
-automatically.
+Actions. Once QEMU is set up and registered, you just need to set the
+`CIBW_ARCHS_LINUX` environment variable (or use the `--archs` option on
+Linux), and the other architectures are emulated automatically.
 
 > .github/workflows/build.yml
 ```yaml
