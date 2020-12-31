@@ -1,0 +1,27 @@
+--- a/lib-python/2.7/sysconfig.py
++++ b/lib-python/2.7/sysconfig.py
+@@ -553,9 +553,6 @@ def get_config_vars(*args):
+             if type_ == imp.C_EXTENSION:
+                 _CONFIG_VARS['SOABI'] = suffix.split('.')[1]
+                 break
+-        _CONFIG_VARS['INCLUDEPY'] = os.path.join(_CONFIG_VARS['prefix'],
+-                                                 'include')
+-
+     if args:
+         vals = []
+         for name in args:
+--- a/lib_pypy/_sysconfigdata.py
++++ b/lib_pypy/_sysconfigdata.py
+@@ -1,5 +1,11 @@
+-import imp
++import imp, os
++
++mybase = os.path.dirname(os.path.dirname(__file__))
+
+ build_time_vars = {
+     "SO": [s[0] for s in imp.get_suffixes() if s[2] == imp.C_EXTENSION][0]
+ }
++
++build_time_vars['LIBDIR'] = os.path.join(mybase, 'lib')
++build_time_vars['INCLUDEPY'] = os.path.join(mybase, 'include')
++

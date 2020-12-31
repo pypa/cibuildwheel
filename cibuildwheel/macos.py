@@ -105,6 +105,10 @@ def install_pypy(version: str, url: str) -> Path:
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
         download(url, downloaded_tar_bz2)
         call(['tar', '-C', '/tmp', '-xf', downloaded_tar_bz2])
+        # Patch PyPy to make sure headers get installed into a venv
+        patch_version = '_27' if version == '2.7' else ''
+        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+        call(['patch', '--force', '-d', installation_path, patch_path])
 
     installation_bin_path = installation_path / 'bin'
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'

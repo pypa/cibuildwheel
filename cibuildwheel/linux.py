@@ -138,6 +138,16 @@ def build(options: BuildOptions) -> None:
                     log.build_start(config.identifier)
 
                     dependency_constraint_flags: List[Union[str, PathLike]] = []
+                    if config.identifier.startswith("pp"):
+                        # Patch PyPy to make sure headers get installed into a venv
+                        patch_version = '_27' if config.version == '2.7' else ''
+                        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+                        patch_docker_path = PurePath('/pypy_venv.patch')
+                        docker.copy_into(patch_path, patch_docker_path)
+                        try:
+                            docker.call(['patch', '--force', '-p1', '-d', config.path, '-i', patch_docker_path])
+                        except subprocess.CalledProcessError:
+                            print("PyPy patch not applied", file=sys.stderr)
 
                     if options.dependency_constraints:
                         constraints_file = options.dependency_constraints.get_for_python_version(config.version)
