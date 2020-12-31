@@ -17,7 +17,7 @@ config = [
     ('docs/faq.md', "cibuildwheel@v{}"),
     ('docs/setup.md', "cibuildwheel@v{}"),
     ('examples/*', "cibuildwheel=={}"),
-    ('setup.py', "version='{}'"),
+    ('setup.cfg', "version = {}"),
 ]
 
 
