@@ -69,18 +69,16 @@ def main() -> None:
                             Python. Default: auto.
                         ''')
 
-    parser.add_argument(
-        '--archs',
-        default=None,
-        help='''
-            Comma-separated list of CPU architectures to build for.
-            If unspecified, builds the architectures natively supported
-            on this machine. Set this option to build an architecture
-            via emulation, for example, using binfmt_misc and qemu.
-            Default: auto
-            Choices: auto, {}
-        '''.format(", ".join(a.name for a in Architecture)),
-    )
+    parser.add_argument('--archs',
+                        default=None,
+                        help='''
+                            Comma-separated list of CPU architectures to build for.
+                            When set to 'auto', builds the architectures natively supported
+                            on this machine. Set this option to build an architecture
+                            via emulation, for example, using binfmt_misc and QEMU.
+                            Default: auto.
+                            Choices: auto, {}
+                        '''.format(", ".join(a.name for a in Architecture)))
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
