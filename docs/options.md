@@ -255,7 +255,7 @@ CIBW_BEFORE_BUILD: "{package}/bin/prepare_for_build.sh"
 Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
-- on macOS: `'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'`
+- on macOS: `'delocate-listdeps {wheel} && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}'`
 - on Windows: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
@@ -264,7 +264,8 @@ The command is run on each built wheel (except for pure Python ones) before test
 The following placeholders must be used inside the command and will be replaced by `cibuildwheel`:
 
 - `{wheel}` for the absolute path to the built wheel
-- `{dest_dir}` for the absolute path of the directory where to create the repaired wheel.
+- `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
+- `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
 
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 

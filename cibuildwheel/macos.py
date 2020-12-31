@@ -250,7 +250,20 @@ def build(options: BuildOptions) -> None:
 
             if options.repair_command:
                 log.step('Repairing wheel...')
-                repair_command_prepared = prepare_command(options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir)
+
+                if config.identifier.endswith('universal2'):
+                    delocate_archs = 'x86_64,arm64'
+                elif config.identifier.endswith('arm64'):
+                    delocate_archs = 'arm64'
+                else:
+                    delocate_archs = 'x86_64'
+
+                repair_command_prepared = prepare_command(
+                    options.repair_command,
+                    wheel=built_wheel,
+                    dest_dir=repaired_wheel_dir,
+                    delocate_archs=delocate_archs,
+                )
                 call(repair_command_prepared, env=env, shell=True)
             else:
                 shutil.move(str(built_wheel), repaired_wheel_dir)

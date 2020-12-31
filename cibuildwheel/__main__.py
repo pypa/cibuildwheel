@@ -118,7 +118,7 @@ def main() -> None:
     if platform == 'linux':
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
     elif platform == 'macos':
-        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
+        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}'
     else:
         repair_command_default = ''
 
