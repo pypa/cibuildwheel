@@ -11,5 +11,5 @@ linux:
     DOCKER_TLS_CERTDIR: ""
   script:
     - curl -sSL https://get.docker.com/ | sh
-    - python -m pip install -r requirements-dev.txt
+    - python -m pip install -e ".[dev]"
     - python ./bin/run_tests.py
