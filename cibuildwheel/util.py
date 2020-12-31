@@ -158,10 +158,10 @@ class Architecture(str, Enum):
 
 
 class BuildOptions(NamedTuple):
-    architectures: List[Architecture]
     package_dir: Path
     output_dir: Path
     build_selector: BuildSelector
+    architectures: List[Architecture]
     environment: ParsedEnvironment
     before_all: str
     before_build: Optional[str]
