@@ -53,6 +53,11 @@ jobs:
       run: |
         python bin/sample_build.py
 
+    - name: Get some sample wheels
+      run: |
+        python -m test.test_projects test.test_0_basic.basic_project sample_proj
+        cibuildwheel --output-dir wheelhouse sample_proj
+
     - uses: actions/upload-artifact@v2
       with:
         name: sample_wheels
