@@ -145,7 +145,7 @@ def build(options: BuildOptions) -> None:
                         patch_docker_path = PurePath('/pypy_venv.patch')
                         docker.copy_into(patch_path, patch_docker_path)
                         try:
-                            docker.call(['patch', '-N', '-d', config.path, patch_docker_path])
+                            docker.call(['patch', '-N', '-p1', '-d', config.path, '-i', patch_docker_path])
                         except subprocess.CalledProcessError:
                             print("PyPy patch not applied", file=sys.stderr)
 
