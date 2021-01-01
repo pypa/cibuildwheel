@@ -20,7 +20,7 @@ jobs:
         - ln -s /c/Python38/python.exe /c/Python38/python3.exe
 
 install:
-  - python3 -m pip install cibuildwheel==1.7.2
+  - python3 -m pip install cibuildwheel==1.7.3
 
 script:
   # build the wheels, put them into './wheelhouse'

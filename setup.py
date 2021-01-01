@@ -11,7 +11,7 @@ long_description = (this_directory / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='cibuildwheel',
-    version='1.7.2',
+    version='1.7.3',
     install_requires=['bashlex!=0.13', 'toml', 'certifi'],
     description="Build Python wheels on CI with minimal configuration.",
     long_description=long_description,

@@ -80,7 +80,7 @@ jobs:
         name: Install Python
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.7.2
+        run: python -m pip install cibuildwheel==1.7.3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -269,6 +269,18 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### 1.7.3
+
+_1 January 2021_
+
+- 🛠 Added a patch for Pypy to ensure header files are available for building
+  in a virtualenv. (#502)
+- 🛠 Some preparatory work towards using cibuildwheel as a Github Action.
+  Check out
+  [the FAQ](https://cibuildwheel.readthedocs.io/en/stable/faq/#option-1-github-action)
+  for information on how to use it. We'll be fully updating the docs to this
+  approach in a subsequent release (#494)
 
 ### 1.7.2
 
