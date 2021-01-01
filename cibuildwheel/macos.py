@@ -4,13 +4,14 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import textwrap
 from os import PathLike
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 
 from .environment import ParsedEnvironment
 from .logger import log
-from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
+from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
                    install_certifi_script, prepare_command)
 
@@ -110,6 +111,10 @@ def install_pypy(version: str, url: str) -> Path:
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
         download(url, downloaded_tar_bz2)
         call(['tar', '-C', '/tmp', '-xf', downloaded_tar_bz2])
+        # Patch PyPy to make sure headers get installed into a venv
+        patch_version = '_27' if version == '2.7' else ''
+        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+        call(['patch', '--force', '-d', installation_path, patch_path])
 
     installation_bin_path = installation_path / 'bin'
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
@@ -195,6 +200,12 @@ def setup_python(python_configuration: PythonConfiguration,
 
 
 def build(options: BuildOptions) -> None:
+    if options.architectures != [Architecture.x86_64]:
+        raise ValueError(textwrap.dedent(f'''
+            Invalid archs option {options.architectures}. macOS only supports x86_64 for the moment.
+            If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX instead.
+        '''))
+
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'

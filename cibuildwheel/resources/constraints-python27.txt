@@ -4,23 +4,52 @@
 #
 #    bin/update_dependencies.py
 #
-appdirs==1.4.4            # via virtualenv
-configparser==4.0.2       # via importlib-metadata
-contextlib2==0.6.0.post1  # via importlib-metadata, importlib-resources
-delocate==0.8.2           # via -r cibuildwheel/resources/constraints.in
-distlib==0.3.1            # via virtualenv
-filelock==3.0.12          # via virtualenv
-importlib-metadata==2.1.1  # via virtualenv
-importlib-resources==3.3.0  # via virtualenv
-pathlib2==2.3.5           # via importlib-metadata, importlib-resources, virtualenv
-scandir==1.10.0           # via pathlib2
-singledispatch==3.4.0.3   # via importlib-resources
-six==1.15.0               # via pathlib2, virtualenv
-typing==3.7.4.3           # via importlib-resources
-virtualenv==20.2.2        # via -r cibuildwheel/resources/constraints.in
-wheel==0.36.2             # via -r cibuildwheel/resources/constraints.in, delocate
-zipp==1.2.0               # via importlib-metadata, importlib-resources
+appdirs==1.4.4
+    # via virtualenv
+configparser==4.0.2
+    # via importlib-metadata
+contextlib2==0.6.0.post1
+    # via
+    #   importlib-metadata
+    #   importlib-resources
+delocate==0.8.2
+    # via -r cibuildwheel/resources/constraints.in
+distlib==0.3.1
+    # via virtualenv
+filelock==3.0.12
+    # via virtualenv
+importlib-metadata==2.1.1
+    # via virtualenv
+importlib-resources==3.3.1
+    # via virtualenv
+pathlib2==2.3.5
+    # via
+    #   importlib-metadata
+    #   importlib-resources
+    #   virtualenv
+scandir==1.10.0
+    # via pathlib2
+singledispatch==3.4.0.3
+    # via importlib-resources
+six==1.15.0
+    # via
+    #   pathlib2
+    #   virtualenv
+typing==3.7.4.3
+    # via importlib-resources
+virtualenv==20.2.2
+    # via -r cibuildwheel/resources/constraints.in
+wheel==0.36.2
+    # via
+    #   -r cibuildwheel/resources/constraints.in
+    #   delocate
+zipp==1.2.0
+    # via
+    #   importlib-metadata
+    #   importlib-resources
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==20.3.3               # via -r cibuildwheel/resources/constraints.in
-setuptools==44.1.1        # via -r cibuildwheel/resources/constraints.in
+pip==20.3.3
+    # via -r cibuildwheel/resources/constraints.in
+setuptools==44.1.1
+    # via -r cibuildwheel/resources/constraints.in

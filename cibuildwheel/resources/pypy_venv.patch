@@ -1,0 +1,36 @@
+diff --git a/lib-python/3/sysconfig.py b/lib-python/3/sysconfig.py
+index 0d08cde66b4150e1772c13fdc6fe34d079c2b10d..30c77d165a2505d98bc7660ff0cc3b728f56c682 100644
+--- a/lib-python/3/sysconfig.py
++++ b/lib-python/3/sysconfig.py
+@@ -618,9 +618,6 @@ def get_config_vars(*args):
+             import _osx_support
+             _osx_support.customize_config_vars(_CONFIG_VARS)
+
+-        _CONFIG_VARS['INCLUDEPY'] = os.path.join(_CONFIG_VARS['prefix'],
+-                                                 'include')
+-
+     if args:
+         vals = []
+         for name in args:
+diff --git a/lib_pypy/_sysconfigdata.py b/lib_pypy/_sysconfigdata.py
+index f1cca41a4b7553819bb1a2a63af1c1a9b8591ce9..a34216e8e12b82abd72fabdd7793b3e8bb19bbcf 100644
+--- a/lib_pypy/_sysconfigdata.py
++++ b/lib_pypy/_sysconfigdata.py
+@@ -5,6 +5,7 @@ from distutils.spawn import find_executable
+
+ so_ext = _imp.extension_suffixes()[0]
+
++mybase = os.path.dirname(os.path.dirname(__file__))
+
+ build_time_vars = {
+     # SOABI is PEP 3149 compliant, but CPython3 has so_ext.split('.')[1]
+@@ -25,7 +26,8 @@ build_time_vars = {
+     'AR': "ar",
+     'ARFLAGS': "rc",
+     'EXE': "",
+-    'LIBDIR': os.path.join(sys.prefix, 'bin'),
++    'LIBDIR': os.path.join(mybase, 'lib'),
++    'INCLUDEPY': os.path.join(mybase, 'include'),
+ }
+
+ if find_executable("gcc"):

@@ -55,7 +55,7 @@ jobs:
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker
-      install: python3 -m pip install cibuildwheel==1.7.2
+      install: python3 -m pip install cibuildwheel==1.7.3
       script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: |
         python3 -m pip install twine
@@ -65,7 +65,7 @@ jobs:
       name: Build and deploy macOS wheels
       os: osx
       language: shell
-      install: python3 -m pip install cibuildwheel==1.7.2
+      install: python3 -m pip install cibuildwheel==1.7.3
       script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: |
         python3 -m pip install twine
@@ -75,7 +75,7 @@ jobs:
       name: Build and deploy Windows wheels
       os: windows
       language: shell
-      install: python3 -m pip install cibuildwheel==1.7.2
+      install: python3 -m pip install cibuildwheel==1.7.3
       script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: |
         python3 -m pip install twine

@@ -80,7 +80,7 @@ jobs:
         name: Install Python
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.7.2
+        run: python -m pip install cibuildwheel==1.7.3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -129,6 +129,7 @@ Here are some repos that use cibuildwheel.
 |-----------------------------------|----|----|:------|
 | [scikit-learn][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The machine learning library. A complex but clean config using many of cibuildwheel's features to build a large project with Cython and C++ extensions.  |
 | [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
+| [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
 | [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
 | [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
 | [websockets][]                    | ![travisci icon][] | ![apple icon][] ![linux icon][] | Library for building WebSocket servers and clients. Mostly written in Python, with a small C 'speedups' extension module.  |
@@ -138,12 +139,14 @@ Here are some repos that use cibuildwheel.
 | [coverage.py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The coverage tool for Python |
 | [River][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | 🌊 Online machine learning in Python |
 | [PyAV][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Pythonic bindings for FFmpeg's libraries. |
-| [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
+| [Dependency Injector][]           | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Dependency injection framework for Python, uses Windows TravisCI |
 | [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | QUIC and HTTP/3 implementation in Python |
+| [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
 | [AutoPy][]                        | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [pikepdf][]                       | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python library for reading and writing PDF, powered by qpdf |
 | [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
+| [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS ¶ |
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
 | [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
@@ -163,6 +166,7 @@ Here are some repos that use cibuildwheel.
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [Matplotlib]: https://github.com/matplotlib/matplotlib
+[psutil]: https://github.com/giampaolo/psutil
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
 [scikit-image]: https://github.com/scikit-image/scikit-image
 [websockets]: https://github.com/aaugustin/websockets
@@ -172,12 +176,14 @@ Here are some repos that use cibuildwheel.
 [coverage.py]: https://github.com/nedbat/coveragepy
 [River]: https://github.com/online-ml/river
 [PyAV]: https://github.com/PyAV-Org/PyAV
-[google neuroglancer]: https://github.com/google/neuroglancer
+[Dependency Injector]: https://github.com/ets-labs/python-dependency-injector
 [aioquic]: https://github.com/aiortc/aioquic
+[google neuroglancer]: https://github.com/google/neuroglancer
 [AutoPy]: https://github.com/autopilot-rs/autopy
 [pikepdf]: https://github.com/pikepdf/pikepdf
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
+[Rtree]: https://github.com/Toblerity/rtree
 [KDEpy]: https://github.com/tommyod/KDEpy
 [pybind11 python_example]: https://github.com/pybind/python_example
 [pybind11 cmake_example]: https://github.com/pybind/cmake_example
@@ -205,39 +211,42 @@ Here are some repos that use cibuildwheel.
 [apple icon]: docs/data/readme_icons/apple.svg
 [linux icon]: docs/data/readme_icons/linux.svg
 
-<!-- scikit-learn: 43359, last pushed 0 days ago -->
-<!-- Matplotlib: 12734, last pushed 0 days ago -->
-<!-- twisted-iocpsupport: 4107, last pushed 0 days ago -->
-<!-- scikit-image: 4085, last pushed 0 days ago -->
-<!-- websockets: 3065, last pushed 0 days ago -->
-<!-- pyzmq: 2655, last pushed 9 days ago -->
-<!-- aiortc: 2058, last pushed 10 days ago -->
-<!-- h5py: 1451, last pushed 1 days ago -->
-<!-- coverage.py: 1429, last pushed 3 days ago -->
-<!-- River: 1174, last pushed 0 days ago -->
-<!-- PyAV: 1107, last pushed 2 days ago -->
-<!-- google neuroglancer: 545, last pushed 2 days ago -->
-<!-- aioquic: 543, last pushed 38 days ago -->
-<!-- AutoPy: 503, last pushed 94 days ago -->
-<!-- pikepdf: 477, last pushed 3 days ago -->
-<!-- Parselmouth: 429, last pushed 15 days ago -->
-<!-- python-rapidjson: 406, last pushed 2 days ago -->
-<!-- KDEpy: 224, last pushed 12 days ago -->
-<!-- pybind11 python_example: 219, last pushed 32 days ago -->
-<!-- pybind11 cmake_example: 217, last pushed 16 days ago -->
-<!-- iminuit: 164, last pushed 3 days ago -->
-<!-- jq.py: 137, last pushed 62 days ago -->
-<!-- bx-python: 95, last pushed 75 days ago -->
-<!-- boost-histogram: 60, last pushed 0 days ago -->
+<!-- scikit-learn: 43477, last pushed 0 days ago -->
+<!-- Matplotlib: 12823, last pushed 0 days ago -->
+<!-- psutil: 6887, last pushed 0 days ago -->
+<!-- twisted-iocpsupport: 4114, last pushed 2 days ago -->
+<!-- scikit-image: 4104, last pushed 0 days ago -->
+<!-- websockets: 3089, last pushed 10 days ago -->
+<!-- pyzmq: 2654, last pushed 20 days ago -->
+<!-- aiortc: 2073, last pushed 7 days ago -->
+<!-- h5py: 1455, last pushed 12 days ago -->
+<!-- coverage.py: 1441, last pushed 3 days ago -->
+<!-- River: 1219, last pushed 0 days ago -->
+<!-- PyAV: 1114, last pushed 14 days ago -->
+<!-- Dependency Injector: 1030, last pushed 0 days ago -->
+<!-- aioquic: 552, last pushed 49 days ago -->
+<!-- google neuroglancer: 550, last pushed 7 days ago -->
+<!-- AutoPy: 507, last pushed 105 days ago -->
+<!-- pikepdf: 487, last pushed 0 days ago -->
+<!-- Parselmouth: 433, last pushed 26 days ago -->
+<!-- python-rapidjson: 407, last pushed 10 days ago -->
+<!-- Rtree: 378, last pushed 0 days ago -->
+<!-- KDEpy: 230, last pushed 9 days ago -->
+<!-- pybind11 python_example: 221, last pushed 44 days ago -->
+<!-- pybind11 cmake_example: 219, last pushed 7 days ago -->
+<!-- iminuit: 166, last pushed 0 days ago -->
+<!-- jq.py: 138, last pushed 73 days ago -->
+<!-- bx-python: 94, last pushed 1 days ago -->
+<!-- boost-histogram: 63, last pushed 0 days ago -->
 <!-- pybase64: 52, last pushed 2 days ago -->
-<!-- TgCrypto: 48, last pushed 24 days ago -->
-<!-- etebase-py: 39, last pushed 0 days ago -->
-<!-- pyjet: 27, last pushed 17 days ago -->
-<!-- numpythia: 23, last pushed 16 days ago -->
-<!-- fathon: 17, last pushed 49 days ago -->
-<!-- pyinstrument_cext: 9, last pushed 17 days ago -->
-<!-- xmlstarlet: 7, last pushed 5 days ago -->
-<!-- pybind11 scikit_build_example: 1, last pushed 30 days ago -->
+<!-- TgCrypto: 49, last pushed 36 days ago -->
+<!-- etebase-py: 40, last pushed 3 days ago -->
+<!-- pyjet: 27, last pushed 29 days ago -->
+<!-- numpythia: 23, last pushed 28 days ago -->
+<!-- fathon: 18, last pushed 1 days ago -->
+<!-- pyinstrument_cext: 10, last pushed 29 days ago -->
+<!-- xmlstarlet: 7, last pushed 0 days ago -->
+<!-- pybind11 scikit_build_example: 0, last pushed 42 days ago -->
 
 <!-- END bin/projects.py -->
 
@@ -260,6 +269,18 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### 1.7.3
+
+_1 January 2021_
+
+- 🛠 Added a patch for Pypy to ensure header files are available for building
+  in a virtualenv. (#502)
+- 🛠 Some preparatory work towards using cibuildwheel as a Github Action.
+  Check out
+  [the FAQ](https://cibuildwheel.readthedocs.io/en/stable/faq/#option-1-github-action)
+  for information on how to use it. We'll be fully updating the docs to this
+  approach in a subsequent release (#494)
 
 ### 1.7.2
 

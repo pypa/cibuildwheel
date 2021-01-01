@@ -1,5 +1,6 @@
 -e .
 pytest
+pytest-timeout
 mkdocs==1.0.4
 mkdocs-include-markdown-plugin==2.1.1
 pymdown-extensions
