@@ -10,10 +10,8 @@ import shutil
 import subprocess
 import sys
 from contextlib import contextmanager
-from pathlib import Path
 from tempfile import mkdtemp
 
-IS_WINDOWS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
@@ -99,6 +97,10 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         if platform == 'linux':
             python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
 
+    if platform == 'macos':
+        # TODO: perhaps drop Python 3.5 across the board?
+        python_abi_tags.remove('cp35-cp35m')
+
     wheels = []
 
     for python_abi_tag in python_abi_tags:
@@ -123,7 +125,16 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
                 platform_tags = ['win32']
 
         elif platform == 'macos':
-            platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
+            if python_abi_tag == 'cp39-cp39':
+                platform_tags = [
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2.macosx_11_0_universal2',
+                    'macosx_11_0_arm64',
+                ]
+            else:
+                platform_tags = [
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
+                ]
 
         else:
             raise Exception('unsupported platform')
