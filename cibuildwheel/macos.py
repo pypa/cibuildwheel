@@ -270,6 +270,16 @@ def build(options: BuildOptions) -> None:
 
             repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
+            if repaired_wheel.stem.endswith('_universal2'):
+                # due to a bug in packaging/tags, this universal wheel isn't
+                # installable on arm64. so we rename it to add a 11_0 platform
+                # tag.
+                # See https://github.com/pypa/packaging/pull/380 and
+                # https://github.com/pypa/packaging/issues/379
+                renamed_wheel = repaired_wheel.parent / f'{repaired_wheel.stem}.macosx_11_0_universal2.whl'
+                repaired_wheel.rename(renamed_wheel)
+                repaired_wheel = renamed_wheel
+
             if options.test_command:
                 log.step('Testing wheel...')
                 # set up a virtual environment to install and test from, to make sure
