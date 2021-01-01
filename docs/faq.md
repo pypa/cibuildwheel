@@ -24,6 +24,26 @@ Linux wheels are built in the [`manylinux` docker images](https://github.com/pyp
 
 - Alternative dockers images can be specified with the `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, and `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#manylinux-image) for more details.
 
+### Building non-native architectures using emulation  {: #emulation}
+
+cibuildwheel supports building non-native architectures on Linux, via
+emulation through the binfmt_misc kernel feature. The easiest way to use this
+is via the [docker/setup-qemu-action][setup-qemu-action] on Github Actions or
+[tonistiigi/binfmt][binfmt].
+
+[setup-qemu-action]: https://github.com/docker/setup-qemu-action
+[binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
+
+Check out the following config for an example of how to set it up on Github
+Actions. Once QEMU is set up and registered, you just need to set the
+`CIBW_ARCHS_LINUX` environment variable (or use the `--archs` option on
+Linux), and the other architectures are emulated automatically.
+
+> .github/workflows/build.yml
+```yaml
+{% include "../examples/github-with-qemu.yml" %}
+```
+
 ### Building packages with optional C extensions
 
 `cibuildwheel` defines the environment variable `CIBUILDWHEEL` to the value `1` allowing projects for which the C extension is optional to make it mandatory when building wheels.

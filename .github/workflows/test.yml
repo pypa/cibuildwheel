@@ -24,7 +24,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python_version: ['3.7']
     timeout-minutes: 180
     steps:
@@ -55,3 +55,24 @@ jobs:
     - name: Test cibuildwheel
       run: |
         python ./bin/run_tests.py
+
+  test-emulated:
+    name: Test emulated cibuildwheel using qemu
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - name: Install dependencies
+      run: |
+        python -m pip install -r requirements-dev.txt
+
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v1
+      with:
+        platforms: all
+
+    - name: Run the emulation tests
+      run: |
+        pytest --run-emulation test/test_emulation.py

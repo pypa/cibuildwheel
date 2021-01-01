@@ -1,4 +1,3 @@
-import platform
 import subprocess
 import sys
 import textwrap
@@ -8,29 +7,10 @@ from typing import List, NamedTuple, Union
 
 from .docker_container import DockerContainer
 from .logger import log
-from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
-                   get_build_verbosity_extra_flags, prepare_command)
-
-
-def matches_platform(identifier: str) -> bool:
-    pm = platform.machine()
-    if pm == "x86_64":
-        # x86_64 machines can run i686 docker containers
-        if identifier.endswith('x86_64') or identifier.endswith('i686'):
-            return True
-    elif pm == "i686":
-        if identifier.endswith('i686'):
-            return True
-    elif pm == "aarch64":
-        if identifier.endswith('aarch64'):
-            return True
-    elif pm == "ppc64le":
-        if identifier.endswith('ppc64le'):
-            return True
-    elif pm == "s390x":
-        if identifier.endswith('s390x'):
-            return True
-    return False
+from .util import (
+    Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
+    get_build_verbosity_extra_flags, prepare_command,
+)
 
 
 class PythonConfiguration(NamedTuple):
@@ -43,7 +23,9 @@ class PythonConfiguration(NamedTuple):
         return PurePath(self.path_str)
 
 
-def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
+def get_python_configurations(
+    build_selector: BuildSelector, architectures: List[Architecture]
+) -> List[PythonConfiguration]:
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27m'),
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27mu'),
@@ -78,8 +60,14 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.8', identifier='cp38-manylinux_s390x', path_str='/opt/python/cp38-cp38'),
         PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
     ]
-    # skip builds as required
-    return [c for c in python_configurations if matches_platform(c.identifier) and build_selector(c.identifier)]
+
+    # return all configurations whose arch is in our `architectures` list,
+    # and match the build/skip rules
+    return [
+        c for c in python_configurations
+        if any(c.identifier.endswith(arch.value) for arch in architectures)
+        and build_selector(c.identifier)
+    ]
 
 
 def build(options: BuildOptions) -> None:
@@ -93,7 +81,7 @@ def build(options: BuildOptions) -> None:
         exit(2)
 
     assert options.manylinux_images is not None
-    python_configurations = get_python_configurations(options.build_selector)
+    python_configurations = get_python_configurations(options.build_selector, options.architectures)
     platforms = [
         ('cp', 'manylinux_x86_64', options.manylinux_images['x86_64']),
         ('cp', 'manylinux_i686', options.manylinux_images['i686']),
