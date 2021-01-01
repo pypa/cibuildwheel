@@ -109,7 +109,7 @@ def install_pypy(version: str, url: str) -> Path:
         # Patch PyPy to make sure headers get installed into a venv
         patch_version = '_27' if version == '2.7' else ''
         patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
-        call(['patch', '--force', '-d', installation_path, '-i', patch_path])
+        call(['patch', '--force', '-p1', '-d', installation_path, '-i', patch_path])
 
     installation_bin_path = installation_path / 'bin'
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
