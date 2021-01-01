@@ -2,7 +2,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Set
 
 from .docker_container import DockerContainer
 from .logger import log
@@ -24,7 +24,7 @@ class PythonConfiguration(NamedTuple):
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: List[Architecture]
+    build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> List[PythonConfiguration]:
     python_configurations = [
         PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27m'),
@@ -61,7 +61,7 @@ def get_python_configurations(
         PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
     ]
 
-    # return all configurations whose arch is in our `architectures` list,
+    # return all configurations whose arch is in our `architectures` set,
     # and match the build/skip rules
     return [
         c for c in python_configurations

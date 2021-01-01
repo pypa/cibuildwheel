@@ -187,7 +187,7 @@ def setup_python(python_configuration: PythonConfiguration,
 
 
 def build(options: BuildOptions) -> None:
-    if options.architectures != [Architecture.x86_64]:
+    if not options.architectures <= {Architecture.x86_64}:
         raise ValueError(textwrap.dedent(f'''
             Invalid archs option {options.architectures}. macOS only supports x86_64 for the moment.
             If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX instead.

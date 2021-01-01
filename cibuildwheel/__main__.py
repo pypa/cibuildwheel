@@ -6,7 +6,7 @@ import traceback
 from configparser import ConfigParser
 from pathlib import Path
 
-from typing import Any, Dict, List, Optional, overload
+from typing import Any, Dict, List, Optional, Set, overload
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -304,13 +304,13 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
 
 
 def print_build_identifiers(
-    platform: str, build_selector: BuildSelector, architectures: List[Architecture]
+    platform: str, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> None:
     python_configurations: List[Any] = []
     if platform == 'linux':
         python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
     elif platform == 'windows':
-        python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
+        python_configurations = cibuildwheel.windows.get_python_configurations(build_selector, architectures)
     elif platform == 'macos':
         python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
 
