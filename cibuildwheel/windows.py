@@ -5,7 +5,7 @@ import sys
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Union, TYPE_CHECKING
+from typing import Dict, List, NamedTuple, Optional, Sequence
 from zipfile import ZipFile
 
 import toml
@@ -15,17 +15,13 @@ from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
                    prepare_command)
+from .typing import PathOrStr
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
-if TYPE_CHECKING:
-    Path_T = os.PathLike[str]
-else:
-    Path_T = os.PathLike
 
-
-def call(args: Sequence[Union[str, Path_T]], env: Optional[Dict[str, str]] = None,
+def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None,
          cwd: Optional[str] = None) -> None:
     print('+ ' + ' '.join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
@@ -113,7 +109,7 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
     return installation_path
 
 
-def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: Sequence[Union[str, Path_T]], environment: ParsedEnvironment) -> Dict[str, str]:
+def setup_python(python_configuration: PythonConfiguration, dependency_constraint_flags: Sequence[PathOrStr], environment: ParsedEnvironment) -> Dict[str, str]:
     nuget = Path('C:\\cibw\\nuget.exe')
     if not nuget.exists():
         log.step('Downloading nuget...')
@@ -229,7 +225,7 @@ def build(options: BuildOptions) -> None:
         for config in python_configurations:
             log.build_start(config.identifier)
 
-            dependency_constraint_flags: Sequence[Union[str, Path_T]] = []
+            dependency_constraint_flags: Sequence[PathOrStr] = []
             if options.dependency_constraints:
                 dependency_constraint_flags = [
                     '-c', options.dependency_constraints.get_for_python_version(config.version)

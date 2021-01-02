@@ -6,16 +6,10 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path, PurePath
-from typing import cast, IO, Dict, List, Optional, Sequence, Type, Union, TYPE_CHECKING
+from typing import cast, IO, Dict, List, Optional, Sequence, Type
 from types import TracebackType
 
-
-if TYPE_CHECKING:
-    Popen_T = subprocess.Popen[bytes]
-    Path_T = os.PathLike[str]
-else:
-    Popen_T = subprocess.Popen
-    Path_T = os.PathLike
+from .typing import PathOrStr, PopenBytes
 
 
 class DockerContainer:
@@ -31,11 +25,11 @@ class DockerContainer:
     '''
     UTILITY_PYTHON = '/opt/python/cp38-cp38/bin/python'
 
-    process: Popen_T
+    process: PopenBytes
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 
-    def __init__(self, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[Union[str, Path_T]] = None):
+    def __init__(self, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None):
         self.docker_image = docker_image
         self.simulate_32_bit = simulate_32_bit
         self.cwd = cwd
@@ -135,10 +129,10 @@ class DockerContainer:
 
     def call(
             self,
-            args: Sequence[Union[str, Path_T]],
+            args: Sequence[PathOrStr],
             env: Optional[Dict[str, str]] = None,
             capture_output: bool = False,
-            cwd: Optional[Union[str, Path_T]] = None) -> str:
+            cwd: Optional[PathOrStr] = None) -> str:
 
         chdir = f'cd {cwd}' if cwd else ''
         env_assignments = ' '.join(f'{shlex.quote(k)}={shlex.quote(v)}'

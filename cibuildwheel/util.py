@@ -8,19 +8,15 @@ from enum import Enum
 from fnmatch import fnmatch
 from pathlib import Path
 from time import sleep
-from typing import Dict, List, NamedTuple, Optional, Union, TYPE_CHECKING
+from typing import Dict, List, NamedTuple, Optional
 
 import certifi
 
 from .environment import ParsedEnvironment
-
-if TYPE_CHECKING:
-    Path_T = os.PathLike[str]
-else:
-    Path_T = os.PathLike
+from .typing import PathOrStr
 
 
-def prepare_command(command: str, **kwargs: Union[str, Path_T]) -> str:
+def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     '''
     Preprocesses a command by expanding variables like {python}.
 

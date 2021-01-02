@@ -6,22 +6,17 @@ import sys
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Union, TYPE_CHECKING
+from typing import Dict, List, NamedTuple, Optional, Sequence
 
 from .environment import ParsedEnvironment
 from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
                    install_certifi_script, prepare_command)
+from .typing import PathOrStr
 
 
-if TYPE_CHECKING:
-    Path_T = os.PathLike[str]
-else:
-    Path_T = os.PathLike
-
-
-def call(args: Union[str, Sequence[Union[str, Path_T]]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
+def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
     # print the command executing for the logs
     if shell:
         print(f'+ {args}')
@@ -125,7 +120,7 @@ def install_pypy(version: str, url: str) -> Path:
 
 
 def setup_python(python_configuration: PythonConfiguration,
-                 dependency_constraint_flags: Sequence[Union[str, Path_T]],
+                 dependency_constraint_flags: Sequence[PathOrStr],
                  environment: ParsedEnvironment) -> Dict[str, str]:
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f'Installing Python {implementation_id}...')
@@ -214,7 +209,7 @@ def build(options: BuildOptions) -> None:
         for config in python_configurations:
             log.build_start(config.identifier)
 
-            dependency_constraint_flags: Sequence[Union[str, Path_T]] = []
+            dependency_constraint_flags: Sequence[PathOrStr] = []
             if options.dependency_constraints:
                 dependency_constraint_flags = [
                     '-c', options.dependency_constraints.get_for_python_version(config.version)
