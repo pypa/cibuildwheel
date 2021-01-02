@@ -93,7 +93,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: joerick/cibuildwheel@v1.7.3
+uses: joerick/cibuildwheel@v1.7.4
 ```
 
 This is a composite step that just installs and runs cibuildwheel. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -119,7 +119,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==1.7.3
+cibuildwheel==1.7.4
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `dependabot.yml` file could look like this:

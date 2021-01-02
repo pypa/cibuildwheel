@@ -80,7 +80,7 @@ jobs:
         name: Install Python
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.7.3
+        run: python -m pip install cibuildwheel==1.7.4
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -269,6 +269,12 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### 1.7.4
+
+_2 January 2021_
+
+- 🐛 Fix the PyPy virtualenv patch to work on macOS 10.14 (#506)
 
 ### 1.7.3
 
