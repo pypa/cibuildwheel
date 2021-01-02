@@ -23,3 +23,9 @@ repos:
   - id: mypy
     files: ^(cibuildwheel/|test/|bin/projects.py|unit_test/)
     pass_filenames: false
+
+- repo: https://github.com/asottile/pyupgrade
+  rev: v2.7.4
+  hooks:
+  - id: pyupgrade
+    args: ["--py36-plus"]
