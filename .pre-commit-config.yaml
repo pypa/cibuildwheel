@@ -21,5 +21,6 @@ repos:
   rev: v0.782
   hooks:
   - id: mypy
-    files: ^(cibuildwheel/|test/|bin/projects.py)
+    files: ^(cibuildwheel/|test/|bin/projects.py|unit_test/)
     pass_filenames: false
+    additional_dependencies: [pytest>=6.0]

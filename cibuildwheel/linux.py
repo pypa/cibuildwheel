@@ -1,9 +1,9 @@
 import subprocess
 import sys
 import textwrap
-from os import PathLike
+import os
 from pathlib import Path, PurePath
-from typing import List, NamedTuple, Union
+from typing import List, NamedTuple, Union, TYPE_CHECKING
 
 from .docker_container import DockerContainer
 from .logger import log
@@ -13,13 +13,19 @@ from .util import (
 )
 
 
+if TYPE_CHECKING:
+    Path_T = os.PathLike[str]
+else:
+    Path_T = os.PathLike
+
+
 class PythonConfiguration(NamedTuple):
     version: str
     identifier: str
     path_str: str
 
     @property
-    def path(self):
+    def path(self) -> PurePath:
         return PurePath(self.path_str)
 
 
@@ -125,7 +131,7 @@ def build(options: BuildOptions) -> None:
                 for config in platform_configs:
                     log.build_start(config.identifier)
 
-                    dependency_constraint_flags: List[Union[str, PathLike]] = []
+                    dependency_constraint_flags: List[Union[str, Path_T]] = []
                     if config.identifier.startswith("pp"):
                         # Patch PyPy to make sure headers get installed into a venv
                         patch_version = '_27' if config.version == '2.7' else ''

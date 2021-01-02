@@ -8,14 +8,19 @@ from enum import Enum
 from fnmatch import fnmatch
 from pathlib import Path
 from time import sleep
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Dict, List, NamedTuple, Optional, Union, TYPE_CHECKING
 
 import certifi
 
 from .environment import ParsedEnvironment
 
+if TYPE_CHECKING:
+    Path_T = os.PathLike[str]
+else:
+    Path_T = os.PathLike
 
-def prepare_command(command: str, **kwargs: Union[str, os.PathLike]) -> str:
+
+def prepare_command(command: str, **kwargs: Union[str, Path_T]) -> str:
     '''
     Preprocesses a command by expanding variables like {python}.
 
@@ -119,7 +124,7 @@ class DependencyConstraints:
         else:
             return self.base_file_path
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.__class__.__name__}{self.base_file_path!r})'
 
 
