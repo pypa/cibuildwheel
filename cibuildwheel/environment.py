@@ -1,4 +1,4 @@
-import bashlex  # type: ignore
+import bashlex
 
 from typing import Dict, List, Mapping, Optional
 
