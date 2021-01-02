@@ -13,6 +13,7 @@ from time import sleep
 from typing import Dict, List, NamedTuple, Optional, Set
 
 import certifi
+import toml
 
 from .environment import ParsedEnvironment
 from .typing import PathOrStr
@@ -40,6 +41,12 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
         return ['-' + -level * 'q']
     else:
         return []
+
+
+def read_python_configs(input_path: PathOrStr, config: str) -> List[Dict[str, str]]:
+    loaded_file = toml.load(input_path)
+    results: List[Dict[str, str]] = list(loaded_file["tool"]["cibw"]["build-platforms"][config])
+    return results
 
 
 class BuildSelector:
@@ -188,6 +195,7 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
+    python_configs: List[Dict[str, str]]
 
 
 resources_dir = Path(__file__).resolve().parent / 'resources'

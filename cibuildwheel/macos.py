@@ -39,20 +39,11 @@ class PythonConfiguration(NamedTuple):
     url: str
 
 
-def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
-    python_configurations = [
-        # CPython
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
-        PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
-        PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.7/python-3.8.7-macosx10.9.pkg'),
-        PythonConfiguration(version='3.9', identifier='cp39-macosx_x86_64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macosx10.9.pkg'),
-        # PyPy
-        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-osx64.tar.bz2'),
-        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.6-v7.3.3-osx64.tar.bz2'),
-        PythonConfiguration(version='3.7', identifier='pp37-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-osx64.tar.bz2'),
-    ]
+def get_python_configurations(
+        python_configs: List[Dict[str, str]],
+        build_selector: BuildSelector) -> List[PythonConfiguration]:
+
+    python_configurations = [PythonConfiguration(**item) for item in python_configs]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
@@ -207,7 +198,7 @@ def build(options: BuildOptions) -> None:
             before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
             call([before_all_prepared], shell=True, env=env)
 
-        python_configurations = get_python_configurations(options.build_selector)
+        python_configurations = get_python_configurations(options.python_configs, options.build_selector)
 
         for config in python_configurations:
             log.build_start(config.identifier)

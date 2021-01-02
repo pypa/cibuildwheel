@@ -52,34 +52,21 @@ class PythonConfiguration(NamedTuple):
     version: str
     arch: str
     identifier: str
-    url: Optional[str]
+    url: Optional[str] = None
 
 
-def get_python_configurations(build_selector: BuildSelector, architectures: Set[Architecture]) -> List[PythonConfiguration]:
+def get_python_configurations(
+        python_configs: List[Dict[str, str]],
+        build_selector: BuildSelector,
+        architectures: Set[Architecture],
+) -> List[PythonConfiguration]:
+
+    python_configurations = [PythonConfiguration(**item) for item in python_configs]
+
     map_arch = {
         '32': Architecture.x86,
         '64': Architecture.AMD64,
     }
-
-    python_configurations = [
-        # CPython
-        PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),
-        PythonConfiguration(version='2.7.18', arch='64', identifier='cp27-win_amd64', url=None),
-        PythonConfiguration(version='3.5.4', arch='32', identifier='cp35-win32', url=None),
-        PythonConfiguration(version='3.5.4', arch='64', identifier='cp35-win_amd64', url=None),
-        PythonConfiguration(version='3.6.8', arch='32', identifier='cp36-win32', url=None),
-        PythonConfiguration(version='3.6.8', arch='64', identifier='cp36-win_amd64', url=None),
-        PythonConfiguration(version='3.7.9', arch='32', identifier='cp37-win32', url=None),
-        PythonConfiguration(version='3.7.9', arch='64', identifier='cp37-win_amd64', url=None),
-        PythonConfiguration(version='3.8.7', arch='32', identifier='cp38-win32', url=None),
-        PythonConfiguration(version='3.8.7', arch='64', identifier='cp38-win_amd64', url=None),
-        PythonConfiguration(version='3.9.1', arch='32', identifier='cp39-win32', url=None),
-        PythonConfiguration(version='3.9.1', arch='64', identifier='cp39-win_amd64', url=None),
-        # PyPy
-        PythonConfiguration(version='2.7', arch='32', identifier='pp27-win32', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-win32.zip'),
-        PythonConfiguration(version='3.6', arch='32', identifier='pp36-win32', url='https://downloads.python.org/pypy/pypy3.6-v7.3.3-win32.zip'),
-        PythonConfiguration(version='3.7', arch='32', identifier='pp37-win32', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-win32.zip'),
-    ]
 
     if IS_RUNNING_ON_TRAVIS:
         # cannot install VCForPython27.msi which is needed for compiling C software
@@ -230,7 +217,7 @@ def build(options: BuildOptions) -> None:
             before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
             shell(before_all_prepared, env=env)
 
-        python_configurations = get_python_configurations(options.build_selector, options.architectures)
+        python_configurations = get_python_configurations(options.python_configs, options.build_selector, options.architectures)
 
         for config in python_configurations:
             log.build_start(config.identifier)

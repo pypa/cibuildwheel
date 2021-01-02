@@ -20,6 +20,7 @@ from cibuildwheel.util import (
     Unbuffered,
     detect_ci_provider,
     resources_dir,
+    read_python_configs,
 )
 
 
@@ -120,6 +121,10 @@ def main() -> None:
                   file=sys.stderr)
             exit(2)
 
+    if platform not in {"linux", "macos", "windows"}:
+        print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
+        exit(2)
+
     package_dir = Path(args.package_dir)
     output_dir = Path(args.output_dir)
 
@@ -215,6 +220,8 @@ def main() -> None:
 
             manylinux_images[build_platform] = image
 
+    python_configs = read_python_configs(resources_dir / 'build-platforms.toml', platform)
+
     build_options = BuildOptions(
         architectures=archs,
         package_dir=package_dir,
@@ -231,6 +238,7 @@ def main() -> None:
         environment=environment,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images,
+        python_configs=python_configs,
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
@@ -247,9 +255,6 @@ def main() -> None:
         cibuildwheel.windows.build(build_options)
     elif platform == 'macos':
         cibuildwheel.macos.build(build_options)
-    else:
-        print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
-        exit(2)
 
 
 def detect_obsolete_options() -> None:
@@ -302,13 +307,16 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
 def print_build_identifiers(
     platform: str, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> None:
+
+    python_configs = read_python_configs(resources_dir / "build-platforms.toml", platform)
+
     python_configurations: List[Any] = []
     if platform == 'linux':
-        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
+        python_configurations = cibuildwheel.linux.get_python_configurations(python_configs, build_selector, architectures)
     elif platform == 'windows':
-        python_configurations = cibuildwheel.windows.get_python_configurations(build_selector, architectures)
+        python_configurations = cibuildwheel.windows.get_python_configurations(python_configs, build_selector, architectures)
     elif platform == 'macos':
-        python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
+        python_configurations = cibuildwheel.macos.get_python_configurations(python_configs, build_selector)
 
     for config in python_configurations:
         print(config.identifier)
