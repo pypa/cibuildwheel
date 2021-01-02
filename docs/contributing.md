@@ -32,7 +32,20 @@ So, if we can, I'd like to improve the experience on errors as well. In [this](h
 Maintainer notes
 ----------------
 
+## Local testing
+
+You should run:
+
+```python
+python3 -m venv venv
+. venv/bin/activate
+pip install -e .[dev]
+```
+
+To prepare a development environment.
+
 ## Testing minimal configs
+
 
 cibuildwheel's _minimal_ example configs can be tested on a simple project on cibuildwheel's existing CI. These should be run whenever the minimal configs change.
 
@@ -47,6 +60,8 @@ The script will create an isolated 'orphan' commit containing all the minimal co
 The script then outputs a Markdown table that can be copy/pasted into a PR to monitor and record the test.
 
 ## Preparing environments
+
+This has been moved to using docker, so you only need the following instructions if you add `--no-docker` to avoid using docker.
 
 The dependency update script in the next section requires multiple python versions installed. One way to do this is to use `pyenv`:
 

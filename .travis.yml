@@ -54,6 +54,6 @@ jobs:
     # must repeat the s390x job above exactly to match
     - *linux_s390x_36
 
-install: $PYTHON -m pip install -r requirements-dev.txt pytest-custom-exit-code
+install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
 script: $PYTHON ./bin/run_tests.py
