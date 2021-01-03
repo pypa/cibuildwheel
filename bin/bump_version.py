@@ -81,7 +81,7 @@ def bump_version():
                 )
 
         if not found_at_least_one_file_needing_update:
-            print('error: Didn’t find any occurences of “{}” in “{}”'.format(find_pattern, path_pattern))
+            print(f'error: Didn’t find any occurences of “{find_pattern}” in “{path_pattern}”')
             exit(1)
 
     print()
@@ -94,7 +94,7 @@ def bump_version():
             red="\u001b[31m", green="\u001b[32m", off="\u001b[0m"
         ))
 
-    print('Then commit, and tag as v{}'.format(new_version))
+    print(f'Then commit, and tag as v{new_version}')
 
     answer = input('Proceed? [y/N] ').strip()
 

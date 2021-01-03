@@ -1,10 +1,4 @@
 repos:
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.8.4
-  hooks:
-  - id: flake8
-    exclude: cibuildwheel/resources/
-    additional_dependencies: [flake8-bugbear]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v3.4.0
@@ -23,3 +17,16 @@ repos:
   - id: mypy
     files: ^(cibuildwheel/|test/|bin/projects.py|unit_test/)
     pass_filenames: false
+
+- repo: https://github.com/asottile/pyupgrade
+  rev: v2.7.4
+  hooks:
+  - id: pyupgrade
+    args: ["--py36-plus"]
+
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.8.4
+  hooks:
+  - id: flake8
+    exclude: cibuildwheel/resources/
+    additional_dependencies: [flake8-bugbear]
