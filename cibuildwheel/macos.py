@@ -1,4 +1,5 @@
 import os
+import platform
 import shlex
 import shutil
 import subprocess
@@ -7,7 +8,7 @@ import tempfile
 import textwrap
 from os import PathLike
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Union
+from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, Union, cast
 
 from .environment import ParsedEnvironment
 from .logger import log
@@ -26,6 +27,19 @@ def call(args: Union[str, Sequence[Union[str, PathLike]]], env: Optional[Dict[st
     return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
 
 
+def get_macos_version() -> Tuple[int, int]:
+    '''
+    Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
+
+    These tuples can be used in comparisons, e.g.
+        (10, 14) <= (11, 0) == True
+        (11, 2) <= (11, 0) != True
+    '''
+    version_str, _, _ = platform.mac_ver()
+    version = tuple(map(int, version_str.split(".")[:2]))
+    return cast(Tuple[int, int], version)
+
+
 class PythonConfiguration(NamedTuple):
     version: str
     identifier: str
@@ -36,21 +50,27 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
-        # TODO: figure out what's going on in CPython 3.5 on macOS 11. or, remove it :)
-        # PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
+        PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
         PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
         PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg'),
         PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.7/python-3.8.7-macosx10.9.pkg'),
-        # TODO: Find some better way to select Universal2 vs. regular (note that this works on 10.9+, regardless of the name)
         PythonConfiguration(version='3.9', identifier='cp39-macosx_x86_64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
         PythonConfiguration(version='3.9', identifier='cp39-macosx_universal2', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
         PythonConfiguration(version='3.9', identifier='cp39-macosx_arm64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
         # PyPy
         # TODO: may not support 11.0 yet
-        # PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-osx64.tar.bz2'),
-        # PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.6-v7.3.3-osx64.tar.bz2'),
-        # PythonConfiguration(version='3.7', identifier='pp37-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-osx64.tar.bz2'),
+        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-osx64.tar.bz2'),
+        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.6-v7.3.3-osx64.tar.bz2'),
+        PythonConfiguration(version='3.7', identifier='pp37-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-osx64.tar.bz2'),
     ]
+
+    if get_macos_version() >= (11, 0):
+        # pypy doesn't work on macOS 11 yet
+        # See https://foss.heptapod.net/pypy/pypy/-/issues/3314
+        python_configurations = [c for c in python_configurations if not c.identifier.startswith('pp')]
+
+        # CPython 3.5 doesn't work on macOS 11
+        python_configurations = [c for c in python_configurations if not c.identifier.startswith('cp35')]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
