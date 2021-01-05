@@ -10,7 +10,7 @@ jobs:
         python ./bin/run_tests.py
 
 - job: macos_38
-  pool: {vmImage: 'macos-11.0'}
+  pool: {vmImage: 'macOS-11.0'}
   steps:
     - task: UsePythonVersion@0
       inputs:
