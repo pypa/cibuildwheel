@@ -13,7 +13,7 @@ from .environment import ParsedEnvironment
 from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
-                   install_certifi_script, prepare_command, wrap_text)
+                   install_certifi_script, prepare_command, unwrap)
 from .typing import PathOrStr
 
 
@@ -75,7 +75,7 @@ def get_python_configurations(build_selector: BuildSelector,
         if any(c.identifier.startswith('pp') for c in python_configurations):
             # pypy doesn't work on macOS 11 yet
             # See https://foss.heptapod.net/pypy/pypy/-/issues/3314
-            log.warning(wrap_text('''
+            log.warning(unwrap('''
                 PyPy is currently unsupported when building on macOS 11. To build macOS PyPy wheels,
                 build on an older OS, such as macOS 10.15. To silence this warning, deselect PyPy by
                 adding "pp*-macosx*" to your CIBW_SKIP option.
@@ -84,7 +84,7 @@ def get_python_configurations(build_selector: BuildSelector,
 
         if any(c.identifier.startswith('cp35') for c in python_configurations):
             # CPython 3.5 doesn't work on macOS 11
-            log.warning(wrap_text('''
+            log.warning(unwrap('''
                 CPython 3.5 is unsupported when building on macOS 11. To build CPython 3.5 wheels,
                 build on an older OS, such as macOS 10.15. To silence this warning, deselect CPython
                 3.5 by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
@@ -338,14 +338,14 @@ def build(options: BuildOptions) -> None:
 
                 if machine_arch == 'x86_64':
                     if config.identifier.endswith('_arm64'):
-                        log.warning(wrap_text('''
+                        log.warning(unwrap('''
                             While arm64 wheels can be built on x86_64, they cannot be tested. The
                             ability to test the arm64 wheels will be added in a future release of
                             cibuildwheel, once Apple Silicon CI runners are widely available.
                         '''))
                         testing_archs = []
                     elif config.identifier.endswith('_universal2'):
-                        log.warning(wrap_text('''
+                        log.warning(unwrap('''
                             While universal2 wheels can be built on x86_64, the arm64 part of them
                             cannot currently be tested. The ability to test the arm64 part of a
                             universal2 wheel will be added in a future release of cibuildwheel, once
@@ -363,7 +363,7 @@ def build(options: BuildOptions) -> None:
                         testing_archs = ['arm64', 'x86_64']
                     else:
                         testing_archs = ['arm64']
-                        
+
                 for testing_arch in testing_archs:
                     log.step('Testing wheel...' if testing_arch == machine_arch else f'Testing wheel on {testing_arch}...')
 

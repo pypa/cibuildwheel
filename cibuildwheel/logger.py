@@ -124,6 +124,8 @@ class Logger:
             c = self.colors
             print(f'{c.yellow}Warning{c.end} {message}')
 
+        print()
+
     def error(self, error: Union[BaseException, str]) -> None:
         print()
 
@@ -132,6 +134,8 @@ class Logger:
         else:
             c = self.colors
             print(f'{c.bright_red}Error{c.end} {error}')
+
+        print()
 
     def _start_fold_group(self, name: str) -> None:
         self._end_fold_group()
