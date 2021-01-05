@@ -401,6 +401,12 @@ def build(options: BuildOptions) -> None:
                     # check that we are using the Python from the virtual environment
                     call_with_arch(['which', 'python'], env=virtualenv_env)
 
+                    # ensure we have a recent enough pip in the virtualenv
+                    # TODO(joerick): remove this before merge? virtualenv should be bundling a
+                    # recent enough seed version. Waiting on this PR:
+                    # https://github.com/pypa/virtualenv/pull/2036
+                    call_with_arch(['pip', 'install', 'pip>=20.3.3'], env=virtualenv_env)
+
                     if options.before_test:
                         before_test_prepared = prepare_command(options.before_test, project='.', package=options.package_dir)
                         call_with_arch(before_test_prepared, env=virtualenv_env, shell=True)
