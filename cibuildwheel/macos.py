@@ -332,38 +332,38 @@ def build(options: BuildOptions) -> None:
 
             log.step_end()
 
-            machine_arch = platform.machine()
-            testing_archs: List[str] = []
+            if options.test_command:
+                machine_arch = platform.machine()
+                testing_archs: List[str] = []
 
-            if machine_arch == 'x86_64':
-                if config.identifier.endswith('_arm64'):
-                    log.warning(wrap_text('''
-                        While arm64 wheels can be built on x86_64, they cannot be tested. The
-                        ability to test the arm64 wheels will be added in a future release of
-                        cibuildwheel, once Apple Silicon CI runners are widely available.
-                    '''))
-                    testing_archs = []
-                elif config.identifier.endswith('_universal2'):
-                    log.warning(wrap_text('''
-                        While universal2 wheels can be built on x86_64, the arm64 part of them
-                        cannot currently be tested. The ability to test the arm64 part of a
-                        universal2 wheel will be added in a future release of cibuildwheel, once
-                        Apple Silicon CI runners are widely available.
-                    '''))
-                    testing_archs = ['x86_64']
-                else:
-                    testing_archs = ['x86_64']
-            elif machine_arch == 'arm64':
-                if config.identifier.endswith('_x86_64'):
-                    # testing using rosetta2 emulation
-                    testing_archs = ['x86_64']
-                elif config.identifier.endswith('_universal2'):
-                    # testing the x86_64 using rosetta2 emulation
-                    testing_archs = ['arm64', 'x86_64']
-                else:
-                    testing_archs = ['arm64']
-
-            if options.test_command and len(testing_archs) > 0:
+                if machine_arch == 'x86_64':
+                    if config.identifier.endswith('_arm64'):
+                        log.warning(wrap_text('''
+                            While arm64 wheels can be built on x86_64, they cannot be tested. The
+                            ability to test the arm64 wheels will be added in a future release of
+                            cibuildwheel, once Apple Silicon CI runners are widely available.
+                        '''))
+                        testing_archs = []
+                    elif config.identifier.endswith('_universal2'):
+                        log.warning(wrap_text('''
+                            While universal2 wheels can be built on x86_64, the arm64 part of them
+                            cannot currently be tested. The ability to test the arm64 part of a
+                            universal2 wheel will be added in a future release of cibuildwheel, once
+                            Apple Silicon CI runners are widely available.
+                        '''))
+                        testing_archs = ['x86_64']
+                    else:
+                        testing_archs = ['x86_64']
+                elif machine_arch == 'arm64':
+                    if config.identifier.endswith('_x86_64'):
+                        # testing using rosetta2 emulation
+                        testing_archs = ['x86_64']
+                    elif config.identifier.endswith('_universal2'):
+                        # testing the x86_64 using rosetta2 emulation
+                        testing_archs = ['arm64', 'x86_64']
+                    else:
+                        testing_archs = ['arm64']
+                        
                 for testing_arch in testing_archs:
                     log.step('Testing wheel...' if testing_arch == machine_arch else f'Testing wheel on {testing_arch}...')
 
