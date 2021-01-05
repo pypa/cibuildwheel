@@ -13,7 +13,7 @@ from .environment import ParsedEnvironment
 from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
-                   install_certifi_script, prepare_command)
+                   install_certifi_script, prepare_command, wrap_text)
 from .typing import PathOrStr
 
 
@@ -64,16 +64,32 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.7', identifier='pp37-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-osx64.tar.bz2'),
     ]
 
+    # skip builds as required
+    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
+
     if get_macos_version() >= (11, 0):
         # pypy doesn't work on macOS 11 yet
         # See https://foss.heptapod.net/pypy/pypy/-/issues/3314
-        python_configurations = [c for c in python_configurations if not c.identifier.startswith('pp')]
+        if any(c.identifier.startswith('pp') for c in python_configurations):
+            log.warning(wrap_text('''
+                PyPy is currently unsupported when building on macOS 11. To build macOS PyPy wheels,
+                build on an older OS, such as macOS 10.15. To silence this warning, deselect PyPy by
+                adding "pp*-macosx*" to your CIBW_SKIP option.
+            '''))
+            python_configurations = [c for c in python_configurations if not c.identifier.startswith('pp')]
 
-        # CPython 3.5 doesn't work on macOS 11
+        if any(c.identifier.startswith('cp35') for c in python_configurations):
+            # CPython 3.5 doesn't work on macOS 11
+            log.warning(wrap_text('''
+                CPython is unsupported when building on macOS 11. To build CPython 3.5 wheels, build
+                on an older OS, such as macOS 10.15. To silence this warning, deselect CPython 3.5
+                by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
+            '''))
+            python_configurations = [c for c in python_configurations if not c.identifier.startswith('cp35')]
+
         python_configurations = [c for c in python_configurations if not c.identifier.startswith('cp35')]
 
-    # skip builds as required
-    return [c for c in python_configurations if build_selector(c.identifier)]
+    return python_configurations
 
 
 SYMLINKS_DIR = Path('/tmp/cibw_bin')

@@ -229,3 +229,17 @@ def detect_ci_provider() -> Optional[CIProvider]:
         return CIProvider.other
     else:
         return None
+
+
+def wrap_text(text: str, max_width: int = 80) -> str:
+    '''
+    Formats text, suitable for printing arbitrary long passages to console.
+    '''
+    # remove initial line indent
+    text = textwrap.dedent(text)
+    # remove leading/trailing whitespace
+    text = text.strip()
+    # remove consecutive whitespace
+    text = re.sub(r'\s+', ' ', text)
+    # wrap to max_width
+    return '\n'.join(textwrap.wrap(text, width=max_width))

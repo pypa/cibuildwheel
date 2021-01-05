@@ -113,6 +113,18 @@ class Logger:
 
     def step_end_with_error(self, error: Union[BaseException, str]) -> None:
         self.step_end(success=False)
+        self.error(error)
+
+    def warning(self, message: str) -> None:
+        print()
+
+        if self.fold_mode == 'github':
+            print(f'::warning::{message}')
+        else:
+            c = self.colors
+            print(f'{c.yellow}Warning{c.end} {message}')
+
+    def error(self, error: Union[BaseException, str]) -> None:
         print()
 
         if self.fold_mode == 'github':
