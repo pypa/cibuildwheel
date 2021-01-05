@@ -239,9 +239,9 @@ def setup_python(python_configuration: PythonConfiguration,
 
 def build(options: BuildOptions) -> None:
     allowed_archs = {Architecture.x86_64, Architecture.universal2, Architecture.arm64}
-    if set(options.architectures) <= allowed_archs:
+    if any(a not in allowed_archs for a in options.architectures):
         raise ValueError(textwrap.dedent(f'''
-            Invalid archs option {options.architectures}. macOS only supports
+            Invalid archs option {[a.value for a in options.architectures]}. macOS only supports
             these architectures: {', '.join(a.value for a in allowed_archs)}.
         '''))
 
