@@ -127,10 +127,16 @@ class DependencyConstraints:
 class Architecture(Enum):
     # mac/linux archs
     x86_64 = 'x86_64'
+
+    # linux archs
     i686 = 'i686'
     aarch64 = 'aarch64'
     ppc64le = 'ppc64le'
     s390x = 's390x'
+
+    # mac archs
+    universal2 = 'universal2'
+    arm64 = 'arm64'
 
     # windows archs
     x86 = 'x86'
@@ -150,11 +156,18 @@ class Architecture(Enum):
     def auto_archs(platform: str) -> 'List[Architecture]':
         native_architecture = Architecture(platform_module.machine())
         result = [native_architecture]
+
         if platform == 'linux' and native_architecture == Architecture.x86_64:
             # x86_64 machines can run i686 docker containers
             result.append(Architecture.i686)
+
         if platform == 'windows' and native_architecture == Architecture.AMD64:
             result.append(Architecture.x86)
+
+        if platform == 'macos' and native_architecture == Architecture.arm64:
+            # arm64 can build and test both archs of a universal2 wheel.
+            result.append(Architecture.universal2)
+
         return result
 
 

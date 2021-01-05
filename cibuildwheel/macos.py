@@ -46,7 +46,8 @@ class PythonConfiguration(NamedTuple):
     url: str
 
 
-def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
+def get_python_configurations(build_selector: BuildSelector,
+                              architectures: List[Architecture]) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
@@ -58,19 +59,22 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         PythonConfiguration(version='3.9', identifier='cp39-macosx_universal2', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
         PythonConfiguration(version='3.9', identifier='cp39-macosx_arm64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
         # PyPy
-        # TODO: may not support 11.0 yet
         PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-osx64.tar.bz2'),
         PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.6-v7.3.3-osx64.tar.bz2'),
         PythonConfiguration(version='3.7', identifier='pp37-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-osx64.tar.bz2'),
     ]
 
-    # skip builds as required
+    # filter out configs that don't match any of the selected architectures
+    python_configurations = [c for c in python_configurations
+                             if any(c.identifier.endswith(a.value) for a in architectures)]
+
+    # skip builds as required by BUILD/SKIP
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
 
     if get_macos_version() >= (11, 0):
-        # pypy doesn't work on macOS 11 yet
-        # See https://foss.heptapod.net/pypy/pypy/-/issues/3314
         if any(c.identifier.startswith('pp') for c in python_configurations):
+            # pypy doesn't work on macOS 11 yet
+            # See https://foss.heptapod.net/pypy/pypy/-/issues/3314
             log.warning(wrap_text('''
                 PyPy is currently unsupported when building on macOS 11. To build macOS PyPy wheels,
                 build on an older OS, such as macOS 10.15. To silence this warning, deselect PyPy by
@@ -81,13 +85,11 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         if any(c.identifier.startswith('cp35') for c in python_configurations):
             # CPython 3.5 doesn't work on macOS 11
             log.warning(wrap_text('''
-                CPython is unsupported when building on macOS 11. To build CPython 3.5 wheels, build
-                on an older OS, such as macOS 10.15. To silence this warning, deselect CPython 3.5
-                by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
+                CPython 3.5 is unsupported when building on macOS 11. To build CPython 3.5 wheels,
+                build on an older OS, such as macOS 10.15. To silence this warning, deselect CPython
+                3.5 by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
             '''))
             python_configurations = [c for c in python_configurations if not c.identifier.startswith('cp35')]
-
-        python_configurations = [c for c in python_configurations if not c.identifier.startswith('cp35')]
 
     return python_configurations
 
@@ -236,10 +238,11 @@ def setup_python(python_configuration: PythonConfiguration,
 
 
 def build(options: BuildOptions) -> None:
-    if options.architectures != [Architecture.x86_64]:
+    allowed_archs = {Architecture.x86_64, Architecture.universal2, Architecture.arm64}
+    if set(options.architectures) <= allowed_archs:
         raise ValueError(textwrap.dedent(f'''
-            Invalid archs option {options.architectures}. macOS only supports x86_64 for the moment.
-            If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX instead.
+            Invalid archs option {options.architectures}. macOS only supports
+            these architectures: {', '.join(a.value for a in allowed_archs)}.
         '''))
 
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
@@ -253,7 +256,7 @@ def build(options: BuildOptions) -> None:
             before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
             call([before_all_prepared], shell=True, env=env)
 
-        python_configurations = get_python_configurations(options.build_selector)
+        python_configurations = get_python_configurations(options.build_selector, options.architectures)
 
         for config in python_configurations:
             log.build_start(config.identifier)

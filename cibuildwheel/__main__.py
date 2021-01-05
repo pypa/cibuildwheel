@@ -312,7 +312,7 @@ def print_build_identifiers(
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector)
     elif platform == 'macos':
-        python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
+        python_configurations = cibuildwheel.macos.get_python_configurations(build_selector, architectures)
 
     for config in python_configurations:
         print(config.identifier)

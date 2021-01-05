@@ -100,9 +100,11 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         if platform == 'linux':
             python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
 
-    if platform == 'macos':
-        # TODO: perhaps drop Python 3.5 across the board?
+    if platform == 'macos' and get_macos_version() >= (11, 0):
+        # CPython 3.5 doesn't work on macOS 11.
         python_abi_tags.remove('cp35-cp35m')
+        # pypy not supported on macOS 11.
+        python_abi_tags = [t for t in python_abi_tags if not t.startswith('pp')]
 
     wheels = []
 
@@ -129,11 +131,17 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
 
         elif platform == 'macos':
             if python_abi_tag == 'cp39-cp39':
-                platform_tags = [
-                    f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
-                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2.macosx_11_0_universal2',
-                    'macosx_11_0_arm64',
-                ]
+                if machine_arch == 'x86_64':
+                    platform_tags = [
+                        f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
+                    ]
+                elif machine_arch == 'arm64':
+                    platform_tags = [
+                        f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2.macosx_11_0_universal2',
+                        # macosx_deployment_target is ignored on arm64, because arm64 isn't supported on
+                        # macOS earlier than 11.0
+                        'macosx_11_0_arm64',
+                    ]
             else:
                 platform_tags = [
                     f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
@@ -150,6 +158,18 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         wheels = [w for w in wheels if '-cp27-' not in w and '-pp2' not in w]
 
     return wheels
+
+
+def get_macos_version():
+    '''
+    Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
+
+    These tuples can be used in comparisons, e.g.
+        (10, 14) <= (11, 0) == True
+        (11, 2) <= (11, 0) != True
+    '''
+    version_str, _, _ = pm.mac_ver()
+    return tuple(map(int, version_str.split(".")[:2]))
 
 
 platform = None
