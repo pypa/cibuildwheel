@@ -7,7 +7,7 @@ import sys
 import tempfile
 import textwrap
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, cast
+from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Tuple, cast
 
 from .environment import ParsedEnvironment
 from .logger import log
@@ -330,49 +330,100 @@ def build(options: BuildOptions) -> None:
                 repaired_wheel.rename(renamed_wheel)
                 repaired_wheel = renamed_wheel
 
-            if options.test_command:
-                log.step('Testing wheel...')
-                # set up a virtual environment to install and test from, to make sure
-                # there are no dependencies that were pulled in at build time.
-                call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
-                venv_dir = Path(tempfile.mkdtemp())
+            log.step_end()
 
-                # Use --no-download to ensure determinism by using seed libraries
-                # built into virtualenv
-                call(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
+            machine_arch = platform.machine()
+            testing_archs: List[str] = []
 
-                virtualenv_env = env.copy()
-                virtualenv_env['PATH'] = os.pathsep.join([
-                    str(venv_dir / 'bin'),
-                    virtualenv_env['PATH'],
-                ])
+            if machine_arch == 'x86_64':
+                if config.identifier.endswith('_arm64'):
+                    log.warning(wrap_text('''
+                        While arm64 wheels can be built on x86_64, they cannot be tested. The
+                        ability to test the arm64 wheels will be added in a future release of
+                        cibuildwheel, once Apple Silicon CI runners are widely available.
+                    '''))
+                    testing_archs = []
+                elif config.identifier.endswith('_universal2'):
+                    log.warning(wrap_text('''
+                        While universal2 wheels can be built on x86_64, the arm64 part of them
+                        cannot currently be tested. The ability to test the arm64 part of a
+                        universal2 wheel will be added in a future release of cibuildwheel, once
+                        Apple Silicon CI runners are widely available.
+                    '''))
+                    testing_archs = ['x86_64']
+                else:
+                    testing_archs = ['x86_64']
+            elif machine_arch == 'arm64':
+                if config.identifier.endswith('_x86_64'):
+                    # testing using rosetta2 emulation
+                    testing_archs = ['x86_64']
+                elif config.identifier.endswith('_universal2'):
+                    # testing the x86_64 using rosetta2 emulation
+                    testing_archs = ['arm64', 'x86_64']
+                else:
+                    testing_archs = ['arm64']
 
-                # check that we are using the Python from the virtual environment
-                call(['which', 'python'], env=virtualenv_env)
+            if options.test_command and len(testing_archs) > 0:
+                for testing_arch in testing_archs:
+                    log.step('Testing wheel...' if testing_arch == machine_arch else f'Testing wheel on {testing_arch}...')
 
-                if options.before_test:
-                    before_test_prepared = prepare_command(options.before_test, project='.', package=options.package_dir)
-                    call(before_test_prepared, env=virtualenv_env, shell=True)
+                    # set up a virtual environment to install and test from, to make sure
+                    # there are no dependencies that were pulled in at build time.
+                    call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
+                    venv_dir = Path(tempfile.mkdtemp())
 
-                # install the wheel
-                call(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
+                    arch_prefix = []
+                    if testing_arch != machine_arch:
+                        if machine_arch == 'arm64' and testing_arch == 'x86_64':
+                            # rosetta2 will provide the emulation with just the arch prefix.
+                            arch_prefix = ['arch', '-x86_64']
+                        else:
+                            raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
 
-                # test the wheel
-                if options.test_requires:
-                    call(['pip', 'install'] + options.test_requires, env=virtualenv_env)
+                    # define a custom 'call' function that adds the arch prefix each time
+                    def call_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> int:
+                        if isinstance(args, str):
+                            args = ' '.join(arch_prefix) + ' ' + args
+                        else:
+                            args = [*arch_prefix, *args]
+                        return call(args, **kwargs)
 
-                # run the tests from $HOME, with an absolute path in the command
-                # (this ensures that Python runs the tests against the installed wheel
-                # and not the repo code)
-                test_command_prepared = prepare_command(
-                    options.test_command,
-                    project=Path('.').resolve(),
-                    package=options.package_dir.resolve()
-                )
-                call(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+                    # Use --no-download to ensure determinism by using seed libraries
+                    # built into virtualenv
+                    call_with_arch(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
 
-                # clean up
-                shutil.rmtree(venv_dir)
+                    virtualenv_env = env.copy()
+                    virtualenv_env['PATH'] = os.pathsep.join([
+                        str(venv_dir / 'bin'),
+                        virtualenv_env['PATH'],
+                    ])
+
+                    # check that we are using the Python from the virtual environment
+                    call_with_arch(['which', 'python'], env=virtualenv_env)
+
+                    if options.before_test:
+                        before_test_prepared = prepare_command(options.before_test, project='.', package=options.package_dir)
+                        call_with_arch(before_test_prepared, env=virtualenv_env, shell=True)
+
+                    # install the wheel
+                    call_with_arch(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
+
+                    # test the wheel
+                    if options.test_requires:
+                        call_with_arch(['pip', 'install'] + options.test_requires, env=virtualenv_env)
+
+                    # run the tests from $HOME, with an absolute path in the command
+                    # (this ensures that Python runs the tests against the installed wheel
+                    # and not the repo code)
+                    test_command_prepared = prepare_command(
+                        options.test_command,
+                        project=Path('.').resolve(),
+                        package=options.package_dir.resolve()
+                    )
+                    call_with_arch(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+
+                    # clean up
+                    shutil.rmtree(venv_dir)
 
             # we're all done here; move it to output (overwrite existing)
             shutil.move(str(repaired_wheel), options.output_dir)
