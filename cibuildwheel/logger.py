@@ -111,7 +111,7 @@ class Logger:
 
             self.step_start_time = None
 
-    def error(self, error: Union[BaseException, str]) -> None:
+    def step_end_with_error(self, error: Union[BaseException, str]) -> None:
         self.step_end(success=False)
         print()
 

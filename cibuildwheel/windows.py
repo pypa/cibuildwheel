@@ -330,5 +330,5 @@ def build(options: BuildOptions) -> None:
             shutil.move(str(repaired_wheel), options.output_dir)
             log.build_end()
     except subprocess.CalledProcessError as error:
-        log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+        log.step_end_with_error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
         exit(1)
