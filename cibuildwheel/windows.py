@@ -3,9 +3,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence
+from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
 
 import toml
@@ -14,7 +13,7 @@ from .environment import ParsedEnvironment
 from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
-                   prepare_command)
+                   prepare_command, allowed_architectures_check)
 from .typing import PathOrStr
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
@@ -48,7 +47,12 @@ class PythonConfiguration(NamedTuple):
     url: Optional[str]
 
 
-def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfiguration]:
+def get_python_configurations(build_selector: BuildSelector, architectures: Set[Architecture]) -> List[PythonConfiguration]:
+    map_arch = {
+        '32': Architecture.x86,
+        '64': Architecture.AMD64,
+    }
+
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),
@@ -75,7 +79,10 @@ def get_python_configurations(build_selector: BuildSelector) -> List[PythonConfi
         python_configurations = [c for c in python_configurations if not c.version.startswith('2.7')]
 
     # skip builds as required
-    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
+    python_configurations = [
+        c for c in python_configurations
+        if build_selector(c.identifier) and map_arch[c.arch] in architectures
+    ]
 
     return python_configurations
 
@@ -202,12 +209,7 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
 
 
 def build(options: BuildOptions) -> None:
-    if options.architectures != [Architecture.AMD64, Architecture.x86]:
-        raise ValueError(textwrap.dedent(f'''
-            Invalid archs option {options.architectures}. Windows only supports 'amd64,x86' for the
-            moment. If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX
-            instead.
-        '''))
+    allowed_architectures_check("windows", options)
 
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
@@ -220,7 +222,7 @@ def build(options: BuildOptions) -> None:
             before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
             shell(before_all_prepared, env=env)
 
-        python_configurations = get_python_configurations(options.build_selector)
+        python_configurations = get_python_configurations(options.build_selector, options.architectures)
 
         for config in python_configurations:
             log.build_start(config.identifier)

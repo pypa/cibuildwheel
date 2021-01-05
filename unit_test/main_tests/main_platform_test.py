@@ -75,9 +75,9 @@ def test_archs_default(platform, intercepted_build_args, monkeypatch):
     build_options = intercepted_build_args.args[0]
 
     if platform == 'linux':
-        assert build_options.architectures == [Architecture.x86_64, Architecture.i686]
+        assert build_options.architectures == {Architecture.x86_64, Architecture.i686}
     else:
-        assert build_options.architectures == [Architecture.x86_64]
+        assert build_options.architectures == {Architecture.x86_64}
 
 
 @pytest.mark.parametrize('use_env_var', [False, True])
@@ -92,7 +92,7 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
     main()
     build_options = intercepted_build_args.args[0]
 
-    assert build_options.architectures == [Architecture.ppc64le]
+    assert build_options.architectures == {Architecture.ppc64le}
 
 
 def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
@@ -106,8 +106,8 @@ def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
     build_options = intercepted_build_args.args[0]
 
     if platform == 'linux':
-        assert build_options.architectures == [Architecture.ppc64le]
+        assert build_options.architectures == {Architecture.ppc64le}
     elif platform == 'windows':
-        assert build_options.architectures == [Architecture.x86]
+        assert build_options.architectures == {Architecture.x86}
     elif platform == 'macos':
-        assert build_options.architectures == [Architecture.x86_64]
+        assert build_options.architectures == {Architecture.x86_64}

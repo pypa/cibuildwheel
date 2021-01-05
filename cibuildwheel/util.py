@@ -2,18 +2,25 @@ import os
 import platform as platform_module
 import re
 import ssl
+import sys
+import functools
 import textwrap
 import urllib.request
 from enum import Enum
 from fnmatch import fnmatch
 from pathlib import Path
 from time import sleep
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional, Set
 
 import certifi
 
 from .environment import ParsedEnvironment
 from .typing import PathOrStr
+
+if sys.version_info < (3, 8):
+    from typing_extensions import Literal
+else:
+    from typing import Literal
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -124,7 +131,10 @@ class DependencyConstraints:
         return f'{self.__class__.__name__}{self.base_file_path!r})'
 
 
+@functools.total_ordering
 class Architecture(Enum):
+    value: str
+
     # mac/linux archs
     x86_64 = 'x86_64'
     i686 = 'i686'
@@ -136,25 +146,29 @@ class Architecture(Enum):
     x86 = 'x86'
     AMD64 = 'AMD64'
 
+    # Allow this to be sorted
+    def __lt__(self, other: "Architecture") -> bool:
+        return self.value < other.value
+
     @staticmethod
-    def parse_config(config: str, platform: str) -> 'List[Architecture]':
-        result = []
+    def parse_config(config: str, platform: str) -> 'Set[Architecture]':
+        result = set()
         for arch_str in re.split(r'[\s,]+', config):
             if arch_str == 'auto':
-                result += Architecture.auto_archs(platform=platform)
+                result |= Architecture.auto_archs(platform=platform)
             else:
-                result.append(Architecture(arch_str))
+                result.add(Architecture(arch_str))
         return result
 
     @staticmethod
-    def auto_archs(platform: str) -> 'List[Architecture]':
+    def auto_archs(platform: str) -> 'Set[Architecture]':
         native_architecture = Architecture(platform_module.machine())
-        result = [native_architecture]
+        result = {native_architecture}
         if platform == 'linux' and native_architecture == Architecture.x86_64:
             # x86_64 machines can run i686 docker containers
-            result.append(Architecture.i686)
+            result.add(Architecture.i686)
         if platform == 'windows' and native_architecture == Architecture.AMD64:
-            result.append(Architecture.x86)
+            result.add(Architecture.x86)
         return result
 
 
@@ -162,7 +176,7 @@ class BuildOptions(NamedTuple):
     package_dir: Path
     output_dir: Path
     build_selector: BuildSelector
-    architectures: List[Architecture]
+    architectures: Set[Architecture]
     environment: ParsedEnvironment
     before_all: str
     before_build: Optional[str]
@@ -229,3 +243,33 @@ def detect_ci_provider() -> Optional[CIProvider]:
         return CIProvider.other
     else:
         return None
+
+
+PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
+
+ALLOWED_ARCHITECTURES = {
+    'linux': {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x},
+    'macos': {Architecture.x86_64},
+    'windows': {Architecture.AMD64, Architecture.x86},
+}
+
+
+def allowed_architectures_check(
+    name: Literal['linux', 'macos', 'windows'],
+    options: BuildOptions,
+) -> None:
+
+    allowed_architectures = ALLOWED_ARCHITECTURES[name]
+
+    msg = f'{PRETTY_NAMES[name]} only supports {sorted(allowed_architectures)} at the moment.'
+
+    if name != 'linux':
+        msg += ' If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX instead.'
+
+    if not options.architectures <= allowed_architectures:
+        msg = f'Invalid archs option {options.architectures}. ' + msg
+        raise ValueError(msg)
+
+    if not options.architectures:
+        msg = 'Empty archs option set. ' + msg
+        raise ValueError(msg)
