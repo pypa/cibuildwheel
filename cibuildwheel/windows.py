@@ -3,7 +3,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
@@ -14,7 +13,7 @@ from .environment import ParsedEnvironment
 from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
-                   prepare_command)
+                   prepare_command, allowed_architectures_check)
 from .typing import PathOrStr
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
@@ -210,13 +209,7 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures = {Architecture.AMD64, Architecture.x86}
-    if not options.architectures <= allowed_architectures:
-        raise ValueError(textwrap.dedent(f'''
-            Invalid archs option {options.architectures}. Windows only supports
-            {sorted(allowed_architectures)}. If you want to set emulation
-            architectures on Linux, use CIBW_ARCHS_LINUX instead.
-        '''))
+    allowed_architectures_check("windows", options)
 
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'

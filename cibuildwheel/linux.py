@@ -8,7 +8,7 @@ from .docker_container import DockerContainer
 from .logger import log
 from .util import (
     Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
-    get_build_verbosity_extra_flags, prepare_command,
+    allowed_architectures_check, get_build_verbosity_extra_flags, prepare_command,
 )
 from .typing import PathOrStr
 
@@ -71,6 +71,8 @@ def get_python_configurations(
 
 
 def build(options: BuildOptions) -> None:
+    allowed_architectures_check("linux", options)
+
     try:
         subprocess.check_output(['docker', '--version'])
     except Exception:

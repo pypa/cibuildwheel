@@ -2,6 +2,7 @@ import os
 import platform as platform_module
 import re
 import ssl
+import sys
 import functools
 import textwrap
 import urllib.request
@@ -15,6 +16,11 @@ import certifi
 
 from .environment import ParsedEnvironment
 from .typing import PathOrStr
+
+if sys.version_info < (3, 8):
+    from typing_extensions import Literal
+else:
+    from typing import Literal
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -237,3 +243,33 @@ def detect_ci_provider() -> Optional[CIProvider]:
         return CIProvider.other
     else:
         return None
+
+
+PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
+
+ALLOWED_ARCHITECTURES = {
+    'linux': {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x},
+    'macos': {Architecture.x86_64},
+    'windows': {Architecture.AMD64, Architecture.x86},
+}
+
+
+def allowed_architectures_check(
+    name: Literal['linux', 'macos', 'windows'],
+    options: BuildOptions,
+) -> None:
+
+    allowed_architectures = ALLOWED_ARCHITECTURES[name]
+
+    msg = f'{PRETTY_NAMES[name]} only supports {sorted(allowed_architectures)} at the moment.'
+
+    if name != 'linux':
+        msg += ' If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX instead.'
+
+    if not options.architectures <= allowed_architectures:
+        msg = f'Invalid archs option {options.architectures}. ' + msg
+        raise ValueError(msg)
+
+    if not options.architectures:
+        msg = 'Empty archs option set. ' + msg
+        raise ValueError(msg)
