@@ -37,7 +37,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install -r requirements-dev.txt
+        python -m pip install -e ".[dev]"
 
     - name: Install Visual C++ for Python 2.7
       if: runner.os == 'Windows'

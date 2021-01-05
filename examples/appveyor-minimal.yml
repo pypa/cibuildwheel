@@ -12,7 +12,7 @@ stack: python 3.7
 init:
 - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
 
-install: python -m pip install cibuildwheel==1.7.3
+install: python -m pip install cibuildwheel==1.7.4
 
 build_script: python -m cibuildwheel --output-dir wheelhouse
 

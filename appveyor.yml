@@ -19,7 +19,7 @@ init:
         $env:PYTEST_ADDOPTS='-k "unit_test or test_0_basic" --suppress-no-test-exit-code'
       }
 
-install: python -m pip install -r requirements-dev.txt pytest-custom-exit-code
+install: python -m pip install -e ".[dev]" pytest-custom-exit-code
 
 # the '-u' flag is required so the output is in the correct order.
 # See https://github.com/joerick/cibuildwheel/pull/24 for more info.

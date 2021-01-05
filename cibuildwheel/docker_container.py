@@ -5,9 +5,11 @@ import shlex
 import subprocess
 import sys
 import uuid
-from os import PathLike
 from pathlib import Path, PurePath
-from typing import IO, Dict, List, Optional, Sequence, Union
+from typing import cast, IO, Dict, List, Optional, Sequence, Type
+from types import TracebackType
+
+from .typing import PathOrStr, PopenBytes
 
 
 class DockerContainer:
@@ -23,14 +25,15 @@ class DockerContainer:
     '''
     UTILITY_PYTHON = '/opt/python/cp38-cp38/bin/python'
 
-    process: subprocess.Popen
+    process: PopenBytes
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 
-    def __init__(self, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[Union[str, PathLike]] = None):
+    def __init__(self, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None):
         self.docker_image = docker_image
         self.simulate_32_bit = simulate_32_bit
         self.cwd = cwd
+        self.name: Optional[str] = None
 
     def __enter__(self) -> 'DockerContainer':
         self.name = f'cibuildwheel-{uuid.uuid4()}'
@@ -68,10 +71,17 @@ class DockerContainer:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+            self,
+            exc_type: Optional[Type[BaseException]],
+            exc_val: Optional[BaseException],
+            exc_tb: Optional[TracebackType]) -> None:
+
         self.bash_stdin.close()
         self.process.terminate()
         self.process.wait()
+
+        assert isinstance(self.name, str)
 
         subprocess.run(['docker', 'rm', '--force', '-v', self.name], stdout=subprocess.DEVNULL)
         self.name = None
@@ -117,8 +127,12 @@ class DockerContainer:
 
         return [PurePath(p) for p in path_strs]
 
-    def call(self, args: Sequence[Union[str, PathLike]], env: Optional[Dict[str, str]] = None,
-             capture_output=False, cwd: Optional[Union[str, PathLike]] = None) -> str:
+    def call(
+            self,
+            args: Sequence[PathOrStr],
+            env: Optional[Dict[str, str]] = None,
+            capture_output: bool = False,
+            cwd: Optional[PathOrStr] = None) -> str:
 
         chdir = f'cd {cwd}' if cwd else ''
         env_assignments = ' '.join(f'{shlex.quote(k)}={shlex.quote(v)}'
@@ -178,11 +192,12 @@ class DockerContainer:
         return output
 
     def get_environment(self) -> Dict[str, str]:
-        return json.loads(self.call([
+        env = json.loads(self.call([
             self.UTILITY_PYTHON,
             '-c',
             'import sys, json, os; json.dump(os.environ.copy(), sys.stdout)'
         ], capture_output=True))
+        return cast(Dict[str, str], env)
 
     def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output

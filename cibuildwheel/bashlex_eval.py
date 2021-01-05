@@ -1,7 +1,7 @@
 import subprocess
 from typing import Callable, Dict, List, NamedTuple, Optional, Sequence
 
-import bashlex  # type: ignore
+import bashlex
 
 # a function that takes a command and the environment, and returns the result
 EnvironmentExecutor = Callable[[List[str], Dict[str, str]], str]
@@ -50,7 +50,7 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
-    value = node.word
+    value: str = node.word
 
     for part in node.parts:
         part_string = context.input[part.pos[0]:part.pos[1]]
@@ -95,7 +95,7 @@ def evaluate_nodes_as_compound_command(nodes: Sequence[bashlex.ast.node], contex
     return result
 
 
-def evaluate_nodes_as_simple_command(nodes: List[bashlex.ast.node], context: NodeExecutionContext):
+def evaluate_nodes_as_simple_command(nodes: List[bashlex.ast.node], context: NodeExecutionContext) -> str:
     command = [evaluate_node(part, context=context) for part in nodes]
     return context.executor(command, context.environment)
 

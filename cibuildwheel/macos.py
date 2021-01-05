@@ -6,18 +6,18 @@ import subprocess
 import sys
 import tempfile
 import textwrap
-from os import PathLike
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, Union, cast
+from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, cast
 
 from .environment import ParsedEnvironment
 from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
                    install_certifi_script, prepare_command)
+from .typing import PathOrStr
 
 
-def call(args: Union[str, Sequence[Union[str, PathLike]]], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
+def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
     # print the command executing for the logs
     if shell:
         print(f'+ {args}')
@@ -134,7 +134,7 @@ def install_pypy(version: str, url: str) -> Path:
         # Patch PyPy to make sure headers get installed into a venv
         patch_version = '_27' if version == '2.7' else ''
         patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
-        call(['patch', '--force', '-d', installation_path, patch_path])
+        call(['patch', '--force', '-p1', '-d', installation_path, '-i', patch_path])
 
     installation_bin_path = installation_path / 'bin'
     python_executable = 'pypy3' if version[0] == '3' else 'pypy'
@@ -145,7 +145,7 @@ def install_pypy(version: str, url: str) -> Path:
 
 
 def setup_python(python_configuration: PythonConfiguration,
-                 dependency_constraint_flags: Sequence[Union[str, PathLike]],
+                 dependency_constraint_flags: Sequence[PathOrStr],
                  environment: ParsedEnvironment) -> Dict[str, str]:
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f'Installing Python {implementation_id}...')
@@ -242,7 +242,7 @@ def build(options: BuildOptions) -> None:
         for config in python_configurations:
             log.build_start(config.identifier)
 
-            dependency_constraint_flags: Sequence[Union[str, PathLike]] = []
+            dependency_constraint_flags: Sequence[PathOrStr] = []
             if options.dependency_constraints:
                 dependency_constraint_flags = [
                     '-c', options.dependency_constraints.get_for_python_version(config.version)

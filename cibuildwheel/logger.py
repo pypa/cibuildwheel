@@ -3,7 +3,7 @@ import os
 import re
 import sys
 import time
-from typing import Optional, Union
+from typing import Optional, Union, AnyStr, IO
 
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
@@ -37,7 +37,7 @@ class Logger:
     step_start_time: Optional[float] = None
     active_fold_group_name: Optional[str] = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
             # the encoding on Windows can be a 1-byte charmap, but all CIs
             # support utf8, so we hardcode that
@@ -67,7 +67,7 @@ class Logger:
             self.fold_mode = 'disabled'
             self.colors_enabled = file_supports_color(sys.stdout)
 
-    def build_start(self, identifier: str):
+    def build_start(self, identifier: str) -> None:
         self.step_end()
         c = self.colors
         description = build_description_from_identifier(identifier)
@@ -79,7 +79,7 @@ class Logger:
         self.build_start_time = time.time()
         self.active_build_identifier = identifier
 
-    def build_end(self):
+    def build_end(self) -> None:
         assert self.build_start_time is not None
         assert self.active_build_identifier is not None
         self.step_end()
@@ -93,12 +93,12 @@ class Logger:
         self.build_start_time = None
         self.active_build_identifier = None
 
-    def step(self, step_description: str):
+    def step(self, step_description: str) -> None:
         self.step_end()
         self.step_start_time = time.time()
         self._start_fold_group(step_description)
 
-    def step_end(self, success=True):
+    def step_end(self, success: bool = True) -> None:
         if self.step_start_time is not None:
             self._end_fold_group()
             c = self.colors
@@ -111,7 +111,7 @@ class Logger:
 
             self.step_start_time = None
 
-    def error(self, error: Union[Exception, str]):
+    def error(self, error: Union[BaseException, str]) -> None:
         self.step_end(success=False)
         print()
 
@@ -121,7 +121,7 @@ class Logger:
             c = self.colors
             print(f'{c.bright_red}Error{c.end} {error}')
 
-    def _start_fold_group(self, name: str):
+    def _start_fold_group(self, name: str) -> None:
         self._end_fold_group()
         self.active_fold_group_name = name
         fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[0]
@@ -131,7 +131,7 @@ class Logger:
         print()
         sys.stdout.flush()
 
-    def _end_fold_group(self):
+    def _end_fold_group(self) -> None:
         if self.active_fold_group_name:
             fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[1]
             identifier = self._fold_group_identifier(self.active_fold_group_name)
@@ -139,7 +139,7 @@ class Logger:
             sys.stdout.flush()
             self.active_fold_group_name = None
 
-    def _fold_group_identifier(self, name: str):
+    def _fold_group_identifier(self, name: str) -> str:
         '''
         Travis doesn't like fold groups identifiers that have spaces in. This
         method converts them to ascii identifiers
@@ -154,21 +154,21 @@ class Logger:
         return identifier.lower()[:20]
 
     @property
-    def colors(self):
+    def colors(self) -> "Colors":
         if self.colors_enabled:
-            return Colors.enabled
+            return Colors(enabled=True)
         else:
-            return Colors.disabled
+            return Colors(enabled=False)
 
     @property
-    def symbols(self):
+    def symbols(self) -> "Symbols":
         if self.unicode_enabled:
-            return Symbols.unicode
+            return Symbols(unicode=True)
         else:
-            return Symbols.ascii
+            return Symbols(unicode=False)
 
 
-def build_description_from_identifier(identifier: str):
+def build_description_from_identifier(identifier: str) -> str:
     python_identifier, _, platform_identifier = identifier.partition('-')
 
     build_description = ''
@@ -194,45 +194,31 @@ def build_description_from_identifier(identifier: str):
 
 
 class Colors:
-    class Enabled:
-        red = '\033[31m'
-        green = '\033[32m'
-        yellow = '\033[33m'
-        blue = '\033[34m'
-        cyan = '\033[36m'
-        bright_red = '\033[91m'
-        bright_green = '\033[92m'
-        white = '\033[37m\033[97m'
+    def __init__(self, *, enabled: bool) -> None:
+        self.red = '\033[31m' if enabled else ''
+        self.green = '\033[32m' if enabled else ''
+        self.yellow = '\033[33m' if enabled else ''
+        self.blue = '\033[34m' if enabled else ''
+        self.cyan = '\033[36m' if enabled else ''
+        self.bright_red = '\033[91m' if enabled else ''
+        self.bright_green = '\033[92m' if enabled else ''
+        self.white = '\033[37m\033[97m' if enabled else ''
 
-        bg_grey = '\033[48;5;235m'
+        self.bg_grey = '\033[48;5;235m' if enabled else ''
 
-        bold = '\033[1m'
-        faint = '\033[2m'
+        self.bold = '\033[1m' if enabled else ''
+        self.faint = '\033[2m' if enabled else ''
 
-        end = '\033[0m'
-
-    class Disabled:
-        def __getattr__(self, attr: str) -> str:
-            return ''
-
-    enabled = Enabled()
-    disabled = Disabled()
+        self.end = '\033[0m' if enabled else ''
 
 
 class Symbols:
-    class Unicode:
-        done = '✓'
-        error = '✕'
-
-    class Ascii:
-        done = 'done'
-        error = 'failed'
-
-    unicode = Unicode()
-    ascii = Ascii()
+    def __init__(self, *, unicode: bool) -> None:
+        self.done = '✓' if unicode else 'done'
+        self.error = '✕' if unicode else 'failed'
 
 
-def file_supports_color(file_obj):
+def file_supports_color(file_obj: IO[AnyStr]) -> bool:
     """
     Returns True if the running system's terminal supports color.
     """
@@ -244,11 +230,11 @@ def file_supports_color(file_obj):
     return (supported_platform and is_a_tty)
 
 
-def file_is_a_tty(file_obj):
+def file_is_a_tty(file_obj: IO[AnyStr]) -> bool:
     return hasattr(file_obj, 'isatty') and file_obj.isatty()
 
 
-def file_supports_unicode(file_obj):
+def file_supports_unicode(file_obj: IO[AnyStr]) -> bool:
     encoding = getattr(file_obj, 'encoding', None)
     if not encoding:
         return False

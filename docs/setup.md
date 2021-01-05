@@ -17,7 +17,7 @@ For more info on this file, check out the [docs](https://help.github.com/en/acti
 
 [`examples/github-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/github-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
 
-You can also use cibuildwheel directly as an action with `uses: joerick/cibuildwheel@v1.7.3`; this combines the download and run steps into a single action, and command line arguments are available via `with:`. This makes it easy to manage cibuildwheel updates via normal actions update mechanisms like dependabot, see [Automatic updates](faq.md#automatic-updates).
+You can also use cibuildwheel directly as an action with `uses: joerick/cibuildwheel@v1.7.4`; this combines the download and run steps into a single action, and command line arguments are available via `with:`. This makes it easy to manage cibuildwheel updates via normal actions update mechanisms like dependabot, see [Automatic updates](faq.md#automatic-updates).
 
 # Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
 
