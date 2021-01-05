@@ -8,6 +8,8 @@ basic_project = test_projects.new_c_project()
 def test_cross_compiled_build(tmp_path):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
+    if utils.get_macos_version() < (11, 0):
+        pytest.skip('this test only works on macOS 11 or greater')
 
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
