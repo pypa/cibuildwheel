@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, TextIO
 
 import click
 import yaml
-from github import Github
+from github import Github, GithubException
 
 ICONS = (
     "appveyor",
@@ -53,7 +53,12 @@ class Project:
 
         self.online = github is not None
         if github is not None:
-            repo = github.get_repo(self.stars_repo)
+            try:
+                repo = github.get_repo(self.stars_repo)
+            except GithubException:
+                print(f"Broken: {self.stars_repo}")
+                raise
+
             self.num_stars = repo.stargazers_count
             self.pushed_at = repo.pushed_at
             if not self.notes:
@@ -167,7 +172,7 @@ def str_projects(
     return io.getvalue()
 
 
-@click.command()
+@click.command(help="Try ./bin/projects.py docs/data/projects.yml --readme README.md")
 @click.argument("input", type=click.File("r"))
 @click.option("--online/--no-online", default=True, help="Get info from GitHub")
 @click.option("--auth", help="GitHub authentication token")
