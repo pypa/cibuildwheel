@@ -19,6 +19,7 @@ from .util import (
     NonPlatformWheelError,
     download,
     get_build_verbosity_extra_flags,
+    get_pip_version,
     install_certifi_script,
     prepare_command,
     read_python_configs,
@@ -178,7 +179,9 @@ def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
+    pypa_build: bool,
 ) -> Dict[str, str]:
+
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
 
@@ -308,18 +311,31 @@ def setup_python(
             env.setdefault("SDKROOT", arm64_compatible_sdks[0])
 
     log.step("Installing build tools...")
-    call(
-        [
-            "pip",
-            "install",
-            "--upgrade",
-            "setuptools",
-            "wheel",
-            "delocate",
-            *dependency_constraint_flags,
-        ],
-        env=env,
-    )
+    if pypa_build:
+        call(
+            [
+                "pip",
+                "install",
+                "--upgrade",
+                "delocate",
+                "build[virtualenv]",
+                *dependency_constraint_flags,
+            ],
+            env=env,
+        )
+    else:
+        call(
+            [
+                "pip",
+                "install",
+                "--upgrade",
+                "setuptools",
+                "wheel",
+                "delocate",
+                *dependency_constraint_flags,
+            ],
+            env=env,
+        )
 
     return env
 
@@ -356,7 +372,12 @@ def build(options: BuildOptions) -> None:
                     options.dependency_constraints.get_for_python_version(config.version),
                 ]
 
-            env = setup_python(config, dependency_constraint_flags, options.environment)
+            env = setup_python(
+                config,
+                dependency_constraint_flags,
+                options.environment,
+                options.pypa_build,
+            )
 
             if options.before_build:
                 log.step("Running before_build...")
@@ -370,20 +391,44 @@ def build(options: BuildOptions) -> None:
                 shutil.rmtree(built_wheel_dir)
             built_wheel_dir.mkdir(parents=True)
 
-            # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-            # see https://github.com/pypa/cibuildwheel/pull/369
-            call(
-                [
-                    "pip",
-                    "wheel",
-                    options.package_dir.resolve(),
-                    "--wheel-dir",
-                    built_wheel_dir,
-                    "--no-deps",
-                    *get_build_verbosity_extra_flags(options.build_verbosity),
-                ],
-                env=env,
-            )
+            verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
+
+            if options.pypa_build:
+                config_setting = " ".join(verbosity_flags)
+                build_env = dict(env)
+                if options.dependency_constraints:
+                    build_env["PIP_CONSTRAINT"] = str(
+                        options.dependency_constraints.get_for_python_version(config.version)
+                    )
+                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                call(
+                    [
+                        "python",
+                        "-m",
+                        "build",
+                        options.package_dir,
+                        "--wheel",
+                        f"--outdir={built_wheel_dir}",
+                        f"--config-setting={config_setting}",
+                    ],
+                    env=build_env,
+                )
+            else:
+                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                # see https://github.com/pypa/cibuildwheel/pull/369
+                call(
+                    [
+                        "python",
+                        "-m",
+                        "pip",
+                        "wheel",
+                        options.package_dir.resolve(),
+                        f"--wheel-dir={built_wheel_dir}",
+                        "--no-deps",
+                        *verbosity_flags,
+                    ],
+                    env=env,
+                )
 
             built_wheel = next(built_wheel_dir.glob("*.whl"))
 

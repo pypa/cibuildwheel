@@ -27,6 +27,7 @@ from cibuildwheel.util import (
     Unbuffered,
     detect_ci_provider,
     resources_dir,
+    strtobool,
 )
 
 MANYLINUX_ARCHS = (
@@ -181,6 +182,7 @@ def main() -> None:
     build_config = options("build", env_plat=False, sep=" ") or "*"
     skip_config = options("skip", env_plat=False, sep=" ")
     test_skip = options("test-skip", env_plat=False, sep=" ")
+    pypa_build = strtobool(os.environ.get("CIBW_PYPA_BUILD", "0"))
 
     archs_config_str = args.archs or options("archs", sep=" ")
 
@@ -308,6 +310,7 @@ def main() -> None:
         environment=environment,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images or None,
+        pypa_build=pypa_build,
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'

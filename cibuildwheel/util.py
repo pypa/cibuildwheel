@@ -4,6 +4,8 @@ import itertools
 import os
 import re
 import ssl
+import subprocess
+import sys
 import textwrap
 import time
 import urllib.request
@@ -218,6 +220,7 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
+    pypa_build: bool
 
 
 class NonPlatformWheelError(Exception):
@@ -300,3 +303,18 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
     s = time.time() - start_time
     m = s / 60
     print(msg.format(n=n, s=s, m=m), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
+
+
+def get_pip_version(env: Dict[str, str]) -> str:
+    # we use shell=True here for windows, even though we don't need a shell due to a bug
+    # https://bugs.python.org/issue8557
+    shell = sys.platform.startswith("win")
+    versions_output_text = subprocess.check_output(
+        ["python", "-m", "pip", "freeze", "--all"], universal_newlines=True, shell=shell, env=env
+    )
+    (pip_version,) = [
+        version[5:]
+        for version in versions_output_text.strip().splitlines()
+        if version.startswith("pip==")
+    ]
+    return pip_version

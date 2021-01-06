@@ -145,7 +145,7 @@ def build(options: BuildOptions) -> None:
                         env, executor=docker.environment_executor
                     )
 
-                    # check config python and pip are still on PATH
+                    # check config python is still on PATH
                     which_python = docker.call(
                         ["which", "python"], env=env, capture_output=True
                     ).strip()
@@ -180,18 +180,36 @@ def build(options: BuildOptions) -> None:
                     docker.call(["rm", "-rf", built_wheel_dir])
                     docker.call(["mkdir", "-p", built_wheel_dir])
 
-                    docker.call(
-                        [
-                            "pip",
-                            "wheel",
-                            container_package_dir,
-                            "--wheel-dir",
-                            built_wheel_dir,
-                            "--no-deps",
-                            *get_build_verbosity_extra_flags(options.build_verbosity),
-                        ],
-                        env=env,
-                    )
+                    verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
+
+                    if options.pypa_build:
+                        config_setting = " ".join(verbosity_flags)
+                        docker.call(
+                            [
+                                "python",
+                                "-m",
+                                "build",
+                                container_package_dir,
+                                "--wheel",
+                                f"--outdir={built_wheel_dir}",
+                                f"--config-setting={config_setting}",
+                            ],
+                            env=env,
+                        )
+                    else:
+                        docker.call(
+                            [
+                                "python",
+                                "-m",
+                                "pip",
+                                "wheel",
+                                container_package_dir,
+                                f"--wheel-dir={built_wheel_dir}",
+                                "--no-deps",
+                                *verbosity_flags,
+                            ],
+                            env=env,
+                        )
 
                     built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
 
@@ -291,7 +309,10 @@ def build(options: BuildOptions) -> None:
 
 
 def troubleshoot(package_dir: Path, error: Exception) -> None:
-    if isinstance(error, subprocess.CalledProcessError) and error.cmd[0:2] == ["pip", "wheel"]:
+    if isinstance(error, subprocess.CalledProcessError) and (
+        error.cmd[0:4] == ["python", "-m", "pip", "wheel"]
+        or error.cmd[0:3] == ["python", "-m", "build"]
+    ):
         # the 'pip wheel' step failed.
         print("Checking for common errors...")
         so_files = list(package_dir.glob("**/*.so"))
