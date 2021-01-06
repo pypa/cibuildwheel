@@ -12,6 +12,7 @@ import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.windows
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
+from cibuildwheel.typing import PLATFORMS, PlatStr, assert_never
 from cibuildwheel.util import (
     Architecture,
     BuildOptions,
@@ -19,8 +20,8 @@ from cibuildwheel.util import (
     DependencyConstraints,
     Unbuffered,
     detect_ci_provider,
-    resources_dir,
     read_python_configs,
+    resources_dir,
 )
 
 
@@ -47,6 +48,8 @@ def get_option_from_environment(option_name: str, platform: Optional[str] = None
 
 
 def main() -> None:
+    platform: PlatStr
+
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
         epilog='''
@@ -121,7 +124,7 @@ def main() -> None:
                   file=sys.stderr)
             exit(2)
 
-    if platform not in {"linux", "macos", "windows"}:
+    if platform not in PLATFORMS:
         print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
         exit(2)
 
@@ -132,8 +135,10 @@ def main() -> None:
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
     elif platform == 'macos':
         repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
-    else:
+    elif platform == 'windows':
         repair_command_default = ''
+    else:
+        assert_never(platform)
 
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
@@ -255,6 +260,8 @@ def main() -> None:
         cibuildwheel.windows.build(build_options)
     elif platform == 'macos':
         cibuildwheel.macos.build(build_options)
+    else:
+        assert_never(platform)
 
 
 def detect_obsolete_options() -> None:

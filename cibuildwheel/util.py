@@ -3,7 +3,6 @@ import os
 import platform as platform_module
 import re
 import ssl
-import sys
 import textwrap
 import urllib.request
 from enum import Enum
@@ -16,12 +15,7 @@ import certifi
 import toml
 
 from .environment import ParsedEnvironment
-from .typing import PathOrStr
-
-if sys.version_info < (3, 8):
-    from typing_extensions import Literal
-else:
-    from typing import Literal
+from .typing import PathOrStr, PlatStr
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -158,7 +152,7 @@ class Architecture(Enum):
         return self.value < other.value
 
     @staticmethod
-    def parse_config(config: str, platform: str) -> 'Set[Architecture]':
+    def parse_config(config: str, platform: PlatStr) -> 'Set[Architecture]':
         result = set()
         for arch_str in re.split(r'[\s,]+', config):
             if arch_str == 'auto':
@@ -168,7 +162,7 @@ class Architecture(Enum):
         return result
 
     @staticmethod
-    def auto_archs(platform: str) -> 'Set[Architecture]':
+    def auto_archs(platform: PlatStr) -> 'Set[Architecture]':
         native_architecture = Architecture(platform_module.machine())
         result = {native_architecture}
         if platform == 'linux' and native_architecture == Architecture.x86_64:
@@ -263,7 +257,7 @@ ALLOWED_ARCHITECTURES = {
 
 
 def allowed_architectures_check(
-    name: Literal['linux', 'macos', 'windows'],
+    name: PlatStr,
     options: BuildOptions,
 ) -> None:
 

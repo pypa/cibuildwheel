@@ -2,7 +2,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import List, NamedTuple, Dict, Set
+from typing import Dict, List, NamedTuple, Set
 
 from .docker_container import DockerContainer
 from .logger import log
