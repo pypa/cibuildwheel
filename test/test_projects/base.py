@@ -1,9 +1,7 @@
 from pathlib import Path
+from typing import Any, Dict, Union
 
 import jinja2
-
-from typing import Union, Dict, Any
-
 
 FilesDict = Dict[str, Union[str, jinja2.Template]]
 TemplateContext = Dict[str, Any]

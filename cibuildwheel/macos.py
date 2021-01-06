@@ -9,10 +9,18 @@ from typing import Dict, List, NamedTuple, Optional, Sequence
 
 from .environment import ParsedEnvironment
 from .logger import log
-from .util import (BuildOptions, BuildSelector, NonPlatformWheelError,
-                   download, get_build_verbosity_extra_flags, get_pip_script,
-                   install_certifi_script, prepare_command, allowed_architectures_check)
 from .typing import PathOrStr
+from .util import (
+    BuildOptions,
+    BuildSelector,
+    NonPlatformWheelError,
+    allowed_architectures_check,
+    download,
+    get_build_verbosity_extra_flags,
+    get_pip_script,
+    install_certifi_script,
+    prepare_command,
+)
 
 
 def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:

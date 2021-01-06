@@ -1,8 +1,8 @@
 import subprocess
-import pytest
-from . import utils
-from . import test_projects
 
+import pytest
+
+from . import test_projects, utils
 
 project_with_a_test = test_projects.new_c_project()
 

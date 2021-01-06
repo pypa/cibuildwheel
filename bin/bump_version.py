@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-import click
-from pathlib import Path
-import os
-import cibuildwheel
-from packaging.version import Version, InvalidVersion
-import subprocess
 import glob
+import os
+import subprocess
 import urllib.parse
+from pathlib import Path
+
+import click
+from packaging.version import InvalidVersion, Version
+
+import cibuildwheel
 
 config = [
     # file path, version find/replace format

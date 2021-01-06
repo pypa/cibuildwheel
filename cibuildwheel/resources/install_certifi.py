@@ -29,6 +29,7 @@ def main():
                            "-E", "-s", "-m", "pip", "install", "--upgrade", "certifi"])
 
     import certifi
+
     # change working directory to the default SSL directory
     os.chdir(openssl_dir)
     relpath_to_certifi_cafile = os.path.relpath(certifi.where())

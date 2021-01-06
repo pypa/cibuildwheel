@@ -1,8 +1,10 @@
 import platform
 import textwrap
+
 import pytest
 
 from cibuildwheel.logger import Logger
+
 from . import test_projects, utils
 
 basic_project = test_projects.new_c_project(

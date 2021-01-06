@@ -6,8 +6,8 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path, PurePath
-from typing import cast, IO, Dict, List, Optional, Sequence, Type
 from types import TracebackType
+from typing import IO, Dict, List, Optional, Sequence, Type, cast
 
 from .typing import PathOrStr, PopenBytes
 
