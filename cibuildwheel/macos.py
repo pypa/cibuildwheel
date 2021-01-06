@@ -5,15 +5,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Tuple, cast
+from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 from .environment import ParsedEnvironment
 from .logger import log
 from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
                    download, get_build_verbosity_extra_flags, get_pip_script,
-                   install_certifi_script, prepare_command, unwrap)
+                   install_certifi_script, prepare_command, allowed_architectures_check,
+                   unwrap)
 from .typing import PathOrStr
 
 
@@ -47,7 +47,7 @@ class PythonConfiguration(NamedTuple):
 
 
 def get_python_configurations(build_selector: BuildSelector,
-                              architectures: List[Architecture]) -> List[PythonConfiguration]:
+                              architectures: Set[Architecture]) -> List[PythonConfiguration]:
     python_configurations = [
         # CPython
         PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
@@ -238,12 +238,7 @@ def setup_python(python_configuration: PythonConfiguration,
 
 
 def build(options: BuildOptions) -> None:
-    allowed_archs = {Architecture.x86_64, Architecture.universal2, Architecture.arm64}
-    if any(a not in allowed_archs for a in options.architectures):
-        raise ValueError(textwrap.dedent(f'''
-            Invalid archs option {[a.value for a in options.architectures]}. macOS only supports
-            these architectures: {', '.join(a.value for a in allowed_archs)}.
-        '''))
+    allowed_architectures_check("macos", options)
 
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
