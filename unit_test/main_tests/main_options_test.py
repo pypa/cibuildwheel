@@ -8,7 +8,6 @@ from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.util import BuildSelector
 
-
 # CIBW_PLATFORM is tested in main_platform_test.py
 
 

@@ -1,6 +1,6 @@
-from cibuildwheel.util import DependencyConstraints
-
 from pathlib import Path
+
+from cibuildwheel.util import DependencyConstraints
 
 
 def test_defaults():

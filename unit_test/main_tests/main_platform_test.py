@@ -1,12 +1,11 @@
 import platform as platform_module
-from cibuildwheel.util import Architecture
 import sys
 
 import pytest
+from conftest import MOCK_PACKAGE_DIR  # noqa: I100
 
 from cibuildwheel.__main__ import main
-
-from conftest import MOCK_PACKAGE_DIR  # noqa: I100
+from cibuildwheel.util import Architecture
 
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):

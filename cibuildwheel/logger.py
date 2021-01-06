@@ -3,7 +3,7 @@ import os
 import re
 import sys
 import time
-from typing import Optional, Union, AnyStr, IO
+from typing import IO, AnyStr, Optional, Union
 
 from cibuildwheel.util import CIProvider, detect_ci_provider
 

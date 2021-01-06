@@ -5,17 +5,13 @@ import textwrap
 import traceback
 from configparser import ConfigParser
 from pathlib import Path
-
 from typing import Any, Dict, List, Optional, Set, overload
 
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.windows
-from cibuildwheel.environment import (
-    EnvironmentParseError,
-    parse_environment,
-)
+from cibuildwheel.environment import EnvironmentParseError, parse_environment
 from cibuildwheel.util import (
     Architecture,
     BuildOptions,

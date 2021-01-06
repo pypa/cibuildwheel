@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import os
-from pathlib import Path
 import shutil
-from subprocess import run
 import sys
 import textwrap
 import time
-import click
-from glob import glob
 from collections import namedtuple
+from glob import glob
+from pathlib import Path
+from subprocess import run
 from urllib.parse import quote
+
+import click
 
 
 def shell(cmd, **kwargs):

@@ -1,7 +1,9 @@
 import subprocess
+
 import pytest
-from .test_projects import TestProject
+
 from . import utils
+from .test_projects import TestProject
 
 so_file_project = TestProject()
 
