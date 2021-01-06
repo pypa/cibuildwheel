@@ -262,7 +262,7 @@ PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
 
 ALLOWED_ARCHITECTURES = {
     'linux': {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x},
-    'macos': {Architecture.x86_64},
+    'macos': {Architecture.x86_64, Architecture.universal2, Architecture.arm64},
     'windows': {Architecture.AMD64, Architecture.x86},
 }
 
