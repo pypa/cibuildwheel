@@ -5,6 +5,11 @@ from . import test_projects, utils
 
 basic_project = test_projects.new_c_project()
 
+ALL_MACOS_WHEELS = (
+    utils.expected_wheels('spam', '0.1.0', machine_arch='x86_64')
+    + utils.expected_wheels('spam', '0.1.0', machine_arch='arm64')
+)
+
 
 def test_cross_compiled_build(tmp_path):
     if utils.platform != 'macos':
@@ -20,13 +25,7 @@ def test_cross_compiled_build(tmp_path):
         'CIBW_ARCHS': 'x86_64, universal2, arm64',
     })
 
-    all_macos_wheels = (
-        utils.expected_wheels('spam', '0.1.0', machine_arch='x86_64')
-        + utils.expected_wheels('spam', '0.1.0', machine_arch='arm64')
-    )
-
-    # only cpython 3.9
-    expected_wheels = [w for w in all_macos_wheels if 'cp39' in w]
+    expected_wheels = [w for w in ALL_MACOS_WHEELS if 'cp39' in w]
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -61,7 +60,9 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         assert 'running tests on x86_64' in captured.out
         assert 'running tests on arm64' in captured.out
 
-    print(actual_wheels)
+    if build_universal2:
+        expected_wheels = [w for w in ALL_MACOS_WHEELS if 'cp39' in w and 'universal2' in w]
+    else:
+        expected_wheels = [w for w in ALL_MACOS_WHEELS if 'cp39' in w and 'universal2' not in w]
 
-
-# TODO: add a TEST_COMMAND test when using cross-compiling
+    assert set(actual_wheels) == set(expected_wheels)
