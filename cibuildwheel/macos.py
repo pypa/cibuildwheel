@@ -33,6 +33,7 @@ def get_macos_version() -> Tuple[int, int]:
 
     These tuples can be used in comparisons, e.g.
         (10, 14) <= (11, 0) == True
+        (10, 14) <= (10, 16) == True
         (11, 2) <= (11, 0) != True
     '''
     version_str, _, _ = platform.mac_ver()
@@ -71,7 +72,9 @@ def get_python_configurations(build_selector: BuildSelector,
     # skip builds as required by BUILD/SKIP
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
 
-    if get_macos_version() >= (11, 0):
+    # When running on macOS 11 in x86_64 mode, the reported OS is the
+    # non-existent '10.16'.
+    if get_macos_version() >= (10, 16):
         if any(c.identifier.startswith('pp') for c in python_configurations):
             # pypy doesn't work on macOS 11 yet
             # See https://foss.heptapod.net/pypy/pypy/-/issues/3314

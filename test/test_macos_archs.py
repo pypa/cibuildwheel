@@ -14,7 +14,7 @@ ALL_MACOS_WHEELS = (
 def test_cross_compiled_build(tmp_path):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
-    if utils.get_macos_version() < (11, 0):
+    if utils.get_macos_version() < (10, 16):
         pytest.skip('this test only works on macOS 11 or greater')
 
     project_dir = tmp_path / 'project'
@@ -33,7 +33,7 @@ def test_cross_compiled_build(tmp_path):
 def test_cross_compiled_test(tmp_path, capfd, build_universal2):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
-    if utils.get_macos_version() < (11, 0):
+    if utils.get_macos_version() < (10, 16):
         pytest.skip('this test only works on macOS 11 or greater')
 
     project_dir = tmp_path / 'project'
