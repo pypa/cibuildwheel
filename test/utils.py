@@ -117,8 +117,8 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
             python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
 
     if platform == 'macos' and get_macos_version() >= (10, 16):
-        # CPython 3.5 doesn't work on macOS 11.
         # 10.16 is sometimes reported as the macOS version on macOS 11.
+        # CPython 3.5 doesn't work on macOS 11.
         python_abi_tags.remove('cp35-cp35m')
         # pypy not supported on macOS 11.
         python_abi_tags = [t for t in python_abi_tags if not t.startswith('pp')]

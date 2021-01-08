@@ -81,8 +81,8 @@ def get_python_configurations(build_selector: BuildSelector,
     # skip builds as required by BUILD/SKIP
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
 
-    # When running on macOS 11 in x86_64 mode, the reported OS is the
-    # non-existent '10.16'.
+    # When running on macOS 11 and x86_64, the reported OS is '10.16', but
+    # there is no such OS - it really means macOS 11.
     if get_macos_version() >= (10, 16):
         if any(c.identifier.startswith('pp') for c in python_configurations):
             # pypy doesn't work on macOS 11 yet
