@@ -116,26 +116,18 @@ class Logger:
         self.error(error)
 
     def warning(self, message: str) -> None:
-        print()
-
         if self.fold_mode == 'github':
-            print(f'::warning::{message}')
+            print(f'::warning::{message}\n', file=sys.stderr)
         else:
             c = self.colors
-            print(f'{c.yellow}Warning{c.end} {message}')
-
-        print()
+            print(f'{c.yellow}Warning{c.end}: {message}\n', file=sys.stderr)
 
     def error(self, error: Union[BaseException, str]) -> None:
-        print()
-
         if self.fold_mode == 'github':
-            print(f'::error::{error}')
+            print(f'::error::{error}\n', file=sys.stderr)
         else:
             c = self.colors
-            print(f'{c.bright_red}Error{c.end} {error}')
-
-        print()
+            print(f'{c.bright_red}Error{c.end}: {error}\n', file=sys.stderr)
 
     def _start_fold_group(self, name: str) -> None:
         self._end_fold_group()

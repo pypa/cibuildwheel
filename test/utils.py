@@ -37,10 +37,7 @@ def cibuildwheel_get_build_identifiers(project_path, env=None):
         env=env,
     )
 
-    lines = cmd_output.strip().split('\n')
-
-    # ignore warning lines in output
-    return [l for l in lines if l != '' and not l.startswith('Warning ')]
+    return cmd_output.strip().split('\n')
 
 
 def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, output_dir=None):
