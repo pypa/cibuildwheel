@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import os
+import textwrap
 import time
 from pathlib import Path
 from subprocess import run
 
 import click
-import textwrap
 
 
 def shell(cmd, **kwargs):

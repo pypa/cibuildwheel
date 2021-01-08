@@ -10,11 +10,20 @@ from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, 
 
 from .environment import ParsedEnvironment
 from .logger import log
-from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
-                   download, get_build_verbosity_extra_flags, get_pip_script,
-                   install_certifi_script, prepare_command, allowed_architectures_check,
-                   unwrap)
 from .typing import PathOrStr
+from .util import (
+    Architecture,
+    BuildOptions,
+    BuildSelector,
+    NonPlatformWheelError,
+    allowed_architectures_check,
+    download,
+    get_build_verbosity_extra_flags,
+    get_pip_script,
+    install_certifi_script,
+    prepare_command,
+    unwrap,
+)
 
 
 def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:

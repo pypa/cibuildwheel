@@ -4,12 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel import (
-    linux,
-    macos,
-    util,
-    windows,
-)
+from cibuildwheel import linux, macos, util, windows
 
 
 class ArgsInterceptor:

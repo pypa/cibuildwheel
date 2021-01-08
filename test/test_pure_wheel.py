@@ -1,6 +1,8 @@
 import subprocess
-import pytest
 from test import test_projects
+
+import pytest
+
 from . import utils
 
 pure_python_project = test_projects.TestProject()

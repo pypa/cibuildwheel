@@ -4,8 +4,7 @@ import textwrap
 
 import pytest
 
-from . import utils
-from . import test_projects
+from . import test_projects, utils
 
 project_with_a_test = test_projects.new_c_project(
     setup_cfg_add=textwrap.dedent(r'''

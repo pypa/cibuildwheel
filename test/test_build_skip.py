@@ -1,7 +1,6 @@
 import textwrap
 
-from . import utils
-from . import test_projects
+from . import test_projects, utils
 
 project_with_skip_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''

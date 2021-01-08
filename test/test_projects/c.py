@@ -1,6 +1,6 @@
 import jinja2
-from .base import TestProject
 
+from .base import TestProject
 
 SPAM_C_TEMPLATE = r'''
 #include <Python.h>

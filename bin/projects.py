@@ -11,17 +11,16 @@ Suggested usage:
 
 import builtins
 import functools
+import urllib.request
+import xml.dom.minidom
 from datetime import datetime
 from io import StringIO
-from typing import Dict, Any, List, Optional, TextIO
+from pathlib import Path
+from typing import Any, Dict, List, Optional, TextIO
 
 import click
 import yaml
 from github import Github
-import urllib.request
-import xml.dom.minidom
-from pathlib import Path
-
 
 ICONS = (
     "appveyor",

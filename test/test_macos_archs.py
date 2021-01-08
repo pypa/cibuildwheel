@@ -1,5 +1,6 @@
-import pytest
 import platform
+
+import pytest
 
 from . import test_projects, utils
 

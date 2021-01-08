@@ -11,10 +11,18 @@ import toml
 
 from .environment import ParsedEnvironment
 from .logger import log
-from .util import (Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
-                   download, get_build_verbosity_extra_flags, get_pip_script,
-                   prepare_command, allowed_architectures_check)
 from .typing import PathOrStr
+from .util import (
+    Architecture,
+    BuildOptions,
+    BuildSelector,
+    NonPlatformWheelError,
+    allowed_architectures_check,
+    download,
+    get_build_verbosity_extra_flags,
+    get_pip_script,
+    prepare_command,
+)
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'

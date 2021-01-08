@@ -1,7 +1,7 @@
-import textwrap
-from . import test_projects
-from . import utils
 import os
+import textwrap
+
+from . import test_projects, utils
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(

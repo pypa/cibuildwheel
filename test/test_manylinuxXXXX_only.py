@@ -3,8 +3,7 @@ import textwrap
 
 import pytest
 
-from . import utils
-from . import test_projects
+from . import test_projects, utils
 
 # TODO: specify these at runtime according to manylinux_image
 project_with_manylinux_symbols = test_projects.new_c_project(

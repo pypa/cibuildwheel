@@ -1,9 +1,9 @@
+import functools
 import os
 import platform as platform_module
 import re
 import ssl
 import sys
-import functools
 import textwrap
 import urllib.request
 from enum import Enum

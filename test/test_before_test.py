@@ -1,5 +1,4 @@
-from . import test_projects
-from . import utils
+from . import test_projects, utils
 
 before_test_project = test_projects.new_c_project()
 before_test_project.files['test/spam_test.py'] = r'''

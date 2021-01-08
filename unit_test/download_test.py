@@ -1,9 +1,9 @@
-import certifi
-import pytest
 import ssl
 
-from cibuildwheel.util import download
+import certifi
+import pytest
 
+from cibuildwheel.util import download
 
 DOWNLOAD_URL = 'https://raw.githubusercontent.com/joerick/cibuildwheel/v1.6.3/requirements-dev.txt'
 

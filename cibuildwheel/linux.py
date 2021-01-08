@@ -6,11 +6,16 @@ from typing import List, NamedTuple, Set
 
 from .docker_container import DockerContainer
 from .logger import log
-from .util import (
-    Architecture, BuildOptions, BuildSelector, NonPlatformWheelError,
-    allowed_architectures_check, get_build_verbosity_extra_flags, prepare_command,
-)
 from .typing import PathOrStr
+from .util import (
+    Architecture,
+    BuildOptions,
+    BuildSelector,
+    NonPlatformWheelError,
+    allowed_architectures_check,
+    get_build_verbosity_extra_flags,
+    prepare_command,
+)
 
 
 class PythonConfiguration(NamedTuple):
