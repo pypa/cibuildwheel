@@ -228,9 +228,13 @@ def setup_python(python_configuration: PythonConfiguration,
 
     if python_configuration.version == '3.9':
         if python_configuration.identifier.endswith('x86_64'):
+            # even on the macos11.0 Python installer, on the x86_64 side it's
+            # compatible back to 10.9.
             env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
             env.setdefault('ARCHFLAGS', '-arch x86_64')
         elif python_configuration.identifier.endswith('arm64'):
+            # macOS 11 is the first OS with arm64 support, so the wheels
+            # have that as a minimum.
             env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-11.0-arm64')
             env.setdefault('ARCHFLAGS', '-arch arm64')
 
