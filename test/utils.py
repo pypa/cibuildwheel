@@ -76,6 +76,19 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
     return wheels
 
 
+def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
+    '''
+    The first version of macOS that supports arm is 11.0. So the wheel tag
+    cannot contain an earlier deployment target, even if
+    MACOSX_DEPLOYMENT_TARGET sets it.
+    '''
+    version_tuple = tuple(map(int, macosx_deployment_target.split('.')))
+    if version_tuple <= (11, 0):
+        return '11.0'
+    else:
+        return macosx_deployment_target
+
+
 def expected_wheels(package_name, package_version, manylinux_versions=None,
                     macosx_deployment_target='10.9', machine_arch=None):
     '''
@@ -103,11 +116,16 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         if platform == 'linux':
             python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
 
-    if platform == 'macos' and get_macos_version() >= (11, 0):
+    if platform == 'macos' and get_macos_version() >= (10, 16):
         # CPython 3.5 doesn't work on macOS 11.
+        # 10.16 is sometimes reported as the macOS version on macOS 11.
         python_abi_tags.remove('cp35-cp35m')
         # pypy not supported on macOS 11.
         python_abi_tags = [t for t in python_abi_tags if not t.startswith('pp')]
+
+    if platform == 'macos' and machine_arch == 'arm64':
+        # currently, arm64 macs are only supported by cp39
+        python_abi_tags = ['cp39-cp39']
 
     wheels = []
 
@@ -133,18 +151,12 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
                 platform_tags = ['win32']
 
         elif platform == 'macos':
-            if python_abi_tag == 'cp39-cp39':
-                if machine_arch == 'x86_64':
-                    platform_tags = [
-                        f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
-                    ]
-                elif machine_arch == 'arm64':
-                    platform_tags = [
-                        f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2.macosx_11_0_universal2',
-                        # macosx_deployment_target is ignored on arm64, because arm64 isn't supported on
-                        # macOS earlier than 11.0
-                        'macosx_11_0_arm64',
-                    ]
+            if python_abi_tag == 'cp39-cp39' and machine_arch == 'arm64':
+                arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(macosx_deployment_target)
+                platform_tags = [
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2.macosx_{arm64_macosx_deployment_target.replace(".", "_")}_universal2',
+                    f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64',
+                ]
             else:
                 platform_tags = [
                     f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
