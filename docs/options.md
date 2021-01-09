@@ -243,7 +243,7 @@ CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
 
 A shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
 
-If dependencies are required to build your wheel (for example if you include a header from a Python module), you should add a pyproject.toml file instead of using this command. This is reproducable, and users who do not get your wheels (such as Alpine or ClearLinux users) will still benefit.
+If dependencies are required to build your wheel (for example if you include a header from a Python module), instead of using this command, we recommend adding requirements to a pyproject.toml file. This is reproducible, and users who do not get your wheels (such as Alpine or ClearLinux users) will still benefit.
 
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
 
@@ -270,33 +270,34 @@ CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
 CIBW_BEFORE_BUILD: "{package}/bin/prepare_for_build.sh"
 ```
 
-If you need dependencies installed for the build, this is an example pyproject.toml file:
+!!! note
+    If you need dependencies installed for the build, we recommend using pyproject.toml. This is an example pyproject.toml file:
 
-```toml
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel",
-    "Cython",
-    "numpy==1.11.3; python_version<='3.6'",
-    "numpy==1.14.5; python_version=='3.7'",
-    "numpy==1.17.3; python_version=='3.8'",
-    "numpy==1.19.4; python_version>='3.9'",
-]
+    ```toml
+    [build-system]
+    requires = [
+        "setuptools>=42",
+        "wheel",
+        "Cython",
+        "numpy==1.11.3; python_version<='3.6'",
+        "numpy==1.14.5; python_version=='3.7'",
+        "numpy==1.17.3; python_version=='3.8'",
+        "numpy==1.19.4; python_version>='3.9'",
+    ]
 
-build-backend = "setuptools.build_meta"
-```
+    build-backend = "setuptools.build_meta"
+    ```
 
-This [PEP 517][]/[PEP 518][] style build allows you to completely control the
-build environment in cibuildwheel, [PyPA-build][], and pip, doesn't force
-downstream users to install anything they don't need, and lets you do more
-complex pinning (Cython, for example, requires a wheel to be built with an
-equal or earlier version of NumPy; pinning in this way is the only way to
-ensure your module works on all available NumPy versions).
+    This [PEP 517][]/[PEP 518][] style build allows you to completely control the
+    build environment in cibuildwheel, [PyPA-build][], and pip, doesn't force
+    downstream users to install anything they don't need, and lets you do more
+    complex pinning (Cython, for example, requires a wheel to be built with an
+    equal or earlier version of NumPy; pinning in this way is the only way to
+    ensure your module works on all available NumPy versions).
 
-[PyPA-build]: https://pypa-build.readthedocs.io/en/latest/
-[PEP 517]: https://www.python.org/dev/peps/pep-0517/
-[PEP 518]: https://www.python.org/dev/peps/pep-0517/
+    [PyPA-build]: https://pypa-build.readthedocs.io/en/latest/
+    [PEP 517]: https://www.python.org/dev/peps/pep-0517/
+    [PEP 518]: https://www.python.org/dev/peps/pep-0517/
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
 > Execute a shell command to repair each (non-pure Python) built wheel
