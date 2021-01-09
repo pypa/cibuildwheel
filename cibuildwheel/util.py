@@ -15,7 +15,7 @@ import certifi
 import toml
 
 from .environment import ParsedEnvironment
-from .typing import PathOrStr, PlatStr
+from .typing import PathOrStr, PlatformName
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -152,7 +152,7 @@ class Architecture(Enum):
         return self.value < other.value
 
     @staticmethod
-    def parse_config(config: str, platform: PlatStr) -> 'Set[Architecture]':
+    def parse_config(config: str, platform: PlatformName) -> 'Set[Architecture]':
         result = set()
         for arch_str in re.split(r'[\s,]+', config):
             if arch_str == 'auto':
@@ -162,7 +162,7 @@ class Architecture(Enum):
         return result
 
     @staticmethod
-    def auto_archs(platform: PlatStr) -> 'Set[Architecture]':
+    def auto_archs(platform: PlatformName) -> 'Set[Architecture]':
         native_architecture = Architecture(platform_module.machine())
         result = {native_architecture}
         if platform == 'linux' and native_architecture == Architecture.x86_64:
@@ -257,7 +257,7 @@ ALLOWED_ARCHITECTURES = {
 
 
 def allowed_architectures_check(
-    name: PlatStr,
+    name: PlatformName,
     options: BuildOptions,
 ) -> None:
 

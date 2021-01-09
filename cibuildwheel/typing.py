@@ -17,8 +17,8 @@ else:
     PathOrStr = Union[str, "os.PathLike[str]"]
 
 
-PlatStr = Literal["linux", "macos", "windows"]
-PLATFORMS: Final[Set[PlatStr]] = {"linux", "macos", "windows"}
+PlatformName = Literal["linux", "macos", "windows"]
+PLATFORMS: Final[Set[PlatformName]] = {"linux", "macos", "windows"}
 
 
 def assert_never(value: NoReturn) -> NoReturn:

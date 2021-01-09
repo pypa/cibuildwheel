@@ -12,7 +12,7 @@ import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.windows
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
-from cibuildwheel.typing import PLATFORMS, PlatStr, assert_never
+from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
     Architecture,
     BuildOptions,
@@ -48,7 +48,7 @@ def get_option_from_environment(option_name: str, platform: Optional[str] = None
 
 
 def main() -> None:
-    platform: PlatStr
+    platform: PlatformName
 
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
