@@ -203,7 +203,6 @@ class BuildOptions(NamedTuple):
     build_verbosity: int
 
 
-
 class NonPlatformWheelError(Exception):
     def __init__(self) -> None:
         message = textwrap.dedent('''
