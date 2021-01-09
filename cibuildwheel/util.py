@@ -46,7 +46,7 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
 def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
     input_file = files('cibuildwheel') / 'resources/build-platforms.toml'
     loaded_file = toml.load(input_file)
-    results: List[Dict[str, str]] = list(loaded_file["tool"]["cibw"]["build-platforms"][config])
+    results: List[Dict[str, str]] = list(loaded_file[config]['python_configurations'])
     return results
 
 
