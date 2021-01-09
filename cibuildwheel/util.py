@@ -24,6 +24,11 @@ else:
     from importlib.resources import files
 
 
+resources_dir = files('cibuildwheel') / 'resources'
+get_pip_script = resources_dir / 'get-pip.py'
+install_certifi_script = resources_dir / "install_certifi.py"
+
+
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     '''
     Preprocesses a command by expanding variables like {python}.
@@ -44,7 +49,7 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
 
 
 def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
-    input_file = files('cibuildwheel') / 'resources/build-platforms.toml'
+    input_file = resources_dir / 'build-platforms.toml'
     loaded_file = toml.load(input_file)
     results: List[Dict[str, str]] = list(loaded_file[config]['python_configurations'])
     return results
@@ -197,10 +202,6 @@ class BuildOptions(NamedTuple):
     test_extras: str
     build_verbosity: int
 
-
-resources_dir = files('cibuildwheel') / 'resources'
-get_pip_script = resources_dir / 'get-pip.py'
-install_certifi_script = resources_dir / "install_certifi.py"
 
 
 class NonPlatformWheelError(Exception):
