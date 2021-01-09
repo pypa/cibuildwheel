@@ -254,20 +254,17 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 ```yaml
-# install your project and dependencies before building (WARNING: builds twice)
-CIBW_BEFORE_BUILD: pip install .
-
-# install something required for the build (please use pyproject.toml instead)
+# install something required for the build (you might want to use pyproject.toml instead)
 CIBW_BEFORE_BUILD: pip install pybind11
 
 # chain commands using &&
-CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
+CIBW_BEFORE_BUILD_LINUX: yum install -y libffi-dev && make clean
 
 # run a script that's inside your project
 CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
 
 # if cibuildwheel is called with a package_dir argument, it's available as {package}
-CIBW_BEFORE_BUILD: "{package}/bin/prepare_for_build.sh"
+CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
 ```
 
 !!! note
