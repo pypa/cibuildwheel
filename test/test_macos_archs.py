@@ -53,9 +53,9 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         assert 'running tests on x86_64' in captured.out
         assert 'running tests on arm64' not in captured.out
         if build_universal2:
-            assert 'While universal2 wheels can be built on x86_64, the arm64 part of them cannot currently be tested' in captured.out
+            assert 'While universal2 wheels can be built on x86_64, the arm64 part of them cannot currently be tested' in captured.err
         else:
-            assert 'While arm64 wheels can be built on x86_64, they cannot be tested' in captured.out
+            assert 'While arm64 wheels can be built on x86_64, they cannot be tested' in captured.err
     elif platform.machine() == 'arm64':
         # ensure that tests were run on both x86_64 and arm64
         assert 'running tests on x86_64' in captured.out
