@@ -20,7 +20,6 @@ from cibuildwheel.util import (
     DependencyConstraints,
     Unbuffered,
     detect_ci_provider,
-    read_python_configs,
     resources_dir,
 )
 
@@ -225,8 +224,6 @@ def main() -> None:
 
             manylinux_images[build_platform] = image
 
-    python_configs = read_python_configs(resources_dir / 'build-platforms.toml', platform)
-
     build_options = BuildOptions(
         architectures=archs,
         package_dir=package_dir,
@@ -243,7 +240,6 @@ def main() -> None:
         environment=environment,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images,
-        python_configs=python_configs,
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
@@ -315,15 +311,13 @@ def print_build_identifiers(
     platform: str, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> None:
 
-    python_configs = read_python_configs(resources_dir / "build-platforms.toml", platform)
-
     python_configurations: List[Any] = []
     if platform == 'linux':
-        python_configurations = cibuildwheel.linux.get_python_configurations(python_configs, build_selector, architectures)
+        python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
     elif platform == 'windows':
-        python_configurations = cibuildwheel.windows.get_python_configurations(python_configs, build_selector, architectures)
+        python_configurations = cibuildwheel.windows.get_python_configurations(build_selector, architectures)
     elif platform == 'macos':
-        python_configurations = cibuildwheel.macos.get_python_configurations(python_configs, build_selector)
+        python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
 
     for config in python_configurations:
         print(config.identifier)

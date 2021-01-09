@@ -2,7 +2,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import Dict, List, NamedTuple, Set
+from typing import List, NamedTuple, Set
 
 from .docker_container import DockerContainer
 from .logger import log
@@ -15,6 +15,8 @@ from .util import (
     allowed_architectures_check,
     get_build_verbosity_extra_flags,
     prepare_command,
+    read_python_configs,
+    resources_dir,
 )
 
 
@@ -29,12 +31,13 @@ class PythonConfiguration(NamedTuple):
 
 
 def get_python_configurations(
-    python_configs: List[Dict[str, str]],
     build_selector: BuildSelector,
     architectures: Set[Architecture]
 ) -> List[PythonConfiguration]:
 
-    python_configurations = [PythonConfiguration(**item) for item in python_configs]
+    full_python_configs = read_python_configs('linux')
+
+    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
     # return all configurations whose arch is in our `architectures` set,
     # and match the build/skip rules
@@ -46,7 +49,7 @@ def get_python_configurations(
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check("linux", options)
+    allowed_architectures_check('linux', options)
 
     try:
         subprocess.check_output(['docker', '--version'])
@@ -58,7 +61,7 @@ def build(options: BuildOptions) -> None:
         exit(2)
 
     assert options.manylinux_images is not None
-    python_configurations = get_python_configurations(options.python_configs, options.build_selector, options.architectures)
+    python_configurations = get_python_configurations(options.build_selector, options.architectures)
     platforms = [
         ('cp', 'manylinux_x86_64', options.manylinux_images['x86_64']),
         ('cp', 'manylinux_i686', options.manylinux_images['i686']),
@@ -106,7 +109,7 @@ def build(options: BuildOptions) -> None:
                     if config.identifier.startswith("pp"):
                         # Patch PyPy to make sure headers get installed into a venv
                         patch_version = '_27' if config.version == '2.7' else ''
-                        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+                        patch_path = resources_dir / f'pypy_venv{patch_version}.patch'
                         patch_docker_path = PurePath('/pypy_venv.patch')
                         docker.copy_into(patch_path, patch_docker_path)
                         try:

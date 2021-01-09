@@ -20,6 +20,8 @@ from .util import (
     get_pip_script,
     install_certifi_script,
     prepare_command,
+    read_python_configs,
+    resources_dir,
 )
 
 
@@ -40,10 +42,11 @@ class PythonConfiguration(NamedTuple):
 
 
 def get_python_configurations(
-        python_configs: List[Dict[str, str]],
         build_selector: BuildSelector) -> List[PythonConfiguration]:
 
-    python_configurations = [PythonConfiguration(**item) for item in python_configs]
+    full_python_configs = read_python_configs('macos')
+
+    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
     # skip builds as required
     return [c for c in python_configurations if build_selector(c.identifier)]
@@ -106,7 +109,7 @@ def install_pypy(version: str, url: str) -> Path:
         call(['tar', '-C', '/tmp', '-xf', downloaded_tar_bz2])
         # Patch PyPy to make sure headers get installed into a venv
         patch_version = '_27' if version == '2.7' else ''
-        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+        patch_path = resources_dir / f'pypy_venv{patch_version}.patch'
         call(['patch', '--force', '-p1', '-d', installation_path, '-i', patch_path])
 
     installation_bin_path = installation_path / 'bin'
@@ -198,7 +201,7 @@ def build(options: BuildOptions) -> None:
             before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
             call([before_all_prepared], shell=True, env=env)
 
-        python_configurations = get_python_configurations(options.python_configs, options.build_selector)
+        python_configurations = get_python_configurations(options.build_selector)
 
         for config in python_configurations:
             log.build_start(config.identifier)

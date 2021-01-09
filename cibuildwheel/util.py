@@ -3,6 +3,7 @@ import os
 import platform as platform_module
 import re
 import ssl
+import sys
 import textwrap
 import urllib.request
 from enum import Enum
@@ -16,6 +17,11 @@ import toml
 
 from .environment import ParsedEnvironment
 from .typing import PathOrStr, PlatformName
+
+if sys.version_info < (3, 9):
+    from importlib_resources import files
+else:
+    from importlib.resources import files
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -37,8 +43,9 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
         return []
 
 
-def read_python_configs(input_path: PathOrStr, config: str) -> List[Dict[str, str]]:
-    loaded_file = toml.load(input_path)
+def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
+    input_file = files('cibuildwheel') / 'resources/build-platforms.toml'
+    loaded_file = toml.load(input_file)
     results: List[Dict[str, str]] = list(loaded_file["tool"]["cibw"]["build-platforms"][config])
     return results
 
@@ -189,10 +196,9 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
-    python_configs: List[Dict[str, str]]
 
 
-resources_dir = Path(__file__).resolve().parent / 'resources'
+resources_dir = files('cibuildwheel') / 'resources'
 get_pip_script = resources_dir / 'get-pip.py'
 install_certifi_script = resources_dir / "install_certifi.py"
 

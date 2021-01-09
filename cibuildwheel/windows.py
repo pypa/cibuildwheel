@@ -22,6 +22,7 @@ from .util import (
     get_build_verbosity_extra_flags,
     get_pip_script,
     prepare_command,
+    read_python_configs,
 )
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
@@ -56,12 +57,13 @@ class PythonConfiguration(NamedTuple):
 
 
 def get_python_configurations(
-        python_configs: List[Dict[str, str]],
         build_selector: BuildSelector,
         architectures: Set[Architecture],
 ) -> List[PythonConfiguration]:
 
-    python_configurations = [PythonConfiguration(**item) for item in python_configs]
+    full_python_configs = read_python_configs('windows')
+
+    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
     map_arch = {
         '32': Architecture.x86,
@@ -197,14 +199,14 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             log.step('Performing PEP518 workaround...')
             with tempfile.TemporaryDirectory() as d:
                 reqfile = Path(d) / "requirements.txt"
-                with reqfile.open("w") as f:
+                with reqfile.open('w') as f:
                     for r in requirements:
                         print(r, file=f)
                 call(['pip', 'install', '-r', reqfile], env=env)
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check("windows", options)
+    allowed_architectures_check('windows', options)
 
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
@@ -217,7 +219,7 @@ def build(options: BuildOptions) -> None:
             before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
             shell(before_all_prepared, env=env)
 
-        python_configurations = get_python_configurations(options.python_configs, options.build_selector, options.architectures)
+        python_configurations = get_python_configurations(options.build_selector, options.architectures)
 
         for config in python_configurations:
             log.build_start(config.identifier)
