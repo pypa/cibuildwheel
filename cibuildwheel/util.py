@@ -13,14 +13,20 @@ from time import sleep
 from typing import Dict, List, NamedTuple, Optional, Set
 
 import certifi
+import toml
 
 from .environment import ParsedEnvironment
-from .typing import PathOrStr
+from .typing import PathOrStr, PlatformName
 
-if sys.version_info < (3, 8):
-    from typing_extensions import Literal
+if sys.version_info < (3, 9):
+    from importlib_resources import files
 else:
-    from typing import Literal
+    from importlib.resources import files
+
+
+resources_dir = files('cibuildwheel') / 'resources'
+get_pip_script = resources_dir / 'get-pip.py'
+install_certifi_script = resources_dir / "install_certifi.py"
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -40,6 +46,13 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
         return ['-' + -level * 'q']
     else:
         return []
+
+
+def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
+    input_file = resources_dir / 'build-platforms.toml'
+    loaded_file = toml.load(input_file)
+    results: List[Dict[str, str]] = list(loaded_file[config]['python_configurations'])
+    return results
 
 
 class BuildSelector:
@@ -151,7 +164,7 @@ class Architecture(Enum):
         return self.value < other.value
 
     @staticmethod
-    def parse_config(config: str, platform: str) -> 'Set[Architecture]':
+    def parse_config(config: str, platform: PlatformName) -> 'Set[Architecture]':
         result = set()
         for arch_str in re.split(r'[\s,]+', config):
             if arch_str == 'auto':
@@ -161,7 +174,7 @@ class Architecture(Enum):
         return result
 
     @staticmethod
-    def auto_archs(platform: str) -> 'Set[Architecture]':
+    def auto_archs(platform: PlatformName) -> 'Set[Architecture]':
         native_architecture = Architecture(platform_module.machine())
         result = {native_architecture}
         if platform == 'linux' and native_architecture == Architecture.x86_64:
@@ -188,11 +201,6 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
-
-
-resources_dir = Path(__file__).resolve().parent / 'resources'
-get_pip_script = resources_dir / 'get-pip.py'
-install_certifi_script = resources_dir / "install_certifi.py"
 
 
 class NonPlatformWheelError(Exception):
@@ -255,7 +263,7 @@ ALLOWED_ARCHITECTURES = {
 
 
 def allowed_architectures_check(
-    name: Literal['linux', 'macos', 'windows'],
+    name: PlatformName,
     options: BuildOptions,
 ) -> None:
 

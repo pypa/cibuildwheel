@@ -15,6 +15,8 @@ from .util import (
     allowed_architectures_check,
     get_build_verbosity_extra_flags,
     prepare_command,
+    read_python_configs,
+    resources_dir,
 )
 
 
@@ -29,42 +31,13 @@ class PythonConfiguration(NamedTuple):
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: Set[Architecture]
+    build_selector: BuildSelector,
+    architectures: Set[Architecture]
 ) -> List[PythonConfiguration]:
-    python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27m'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_x86_64', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_x86_64', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_x86_64', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_x86_64', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_x86_64', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path_str='/opt/python/cp27-cp27m'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path_str='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_i686', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_i686', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_i686', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_i686', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_i686', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='2.7', identifier='pp27-manylinux_x86_64', path_str='/opt/python/pp27-pypy_73'),
-        PythonConfiguration(version='3.6', identifier='pp36-manylinux_x86_64', path_str='/opt/python/pp36-pypy36_pp73'),
-        PythonConfiguration(version='3.7', identifier='pp37-manylinux_x86_64', path_str='/opt/python/pp37-pypy37_pp73'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_aarch64', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_aarch64', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_aarch64', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_aarch64', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_aarch64', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_ppc64le', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_ppc64le', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_ppc64le', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_ppc64le', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_ppc64le', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_s390x', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_s390x', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_s390x', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_s390x', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
-    ]
+
+    full_python_configs = read_python_configs('linux')
+
+    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
     # return all configurations whose arch is in our `architectures` set,
     # and match the build/skip rules
@@ -76,7 +49,7 @@ def get_python_configurations(
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check("linux", options)
+    allowed_architectures_check('linux', options)
 
     try:
         subprocess.check_output(['docker', '--version'])
@@ -136,7 +109,7 @@ def build(options: BuildOptions) -> None:
                     if config.identifier.startswith("pp"):
                         # Patch PyPy to make sure headers get installed into a venv
                         patch_version = '_27' if config.version == '2.7' else ''
-                        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+                        patch_path = resources_dir / f'pypy_venv{patch_version}.patch'
                         patch_docker_path = PurePath('/pypy_venv.patch')
                         docker.copy_into(patch_path, patch_docker_path)
                         try:

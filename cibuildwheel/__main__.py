@@ -12,6 +12,7 @@ import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.windows
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
+from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
     Architecture,
     BuildOptions,
@@ -46,6 +47,8 @@ def get_option_from_environment(option_name: str, platform: Optional[str] = None
 
 
 def main() -> None:
+    platform: PlatformName
+
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
         epilog='''
@@ -120,6 +123,10 @@ def main() -> None:
                   file=sys.stderr)
             exit(2)
 
+    if platform not in PLATFORMS:
+        print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
+        exit(2)
+
     package_dir = Path(args.package_dir)
     output_dir = Path(args.output_dir)
 
@@ -127,8 +134,10 @@ def main() -> None:
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
     elif platform == 'macos':
         repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
-    else:
+    elif platform == 'windows':
         repair_command_default = ''
+    else:
+        assert_never(platform)
 
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
@@ -248,8 +257,7 @@ def main() -> None:
     elif platform == 'macos':
         cibuildwheel.macos.build(build_options)
     else:
-        print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
-        exit(2)
+        assert_never(platform)
 
 
 def detect_obsolete_options() -> None:
@@ -302,6 +310,7 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
 def print_build_identifiers(
     platform: str, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> None:
+
     python_configurations: List[Any] = []
     if platform == 'linux':
         python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
