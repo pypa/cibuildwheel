@@ -229,3 +229,34 @@
   ci: [travisci]
   os: [windows, apple, linux]
   notes: Dependency injection framework for Python, uses Windows TravisCI
+
+- name: numexpr
+  gh: pydata/numexpr
+  ci: [github, travisci]
+  os: [windows, apple, linux]
+
+- name: PyTables
+  gh: PyTables/PyTables
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: dd-trace-py
+  gh: DataDog/dd-trace-py
+  ci: [github]
+  os: [windows, apple, linux]
+  notes: Uses custom alternate arch emulation on GitHub
+
+- name: Tokenizer
+  gh: OpenNMT/Tokenizer
+  ci: [github, travisci]
+  os: [apple, linux]
+
+- name: matrixprofile
+  gh: matrix-profile-foundation/matrixprofile
+  ci: [travisci]
+  os: [windows, apple, linux]
+
+- name: cyvcf2
+  gh: brentp/cyvcf2
+  ci: [github]
+  os: [apple, linux]
