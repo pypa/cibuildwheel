@@ -7,13 +7,13 @@ import sys
 import textwrap
 import urllib.request
 from enum import Enum
-from fnmatch import fnmatch
 from pathlib import Path
 from time import sleep
 from typing import Dict, List, NamedTuple, Optional, Set
 
 import certifi
 import toml
+import wcmatch.fnmatch as fnmatch
 
 from .environment import ParsedEnvironment
 from .typing import PathOrStr, PlatformName
@@ -61,9 +61,9 @@ class BuildSelector:
         self.skip_patterns = skip_config.split()
 
     def __call__(self, build_id: str) -> bool:
-        def match_any(patterns: List[str]) -> bool:
-            return any(fnmatch(build_id, pattern) for pattern in patterns)
-        return match_any(self.build_patterns) and not match_any(self.skip_patterns)
+        patterns = self.build_patterns + [f"!{v}" for v in self.skip_patterns]
+        result: bool = fnmatch.fnmatch(build_id, patterns, flags=fnmatch.NEGATEALL | fnmatch.BRACE | fnmatch.NEGATE)
+        return result
 
     def __repr__(self) -> str:
         if not self.skip_patterns:
