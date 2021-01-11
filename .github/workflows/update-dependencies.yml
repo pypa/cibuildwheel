@@ -17,8 +17,10 @@ jobs:
         python-version: 3.9
         architecture: x64
     - name: Install dependencies
-      run: python -m pip install requests pip-tools packaging>=20.8
-    - name: Run update
+      run: python -m pip install ".[dev]"
+    - name: "Run update: dependencies"
+      run: python ./bin/update_dependencies.py
+    - name: "Run update: python configs"
       run: python ./bin/update_dependencies.py
     - name: Create Pull Request
       if: github.ref == 'refs/heads/master'
