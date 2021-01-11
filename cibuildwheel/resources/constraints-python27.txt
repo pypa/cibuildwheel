@@ -37,7 +37,7 @@ six==1.15.0
     #   virtualenv
 typing==3.7.4.3
     # via importlib-resources
-virtualenv==20.2.2
+virtualenv==20.3.0
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.36.2
     # via
