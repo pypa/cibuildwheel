@@ -39,7 +39,7 @@ What does it do?
 Usage
 -----
 
-`cibuildwheel` currently works on **GitHub Actions**, **Azure Pipelines**, **Travis CI**, **AppVeyor**, **CircleCI**, and **GitLab CI**. Check the table below for supported platforms on each service:
+`cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
 |                 | Linux | macOS | Windows | Linux ARM |
 |-----------------|-------|-------|---------|--------------|
@@ -93,7 +93,7 @@ jobs:
           path: ./wheelhouse/*.whl
 ```
 
-For more information, including building on Python 2, PyPI deployment, and the use of other CI services like Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including building on Python 2, PyPI deployment, and the use of other CI services, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
