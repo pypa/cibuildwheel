@@ -1,19 +1,11 @@
+import pytest
 import toml
-from toml.encoder import TomlEncoder
 
 from cibuildwheel.util import resources_dir
 
+Version = pytest.importorskip("packaging.version").Version
 
-class InlineArrayDictEncoder(TomlEncoder):
-    def dump_sections(self, o: dict, sup: str):
-        if all(isinstance(a, list) for a in o.values()):
-            val = ""
-            for k, v in o.items():
-                inner = ",\n  ".join(self.dump_inline_table(d_i).strip() for d_i in v)
-                val += f"{k} = [\n  {inner},\n]\n"
-            return val, self._dict()
-        else:
-            return super().dump_sections(o, sup)
+from cibuildwheel.extra import InlineArrayDictEncoder  # noqa: E402
 
 
 def test_compare_configs():
@@ -26,3 +18,26 @@ def test_compare_configs():
     print(new_txt)
 
     assert new_txt == txt
+
+
+def test_dump_with_Version():
+    example = {
+        "windows": {
+            "python_configurations": [
+                {"identifier": "cp27-win32", "version": Version("2.7.18"), "arch": "32"},
+                {"identifier": "cp27-win_amd64", "version": Version("2.7.18"), "arch": "64"},
+            ]
+        }
+    }
+
+    result = """\
+[windows]
+python_configurations = [
+  { identifier = "cp27-win32", version = "2.7.18", arch = "32" },
+  { identifier = "cp27-win_amd64", version = "2.7.18", arch = "64" },
+]
+"""
+
+    output = toml.dumps(example, encoder=InlineArrayDictEncoder())
+    print(output)
+    assert output == result
