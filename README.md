@@ -9,7 +9,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, and CircleCI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI - and it builds and tests your wheels across all of your platforms.
 
 
 What does it do?
@@ -31,21 +31,22 @@ What does it do?
 <sup>² Only supported on Travis</sup><br>
 <sup>³ Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup><br>
 
-- Builds manylinux, macOS and Windows wheels for CPython and PyPy using Azure Pipelines, Travis CI, AppVeyor, and CircleCI
+- Builds manylinux, macOS, and Windows wheels for CPython and PyPy
+- Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs the library test suite against the wheel-installed version of your library
 
 Usage
 -----
 
-`cibuildwheel` currently works on **Travis CI**, **Azure Pipelines**, **AppVeyor**, **GitHub Actions**, **CircleCI**, and **Gitlab CI**. Check the table below for supported platforms on each service:
+`cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
 |                 | Linux | macOS | Windows | Linux ARM |
 |-----------------|-------|-------|---------|--------------|
+| GitHub Actions  | ✅    | ✅    | ✅      | ✴️¹           |
 | Azure Pipelines | ✅    | ✅    | ✅      | ✴️¹           |
 | Travis CI       | ✅    | ✅    | ✅      | ✅           |
 | AppVeyor        | ✅    | ✅    | ✅      |              |
-| GitHub Actions  | ✅    | ✅    | ✅      | ✴️¹           |
 | CircleCI        | ✅    | ✅    |         |              |
 | Gitlab CI       | ✅    |       |         |              |
 
@@ -92,7 +93,7 @@ jobs:
           path: ./wheelhouse/*.whl
 ```
 
-For more information, including building on Python 2, PyPI deployment, and the use of other CI services like Travis CI, Appveyor, Azure Pipelines, or CircleCI, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including building on Python 2, PyPI deployment, and the use of other CI services, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
