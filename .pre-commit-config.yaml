@@ -29,7 +29,7 @@ repos:
   - id: mypy
     files: ^(cibuildwheel/|test/|bin/projects.py|bin/update_pythons.py|unit_test/)
     pass_filenames: false
-    additional_dependencies: [packaging]
+    additional_dependencies: [packaging, click]
 
 - repo: https://github.com/asottile/pyupgrade
   rev: v2.7.4
