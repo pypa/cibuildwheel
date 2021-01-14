@@ -16,7 +16,7 @@ import certifi
 import toml
 
 from .environment import ParsedEnvironment
-from .typing import PathOrStr, PlatformName
+from .typing import PathOrStr, PlatformName, assert_never
 
 if sys.version_info < (3, 9):
     from importlib_resources import files
@@ -169,6 +169,10 @@ class Architecture(Enum):
         for arch_str in re.split(r'[\s,]+', config):
             if arch_str == 'auto':
                 result |= Architecture.auto_archs(platform=platform)
+            elif arch_str == 'native':
+                result.add(Architecture(platform_module.machine()))
+            elif arch_str == 'all':
+                result |= Architecture.all_archs(platform=platform)
             else:
                 result.add(Architecture(arch_str))
         return result
@@ -183,6 +187,17 @@ class Architecture(Enum):
         if platform == 'windows' and native_architecture == Architecture.AMD64:
             result.add(Architecture.x86)
         return result
+
+    @staticmethod
+    def all_archs(platform: PlatformName) -> 'Set[Architecture]':
+        if platform == 'linux':
+            return {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x}
+        elif platform == 'macos':
+            return {Architecture.x86_64}
+        elif platform == 'windows':
+            return {Architecture.x86, Architecture.AMD64}
+        else:
+            assert_never(platform)
 
 
 class BuildOptions(NamedTuple):
@@ -255,19 +270,13 @@ def detect_ci_provider() -> Optional[CIProvider]:
 
 PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
 
-ALLOWED_ARCHITECTURES = {
-    'linux': {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x},
-    'macos': {Architecture.x86_64},
-    'windows': {Architecture.AMD64, Architecture.x86},
-}
-
 
 def allowed_architectures_check(
     name: PlatformName,
     options: BuildOptions,
 ) -> None:
 
-    allowed_architectures = ALLOWED_ARCHITECTURES[name]
+    allowed_architectures = Architecture.all_archs(name)
 
     msg = f'{PRETTY_NAMES[name]} only supports {sorted(allowed_architectures)} at the moment.'
 
