@@ -1,4 +1,6 @@
+import fnmatch
 import functools
+import itertools
 import os
 import platform as platform_module
 import re
@@ -11,9 +13,9 @@ from pathlib import Path
 from time import sleep
 from typing import Dict, List, NamedTuple, Optional, Set
 
+import bracex
 import certifi
 import toml
-import wcmatch.fnmatch as fnmatch
 
 from .environment import ParsedEnvironment
 from .typing import PathOrStr, PlatformName
@@ -61,9 +63,12 @@ class BuildSelector:
         self.skip_patterns = skip_config.split()
 
     def __call__(self, build_id: str) -> bool:
-        patterns = self.build_patterns + [f"!{v}" for v in self.skip_patterns]
-        result: bool = fnmatch.fnmatch(build_id, patterns, flags=fnmatch.NEGATEALL | fnmatch.BRACE | fnmatch.NEGATE)
-        return result
+        build_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.build_patterns)
+        skip_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.skip_patterns)
+
+        build: bool = any(fnmatch.fnmatch(build_id, pat) for pat in build_patterns)
+        skip: bool = any(fnmatch.fnmatch(build_id, pat) for pat in skip_patterns)
+        return build and not skip
 
     def __repr__(self) -> str:
         if not self.skip_patterns:

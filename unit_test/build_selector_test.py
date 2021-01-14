@@ -59,3 +59,13 @@ def test_build_and_skip():
     assert not build_selector('cp27-win_amd64')
     assert build_selector('cp36-win_amd64')
     assert not build_selector('cp37-win_amd64')
+
+
+def test_build_braces():
+    build_selector = BuildSelector(build_config="cp{36,37}*", skip_config="")
+
+    assert not build_selector('cp27-manylinux1_x86_64')
+    assert build_selector('cp36-manylinux1_x86_64')
+    assert build_selector('cp37-manylinux1_x86_64')
+    assert not build_selector('cp38-manylinux1_x86_64')
+    assert not build_selector('cp39-manylinux1_x86_64')
