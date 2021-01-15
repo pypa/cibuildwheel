@@ -75,7 +75,7 @@ Space-separated list of builds to build and skip. Each build has an identifier l
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
-When setting the options, you can use shell-style globbing syntax (as per [`fnmatch`](https://docs.python.org/3/library/fnmatch.html)). All the build identifiers supported by cibuildwheel are shown below:
+When setting the options, you can use shell-style globbing syntax, as per [`fnmatch`](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [`bracex`](https://pypi.org/project/bracex/). All the build identifiers supported by cibuildwheel are shown below:
 
 <div class="build-id-table-marker"></div>
 
@@ -89,7 +89,7 @@ When setting the options, you can use shell-style globbing syntax (as per [`fnma
 | Python 3.9      | cp39-macosx_x86_64  | cp39-manylinux_x86_64  | cp39-manylinux_i686  | cp39-win_amd64  | cp39-win32     | cp39-manylinux_aarch64 | cp39-manylinux_ppc64le | cp39-manylinux_s390x |
 | PyPy 2.7 v7.3.3 | pp27-macosx_x86_64  | pp27-manylinux_x86_64  |                      |                 | pp27-win32     |                        |                        |                      |
 | PyPy 3.6 v7.3.3 | pp36-macosx_x86_64  | pp36-manylinux_x86_64  |                      |                 | pp36-win32     |                        |                        |                      |
-| PyPy 3.7 (beta) v7.3.3 | pp37-macosx_x86_64  | pp37-manylinux_x86_64  |                      |                 | pp37-win32     |                        |                        |                      |
+| PyPy 3.7 (beta) v7.3.3 | pp37-macosx_x86_64  | pp37-manylinux_x86_64  |               |                 | pp37-win32     |                        |                        |                      |
 
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
@@ -124,12 +124,12 @@ CIBW_SKIP: cp27-* cp35-*
 # Skip Python 3.6 on Linux
 CIBW_SKIP: cp36-manylinux*
 
-# Only build on Python 3 and skip 32-bit builds
-CIBW_BUILD: cp3?-*
+# Only build on Python 3 (ready for 3.10 when it comes) and skip 32-bit builds
+CIBW_BUILD: {cp,pp}3*-*
 CIBW_SKIP: "*-win32 *-manylinux_i686"
 
 # Only build PyPy and CPython 3
-CIBW_BUILD: pp* cp3?-*
+CIBW_BUILD: pp* cp3*-*
 
 # Disable building PyPy wheels on all platforms
 CIBW_SKIP: pp*
