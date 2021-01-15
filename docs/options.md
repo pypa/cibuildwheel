@@ -163,10 +163,16 @@ emulation, such as that provided by [docker/setup-qemu-action][setup-qemu-action
 or [tonistiigi/binfmt][binfmt], to build architectures other than those your
 machine natively supports.
 
-Options: `auto` `x86_64` `i686` `aarch64` `ppc64le` `s390x`
+Options: `auto` `native` `all` `x86_64` `i686` `aarch64` `ppc64le` `s390x`
 
 Default: `auto`, meaning the native archs supported on the build machine. For
 example, on an `x86_64` machine, `auto` expands to `x86_64` and `i686`.
+
+`native` will only build on the exact architecture you currently are on; it will
+not add `i686` for `x86_64`.
+
+`all` will expand to all known architectures; remember to use build selectors
+to limit builds for each job; this list could grow in the future.
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
