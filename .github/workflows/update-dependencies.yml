@@ -21,7 +21,7 @@ jobs:
     - name: "Run update: dependencies"
       run: python ./bin/update_dependencies.py
     - name: "Run update: python configs"
-      run: python ./bin/update_pythons.py --inplace
+      run: python ./bin/update_pythons.py --force
     - name: Create Pull Request
       if: github.ref == 'refs/heads/master'
       uses: peter-evans/create-pull-request@v3

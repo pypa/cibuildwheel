@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import copy
+import difflib
 import logging
 from pathlib import Path
 from typing import Dict, Optional, Union
@@ -250,9 +251,9 @@ class AllVersions:
 
 
 @click.command()
-@click.option("--inplace", is_flag=True)
+@click.option("--force", is_flag=True)
 @click.option("--level", default="INFO", type=click.Choice(["INFO", "DEBUG", "TRACE"], case_sensitive=False))
-def update_pythons(inplace: bool, level: str) -> None:
+def update_pythons(force: bool, level: str) -> None:
 
     logging.basicConfig(
         level="INFO",
@@ -263,7 +264,10 @@ def update_pythons(inplace: bool, level: str) -> None:
     log.setLevel(level)
 
     all_versions = AllVersions()
-    configs = toml.load(RESOURCES_DIR / "build-platforms.toml")
+    toml_file_path = RESOURCES_DIR / "build-platforms.toml"
+
+    original_toml = toml_file_path.read_text()
+    configs = toml.loads(original_toml)
 
     for config in configs["windows"]["python_configurations"]:
         all_versions.update_config(config)
@@ -271,13 +275,33 @@ def update_pythons(inplace: bool, level: str) -> None:
     for config in configs["macos"]["python_configurations"]:
         all_versions.update_config(config)
 
-    if inplace:
-        with open(RESOURCES_DIR / "build-platforms.toml", "w") as f:
-            toml.dump(configs, f, encoder=InlineArrayDictEncoder())  # type: ignore
+    result_toml = toml.dumps(configs, encoder=InlineArrayDictEncoder())  # type: ignore
+
+    rich.print()  # spacer
+
+    if original_toml == result_toml:
+        rich.print("[green]Check complete, Python configurations unchanged.")
+        exit()
+
+    rich.print("Python configurations updated.")
+    rich.print("Changes:")
+    rich.print()
+
+    toml_relpath = toml_file_path.relative_to(DIR).as_posix()
+    diff_lines = difflib.unified_diff(
+        original_toml.splitlines(keepends=True),
+        result_toml.splitlines(keepends=True),
+        fromfile=toml_relpath,
+        tofile=toml_relpath,
+    )
+    rich.print(Syntax("".join(diff_lines), "diff", theme="ansi_light"))
+    rich.print()
+
+    if force:
+        toml_file_path.write_text(result_toml)
+        rich.print("[green]TOML file updated.")
     else:
-        output = toml.dumps(configs, encoder=InlineArrayDictEncoder())  # type: ignore
-        rich.print(Syntax(output, "toml", theme="ansi_light"))
-        log.info("File not changed, use --inplace flag to update.")
+        rich.print("[yellow]File left unchanged. Use --force flag to update.")
 
 
 if __name__ == "__main__":
