@@ -125,11 +125,11 @@ CIBW_SKIP: cp27-* cp35-*
 CIBW_SKIP: cp36-manylinux*
 
 # Only build on Python 3 (ready for 3.10 when it comes) and skip 32-bit builds
-CIBW_BUILD: cp3{?,??}-*
+CIBW_BUILD: {cp,pp}3*-*
 CIBW_SKIP: "*-win32 *-manylinux_i686"
 
 # Only build PyPy and CPython 3
-CIBW_BUILD: pp* cp3{?,??}-*
+CIBW_BUILD: pp* cp3*-*
 
 # Disable building PyPy wheels on all platforms
 CIBW_SKIP: pp*
