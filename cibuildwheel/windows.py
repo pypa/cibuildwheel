@@ -277,7 +277,7 @@ def build(options: BuildOptions) -> None:
 
             repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
-            if options.test_command:
+            if options.test_command and options.test_selector(config.identifier):
                 log.step('Testing wheel...')
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.

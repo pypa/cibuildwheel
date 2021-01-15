@@ -204,6 +204,7 @@ class BuildOptions(NamedTuple):
     package_dir: Path
     output_dir: Path
     build_selector: BuildSelector
+    test_selector: BuildSelector
     architectures: Set[Architecture]
     environment: ParsedEnvironment
     before_all: str
