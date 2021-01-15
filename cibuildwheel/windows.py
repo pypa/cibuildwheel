@@ -153,7 +153,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     where_python = subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0].strip()
     if where_python != str(installation_path / 'python.exe'):
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     # make sure pip is installed
     if not (installation_path / 'Scripts' / 'pip.exe').exists():
@@ -162,7 +162,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
     if where_pip.strip() != str(installation_path / 'Scripts' / 'pip.exe'):
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     log.step('Installing build tools...')
 
@@ -330,4 +330,4 @@ def build(options: BuildOptions) -> None:
             log.build_end()
     except subprocess.CalledProcessError as error:
         log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
-        exit(1)
+        sys.exit(1)

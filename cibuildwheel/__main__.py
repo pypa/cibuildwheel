@@ -110,7 +110,7 @@ def main() -> None:
                 supported. You can run on your development machine or other CI providers using the
                 --platform argument. Check --help output for more information.
             '''), file=sys.stderr)
-            exit(2)
+            sys.exit(2)
         if sys.platform.startswith('linux'):
             platform = 'linux'
         elif sys.platform == 'darwin':
@@ -121,11 +121,11 @@ def main() -> None:
             print('cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
                   'cibuildwheel using the --platform argument. Check --help output for more information.',
                   file=sys.stderr)
-            exit(2)
+            sys.exit(2)
 
     if platform not in PLATFORMS:
         print(f'cibuildwheel: Unsupported platform: {platform}', file=sys.stderr)
-        exit(2)
+        sys.exit(2)
 
     package_dir = Path(args.package_dir)
     output_dir = Path(args.output_dir)
@@ -158,7 +158,7 @@ def main() -> None:
     except (EnvironmentParseError, ValueError):
         print(f'cibuildwheel: Malformed environment option "{environment_config}"', file=sys.stderr)
         traceback.print_exc(None, sys.stderr)
-        exit(2)
+        sys.exit(2)
 
     if dependency_versions == 'pinned':
         dependency_constraints: Optional[DependencyConstraints] = DependencyConstraints.with_defaults()
@@ -183,7 +183,7 @@ def main() -> None:
     if not any((package_dir / name).exists()
                for name in ["setup.py", "setup.cfg", "pyproject.toml"]):
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
-        exit(2)
+        sys.exit(2)
 
     if args.archs is not None:
         archs_config_str = args.archs
@@ -193,7 +193,7 @@ def main() -> None:
 
     if args.print_build_identifiers:
         print_build_identifiers(platform, build_selector, archs)
-        exit(0)
+        sys.exit(0)
 
     manylinux_images: Optional[Dict[str, str]] = None
     if platform == 'linux':
@@ -271,7 +271,7 @@ def detect_obsolete_options() -> None:
                 os.environ[alternative] = os.environ[deprecated]
             else:
                 print(f"Option '{alternative}' is not empty. Please unset '{deprecated}'")
-                exit(2)
+                sys.exit(2)
 
     # Check for deprecated identifiers in 'CIBW_BUILD' and 'CIBW_SKIP' options
     for option in ['CIBW_BUILD', 'CIBW_SKIP']:
