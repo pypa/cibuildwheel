@@ -208,6 +208,60 @@ Platform-specific variants also available:<br/>
 
 This option can also be set using the [command-line option](#command-line) `--archs`.
 
+###  `CIBW_PROJECT_REQUIRES_PYTHON` {: #requires-python}
+> Limit the Python versions to build
+
+By default, cibuildwheel reads your package's Python compatibility from
+`pyproject.toml` following [PEP621](https://www.python.org/dev/peps/pep-0621/)
+or from `setup.cfg`. If you need to override this behaviour for some reason,
+you can use this option.
+
+When setting this option, the syntax is the same as `project.requires-python`,
+using 'version specifiers' like `>=3.6`, according to
+[PEP440](https://www.python.org/dev/peps/pep-0440/#version-specifiers).
+
+Default: reads your package's Python compatibility from pyproject.toml
+(`project.requires-python`) or setup.cfg (`options.python_requires`). If not
+found, cibuildwheel assumes the package is compatible with all versions of
+Python that it can build.
+
+Platform-specific variants also available:<br/>
+`CIBW_PROJECT_REQUIRES_PYTHON_MACOS` | `CIBW_PROJECT_REQUIRES_PYTHON_WINDOWS` | `CIBW_PROJECT_REQUIRES_PYTHON_LINUX`
+
+
+!!! note
+    Rather than using this option, it's recommended you set
+    `project.requires-python` in `pyproject.toml` instead - that way, `pip`
+    knows which wheels are compatible when installing.
+
+    Example `pyproject.toml`:
+
+    ```toml
+    [project]
+    requires-python = ">=3.6"
+
+    # aside - in pyproject.toml you should always specify minimal build system
+    # options, like this:
+
+    [build-system]
+    requires = ["setuptools>=42", "wheel"]
+    build-backend = "setuptools.build_meta"
+    ```
+
+    If you don't want to use this yet, you can also use the currently
+    recommended location for setuptools in `setup.cfg`. Example `setup.cfg`:
+
+    ```ini
+    [options]
+    python_requires = ">=3.6"
+    ```
+
+#### Examples
+
+```yaml
+CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6"
+```
+
 ## Build customization
 
 ### `CIBW_ENVIRONMENT` {: #environment}

@@ -1,3 +1,5 @@
+from packaging.specifiers import SpecifierSet
+
 from cibuildwheel.util import BuildSelector
 
 
@@ -69,3 +71,20 @@ def test_build_braces():
     assert build_selector('cp37-manylinux1_x86_64')
     assert not build_selector('cp38-manylinux1_x86_64')
     assert not build_selector('cp39-manylinux1_x86_64')
+
+
+def test_build_limited_python():
+    build_selector = BuildSelector(build_config="*", skip_config="", requires_python=SpecifierSet(">=3.6"))
+
+    assert not build_selector('cp27-manylinux1_x86_64')
+    assert build_selector('cp36-manylinux1_x86_64')
+    assert build_selector('cp37-manylinux1_x86_64')
+    assert not build_selector('cp27-manylinux1_i686')
+    assert build_selector('cp36-manylinux1_i686')
+    assert build_selector('cp37-manylinux1_i686')
+    assert not build_selector('cp27-win32')
+    assert build_selector('cp36-win32')
+    assert build_selector('cp37-win32')
+    assert not build_selector('pp27-win32')
+    assert build_selector('pp36-win32')
+    assert build_selector('pp37-win32')

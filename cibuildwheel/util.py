@@ -13,6 +13,8 @@ from typing import Dict, List, NamedTuple, Optional, Set
 import bracex
 import certifi
 import toml
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
@@ -55,11 +57,25 @@ class IdentifierSelector:
     build identifier, and it returns True if that identifier should be
     included.
     """
-    def __init__(self, *, build_config: str, skip_config: str):
+    def __init__(self, *, build_config: str, skip_config: str, requires_python: Optional[SpecifierSet] = None):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
+        self.requires_python = requires_python
 
     def __call__(self, build_id: str) -> bool:
+        # Filter build selectors by python_requires if set
+        if self.requires_python is not None and '-' in build_id:
+            py_ver_str = build_id.split('-')[0]
+            try:
+                major = int(py_ver_str[2])
+                minor = int(py_ver_str[3:])
+            except ValueError:
+                pass
+            else:
+                version = Version(f"{major}.{minor}")
+                if not self.requires_python.contains(version):
+                    return False
+
         build_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.build_patterns)
         skip_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.skip_patterns)
 
@@ -78,6 +94,8 @@ class BuildSelector(IdentifierSelector):
     pass
 
 
+# Note that requires-python is not needed for TestSelector, as you can't test
+# what you can't build.
 class TestSelector(IdentifierSelector):
     def __init__(self, *, skip_config: str):
         super().__init__(build_config="*", skip_config=skip_config)
