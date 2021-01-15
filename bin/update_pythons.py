@@ -51,6 +51,10 @@ class ConfigMacOS(TypedDict):
 AnyConfig = Union[ConfigWinCP, ConfigWinPP, ConfigMacOS]
 
 
+# The following set of "Versions" classes allow the initial call to the APIs to
+# be cached and reused in the `update_version_*` methods.
+
+
 class WindowsVersions:
     def __init__(self, arch_str: ArchStr) -> None:
 
@@ -159,10 +163,6 @@ class PyPyVersions:
         )
 
 
-def _get_id(resource_uri: str) -> int:
-    return int(resource_uri.rstrip("/").split("/")[-1])
-
-
 class CPythonVersions:
     def __init__(self, plat_arch: str, file_ident: str) -> None:
 
@@ -205,6 +205,10 @@ class CPythonVersions:
         return None
 
 
+# This is a universal interface to all the above Versions classes. Given an
+# identifier, it updates a config dict.
+
+
 class AllVersions:
     def __init__(self) -> None:
         self.windows_32 = WindowsVersions("32")
@@ -213,10 +217,7 @@ class AllVersions:
 
         self.macos_6 = CPythonVersions(plat_arch="macosx_x86_64", file_ident="macosx10.6.pkg")
         self.macos_9 = CPythonVersions(plat_arch="macosx_x86_64", file_ident="macosx10.9.pkg")
-        self.macos_u2 = CPythonVersions(
-            plat_arch="macosx_universal2",
-            file_ident="macos11.0.pkg",
-        )
+        self.macos_u2 = CPythonVersions(plat_arch="macosx_universal2", file_ident="macos11.0.pkg")
         self.macos_pypy = PyPyVersions("64")
 
     def update_config(self, config: Dict[str, str]) -> None:
@@ -227,6 +228,7 @@ class AllVersions:
         orig_config = copy.copy(config)
         config_update: Optional[AnyConfig]
 
+        # We need to use ** in update due to MyPy (probably a bug)
         if "macosx_x86_64" in identifier:
             if identifier.startswith("pp"):
                 config_update = self.macos_pypy.update_version_macos(spec)
@@ -281,7 +283,7 @@ def update_pythons(force: bool, level: str) -> None:
 
     if original_toml == result_toml:
         rich.print("[green]Check complete, Python configurations unchanged.")
-        exit()
+        return
 
     rich.print("Python configurations updated.")
     rich.print("Changes:")
