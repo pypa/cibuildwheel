@@ -9,7 +9,7 @@ import click
 import requests
 import rich
 import toml
-from packaging.specifiers import Specifier, SpecifierSet
+from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
@@ -23,8 +23,6 @@ log = logging.getLogger("cibw")
 # since we want to write to it.
 DIR: Final[Path] = Path(__file__).parent.parent.resolve()
 RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
-
-CIBW_SUPPORTED_PYTHONS: Final[SpecifierSet] = SpecifierSet(">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*")
 
 
 ArchStr = Literal["32", "64"]
