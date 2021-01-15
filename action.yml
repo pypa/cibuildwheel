@@ -9,6 +9,10 @@ inputs:
     description: 'Folder to place the outputs in, defaults to "wheelhouse"'
     required: false
     default: wheelhouse
+  archs:
+    description: 'Pass a comma separated list of archs to build on. Will activate QEMU emulation.'
+    required: false
+    default: ''
 branding:
   icon: package
   color: yellow
@@ -22,5 +26,14 @@ runs:
     - run: python -m pip install ${{ github.action_path }}
       shell: pwsh
 
-    - run: python -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
+    - run: |
+        if [[ "$RUNNER_OS" == "Linux" ]] ; then
+          archs="${{ inputs.archs }}"
+          if [[ "$archs" =~ .*(all|aarch64|ppc64le|s390x).* ]] ; then
+            docker run --privileged --rm tonistiigi/binfmt --install all
+          fi
+        fi
+      shell: bash
+
+    - run: python -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }} --archs "${{ inputs.archs }}"
       shell: bash

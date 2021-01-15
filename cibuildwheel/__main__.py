@@ -185,7 +185,7 @@ def main() -> None:
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         exit(2)
 
-    if args.archs is not None:
+    if args.archs:
         archs_config_str = args.archs
     else:
         archs_config_str = get_option_from_environment('CIBW_ARCHS', platform=platform, default='auto')
