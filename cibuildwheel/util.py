@@ -272,15 +272,15 @@ PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
 
 
 def allowed_architectures_check(
-    name: PlatformName,
+    platform: PlatformName,
     options: BuildOptions,
 ) -> None:
 
-    allowed_architectures = Architecture.all_archs(name)
+    allowed_architectures = Architecture.all_archs(platform)
 
-    msg = f'{PRETTY_NAMES[name]} only supports {sorted(allowed_architectures)} at the moment.'
+    msg = f'{PRETTY_NAMES[platform]} only supports {sorted(allowed_architectures)} at the moment.'
 
-    if name != 'linux':
+    if platform != 'linux':
         msg += ' If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX instead.'
 
     if not options.architectures <= allowed_architectures:
