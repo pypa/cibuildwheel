@@ -18,6 +18,7 @@ from cibuildwheel.util import (
     BuildOptions,
     BuildSelector,
     DependencyConstraints,
+    TestSelector,
     Unbuffered,
     detect_ci_provider,
     resources_dir,
@@ -152,8 +153,8 @@ def main() -> None:
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
 
-    build_selector = BuildSelector(build_config, skip_config)
-    test_selector = BuildSelector("*", test_skip)
+    build_selector = BuildSelector(build_config=build_config, skip_config=skip_config)
+    test_selector = TestSelector(skip_config=test_skip)
 
     try:
         environment = parse_environment(environment_config)

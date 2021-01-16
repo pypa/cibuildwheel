@@ -55,8 +55,8 @@ def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
     return results
 
 
-class BuildSelector:
-    def __init__(self, build_config: str, skip_config: str):
+class IndentifierSelector:
+    def __init__(self, *, build_config: str, skip_config: str):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
 
@@ -67,9 +67,18 @@ class BuildSelector:
 
     def __repr__(self) -> str:
         if not self.skip_patterns:
-            return f'BuildSelector({" ".join(self.build_patterns)!r})'
+            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r})'
         else:
-            return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+
+
+class BuildSelector(IndentifierSelector):
+    pass
+
+
+class TestSelector(IndentifierSelector):
+    def __init__(self, *, skip_config: str):
+        super().__init__(build_config="*", skip_config=skip_config)
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -204,7 +213,6 @@ class BuildOptions(NamedTuple):
     package_dir: Path
     output_dir: Path
     build_selector: BuildSelector
-    test_selector: BuildSelector
     architectures: Set[Architecture]
     environment: ParsedEnvironment
     before_all: str
@@ -213,6 +221,7 @@ class BuildOptions(NamedTuple):
     manylinux_images: Optional[Dict[str, str]]
     dependency_constraints: Optional[DependencyConstraints]
     test_command: Optional[str]
+    test_selector: TestSelector
     before_test: Optional[str]
     test_requires: List[str]
     test_extras: str
