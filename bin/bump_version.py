@@ -4,11 +4,11 @@
 import glob
 import os
 import subprocess
+import sys
 import urllib.parse
 from pathlib import Path
 
 import click
-from click.exceptions import Exit
 from packaging.version import InvalidVersion, Version
 
 import cibuildwheel
@@ -53,7 +53,7 @@ def bump_version():
 
     if repo_has_uncommitted_changes:
         print('error: Uncommitted changes detected.')
-        raise Exit(1)
+        sys.exit(1)
 
     print(              'Current version:', current_version)  # noqa
     new_version = input('    New version: ').strip()
@@ -63,7 +63,7 @@ def bump_version():
     except InvalidVersion:
         print("error: This version doesn't conform to PEP440")
         print('       https://www.python.org/dev/peps/pep-0440/')
-        raise Exit(1)
+        sys.exit(1)
 
     actions = []
 
@@ -72,7 +72,7 @@ def bump_version():
 
         if not paths:
             print(f'error: Pattern {path_pattern} didn’t match any files')
-            raise Exit(1)
+            sys.exit(1)
 
         find_pattern = version_pattern.format(current_version)
         replace_pattern = version_pattern.format(new_version)
@@ -88,7 +88,7 @@ def bump_version():
 
         if not found_at_least_one_file_needing_update:
             print(f'error: Didn’t find any occurrences of “{find_pattern}” in “{path_pattern}”')
-            raise Exit(1)
+            sys.exit(1)
 
     print()
     print("Here's the plan:")
@@ -106,7 +106,7 @@ def bump_version():
 
     if answer != 'y':
         print('Aborted')
-        raise Exit(1)
+        sys.exit(1)
 
     for path, find, replace in actions:
         contents = path.read_text(encoding='utf8')

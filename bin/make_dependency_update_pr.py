@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import textwrap
 import time
 from pathlib import Path
 from subprocess import run
 
 import click
-from click.exceptions import Exit
 
 
 def shell(cmd, **kwargs):
@@ -27,7 +27,7 @@ def main():
 
     if git_repo_has_changes():
         print('Your git repo has uncommitted changes. Commit or stash before continuing.')
-        raise Exit(1)
+        sys.exit(1)
 
     previous_branch = shell('git rev-parse --abbrev-ref HEAD',
                             check=True,
