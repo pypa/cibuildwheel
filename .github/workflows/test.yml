@@ -49,6 +49,7 @@ jobs:
         python bin/sample_build.py
 
     - name: Test cibuildwheel
+      shell: pwsh
       run: |
         python ./bin/run_tests.py
 
