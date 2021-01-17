@@ -58,7 +58,7 @@ def build(options: BuildOptions) -> None:
               'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
               'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
               file=sys.stderr)
-        exit(2)
+        sys.exit(2)
 
     assert options.manylinux_images is not None
     python_configurations = get_python_configurations(options.build_selector, options.architectures)
@@ -138,12 +138,12 @@ def build(options: BuildOptions) -> None:
                     which_python = docker.call(['which', 'python'], env=env, capture_output=True).strip()
                     if PurePath(which_python) != python_bin / 'python':
                         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-                        exit(1)
+                        sys.exit(1)
 
                     which_pip = docker.call(['which', 'pip'], env=env, capture_output=True).strip()
                     if PurePath(which_pip) != python_bin / 'pip':
                         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-                        exit(1)
+                        sys.exit(1)
 
                     if options.before_build:
                         log.step('Running before_build...')
@@ -233,7 +233,7 @@ def build(options: BuildOptions) -> None:
         except subprocess.CalledProcessError as error:
             log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
             troubleshoot(options.package_dir, error)
-            exit(1)
+            sys.exit(1)
 
 
 def troubleshoot(package_dir: Path, error: Exception) -> None:

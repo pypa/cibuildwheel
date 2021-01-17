@@ -157,7 +157,7 @@ def setup_python(python_configuration: PythonConfiguration,
     which_python = subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip()
     if which_python != '/tmp/cibw_bin/python':
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     # install pip & wheel
     call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
@@ -167,7 +167,7 @@ def setup_python(python_configuration: PythonConfiguration,
     which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
     if which_pip != '/tmp/cibw_bin/pip':
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
@@ -301,4 +301,4 @@ def build(options: BuildOptions) -> None:
             log.build_end()
     except subprocess.CalledProcessError as error:
         log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
-        exit(1)
+        sys.exit(1)
