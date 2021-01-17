@@ -31,7 +31,7 @@ class DockerContainer:
 
     def __init__(self, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None):
         if not docker_image:
-            raise RuntimeError("Must have a non-empty docker image to run.")
+            raise ValueError("Must have a non-empty docker image to run.")
 
         self.docker_image = docker_image
         self.simulate_32_bit = simulate_32_bit
