@@ -116,7 +116,7 @@ If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 uses: joerick/cibuildwheel@v1.7.4
 ```
 
-This is a composite step that just installs and runs cibuildwheel. You can set command-line options as `with:` parameters, and use `env:` as normal.
+This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
 
 Then, your `dependabot.yml` file could look like this:
 

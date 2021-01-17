@@ -17,18 +17,12 @@ runs:
   using: composite
   steps:
 
-    # Use python3 on unix and python on windows. This is
-    # only important if a user forgets to run setup-python first.
-
     # This needs powershell-core because github.action path is a Windows-style
     # path on Windows.  Powershell-core understands both types of paths.
-    - run: |
-        if ( 'Windows' -eq "${{ runner.os }}" ) {
-            python -m pip install ${{ github.action_path }}
-            python -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
-        }
-        else {
-            python3 -m pip install ${{ github.action_path }}
-            python3 -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
-        }
+    - run: >
+        pipx run
+        --spec ${{ github.action_path }}
+        cibuildwheel
+        ${{ inputs.package-dir }}
+        --output-dir ${{ inputs.output-dir }}
       shell: pwsh
