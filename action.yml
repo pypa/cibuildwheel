@@ -19,27 +19,16 @@ runs:
 
     # Use python3 on unix and python on windows. This is
     # only important if a user forgets to run setup-python first.
-    - run: echo $RUNNER_OS
-      shell: bash
-
-    - run: echo "${{ runner.os }}"
-      shell: pwsh
 
     # This needs powershell-core because github.action path is a Windows-style
     # path on Windows.  Powershell-core understands both types of paths.
     - run: |
         if ( 'Windows' -eq "${{ runner.os }}" ) {
             python -m pip install ${{ github.action_path }}
+            python -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
         }
         else {
             python3 -m pip install ${{ github.action_path }}
+            python3 -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
         }
       shell: pwsh
-
-    - run: |
-        if [[ "$RUNNER_OS" == 'Windows' ]] ; then
-            python -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
-        else
-            python3 -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
-        fi
-      shell: bash
