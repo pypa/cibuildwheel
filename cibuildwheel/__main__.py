@@ -291,7 +291,8 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
         |___|_|___|___|_|_|___|_____|_|_|___|___|_|
         '''))
 
-    print(f'cibuildwheel version {cibuildwheel.__version__}\n')
+    python_version = ".".join(str(v) for v in sys.version_info[:3])
+    print(f'cibuildwheel {cibuildwheel.__version__} - hosted on Python {python_version}\n')
 
     print('Build options:')
     print(f'  platform: {platform!r}')
