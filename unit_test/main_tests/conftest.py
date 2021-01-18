@@ -59,6 +59,15 @@ def fake_package_dir(monkeypatch):
 def platform(request, monkeypatch):
     platform_value = request.param
     monkeypatch.setenv('CIBW_PLATFORM', platform_value)
+
+    marker = request.node.get_closest_marker('allow_empty')
+    if marker is not None and (len(marker.args) == 0 or platform_value in marker.args):
+        def pass_exit(val: int):
+            if val not in {3}:
+                sys.exit(val)
+
+        monkeypatch.setattr(sys, 'exit', pass_exit)
+
     return platform_value
 
 

@@ -195,9 +195,6 @@ def main() -> None:
     archs = Architecture.parse_config(archs_config_str, platform=platform)
 
     identifiers = get_build_identifiers(platform, build_selector, archs)
-    if not identifiers:
-        print("ERROR: No build identifiers selected!")
-        sys.exit(3)
 
     if args.print_build_identifiers:
         for identifier in identifiers:
@@ -268,6 +265,10 @@ def main() -> None:
         cibuildwheel.macos.build(build_options)
     else:
         assert_never(platform)
+
+    if not identifiers:
+        print("ERROR: No build identifiers selected!")
+        sys.exit(3)
 
 
 def detect_obsolete_options() -> None:
