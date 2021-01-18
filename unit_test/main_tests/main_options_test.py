@@ -11,7 +11,6 @@ from cibuildwheel.util import BuildSelector
 # CIBW_PLATFORM is tested in main_platform_test.py
 
 
-@pytest.mark.allow_empty('windows')
 def test_output_dir(platform, intercepted_build_args, monkeypatch):
     OUTPUT_DIR = Path('some_output_dir')
 
@@ -22,14 +21,12 @@ def test_output_dir(platform, intercepted_build_args, monkeypatch):
     assert intercepted_build_args.args[0].output_dir == OUTPUT_DIR
 
 
-@pytest.mark.allow_empty('windows')
 def test_output_dir_default(platform, intercepted_build_args, monkeypatch):
     main()
 
     assert intercepted_build_args.args[0].output_dir == Path('wheelhouse')
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('also_set_environment', [False, True])
 def test_output_dir_argument(also_set_environment, platform, intercepted_build_args, monkeypatch):
     OUTPUT_DIR = Path('some_output_dir')
@@ -70,7 +67,6 @@ def test_empty_selector(platform, intercepted_build_args, monkeypatch):
     assert e.value.code == 3
 
 
-@pytest.mark.allow_empty
 @pytest.mark.parametrize('architecture, image, full_image', [
     ('x86_64', None, 'quay.io/pypa/manylinux2010_x86_64:*'),
     ('x86_64', 'manylinux1', 'quay.io/pypa/manylinux1_x86_64:*'),
@@ -114,7 +110,6 @@ def get_default_repair_command(platform):
         raise ValueError('Unknown platform', platform)
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('repair_command', [None, 'repair', 'repair -w {dest_dir} {wheel}'])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_repair_command(repair_command, platform_specific, platform, intercepted_build_args, monkeypatch):
@@ -131,7 +126,6 @@ def test_repair_command(repair_command, platform_specific, platform, intercepted
     assert intercepted_build_args.args[0].repair_command == expected_repair
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('environment', [
     {},
     {'something': 'value'},
@@ -153,7 +147,6 @@ def test_environment(environment, platform_specific, platform, intercepted_build
     assert intercepted_environment.as_dictionary(prev_environment={}) == environment
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('test_requires', [None, 'requirement other_requirement'])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_test_requires(test_requires, platform_specific, platform, intercepted_build_args, monkeypatch):
@@ -169,7 +162,6 @@ def test_test_requires(test_requires, platform_specific, platform, intercepted_b
     assert intercepted_build_args.args[0].test_requires == (test_requires or '').split()
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('test_extras', [None, 'extras'])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_test_extras(test_extras, platform_specific, platform, intercepted_build_args, monkeypatch):
@@ -185,7 +177,6 @@ def test_test_extras(test_extras, platform_specific, platform, intercepted_build
     assert intercepted_build_args.args[0].test_extras == ('[' + test_extras + ']' if test_extras else '')
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('test_command', [None, 'test --command'])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_test_command(test_command, platform_specific, platform, intercepted_build_args, monkeypatch):
@@ -201,7 +192,6 @@ def test_test_command(test_command, platform_specific, platform, intercepted_bui
     assert intercepted_build_args.args[0].test_command == test_command
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('before_build', [None, 'before --build'])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_before_build(before_build, platform_specific, platform, intercepted_build_args, monkeypatch):
@@ -217,7 +207,6 @@ def test_before_build(before_build, platform_specific, platform, intercepted_bui
     assert intercepted_build_args.args[0].before_build == before_build
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('build_verbosity', [None, 0, 2, -2, 4, -4])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_build_verbosity(build_verbosity, platform_specific, platform, intercepted_build_args, monkeypatch):
@@ -256,7 +245,6 @@ def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_n
         assert intercepted_build_selector.skip_patterns == build_selector_patterns
 
 
-@pytest.mark.allow_empty
 @pytest.mark.parametrize('before_all', ["", None, 'test text'])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_before_all(before_all, platform_specific, platform, intercepted_build_args, monkeypatch):

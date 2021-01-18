@@ -52,7 +52,6 @@ def test_unknown_platform(monkeypatch, capsys):
     assert 'cibuildwheel: Unsupported platform: nonexistent' in err
 
 
-@pytest.mark.allow_empty('windows')
 def test_platform_argument(platform, intercepted_build_args, monkeypatch):
     monkeypatch.setenv('CIBW_PLATFORM', 'nonexistent')
     monkeypatch.setattr(sys, 'argv', sys.argv + ['--platform', platform])
@@ -62,7 +61,6 @@ def test_platform_argument(platform, intercepted_build_args, monkeypatch):
     assert intercepted_build_args.args[0].package_dir == MOCK_PACKAGE_DIR
 
 
-@pytest.mark.allow_empty('windows')
 def test_platform_environment(platform, intercepted_build_args, monkeypatch):
     main()
 

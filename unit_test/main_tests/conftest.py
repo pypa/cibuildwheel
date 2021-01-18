@@ -1,3 +1,4 @@
+import platform as platform_module
 import subprocess
 import sys
 from pathlib import Path
@@ -59,6 +60,11 @@ def fake_package_dir(monkeypatch):
 def platform(request, monkeypatch):
     platform_value = request.param
     monkeypatch.setenv('CIBW_PLATFORM', platform_value)
+
+    if platform_value == 'windows':
+        monkeypatch.setattr(platform_module, 'machine', lambda: 'AMD64')
+    else:
+        monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
 
     marker = request.node.get_closest_marker('allow_empty')
     if marker is not None and (len(marker.args) == 0 or platform_value in marker.args):
