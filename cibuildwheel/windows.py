@@ -70,7 +70,8 @@ def get_python_configurations(
         '64': Architecture.AMD64,
     }
 
-    if IS_RUNNING_ON_TRAVIS:
+    custom_compiler = os.environ.get('DISTUTILS_USE_SDK') and os.environ.get('MSSdk')
+    if IS_RUNNING_ON_TRAVIS and not custom_compiler:
         # cannot install VCForPython27.msi which is needed for compiling C software
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
         python_configurations = [c for c in python_configurations if not c.version.startswith('2.7')]
