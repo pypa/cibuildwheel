@@ -19,8 +19,10 @@ runs:
 
     # This needs powershell-core because github.action path is a Windows-style
     # path on Windows.  Powershell-core understands both types of paths.
-    - run: python -m pip install ${{ github.action_path }}
+    - run: >
+        pipx run
+        --spec ${{ github.action_path }}
+        cibuildwheel
+        ${{ inputs.package-dir }}
+        --output-dir ${{ inputs.output-dir }}
       shell: pwsh
-
-    - run: python -m cibuildwheel ${{ inputs.package-dir }} --output-dir ${{ inputs.output-dir }}
-      shell: bash
