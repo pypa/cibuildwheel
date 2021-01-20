@@ -95,6 +95,9 @@ def main() -> None:
     parser.add_argument('--print-build-identifiers',
                         action='store_true',
                         help='Print the build identifiers matched by the current invocation and exit.')
+    parser.add_argument('--allow-empty',
+                        action='store_true',
+                        help='Do not report an error code if the build does not match any wheels.')
 
     args = parser.parse_args()
 
@@ -267,8 +270,9 @@ def main() -> None:
         assert_never(platform)
 
     if not identifiers:
-        print("ERROR: No build identifiers selected!")
-        sys.exit(3)
+        print(f'cibuildwheel: No build identifiers selected: {build_selector}', file=sys.stderr)
+        if not args.allow_empty:
+            sys.exit(3)
 
 
 def detect_obsolete_options() -> None:

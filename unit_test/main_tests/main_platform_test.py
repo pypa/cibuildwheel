@@ -67,22 +67,25 @@ def test_platform_environment(platform, intercepted_build_args, monkeypatch):
     assert intercepted_build_args.args[0].package_dir == MOCK_PACKAGE_DIR
 
 
-@pytest.mark.allow_empty('windows')
 def test_archs_default(platform, intercepted_build_args, monkeypatch):
-    monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
+    monkeypatch.setattr(platform_module, 'machine', lambda: 'AMD64' if platform == 'windows' else 'x86_64')
 
     main()
     build_options = intercepted_build_args.args[0]
 
     if platform == 'linux':
         assert build_options.architectures == {Architecture.x86_64, Architecture.i686}
+    elif platform == 'windows':
+        assert build_options.architectures == {Architecture.AMD64, Architecture.x86}
     else:
         assert build_options.architectures == {Architecture.x86_64}
 
 
-@pytest.mark.allow_empty('windows')
 @pytest.mark.parametrize('use_env_var', [False, True])
 def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_var):
+    if platform == 'windows':
+        pytest.skip('Will have empty build selectors on Windows')
+
     monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
     if use_env_var:
         monkeypatch.setenv('CIBW_ARCHS', 'ppc64le')
@@ -114,9 +117,8 @@ def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
         assert build_options.architectures == {Architecture.x86_64}
 
 
-@pytest.mark.allow_empty('windows')
 def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
-    monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
+    monkeypatch.setattr(platform_module, 'machine', lambda: 'AMD64' if platform == 'windows' else 'x86_64')
     monkeypatch.setenv('CIBW_ARCHS', 'native')
 
     main()
@@ -125,7 +127,7 @@ def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
     if platform == 'linux':
         assert build_options.architectures == {Architecture.x86_64}
     elif platform == 'windows':
-        assert build_options.architectures == {Architecture.x86_64}
+        assert build_options.architectures == {Architecture.AMD64}
     elif platform == 'macos':
         assert build_options.architectures == {Architecture.x86_64}
 

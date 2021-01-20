@@ -5,9 +5,3 @@ requires = [
 ]
 
 build-backend = "setuptools.build_meta"
-
-
-[tool.pytest.ini_options]
-markers = [
-    "allow_empty(platform): Allow main tests on this platform(s) to be empty",
-]

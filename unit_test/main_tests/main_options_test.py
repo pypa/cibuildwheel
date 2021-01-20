@@ -40,8 +40,7 @@ def test_output_dir_argument(also_set_environment, platform, intercepted_build_a
     assert intercepted_build_args.args[0].output_dir == OUTPUT_DIR
 
 
-@pytest.mark.allow_empty
-def test_build_selector(platform, intercepted_build_args, monkeypatch):
+def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_empty):
     BUILD = 'some build* *-selector'
     SKIP = 'some skip* *-selector'
 
@@ -223,7 +222,6 @@ def test_build_verbosity(build_verbosity, platform_specific, platform, intercept
     assert intercepted_build_args.args[0].build_verbosity == expected_verbosity
 
 
-@pytest.mark.allow_empty
 @pytest.mark.parametrize('option_name', ['CIBW_BUILD', 'CIBW_SKIP'])
 @pytest.mark.parametrize('option_value, build_selector_patterns', [
     ('*-manylinux1_*', ['*-manylinux_*']),
@@ -231,7 +229,7 @@ def test_build_verbosity(build_verbosity, platform_specific, platform, intercept
     ('*-macosx_10_9_x86_64', ['*-macosx_x86_64']),
     ('cp37-macosx_10_9_x86_64', ['cp37-macosx_x86_64']),
 ])
-def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_name, option_value, build_selector_patterns):
+def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_name, option_value, build_selector_patterns, allow_empty):
     monkeypatch.setenv(option_name, option_value)
 
     main()

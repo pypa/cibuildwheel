@@ -52,8 +52,15 @@ def fake_package_dir(monkeypatch):
         else:
             return real_path_exists(path)
 
+    args = ['cibuildwheel', str(MOCK_PACKAGE_DIR)]
     monkeypatch.setattr(Path, 'exists', mock_path_exists)
-    monkeypatch.setattr(sys, 'argv', ['cibuildwheel', str(MOCK_PACKAGE_DIR)])
+    monkeypatch.setattr(sys, 'argv', args)
+    return args
+
+
+@pytest.fixture
+def allow_empty(request, monkeypatch, fake_package_dir):
+    monkeypatch.setattr(sys, 'argv', fake_package_dir + ['--allow-empty'])
 
 
 @pytest.fixture(params=['linux', 'macos', 'windows'])
@@ -65,14 +72,6 @@ def platform(request, monkeypatch):
         monkeypatch.setattr(platform_module, 'machine', lambda: 'AMD64')
     else:
         monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
-
-    marker = request.node.get_closest_marker('allow_empty')
-    if marker is not None and (len(marker.args) == 0 or platform_value in marker.args):
-        def pass_exit(val: int):
-            if val not in {3}:
-                sys.exit(val)
-
-        monkeypatch.setattr(sys, 'exit', pass_exit)
 
     return platform_value
 
