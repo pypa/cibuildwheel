@@ -519,7 +519,7 @@ CIBW_TEST_EXTRAS: test,qt
 ```
 
 ### `CIBW_TEST_SKIP` {: #test-skip}
-> Match selectors that should be skipped
+> Skip running tests on some builds
 
 This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to mask up slow tests on emulated architectures.
 
