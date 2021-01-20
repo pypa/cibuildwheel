@@ -753,6 +753,8 @@ Massive props also to-
 - @zfrenchee for [help debugging many issues](https://github.com/joerick/cibuildwheel/issues/2)
 - @lelit for some great bug reports and [contributions](https://github.com/joerick/cibuildwheel/pull/73)
 - @mayeut for a [phenomenal PR](https://github.com/joerick/cibuildwheel/pull/71) patching Python itself for better compatibility!
+- @czaki for being a super-contributor over many PRs and helping out with countless issues!
+- @mattip for his help with adding PyPy support to cibuildwheel
 
 See also
 ========
