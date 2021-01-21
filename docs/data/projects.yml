@@ -277,7 +277,8 @@
 - name: Imagecodecs (fork)
   gh: czaki/imagecodecs_build
   stars: cgohlke/imagecodecs
-  ci: [github]
+  ci: [azurepipelines]
+  ci_config: azure-pipelines.yaml
   os: [apple, linux]
   notes: Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS.
 

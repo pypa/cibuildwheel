@@ -173,7 +173,7 @@ Here are some repos that use cibuildwheel.
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [pyinstrument_cext][]             | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A simple C extension, without external dependencies |
-| [Imagecodecs (fork)][]            | ![github icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
+| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [xmlstarlet][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 
@@ -234,7 +234,7 @@ Here are some repos that use cibuildwheel.
 [apple icon]: docs/data/readme_icons/apple.svg
 [linux icon]: docs/data/readme_icons/linux.svg
 
-<!-- scikit-learn: 43798, last pushed 0 days ago -->
+<!-- scikit-learn: 43800, last pushed 0 days ago -->
 <!-- Matplotlib: 12963, last pushed 0 days ago -->
 <!-- MyPy: 9770, last pushed 0 days ago -->
 <!-- psutil: 6990, last pushed 5 days ago -->
@@ -243,7 +243,7 @@ Here are some repos that use cibuildwheel.
 <!-- websockets: 3146, last pushed 9 days ago -->
 <!-- pyzmq: 2675, last pushed 1 days ago -->
 <!-- aiortc: 2113, last pushed 7 days ago -->
-<!-- numexpr: 1511, last pushed 16 days ago -->
+<!-- numexpr: 1512, last pushed 16 days ago -->
 <!-- h5py: 1474, last pushed 2 days ago -->
 <!-- coverage.py: 1471, last pushed 2 days ago -->
 <!-- River: 1296, last pushed 0 days ago -->
@@ -271,7 +271,7 @@ Here are some repos that use cibuildwheel.
 <!-- bx-python: 95, last pushed 30 days ago -->
 <!-- boost-histogram: 66, last pushed 0 days ago -->
 <!-- pybase64: 54, last pushed 0 days ago -->
-<!-- TgCrypto: 51, last pushed 64 days ago -->
+<!-- TgCrypto: 51, last pushed 65 days ago -->
 <!-- etebase-py: 40, last pushed 17 days ago -->
 <!-- pyjet: 27, last pushed 3 days ago -->
 <!-- numpythia: 24, last pushed 9 days ago -->
