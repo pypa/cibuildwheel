@@ -131,6 +131,39 @@ def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
         assert build_options.architectures == {Architecture.x86_64}
 
 
+def test_archs_platform_auto64(platform, intercepted_build_args, monkeypatch):
+    monkeypatch.setenv('CIBW_ARCHS', 'auto64')
+
+    main()
+    build_options = intercepted_build_args.args[0]
+
+    if platform == 'linux':
+        assert build_options.architectures == {Architecture.x86_64}
+    elif platform == 'windows':
+        assert build_options.architectures == {Architecture.AMD64}
+    elif platform == 'macos':
+        assert build_options.architectures == {Architecture.x86_64}
+
+
+def test_archs_platform_auto32(platform, intercepted_build_args, monkeypatch):
+    monkeypatch.setenv('CIBW_ARCHS', 'auto32')
+
+    if platform == 'macos':
+        with pytest.raises(SystemExit) as exit:
+            main()
+        assert exit.value.args == (4,)
+
+    else:
+        main()
+
+        build_options = intercepted_build_args.args[0]
+
+        if platform == 'linux':
+            assert build_options.architectures == {Architecture.i686}
+        elif platform == 'windows':
+            assert build_options.architectures == {Architecture.x86}
+
+
 def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
     monkeypatch.setenv('CIBW_ARCHS', 'all')
 

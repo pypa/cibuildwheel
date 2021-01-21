@@ -172,6 +172,8 @@ Options:
 - macOS: `x86_64` `arm64` `universal2`
 - Windows: `AMD64` `x86`
 - `auto`: The default archs for your machine - see the table below.
+    - `auto64`: Just the 64-bit auto archs (will result in an empty set on a 32-bit runner)
+    - `auto32`: Just the 32-bit auto archs (will result in an empty set on macOS)
 - `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [CIBW_BUILD](#build-skip) with this option to target specific
@@ -190,6 +192,9 @@ If not listed above, `auto` is the same as `native`.
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
+
+Platform-specific variants also available:<br/>
+ `CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX`
 
 #### Examples
 

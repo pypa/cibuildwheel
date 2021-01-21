@@ -4,7 +4,7 @@ import re
 from enum import Enum
 from typing import Set
 
-from .typing import PlatformName, assert_never
+from .typing import Literal, PlatformName, assert_never
 
 PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
 
@@ -44,6 +44,10 @@ class Architecture(Enum):
                 result.add(Architecture(platform_module.machine()))
             elif arch_str == 'all':
                 result |= Architecture.all_archs(platform=platform)
+            elif arch_str == 'auto64':
+                result |= Architecture.bitiness_archs(platform=platform, bitiness="64")
+            elif arch_str == 'auto32':
+                result |= Architecture.bitiness_archs(platform=platform, bitiness="32")
             else:
                 result.add(Architecture(arch_str))
         return result
@@ -76,6 +80,26 @@ class Architecture(Enum):
             return {Architecture.x86, Architecture.AMD64}
         else:
             assert_never(platform)
+
+    @staticmethod
+    def bitiness_archs(platform: PlatformName, bitiness: Literal["64", "32"]) -> 'Set[Architecture]':
+        native_architecture = Architecture(platform_module.machine())
+
+        if native_architecture in {Architecture.x86_64, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x, Architecture.AMD64}:
+            if bitiness == "64":
+                return {native_architecture}
+            else:
+                if native_architecture == Architecture.x86_64 and platform != "macos":
+                    return {Architecture.i686}
+                elif native_architecture == Architecture.AMD64:
+                    return {Architecture.x86}
+                else:
+                    return set()
+        elif native_architecture in {Architecture.i686, Architecture.x86}:
+            return {native_architecture} if bitiness == "32" else set()
+        else:
+            # assert_never doesn't work here, oddly, maybe due to set checking above
+            raise RuntimeError("Cannot be reached")
 
 
 def allowed_architectures_check(

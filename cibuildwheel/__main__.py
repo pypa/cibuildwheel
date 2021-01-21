@@ -80,7 +80,7 @@ def main() -> None:
                             on this machine. Set this option to build an architecture
                             via emulation, for example, using binfmt_misc and QEMU.
                             Default: auto.
-                            Choices: auto, native, all, {}
+                            Choices: auto, auto64, auto32, native, all, {}
                         '''.format(", ".join(a.name for a in Architecture)))
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
