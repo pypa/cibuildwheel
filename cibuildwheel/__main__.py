@@ -18,6 +18,7 @@ from cibuildwheel.util import (
     BuildOptions,
     BuildSelector,
     DependencyConstraints,
+    TestSelector,
     Unbuffered,
     detect_ci_provider,
     resources_dir,
@@ -140,6 +141,7 @@ def main() -> None:
         assert_never(platform)
 
     build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
+    test_skip = os.environ.get('CIBW_TEST_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
     before_all = get_option_from_environment('CIBW_BEFORE_ALL', platform=platform, default='')
     before_build = get_option_from_environment('CIBW_BEFORE_BUILD', platform=platform)
@@ -151,7 +153,8 @@ def main() -> None:
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
 
-    build_selector = BuildSelector(build_config, skip_config)
+    build_selector = BuildSelector(build_config=build_config, skip_config=skip_config)
+    test_selector = TestSelector(skip_config=test_skip)
 
     try:
         environment = parse_environment(environment_config)
@@ -236,6 +239,7 @@ def main() -> None:
         before_all=before_all,
         build_verbosity=build_verbosity,
         build_selector=build_selector,
+        test_selector=test_selector,
         repair_command=repair_command,
         environment=environment,
         dependency_constraints=dependency_constraints,

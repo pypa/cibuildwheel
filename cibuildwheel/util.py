@@ -57,8 +57,13 @@ def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
     return results
 
 
-class BuildSelector:
-    def __init__(self, build_config: str, skip_config: str):
+class IdentifierSelector:
+    """
+    This class holds a set of build/skip patterns. You call an instance with a
+    build identifier, and it returns True if that identifier should be
+    included.
+    """
+    def __init__(self, *, build_config: str, skip_config: str):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
 
@@ -72,9 +77,18 @@ class BuildSelector:
 
     def __repr__(self) -> str:
         if not self.skip_patterns:
-            return f'BuildSelector({" ".join(self.build_patterns)!r})'
+            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r})'
         else:
-            return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+
+
+class BuildSelector(IdentifierSelector):
+    pass
+
+
+class TestSelector(IdentifierSelector):
+    def __init__(self, *, skip_config: str):
+        super().__init__(build_config="*", skip_config=skip_config)
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -217,6 +231,7 @@ class BuildOptions(NamedTuple):
     manylinux_images: Optional[Dict[str, str]]
     dependency_constraints: Optional[DependencyConstraints]
     test_command: Optional[str]
+    test_selector: TestSelector
     before_test: Optional[str]
     test_requires: List[str]
     test_extras: str
