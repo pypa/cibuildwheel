@@ -72,7 +72,7 @@ class IdentifierSelector:
             except ValueError:
                 pass
             else:
-                version = Version(f"{major}.{minor}")
+                version = Version(f"{major}.{minor}.99")
                 if not self.requires_python.contains(version):
                     return False
 
