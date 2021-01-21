@@ -7,7 +7,6 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Union, overload
 
-import toml
 from packaging.specifiers import SpecifierSet
 
 import cibuildwheel
@@ -16,6 +15,7 @@ import cibuildwheel.macos
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
+from cibuildwheel.projectfile import NoProjectFileError, ProjectFile
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
     BuildOptions,
@@ -159,30 +159,20 @@ def main() -> None:
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
 
+    try:
+        project_file = ProjectFile(package_dir)
+    except NoProjectFileError as err:
+        print("cibuildwheel:", *err.args, file=sys.stderr)
+        sys.exit(2)
+
     # Passing this in as an environment variable will override pyproject.toml or setup.cfg
     requires_python_str = get_option_from_environment('CIBW_PROJECT_REQUIRES_PYTHON', platform=platform)
     requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
-    # Read in from pyproject.toml:project.requires-python if unset and it exists
     if requires_python is None:
-        pyproject_toml = package_dir / 'pyproject.toml'
-        try:
-            info = toml.load(pyproject_toml)
-            requires_python = SpecifierSet(info['project']['requires-python'])
-        except (FileNotFoundError, KeyError):
-            pass
+        requires_python = project_file.get_requires_python()
 
-    # Read in from setup.cfg:options.python_requires if still unset and it exists
-    if requires_python is None:
-        setup_cfg = package_dir / 'setup.cfg'
-        config = ConfigParser()
-        try:
-            config.read(setup_cfg)
-            requires_python = SpecifierSet(config['options']['python_requires'])
-        except (FileNotFoundError, KeyError):
-            pass
-
-    build_selector = BuildSelector(build_config, skip_config, requires_python=SpecifierSet(requires_python))
+    build_selector = BuildSelector(build_config=build_config, skip_config=skip_config, requires_python=requires_python)
     test_selector = TestSelector(skip_config=test_skip)
 
     try:
@@ -211,11 +201,6 @@ def main() -> None:
     # Add CIBUILDWHEEL environment variable
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
-
-    if not any((package_dir / name).exists()
-               for name in ['setup.py', 'setup.cfg', 'pyproject.toml']):
-        print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
-        sys.exit(2)
 
     if args.archs is not None:
         archs_config_str = args.archs
