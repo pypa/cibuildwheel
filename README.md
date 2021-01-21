@@ -102,6 +102,7 @@ Options
 |---|--------|-------------|
 | **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.readthedocs.io/en/stable/options/#platform)  | Override the auto-detected target platform |
 |   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  <br> [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
+|   | [`CIBW_ARCHS_LINUX`](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)  | Build non-native architectures |
 | **Build customization** | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
 |   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
 |   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
@@ -131,19 +132,21 @@ Here are some repos that use cibuildwheel.
 |-----------------------------------|----|----|:------|
 | [scikit-learn][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The machine learning library. A complex but clean config using many of cibuildwheel's features to build a large project with Cython and C++ extensions.  |
 | [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
+| [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | MyPyC, the compiled component of MyPy. |
 | [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
-| [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
 | [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
+| [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
 | [websockets][]                    | ![travisci icon][] | ![apple icon][] ![linux icon][] | Library for building WebSocket servers and clients. Mostly written in Python, with a small C 'speedups' extension module.  |
 | [pyzmq][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython and CFFI.  |
 | [aiortc][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | WebRTC and ORTC implementation for Python using asyncio. |
 | [numexpr][]                       | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast numerical array expression evaluator for Python, NumPy, PyTables, pandas, bcolz and more |
-| [coverage.py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The coverage tool for Python |
 | [h5py][]                          | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | HDF5 for Python -- The h5py package is a Pythonic interface to the HDF5 binary data format. |
+| [coverage.py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The coverage tool for Python |
 | [River][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | 🌊 Online machine learning in Python |
 | [PyAV][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Pythonic bindings for FFmpeg's libraries. |
 | [Dependency Injector][]           | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Dependency injection framework for Python, uses Windows TravisCI |
 | [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
+| [ruptures][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Extensive Cython + NumPy [pyproject.toml](https://github.com/deepcharles/ruptures/blob/master/pyproject.toml) example. |
 | [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | QUIC and HTTP/3 implementation in Python |
 | [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
 | [AutoPy][]                        | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
@@ -151,14 +154,15 @@ Here are some repos that use cibuildwheel.
 | [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS ¶ |
-| [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
+| [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
 | [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
 | [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Jupyter-friendly Python interface for C++ MINUIT2 |
 | [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
 | [matrixprofile][]                 | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python 3 library making time series data mining tasks, utilizing matrix profile algorithms, accessible to everyone. |
+| [CTranslate2][]                   | ![github icon][] | ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://software.intel.com/content/www/us/en/develop/tools/oneapi/base-toolkit.html). The Linux wheels also include CUDA libraries for GPU execution. |
 | [Tokenizer][]                     | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
 | [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
@@ -169,24 +173,27 @@ Here are some repos that use cibuildwheel.
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [pyinstrument_cext][]             | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A simple C extension, without external dependencies |
+| [Imagecodecs (fork)][]            | ![github icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [xmlstarlet][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [Matplotlib]: https://github.com/matplotlib/matplotlib
+[MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
 [psutil]: https://github.com/giampaolo/psutil
-[twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
 [scikit-image]: https://github.com/scikit-image/scikit-image
+[twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
 [websockets]: https://github.com/aaugustin/websockets
 [pyzmq]: https://github.com/zeromq/pyzmq
 [aiortc]: https://github.com/aiortc/aiortc
 [numexpr]: https://github.com/pydata/numexpr
-[coverage.py]: https://github.com/nedbat/coveragepy
 [h5py]: https://github.com/h5py/h5py
+[coverage.py]: https://github.com/nedbat/coveragepy
 [River]: https://github.com/online-ml/river
 [PyAV]: https://github.com/PyAV-Org/PyAV
 [Dependency Injector]: https://github.com/ets-labs/python-dependency-injector
 [PyTables]: https://github.com/PyTables/PyTables
+[ruptures]: https://github.com/deepcharles/ruptures
 [aioquic]: https://github.com/aiortc/aioquic
 [google neuroglancer]: https://github.com/google/neuroglancer
 [AutoPy]: https://github.com/autopilot-rs/autopy
@@ -194,14 +201,15 @@ Here are some repos that use cibuildwheel.
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [Rtree]: https://github.com/Toblerity/rtree
-[cyvcf2]: https://github.com/brentp/cyvcf2
 [KDEpy]: https://github.com/tommyod/KDEpy
+[cyvcf2]: https://github.com/brentp/cyvcf2
 [pybind11 cmake_example]: https://github.com/pybind/cmake_example
 [pybind11 python_example]: https://github.com/pybind/python_example
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
 [iminuit]: https://github.com/scikit-hep/iminuit
 [jq.py]: https://github.com/mwilliamson/jq.py
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
+[CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
 [bx-python]: https://github.com/bxlab/bx-python
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
@@ -212,6 +220,7 @@ Here are some repos that use cibuildwheel.
 [numpythia]: https://github.com/scikit-hep/numpythia
 [fathon]: https://github.com/stfbnc/fathon
 [pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
+[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [xmlstarlet]: https://github.com/dimitern/xmlstarlet
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 
@@ -225,52 +234,56 @@ Here are some repos that use cibuildwheel.
 [apple icon]: docs/data/readme_icons/apple.svg
 [linux icon]: docs/data/readme_icons/linux.svg
 
-<!-- scikit-learn: 43621, last pushed 0 days ago -->
-<!-- Matplotlib: 12886, last pushed 0 days ago -->
-<!-- psutil: 6933, last pushed 1 days ago -->
-<!-- twisted-iocpsupport: 4128, last pushed 1 days ago -->
-<!-- scikit-image: 4123, last pushed 0 days ago -->
-<!-- websockets: 3102, last pushed 3 days ago -->
-<!-- pyzmq: 2662, last pushed 6 days ago -->
-<!-- aiortc: 2099, last pushed 6 days ago -->
-<!-- numexpr: 1504, last pushed 1 days ago -->
-<!-- coverage.py: 1461, last pushed 0 days ago -->
-<!-- h5py: 1460, last pushed 0 days ago -->
-<!-- River: 1250, last pushed 0 days ago -->
-<!-- PyAV: 1122, last pushed 10 days ago -->
-<!-- Dependency Injector: 1050, last pushed 1 days ago -->
-<!-- PyTables: 998, last pushed 0 days ago -->
-<!-- aioquic: 565, last pushed 62 days ago -->
-<!-- google neuroglancer: 551, last pushed 21 days ago -->
-<!-- AutoPy: 513, last pushed 119 days ago -->
-<!-- pikepdf: 502, last pushed 0 days ago -->
-<!-- Parselmouth: 438, last pushed 0 days ago -->
-<!-- python-rapidjson: 408, last pushed 23 days ago -->
-<!-- Rtree: 380, last pushed 12 days ago -->
-<!-- cyvcf2: 231, last pushed 0 days ago -->
-<!-- KDEpy: 230, last pushed 22 days ago -->
-<!-- pybind11 cmake_example: 224, last pushed 20 days ago -->
-<!-- pybind11 python_example: 221, last pushed 57 days ago -->
+<!-- scikit-learn: 43798, last pushed 0 days ago -->
+<!-- Matplotlib: 12963, last pushed 0 days ago -->
+<!-- MyPy: 9770, last pushed 0 days ago -->
+<!-- psutil: 6990, last pushed 5 days ago -->
+<!-- scikit-image: 4143, last pushed 0 days ago -->
+<!-- twisted-iocpsupport: 4140, last pushed 7 days ago -->
+<!-- websockets: 3146, last pushed 9 days ago -->
+<!-- pyzmq: 2675, last pushed 1 days ago -->
+<!-- aiortc: 2113, last pushed 7 days ago -->
+<!-- numexpr: 1511, last pushed 16 days ago -->
+<!-- h5py: 1474, last pushed 2 days ago -->
+<!-- coverage.py: 1471, last pushed 2 days ago -->
+<!-- River: 1296, last pushed 0 days ago -->
+<!-- PyAV: 1142, last pushed 13 days ago -->
+<!-- Dependency Injector: 1070, last pushed 0 days ago -->
+<!-- PyTables: 1001, last pushed 6 days ago -->
+<!-- ruptures: 589, last pushed 3 days ago -->
+<!-- aioquic: 571, last pushed 78 days ago -->
+<!-- google neuroglancer: 555, last pushed 0 days ago -->
+<!-- AutoPy: 517, last pushed 134 days ago -->
+<!-- pikepdf: 517, last pushed 5 days ago -->
+<!-- Parselmouth: 450, last pushed 1 days ago -->
+<!-- python-rapidjson: 410, last pushed 39 days ago -->
+<!-- Rtree: 387, last pushed 28 days ago -->
+<!-- KDEpy: 235, last pushed 37 days ago -->
+<!-- cyvcf2: 233, last pushed 0 days ago -->
+<!-- pybind11 cmake_example: 226, last pushed 35 days ago -->
+<!-- pybind11 python_example: 224, last pushed 73 days ago -->
 <!-- dd-trace-py: 206, last pushed 0 days ago -->
-<!-- iminuit: 166, last pushed 9 days ago -->
-<!-- jq.py: 139, last pushed 86 days ago -->
-<!-- matrixprofile: 119, last pushed 10 days ago -->
-<!-- Tokenizer: 114, last pushed 6 days ago -->
-<!-- bx-python: 94, last pushed 14 days ago -->
-<!-- boost-histogram: 63, last pushed 1 days ago -->
-<!-- pybase64: 52, last pushed 0 days ago -->
-<!-- TgCrypto: 49, last pushed 49 days ago -->
-<!-- etebase-py: 40, last pushed 1 days ago -->
-<!-- pyjet: 27, last pushed 42 days ago -->
-<!-- numpythia: 24, last pushed 41 days ago -->
-<!-- fathon: 19, last pushed 1 days ago -->
-<!-- pyinstrument_cext: 10, last pushed 42 days ago -->
-<!-- xmlstarlet: 7, last pushed 1 days ago -->
-<!-- pybind11 scikit_build_example: 2, last pushed 3 days ago -->
+<!-- iminuit: 166, last pushed 25 days ago -->
+<!-- jq.py: 140, last pushed 102 days ago -->
+<!-- matrixprofile: 124, last pushed 2 days ago -->
+<!-- CTranslate2: 123, last pushed 0 days ago -->
+<!-- Tokenizer: 115, last pushed 3 days ago -->
+<!-- bx-python: 95, last pushed 30 days ago -->
+<!-- boost-histogram: 66, last pushed 0 days ago -->
+<!-- pybase64: 54, last pushed 0 days ago -->
+<!-- TgCrypto: 51, last pushed 64 days ago -->
+<!-- etebase-py: 40, last pushed 17 days ago -->
+<!-- pyjet: 27, last pushed 3 days ago -->
+<!-- numpythia: 24, last pushed 9 days ago -->
+<!-- fathon: 20, last pushed 4 days ago -->
+<!-- pyinstrument_cext: 10, last pushed 57 days ago -->
+<!-- Imagecodecs (fork): 10, last pushed 7 days ago -->
+<!-- xmlstarlet: 7, last pushed 2 days ago -->
+<!-- pybind11 scikit_build_example: 2, last pushed 18 days ago -->
 
 <!-- END bin/projects.py -->
 
-> Add your repo here! Send a PR, adding your information to `docs/data/projects.yml`.
+> Add your repo here! Let us know on [GitHub Discussions](https://github.com/joerick/cibuildwheel/discussions/485), or send a PR, adding your information to `docs/data/projects.yml`.
 >
 > <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
 
