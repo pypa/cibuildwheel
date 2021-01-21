@@ -1,0 +1,22 @@
+name: Reminder bot
+on:
+  pull_request:
+    types: [opened, edited]
+    paths:
+    - 'docs/*.md'
+    - 'README.md'
+
+jobs:
+  docs-reminder:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/github-script@v3
+      with:
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `Thanks for updating the docs! See [latest output
+              here](https://cibuildwheel--${context.issue.number}.org.readthedocs.build/en/${context.issue.number}) for the latest docs build.`
+          })
