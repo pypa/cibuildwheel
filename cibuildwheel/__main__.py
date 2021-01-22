@@ -257,6 +257,11 @@ def main() -> None:
 
     print_preamble(platform, build_options)
 
+    if not identifiers:
+        print(f'cibuildwheel: No build identifiers selected: {build_selector}', file=sys.stderr)
+        if not args.allow_empty:
+            sys.exit(3)
+
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
@@ -268,11 +273,6 @@ def main() -> None:
         cibuildwheel.macos.build(build_options)
     else:
         assert_never(platform)
-
-    if not identifiers:
-        print(f'cibuildwheel: No build identifiers selected: {build_selector}', file=sys.stderr)
-        if not args.allow_empty:
-            sys.exit(3)
 
 
 def detect_obsolete_options() -> None:

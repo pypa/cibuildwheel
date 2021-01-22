@@ -1,4 +1,3 @@
-import platform as platform_module
 import sys
 
 import pytest
@@ -68,7 +67,6 @@ def test_platform_environment(platform, intercepted_build_args, monkeypatch):
 
 
 def test_archs_default(platform, intercepted_build_args, monkeypatch):
-    monkeypatch.setattr(platform_module, 'machine', lambda: 'AMD64' if platform == 'windows' else 'x86_64')
 
     main()
     build_options = intercepted_build_args.args[0]
@@ -86,7 +84,6 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
     if platform == 'windows':
         pytest.skip('Will have empty build selectors on Windows')
 
-    monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
     if use_env_var:
         monkeypatch.setenv('CIBW_ARCHS', 'ppc64le')
     else:
@@ -100,7 +97,6 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
 
 
 def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
-    monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
     monkeypatch.setenv('CIBW_ARCHS', 'unused')
     monkeypatch.setenv('CIBW_ARCHS_LINUX', 'ppc64le')
     monkeypatch.setenv('CIBW_ARCHS_WINDOWS', 'x86')
@@ -118,7 +114,6 @@ def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
 
 
 def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
-    monkeypatch.setattr(platform_module, 'machine', lambda: 'AMD64' if platform == 'windows' else 'x86_64')
     monkeypatch.setenv('CIBW_ARCHS', 'native')
 
     main()
@@ -133,7 +128,6 @@ def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
 
 
 def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
-    monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
     monkeypatch.setenv('CIBW_ARCHS', 'all')
 
     main()

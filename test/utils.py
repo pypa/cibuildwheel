@@ -77,7 +77,7 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
 
 def expected_wheels(package_name, package_version, manylinux_versions=None,
                     macosx_deployment_target='10.9', machine_arch=None, *,
-                    filter_27=IS_WINDOWS_RUNNING_ON_TRAVIS):
+                    exclude_27=IS_WINDOWS_RUNNING_ON_TRAVIS):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -135,8 +135,9 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         for platform_tag in platform_tags:
             wheels.append(f'{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl')
 
-    if filter_27:
-        # Python 2.7 isn't supported on Travis.
+    # Travis on Windows does not support using the default Python 2.7 compiler,
+    # so we support skipping here.
+    if exclude_27:
         wheels = [w for w in wheels if '-cp27-' not in w and '-pp2' not in w]
 
     return wheels
