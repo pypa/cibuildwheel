@@ -80,3 +80,24 @@ def test_override_pyproject_toml(platform, monkeypatch, intercepted_build_args, 
 
     assert intercepted_build_selector('cp39-win32')
     assert not intercepted_build_selector('cp36-win32')
+
+
+def test_override_setup_py_simple(platform, monkeypatch, intercepted_build_args, fake_package_dir):
+
+    fake_package_dir.joinpath("setup.py").write_text(textwrap.dedent("""
+        from setuptools import setup
+
+        setup(
+            name = "other",
+            python_requires = ">=3.7",
+        )
+    """))
+
+    main()
+
+    intercepted_build_selector = intercepted_build_args.args[0].build_selector
+
+    assert intercepted_build_selector.requires_python == SpecifierSet(">=3.7")
+
+    assert intercepted_build_selector('cp39-win32')
+    assert not intercepted_build_selector('cp36-win32')

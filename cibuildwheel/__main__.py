@@ -15,7 +15,7 @@ import cibuildwheel.macos
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
-from cibuildwheel.projectfile import NoProjectFileError, ProjectFile
+from cibuildwheel.projectfiles import ProjectFiles
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
     BuildOptions,
@@ -159,18 +159,15 @@ def main() -> None:
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
 
-    try:
-        project_file = ProjectFile(package_dir)
-    except NoProjectFileError as err:
-        print("cibuildwheel:", *err.args, file=sys.stderr)
+    project_files = ProjectFiles(package_dir)
+
+    if not project_files.exists():
+        print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         sys.exit(2)
 
-    # Passing this in as an environment variable will override pyproject.toml or setup.cfg
-    requires_python_str = get_option_from_environment('CIBW_PROJECT_REQUIRES_PYTHON', platform=platform)
+    # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
+    requires_python_str: Optional[str] = os.environ.get('CIBW_PROJECT_REQUIRES_PYTHON') or project_files.get_requires_python_str()
     requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
-
-    if requires_python is None:
-        requires_python = project_file.get_requires_python()
 
     build_selector = BuildSelector(build_config=build_config, skip_config=skip_config, requires_python=requires_python)
     test_selector = TestSelector(skip_config=test_skip)
@@ -346,8 +343,6 @@ def get_build_identifiers(
     python_configurations: Union[List[cibuildwheel.linux.PythonConfiguration],
                                  List[cibuildwheel.windows.PythonConfiguration],
                                  List[cibuildwheel.macos.PythonConfiguration]]
-
-    python_configurations: List[Any] = []
 
     if platform == 'linux':
         python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
