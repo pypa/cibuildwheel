@@ -276,20 +276,18 @@ CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
 !!! note
     If you need dependencies installed for the build, we recommend using pyproject.toml. This is an example pyproject.toml file:
 
-    ```toml
-    [build-system]
-    requires = [
-        "setuptools>=42",
-        "wheel",
-        "Cython",
-        "numpy==1.11.3; python_version<='3.6'",
-        "numpy==1.14.5; python_version=='3.7'",
-        "numpy==1.17.3; python_version=='3.8'",
-        "numpy==1.19.4; python_version>='3.9'",
-    ]
+        [build-system]
+        requires = [
+            "setuptools>=42",
+            "wheel",
+            "Cython",
+            "numpy==1.11.3; python_version<='3.6'",
+            "numpy==1.14.5; python_version=='3.7'",
+            "numpy==1.17.3; python_version=='3.8'",
+            "numpy==1.19.4; python_version>='3.9'",
+        ]
 
-    build-backend = "setuptools.build_meta"
-    ```
+        build-backend = "setuptools.build_meta"
 
     This [PEP 517][]/[PEP 518][] style build allows you to completely control the
     build environment in cibuildwheel, [PyPA-build][], and pip, doesn't force
@@ -554,7 +552,7 @@ CIBW_BUILD_VERBOSITY: 1
 ```text
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--archs ARCHS] [--output-dir OUTPUT_DIR]
-                    [--print-build-identifiers]
+                    [--print-build-identifiers] [--allow-empty]
                     [package_dir]
 
 Build wheels for all the platforms.
@@ -577,16 +575,19 @@ optional arguments:
                         you need to run in Windows, and it will build and test
                         for all versions of Python. Default: auto.
   --archs ARCHS         Comma-separated list of CPU architectures to build
-                        for. If unspecified, builds the architectures natively
-                        supported on this machine. Set this option to build an
-                        architecture via emulation, for example, using
-                        binfmt_misc and qemu. Default: auto Choices: auto,
-                        x86_64, i686, aarch64, ppc64le, s390x, x86, AMD64
+                        for. When set to 'auto', builds the architectures
+                        natively supported on this machine. Set this option to
+                        build an architecture via emulation, for example,
+                        using binfmt_misc and QEMU. Default: auto. Choices:
+                        auto, native, all, x86_64, i686, aarch64, ppc64le,
+                        s390x, x86, AMD64
   --output-dir OUTPUT_DIR
                         Destination folder for the wheels.
   --print-build-identifiers
                         Print the build identifiers matched by the current
                         invocation and exit.
+  --allow-empty         Do not report an error code if the build does not
+                        match any wheels.
 ```
 
 <style>
