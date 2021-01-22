@@ -11,16 +11,15 @@ import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.windows
+from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     DependencyConstraints,
     TestSelector,
     Unbuffered,
-    allowed_architectures_check,
     detect_ci_provider,
     resources_dir,
 )
@@ -259,7 +258,7 @@ def main() -> None:
     print_preamble(platform, build_options)
 
     try:
-        allowed_architectures_check(platform, build_options)
+        allowed_architectures_check(platform, build_options.architectures)
     except ValueError as err:
         print("cibuildwheel:", *err.args, file=sys.stderr)
         sys.exit(4)

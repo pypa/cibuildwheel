@@ -4,11 +4,11 @@ import textwrap
 from pathlib import Path, PurePath
 from typing import List, NamedTuple, Set
 
+from .architecture import Architecture
 from .docker_container import DockerContainer
 from .logger import log
 from .typing import PathOrStr
 from .util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,

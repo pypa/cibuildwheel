@@ -9,11 +9,11 @@ from zipfile import ZipFile
 
 import toml
 
+from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .typing import PathOrStr
 from .util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,

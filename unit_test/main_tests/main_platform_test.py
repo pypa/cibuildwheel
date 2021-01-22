@@ -89,9 +89,9 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
         monkeypatch.setattr(sys, 'argv', sys.argv + ['--archs', 'ppc64le'])
 
     if platform in {'macos', 'windows'}:
-        with pytest.raises(SystemExit) as err:
+        with pytest.raises(SystemExit) as exit:
             main()
-        assert err.value.args == (4,)
+        assert exit.value.args == (4,)
 
     else:
         main()
