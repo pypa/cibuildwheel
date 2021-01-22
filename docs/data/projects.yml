@@ -260,3 +260,30 @@
   gh: brentp/cyvcf2
   ci: [github]
   os: [apple, linux]
+
+- name: CTranslate2
+  gh: OpenNMT/CTranslate2
+  ci: [github]
+  os: [apple, linux]
+  notes: Includes libraries from the [Intel oneAPI toolkit](https://software.intel.com/content/www/us/en/develop/tools/oneapi/base-toolkit.html). The Linux wheels also include CUDA libraries for GPU execution.
+
+- name: MyPy
+  gh: mypyc/mypy_mypyc-wheels
+  stars: python/mypy
+  ci: [github]
+  os: [apple, linux, windows]
+  notes: MyPyC, the compiled component of MyPy.
+
+- name: Imagecodecs (fork)
+  gh: czaki/imagecodecs_build
+  stars: cgohlke/imagecodecs
+  ci: [azurepipelines]
+  ci_config: azure-pipelines.yaml
+  os: [apple, linux]
+  notes: Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS.
+
+- name: ruptures
+  gh: deepcharles/ruptures
+  ci: [github]
+  os: [apple, linux, windows]
+  notes: Extensive Cython + NumPy [pyproject.toml](https://github.com/deepcharles/ruptures/blob/master/pyproject.toml) example.
