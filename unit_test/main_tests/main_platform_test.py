@@ -81,8 +81,6 @@ def test_archs_default(platform, intercepted_build_args, monkeypatch):
 
 @pytest.mark.parametrize('use_env_var', [False, True])
 def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_var):
-    if platform == 'windows':
-        pytest.skip('Will have empty build selectors on Windows')
 
     if use_env_var:
         monkeypatch.setenv('CIBW_ARCHS', 'ppc64le')
@@ -90,10 +88,15 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
         monkeypatch.setenv('CIBW_ARCHS', 'unused')
         monkeypatch.setattr(sys, 'argv', sys.argv + ['--archs', 'ppc64le'])
 
-    main()
-    build_options = intercepted_build_args.args[0]
+    if platform in {'macos', 'windows'}:
+        with pytest.raises(SystemExit) as err:
+            main()
+        assert err.value.args == (4,)
 
-    assert build_options.architectures == {Architecture.ppc64le}
+    else:
+        main()
+        build_options = intercepted_build_args.args[0]
+        assert build_options.architectures == {Architecture.ppc64le}
 
 
 def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):

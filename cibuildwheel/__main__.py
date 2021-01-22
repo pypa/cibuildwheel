@@ -20,6 +20,7 @@ from cibuildwheel.util import (
     DependencyConstraints,
     TestSelector,
     Unbuffered,
+    allowed_architectures_check,
     detect_ci_provider,
     resources_dir,
 )
@@ -256,6 +257,12 @@ def main() -> None:
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore
 
     print_preamble(platform, build_options)
+
+    try:
+        allowed_architectures_check(platform, build_options)
+    except ValueError as err:
+        print("cibuildwheel:", *err.args, file=sys.stderr)
+        sys.exit(4)
 
     if not identifiers:
         print(f'cibuildwheel: No build identifiers selected: {build_selector}', file=sys.stderr)

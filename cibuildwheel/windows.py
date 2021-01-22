@@ -17,7 +17,6 @@ from .util import (
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
-    allowed_architectures_check,
     download,
     get_build_verbosity_extra_flags,
     get_pip_script,
@@ -207,8 +206,6 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check('windows', options)
-
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'

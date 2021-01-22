@@ -12,7 +12,6 @@ from .util import (
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
-    allowed_architectures_check,
     get_build_verbosity_extra_flags,
     prepare_command,
     read_python_configs,
@@ -49,8 +48,6 @@ def get_python_configurations(
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check('linux', options)
-
     try:
         subprocess.check_output(['docker', '--version'])
     except Exception:
