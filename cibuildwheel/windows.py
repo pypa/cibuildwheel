@@ -9,15 +9,14 @@ from zipfile import ZipFile
 
 import toml
 
+from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .typing import PathOrStr
 from .util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
-    allowed_architectures_check,
     download,
     get_build_verbosity_extra_flags,
     get_pip_script,
@@ -70,7 +69,8 @@ def get_python_configurations(
         '64': Architecture.AMD64,
     }
 
-    if IS_RUNNING_ON_TRAVIS:
+    custom_compiler = os.environ.get('DISTUTILS_USE_SDK') and os.environ.get('MSSdk')
+    if IS_RUNNING_ON_TRAVIS and not custom_compiler:
         # cannot install VCForPython27.msi which is needed for compiling C software
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
         python_configurations = [c for c in python_configurations if not c.version.startswith('2.7')]
@@ -206,8 +206,6 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check('windows', options)
-
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'

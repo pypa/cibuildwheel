@@ -1,3 +1,4 @@
+import platform as platform_module
 import subprocess
 import sys
 from pathlib import Path
@@ -51,14 +52,27 @@ def fake_package_dir(monkeypatch):
         else:
             return real_path_exists(path)
 
+    args = ['cibuildwheel', str(MOCK_PACKAGE_DIR)]
     monkeypatch.setattr(Path, 'exists', mock_path_exists)
-    monkeypatch.setattr(sys, 'argv', ['cibuildwheel', str(MOCK_PACKAGE_DIR)])
+    monkeypatch.setattr(sys, 'argv', args)
+    return args
+
+
+@pytest.fixture
+def allow_empty(request, monkeypatch, fake_package_dir):
+    monkeypatch.setattr(sys, 'argv', fake_package_dir + ['--allow-empty'])
 
 
 @pytest.fixture(params=['linux', 'macos', 'windows'])
 def platform(request, monkeypatch):
     platform_value = request.param
     monkeypatch.setenv('CIBW_PLATFORM', platform_value)
+
+    if platform_value == 'windows':
+        monkeypatch.setattr(platform_module, 'machine', lambda: 'AMD64')
+    else:
+        monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
+
     return platform_value
 
 

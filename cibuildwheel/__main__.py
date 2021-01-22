@@ -5,16 +5,16 @@ import textwrap
 import traceback
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, overload
+from typing import Dict, List, Optional, Set, Union, overload
 
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.windows
+from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     DependencyConstraints,
@@ -95,6 +95,9 @@ def main() -> None:
     parser.add_argument('--print-build-identifiers',
                         action='store_true',
                         help='Print the build identifiers matched by the current invocation and exit.')
+    parser.add_argument('--allow-empty',
+                        action='store_true',
+                        help='Do not report an error code if the build does not match any wheels.')
 
     args = parser.parse_args()
 
@@ -194,8 +197,11 @@ def main() -> None:
         archs_config_str = get_option_from_environment('CIBW_ARCHS', platform=platform, default='auto')
     archs = Architecture.parse_config(archs_config_str, platform=platform)
 
+    identifiers = get_build_identifiers(platform, build_selector, archs)
+
     if args.print_build_identifiers:
-        print_build_identifiers(platform, build_selector, archs)
+        for identifier in identifiers:
+            print(identifier)
         sys.exit(0)
 
     manylinux_images: Optional[Dict[str, str]] = None
@@ -250,6 +256,17 @@ def main() -> None:
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore
 
     print_preamble(platform, build_options)
+
+    try:
+        allowed_architectures_check(platform, build_options.architectures)
+    except ValueError as err:
+        print("cibuildwheel:", *err.args, file=sys.stderr)
+        sys.exit(4)
+
+    if not identifiers:
+        print(f'cibuildwheel: No build identifiers selected: {build_selector}', file=sys.stderr)
+        if not args.allow_empty:
+            sys.exit(3)
 
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
@@ -311,20 +328,22 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
     print('\nHere we go!\n')
 
 
-def print_build_identifiers(
-    platform: str, build_selector: BuildSelector, architectures: Set[Architecture]
-) -> None:
-
-    python_configurations: List[Any] = []
+def get_build_identifiers(
+    platform: PlatformName, build_selector: BuildSelector, architectures: Set[Architecture]
+) -> List[str]:
+    python_configurations: Union[List[cibuildwheel.linux.PythonConfiguration],
+                                 List[cibuildwheel.windows.PythonConfiguration],
+                                 List[cibuildwheel.macos.PythonConfiguration]]
     if platform == 'linux':
         python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector, architectures)
     elif platform == 'macos':
         python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
+    else:
+        assert_never(platform)
 
-    for config in python_configurations:
-        print(config.identifier)
+    return [config.identifier for config in python_configurations]
 
 
 def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:

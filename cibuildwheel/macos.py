@@ -14,7 +14,6 @@ from .util import (
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
-    allowed_architectures_check,
     download,
     get_build_verbosity_extra_flags,
     get_pip_script,
@@ -188,8 +187,6 @@ def setup_python(python_configuration: PythonConfiguration,
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check("macos", options)
-
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'
