@@ -81,7 +81,7 @@ jobs:
         name: Install Python
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.7.4
+        run: python -m pip install cibuildwheel==1.8.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -302,6 +302,27 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### 1.8.0
+
+_22 January 2021_
+
+- 🌟 Added support for emulated builds! You can now build manylinux wheels on
+  ARM64`aarch64`, as well as `ppc64le` and 's390x'. To build under emulation,
+  register QEMU via binfmt_misc and set the
+  [`CIBW_ARCHS_LINUX`](https://cibuildwheel.readthedocs.io/en/latest/options/#archs)
+  option to the architectures you want to run. See
+  [this FAQ entry](https://cibuildwheel.readthedocs.io/en/latest/faq/#emulation)
+  for more information. (#482)
+- ✨ Added `CIBW_TEST_SKIP` option. This allows you to choose certain builds
+  whose tests you'd like to skip. This might be useful when running a slow
+  test suite under emulation, for example. (#537)
+- ✨ Added `curly-{brace,bracket,paren}` style globbing to `CIBW_BUILD` and
+  `CIBW_SKIP`. This gives more expressivity, letting you do things like
+  `CIBW_BUILD=cp39-manylinux_{aarch64,ppc64le}`. (#527)
+- 🛠 cibuildwheel will now exit with an error if it's called with options that
+  skip all builds on a platform. This feature can be disabled by adding
+  `--allow-empty` on the command line. (#545)
 
 ### 1.7.4
 
