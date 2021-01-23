@@ -73,6 +73,9 @@ def platform(request, monkeypatch):
     else:
         monkeypatch.setattr(platform_module, 'machine', lambda: 'x86_64')
 
+    if platform_value == 'macos':
+        monkeypatch.setattr(macos, 'get_macos_version', lambda: (11, 1))
+
     return platform_value
 
 

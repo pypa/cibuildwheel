@@ -141,4 +141,4 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
     elif platform == 'windows':
         assert build_options.architectures == {Architecture.x86, Architecture.AMD64}
     elif platform == 'macos':
-        assert build_options.architectures == {Architecture.x86_64}
+        assert build_options.architectures == {Architecture.x86_64, Architecture.arm64, Architecture.universal2}
