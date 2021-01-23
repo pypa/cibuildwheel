@@ -4,17 +4,18 @@ import textwrap
 from pathlib import Path, PurePath
 from typing import List, NamedTuple, Set
 
+from .architecture import Architecture
 from .docker_container import DockerContainer
 from .logger import log
 from .typing import PathOrStr
 from .util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
-    allowed_architectures_check,
     get_build_verbosity_extra_flags,
     prepare_command,
+    read_python_configs,
+    resources_dir,
 )
 
 
@@ -29,42 +30,13 @@ class PythonConfiguration(NamedTuple):
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: Set[Architecture]
+    build_selector: BuildSelector,
+    architectures: Set[Architecture]
 ) -> List[PythonConfiguration]:
-    python_configurations = [
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27m'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_x86_64', path_str='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_x86_64', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_x86_64', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_x86_64', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_x86_64', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_x86_64', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path_str='/opt/python/cp27-cp27m'),
-        PythonConfiguration(version='2.7', identifier='cp27-manylinux_i686', path_str='/opt/python/cp27-cp27mu'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_i686', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_i686', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_i686', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_i686', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_i686', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='2.7', identifier='pp27-manylinux_x86_64', path_str='/opt/python/pp27-pypy_73'),
-        PythonConfiguration(version='3.6', identifier='pp36-manylinux_x86_64', path_str='/opt/python/pp36-pypy36_pp73'),
-        PythonConfiguration(version='3.7', identifier='pp37-manylinux_x86_64', path_str='/opt/python/pp37-pypy37_pp73'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_aarch64', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_aarch64', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_aarch64', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_aarch64', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_aarch64', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_ppc64le', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_ppc64le', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_ppc64le', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_ppc64le', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_ppc64le', path_str='/opt/python/cp39-cp39'),
-        PythonConfiguration(version='3.5', identifier='cp35-manylinux_s390x', path_str='/opt/python/cp35-cp35m'),
-        PythonConfiguration(version='3.6', identifier='cp36-manylinux_s390x', path_str='/opt/python/cp36-cp36m'),
-        PythonConfiguration(version='3.7', identifier='cp37-manylinux_s390x', path_str='/opt/python/cp37-cp37m'),
-        PythonConfiguration(version='3.8', identifier='cp38-manylinux_s390x', path_str='/opt/python/cp38-cp38'),
-        PythonConfiguration(version='3.9', identifier='cp39-manylinux_s390x', path_str='/opt/python/cp39-cp39'),
-    ]
+
+    full_python_configs = read_python_configs('linux')
+
+    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
     # return all configurations whose arch is in our `architectures` set,
     # and match the build/skip rules
@@ -76,8 +48,6 @@ def get_python_configurations(
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check("linux", options)
-
     try:
         subprocess.check_output(['docker', '--version'])
     except Exception:
@@ -85,7 +55,7 @@ def build(options: BuildOptions) -> None:
               'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'
               'If you\'re building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml',
               file=sys.stderr)
-        exit(2)
+        sys.exit(2)
 
     assert options.manylinux_images is not None
     python_configurations = get_python_configurations(options.build_selector, options.architectures)
@@ -136,7 +106,7 @@ def build(options: BuildOptions) -> None:
                     if config.identifier.startswith("pp"):
                         # Patch PyPy to make sure headers get installed into a venv
                         patch_version = '_27' if config.version == '2.7' else ''
-                        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+                        patch_path = resources_dir / f'pypy_venv{patch_version}.patch'
                         patch_docker_path = PurePath('/pypy_venv.patch')
                         docker.copy_into(patch_path, patch_docker_path)
                         try:
@@ -165,12 +135,12 @@ def build(options: BuildOptions) -> None:
                     which_python = docker.call(['which', 'python'], env=env, capture_output=True).strip()
                     if PurePath(which_python) != python_bin / 'python':
                         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-                        exit(1)
+                        sys.exit(1)
 
                     which_pip = docker.call(['which', 'pip'], env=env, capture_output=True).strip()
                     if PurePath(which_pip) != python_bin / 'pip':
                         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-                        exit(1)
+                        sys.exit(1)
 
                     if options.before_build:
                         log.step('Running before_build...')
@@ -210,7 +180,7 @@ def build(options: BuildOptions) -> None:
 
                     repaired_wheels = docker.glob(repaired_wheel_dir, '*.whl')
 
-                    if options.test_command:
+                    if options.test_command and options.test_selector(config.identifier):
                         log.step('Testing wheel...')
 
                         # set up a virtual environment to install and test from, to make sure
@@ -260,7 +230,7 @@ def build(options: BuildOptions) -> None:
         except subprocess.CalledProcessError as error:
             log.step_end_with_error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
             troubleshoot(options.package_dir, error)
-            exit(1)
+            sys.exit(1)
 
 
 def troubleshoot(package_dir: Path, error: Exception) -> None:

@@ -202,7 +202,7 @@ def test_cpp17_py27_modern_msvc_workaround(tmp_path):
     add_env_x64['CIBW_BUILD'] = 'cp27-win_amd64'
     actual_wheels += utils.cibuildwheel_run(project_dir, add_env=add_env_x64)
 
-    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
+    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0', exclude_27=False)
                        if 'cp27-cp27m-win' in w
                        or 'pp27-pypy_73-win32' in w]
 

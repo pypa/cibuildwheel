@@ -1,26 +1,26 @@
-import functools
+import fnmatch
+import itertools
 import os
-import platform as platform_module
 import re
 import ssl
-import sys
 import textwrap
 import urllib.request
 from enum import Enum
-from fnmatch import fnmatch
 from pathlib import Path
 from time import sleep
 from typing import Dict, List, NamedTuple, Optional, Set
 
+import bracex
 import certifi
+import toml
 
+from .architecture import Architecture
 from .environment import ParsedEnvironment
-from .typing import PathOrStr
+from .typing import PathOrStr, PlatformName
 
-if sys.version_info < (3, 8):
-    from typing_extensions import Literal
-else:
-    from typing import Literal
+resources_dir = Path(__file__).parent / 'resources'
+get_pip_script = resources_dir / 'get-pip.py'
+install_certifi_script = resources_dir / "install_certifi.py"
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -42,21 +42,45 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
         return []
 
 
-class BuildSelector:
-    def __init__(self, build_config: str, skip_config: str):
+def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
+    input_file = resources_dir / 'build-platforms.toml'
+    loaded_file = toml.load(input_file)
+    results: List[Dict[str, str]] = list(loaded_file[config]['python_configurations'])
+    return results
+
+
+class IdentifierSelector:
+    """
+    This class holds a set of build/skip patterns. You call an instance with a
+    build identifier, and it returns True if that identifier should be
+    included.
+    """
+    def __init__(self, *, build_config: str, skip_config: str):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
 
     def __call__(self, build_id: str) -> bool:
-        def match_any(patterns: List[str]) -> bool:
-            return any(fnmatch(build_id, pattern) for pattern in patterns)
-        return match_any(self.build_patterns) and not match_any(self.skip_patterns)
+        build_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.build_patterns)
+        skip_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.skip_patterns)
+
+        build: bool = any(fnmatch.fnmatch(build_id, pat) for pat in build_patterns)
+        skip: bool = any(fnmatch.fnmatch(build_id, pat) for pat in skip_patterns)
+        return build and not skip
 
     def __repr__(self) -> str:
         if not self.skip_patterns:
-            return f'BuildSelector({" ".join(self.build_patterns)!r})'
+            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r})'
         else:
-            return f'BuildSelector({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+
+
+class BuildSelector(IdentifierSelector):
+    pass
+
+
+class TestSelector(IdentifierSelector):
+    def __init__(self, *, skip_config: str):
+        super().__init__(build_config="*", skip_config=skip_config)
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -131,60 +155,6 @@ class DependencyConstraints:
         return f'{self.__class__.__name__}{self.base_file_path!r})'
 
 
-@functools.total_ordering
-class Architecture(Enum):
-    value: str
-
-    # mac/linux archs
-    x86_64 = 'x86_64'
-
-    # linux archs
-    i686 = 'i686'
-    aarch64 = 'aarch64'
-    ppc64le = 'ppc64le'
-    s390x = 's390x'
-
-    # mac archs
-    universal2 = 'universal2'
-    arm64 = 'arm64'
-
-    # windows archs
-    x86 = 'x86'
-    AMD64 = 'AMD64'
-
-    # Allow this to be sorted
-    def __lt__(self, other: "Architecture") -> bool:
-        return self.value < other.value
-
-    @staticmethod
-    def parse_config(config: str, platform: str) -> 'Set[Architecture]':
-        result = set()
-        for arch_str in re.split(r'[\s,]+', config):
-            if arch_str == 'auto':
-                result |= Architecture.auto_archs(platform=platform)
-            else:
-                result.add(Architecture(arch_str))
-        return result
-
-    @staticmethod
-    def auto_archs(platform: str) -> 'Set[Architecture]':
-        native_architecture = Architecture(platform_module.machine())
-        result = {native_architecture}
-
-        if platform == 'linux' and native_architecture == Architecture.x86_64:
-            # x86_64 machines can run i686 docker containers
-            result.add(Architecture.i686)
-
-        if platform == 'windows' and native_architecture == Architecture.AMD64:
-            result.add(Architecture.x86)
-
-        if platform == 'macos' and native_architecture == Architecture.arm64:
-            # arm64 can build and test both archs of a universal2 wheel.
-            result.add(Architecture.universal2)
-
-        return result
-
-
 class BuildOptions(NamedTuple):
     package_dir: Path
     output_dir: Path
@@ -197,15 +167,11 @@ class BuildOptions(NamedTuple):
     manylinux_images: Optional[Dict[str, str]]
     dependency_constraints: Optional[DependencyConstraints]
     test_command: Optional[str]
+    test_selector: TestSelector
     before_test: Optional[str]
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
-
-
-resources_dir = Path(__file__).resolve().parent / 'resources'
-get_pip_script = resources_dir / 'get-pip.py'
-install_certifi_script = resources_dir / "install_certifi.py"
 
 
 class NonPlatformWheelError(Exception):
@@ -256,36 +222,6 @@ def detect_ci_provider() -> Optional[CIProvider]:
         return CIProvider.other
     else:
         return None
-
-
-PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
-
-ALLOWED_ARCHITECTURES = {
-    'linux': {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x},
-    'macos': {Architecture.x86_64, Architecture.universal2, Architecture.arm64},
-    'windows': {Architecture.AMD64, Architecture.x86},
-}
-
-
-def allowed_architectures_check(
-    name: Literal['linux', 'macos', 'windows'],
-    options: BuildOptions,
-) -> None:
-
-    allowed_architectures = ALLOWED_ARCHITECTURES[name]
-
-    msg = f'{PRETTY_NAMES[name]} only supports {sorted(allowed_architectures)} at the moment.'
-
-    if name != 'linux':
-        msg += ' If you want to set emulation architectures on Linux, use CIBW_ARCHS_LINUX instead.'
-
-    if not options.architectures <= allowed_architectures:
-        msg = f'Invalid archs option {options.architectures}. ' + msg
-        raise ValueError(msg)
-
-    if not options.architectures:
-        msg = 'Empty archs option set. ' + msg
-        raise ValueError(msg)
 
 
 def unwrap(text: str) -> str:

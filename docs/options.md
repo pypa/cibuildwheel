@@ -75,7 +75,7 @@ Space-separated list of builds to build and skip. Each build has an identifier l
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
-When setting the options, you can use shell-style globbing syntax (as per [`fnmatch`](https://docs.python.org/3/library/fnmatch.html)). All the build identifiers supported by cibuildwheel are shown below:
+When setting the options, you can use shell-style globbing syntax, as per [`fnmatch`](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [`bracex`](https://pypi.org/project/bracex/). All the build identifiers supported by cibuildwheel are shown below:
 
 <div class="build-id-table-marker"></div>
 
@@ -89,7 +89,7 @@ When setting the options, you can use shell-style globbing syntax (as per [`fnma
 | Python 3.9      | cp39-macosx_x86_64  | cp39-manylinux_x86_64  | cp39-manylinux_i686  | cp39-win_amd64  | cp39-win32     | cp39-manylinux_aarch64 | cp39-manylinux_ppc64le | cp39-manylinux_s390x |
 | PyPy 2.7 v7.3.3 | pp27-macosx_x86_64  | pp27-manylinux_x86_64  |                      |                 | pp27-win32     |                        |                        |                      |
 | PyPy 3.6 v7.3.3 | pp36-macosx_x86_64  | pp36-manylinux_x86_64  |                      |                 | pp36-win32     |                        |                        |                      |
-| PyPy 3.7 (beta) v7.3.3 | pp37-macosx_x86_64  | pp37-manylinux_x86_64  |                      |                 | pp37-win32     |                        |                        |                      |
+| PyPy 3.7 (beta) v7.3.3 | pp37-macosx_x86_64  | pp37-manylinux_x86_64  |               |                 | pp37-win32     |                        |                        |                      |
 
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
@@ -124,12 +124,12 @@ CIBW_SKIP: cp27-* cp35-*
 # Skip Python 3.6 on Linux
 CIBW_SKIP: cp36-manylinux*
 
-# Only build on Python 3 and skip 32-bit builds
-CIBW_BUILD: cp3?-*
+# Only build on Python 3 (ready for 3.10 when it comes) and skip 32-bit builds
+CIBW_BUILD: {cp,pp}3*-*
 CIBW_SKIP: "*-win32 *-manylinux_i686"
 
 # Only build PyPy and CPython 3
-CIBW_BUILD: pp* cp3?-*
+CIBW_BUILD: pp* cp3*-*
 
 # Disable building PyPy wheels on all platforms
 CIBW_SKIP: pp*
@@ -163,10 +163,16 @@ emulation, such as that provided by [docker/setup-qemu-action][setup-qemu-action
 or [tonistiigi/binfmt][binfmt], to build architectures other than those your
 machine natively supports.
 
-Options: `auto` `x86_64` `i686` `aarch64` `ppc64le` `s390x`
+Options: `auto` `native` `all` `x86_64` `i686` `aarch64` `ppc64le` `s390x`
 
 Default: `auto`, meaning the native archs supported on the build machine. For
 example, on an `x86_64` machine, `auto` expands to `x86_64` and `i686`.
+
+`native` will only build on the exact architecture you currently are on; it will
+not add `i686` for `x86_64`.
+
+`all` will expand to all known architectures; remember to use build selectors
+to limit builds for each job; this list could grow in the future.
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
@@ -243,7 +249,7 @@ CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
 
 A shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
 
-If dependencies are required to build your wheel (for example if you include a header from a Python module), set this to `pip install .`, and the dependencies will be installed automatically by pip. However, this means your package will be built twice - if your package takes a long time to build, you might wish to manually list the dependencies here instead.
+If dependencies are required to build your wheel (for example if you include a header from a Python module), instead of using this command, we recommend adding requirements to a pyproject.toml file. This is reproducible, and users who do not get your wheels (such as Alpine or ClearLinux users) will still benefit.
 
 The active Python binary can be accessed using `python`, and pip with `pip`; `cibuildwheel` makes sure the right version of Python and pip will be executed. The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by `cibuildwheel`.
 
@@ -254,22 +260,45 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 ```yaml
-# install your project and dependencies before building
-CIBW_BEFORE_BUILD: pip install .
-
-# install something required for the build
+# install something required for the build (you might want to use pyproject.toml instead)
 CIBW_BEFORE_BUILD: pip install pybind11
 
 # chain commands using &&
-CIBW_BEFORE_BUILD: yum install -y libffi-dev && pip install .
+CIBW_BEFORE_BUILD_LINUX: yum install -y libffi-dev && make clean
 
 # run a script that's inside your project
 CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
 
 # if cibuildwheel is called with a package_dir argument, it's available as {package}
-CIBW_BEFORE_BUILD: "{package}/bin/prepare_for_build.sh"
+CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
 ```
 
+!!! note
+    If you need dependencies installed for the build, we recommend using pyproject.toml. This is an example pyproject.toml file:
+
+        [build-system]
+        requires = [
+            "setuptools>=42",
+            "wheel",
+            "Cython",
+            "numpy==1.11.3; python_version<='3.6'",
+            "numpy==1.14.5; python_version=='3.7'",
+            "numpy==1.17.3; python_version=='3.8'",
+            "numpy==1.19.4; python_version>='3.9'",
+        ]
+
+        build-backend = "setuptools.build_meta"
+
+    This [PEP 517][]/[PEP 518][] style build allows you to completely control the
+    build environment in cibuildwheel, [PyPA-build][], and pip, doesn't force
+    downstream users to install anything they don't need, and lets you do more
+    complex pinning (Cython, for example, requires a wheel to be built with an
+    equal or earlier version of NumPy; pinning in this way is the only way to
+    ensure your module works on all available NumPy versions).
+
+    [PyPA-build]: https://pypa-build.readthedocs.io/en/latest/
+    [PEP 517]: https://www.python.org/dev/peps/pep-0517/
+    [PEP 518]: https://www.python.org/dev/peps/pep-0517/
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
 > Execute a shell command to repair each (non-pure Python) built wheel
@@ -488,6 +517,18 @@ Platform-specific variants also available:<br/>
 CIBW_TEST_EXTRAS: test,qt
 ```
 
+### `CIBW_TEST_SKIP` {: #test-skip}
+> Skip running tests on some builds
+
+This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to mask up slow tests on emulated architectures.
+
+#### Examples
+
+```yaml
+# Will avoid testing on emulated architectures
+CIBW_TEST_SKIP: "*-manylinux_{aarch64,ppc64le,s390x}"
+```
+
 
 ## Other
 
@@ -512,7 +553,7 @@ CIBW_BUILD_VERBOSITY: 1
 ```text
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--archs ARCHS] [--output-dir OUTPUT_DIR]
-                    [--print-build-identifiers]
+                    [--print-build-identifiers] [--allow-empty]
                     [package_dir]
 
 Build wheels for all the platforms.
@@ -535,16 +576,19 @@ optional arguments:
                         you need to run in Windows, and it will build and test
                         for all versions of Python. Default: auto.
   --archs ARCHS         Comma-separated list of CPU architectures to build
-                        for. If unspecified, builds the architectures natively
-                        supported on this machine. Set this option to build an
-                        architecture via emulation, for example, using
-                        binfmt_misc and qemu. Default: auto Choices: auto,
-                        x86_64, i686, aarch64, ppc64le, s390x, x86, AMD64
+                        for. When set to 'auto', builds the architectures
+                        natively supported on this machine. Set this option to
+                        build an architecture via emulation, for example,
+                        using binfmt_misc and QEMU. Default: auto. Choices:
+                        auto, native, all, x86_64, i686, aarch64, ppc64le,
+                        s390x, x86, AMD64
   --output-dir OUTPUT_DIR
                         Destination folder for the wheels.
   --print-build-identifiers
                         Print the build identifiers matched by the current
                         invocation and exit.
+  --allow-empty         Do not report an error code if the build does not
+                        match any wheels.
 ```
 
 <style>

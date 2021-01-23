@@ -16,12 +16,20 @@ repos:
   hooks:
   - id: isort
 
+- repo: https://github.com/psf/black
+  rev: 20.8b1
+  hooks:
+  - id: black
+    files: ^bin/update_pythons.py$
+    args: ["--line-length=120"]
+
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v0.790
   hooks:
   - id: mypy
-    files: ^(cibuildwheel/|test/|bin/projects.py|unit_test/)
+    files: ^(cibuildwheel/|test/|bin/projects.py|bin/update_pythons.py|unit_test/)
     pass_filenames: false
+    additional_dependencies: [packaging, click]
 
 - repo: https://github.com/asottile/pyupgrade
   rev: v2.7.4

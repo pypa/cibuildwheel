@@ -8,20 +8,21 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
+from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .typing import PathOrStr
 from .util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
-    allowed_architectures_check,
     download,
     get_build_verbosity_extra_flags,
     get_pip_script,
     install_certifi_script,
     prepare_command,
+    read_python_configs,
+    resources_dir,
     unwrap,
 )
 
@@ -58,21 +59,10 @@ class PythonConfiguration(NamedTuple):
 
 def get_python_configurations(build_selector: BuildSelector,
                               architectures: Set[Architecture]) -> List[PythonConfiguration]:
-    python_configurations = [
-        # CPython
-        PythonConfiguration(version='2.7', identifier='cp27-macosx_x86_64', url='https://www.python.org/ftp/python/2.7.18/python-2.7.18-macosx10.9.pkg'),
-        PythonConfiguration(version='3.5', identifier='cp35-macosx_x86_64', url='https://www.python.org/ftp/python/3.5.4/python-3.5.4-macosx10.6.pkg'),
-        PythonConfiguration(version='3.6', identifier='cp36-macosx_x86_64', url='https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg'),
-        PythonConfiguration(version='3.7', identifier='cp37-macosx_x86_64', url='https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg'),
-        PythonConfiguration(version='3.8', identifier='cp38-macosx_x86_64', url='https://www.python.org/ftp/python/3.8.7/python-3.8.7-macosx10.9.pkg'),
-        PythonConfiguration(version='3.9', identifier='cp39-macosx_x86_64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
-        PythonConfiguration(version='3.9', identifier='cp39-macosx_arm64', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
-        PythonConfiguration(version='3.9', identifier='cp39-macosx_universal2', url='https://www.python.org/ftp/python/3.9.1/python-3.9.1-macos11.0.pkg'),
-        # PyPy
-        PythonConfiguration(version='2.7', identifier='pp27-macosx_x86_64', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-osx64.tar.bz2'),
-        PythonConfiguration(version='3.6', identifier='pp36-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.6-v7.3.3-osx64.tar.bz2'),
-        PythonConfiguration(version='3.7', identifier='pp37-macosx_x86_64', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-osx64.tar.bz2'),
-    ]
+
+    full_python_configs = read_python_configs('macos')
+
+    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
     # filter out configs that don't match any of the selected architectures
     python_configurations = [c for c in python_configurations
@@ -163,7 +153,7 @@ def install_pypy(version: str, url: str) -> Path:
         call(['tar', '-C', '/tmp', '-xf', downloaded_tar_bz2])
         # Patch PyPy to make sure headers get installed into a venv
         patch_version = '_27' if version == '2.7' else ''
-        patch_path = Path(__file__).absolute().parent / 'resources' / f'pypy_venv{patch_version}.patch'
+        patch_path = resources_dir / f'pypy_venv{patch_version}.patch'
         call(['patch', '--force', '-p1', '-d', installation_path, '-i', patch_path])
 
     installation_bin_path = installation_path / 'bin'
@@ -211,7 +201,7 @@ def setup_python(python_configuration: PythonConfiguration,
     which_python = subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip()
     if which_python != '/tmp/cibw_bin/python':
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     # install pip & wheel
     call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
@@ -221,7 +211,7 @@ def setup_python(python_configuration: PythonConfiguration,
     which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
     if which_pip != '/tmp/cibw_bin/pip':
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
@@ -254,8 +244,6 @@ def setup_python(python_configuration: PythonConfiguration,
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check("macos", options)
-
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'
@@ -343,7 +331,7 @@ def build(options: BuildOptions) -> None:
 
             log.step_end()
 
-            if options.test_command:
+            if options.test_command and options.test_selector(config.identifier):
                 machine_arch = platform.machine()
                 testing_archs: List[str] = []
 
@@ -447,4 +435,4 @@ def build(options: BuildOptions) -> None:
             log.build_end()
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
-        exit(1)
+        sys.exit(1)

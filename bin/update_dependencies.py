@@ -28,8 +28,8 @@ if '--no-docker' in sys.argv:
             '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
         ])
 else:
-    image = 'quay.io/pypa/manylinux2010_x86_64:latest'
-    subprocess.check_call(['docker', 'pull', image])
+    image_runner = 'quay.io/pypa/manylinux2010_x86_64:latest'
+    subprocess.check_call(['docker', 'pull', image_runner])
     for python_version in PYTHON_VERSIONS:
         abi_flags = '' if int(python_version) >= 38 else 'm'
         python_path = f'/opt/python/cp{python_version}-cp{python_version}{abi_flags}/bin/'
@@ -37,7 +37,7 @@ else:
             'docker', 'run', '--rm',
             '-e', 'CUSTOM_COMPILE_COMMAND',
             '-v', f'{os.getcwd()}:/volume',
-            '--workdir', '/volume', image,
+            '--workdir', '/volume', image_runner,
             'bash', '-c',
             f'{python_path}pip install pip-tools &&'
             f'{python_path}pip-compile --allow-unsafe --upgrade '

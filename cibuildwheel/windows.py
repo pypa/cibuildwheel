@@ -9,19 +9,19 @@ from zipfile import ZipFile
 
 import toml
 
+from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .typing import PathOrStr
 from .util import (
-    Architecture,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
-    allowed_architectures_check,
     download,
     get_build_verbosity_extra_flags,
     get_pip_script,
     prepare_command,
+    read_python_configs,
 )
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
@@ -52,36 +52,25 @@ class PythonConfiguration(NamedTuple):
     version: str
     arch: str
     identifier: str
-    url: Optional[str]
+    url: Optional[str] = None
 
 
-def get_python_configurations(build_selector: BuildSelector, architectures: Set[Architecture]) -> List[PythonConfiguration]:
+def get_python_configurations(
+        build_selector: BuildSelector,
+        architectures: Set[Architecture],
+) -> List[PythonConfiguration]:
+
+    full_python_configs = read_python_configs('windows')
+
+    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
+
     map_arch = {
         '32': Architecture.x86,
         '64': Architecture.AMD64,
     }
 
-    python_configurations = [
-        # CPython
-        PythonConfiguration(version='2.7.18', arch='32', identifier='cp27-win32', url=None),
-        PythonConfiguration(version='2.7.18', arch='64', identifier='cp27-win_amd64', url=None),
-        PythonConfiguration(version='3.5.4', arch='32', identifier='cp35-win32', url=None),
-        PythonConfiguration(version='3.5.4', arch='64', identifier='cp35-win_amd64', url=None),
-        PythonConfiguration(version='3.6.8', arch='32', identifier='cp36-win32', url=None),
-        PythonConfiguration(version='3.6.8', arch='64', identifier='cp36-win_amd64', url=None),
-        PythonConfiguration(version='3.7.9', arch='32', identifier='cp37-win32', url=None),
-        PythonConfiguration(version='3.7.9', arch='64', identifier='cp37-win_amd64', url=None),
-        PythonConfiguration(version='3.8.7', arch='32', identifier='cp38-win32', url=None),
-        PythonConfiguration(version='3.8.7', arch='64', identifier='cp38-win_amd64', url=None),
-        PythonConfiguration(version='3.9.1', arch='32', identifier='cp39-win32', url=None),
-        PythonConfiguration(version='3.9.1', arch='64', identifier='cp39-win_amd64', url=None),
-        # PyPy
-        PythonConfiguration(version='2.7', arch='32', identifier='pp27-win32', url='https://downloads.python.org/pypy/pypy2.7-v7.3.3-win32.zip'),
-        PythonConfiguration(version='3.6', arch='32', identifier='pp36-win32', url='https://downloads.python.org/pypy/pypy3.6-v7.3.3-win32.zip'),
-        PythonConfiguration(version='3.7', arch='32', identifier='pp37-win32', url='https://downloads.python.org/pypy/pypy3.7-v7.3.3-win32.zip'),
-    ]
-
-    if IS_RUNNING_ON_TRAVIS:
+    custom_compiler = os.environ.get('DISTUTILS_USE_SDK') and os.environ.get('MSSdk')
+    if IS_RUNNING_ON_TRAVIS and not custom_compiler:
         # cannot install VCForPython27.msi which is needed for compiling C software
         # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
         python_configurations = [c for c in python_configurations if not c.version.startswith('2.7')]
@@ -164,7 +153,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     where_python = subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0].strip()
     if where_python != str(installation_path / 'python.exe'):
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     # make sure pip is installed
     if not (installation_path / 'Scripts' / 'pip.exe').exists():
@@ -173,7 +162,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
     if where_pip.strip() != str(installation_path / 'Scripts' / 'pip.exe'):
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     log.step('Installing build tools...')
 
@@ -210,15 +199,13 @@ def pep_518_cp35_workaround(package_dir: Path, env: Dict[str, str]) -> None:
             log.step('Performing PEP518 workaround...')
             with tempfile.TemporaryDirectory() as d:
                 reqfile = Path(d) / "requirements.txt"
-                with reqfile.open("w") as f:
+                with reqfile.open('w') as f:
                     for r in requirements:
                         print(r, file=f)
                 call(['pip', 'install', '-r', reqfile], env=env)
 
 
 def build(options: BuildOptions) -> None:
-    allowed_architectures_check("windows", options)
-
     temp_dir = Path(tempfile.mkdtemp(prefix='cibuildwheel'))
     built_wheel_dir = temp_dir / 'built_wheel'
     repaired_wheel_dir = temp_dir / 'repaired_wheel'
@@ -288,7 +275,7 @@ def build(options: BuildOptions) -> None:
 
             repaired_wheel = next(repaired_wheel_dir.glob('*.whl'))
 
-            if options.test_command:
+            if options.test_command and options.test_selector(config.identifier):
                 log.step('Testing wheel...')
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
@@ -341,4 +328,4 @@ def build(options: BuildOptions) -> None:
             log.build_end()
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
-        exit(1)
+        sys.exit(1)

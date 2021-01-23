@@ -40,7 +40,7 @@ def test_output_dir_argument(also_set_environment, platform, intercepted_build_a
     assert intercepted_build_args.args[0].output_dir == OUTPUT_DIR
 
 
-def test_build_selector(platform, intercepted_build_args, monkeypatch):
+def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_empty):
     BUILD = 'some build* *-selector'
     SKIP = 'some skip* *-selector'
 
@@ -55,6 +55,15 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch):
     assert not intercepted_build_selector('skip-that')
     # This unit test is just testing the options of 'main'
     # Unit tests for BuildSelector are in build_selector_test.py
+
+
+def test_empty_selector(platform, intercepted_build_args, monkeypatch):
+    monkeypatch.setenv('CIBW_SKIP', '*')
+
+    with pytest.raises(SystemExit) as e:
+        main()
+
+    assert e.value.code == 3
 
 
 @pytest.mark.parametrize('architecture, image, full_image', [
@@ -220,7 +229,7 @@ def test_build_verbosity(build_verbosity, platform_specific, platform, intercept
     ('*-macosx_10_9_x86_64', ['*-macosx_x86_64']),
     ('cp37-macosx_10_9_x86_64', ['cp37-macosx_x86_64']),
 ])
-def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_name, option_value, build_selector_patterns):
+def test_build_selector_migrations(intercepted_build_args, monkeypatch, option_name, option_value, build_selector_patterns, allow_empty):
     monkeypatch.setenv(option_name, option_value)
 
     main()
