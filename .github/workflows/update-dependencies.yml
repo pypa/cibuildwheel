@@ -16,6 +16,8 @@ jobs:
       with:
         python-version: 3.9
         architecture: x64
+    - name: Pre-commit update
+      run: pipx run pre-commit autoupdate
     - name: Install dependencies
       run: python -m pip install ".[dev]"
     - name: "Run update: dependencies"
