@@ -54,8 +54,8 @@ def test_read_setup_py_assign(tmp_path):
             )
             """))
 
-    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "3.21"
-    assert get_requires_python_str(tmp_path) == "3.21"
+    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) is None
+    assert get_requires_python_str(tmp_path) is None
 
 
 def test_read_setup_py_None(tmp_path):

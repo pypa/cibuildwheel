@@ -159,12 +159,11 @@ def main() -> None:
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
 
-    setup_py = package_dir / 'setup.py'
-    setup_cfg = package_dir / 'setup.cfg'
-    pyproject_toml = package_dir / 'pyproject.toml'
+    package_files = {'setup.py', 'setup.cfg', 'pyproject.toml'}
 
-    if not pyproject_toml.exists() and not setup_cfg.exists() and not setup_py.exists():
-        print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
+    if not any(package_dir.joinpath(name).exists() for name in package_files):
+        names = ', '.join(sorted(package_files, reverse=True))
+        print(f'cibuildwheel: Could not find any of {{{names}}} at root of package', file=sys.stderr)
         sys.exit(2)
 
     # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
