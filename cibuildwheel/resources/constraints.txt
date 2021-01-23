@@ -14,7 +14,7 @@ filelock==3.0.12
     # via virtualenv
 six==1.15.0
     # via virtualenv
-virtualenv==20.3.1
+virtualenv==20.4.0
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.36.2
     # via
