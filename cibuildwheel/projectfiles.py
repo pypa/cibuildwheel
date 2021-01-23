@@ -2,7 +2,7 @@ import ast
 import sys
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Optional
 
 import toml
 
@@ -41,79 +41,42 @@ class Analyzer(ast.NodeVisitor):
                 self.requires_python = self.constants.get(node.value.id)
 
 
-def dig(d: Mapping[str, Any], *keys: str) -> Any:
-    """
-    Access a nested dictionary, returns None if any access is empty. Equivalent
-    to #dig in Ruby.
-    """
-
+def setup_py_python_requires(content: str) -> Optional[str]:
     try:
-        for key in keys:
-            d = d[key]
-        return d
-    except (KeyError, IndexError, TypeError):
+        tree = ast.parse(content)
+        analyzer = Analyzer()
+        analyzer.visit(tree)
+        return analyzer.requires_python or None
+    except Exception:
         return None
 
 
-class ProjectFiles:
-    def __init__(self, package_dir: Path) -> None:
-        self.package_dir = package_dir
+def get_requires_python_str(package_dir: Path) -> Optional[str]:
+    "Return the python requires string from the most canonical source available, or None"
 
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({self.package_dir!r})'
+    setup_py = package_dir / 'setup.py'
+    setup_cfg = package_dir / 'setup.cfg'
+    pyproject_toml = package_dir / 'pyproject.toml'
 
-    @property
-    def setup_py_path(self) -> Path:
-        return self.package_dir / 'setup.py'
+    # Read in from pyproject.toml:project.requires-python
+    try:
+        info = toml.load(pyproject_toml)
+        return str(info['project']['requires-python'])
+    except (FileNotFoundError, KeyError, IndexError, TypeError):
+        pass
 
-    @property
-    def setup_cfg_path(self) -> Path:
-        return self.package_dir / 'setup.cfg'
+    # Read in from setup.cfg:options.python_requires
+    try:
+        config = ConfigParser()
+        config.read(setup_cfg)
+        return str(config['options']['python_requires'])
+    except (FileNotFoundError, KeyError, IndexError, TypeError):
+        pass
 
-    @property
-    def pyproject_toml_path(self) -> Path:
-        return self.package_dir / 'pyproject.toml'
+    try:
+        with open(setup_py) as f:
+            return setup_py_python_requires(f.read())
+    except FileNotFoundError:
+        pass
 
-    # Can cache eventually if needed more than once
-    # or just leave stateless.
-
-    @property
-    def pyproject_toml(self) -> Mapping[str, Any]:
-        try:
-            return toml.load(self.pyproject_toml_path)
-        except FileNotFoundError:
-            return {}
-
-    @property
-    def setup_cfg(self) -> Mapping[str, Any]:
-        try:
-            config = ConfigParser()
-            config.read(self.setup_cfg_path)
-            return config
-        except FileNotFoundError:
-            return {}
-
-    def _setup_py_python_requires(self) -> Optional[str]:
-        try:
-            with open(self.setup_py_path) as f:
-                tree = ast.parse(f.read())
-
-            analyzer = Analyzer()
-            analyzer.visit(tree)
-
-            return analyzer.requires_python or None
-        except Exception:
-            return None
-
-    def exists(self) -> bool:
-        "Returns True if any project file exists"
-
-        return self.pyproject_toml_path.exists() or self.setup_cfg_path.exists() or self.setup_py_path.exists()
-
-    def get_requires_python_str(self) -> Optional[str]:
-        "Return the python requires string from the most cannonical source available, or None"
-        return (
-            dig(self.pyproject_toml, 'project', 'requires-python')
-            or dig(self.setup_cfg, 'options', 'python_requires')
-            or self._setup_py_python_requires()
-        )
+    return None

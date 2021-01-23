@@ -1,10 +1,11 @@
 import sys
 
 import pytest
-from conftest import MOCK_PACKAGE_DIR  # noqa: I100
 
 from cibuildwheel.__main__ import main
-from cibuildwheel.util import Architecture
+from cibuildwheel.architecture import Architecture
+
+from .conftest import MOCK_PACKAGE_DIR
 
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):

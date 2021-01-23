@@ -15,7 +15,7 @@ import cibuildwheel.macos
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
-from cibuildwheel.projectfiles import ProjectFiles
+from cibuildwheel.projectfiles import get_requires_python_str
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
     BuildOptions,
@@ -159,14 +159,16 @@ def main() -> None:
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
 
-    project_files = ProjectFiles(package_dir)
+    setup_py = package_dir / 'setup.py'
+    setup_cfg = package_dir / 'setup.cfg'
+    pyproject_toml = package_dir / 'pyproject.toml'
 
-    if not project_files.exists():
+    if not pyproject_toml.exists() and not setup_cfg.exists() and not setup_py.exists():
         print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
         sys.exit(2)
 
     # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
-    requires_python_str: Optional[str] = os.environ.get('CIBW_PROJECT_REQUIRES_PYTHON') or project_files.get_requires_python_str()
+    requires_python_str: Optional[str] = os.environ.get('CIBW_PROJECT_REQUIRES_PYTHON') or get_requires_python_str(package_dir)
     requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
     build_selector = BuildSelector(build_config=build_config, skip_config=skip_config, requires_python=requires_python)

@@ -1,6 +1,6 @@
 from textwrap import dedent
 
-from cibuildwheel.projectfiles import ProjectFiles, dig
+from cibuildwheel.projectfiles import get_requires_python_str, setup_py_python_requires
 
 
 def test_read_setup_py_simple(tmp_path):
@@ -16,10 +16,8 @@ def test_read_setup_py_simple(tmp_path):
             )
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files._setup_py_python_requires() == "1.23"
-    assert project_files.get_requires_python_str() == "1.23"
+    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "1.23"
+    assert get_requires_python_str(tmp_path) == "1.23"
 
 
 def test_read_setup_py_full(tmp_path):
@@ -37,10 +35,8 @@ def test_read_setup_py_full(tmp_path):
             )
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files._setup_py_python_requires() == "1.24"
-    assert project_files.get_requires_python_str() == "1.24"
+    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "1.24"
+    assert get_requires_python_str(tmp_path) == "1.24"
 
 
 def test_read_setup_py_assign(tmp_path):
@@ -58,10 +54,8 @@ def test_read_setup_py_assign(tmp_path):
             )
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files._setup_py_python_requires() == "3.21"
-    assert project_files.get_requires_python_str() == "3.21"
+    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "3.21"
+    assert get_requires_python_str(tmp_path) == "3.21"
 
 
 def test_read_setup_py_None(tmp_path):
@@ -79,10 +73,8 @@ def test_read_setup_py_None(tmp_path):
             )
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files._setup_py_python_requires() is None
-    assert project_files.get_requires_python_str() is None
+    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) is None
+    assert get_requires_python_str(tmp_path) is None
 
 
 def test_read_setup_py_empty(tmp_path):
@@ -99,10 +91,8 @@ def test_read_setup_py_empty(tmp_path):
             )
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files._setup_py_python_requires() is None
-    assert project_files.get_requires_python_str() is None
+    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) is None
+    assert get_requires_python_str(tmp_path) is None
 
 
 def test_read_setup_cfg(tmp_path):
@@ -114,12 +104,7 @@ def test_read_setup_cfg(tmp_path):
             something = other
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files.setup_cfg["metadata"]["something"] == "other"
-    assert dig(project_files.setup_cfg, "metadata", "something") == "other"
-    assert dig(project_files.setup_cfg, "other", "something") is None
-    assert project_files.get_requires_python_str() == "1.234"
+    assert get_requires_python_str(tmp_path) == "1.234"
 
 
 def test_read_setup_cfg_empty(tmp_path):
@@ -131,9 +116,7 @@ def test_read_setup_cfg_empty(tmp_path):
             something = other
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files.get_requires_python_str() is None
+    assert get_requires_python_str(tmp_path) is None
 
 
 def test_read_pyproject_toml(tmp_path):
@@ -146,12 +129,7 @@ def test_read_pyproject_toml(tmp_path):
             something = "other"
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files.pyproject_toml["tool"]["cibuildwheel"]["something"] == "other"
-    assert dig(project_files.pyproject_toml, "tool", "cibuildwheel", "something") == "other"
-    assert dig(project_files.pyproject_toml, "tool", "something", "other") is None
-    assert project_files.get_requires_python_str() == "1.654"
+    assert get_requires_python_str(tmp_path) == "1.654"
 
 
 def test_read_pyproject_toml_empty(tmp_path):
@@ -161,6 +139,4 @@ def test_read_pyproject_toml_empty(tmp_path):
             other = 1.234
             """))
 
-    project_files = ProjectFiles(tmp_path)
-    assert project_files.exists()
-    assert project_files.get_requires_python_str() is None
+    assert get_requires_python_str(tmp_path) is None
