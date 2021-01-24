@@ -161,8 +161,7 @@ def setup_python(python_configuration: PythonConfiguration,
     # install pip & wheel
     call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
     assert (installation_bin_path / 'pip').exists()
-    call(['which', 'pip'], env=env)
-    call(['pip', '--version'], env=env)
+    call(['python', '-m', 'pip', '--version'], env=env)
     which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
     if which_pip != '/tmp/cibw_bin/pip':
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
@@ -181,7 +180,7 @@ def setup_python(python_configuration: PythonConfiguration,
         env.setdefault('ARCHFLAGS', '-arch x86_64')
 
     log.step('Installing build tools...')
-    call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
+    call(['python', '-m', 'pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
 
     return env
 
@@ -224,7 +223,7 @@ def build(options: BuildOptions) -> None:
             # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
             # see https://github.com/joerick/cibuildwheel/pull/369
             call([
-                'pip', 'wheel',
+                'python', '-m', 'pip', 'wheel',
                 options.package_dir.resolve(),
                 '-w', built_wheel_dir,
                 '--no-deps',
@@ -253,7 +252,7 @@ def build(options: BuildOptions) -> None:
                 log.step('Testing wheel...')
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
-                call(['pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
+                call(['python', '-m', 'pip', 'install', 'virtualenv', *dependency_constraint_flags], env=env)
                 venv_dir = Path(tempfile.mkdtemp())
 
                 # Use --no-download to ensure determinism by using seed libraries
@@ -274,11 +273,11 @@ def build(options: BuildOptions) -> None:
                     call(before_test_prepared, env=virtualenv_env, shell=True)
 
                 # install the wheel
-                call(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
+                call(['python', '-m', 'pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
 
                 # test the wheel
                 if options.test_requires:
-                    call(['pip', 'install'] + options.test_requires, env=virtualenv_env)
+                    call(['python', '-m', 'pip', 'install'] + options.test_requires, env=virtualenv_env)
 
                 # run the tests from $HOME, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel
