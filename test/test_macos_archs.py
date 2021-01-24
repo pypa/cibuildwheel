@@ -1,4 +1,6 @@
 import platform
+import subprocess
+from typing import Tuple, cast
 
 import pytest
 
@@ -12,11 +14,23 @@ ALL_MACOS_WHEELS = (
 )
 
 
+def get_xcode_version() -> Tuple[int, int]:
+    output = subprocess.check_output(
+        ['xcodebuild', '-version'],
+        universal_newlines=True,
+    )
+    lines = output.splitlines()
+    _, version_str = lines[0].split()
+
+    version = tuple(int(x) for x in version_str.split('.'))
+    return cast(Tuple[int, int], version)
+
+
 def test_cross_compiled_build(tmp_path):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
-    if utils.get_macos_version() < (10, 16):
-        pytest.skip('this test only works on macOS 11 or greater')
+    if get_xcode_version() < (12, 0):
+        pytest.skip('this test only works with Xcode 12 or greater')
 
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
@@ -34,8 +48,8 @@ def test_cross_compiled_build(tmp_path):
 def test_cross_compiled_test(tmp_path, capfd, build_universal2):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
-    if utils.get_macos_version() < (10, 16):
-        pytest.skip('this test only works on macOS 11 or greater')
+    if get_xcode_version() < (12, 0):
+        pytest.skip('this test only works with Xcode 12 or greater')
 
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
