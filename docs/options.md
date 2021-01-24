@@ -614,10 +614,6 @@ optional arguments:
 ```
 
 <style>
-  .toctree-l3 {
-    border-left: 10px solid transparent;
-  }
-
   .options-toc {
     display: grid;
     grid-auto-columns: fit-content(20%) 1fr;
