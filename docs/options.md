@@ -163,14 +163,14 @@ A space-separated list of architectures to build.
 On macOS, this option can be used to cross-compile between `x86_64`,
 `universal2` and `arm64` for Apple Silicon support.
 
-On Linux, this option can be used to build non-native architectures under emulation, such as that
-provided by [docker/setup-qemu-action][setup-qemu-action]
-or [tonistiigi/binfmt][binfmt]. See [this guide](faq.md#automatic-updates) for more information.
+On Linux, this option can be used to build non-native architectures under
+emulation. See [this guide](faq.md#emulation) for more information.
 
 Options:
+
 - Linux: `x86_64` `i686` `aarch64` `ppc64le` `s390x`
 - macOS: `x86_64` `arm64` `universal2`
-- Windows: `x86` `AMD64`
+- Windows: `AMD64` `x86`
 - `auto`: The default archs for your machine - see the table below.
 - `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
 - `all` : expands to all the architectures supported on this OS. You may want
@@ -180,11 +180,11 @@ Options:
 Default: `auto`
 
 | Runner | `native` | `auto`
-|---|---|---|---
-| macOS / Intel | `x86_64` | `x86_64`
-| macOS / Apple Silicon | `arm64` | `arm64`, `universal2`
-| Linux / Intel | `x86_64` | `x86_64`, `i686`
-| Windows / Intel | `AMD64` | `AMD64`, `x86`
+|---|---|---
+| Linux / Intel | `x86_64` | `x86_64` `i686`
+| Windows / Intel | `AMD64` | `AMD64` `x86`
+| macOS / Intel | `x86_64` | `x86_64`
+| macOS / Apple Silicon | `arm64` | `arm64` `universal2`
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
@@ -193,8 +193,8 @@ Default: `auto`
 
 ```yaml
 # Build `universal2` and `arm64` wheels on an Intel runner.
-# Note that the `arm64` wheel and the `arm64` part of the `universal2` wheel
-# cannot be tested in this configuration.
+# Note that the `arm64` wheel and the `arm64` part of the `universal2`
+# wheel cannot be tested in this configuration.
 CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
 
 # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
