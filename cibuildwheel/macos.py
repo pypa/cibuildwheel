@@ -240,6 +240,12 @@ def setup_python(python_configuration: PythonConfiguration,
             env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-11.0-arm64')
             env.setdefault('ARCHFLAGS', '-arch arm64')
 
+    if python_configuration.identifier.endswith('_arm64') or python_configuration.identifier.endswith('_universal2'):
+        if get_macos_version() < (10, 16):
+            # xcode 12 or higher can build arm64 on macos 10.15 or below, but
+            # needs the correct SDK selected
+            env.setdefault('SDKROOT', 'macosx11.0')
+
     log.step('Installing build tools...')
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
 
