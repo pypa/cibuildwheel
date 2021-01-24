@@ -143,6 +143,8 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
         str(installation_path / 'Scripts'),
         env['PATH']
     ])
+    env['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
+
     # update env with results from CIBW_ENVIRONMENT
     env = environment.as_dictionary(prev_environment=env)
 

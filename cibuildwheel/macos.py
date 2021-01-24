@@ -195,6 +195,9 @@ def setup_python(python_configuration: PythonConfiguration,
     env.pop('__PYVENV_LAUNCHER__', None)
     env = environment.as_dictionary(prev_environment=env)
 
+    # we version pip ourselves, so we don't care about pip version checking
+    env['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
+
     # check what version we're on
     call(['which', 'python'], env=env)
     call(['python', '--version'], env=env)

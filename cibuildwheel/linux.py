@@ -94,6 +94,7 @@ def build(options: BuildOptions) -> None:
 
                     env = docker.get_environment()
                     env['PATH'] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
+                    env['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
 
                     before_all_prepared = prepare_command(options.before_all, project=container_project_path, package=container_package_dir)
