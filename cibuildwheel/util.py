@@ -131,6 +131,7 @@ def download(url: str, dest: Path) -> None:
 
     try:
         dest.write_bytes(response.read())
+        print('size', dest.stat().st_size)
     except Exception as e:
         print('exception', e)
         print('e.partial', e.partial)  # type: ignore
