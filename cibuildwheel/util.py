@@ -120,6 +120,8 @@ def download(url: str, dest: Path) -> None:
     for i in range(repeat_num):
         try:
             response = urllib.request.urlopen(url, context=context)
+            print('response.status', response.status)
+            print('response.headers', response.headers)
         except Exception:
             if i == repeat_num - 1:
                 raise
@@ -129,6 +131,9 @@ def download(url: str, dest: Path) -> None:
 
     try:
         dest.write_bytes(response.read())
+    except Exception as e:
+        print('exception', e)
+        print('e.partial', e.partial)  # type: ignore
     finally:
         response.close()
 
