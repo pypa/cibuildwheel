@@ -78,15 +78,18 @@ def install_cpython(version: str, url: str) -> Path:
     installation_bin_path = Path(f'/Library/Frameworks/Python.framework/Versions/{version}/bin')
 
     if python_package_identifier not in installed_system_packages:
-        # download the pkg
-        download(url, Path('/tmp/Python.pkg'))
-        # install
-        call(['sudo', 'installer', '-pkg', '/tmp/Python.pkg', '-target', '/'])
-        # patch open ssl
-        if version == '3.5':
-            open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.1.1h/patch-macos-python-{version}-openssl-v1.1.1h.tar.gz'
-            download(open_ssl_patch_url, Path('/tmp/python-patch.tar.gz'))
-            call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp_pkg = Path(tmp_name) / 'Python.pkg'
+            # download the pkg
+            download(url, tmp_pkg)
+            # install
+            call(['sudo', 'installer', '-pkg', tmp_pkg, '-target', '/'])
+            # patch open ssl
+            if version == '3.5':
+                tmp_patch = Path(tmp_name) / 'python-patch.tar.gz'
+                open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.1.1h/patch-macos-python-{version}-openssl-v1.1.1h.tar.gz'
+                download(open_ssl_patch_url, tmp_patch)
+                call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', tmp_patch])
 
         call(["sudo", str(installation_bin_path/python_executable), str(install_certifi_script)])
 
