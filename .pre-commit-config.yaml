@@ -24,7 +24,7 @@ repos:
     args: ["--line-length=120"]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v0.790
+  rev: v0.800
   hooks:
   - id: mypy
     files: ^(cibuildwheel/|test/|bin/projects.py|bin/update_pythons.py|unit_test/)
