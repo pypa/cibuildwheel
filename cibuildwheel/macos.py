@@ -82,8 +82,10 @@ def install_cpython(version: str, url: str) -> Path:
             tmp_pkg = Path(tmp_name) / 'Python.pkg'
             # download the pkg
             download(url, tmp_pkg)
+            call(['ls', '-l', tmp_pkg])
             # install
             call(['sudo', 'installer', '-pkg', tmp_pkg, '-target', '/'])
+            raise RuntimeError("quiting")
             # patch open ssl
             if version == '3.5':
                 tmp_patch = Path(tmp_name) / 'python-patch.tar.gz'
