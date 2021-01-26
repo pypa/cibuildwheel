@@ -53,6 +53,18 @@ def get_macos_version() -> Tuple[int, int]:
     return cast(Tuple[int, int], version)
 
 
+def get_xcode_version() -> Tuple[int, int]:
+    output = subprocess.check_output(
+        ['xcodebuild', '-version'],
+        universal_newlines=True,
+    )
+    lines = output.splitlines()
+    _, version_str = lines[0].split()
+
+    version_parts = version_str.split('.')
+    return (int(version_parts[0]), int(version_parts[1]))
+
+
 class PythonConfiguration(NamedTuple):
     version: str
     identifier: str
@@ -246,7 +258,13 @@ def setup_python(python_configuration: PythonConfiguration,
         if get_macos_version() < (10, 16):
             # xcode 12 or higher can build arm64 on macos 10.15 or below, but
             # needs the correct SDK selected
-            env.setdefault('SDKROOT', 'macosx11.0')
+
+            # however, different versions of Xcode contain different SDK
+            # versions...
+            if get_xcode_version() == (12, 2):
+                env.setdefault('SDKROOT', 'macosx11.0')
+            else:
+                env.setdefault('SDKROOT', 'macosx11.1')
 
     log.step('Installing build tools...')
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
