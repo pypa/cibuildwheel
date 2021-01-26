@@ -1,6 +1,6 @@
 import platform
 import subprocess
-from typing import Tuple, cast
+from typing import Tuple
 
 import pytest
 
@@ -22,8 +22,8 @@ def get_xcode_version() -> Tuple[int, int]:
     lines = output.splitlines()
     _, version_str = lines[0].split()
 
-    version = tuple(int(x) for x in version_str.split('.'))
-    return cast(Tuple[int, int], version)
+    version_parts = version_str.split('.')
+    return (int(version_parts[0]), int(version_parts[1]))
 
 
 def test_cross_compiled_build(tmp_path):
@@ -79,5 +79,41 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         expected_wheels = [w for w in ALL_MACOS_WHEELS if 'cp39' in w and 'universal2' in w]
     else:
         expected_wheels = [w for w in ALL_MACOS_WHEELS if 'cp39' in w and 'universal2' not in w]
+
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+@pytest.mark.parametrize('skip_arm64_test', [False, True])
+def test_universal2_testing(tmp_path, capfd, skip_arm64_test):
+    if utils.platform != 'macos':
+        pytest.skip('this test is only relevant to macos')
+    if get_xcode_version() < (12, 0):
+        pytest.skip('this test only works with Xcode 12 or greater')
+    if platform.machine() != 'x86_64':
+        pytest.skip('this test only works on x86_64')
+
+    project_dir = tmp_path / 'project'
+    basic_project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
+        'CIBW_BUILD': 'cp39-*',
+        'CIBW_TEST_COMMAND': '''python -c "import platform; print('running tests on ' + platform.machine())"''',
+        'CIBW_ARCHS': 'universal2',
+        'CIBW_TEST_SKIP': '*_universal2:arm64' if skip_arm64_test else '',
+    })
+
+    captured = capfd.readouterr()
+
+    if platform.machine() == 'x86_64':
+        assert 'running tests on x86_64' in captured.out
+        assert 'running tests on arm64' not in captured.out
+
+        warning_message = 'While universal2 wheels can be built on x86_64, the arm64 part of them cannot currently be tested'
+        if skip_arm64_test:
+            assert warning_message not in captured.err
+        else:
+            assert warning_message in captured.err
+
+    expected_wheels = [w for w in ALL_MACOS_WHEELS if 'cp39' in w and 'universal2' in w]
 
     assert set(actual_wheels) == set(expected_wheels)

@@ -8,6 +8,8 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
+from typing_extensions import Literal
+
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
@@ -342,37 +344,43 @@ def build(options: BuildOptions) -> None:
 
             if options.test_command and options.test_selector(config.identifier):
                 machine_arch = platform.machine()
-                testing_archs: List[str] = []
+                testing_archs: List[Literal['x86_64', 'arm64']] = []
 
-                if machine_arch == 'x86_64':
-                    if config.identifier.endswith('_arm64'):
-                        log.warning(unwrap('''
-                            While arm64 wheels can be built on x86_64, they cannot be tested. The
-                            ability to test the arm64 wheels will be added in a future release of
-                            cibuildwheel, once Apple Silicon CI runners are widely available.
-                        '''))
-                        testing_archs = []
-                    elif config.identifier.endswith('_universal2'):
-                        log.warning(unwrap('''
-                            While universal2 wheels can be built on x86_64, the arm64 part of them
-                            cannot currently be tested. The ability to test the arm64 part of a
-                            universal2 wheel will be added in a future release of cibuildwheel, once
-                            Apple Silicon CI runners are widely available.
-                        '''))
-                        testing_archs = ['x86_64']
-                    else:
-                        testing_archs = ['x86_64']
-                elif machine_arch == 'arm64':
-                    if config.identifier.endswith('_x86_64'):
-                        # testing using rosetta2 emulation
-                        testing_archs = ['x86_64']
-                    elif config.identifier.endswith('_universal2'):
-                        # testing the x86_64 using rosetta2 emulation
-                        testing_archs = ['arm64', 'x86_64']
-                    else:
-                        testing_archs = ['arm64']
+                if config.identifier.endswith('_arm64'):
+                    testing_archs = ['arm64']
+                elif config.identifier.endswith('_universal2'):
+                    testing_archs = ['x86_64', 'arm64']
+                else:
+                    testing_archs = ['x86_64']
 
                 for testing_arch in testing_archs:
+                    if config.identifier.endswith('_universal2'):
+                        arch_specific_identifier = f'{config.identifier}:{testing_arch}'
+                        if not options.test_selector(arch_specific_identifier):
+                            continue
+
+                    if machine_arch == 'x86_64' and testing_arch == 'arm64':
+                        if config.identifier.endswith('_arm64'):
+                            log.warning(unwrap('''
+                                While arm64 wheels can be built on x86_64, they cannot be tested. The
+                                ability to test the arm64 wheels will be added in a future release of
+                                cibuildwheel, once Apple Silicon CI runners are widely available. To
+                                silence this warning, set `CIBW_TEST_SKIP: *-macosx_arm64`.
+                            '''))
+                        elif config.identifier.endswith('_universal2'):
+                            log.warning(unwrap('''
+                                While universal2 wheels can be built on x86_64, the arm64 part of them
+                                cannot currently be tested. The ability to test the arm64 part of a
+                                universal2 wheel will be added in a future release of cibuildwheel, once
+                                Apple Silicon CI runners are widely available. To silence this warning,
+                                set `CIBW_TEST_SKIP: *-macosx_universal2:arm64`.
+                            '''))
+                        else:
+                            raise RuntimeError('unreachable')
+
+                        # skip this test
+                        continue
+
                     log.step('Testing wheel...' if testing_arch == machine_arch else f'Testing wheel on {testing_arch}...')
 
                     # set up a virtual environment to install and test from, to make sure

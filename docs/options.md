@@ -544,11 +544,16 @@ CIBW_TEST_EXTRAS: test,qt
 
 This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to mask up slow tests on emulated architectures.
 
+With macOS `universal2` wheels, you can also skip the the individual archs inside the wheel using an `:arch` suffix. For example, `cp39-macosx_universal2:x86_64` or `cp39-macosx_universal2:arm64`.
+
 #### Examples
 
 ```yaml
 # Will avoid testing on emulated architectures
 CIBW_TEST_SKIP: "*-manylinux_{aarch64,ppc64le,s390x}"
+
+# Skip trying to test arm64 builds on Intel Macs
+CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
 ```
 
 
