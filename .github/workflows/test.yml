@@ -56,6 +56,8 @@ jobs:
       run: |
         python -m test.test_projects test.test_0_basic.basic_project sample_proj
         cibuildwheel --output-dir wheelhouse sample_proj
+      env:
+        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
 
     - uses: actions/upload-artifact@v2
       with:
