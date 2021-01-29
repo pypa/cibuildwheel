@@ -253,6 +253,11 @@ def setup_python(python_configuration: PythonConfiguration,
             # have that as a minimum.
             env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-11.0-arm64')
             env.setdefault('ARCHFLAGS', '-arch arm64')
+        elif python_configuration.identifier.endswith('universal2'):
+            if get_macos_version() < (10, 16):
+                # we can do universal2 builds on macos 10.15, but we need to
+                # set ARCHFLAGS otherwise CPython sets it to `-arch x86_64`
+                env.setdefault('ARCHFLAGS', '-arch arm64 -arch x86_64')
 
     if python_configuration.identifier.endswith('_arm64') or python_configuration.identifier.endswith('_universal2'):
         if get_macos_version() < (10, 16):
