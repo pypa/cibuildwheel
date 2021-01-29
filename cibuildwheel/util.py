@@ -1,4 +1,5 @@
 import fnmatch
+import hashlib
 import itertools
 import os
 import ssl
@@ -130,8 +131,10 @@ def download(url: str, dest: Path) -> None:
         break
 
     try:
-        dest.write_bytes(response.read())
-        print('size', dest.stat().st_size)
+        data = response.read()
+        print('md5', hashlib.md5(data).hexdigest())
+        dest.write_bytes(data)
+        print('size', len(data))
     except Exception as e:
         print('exception', e)
         print('e.partial', e.partial)  # type: ignore
