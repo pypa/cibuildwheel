@@ -152,7 +152,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
             if python_abi_tag == 'cp39-cp39' and machine_arch == 'arm64':
                 arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(macosx_deployment_target)
                 platform_tags = [
-                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2.macosx_{arm64_macosx_deployment_target.replace(".", "_")}_universal2',
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
                     f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64',
                 ]
             else:
