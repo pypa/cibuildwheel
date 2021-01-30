@@ -325,6 +325,16 @@ def build(options: BuildOptions) -> None:
                 # clean up
                 shutil.rmtree(venv_dir)
 
+            if (options.output_dir / repaired_wheel.name).exists():
+                message = f'Created wheel ({repaired_wheel}) already exists in output directory.'
+                if 'abi3' in repaired_wheel.name:
+                    message += ('\n'
+                                "It looks like you are building wheels against Python's limited API/stable ABI;\n"
+                                'please limit your Python selection to a single version when building limited API\n'
+                                'wheels, with CIBW_BUILD.')
+                log.error(message)
+                sys.exit(1)
+
             # we're all done here; move it to output (remove if already exists)
             shutil.move(str(repaired_wheel), options.output_dir)
             log.build_end()

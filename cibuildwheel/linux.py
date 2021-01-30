@@ -218,6 +218,18 @@ def build(options: BuildOptions) -> None:
                         # clean up test environment
                         docker.call(['rm', '-rf', venv_dir])
 
+                    existing_output_files = docker.call(['ls'], cwd=container_output_dir).split('\n')
+                    for repaired_wheel in repaired_wheels:
+                        if repaired_wheel.name in existing_output_files:
+                            message = f'Created wheel ({repaired_wheel}) already exists in output directory.'
+                            if 'abi3' in repaired_wheel.name:
+                                message += ('\n'
+                                            "It looks like you are building wheels against Python's limited API/stable ABI;\n"
+                                            'please limit your Python selection to a single version when building limited API\n'
+                                            'wheels, with CIBW_BUILD.')
+                            log.error(message)
+                            sys.exit(1)
+
                     # move repaired wheels to output
                     docker.call(['mkdir', '-p', container_output_dir])
                     docker.call(['mv', *repaired_wheels, container_output_dir])
