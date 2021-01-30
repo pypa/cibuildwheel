@@ -52,18 +52,6 @@ def get_macos_version() -> Tuple[int, int]:
     return cast(Tuple[int, int], version)
 
 
-def get_xcode_version() -> Tuple[int, int]:
-    output = subprocess.check_output(
-        ['xcodebuild', '-version'],
-        universal_newlines=True,
-    )
-    lines = output.splitlines()
-    _, version_str = lines[0].split()
-
-    version_parts = version_str.split('.')
-    return (int(version_parts[0]), int(version_parts[1]))
-
-
 def get_macos_sdks() -> List[str]:
     output = subprocess.check_output(
         ['xcodebuild', '-showsdks'],
