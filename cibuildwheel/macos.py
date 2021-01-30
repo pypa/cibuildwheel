@@ -8,12 +8,10 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
-from typing_extensions import Literal
-
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
-from .typing import PathOrStr
+from .typing import Literal, PathOrStr
 from .util import (
     BuildOptions,
     BuildSelector,
