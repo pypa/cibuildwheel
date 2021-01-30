@@ -49,7 +49,7 @@ zipp==1.2.0
     #   importlib-resources
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==20.3.3
+pip==20.3.4
     # via -r cibuildwheel/resources/constraints.in
 setuptools==44.1.1
     # via -r cibuildwheel/resources/constraints.in
