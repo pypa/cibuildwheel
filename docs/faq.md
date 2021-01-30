@@ -58,7 +58,7 @@ These wheels are not built by default, but can be enabled by setting the [`CIBW_
 Hopefully, this is a temporary situation. Once we have widely available Apple Silicon CI runners, we can build and test `arm64` and `universal2` wheels more natively. That's why `universal2` wheels are not yet built by default, and require opt-in by setting `CIBW_ARCHS_MACOS`.
 
 !!! note
-    Your runner image needs Xcode Command Line Tools 12 or later to build `universal2` and `arm64`.
+    Your runner image needs Xcode Command Line Tools 12.2 or later to build `universal2` and `arm64`.
 
     So far, only CPython 3.9 supports `universal2` and `arm64` wheels.
 

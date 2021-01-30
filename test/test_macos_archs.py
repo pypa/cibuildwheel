@@ -29,8 +29,8 @@ def get_xcode_version() -> Tuple[int, int]:
 def test_cross_compiled_build(tmp_path):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
-    if get_xcode_version() < (12, 0):
-        pytest.skip('this test only works with Xcode 12 or greater')
+    if get_xcode_version() < (12, 2):
+        pytest.skip('this test only works with Xcode 12.2 or greater')
 
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
@@ -48,8 +48,8 @@ def test_cross_compiled_build(tmp_path):
 def test_cross_compiled_test(tmp_path, capfd, build_universal2):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
-    if get_xcode_version() < (12, 0):
-        pytest.skip('this test only works with Xcode 12 or greater')
+    if get_xcode_version() < (12, 2):
+        pytest.skip('this test only works with Xcode 12.2 or greater')
 
     project_dir = tmp_path / 'project'
     basic_project.generate(project_dir)
@@ -87,8 +87,8 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
 def test_universal2_testing(tmp_path, capfd, skip_arm64_test):
     if utils.platform != 'macos':
         pytest.skip('this test is only relevant to macos')
-    if get_xcode_version() < (12, 0):
-        pytest.skip('this test only works with Xcode 12 or greater')
+    if get_xcode_version() < (12, 2):
+        pytest.skip('this test only works with Xcode 12.2 or greater')
     if platform.machine() != 'x86_64':
         pytest.skip('this test only works on x86_64')
 

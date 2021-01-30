@@ -186,6 +186,8 @@ Default: `auto`
 | macOS / Intel | `x86_64` | `x86_64`
 | macOS / Apple Silicon | `arm64` | `arm64` `universal2`
 
+If not listed above, `auto` is the same as `native`.
+
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
 
