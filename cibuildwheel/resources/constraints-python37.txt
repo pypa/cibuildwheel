@@ -28,7 +28,7 @@ zipp==3.4.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==20.3.3
+pip==21.0.1
     # via -r cibuildwheel/resources/constraints.in
-setuptools==51.3.3
+setuptools==52.0.0
     # via -r cibuildwheel/resources/constraints.in
