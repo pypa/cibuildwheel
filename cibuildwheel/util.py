@@ -56,8 +56,10 @@ class IdentifierSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
     build identifier, and it returns True if that identifier should be
-    included.
+    included. Only call this on valid identifiers, ones that have at least 2
+    numeric digits before the first dash.
     """
+
     def __init__(self, *, build_config: str, skip_config: str, requires_python: Optional[SpecifierSet] = None):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
@@ -65,17 +67,13 @@ class IdentifierSelector:
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
-        if self.requires_python is not None and '-' in build_id:
+        if self.requires_python is not None:
             py_ver_str = build_id.split('-')[0]
-            try:
-                major = int(py_ver_str[2])
-                minor = int(py_ver_str[3:])
-            except ValueError:
-                pass
-            else:
-                version = Version(f"{major}.{minor}.99")
-                if not self.requires_python.contains(version):
-                    return False
+            major = int(py_ver_str[2])
+            minor = int(py_ver_str[3:])
+            version = Version(f"{major}.{minor}.99")
+            if not self.requires_python.contains(version):
+                return False
 
         build_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.build_patterns)
         skip_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.skip_patterns)

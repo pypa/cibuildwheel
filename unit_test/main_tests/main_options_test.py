@@ -51,8 +51,8 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_emp
 
     intercepted_build_selector = intercepted_build_args.args[0].build_selector
     assert isinstance(intercepted_build_selector, BuildSelector)
-    assert intercepted_build_selector('build-this')
-    assert not intercepted_build_selector('skip-that')
+    assert intercepted_build_selector('build24-this')
+    assert not intercepted_build_selector('skip65-that')
     # This unit test is just testing the options of 'main'
     # Unit tests for BuildSelector are in build_selector_test.py
 

@@ -88,3 +88,19 @@ def test_build_limited_python():
     assert not build_selector('pp27-win32')
     assert build_selector('pp36-win32')
     assert build_selector('pp37-win32')
+
+
+def test_build_limited_python_partial():
+    build_selector = BuildSelector(build_config="*", skip_config="", requires_python=SpecifierSet(">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"))
+
+    assert build_selector('cp27-manylinux1_x86_64')
+    assert not build_selector('cp35-manylinux1_x86_64')
+    assert build_selector('cp36-manylinux1_x86_64')
+
+
+def test_build_limited_python_patch():
+    build_selector = BuildSelector(build_config="*", skip_config="", requires_python=SpecifierSet(">=2.7.9"))
+
+    assert build_selector('cp27-manylinux1_x86_64')
+    assert build_selector('cp36-manylinux1_x86_64')
+    assert build_selector('cp37-manylinux1_x86_64')
