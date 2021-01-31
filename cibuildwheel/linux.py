@@ -218,7 +218,7 @@ def build(options: BuildOptions) -> None:
                         # clean up test environment
                         docker.call(['rm', '-rf', venv_dir])
 
-                    existing_output_files = docker.call(['ls'], cwd=container_output_dir).split('\n')
+                    existing_output_files = docker.call(['ls'], capture_output=True, cwd=container_output_dir).split('\n')
                     for repaired_wheel in repaired_wheels:
                         if repaired_wheel.name in existing_output_files:
                             message = f'Created wheel ({repaired_wheel}) already exists in output directory.'
