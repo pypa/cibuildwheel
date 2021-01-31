@@ -82,24 +82,16 @@ class Architecture(Enum):
             assert_never(platform)
 
     @staticmethod
-    def bitiness_archs(platform: PlatformName, bitiness: Literal["64", "32"]) -> 'Set[Architecture]':
-        native_architecture = Architecture(platform_module.machine())
+    def bitiness_archs(platform: PlatformName, bitiness: Literal['64', '32']) -> 'Set[Architecture]':
+        archs_32 = {Architecture.i686, Architecture.x86}
+        auto_archs = Architecture.auto_archs(platform)
 
-        if native_architecture in {Architecture.x86_64, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x, Architecture.AMD64}:
-            if bitiness == "64":
-                return {native_architecture}
-            else:
-                if native_architecture == Architecture.x86_64 and platform != "macos":
-                    return {Architecture.i686}
-                elif native_architecture == Architecture.AMD64:
-                    return {Architecture.x86}
-                else:
-                    return set()
-        elif native_architecture in {Architecture.i686, Architecture.x86}:
-            return {native_architecture} if bitiness == "32" else set()
+        if bitiness == '64':
+            return auto_archs - archs_32
+        elif bitiness == '32':
+            return auto_archs & archs_32
         else:
-            # assert_never doesn't work here, oddly, maybe due to set checking above
-            raise RuntimeError("Cannot be reached")
+            assert_never(bitiness)
 
 
 def allowed_architectures_check(

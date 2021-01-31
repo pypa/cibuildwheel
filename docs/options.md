@@ -172,8 +172,8 @@ Options:
 - macOS: `x86_64` `arm64` `universal2`
 - Windows: `AMD64` `x86`
 - `auto`: The default archs for your machine - see the table below.
-    - `auto64`: Just the 64-bit auto archs (will result in an empty set on a 32-bit runner)
-    - `auto32`: Just the 32-bit auto archs (will result in an empty set on macOS)
+    - `auto64`: Just the 64-bit auto archs
+    - `auto32`: Just the 32-bit auto archs
 - `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [CIBW_BUILD](#build-skip) with this option to target specific
@@ -181,12 +181,12 @@ Options:
 
 Default: `auto`
 
-| Runner | `native` | `auto`
-|---|---|---
-| Linux / Intel | `x86_64` | `x86_64` `i686`
-| Windows / Intel | `AMD64` | `AMD64` `x86`
-| macOS / Intel | `x86_64` | `x86_64`
-| macOS / Apple Silicon | `arm64` | `arm64` `universal2`
+| Runner | `native` | `auto` | `auto64` | `auto32` |
+|---|---|---|---|---|
+| Linux / Intel | `x86_64` | `x86_64` `i686` | `x86_64` | `i686` |
+| Windows / Intel | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
+| macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
+| macOS / Apple Silicon | `arm64` | `arm64` `universal2` | `arm64` `universal2`|  |
 
 If not listed above, `auto` is the same as `native`.
 
@@ -195,6 +195,8 @@ If not listed above, `auto` is the same as `native`.
 
 Platform-specific variants also available:<br/>
  `CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX`
+
+This option can also be set using the [command-line option](#command-line) `--archs`.
 
 #### Examples
 
@@ -208,10 +210,6 @@ CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
 CIBW_ARCHS_LINUX: "auto aarch64"
 ```
 
-Platform-specific variants also available:<br/>
-`CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX`
-
-This option can also be set using the [command-line option](#command-line) `--archs`.
 
 ###  `CIBW_PROJECT_REQUIRES_PYTHON` {: #requires-python}
 > Manually set the Python compatibility of your project
