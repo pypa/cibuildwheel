@@ -89,7 +89,7 @@ def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
 def expected_wheels(package_name, package_version, manylinux_versions=None,
                     macosx_deployment_target='10.9', machine_arch=None, *,
                     exclude_27=IS_WINDOWS_RUNNING_ON_TRAVIS,
-                    limited_api=False):
+                    limited_api=None):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -108,7 +108,7 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
             manylinux_versions = ['manylinux2014']
 
     if limited_api:
-        python_abi_tags = ['cp35-abi3']
+        python_abi_tags = [f'{limited_api}-abi3']
     else:
         python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38', 'cp39-cp39']
 
