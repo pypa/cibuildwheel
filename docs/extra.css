@@ -83,5 +83,9 @@ h1, h2, h3, h4, h5, h6 {
     padding-top: 0.9em;
 }
 
+.toctree-l3 {
+  border-left: 10px solid transparent;
+}
+
 /* import font awesome 4 for icons */
 @import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css);

@@ -143,6 +143,8 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
         str(installation_path / 'Scripts'),
         env['PATH']
     ])
+    env['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
+
     # update env with results from CIBW_ENVIRONMENT
     env = environment.as_dictionary(prev_environment=env)
 
@@ -327,5 +329,5 @@ def build(options: BuildOptions) -> None:
             shutil.move(str(repaired_wheel), options.output_dir)
             log.build_end()
     except subprocess.CalledProcessError as error:
-        log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+        log.step_end_with_error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
         sys.exit(1)

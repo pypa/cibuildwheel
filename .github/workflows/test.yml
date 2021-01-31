@@ -52,6 +52,18 @@ jobs:
       run: |
         python bin/sample_build.py
 
+    - name: Get some sample wheels
+      run: |
+        python -m test.test_projects test.test_0_basic.basic_project sample_proj
+        cibuildwheel --output-dir wheelhouse sample_proj
+      env:
+        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: sample_wheels
+        path: wheelhouse
+
     - name: Test cibuildwheel
       run: |
         python ./bin/run_tests.py

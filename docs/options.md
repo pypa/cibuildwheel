@@ -64,7 +64,7 @@ Default: `auto`
 
 For `linux` you need Docker running, on macOS or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and `cibuildwheel` will install required versions of Python to `C:\cibw\python` using NuGet.
 
-This option can also be set using the command-line option `--platform`.
+This option can also be set using the [command-line option](#command-line) `--platform`.
 
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
@@ -155,24 +155,38 @@ CIBW_SKIP: pp*
   }
 </style>
 
-### `CIBW_ARCHS_LINUX` {: #archs}
-> Build non-native architectures
+### `CIBW_ARCHS` {: #archs}
+> Change the architectures built on your machine by default.
 
-A space-separated list of architectures to build. Use this in conjunction with
-emulation, such as that provided by [docker/setup-qemu-action][setup-qemu-action]
-or [tonistiigi/binfmt][binfmt], to build architectures other than those your
-machine natively supports.
+A space-separated list of architectures to build.
 
-Options: `auto` `native` `all` `x86_64` `i686` `aarch64` `ppc64le` `s390x`
+On macOS, this option can be used to cross-compile between `x86_64`,
+`universal2` and `arm64` for Apple Silicon support.
 
-Default: `auto`, meaning the native archs supported on the build machine. For
-example, on an `x86_64` machine, `auto` expands to `x86_64` and `i686`.
+On Linux, this option can be used to build non-native architectures under
+emulation. See [this guide](faq.md#emulation) for more information.
 
-`native` will only build on the exact architecture you currently are on; it will
-not add `i686` for `x86_64`.
+Options:
 
-`all` will expand to all known architectures; remember to use build selectors
-to limit builds for each job; this list could grow in the future.
+- Linux: `x86_64` `i686` `aarch64` `ppc64le` `s390x`
+- macOS: `x86_64` `arm64` `universal2`
+- Windows: `AMD64` `x86`
+- `auto`: The default archs for your machine - see the table below.
+- `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
+- `all` : expands to all the architectures supported on this OS. You may want
+  to use [CIBW_BUILD](#build-skip) with this option to target specific
+  architectures via build selectors.
+
+Default: `auto`
+
+| Runner | `native` | `auto`
+|---|---|---
+| Linux / Intel | `x86_64` | `x86_64` `i686`
+| Windows / Intel | `AMD64` | `AMD64` `x86`
+| macOS / Intel | `x86_64` | `x86_64`
+| macOS / Apple Silicon | `arm64` | `arm64` `universal2`
+
+If not listed above, `auto` is the same as `native`.
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
@@ -180,9 +194,19 @@ to limit builds for each job; this list could grow in the future.
 #### Examples
 
 ```yaml
-# On an intel runner with qemu installed, build Intel and ARM wheels
+# Build `universal2` and `arm64` wheels on an Intel runner.
+# Note that the `arm64` wheel and the `arm64` part of the `universal2`
+# wheel cannot be tested in this configuration.
+CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
+
+# On an Linux Intel runner with qemu installed, build Intel and ARM wheels
 CIBW_ARCHS_LINUX: "auto aarch64"
 ```
+
+Platform-specific variants also available:<br/>
+`CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX`
+
+This option can also be set using the [command-line option](#command-line) `--archs`.
 
 ## Build customization
 
@@ -306,7 +330,7 @@ CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
 Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
-- on macOS: `'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'`
+- on macOS: `'delocate-listdeps {wheel} && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}'`
 - on Windows: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
@@ -315,7 +339,8 @@ The command is run on each built wheel (except for pure Python ones) before test
 The following placeholders must be used inside the command and will be replaced by `cibuildwheel`:
 
 - `{wheel}` for the absolute path to the built wheel
-- `{dest_dir}` for the absolute path of the directory where to create the repaired wheel.
+- `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
+- `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
 
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
@@ -521,11 +546,16 @@ CIBW_TEST_EXTRAS: test,qt
 
 This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to mask up slow tests on emulated architectures.
 
+With macOS `universal2` wheels, you can also skip the the individual archs inside the wheel using an `:arch` suffix. For example, `cp39-macosx_universal2:x86_64` or `cp39-macosx_universal2:arm64`.
+
 #### Examples
 
 ```yaml
 # Will avoid testing on emulated architectures
 CIBW_TEST_SKIP: "*-manylinux_{aarch64,ppc64le,s390x}"
+
+# Skip trying to test arm64 builds on Intel Macs
+CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
 ```
 
 
@@ -547,7 +577,7 @@ CIBW_BUILD_VERBOSITY: 1
 ```
 
 
-## Command line options
+## Command line options {: #command-line}
 
 ```text
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
@@ -591,10 +621,6 @@ optional arguments:
 ```
 
 <style>
-  .toctree-l3 {
-    border-left: 10px solid transparent;
-  }
-
   .options-toc {
     display: grid;
     grid-auto-columns: fit-content(20%) 1fr;

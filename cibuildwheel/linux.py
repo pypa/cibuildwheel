@@ -94,6 +94,7 @@ def build(options: BuildOptions) -> None:
 
                     env = docker.get_environment()
                     env['PATH'] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
+                    env['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
                     env = options.environment.as_dictionary(env, executor=docker.environment_executor)
 
                     before_all_prepared = prepare_command(options.before_all, project=container_project_path, package=container_package_dir)
@@ -228,7 +229,7 @@ def build(options: BuildOptions) -> None:
                 docker.copy_out(container_output_dir, options.output_dir)
                 log.step_end()
         except subprocess.CalledProcessError as error:
-            log.error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+            log.step_end_with_error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
             troubleshoot(options.package_dir, error)
             sys.exit(1)
 

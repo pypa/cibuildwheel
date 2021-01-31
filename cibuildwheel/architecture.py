@@ -15,10 +15,16 @@ class Architecture(Enum):
 
     # mac/linux archs
     x86_64 = 'x86_64'
+
+    # linux archs
     i686 = 'i686'
     aarch64 = 'aarch64'
     ppc64le = 'ppc64le'
     s390x = 's390x'
+
+    # mac archs
+    universal2 = 'universal2'
+    arm64 = 'arm64'
 
     # windows archs
     x86 = 'x86'
@@ -46,11 +52,18 @@ class Architecture(Enum):
     def auto_archs(platform: PlatformName) -> 'Set[Architecture]':
         native_architecture = Architecture(platform_module.machine())
         result = {native_architecture}
+
         if platform == 'linux' and native_architecture == Architecture.x86_64:
             # x86_64 machines can run i686 docker containers
             result.add(Architecture.i686)
+
         if platform == 'windows' and native_architecture == Architecture.AMD64:
             result.add(Architecture.x86)
+
+        if platform == 'macos' and native_architecture == Architecture.arm64:
+            # arm64 can build and test both archs of a universal2 wheel.
+            result.add(Architecture.universal2)
+
         return result
 
     @staticmethod
@@ -58,7 +71,7 @@ class Architecture(Enum):
         if platform == 'linux':
             return {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x}
         elif platform == 'macos':
-            return {Architecture.x86_64}
+            return {Architecture.x86_64, Architecture.arm64, Architecture.universal2}
         elif platform == 'windows':
             return {Architecture.x86, Architecture.AMD64}
         else:

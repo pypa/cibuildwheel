@@ -22,4 +22,4 @@ if __name__ == '__main__':
         options.project_python_path, project_dir
     ], check=True)
 
-    sys.exit(subprocess.run(['cibuildwheel'], cwd=project_dir).returncode)
+    sys.exit(subprocess.run([sys.executable, '-m', 'cibuildwheel'], cwd=project_dir).returncode)

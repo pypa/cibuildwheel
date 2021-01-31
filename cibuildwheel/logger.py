@@ -23,6 +23,8 @@ PLATFORM_IDENTIFIER_DESCIPTIONS = {
     'win32': 'Windows 32bit',
     'win_amd64': 'Windows 64bit',
     'macosx_x86_64': 'macOS x86_64',
+    'macosx_universal2': 'macOS Universal 2 - x86_64 and arm64',
+    'macosx_arm64': 'macOS arm64 - Apple Silicon',
 }
 
 
@@ -109,15 +111,23 @@ class Logger:
 
             self.step_start_time = None
 
-    def error(self, error: Union[BaseException, str]) -> None:
+    def step_end_with_error(self, error: Union[BaseException, str]) -> None:
         self.step_end(success=False)
-        print()
+        self.error(error)
 
+    def warning(self, message: str) -> None:
         if self.fold_mode == 'github':
-            print(f'::error::{error}')
+            print(f'::warning::{message}\n', file=sys.stderr)
         else:
             c = self.colors
-            print(f'{c.bright_red}Error{c.end} {error}')
+            print(f'{c.yellow}Warning{c.end}: {message}\n', file=sys.stderr)
+
+    def error(self, error: Union[BaseException, str]) -> None:
+        if self.fold_mode == 'github':
+            print(f'::error::{error}\n', file=sys.stderr)
+        else:
+            c = self.colors
+            print(f'{c.bright_red}Error{c.end}: {error}\n', file=sys.stderr)
 
     def _start_fold_group(self, name: str) -> None:
         self._end_fold_group()

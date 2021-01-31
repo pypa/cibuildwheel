@@ -1,0 +1,20 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build_wheels_macos:
+    name: Build wheels on macos-11.0
+    runs-on: macos-11.0
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build wheels
+        run: |
+          pipx run cibuildwheel==1.8.0 --output-dir wheelhouse
+        env:
+          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl

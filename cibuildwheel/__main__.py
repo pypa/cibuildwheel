@@ -137,7 +137,7 @@ def main() -> None:
     if platform == 'linux':
         repair_command_default = 'auditwheel repair -w {dest_dir} {wheel}'
     elif platform == 'macos':
-        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs x86_64 -w {dest_dir} {wheel}'
+        repair_command_default = 'delocate-listdeps {wheel} && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}'
     elif platform == 'windows':
         repair_command_default = ''
     else:
@@ -339,7 +339,7 @@ def get_build_identifiers(
     elif platform == 'windows':
         python_configurations = cibuildwheel.windows.get_python_configurations(build_selector, architectures)
     elif platform == 'macos':
-        python_configurations = cibuildwheel.macos.get_python_configurations(build_selector)
+        python_configurations = cibuildwheel.macos.get_python_configurations(build_selector, architectures)
     else:
         assert_never(platform)
 

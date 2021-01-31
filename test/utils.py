@@ -10,10 +10,8 @@ import shutil
 import subprocess
 import sys
 from contextlib import contextmanager
-from pathlib import Path
 from tempfile import mkdtemp
 
-IS_WINDOWS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
 IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
@@ -75,6 +73,19 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
     return wheels
 
 
+def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
+    '''
+    The first version of macOS that supports arm is 11.0. So the wheel tag
+    cannot contain an earlier deployment target, even if
+    MACOSX_DEPLOYMENT_TARGET sets it.
+    '''
+    version_tuple = tuple(map(int, macosx_deployment_target.split('.')))
+    if version_tuple <= (11, 0):
+        return '11.0'
+    else:
+        return macosx_deployment_target
+
+
 def expected_wheels(package_name, package_version, manylinux_versions=None,
                     macosx_deployment_target='10.9', machine_arch=None, *,
                     exclude_27=IS_WINDOWS_RUNNING_ON_TRAVIS):
@@ -103,6 +114,17 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         if platform == 'linux':
             python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
 
+    if platform == 'macos' and get_macos_version() >= (10, 16):
+        # 10.16 is sometimes reported as the macOS version on macOS 11.
+        # CPython 3.5 doesn't work on macOS 11.
+        python_abi_tags.remove('cp35-cp35m')
+        # pypy not supported on macOS 11.
+        python_abi_tags = [t for t in python_abi_tags if not t.startswith('pp')]
+
+    if platform == 'macos' and machine_arch == 'arm64':
+        # currently, arm64 macs are only supported by cp39
+        python_abi_tags = ['cp39-cp39']
+
     wheels = []
 
     for python_abi_tag in python_abi_tags:
@@ -127,7 +149,16 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
                 platform_tags = ['win32']
 
         elif platform == 'macos':
-            platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
+            if python_abi_tag == 'cp39-cp39' and machine_arch == 'arm64':
+                arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(macosx_deployment_target)
+                platform_tags = [
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
+                    f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64',
+                ]
+            else:
+                platform_tags = [
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
+                ]
 
         else:
             raise Exception('unsupported platform')
@@ -141,6 +172,18 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
         wheels = [w for w in wheels if '-cp27-' not in w and '-pp2' not in w]
 
     return wheels
+
+
+def get_macos_version():
+    '''
+    Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
+
+    These tuples can be used in comparisons, e.g.
+        (10, 14) <= (11, 0) == True
+        (11, 2) <= (11, 0) != True
+    '''
+    version_str, _, _ = pm.mac_ver()
+    return tuple(map(int, version_str.split(".")[:2]))
 
 
 platform = None

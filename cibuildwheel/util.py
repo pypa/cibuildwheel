@@ -1,8 +1,8 @@
 import fnmatch
 import itertools
 import os
+import re
 import ssl
-import sys
 import textwrap
 import urllib.request
 from enum import Enum
@@ -18,13 +18,7 @@ from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .typing import PathOrStr, PlatformName
 
-if sys.version_info < (3, 9):
-    from importlib_resources import files
-else:
-    from importlib.resources import files
-
-
-resources_dir = files('cibuildwheel') / 'resources'
+resources_dir = Path(__file__).parent / 'resources'
 get_pip_script = resources_dir / 'get-pip.py'
 install_certifi_script = resources_dir / "install_certifi.py"
 
@@ -228,3 +222,15 @@ def detect_ci_provider() -> Optional[CIProvider]:
         return CIProvider.other
     else:
         return None
+
+
+def unwrap(text: str) -> str:
+    '''
+    Unwraps multi-line text to a single line
+    '''
+    # remove initial line indent
+    text = textwrap.dedent(text)
+    # remove leading/trailing whitespace
+    text = text.strip()
+    # remove consecutive whitespace
+    return re.sub(r'\s+', ' ', text)
