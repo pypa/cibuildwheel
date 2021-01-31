@@ -1,11 +1,8 @@
-import pytest
 import toml
-
-from cibuildwheel.util import resources_dir
-
-Version = pytest.importorskip("packaging.version").Version
+from packaging.version import Version
 
 from cibuildwheel.extra import InlineArrayDictEncoder  # noqa: E402
+from cibuildwheel.util import resources_dir
 
 
 def test_compare_configs():

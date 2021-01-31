@@ -208,6 +208,61 @@ Platform-specific variants also available:<br/>
 
 This option can also be set using the [command-line option](#command-line) `--archs`.
 
+###  `CIBW_PROJECT_REQUIRES_PYTHON` {: #requires-python}
+> Manually set the Python compatibility of your project
+
+By default, cibuildwheel reads your package's Python compatibility from
+`pyproject.toml` following [PEP621](https://www.python.org/dev/peps/pep-0621/)
+or from `setup.cfg`; finally it will try to inspect the AST of `setup.py` for a
+simple keyword assignment in a top level function call. If you need to override
+this behaviour for some reason, you can use this option.
+
+When setting this option, the syntax is the same as `project.requires-python`,
+using 'version specifiers' like `>=3.6`, according to
+[PEP440](https://www.python.org/dev/peps/pep-0440/#version-specifiers).
+
+Default: reads your package's Python compatibility from `pyproject.toml`
+(`project.requires-python`) or `setup.cfg` (`options.python_requires`) or
+`setup.py` `setup(python_requires="...")`. If not found, cibuildwheel assumes
+the package is compatible with all versions of Python that it can build.
+
+
+!!! note
+    Rather than using this option, it's recommended you set
+    `project.requires-python` in `pyproject.toml` instead:
+    Example `pyproject.toml`:
+
+        [project]
+        requires-python = ">=3.6"
+
+        # Aside - in pyproject.toml you should always specify minimal build
+        # system options, like this:
+
+        [build-system]
+        requires = ["setuptools>=42", "wheel"]
+        build-backend = "setuptools.build_meta"
+
+
+    Currently, setuptools has not yet added support for reading this value from
+    pyproject.toml yet, and so does not copy it to Requires-Python in the wheel
+    metadata. This mechanism is used by `pip` to scan through older versions of
+    your package until it finds a release compatible with the curernt version
+    of Python compatible when installing, so it is an important value to set if
+    you plan to drop support for a version of Python in the future.
+
+    If you don't want to list this value twice, you can also use the setuptools
+    specific location in `setup.cfg` and cibuildwheel will detect it from
+    there. Example `setup.cfg`:
+
+        [options]
+        python_requires = ">=3.6"
+
+#### Examples
+
+```yaml
+CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6"
+```
+
 ## Build customization
 
 ### `CIBW_ENVIRONMENT` {: #environment}

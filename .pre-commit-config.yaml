@@ -24,12 +24,16 @@ repos:
     args: ["--line-length=120"]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v0.790
+  rev: v0.800
   hooks:
   - id: mypy
-    files: ^(cibuildwheel/|test/|bin/projects.py|bin/update_pythons.py|unit_test/)
-    pass_filenames: false
-    additional_dependencies: [packaging, click]
+    exclude: ^(bin/|cibuildwheel/resources/).*py$
+    additional_dependencies: [packaging]
+  - id: mypy
+    name: mypy 3.7+ on bin/
+    files: ^bin/.*py$
+    additional_dependencies: [packaging]
+    args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
 
 - repo: https://github.com/asottile/pyupgrade
   rev: v2.7.4

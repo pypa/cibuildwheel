@@ -7,12 +7,15 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Union, overload
 
+from packaging.specifiers import SpecifierSet
+
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
+from cibuildwheel.projectfiles import get_requires_python_str
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
     BuildOptions,
@@ -26,10 +29,10 @@ from cibuildwheel.util import (
 
 
 @overload
-def get_option_from_environment(option_name: str, platform: Optional[str], default: str) -> str: ...  # noqa: E704
+def get_option_from_environment(option_name: str, *, platform: Optional[str] = None, default: str) -> str: ...  # noqa: E704
 @overload
-def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: None = None) -> Optional[str]: ...  # noqa: E704 E302
-def get_option_from_environment(option_name: str, platform: Optional[str] = None, default: Optional[str] = None) -> Optional[str]:  # noqa: E302
+def get_option_from_environment(option_name: str, *, platform: Optional[str] = None, default: None = None) -> Optional[str]: ...  # noqa: E704 E302
+def get_option_from_environment(option_name: str, *, platform: Optional[str] = None, default: Optional[str] = None) -> Optional[str]:  # noqa: E302
     '''
     Returns an option from the environment, optionally scoped by the platform.
 
@@ -156,7 +159,18 @@ def main() -> None:
     test_extras = get_option_from_environment('CIBW_TEST_EXTRAS', platform=platform, default='')
     build_verbosity_str = get_option_from_environment('CIBW_BUILD_VERBOSITY', platform=platform, default='')
 
-    build_selector = BuildSelector(build_config=build_config, skip_config=skip_config)
+    package_files = {'setup.py', 'setup.cfg', 'pyproject.toml'}
+
+    if not any(package_dir.joinpath(name).exists() for name in package_files):
+        names = ', '.join(sorted(package_files, reverse=True))
+        print(f'cibuildwheel: Could not find any of {{{names}}} at root of package', file=sys.stderr)
+        sys.exit(2)
+
+    # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
+    requires_python_str: Optional[str] = os.environ.get('CIBW_PROJECT_REQUIRES_PYTHON') or get_requires_python_str(package_dir)
+    requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
+
+    build_selector = BuildSelector(build_config=build_config, skip_config=skip_config, requires_python=requires_python)
     test_selector = TestSelector(skip_config=test_skip)
 
     try:
@@ -186,15 +200,11 @@ def main() -> None:
     # This needs to be passed on to the docker container in linux.py
     os.environ['CIBUILDWHEEL'] = '1'
 
-    if not any((package_dir / name).exists()
-               for name in ["setup.py", "setup.cfg", "pyproject.toml"]):
-        print('cibuildwheel: Could not find setup.py, setup.cfg or pyproject.toml at root of package', file=sys.stderr)
-        sys.exit(2)
-
     if args.archs is not None:
         archs_config_str = args.archs
     else:
         archs_config_str = get_option_from_environment('CIBW_ARCHS', platform=platform, default='auto')
+
     archs = Architecture.parse_config(archs_config_str, platform=platform)
 
     identifiers = get_build_identifiers(platform, build_selector, archs)
@@ -334,6 +344,7 @@ def get_build_identifiers(
     python_configurations: Union[List[cibuildwheel.linux.PythonConfiguration],
                                  List[cibuildwheel.windows.PythonConfiguration],
                                  List[cibuildwheel.macos.PythonConfiguration]]
+
     if platform == 'linux':
         python_configurations = cibuildwheel.linux.get_python_configurations(build_selector, architectures)
     elif platform == 'windows':

@@ -105,3 +105,5 @@ env3?/
 
 # MyPy cache
 .mypy_cache/
+
+all_known_setup.yaml
