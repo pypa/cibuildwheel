@@ -15,7 +15,7 @@ from cibuildwheel.projectfiles import Analyzer
 DIR = Path(__file__).parent.resolve()
 
 
-def parse(contents: str) -> Optional[str]:
+def parse(contents: str) -> str | None:
     try:
         tree = ast.parse(contents)
         analyzer = Analyzer()
@@ -50,7 +50,7 @@ class MaybeRemote:
     def __init__(self, cached_file: Path | str, *, online: bool) -> None:
         self.online = online
         if self.online:
-            self.contents: dict[str, dict[str, Optional[str]]] = {
+            self.contents: dict[str, dict[str, str | None]] = {
                 "setup.py": {},
                 "setup.cfg": {},
                 "pyproject.toml": {},
@@ -59,7 +59,7 @@ class MaybeRemote:
             with open(cached_file) as f:
                 self.contents = yaml.safe_load(f)
 
-    def get(self, repo: str, filename: str) -> Optional[str]:
+    def get(self, repo: str, filename: str) -> str | None:
         if self.online:
             try:
                 self.contents[filename][repo] = (
@@ -79,7 +79,7 @@ class MaybeRemote:
         with open(filename, "w") as f:
             yaml.safe_dump(self.contents, f, default_flow_style=False)
 
-    def on_each(self, repos: list[str]) -> Iterator[tuple[str, str, Optional[str]]]:
+    def on_each(self, repos: list[str]) -> Iterator[tuple[str, str, str | None]]:
         for repo in repos:
             print(f"[bold]{repo}:")
             for filename in sorted(self.contents, reverse=True):
