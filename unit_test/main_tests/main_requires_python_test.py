@@ -1,5 +1,6 @@
 import sys
 import textwrap
+from pathlib import Path
 
 import pytest
 from packaging.specifiers import SpecifierSet
@@ -18,7 +19,11 @@ def fake_package_dir(monkeypatch, tmp_path):
 
     local_path.joinpath("setup.py").touch()
 
+    def mock_iterdir(path):
+        return {}
+
     monkeypatch.setattr(sys, 'argv', ['cibuildwheel', str(local_path)])
+    monkeypatch.setattr(Path, 'iterdir', mock_iterdir)
 
     return local_path
 

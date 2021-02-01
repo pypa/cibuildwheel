@@ -52,8 +52,12 @@ def fake_package_dir(monkeypatch):
         else:
             return real_path_exists(path)
 
+    def mock_iterdir(path):
+        return {}
+
     args = ['cibuildwheel', str(MOCK_PACKAGE_DIR)]
     monkeypatch.setattr(Path, 'exists', mock_path_exists)
+    monkeypatch.setattr(Path, 'iterdir', mock_iterdir)
     monkeypatch.setattr(sys, 'argv', args)
     return args
 

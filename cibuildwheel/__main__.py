@@ -281,6 +281,8 @@ def main() -> None:
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
+    existing_contents = set(output_dir.iterdir())
+
     if platform == 'linux':
         cibuildwheel.linux.build(build_options)
     elif platform == 'windows':
@@ -289,6 +291,10 @@ def main() -> None:
         cibuildwheel.macos.build(build_options)
     else:
         assert_never(platform)
+
+    final_contents = set(output_dir.iterdir())
+    new_contents = final_contents - existing_contents
+    print("Produced wheels:", *sorted(f.name for f in new_contents))
 
 
 def detect_obsolete_options() -> None:
