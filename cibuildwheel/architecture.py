@@ -4,7 +4,7 @@ import re
 from enum import Enum
 from typing import Set
 
-from .typing import PlatformName, assert_never
+from .typing import Literal, PlatformName, assert_never
 
 PRETTY_NAMES = {'linux': 'Linux', 'macos': 'macOS', 'windows': 'Windows'}
 
@@ -44,6 +44,10 @@ class Architecture(Enum):
                 result.add(Architecture(platform_module.machine()))
             elif arch_str == 'all':
                 result |= Architecture.all_archs(platform=platform)
+            elif arch_str == 'auto64':
+                result |= Architecture.bitness_archs(platform=platform, bitness="64")
+            elif arch_str == 'auto32':
+                result |= Architecture.bitness_archs(platform=platform, bitness="32")
             else:
                 result.add(Architecture(arch_str))
         return result
@@ -76,6 +80,18 @@ class Architecture(Enum):
             return {Architecture.x86, Architecture.AMD64}
         else:
             assert_never(platform)
+
+    @staticmethod
+    def bitness_archs(platform: PlatformName, bitness: Literal['64', '32']) -> 'Set[Architecture]':
+        archs_32 = {Architecture.i686, Architecture.x86}
+        auto_archs = Architecture.auto_archs(platform)
+
+        if bitness == '64':
+            return auto_archs - archs_32
+        elif bitness == '32':
+            return auto_archs & archs_32
+        else:
+            assert_never(bitness)
 
 
 def allowed_architectures_check(
