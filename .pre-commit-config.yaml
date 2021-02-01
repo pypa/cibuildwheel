@@ -36,7 +36,7 @@ repos:
     args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.7.4
+  rev: v2.9.0
   hooks:
   - id: pyupgrade
     args: ["--py36-plus"]
