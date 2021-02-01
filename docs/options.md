@@ -510,10 +510,17 @@ CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
 ### `CIBW_TEST_COMMAND` {: #test-command}
 > Execute a shell command to test each built wheel
 
-Shell command to run tests after the build. The wheel will be installed automatically and available for import from the tests. To ensure the wheel is imported by your tests (instead of your source copy), tests are run from a different directory. Use the placeholders `{project}` and `{package}` when specifying paths in your project.
+Shell command to run tests after the build. The wheel will be installed
+automatically and available for import from the tests. To ensure the wheel is
+imported by your tests (instead of your source copy), tests are run from a
+different directory. Use the placeholders `{project}` and `{package}` when
+specifying paths in your project. If this variable is not set, your wheel will
+not be installed after building.
 
-- `{project}` is an absolute path to the project root - the working directory where cibuildwheel was called.
-- `{package}` is the path to the package being built - the `package_dir` argument supplied to cibuildwheel on the command line.
+- `{project}` is an absolute path to the project root - the working directory
+  where cibuildwheel was called.
+- `{package}` is the path to the package being built - the `package_dir`
+  argument supplied to cibuildwheel on the command line.
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
@@ -528,6 +535,9 @@ CIBW_TEST_COMMAND: nosetests {project}/tests
 
 # run the package tests using `pytest`
 CIBW_TEST_COMMAND: pytest {package}/tests
+
+# trigger an install of the package, but run nothing of note
+CIBW_TEST_COMMAND: "echo Wheel installed"
 ```
 
 
