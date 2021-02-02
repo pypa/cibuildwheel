@@ -54,5 +54,7 @@ def test_duplicate_wheel_error(tmp_path, capfd):
         })
 
     captured = capfd.readouterr()
+    print('out', captured.out)
+    print('err', captured.err)
     assert "already exists in output directory" in captured.err
     assert "It looks like you are building wheels against Python's limited API" in captured.err
