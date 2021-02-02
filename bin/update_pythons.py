@@ -213,7 +213,7 @@ class AllVersions:
         self.windows_64 = WindowsVersions("64")
         self.windows_pypy = PyPyVersions("32")
 
-        self.macos_x86_64 = CPythonVersions()
+        self.macos_cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
 
     def update_config(self, config: Dict[str, str]) -> None:
@@ -229,7 +229,7 @@ class AllVersions:
             if identifier.startswith("pp"):
                 config_update = self.macos_pypy.update_version_macos(spec)
             else:
-                config_update = self.macos_x86_64.update_version_macos(identifier, spec)
+                config_update = self.macos_cpython.update_version_macos(identifier, spec)
 
             assert config_update is not None, f"MacOS {spec} not found!"
             config.update(**config_update)
