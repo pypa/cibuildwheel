@@ -164,7 +164,7 @@ class PyPyVersions:
 
 
 class CPythonVersions:
-    def __init__(self, plat_arch: str, file_ident: str) -> None:
+    def __init__(self) -> None:
 
         response = requests.get("https://www.python.org/api/v2/downloads/release/?is_published=true")
         response.raise_for_status()
@@ -180,11 +180,8 @@ class CPythonVersions:
                 uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
                 self.versions_dict[version] = uri
 
-        self.file_ident = file_ident
-        self.plat_arch = plat_arch
-
-    def update_version_macos(self, spec: Specifier) -> Optional[ConfigMacOS]:
-
+    def update_version_macos(self, identifier: str, spec: Specifier) -> Optional[ConfigMacOS]:
+        file_idents = ("macos11.0.pkg", "macosx10.9.pkg", "macosx10.6.pkg")
         sorted_versions = sorted(v for v in self.versions_dict if spec.contains(v))
 
         for version in reversed(sorted_versions):
@@ -194,13 +191,14 @@ class CPythonVersions:
             response.raise_for_status()
             file_info = response.json()
 
-            urls = [rf["url"] for rf in file_info if self.file_ident in rf["url"]]
-            if urls:
-                return ConfigMacOS(
-                    identifier=f"cp{version.major}{version.minor}-{self.plat_arch}",
-                    version=f"{version.major}.{version.minor}",
-                    url=urls[0],
-                )
+            for file_ident in file_idents:
+                urls = [rf["url"] for rf in file_info if file_ident in rf["url"]]
+                if urls:
+                    return ConfigMacOS(
+                        identifier=identifier,
+                        version=f"{version.major}.{version.minor}",
+                        url=urls[0],
+                    )
 
         return None
 
@@ -215,9 +213,7 @@ class AllVersions:
         self.windows_64 = WindowsVersions("64")
         self.windows_pypy = PyPyVersions("32")
 
-        self.macos_6 = CPythonVersions(plat_arch="macosx_x86_64", file_ident="macosx10.6.pkg")
-        self.macos_9 = CPythonVersions(plat_arch="macosx_x86_64", file_ident="macosx10.9.pkg")
-        self.macos_u2 = CPythonVersions(plat_arch="macosx_universal2", file_ident="macos11.0.pkg")
+        self.macos_cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
 
     def update_config(self, config: Dict[str, str]) -> None:
@@ -229,11 +225,12 @@ class AllVersions:
         config_update: Optional[AnyConfig]
 
         # We need to use ** in update due to MyPy (probably a bug)
-        if "macosx_x86_64" in identifier:
+        if "macos" in identifier:
             if identifier.startswith("pp"):
                 config_update = self.macos_pypy.update_version_macos(spec)
             else:
-                config_update = self.macos_9.update_version_macos(spec) or self.macos_6.update_version_macos(spec)
+                config_update = self.macos_cpython.update_version_macos(identifier, spec)
+
             assert config_update is not None, f"MacOS {spec} not found!"
             config.update(**config_update)
         elif "win32" in identifier:
