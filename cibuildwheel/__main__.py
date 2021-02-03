@@ -1,18 +1,18 @@
 import argparse
-import contextlib
 import os
 import sys
 import textwrap
 import traceback
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Set, Union, overload
+from typing import Dict, List, Optional, Set, Union, overload
 
 from packaging.specifiers import SpecifierSet
 
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
+import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
@@ -282,7 +282,7 @@ def main() -> None:
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
-    with print_new_wheels("{n} wheels produced:", output_dir):
+    with cibuildwheel.util.print_new_wheels("{n} wheels produced:", output_dir):
         if platform == 'linux':
             cibuildwheel.linux.build(build_options)
         elif platform == 'windows':
@@ -314,18 +314,6 @@ def detect_obsolete_options() -> None:
             if option in os.environ and deprecated in os.environ[option]:
                 print(f"Build identifiers with '{deprecated}' have been deprecated. Replacing all occurences of '{deprecated}' with '{alternative}' in the option '{option}'")
                 os.environ[option] = os.environ[option].replace(deprecated, alternative)
-
-
-@contextlib.contextmanager
-def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
-    existing_contents = set(output_dir.iterdir())
-    try:
-        yield
-    finally:
-        final_contents = set(output_dir.iterdir())
-        new_contents = final_contents - existing_contents
-        n = len(new_contents)
-        print(msg.format(n=n), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
 
 
 def print_preamble(platform: str, build_options: BuildOptions) -> None:

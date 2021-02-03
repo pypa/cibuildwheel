@@ -1,3 +1,4 @@
+import contextlib
 import fnmatch
 import itertools
 import os
@@ -8,7 +9,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Dict, List, NamedTuple, Optional, Set
+from typing import Dict, Iterator, List, NamedTuple, Optional, Set
 
 import bracex
 import certifi
@@ -251,3 +252,15 @@ def unwrap(text: str) -> str:
     text = text.strip()
     # remove consecutive whitespace
     return re.sub(r'\s+', ' ', text)
+
+
+@contextlib.contextmanager
+def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
+    existing_contents = set(output_dir.iterdir())
+    try:
+        yield
+    finally:
+        final_contents = set(output_dir.iterdir())
+        new_contents = final_contents - existing_contents
+        n = len(new_contents)
+        print(msg.format(n=n), *sorted(f"  {f.name}" for f in new_contents), sep="\n")

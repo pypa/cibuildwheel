@@ -1,3 +1,4 @@
+import contextlib
 import platform as platform_module
 import subprocess
 import sys
@@ -52,14 +53,19 @@ def fake_package_dir(monkeypatch):
         else:
             return real_path_exists(path)
 
-    def mock_iterdir(path):
-        return {}
-
     args = ['cibuildwheel', str(MOCK_PACKAGE_DIR)]
     monkeypatch.setattr(Path, 'exists', mock_path_exists)
-    monkeypatch.setattr(Path, 'iterdir', mock_iterdir)
     monkeypatch.setattr(sys, 'argv', args)
     return args
+
+
+@pytest.fixture(autouse=True)
+def disable_print_wheels(monkeypatch):
+    @contextlib.contextmanager
+    def empty_cm(*args, **kwargs):
+        yield
+
+    monkeypatch.setattr(util, 'print_new_wheels', empty_cm)
 
 
 @pytest.fixture
