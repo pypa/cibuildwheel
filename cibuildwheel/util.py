@@ -257,10 +257,8 @@ def unwrap(text: str) -> str:
 @contextlib.contextmanager
 def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
     existing_contents = set(output_dir.iterdir())
-    try:
-        yield
-    finally:
-        final_contents = set(output_dir.iterdir())
-        new_contents = final_contents - existing_contents
-        n = len(new_contents)
-        print(msg.format(n=n), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
+    yield
+    final_contents = set(output_dir.iterdir())
+    new_contents = final_contents - existing_contents
+    n = len(new_contents)
+    print(msg.format(n=n), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
