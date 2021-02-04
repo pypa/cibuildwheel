@@ -25,6 +25,7 @@ nav:
   - changelog.md
 
 markdown_extensions:
+  - md_in_html
   - fenced_code
   - toc:
       permalink: True

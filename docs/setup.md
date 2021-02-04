@@ -6,10 +6,86 @@ title: 'Setup'
 
 To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build.yml` file in your repo.
 
+
+<div class="tab">
+  <button class="tablinks" id="defaultOpen" onclick="openGHA(event, 'gha-generic')">Generic</button>
+  <button class="tablinks" onclick="openGHA(event, 'gha-pipx')">Pipx</button>
+  <button class="tablinks" onclick="openGHA(event, 'gha-action')">Action</button>
+</div>
+
+
+<div id="gha-generic" class="tabcontent" markdown="1">
+
+This is the most generic form.
+
 > build.yml
 ```yaml
 {% include "../examples/github-minimal.yml" %}
 ```
+</div>
+<div id="gha-pipx" class="tabcontent" markdown="1">
+The GitHub Actions runners have pipx installed, so you can simplify this:
+
+> build.yml
+```yaml
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, windows-2019, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Visual C++ for Python 2.7
+        if: runner.os == 'Windows'
+        run: choco install vcpython27 -f -y
+
+      - name: Build wheels
+        run: pix run cibuildwheel==1.8.0
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+```
+</div>
+<div id="gha-action" class="tabcontent" markdown="1">
+You can instead use the action, which enables easier auto updating via GitHub's Dependabot.
+
+> build.yml
+```yaml
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, windows-2019, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Visual C++ for Python 2.7
+        if: runner.os == 'Windows'
+        run: choco install vcpython27 -f -y
+
+      - uses: joerick/cibuildwheel@1.8.0
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+```
+</div>
 
 Commit this file, and push to GitHub - either to your default branch, or to a PR branch. The build should start automatically.
 
@@ -128,4 +204,26 @@ For more info on this config file, check out the [docs](https://www.appveyor.com
       }
     });
   });
+
+  function openGHA(evt, ghaName) {
+    var i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(ghaName).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
+
+  document.getElementById("defaultOpen").click();
 </script>
