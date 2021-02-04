@@ -310,6 +310,35 @@ Changelog
 
 <!--changelog-start-->
 
+### Next version
+
+_Some point in the future..._
+
+- 🌟 Added support for Apple Silicon wheels on macOS! You can now
+  cross-compile `universal2` and `arm64` wheels on your existing macOS Intel
+  runners, by setting
+  [CIBW_ARCHS_MACOS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs).
+  Xcode 12.2 or later is required, but you don't need macOS 11.0 - you can
+  still build on macOS 10.15. See
+  [this FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#apple-silicon)
+  for more information. (#484)
+- 🌟 Added auto-detection of your package's Python compatibility, via declared
+   [`requires-python`](https://www.python.org/dev/peps/pep-0621/#requires-python)
+  in your `pyproject.toml`, or
+  [`python_requires`](https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires)
+  in `setup.cfg` or `setup.py`. If your project has these set, cibuildwheel
+  will automatically skip builds on versions of Python that your package
+  doesn't support. Hopefully this makes the first-run experience of
+  cibuildwheel a bit easier. If you need to override this for any reason,
+  look at [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python).
+  (#536)
+- ✨ Added `auto64` and `auto32` shortcuts to the
+  [CIBW_ARCHS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)
+  option. (#553)
+- ✨ cibuildwheel now prints a list of the wheels built at the end of each
+  run. (#570)
+- 📚 Lots of minor docs improvements.
+
 ### 1.8.0
 
 _22 January 2021_
@@ -317,9 +346,9 @@ _22 January 2021_
 - 🌟 Added support for emulated builds! You can now build manylinux wheels on
   ARM64`aarch64`, as well as `ppc64le` and 's390x'. To build under emulation,
   register QEMU via binfmt_misc and set the
-  [`CIBW_ARCHS_LINUX`](https://cibuildwheel.readthedocs.io/en/latest/options/#archs)
+  [`CIBW_ARCHS_LINUX`](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)
   option to the architectures you want to run. See
-  [this FAQ entry](https://cibuildwheel.readthedocs.io/en/latest/faq/#emulation)
+  [this FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation)
   for more information. (#482)
 - ✨ Added `CIBW_TEST_SKIP` option. This allows you to choose certain builds
   whose tests you'd like to skip. This might be useful when running a slow
