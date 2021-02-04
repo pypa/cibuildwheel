@@ -12,6 +12,7 @@ from packaging.specifiers import SpecifierSet
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
+import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
@@ -281,14 +282,15 @@ def main() -> None:
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
-    if platform == 'linux':
-        cibuildwheel.linux.build(build_options)
-    elif platform == 'windows':
-        cibuildwheel.windows.build(build_options)
-    elif platform == 'macos':
-        cibuildwheel.macos.build(build_options)
-    else:
-        assert_never(platform)
+    with cibuildwheel.util.print_new_wheels("{n} wheels produced in {m:.0f} minutes:", output_dir):
+        if platform == 'linux':
+            cibuildwheel.linux.build(build_options)
+        elif platform == 'windows':
+            cibuildwheel.windows.build(build_options)
+        elif platform == 'macos':
+            cibuildwheel.macos.build(build_options)
+        else:
+            assert_never(platform)
 
 
 def detect_obsolete_options() -> None:

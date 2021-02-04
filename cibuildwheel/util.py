@@ -1,14 +1,16 @@
+import contextlib
 import fnmatch
 import itertools
 import os
 import re
 import ssl
 import textwrap
+import time
 import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Dict, List, NamedTuple, Optional, Set
+from typing import Dict, Iterator, List, NamedTuple, Optional, Set
 
 import bracex
 import certifi
@@ -251,3 +253,23 @@ def unwrap(text: str) -> str:
     text = text.strip()
     # remove consecutive whitespace
     return re.sub(r'\s+', ' ', text)
+
+
+@contextlib.contextmanager
+def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
+    '''
+    Prints the new items in a directory upon exiting. The message to display
+    can include {n} for number of wheels, {s} for total number of seconds,
+    and/or {m} for total number of minutes. Does not print anything if this
+    exits via exception.
+    '''
+
+    start_time = time.time()
+    existing_contents = set(output_dir.iterdir())
+    yield
+    final_contents = set(output_dir.iterdir())
+    new_contents = final_contents - existing_contents
+    n = len(new_contents)
+    s = time.time() - start_time
+    m = s / 60
+    print(msg.format(n=n, s=s, m=m), *sorted(f"  {f.name}" for f in new_contents), sep="\n")

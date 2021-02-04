@@ -1,3 +1,4 @@
+import contextlib
 import platform as platform_module
 import subprocess
 import sys
@@ -56,6 +57,15 @@ def fake_package_dir(monkeypatch):
     monkeypatch.setattr(Path, 'exists', mock_path_exists)
     monkeypatch.setattr(sys, 'argv', args)
     return args
+
+
+@pytest.fixture(autouse=True)
+def disable_print_wheels(monkeypatch):
+    @contextlib.contextmanager
+    def empty_cm(*args, **kwargs):
+        yield
+
+    monkeypatch.setattr(util, 'print_new_wheels', empty_cm)
 
 
 @pytest.fixture
