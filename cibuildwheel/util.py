@@ -5,6 +5,7 @@ import os
 import re
 import ssl
 import textwrap
+import time
 import urllib.request
 from enum import Enum
 from pathlib import Path
@@ -256,9 +257,19 @@ def unwrap(text: str) -> str:
 
 @contextlib.contextmanager
 def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
+    '''
+    Prints the new items in a directory upon exiting. The message to display
+    can include {n} for number of wheels, {s} for total number of seconds,
+    and/or {m} for total number of minutes. Does not print anything if this
+    exits via exception.
+    '''
+
+    start_time = time.time()
     existing_contents = set(output_dir.iterdir())
     yield
     final_contents = set(output_dir.iterdir())
     new_contents = final_contents - existing_contents
     n = len(new_contents)
-    print(msg.format(n=n), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
+    s = time.time() - start_time
+    m = s / 60
+    print(msg.format(n=n, s=s, m=m), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
