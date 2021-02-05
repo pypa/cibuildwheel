@@ -12,7 +12,7 @@ If your wheel didn't compile, check the list below for some debugging tips.
 
 - Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
 
-- MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/joerick/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
+- MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/joerick/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
 
 ### Linux builds on Docker
 
@@ -23,6 +23,49 @@ Linux wheels are built in the [`manylinux` docker images](https://github.com/pyp
 - The project directory is mounted in the running Docker instance as `/project`, the output directory for the wheels as `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that this is not available on CircleCI due to their Docker policies.
 
 - Alternative dockers images can be specified with the `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, and `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#manylinux-image) for more details.
+
+### Building macOS wheels for Apple Silicon {: #as-wheels}
+
+With the introduction of Apple Silicon, you now have several choices for wheels
+for Python 3.9+:
+
+`x86_64`
+:   The traditional wheel for Apple, loads on Intel machines, and on
+    Apple Silicon if you use Intel emulation for your stack (not ideal!). Due
+    to the change in naming, you have to have a tool based on Packaging 20.5+,
+    such as Pip 20.3+, to load a binary wheel on macOS Big Sur, even the Intel
+    version.
+
+`arm64`
+:   This is the native wheel for macOS on Apple Silicon. Requires Packaging
+    20.5+ and therefore pip 20.3+ to load.
+
+`universal2`
+:   This wheel holds both architectures in it, causing it to be up to twice the
+    size (data files do not get doubled, only compiled code). It requires
+    Packaging 20.6+ to load on Intel (Pip 20.3), and Packaging 20.9+ to load on
+    Apple Silicon (Pip 21.0.1).
+
+
+The general consensus is that most packages should provide a `x86_64` wheel
+and a `universal2` wheel for now. Once Pip 20.3+ is common on macOS, then
+`x86_64` wheels would no longer need to be shipped. The key benefit to a
+universal wheel is that a user can bundle wheels into an application and ship a
+single binary. If you have a large application, then you might prefer to ship
+the two native wheels instead. Pip always chooses the most specific wheel
+available. In rare cases, you might want to ship all three, but in that case
+pip will never download the universal wheels.
+
+In cibuildwheel, you need to ask for `universal2` or `arm64` explicitly:
+
+```yaml
+CIBW_ARCHS_MACOS: x86_64 universal2
+# Or
+CIBW_ARCHS_MACOS: x86_64 arm64
+```
+
+Keep in mind, on Intel runners, only the Intel part of a universal2 wheel is
+tested, and an `arm64` wheel is not tested at all.
 
 ### Building non-native architectures using emulation  {: #emulation}
 
