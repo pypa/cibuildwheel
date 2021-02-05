@@ -47,3 +47,14 @@ repos:
   - id: flake8
     exclude: cibuildwheel/resources/
     additional_dependencies: [flake8-bugbear]
+
+
+# The original pybind11 checks for a few C++ style items
+- repo: local
+  hooks:
+  - id: disallow-caps
+    name: Disallow improper capitalization
+    language: pygrep
+    entry: PyBind|Numpy|Cmake|Github
+    types:
+    - markdown

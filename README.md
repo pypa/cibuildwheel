@@ -59,7 +59,7 @@ Usage
 Example setup
 -------------
 
-To build manylinux, macOS, and Windows wheels on Github Actions, you could use this `.github/workflows/wheels.yml`:
+To build manylinux, macOS, and Windows wheels on GitHub Actions, you could use this `.github/workflows/wheels.yml`:
 
 ```yaml
 name: Build
@@ -337,7 +337,7 @@ _1 January 2021_
 
 - 🛠 Added a patch for Pypy to ensure header files are available for building
   in a virtualenv. (#502)
-- 🛠 Some preparatory work towards using cibuildwheel as a Github Action.
+- 🛠 Some preparatory work towards using cibuildwheel as a GitHub Action.
   Check out
   [the FAQ](https://cibuildwheel.readthedocs.io/en/stable/faq/#option-1-github-action)
   for information on how to use it. We'll be fully updating the docs to this
@@ -349,7 +349,7 @@ _21 December 2020_
 
 - 🛠 Update dependencies, notably wheel==0.36.2 and pip==20.3.3, and CPython to
   their latest bugfix releases (#489)
-- 📚 Switch to a Github example in the README (#479)
+- 📚 Switch to a GitHub example in the README (#479)
 - 📚 Create Working Examples table, with many projects that use cibuildwheel (#474)
 - 📚 Import Working Examples table and Changelog to docs
 
@@ -454,7 +454,7 @@ _8 July 2020_
 _25 June 2020_
 
 - 🐛 Fix "OSError: [WinError 17] The system cannot move the file to a different
-  disk drive" on Github Actions (#388, #389)
+  disk drive" on GitHub Actions (#388, #389)
 
 ### 1.5.0
 
@@ -468,7 +468,7 @@ _24 June 2020_
   (#360, #358)
 - ✨ Added workaround to allow Python 3.5 on Windows to pull dependencies from
   pyproject.toml. (#358)
-- 📚 Improved Github Actions examples and docs (#354, #362)
+- 📚 Improved GitHub Actions examples and docs (#354, #362)
 - 🐛 Ensure pip wheel uses the specified package, and doesn't build a wheel
   from PyPI (#369)
 - 🛠 Internal changes: using pathlib.Path, precommit hooks, testing
@@ -526,7 +526,7 @@ _2 May 2020_
 
 _12 March 2020_
 
-- 🌟 Add support for building on Github Actions! Check out the
+- 🌟 Add support for building on GitHub Actions! Check out the
   [docs](https://cibuildwheel.readthedocs.io/en/stable/setup/#github-actions)
   for information on how to set it up. (#194)
 - ✨ Add the `CIBW_BEFORE_TEST` option, which lets you run a command to

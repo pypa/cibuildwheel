@@ -71,13 +71,13 @@ tested, and an `arm64` wheel is not tested at all.
 
 cibuildwheel supports building non-native architectures on Linux, via
 emulation through the binfmt_misc kernel feature. The easiest way to use this
-is via the [docker/setup-qemu-action][setup-qemu-action] on Github Actions or
+is via the [docker/setup-qemu-action][setup-qemu-action] on GitHub Actions or
 [tonistiigi/binfmt][binfmt].
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
 
-Check out the following config for an example of how to set it up on Github
+Check out the following config for an example of how to set it up on GitHub
 Actions. Once QEMU is set up and registered, you just need to set the
 `CIBW_ARCHS_LINUX` environment variable (or use the `--archs` option on
 Linux), and the other architectures are emulated automatically.
@@ -105,7 +105,7 @@ Hopefully, this is a temporary situation. Once we have widely available Apple Si
 
     So far, only CPython 3.9 supports `universal2` and `arm64` wheels.
 
-Here's an example Github Actions workflow with a job that builds for Apple Silicon:
+Here's an example GitHub Actions workflow with a job that builds for Apple Silicon:
 
 > .github/workflows/build_macos.yml
 ```yml
