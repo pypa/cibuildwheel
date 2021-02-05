@@ -16,20 +16,17 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Install cibuildwheel
-        run: |
-          python -m pip install cibuildwheel==1.8.0
+        run: python -m pip install cibuildwheel==1.8.0
 
       - name: Install Visual C++ for Python 2.7
         if: runner.os == 'Windows'
-        run: |
-          choco install vcpython27 -f -y
+        run: choco install vcpython27 -f -y
 
       - name: Build wheels
-        run: |
-          python -m cibuildwheel --output-dir wheelhouse
+        run: python -m cibuildwheel --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v2
         with:
