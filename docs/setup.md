@@ -4,14 +4,14 @@ title: 'Setup'
 
 # GitHub Actions [linux/mac/windows] {: #github-actions}
 
-To build Linux, Mac, and Windows wheels using Github Actions, create a `.github/workflows/build.yml` file in your repo.
+To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build.yml` file in your repo.
 
 > build.yml
 ```yaml
 {% include "../examples/github-minimal.yml" %}
 ```
 
-Commit this file, and push to Github - either to your default branch, or to a PR branch. The build should start automatically.
+Commit this file, and push to GitHub - either to your default branch, or to a PR branch. The build should start automatically.
 
 For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
 

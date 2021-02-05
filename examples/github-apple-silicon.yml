@@ -13,7 +13,7 @@ jobs:
         run: |
           pipx run cibuildwheel==1.8.0 --output-dir wheelhouse
         env:
-          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          CIBW_ARCHS_MACOS: x86_64 universal2
 
       - uses: actions/upload-artifact@v2
         with:

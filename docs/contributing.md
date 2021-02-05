@@ -111,7 +111,7 @@ bin/bump_version.py
 
 You'll be prompted to enter the new version number. Update the changelog when prompted. The script will create a 'bump version' commit and version tag.
 
-Finally, cut the release and upload to PyPI/Github.
+Finally, cut the release and upload to PyPI/GitHub.
 
 ```bash
 rm -rf dist

@@ -12,7 +12,7 @@ If your wheel didn't compile, check the list below for some debugging tips.
 
 - Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
 
-- MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/joerick/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
+- MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/joerick/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
 
 ### Linux builds on Docker
 
@@ -24,17 +24,82 @@ Linux wheels are built in the [`manylinux` docker images](https://github.com/pyp
 
 - Alternative dockers images can be specified with the `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, and `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#manylinux-image) for more details.
 
+### Building macOS wheels for Apple Silicon {: #apple-silicon}
+
+`cibuildwheel` supports cross-compiling `universal2` and `arm64` wheels on `x86_64` runners. With the introduction of Apple Silicon, you now have several choices for wheels for Python 3.9+:
+
+#### `x86_64`
+
+The traditional wheel for Apple, loads on Intel machines, and on
+Apple Silicon when running Python under Rosetta 2 emulation.
+
+Due to a change in naming, Pip 20.3+ (or an installer using packaging 20.5+)
+is required to install a binary wheel on macOS Big Sur.
+
+#### `arm64`
+
+The native wheel for macOS on Apple Silicon.
+
+Requires Pip 20.3+ (or packaging 20.5+) to install.
+
+#### `universal2`
+
+This wheel contains both architectures, causing it to be up to twice the
+size (data files do not get doubled, only compiled code). It requires
+Pip 20.3 (Packaging 20.6+) to load on Intel, and Pip 21.0.1 (Packaging 20.9+)
+to load on Apple Silicon.
+
+!!! note
+    The dual-architecture `universal2` has a few benefits, but a key benefit
+    to a universal wheel is that a user can bundle these wheels into an
+    application and ship a single binary.
+
+    However, if you have a large library, then you might prefer to ship
+    the two single-arch wheels instead - `x86_64` and `arm64`. In rare cases,
+    you might want to build all three, but in that case, pip will not download
+    the universal wheels, because it prefers the most specific wheel
+    available.
+
+Generally speaking, because Pip 20.3 is required for the `universal2` wheel,
+most packages should provide both `x86_64` and `universal2` wheels for now.
+Once Pip 20.3+ is common on macOS, then it should be possible to ship only the
+`universal2` wheel.
+
+**Apple Silicon wheels are not built by default**, but can be enabled by adding extra archs to the [`CIBW_ARCHS_MACOS` option](options.md#archs) - e.g. `x86_64 arm64 universal2`. Cross-compilation is provided by the Xcode toolchain.
+
+!!! important
+    When cross-compiling on Intel, it is not possible to test `arm64` and the `arm64` part of a `universal2` wheel.
+
+    `cibuildwheel` will raise a warning to notify you of this - these warnings be be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: *_arm64 *_universal2:arm64`.
+
+Hopefully, cross-compilation is a temporary situation. Once we have widely
+available Apple Silicon CI runners, we can build and test `arm64` and
+`universal2` wheels natively. That's why `universal2` wheels are not yet built
+by default, and require opt-in by setting `CIBW_ARCHS_MACOS`.
+
+!!! note
+    Your runner needs Xcode Command Line Tools 12.2 or later to build `universal2` or `arm64`.
+
+    So far, only CPython 3.9 supports `universal2` and `arm64` wheels.
+
+Here's an example GitHub Actions workflow with a job that builds for Apple Silicon:
+
+> .github/workflows/build_macos.yml
+```yml
+{% include "../examples/github-apple-silicon.yml" %}
+```
+
 ### Building non-native architectures using emulation  {: #emulation}
 
 cibuildwheel supports building non-native architectures on Linux, via
 emulation through the binfmt_misc kernel feature. The easiest way to use this
-is via the [docker/setup-qemu-action][setup-qemu-action] on Github Actions or
+is via the [docker/setup-qemu-action][setup-qemu-action] on GitHub Actions or
 [tonistiigi/binfmt][binfmt].
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
 
-Check out the following config for an example of how to set it up on Github
+Check out the following config for an example of how to set it up on GitHub
 Actions. Once QEMU is set up and registered, you just need to set the
 `CIBW_ARCHS_LINUX` environment variable (or use the `--archs` option on
 Linux), and the other architectures are emulated automatically.
@@ -62,7 +127,7 @@ Hopefully, this is a temporary situation. Once we have widely available Apple Si
 
     So far, only CPython 3.9 supports `universal2` and `arm64` wheels.
 
-Here's an example Github Actions workflow with a job that builds for Apple Silicon:
+Here's an example GitHub Actions workflow with a job that builds for Apple Silicon:
 
 > .github/workflows/build_macos.yml
 ```yml

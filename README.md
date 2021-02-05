@@ -1,7 +1,14 @@
 cibuildwheel
 ============
 
-[![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel) [![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.readthedocs.io/en/stable/?badge=stable) [![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch=master)](https://travis-ci.org/joerick/cibuildwheel) [![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master) [![CircleCI](https://circleci.com/gh/joerick/cibuildwheel.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel) [![Build Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName=master)
+[![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel)
+[![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.readthedocs.io/en/stable/?badge=stable)
+[![Actions Status](https://github.com/joerick/cibuildwheel/workflows/Test/badge.svg)](https://github.com/joerick/cibuildwheel/actions)
+[![Travis Status](https://img.shields.io/travis/joerick/cibuildwheel/master?logo=travis)](https://travis-ci.org/joerick/cibuildwheel)
+[![AppVeyor status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master)
+[![CircleCI Status](https://img.shields.io/circleci/build/gh/joerick/cibuildwheel/master?logo=circleci)](https://circleci.com/gh/joerick/cibuildwheel)
+[![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName=master)
+
 
 [Documentation](https://cibuildwheel.readthedocs.org)
 
@@ -15,26 +22,24 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS x86_64 | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
-|---|---|---|---|---|---|---|---|---|
-| CPython 2.7     | ✅ | ✅¹ | ✅¹ | ✅ | ✅ |    |    |    |
-| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.9     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| PyPy 2.7 v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
-| PyPy 3.6 v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
-| PyPy 3.7 (beta) v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
+|   | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
+|---|---|---|---|---|---|---|---|---|---|
+| CPython 2.7     | ✅ |   | ✅¹ | ✅¹ | ✅ | ✅ |    |    |   |
+| CPython 3.5     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.6     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PyPy 2.7 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
+| PyPy 3.6 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
+| PyPy 3.7 (beta) v7.3.3 | ✅ | |  | ✅  | ✅ |    |    |   |    |
 
 <sup>¹ Not supported on Travis</sup><br>
-<sup>² Only supported on Travis</sup><br>
-<sup>³ Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup><br>
 
-- Builds manylinux, macOS, and Windows wheels for CPython and PyPy
+- Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
-- Runs the library test suite against the wheel-installed version of your library
+- Runs your library's tests against the wheel-installed version of your library
 
 Usage
 -----
@@ -43,23 +48,23 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM |
 |-----------------|-------|-------|---------|--------------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✴️¹           |
-| Azure Pipelines | ✅    | ✅    | ✅      | ✴️¹           |
+| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹           |
+| Azure Pipelines | ✅    | ✅    | ✅      |              |
 | Travis CI       | ✅    | ✅    | ✅      | ✅           |
 | AppVeyor        | ✅    | ✅    | ✅      |              |
 | CircleCI        | ✅    | ✅    |         |              |
 | Gitlab CI       | ✅    |       |         |              |
 
-<sup>¹ Requires a "third-party build host"; expected to work with cibuildwheel but not directly tested by our CI.</sup><br>
+<sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 
-`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal.
+`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org on macOS and Windows, it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal. For Linux builds, it uses manylinux docker images, so those can be done locally for testing in a pinch.
 
 <!--intro-end-->
 
 Example setup
 -------------
 
-To build manylinux, macOS, and Windows wheels on Github Actions, you could use this `.github/workflows/wheels.yml`:
+To build manylinux, macOS, and Windows wheels on GitHub Actions, you could use this `.github/workflows/wheels.yml`:
 
 ```yaml
 name: Build
@@ -77,23 +82,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      # Used to host cibuildwheel
       - uses: actions/setup-python@v2
-        name: Install Python
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==1.8.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_SKIP: "cp27-* pp27-*"  # skip Python 2.7 wheels
+        # to supply options, put them in 'env', like:
+        # env:
+        #   CIBW_SOME_OPTION: value
 
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
 ```
 
-For more information, including building on Python 2, PyPI deployment, and the use of other CI services, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including building on Python 2, PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------
@@ -337,7 +343,7 @@ _1 January 2021_
 
 - 🛠 Added a patch for Pypy to ensure header files are available for building
   in a virtualenv. (#502)
-- 🛠 Some preparatory work towards using cibuildwheel as a Github Action.
+- 🛠 Some preparatory work towards using cibuildwheel as a GitHub Action.
   Check out
   [the FAQ](https://cibuildwheel.readthedocs.io/en/stable/faq/#option-1-github-action)
   for information on how to use it. We'll be fully updating the docs to this
@@ -349,7 +355,7 @@ _21 December 2020_
 
 - 🛠 Update dependencies, notably wheel==0.36.2 and pip==20.3.3, and CPython to
   their latest bugfix releases (#489)
-- 📚 Switch to a Github example in the README (#479)
+- 📚 Switch to a GitHub example in the README (#479)
 - 📚 Create Working Examples table, with many projects that use cibuildwheel (#474)
 - 📚 Import Working Examples table and Changelog to docs
 
@@ -454,7 +460,7 @@ _8 July 2020_
 _25 June 2020_
 
 - 🐛 Fix "OSError: [WinError 17] The system cannot move the file to a different
-  disk drive" on Github Actions (#388, #389)
+  disk drive" on GitHub Actions (#388, #389)
 
 ### 1.5.0
 
@@ -468,7 +474,7 @@ _24 June 2020_
   (#360, #358)
 - ✨ Added workaround to allow Python 3.5 on Windows to pull dependencies from
   pyproject.toml. (#358)
-- 📚 Improved Github Actions examples and docs (#354, #362)
+- 📚 Improved GitHub Actions examples and docs (#354, #362)
 - 🐛 Ensure pip wheel uses the specified package, and doesn't build a wheel
   from PyPI (#369)
 - 🛠 Internal changes: using pathlib.Path, precommit hooks, testing
@@ -526,7 +532,7 @@ _2 May 2020_
 
 _12 March 2020_
 
-- 🌟 Add support for building on Github Actions! Check out the
+- 🌟 Add support for building on GitHub Actions! Check out the
   [docs](https://cibuildwheel.readthedocs.io/en/stable/setup/#github-actions)
   for information on how to set it up. (#194)
 - ✨ Add the `CIBW_BEFORE_TEST` option, which lets you run a command to

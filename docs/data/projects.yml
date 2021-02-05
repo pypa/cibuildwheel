@@ -1,7 +1,7 @@
 # Fields:
 # name: required, printed name
-# gh: Github repo (eventually a url: could be added for non-github projects)
-# stars: Github repo (optional, if different from package, such as for Twisted)
+# gh: GitHub repo (eventually a url: could be added for non-github projects)
+# stars: GitHub repo (optional, if different from package, such as for Twisted)
 # os: Operating system list, [windows, apple, linux] (optional)
 # ci: [appveyor, github, azurepipelines, circleci, gitlab, travisci] (optional)
 # notes: (text, optional)
