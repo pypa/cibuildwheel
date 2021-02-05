@@ -36,7 +36,7 @@ What does it do?
 
 <sup>¹ Not supported on Travis</sup><br>
 
-- Builds manylinux, macOS, and Windows wheels for CPython and PyPy
+- Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
@@ -81,6 +81,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      # Used to host cibuildwheel
+      - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==1.8.0
