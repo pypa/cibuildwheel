@@ -356,27 +356,26 @@ CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
 ```
 
 !!! note
-    If you need dependencies installed for the build, we recommend using pyproject.toml. This is an example pyproject.toml file:
+    If you need dependencies installed for the build, we recommend using
+    `pyproject.toml`. This is an example `pyproject.toml` file:
 
         [build-system]
         requires = [
             "setuptools>=42",
             "wheel",
             "Cython",
-            "numpy==1.11.3; python_version<='3.6'",
-            "numpy==1.14.5; python_version=='3.7'",
-            "numpy==1.17.3; python_version=='3.8'",
-            "numpy==1.19.4; python_version>='3.9'",
+            "numpy==1.13.3; python_version<'3.5'",
+            "oldest-supported-numpy; python_version>='3.5'",
         ]
 
         build-backend = "setuptools.build_meta"
 
-    This [PEP 517][]/[PEP 518][] style build allows you to completely control the
-    build environment in cibuildwheel, [PyPA-build][], and pip, doesn't force
-    downstream users to install anything they don't need, and lets you do more
-    complex pinning (Cython, for example, requires a wheel to be built with an
-    equal or earlier version of NumPy; pinning in this way is the only way to
-    ensure your module works on all available NumPy versions).
+    This [PEP 517][]/[PEP 518][] style build allows you to completely control
+    the build environment in cibuildwheel, [PyPA-build][], and pip, doesn't
+    force downstream users to install anything they don't need, and lets you do
+    more complex pinning (Cython, for example, requires a wheel to be built
+    with an equal or earlier version of NumPy; pinning in this way is the only
+    way to ensure your module works on all available NumPy versions).
 
     [PyPA-build]: https://pypa-build.readthedocs.io/en/latest/
     [PEP 517]: https://www.python.org/dev/peps/pep-0517/

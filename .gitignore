@@ -106,4 +106,11 @@ env3?/
 # MyPy cache
 .mypy_cache/
 
+# Output cache for setup.py checker
 all_known_setup.yaml
+
+# mkdocs
+site/
+
+# Virtual environments
+venv*
