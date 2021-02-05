@@ -1,7 +1,14 @@
 cibuildwheel
 ============
 
-[![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel) [![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.readthedocs.io/en/stable/?badge=stable) [![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch=master)](https://travis-ci.org/joerick/cibuildwheel) [![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master) [![CircleCI](https://circleci.com/gh/joerick/cibuildwheel.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel) [![Build Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName=master)
+[![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel)
+[![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.readthedocs.io/en/stable/?badge=stable)
+[![Actions Status](https://github.com/joerick/cibuildwheel/workflows/Test/badge.svg)](https://github.com/joerick/cibuildwheel/actions)
+[![Travis Status](https://img.shields.io/travis/joerick/cibuildwheel/master?logo=travis)](https://travis-ci.org/joerick/cibuildwheel)
+[![AppVeyor status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master)
+[![CircleCI Status](https://img.shields.io/circleci/build/gh/joerick/cibuildwheel/master?logo=circleci)](https://circleci.com/gh/joerick/cibuildwheel)
+[![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName=master)
+
 
 [Documentation](https://cibuildwheel.readthedocs.org)
 
