@@ -17,7 +17,11 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install vcpython27 -f -y
 
-      - uses: joerick/cibuildwheel@v1.8.0
+      - name: Build wheels
+        uses: joerick/cibuildwheel@v1.8.0
+        env:
+          # if you need to supply options, put them here. e.g.
+          # CIBW_SOME_OPTION: value
 
       - uses: actions/upload-artifact@v2
         with:
