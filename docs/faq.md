@@ -65,7 +65,7 @@ most packages should provide both `x86_64` and `universal2` wheels for now.
 Once Pip 20.3+ is common on macOS, then it should be possible to ship only the
 `universal2` wheel.
 
-**Apple Silicon wheels are not built by default**, but can be enabled by setting the [`CIBW_ARCHS_MACOS` option](options.md#archs) to `x86_64 arm64 universal2`. Cross-compilation is provided by the Xcode toolchain.
+**Apple Silicon wheels are not built by default**, but can be enabled by adding extra archs to the [`CIBW_ARCHS_MACOS` option](options.md#archs) - e.g. `x86_64 arm64 universal2`. Cross-compilation is provided by the Xcode toolchain.
 
 !!! important
     When cross-compiling on Intel, it is not possible to test `arm64` and the `arm64` part of a `universal2` wheel.
