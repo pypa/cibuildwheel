@@ -22,26 +22,24 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS x86_64 | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
-|---|---|---|---|---|---|---|---|---|
-| CPython 2.7     | ✅ | ✅¹ | ✅¹ | ✅ | ✅ |    |    |    |
-| CPython 3.5     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.6     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.7     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.8     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| CPython 3.9     | ✅ | ✅  | ✅  | ✅ | ✅ | ✅² | ✅² | ✅³ |
-| PyPy 2.7 v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
-| PyPy 3.6 v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
-| PyPy 3.7 (beta) v7.3.3 | ✅ |    | ✅  | ✅ |    |    |    |    |
+|   | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
+|---|---|---|---|---|---|---|---|---|---|
+| CPython 2.7     | ✅ |   | ✅¹ | ✅¹ | ✅ | ✅ |    |    |   |
+| CPython 3.5     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.6     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PyPy 2.7 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
+| PyPy 3.6 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
+| PyPy 3.7 (beta) v7.3.3 | ✅ | |  | ✅  | ✅ |    |    |   |    |
 
 <sup>¹ Not supported on Travis</sup><br>
-<sup>² Only supported on Travis</sup><br>
-<sup>³ Beta support until Travis CI fixes <a href="https://travis-ci.community/t/no-space-left-on-device-for-system-z/5954/11">a bug</a></sup><br>
 
-- Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
+- Builds manylinux, macOS, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
-- Runs the library test suite against the wheel-installed version of your library
+- Runs your library's tests against the wheel-installed version of your library
 
 Usage
 -----
@@ -50,14 +48,14 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM |
 |-----------------|-------|-------|---------|--------------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✴️¹           |
-| Azure Pipelines | ✅    | ✅    | ✅      | ✴️¹           |
+| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹           |
+| Azure Pipelines | ✅    | ✅    | ✅      |              |
 | Travis CI       | ✅    | ✅    | ✅      | ✅           |
 | AppVeyor        | ✅    | ✅    | ✅      |              |
 | CircleCI        | ✅    | ✅    |         |              |
 | Gitlab CI       | ✅    |       |         |              |
 
-<sup>¹ Requires a "third-party build host"; expected to work with cibuildwheel but not directly tested by our CI.</sup><br>
+<sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 
 `cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org on macOS and Windows, it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal. For Linux builds, it uses manylinux docker images, so those can be done locally for testing in a pinch.
 
@@ -84,16 +82,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # Used to host cibuildwheel
-      - uses: actions/setup-python@v2
-
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==1.8.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_SKIP: "cp27-* pp27-*"  # skip Python 2.7 wheels
+          # if you need to supply options, put them here. e.g.
+          # CIBW_SOME_OPTION: value
 
       - uses: actions/upload-artifact@v2
         with:
