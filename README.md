@@ -86,7 +86,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.8.0
+        run: python -m pip install cibuildwheel==1.9.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -310,9 +310,9 @@ Changelog
 
 <!--changelog-start-->
 
-### Next version
+### v1.9.0
 
-_Some point in the future..._
+_5 February 2021_
 
 - 🌟 Added support for Apple Silicon wheels on macOS! You can now
   cross-compile `universal2` and `arm64` wheels on your existing macOS Intel
@@ -332,6 +332,19 @@ _Some point in the future..._
   cibuildwheel a bit easier. If you need to override this for any reason,
   look at [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python).
   (#536)
+- 🌟 cibuildwheel can now be invoked as a native GitHub Action! You can now
+  invoke cibuildwheel in a GHA build step like:
+
+  ```yaml
+  - name: Build wheels
+    uses: joerick/cibuildwheel@v1.9.0
+    with:
+      output-dir: wheelhouse
+    # env:
+    #   CIBW_SOME_OPTION: value
+  ```
+  This saves a bit of boilerplate, and you can [use Dependabot to keep the
+  pinned version up-to-date](https://cibuildwheel.readthedocs.io/en/stable/faq/#automatic-updates).
 - ✨ Added `auto64` and `auto32` shortcuts to the
   [CIBW_ARCHS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)
   option. (#553)
