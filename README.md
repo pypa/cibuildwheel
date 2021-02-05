@@ -52,7 +52,7 @@ Usage
 
 <sup>¹ Requires a "third-party build host"; expected to work with cibuildwheel but not directly tested by our CI.</sup><br>
 
-`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal.
+`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org on macOS and Windows, it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal. For Linux builds, it uses manylinux docker images, so those can be done locally for testing in a pinch.
 
 <!--intro-end-->
 
