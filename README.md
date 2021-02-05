@@ -90,9 +90,9 @@ jobs:
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          # if you need to supply options, put them here. e.g.
-          # CIBW_SOME_OPTION: value
+        # to supply options, put them in 'env', like:
+        # env:
+        #   CIBW_SOME_OPTION: value
 
       - uses: actions/upload-artifact@v2
         with:
