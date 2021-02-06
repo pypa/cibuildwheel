@@ -14,31 +14,9 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     > .github/workflows/build_wheels.yml
 
     ```yaml
-    name: Build
-
-    on: [push, pull_request]
-
-    jobs:
-      build_wheels:
-        name: Build wheels on ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-          matrix:
-            os: [ubuntu-20.04, windows-2019, macos-10.15]
-
-        steps:
-          - uses: actions/checkout@v2
-
-          - name: Install Visual C++ for Python 2.7
-            if: runner.os == 'Windows'
-            run: choco install vcpython27 -f -y
-
-          - uses: joerick/cibuildwheel@1.8.0
-
-          - uses: actions/upload-artifact@v2
-            with:
-              path: ./wheelhouse/*.whl
+    {% include "../examples/github-minimal.yml" preserve_includer_indent=true %}
     ```
+
 
     You can use `env:` with the action just like you would with `run:`; you can
     also use `with:` to set the command line options: `package-dir: .` and
@@ -88,7 +66,37 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     > .github/workflows/build_wheels.yml
 
     ```yaml
-    {% include "../examples/github-minimal.yml" preserve_includer_indent=true %}
+    name: Build
+
+    on: [push, pull_request]
+
+    jobs:
+      build_wheels:
+        name: Build wheels on ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [ubuntu-20.04, windows-2019, macos-10.15]
+
+        steps:
+          - uses: actions/checkout@v2
+
+          # Used to host cibuildwheel
+          - uses: actions/setup-python@v2
+
+          - name: Install cibuildwheel
+            run: python -m pip install cibuildwheel==1.9.0
+
+          - name: Install Visual C++ for Python 2.7
+            if: runner.os == 'Windows'
+            run: choco install vcpython27 -f -y
+
+          - name: Build wheels
+            run: python -m cibuildwheel --output-dir wheelhouse
+
+          - uses: actions/upload-artifact@v2
+            with:
+              path: ./wheelhouse/*.whl
     ```
 
 
