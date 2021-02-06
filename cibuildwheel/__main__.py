@@ -282,7 +282,7 @@ def main() -> None:
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
-    with cibuildwheel.util.print_new_wheels("{n} wheels produced in {m:.0f} minutes:", output_dir):
+    with cibuildwheel.util.print_new_wheels("\n{n} wheels produced in {m:.0f} minutes:", output_dir):
         if platform == 'linux':
             cibuildwheel.linux.build(build_options)
         elif platform == 'windows':
