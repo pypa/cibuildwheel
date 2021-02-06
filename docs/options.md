@@ -11,6 +11,7 @@ For example, to configure cibuildwheel to run tests, add the following YAML to
 your CI config file:
 
 > .travis.yml ([docs](https://docs.travis-ci.com/user/environment-variables/))
+
 ```yaml
 env:
   global:
@@ -19,6 +20,7 @@ env:
 ```
 
 > appveyor.yml ([docs](https://www.appveyor.com/docs/build-configuration/#environment-variables))
+
 ```yaml
 environment:
   global:
@@ -27,6 +29,7 @@ environment:
 ```
 
 > .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
+
 ```yaml
 jobs:
   job_name:
@@ -36,6 +39,7 @@ jobs:
 ```
 
 > azure-pipelines.yml ([docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables))
+
 ```yaml
 variables:
   CIBW_TEST_REQUIRES: pytest
@@ -43,6 +47,7 @@ variables:
 ```
 
 > .github/workflows/*.yml ([docs](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables)) (can be global, in job, or in step)
+
 ```yaml
 env:
   CIBW_TEST_REQUIRES: pytest

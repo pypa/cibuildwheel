@@ -26,13 +26,16 @@ nav:
 
 markdown_extensions:
   - md_in_html
-  - fenced_code
   - toc:
       permalink: True
   - attr_list
   - admonition
   - pymdownx.magiclink:
       repo_url_shortener: True
+  - pymdownx.highlight:
+      # use highlightjs - it's built-in to the theme
+      use_pygments: False
+  - pymdownx.superfences
 
 plugins:
   - include-markdown

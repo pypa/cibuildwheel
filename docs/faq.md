@@ -105,6 +105,7 @@ Actions. Once QEMU is set up and registered, you just need to set the
 Linux), and the other architectures are emulated automatically.
 
 > .github/workflows/build.yml
+
 ```yaml
 {% include "../examples/github-with-qemu.yml" %}
 ```
@@ -130,6 +131,7 @@ Hopefully, this is a temporary situation. Once we have widely available Apple Si
 Here's an example GitHub Actions workflow with a job that builds for Apple Silicon:
 
 > .github/workflows/build_macos.yml
+
 ```yml
 {% include "../examples/github-apple-silicon.yml" %}
 ```

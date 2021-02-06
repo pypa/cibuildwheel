@@ -4,7 +4,7 @@ title: 'Setup'
 
 # GitHub Actions [linux/mac/windows] {: #github-actions}
 
-To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build.yml` file in your repo.
+To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
 
 
 <div class="tab">
@@ -18,7 +18,8 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
 
 This is the most generic form.
 
-> build.yml
+> .github/workflows/build_wheels.yml
+
 ```yaml
 {% include "../examples/github-minimal.yml" %}
 ```
@@ -26,7 +27,8 @@ This is the most generic form.
 <div id="gha-pipx" class="tabcontent" markdown="1">
 The GitHub Actions runners have pipx installed, so you can simplify this:
 
-> build.yml
+> .github/workflows/build_wheels.yml
+
 ```yaml
 name: Build
 
@@ -58,7 +60,8 @@ jobs:
 <div id="gha-action" class="tabcontent" markdown="1">
 You can instead use the action, which enables easier auto updating via GitHub's Dependabot.
 
-> build.yml
+> .github/workflows/build_wheels.yml
+
 ```yaml
 name: Build
 
@@ -100,6 +103,7 @@ You can also use cibuildwheel directly as an action with `uses: joerick/cibuildw
 To build Linux, Mac, and Windows wheels on Azure Pipelines, create a `azure-pipelines.yml` file in your repo.
 
 > azure-pipelines.yml
+
 ```yaml
 {% include "../examples/azure-pipelines-minimal.yml" %}
 ```
@@ -116,6 +120,7 @@ Wheels will be stored for you and available through the Pipelines interface. For
 To build Linux, Mac, and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
 
 > .travis.yml
+
 ```yaml
 {% include "../examples/travis-ci-minimal.yml" %}
 ```
@@ -133,6 +138,7 @@ Then setup a deployment method by following the [Travis CI deployment docs](http
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
 > .circleci/config.yml
+
 ```yaml
 {% include "../examples/circleci-minimal.yml" %}
 ```
@@ -149,6 +155,7 @@ CircleCI will store the built wheels for you - you can access them from the proj
 To build Linux wheels on Gitlab CI, create a `.gitlab-ci.yml` file in your repo,
 
 > .gitlab-ci.yml
+
 ```yaml
 {% include "../examples/gitlab-minimal.yml" %}
 ```
