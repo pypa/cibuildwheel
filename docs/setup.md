@@ -6,17 +6,10 @@ title: 'Setup'
 
 To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
 
-!!! tab "Generic"
-    This is the most generic form.
-
-    > .github/workflows/build_wheels.yml
-
-    ```yaml
-    {% include "../examples/github-minimal.yml" preserve_includer_indent=true %}
-    ```
-
-!!! tab "pipx"
-    The GitHub Actions runners have pipx installed, so you can simplify this:
+!!! tab "Action"
+    For GitHub Actions, `cibuildwheel` provides an action you can use. This is
+    concise and enables easier auto updating via GitHub's Dependabot; see
+    [Automatic updates](faq.md#automatic-updates).
 
     > .github/workflows/build_wheels.yml
 
@@ -31,7 +24,45 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-18.04, windows-2019, macos-10.15]
+            os: [ubuntu-20.04, windows-2019, macos-10.15]
+
+        steps:
+          - uses: actions/checkout@v2
+
+          - name: Install Visual C++ for Python 2.7
+            if: runner.os == 'Windows'
+            run: choco install vcpython27 -f -y
+
+          - uses: joerick/cibuildwheel@1.8.0
+
+          - uses: actions/upload-artifact@v2
+            with:
+              path: ./wheelhouse/*.whl
+    ```
+
+    You can use `env:` with the action just like you would with `run:`; you can
+    also use `with:` to set the command line options: `package-dir: .` and
+    `output-dir: wheelhouse` (those values are the defaults).
+
+!!! tab "pipx"
+    The GitHub Actions runners have pipx installed, so you can easily build in
+    just one line. This is internally how the action works; the main benefit of
+    the action form is easy updates via GitHub's Dependabot.
+
+    > .github/workflows/build_wheels.yml
+
+    ```yaml
+    name: Build
+
+    on: [push, pull_request]
+
+    jobs:
+      build_wheels:
+        name: Build wheels on ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [ubuntu-20.04, windows-2019, macos-10.15]
 
         steps:
           - uses: actions/checkout@v2
@@ -48,37 +79,18 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
               path: ./wheelhouse/*.whl
     ```
 
-!!! tab "Action"
-    You can instead use the action, which enables easier auto updating via GitHub's Dependabot.
+!!! tab "Generic"
+    This is the most generic form using setup-python and pip; it looks the most
+    like the other CI examples. If you want to avoid having setup that takes
+    advantage of GitHub Actions features or pipx being preinstalled, this might
+    appeal to you.
 
     > .github/workflows/build_wheels.yml
 
     ```yaml
-    name: Build
-
-    on: [push, pull_request]
-
-    jobs:
-      build_wheels:
-        name: Build wheels on ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-          matrix:
-            os: [ubuntu-18.04, windows-2019, macos-10.15]
-
-        steps:
-          - uses: actions/checkout@v2
-
-          - name: Install Visual C++ for Python 2.7
-            if: runner.os == 'Windows'
-            run: choco install vcpython27 -f -y
-
-          - uses: joerick/cibuildwheel@1.8.0
-
-          - uses: actions/upload-artifact@v2
-            with:
-              path: ./wheelhouse/*.whl
+    {% include "../examples/github-minimal.yml" preserve_includer_indent=true %}
     ```
+
 
 Commit this file, and push to GitHub - either to your default branch, or to a PR branch. The build should start automatically.
 
@@ -86,7 +98,6 @@ For more info on this file, check out the [docs](https://help.github.com/en/acti
 
 [`examples/github-deploy.yml`](https://github.com/joerick/cibuildwheel/blob/master/examples/github-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
 
-You can also use cibuildwheel directly as an action with `uses: joerick/cibuildwheel@v1.9.0`; this combines the download and run steps into a single action, and command line arguments are available via `with:`. This makes it easy to manage cibuildwheel updates via normal actions update mechanisms like dependabot, see [Automatic updates](faq.md#automatic-updates).
 
 # Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
 
