@@ -459,7 +459,7 @@ _9 September 2020_
   [still on Python 3.9b3](https://github.com/pypa/manylinux/issues/758), not a
   release candidate. We'd advise holding off on distributing 3.9 ppc64le wheels
   until a subsequent version of cibuildwheel.
-  
+
 - 🌟 Add Gitlab CI support. Gitlab CI can now build Linux wheels, using
   cibuildwheel. (#419)
 - 🐛 Fix a bug that causes pyproject.toml dependencies to fail to install on
