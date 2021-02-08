@@ -79,17 +79,17 @@ When setting the options, you can use shell-style globbing syntax, as per [`fnma
 
 <div class="build-id-table-marker"></div>
 
-|                | macOS                                                               | Windows                       | Manylinux Intel                               | Manylinux Other                                                            |
-|----------------|---------------------------------------------------------------------|-------------------------------|-----------------------------------------------|----------------------------------------------------------------------------|
-| Python 2.7     | cp27-macosx_x86_64                                                  | cp27-win_amd64<br/>cp27-win32 | cp27-manylinux_x86_64<br/>cp27-manylinux_i686 |                                                                            |
-| Python 3.5     | cp35-macosx_x86_64                                                  | cp35-win_amd64<br/>cp35-win32 | cp35-manylinux_x86_64<br/>cp35-manylinux_i686 | cp35-manylinux_aarch64<br/>cp35-manylinux_ppc64le<br/>cp35-manylinux_s390x |
-| Python 3.6     | cp36-macosx_x86_64                                                  | cp36-win_amd64<br/>cp36-win32 | cp36-manylinux_x86_64<br/>cp36-manylinux_i686 | cp36-manylinux_aarch64<br/>cp36-manylinux_ppc64le<br/>cp36-manylinux_s390x |
-| Python 3.7     | cp37-macosx_x86_64                                                  | cp37-win_amd64<br/>cp37-win32 | cp37-manylinux_x86_64<br/>cp37-manylinux_i686 | cp37-manylinux_aarch64<br/>cp37-manylinux_ppc64le<br/>cp37-manylinux_s390x |
-| Python 3.8     | cp38-macosx_x86_64                                                  | cp38-win_amd64<br/>cp38-win32 | cp38-manylinux_x86_64<br/>cp38-manylinux_i686 | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x |
-| Python 3.9     | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64 | cp39-win_amd64<br/>cp39-win32 | cp39-manylinux_x86_64<br/>cp39-manylinux_i686 | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x |
-| PyPy2.7 v7.3.3 | pp27-macosx_x86_64                                                  |                    pp27-win32 | pp27-manylinux_x86_64                         |                                                                            |
-| PyPy3.6 v7.3.3 | pp36-macosx_x86_64                                                  |                    pp36-win32 | pp36-manylinux_x86_64                         |                                                                            |
-| PyPy3.7 v7.3.3 | pp37-macosx_x86_64                                                  |                    pp37-win32 | pp37-manylinux_x86_64                         |                                                                            |
+|              | macOS                                                               | Windows                       | Manylinux Intel                               | Manylinux Other                                                            |
+|--------------|---------------------------------------------------------------------|-------------------------------|-----------------------------------------------|----------------------------------------------------------------------------|
+| Python 2.7   | cp27-macosx_x86_64                                                  | cp27-win_amd64<br/>cp27-win32 | cp27-manylinux_x86_64<br/>cp27-manylinux_i686 |                                                                            |
+| Python 3.5   | cp35-macosx_x86_64                                                  | cp35-win_amd64<br/>cp35-win32 | cp35-manylinux_x86_64<br/>cp35-manylinux_i686 | cp35-manylinux_aarch64<br/>cp35-manylinux_ppc64le<br/>cp35-manylinux_s390x |
+| Python 3.6   | cp36-macosx_x86_64                                                  | cp36-win_amd64<br/>cp36-win32 | cp36-manylinux_x86_64<br/>cp36-manylinux_i686 | cp36-manylinux_aarch64<br/>cp36-manylinux_ppc64le<br/>cp36-manylinux_s390x |
+| Python 3.7   | cp37-macosx_x86_64                                                  | cp37-win_amd64<br/>cp37-win32 | cp37-manylinux_x86_64<br/>cp37-manylinux_i686 | cp37-manylinux_aarch64<br/>cp37-manylinux_ppc64le<br/>cp37-manylinux_s390x |
+| Python 3.8   | cp38-macosx_x86_64                                                  | cp38-win_amd64<br/>cp38-win32 | cp38-manylinux_x86_64<br/>cp38-manylinux_i686 | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x |
+| Python 3.9   | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64 | cp39-win_amd64<br/>cp39-win32 | cp39-manylinux_x86_64<br/>cp39-manylinux_i686 | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x |
+| PyPy2.7 v7.3 | pp27-macosx_x86_64                                                  |                    pp27-win32 | pp27-manylinux_x86_64                         |                                                                            |
+| PyPy3.6 v7.3 | pp36-macosx_x86_64                                                  |                    pp36-win32 | pp36-manylinux_x86_64                         |                                                                            |
+| PyPy3.7 v7.3 | pp37-macosx_x86_64                                                  |                    pp37-win32 | pp37-manylinux_x86_64                         |                                                                            |
 
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to `cibuildwheel`.
