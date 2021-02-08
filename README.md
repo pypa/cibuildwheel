@@ -343,8 +343,10 @@ _5 February 2021_
     # env:
     #   CIBW_SOME_OPTION: value
   ```
+
   This saves a bit of boilerplate, and you can [use Dependabot to keep the
   pinned version up-to-date](https://cibuildwheel.readthedocs.io/en/stable/faq/#automatic-updates).
+
 - ✨ Added `auto64` and `auto32` shortcuts to the
   [CIBW_ARCHS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)
   option. (#553)
@@ -557,6 +559,7 @@ _2 May 2020_
   options - if you always want to use the latest toolchain, you can still do
   that, or you can specify your own pip constraints file and manylinux image.
   (#256)
+
 - ✨ Added `package_dir` command line option, meaning we now support building
   a package that lives in a subdirectory and pulls in files from the wider
   project. See [the `package_dir` option help](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line-options)
@@ -567,6 +570,7 @@ _2 May 2020_
   will be copied into the Docker container. If your builds are slower on this
   version, that's likely the reason. `cd` to your project and then call
   `cibuildwheel` from there. (#319, #295)
+
 - 🛠 On macOS, we make `MACOSX_DEPLOYMENT_TARGET` default to `10.9` if it's
   not set. This should make things more consistent between Python versions.
 - 🛠 Dependency updates - CPython 3.7.7, CPython 2.7.18, Pypy 7.3.1.
