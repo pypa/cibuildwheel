@@ -3,7 +3,7 @@ $('.rst-content pre')
     .prev('blockquote')
     .addClass('code-block-filename');
 
-var i=0
+var tabConversionIterations = 0
 
 // convert tab admonition to tabs
 while (true) {
@@ -16,7 +16,6 @@ while (true) {
   const tabContainer = $('<div>').addClass('tabs');
   const headerContainer = $('<div>').addClass('tabs-header');
   const contentContainer = $('<div>').addClass('tabs-content');
-  console.log(allTabs)
 
   tabContainer.insertBefore(firstTab);
   tabContainer.append(headerContainer, contentContainer)
@@ -28,13 +27,13 @@ while (true) {
     contentContainer.children().eq(index).show()
   }
 
-  allTabs.each(function (i, el) {
+  allTabs.each(function (tabI, el) {
     const $el = $(el)
     const titleElement = $el.children('.admonition-title')
     const title = titleElement.text()
     const button = $('<button>').text(title)
     button.click(function () {
-      selectTab(i)
+      selectTab(tabI)
     })
     headerContainer.append(button)
 
@@ -45,5 +44,6 @@ while (true) {
 
   selectTab(0)
 
-  if (i++ > 1000) throw 'too many iterations'
+  // this will catch infinite loops which can occur when editing the above
+  if (tabConversionIterations++ > 1000) throw 'too many iterations'
 }
