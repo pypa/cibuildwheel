@@ -690,12 +690,13 @@ optional arguments:
 <style>
   .options-toc {
     display: grid;
-    grid-auto-columns: fit-content(20%) 1fr;
+    grid-template-columns: fit-content(20%) 1fr;
     grid-gap: 16px 32px;
     gap: 16px 32px;
     font-size: 90%;
     margin-bottom: 28px;
     margin-top: 28px;
+    overflow-x: auto;
   }
   .options-toc .header {
     grid-column: 1 / 3;
