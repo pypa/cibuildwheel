@@ -263,8 +263,11 @@ def main() -> None:
         manylinux_images=manylinux_images,
     )
 
-    # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
+    # Python is buffering by default when running on the CI platforms, giving
+    # problems interleaving subprocess call output with unflushed calls to
+    # 'print'
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore
+    sys.stderr = Unbuffered(sys.stderr)  # type: ignore
 
     print_preamble(platform, build_options)
 
