@@ -288,6 +288,7 @@ def build(options: BuildOptions) -> None:
         if options.before_all:
             log.step('Running before_all...')
             env = options.environment.as_dictionary(prev_environment=os.environ)
+            env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
             before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
             call([before_all_prepared], shell=True, env=env)
 
