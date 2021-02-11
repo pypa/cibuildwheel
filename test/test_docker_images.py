@@ -31,10 +31,10 @@ def test(tmp_path):
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
         'CIBW_MANYLINUX_X86_64_IMAGE': 'dockcross/manylinux2010-x64',
         'CIBW_MANYLINUX_I686_IMAGE': 'dockcross/manylinux2010-x86',
-        'CIBW_SKIP': 'pp* cp39-*',
+        'CIBW_SKIP': 'pp* cp27-* cp39-*',
     })
 
     # also check that we got the right wheels built
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                       if '-pp' not in w and '-cp39-' not in w]
+                       if '-pp' not in w and '-cp39-' not in w and '-cp27-' not in w]
     assert set(actual_wheels) == set(expected_wheels)
