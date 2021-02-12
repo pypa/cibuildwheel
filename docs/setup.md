@@ -14,7 +14,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     > .github/workflows/build_wheels.yml
 
     ```yaml
-    {% include "../examples/github-minimal.yml" preserve_includer_indent=true %}
+    {% include "../examples/github-minimal.yml" %}
     ```
 
 

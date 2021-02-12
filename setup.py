@@ -2,7 +2,7 @@ from setuptools import setup
 
 extras = {
     "docs": [
-        "mkdocs-include-markdown-plugin==2.7.2",
+        "mkdocs-include-markdown-plugin==2.8.0",
         "mkdocs==1.0.4",
         "pymdown-extensions",
     ],
