@@ -147,7 +147,8 @@ def main() -> None:
     else:
         assert_never(platform)
 
-    build_config, skip_config = os.environ.get('CIBW_BUILD', '*'), os.environ.get('CIBW_SKIP', '')
+    build_config = os.environ.get('CIBW_BUILD') or '*'
+    skip_config = os.environ.get('CIBW_SKIP', '')
     test_skip = os.environ.get('CIBW_TEST_SKIP', '')
     environment_config = get_option_from_environment('CIBW_ENVIRONMENT', platform=platform, default='')
     before_all = get_option_from_environment('CIBW_BEFORE_ALL', platform=platform, default='')
