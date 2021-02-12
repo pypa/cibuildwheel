@@ -89,3 +89,59 @@ h1, h2, h3, h4, h5, h6 {
 
 /* import font awesome 4 for icons */
 @import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css);
+
+
+/* Tabs */
+
+/* Style the tab */
+.tabs {
+  margin-bottom: 1em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabs-header {
+  background-color: white;
+  display: flex;
+  justify-content: flex-start;
+  border-bottom: 2px solid #ccc;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tabs-header button {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-bottom: 2px solid transparent;
+
+  /* put the border on top of the parent border */
+  margin-bottom: -2px;
+}
+
+.tabs-header button:focus-visible {
+  /* preserve an outline for accesibility purposes */
+  outline: 1px solid currentColor;
+}
+
+/* Change background color of buttons on hover */
+.tabs-header button:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Create an active/current tablink class */
+.tabs-header button.active {
+  color: #4086bd;
+  border-bottom-color: currentColor;
+}
+
+/* Style the tab content */
+.tabs-content {
+  background-color: #f1f6fa;
+  padding: 1px 1em;
+  padding-top: 0.8em;
+}

@@ -10,44 +10,72 @@ your CI config.
 For example, to configure cibuildwheel to run tests, add the following YAML to
 your CI config file:
 
-> .travis.yml ([docs](https://docs.travis-ci.com/user/environment-variables/))
-```yaml
-env:
-  global:
-    - CIBW_TEST_REQUIRES=pytest
-    - CIBW_TEST_COMMAND="pytest {project}/tests"
-```
 
-> appveyor.yml ([docs](https://www.appveyor.com/docs/build-configuration/#environment-variables))
-```yaml
-environment:
-  global:
-    CIBW_TEST_REQUIRES: pytest
-    CIBW_TEST_COMMAND: "pytest {project}\\tests"
-```
+!!! tab "GitHub Actions"
 
-> .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
-```yaml
-jobs:
-  job_name:
-    environment:
+    > .github/workflows/*.yml ([docs](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables)) (can be global, in job, or in step)
+
+    ```yaml
+    env:
       CIBW_TEST_REQUIRES: pytest
       CIBW_TEST_COMMAND: "pytest {project}/tests"
-```
+    ```
 
-> azure-pipelines.yml ([docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables))
-```yaml
-variables:
-  CIBW_TEST_REQUIRES: pytest
-  CIBW_TEST_COMMAND: "pytest {project}/tests"
-```
+!!! tab "Azure Pipelines"
 
-> .github/workflows/*.yml ([docs](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables)) (can be global, in job, or in step)
-```yaml
-env:
-  CIBW_TEST_REQUIRES: pytest
-  CIBW_TEST_COMMAND: "pytest {project}/tests"
-```
+    > azure-pipelines.yml ([docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables))
+
+    ```yaml
+    variables:
+      CIBW_TEST_REQUIRES: pytest
+      CIBW_TEST_COMMAND: "pytest {project}/tests"
+    ```
+
+!!! tab "Travis CI"
+
+    > .travis.yml ([docs](https://docs.travis-ci.com/user/environment-variables/))
+
+    ```yaml
+    env:
+      global:
+        - CIBW_TEST_REQUIRES=pytest
+        - CIBW_TEST_COMMAND="pytest {project}/tests"
+    ```
+
+!!! tab "AppVeyor"
+
+    > appveyor.yml ([docs](https://www.appveyor.com/docs/build-configuration/#environment-variables))
+
+    ```yaml
+    environment:
+      global:
+        CIBW_TEST_REQUIRES: pytest
+        CIBW_TEST_COMMAND: "pytest {project}\\tests"
+    ```
+
+!!! tab "CircleCI"
+
+    > .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
+
+    ```yaml
+    jobs:
+      job_name:
+        environment:
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: "pytest {project}/tests"
+    ```
+
+!!! tab "Gitlab CI"
+
+    > .gitlab-ci.yml ([docs](https://docs.gitlab.com/ee/ci/variables/README.html#create-a-custom-variable-in-gitlab-ciyml))
+
+    ```yaml
+    linux:
+      variables:
+        CIBW_TEST_REQUIRES: pytest
+        CIBW_TEST_COMMAND: "pytest {project}/tests"
+    ```
+
 
 
 ## Build selection
