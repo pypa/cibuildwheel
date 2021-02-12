@@ -28,14 +28,14 @@ from .util import (
 )
 
 
-def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
+def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> None:
     # print the command executing for the logs
     if shell:
         print(f'+ {args}')
     else:
         print('+ ' + ' '.join(shlex.quote(str(a)) for a in args))
 
-    return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
+    subprocess.run(args, env=env, cwd=cwd, shell=shell, check=True)
 
 
 def get_macos_version() -> Tuple[int, int]:
@@ -413,12 +413,12 @@ def build(options: BuildOptions) -> None:
                             raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
 
                     # define a custom 'call' function that adds the arch prefix each time
-                    def call_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> int:
+                    def call_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> None:
                         if isinstance(args, str):
                             args = ' '.join(arch_prefix) + ' ' + args
                         else:
                             args = [*arch_prefix, *args]
-                        return call(args, **kwargs)
+                        call(args, **kwargs)
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv

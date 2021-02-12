@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # run the docker unit tests only on Linux
     if sys.platform.startswith('linux'):
         unit_test_args += ['--run-docker']
-    subprocess.check_call(unit_test_args)
+    subprocess.run(unit_test_args, check=True)
 
     # run the integration tests
-    subprocess.check_call([sys.executable, '-m', 'pytest', '-x', '--durations', '0', '--timeout=2400', 'test'])
+    subprocess.run([sys.executable, '-m', 'pytest', '-x', '--durations', '0', '--timeout=2400', 'test'], check=True)
