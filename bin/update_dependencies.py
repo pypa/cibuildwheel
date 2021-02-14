@@ -71,6 +71,12 @@ images = [
     Image('manylinux2014', 'aarch64', 'quay.io/pypa/manylinux2014_aarch64', None),
     Image('manylinux2014', 'ppc64le', 'quay.io/pypa/manylinux2014_ppc64le', None),
     Image('manylinux2014', 's390x', 'quay.io/pypa/manylinux2014_s390x', None),
+
+    Image('manylinux_2_24', 'x86_64', 'quay.io/pypa/manylinux_2_24_x86_64', None),
+    Image('manylinux_2_24', 'i686', 'quay.io/pypa/manylinux_2_24_i686', None),
+    Image('manylinux_2_24', 'aarch64', 'quay.io/pypa/manylinux_2_24_aarch64', None),
+    Image('manylinux_2_24', 'ppc64le', 'quay.io/pypa/manylinux_2_24_ppc64le', None),
+    Image('manylinux_2_24', 's390x', 'quay.io/pypa/manylinux_2_24_s390x', None),
 ]
 
 config = configparser.ConfigParser()

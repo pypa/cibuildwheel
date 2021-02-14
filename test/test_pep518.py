@@ -7,7 +7,6 @@ basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         """
         # Will fail if PEP 518 does work
-        import sys
         import requests
         if sys.version_info < (3, 6, 0):
             assert requests.__version__ == "2.22.0", "Requests found but wrong version ({0})".format(requests.__version__)
