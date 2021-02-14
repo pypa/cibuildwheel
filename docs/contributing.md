@@ -71,7 +71,6 @@ This has been moved to using docker, so you only need the following instructions
 The dependency update script in the next section requires multiple python versions installed. One way to do this is to use `pyenv`:
 
 ```bash
-pyenv install 2.7.18
 pyenv install 3.6.11
 pyenv install 3.7.8
 # Optionally add 3.8 and make it the local version;
@@ -81,8 +80,6 @@ pyenv install 3.7.8
 Then, you need to make the required virtual environments:
 
 ```bash
-$(pyenv prefix 2.7.18)/bin/python -m pip install virtualenv
-$(pyenv prefix 2.7.18)/bin/python -m virtualenv env27
 $(pyenv prefix 3.6.11)/bin/python -m venv env36
 $(pyenv prefix 3.7.8)/bin/python -m venv env37
 ```

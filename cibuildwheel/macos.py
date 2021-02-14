@@ -141,7 +141,7 @@ def install_cpython(version: str, url: str) -> Path:
 
     # if this version of python isn't installed, get it from python.org and install
     python_package_identifier = f"org.python.Python.PythonFramework-{version}"
-    python_executable = "python3" if version[0] == "3" else "python"
+    python_executable = "python3"
     installation_bin_path = Path(f"/Library/Frameworks/Python.framework/Versions/{version}/bin")
 
     if python_package_identifier not in installed_system_packages:
@@ -151,7 +151,7 @@ def install_cpython(version: str, url: str) -> Path:
         call(["sudo", "installer", "-pkg", "/tmp/Python.pkg", "-target", "/"])
         call(["sudo", str(installation_bin_path / python_executable), str(install_certifi_script)])
 
-    pip_executable = "pip3" if version[0] == "3" else "pip"
+    pip_executable = "pip3"
     make_symlinks(installation_bin_path, python_executable, pip_executable)
 
     return installation_bin_path
@@ -168,13 +168,12 @@ def install_pypy(version: str, url: str) -> Path:
         download(url, downloaded_tar_bz2)
         call(["tar", "-C", "/tmp", "-xf", downloaded_tar_bz2])
         # Patch PyPy to make sure headers get installed into a venv
-        patch_version = "_27" if version == "2.7" else ""
-        patch_path = resources_dir / f"pypy_venv{patch_version}.patch"
+        patch_path = resources_dir / "pypy_venv.patch"
         call(["patch", "--force", "-p1", "-d", installation_path, "-i", patch_path])
 
     installation_bin_path = installation_path / "bin"
-    python_executable = "pypy3" if version[0] == "3" else "pypy"
-    pip_executable = "pip3" if version[0] == "3" else "pip"
+    python_executable = "pypy3"
+    pip_executable = "pip3"
     make_symlinks(installation_bin_path, python_executable, pip_executable)
 
     return installation_bin_path

@@ -24,21 +24,19 @@ What does it do?
 
 |   | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
 |---|---|---|---|---|---|---|---|---|---|
-| CPython 2.7     | ✅ |   | ✅¹ | ✅¹ | ✅ | ✅ |    |    |   |
 | CPython 3.6     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PyPy 2.7 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
 | PyPy 3.6 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
 | PyPy 3.7 (beta) v7.3.3 | ✅ | |  | ✅  | ✅ |    |    |   |    |
-
-<sup>¹ Only using a workaround with a newer compiler; Microsoft removed the 2008 compiler for Python 2.7 in April 2021.</sup><br>
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
+
+See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) if you need to build unsupported versions of Python, such as Python 2.
 
 Usage
 -----
@@ -98,7 +96,7 @@ jobs:
           path: ./wheelhouse/*.whl
 ```
 
-For more information, including building on Python 2, PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
 
 Options
 -------

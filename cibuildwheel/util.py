@@ -163,7 +163,7 @@ class DependencyConstraints:
         version_parts = version.split(".")
 
         # try to find a version-specific dependency file e.g. if
-        # ./constraints.txt is the base, look for ./constraints-python27.txt
+        # ./constraints.txt is the base, look for ./constraints-python36.txt
         specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)

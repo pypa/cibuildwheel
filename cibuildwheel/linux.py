@@ -124,8 +124,7 @@ def build(options: BuildOptions) -> None:
                     dependency_constraint_flags: List[PathOrStr] = []
                     if config.identifier.startswith("pp"):
                         # Patch PyPy to make sure headers get installed into a venv
-                        patch_version = "_27" if config.version == "2.7" else ""
-                        patch_path = resources_dir / f"pypy_venv{patch_version}.patch"
+                        patch_path = resources_dir / "pypy_venv.patch"
                         patch_docker_path = PurePath("/pypy_venv.patch")
                         docker.copy_into(patch_path, patch_docker_path)
                         try:

@@ -123,8 +123,6 @@ To build Linux, Mac, and Windows wheels on Travis CI, create a `.travis.yml` fil
 {% include "../examples/travis-ci-minimal.yml" %}
 ```
 
-Note that building Windows Python 2.7 wheels on Travis is unsupported unless using a newer compiler [via a workaround](cpp_standards.md).
-
 Commit this file, enable building of your repo on Travis CI, and push.
 
 Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).

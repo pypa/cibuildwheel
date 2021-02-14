@@ -120,12 +120,10 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 
 |              | macOS                                                               | Windows                       | Manylinux Intel                               | Manylinux Other                                                            |
 |--------------|---------------------------------------------------------------------|-------------------------------|-----------------------------------------------|----------------------------------------------------------------------------|
-| Python 2.7   | cp27-macosx_x86_64                                                  | cp27-win_amd64<br/>cp27-win32 | cp27-manylinux_x86_64<br/>cp27-manylinux_i686 |                                                                            |
 | Python 3.6   | cp36-macosx_x86_64                                                  | cp36-win_amd64<br/>cp36-win32 | cp36-manylinux_x86_64<br/>cp36-manylinux_i686 | cp36-manylinux_aarch64<br/>cp36-manylinux_ppc64le<br/>cp36-manylinux_s390x |
 | Python 3.7   | cp37-macosx_x86_64                                                  | cp37-win_amd64<br/>cp37-win32 | cp37-manylinux_x86_64<br/>cp37-manylinux_i686 | cp37-manylinux_aarch64<br/>cp37-manylinux_ppc64le<br/>cp37-manylinux_s390x |
 | Python 3.8   | cp38-macosx_x86_64                                                  | cp38-win_amd64<br/>cp38-win32 | cp38-manylinux_x86_64<br/>cp38-manylinux_i686 | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x |
 | Python 3.9   | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64 | cp39-win_amd64<br/>cp39-win32 | cp39-manylinux_x86_64<br/>cp39-manylinux_i686 | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x |
-| PyPy2.7 v7.3 | pp27-macosx_x86_64                                                  |                    pp27-win32 | pp27-manylinux_x86_64                         |                                                                            |
 | PyPy3.6 v7.3 | pp36-macosx_x86_64                                                  |                    pp36-win32 | pp36-manylinux_x86_64                         |                                                                            |
 | PyPy3.7 v7.3 | pp37-macosx_x86_64                                                  |                    pp37-win32 | pp37-manylinux_x86_64                         |                                                                            |
 
@@ -133,28 +131,30 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
-For CPython, the minimally supported macOS version is 10.9; for PyPy 2.7 and PyPy 3.6/3.7, respectively macOS 10.7 and 10.13 or higher is required.
+For CPython, the minimally supported macOS version is 10.9; for PyPy 3.6/3.7, macOS 10.13 or higher is required.
+
+See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end of life versions of Python, and PyPy2.7.
 
 #### Examples
 
 ```yaml
-# Only build on Python 3.6
+# Only build on CPython 3.6
 CIBW_BUILD: cp36-*
 
-# Skip building on Python 2.7 on the Mac
-CIBW_SKIP: cp27-macosx_x86_64
+# Skip building on CPython 3.6 on the Mac
+CIBW_SKIP: cp36-macosx_x86_64
 
-# Skip building on Python 3.8 on the Mac
+# Skip building on CPython 3.8 on the Mac
 CIBW_SKIP: cp38-macosx_x86_64
 
-# Skip building on Python 2.7 on all platforms
-CIBW_SKIP: cp27-*
+# Skip building on CPython 3.6 on all platforms
+CIBW_SKIP: cp36-*
 
-# Skip Python 2.7 on Windows
-CIBW_SKIP: cp27-win*
+# Skip CPython 3.6 on Windows
+CIBW_SKIP: cp36-win*
 
-# Skip Python 2.7 on 32-bit Windows
-CIBW_SKIP: cp27-win32
+# Skip CPython 3.6 on 32-bit Windows
+CIBW_SKIP: cp36-win32
 
 # Skip CPython 3.6 and CPython 3.7
 CIBW_SKIP: cp36-* cp37-*
@@ -162,12 +162,8 @@ CIBW_SKIP: cp36-* cp37-*
 # Skip Python 3.6 on Linux
 CIBW_SKIP: cp36-manylinux*
 
-# Only build on Python 3 (ready for 3.10 when it comes) and skip 32-bit builds
-CIBW_BUILD: {cp,pp}3*-*
+# Skip 32-bit builds
 CIBW_SKIP: "*-win32 *-manylinux_i686"
-
-# Only build PyPy and CPython 3
-CIBW_BUILD: pp* cp3*-*
 
 # Disable building PyPy wheels on all platforms
 CIBW_SKIP: pp*
@@ -489,7 +485,6 @@ Set an alternative Docker image to be used for building [manylinux](https://gith
 The value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux) and [PyPy manylinux images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, only the official `manylinux2010` image is currently available. For architectures other
 than x86 (x86\_64 and i686) `manylinux2014` or `manylinux_2_24` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`.
 
-Note that `manylinux2014`/`manylinux_2_24` don't support builds with Python 2.7 - when building with `manylinux2014`/`manylinux_2_24`, skip Python 2.7 using `CIBW_SKIP` (see example below).
 
 If setting a custom Docker image, you'll need to make sure it can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/) and [PEP 600](https://www.python.org/dev/peps/pep-0600/) for more details).
 
@@ -544,7 +539,7 @@ here and it will be used instead.
     If you need different dependencies for each python version, provide them
     in the same folder with a `-pythonXY` suffix. e.g. if your
     `CIBW_DEPENDENCY_VERSIONS=./constraints.txt`, cibuildwheel will use
-    `./constraints-python27.txt` on Python 2.7, or fallback to
+    `./constraints-python37.txt` on Python 3.7, or fallback to
     `./constraints.txt` if that's not found.
 
 Platform-specific variants also available:<br/>

@@ -65,20 +65,16 @@ def test(manylinux_image, tmp_path):
         "CIBW_MANYLINUX_PPC64LE_IMAGE": manylinux_image,
         "CIBW_MANYLINUX_S390X_IMAGE": manylinux_image,
     }
-    if manylinux_image == "manylinux1":
+    if manylinux_image in {"manylinux1", "manylinux2014", "manylinux_2_24"}:
         # We don't have a manylinux1 image for PyPy
+        # We don't have a manylinux2014 / manylinux_2_24 image for PyPy (yet?)
         add_env["CIBW_SKIP"] = "pp*"
-    elif manylinux_image in {"manylinux2014", "manylinux_2_24"}:
-        # We don't have a manylinux2014 / 'manylinux_2_24' image for PyPy (yet?)
-        # Python 2.7 not available on manylinux2014 / 'manylinux_2_24'
-        add_env["CIBW_SKIP"] = "cp27* pp*"
+
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
     expected_wheels = [
         w for w in utils.expected_wheels("spam", "0.1.0", manylinux_versions=[manylinux_image])
     ]
-    if manylinux_image in {"manylinux2014", "manylinux_2_24"}:
-        expected_wheels = [w for w in expected_wheels if "-cp27" not in w]
     if manylinux_image in {"manylinux1", "manylinux2014", "manylinux_2_24"}:
         expected_wheels = [w for w in expected_wheels if "-pp" not in w]
     assert set(actual_wheels) == set(expected_wheels)
