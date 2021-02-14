@@ -28,7 +28,8 @@ if '--no-docker' in sys.argv:
             '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
         ], check=True)
 else:
-    image_runner = 'quay.io/pypa/manylinux2010_x86_64:latest'
+    # latest manylinux2010 image with cpython 2.7 support
+    image_runner = 'quay.io/pypa/manylinux2010_x86_64:2021-02-06-3d322a5'
     subprocess.run(['docker', 'pull', image_runner], check=True)
     for python_version in PYTHON_VERSIONS:
         abi_flags = '' if int(python_version) >= 38 else 'm'
