@@ -28,14 +28,14 @@ from .util import (
 )
 
 
-def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> int:
+def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> None:
     # print the command executing for the logs
     if shell:
         print(f'+ {args}')
     else:
         print('+ ' + ' '.join(shlex.quote(str(a)) for a in args))
 
-    return subprocess.check_call(args, env=env, cwd=cwd, shell=shell)
+    subprocess.run(args, env=env, cwd=cwd, shell=shell, check=True)
 
 
 def get_macos_version() -> Tuple[int, int]:
@@ -53,10 +53,12 @@ def get_macos_version() -> Tuple[int, int]:
 
 
 def get_macos_sdks() -> List[str]:
-    output = subprocess.check_output(
+    output = subprocess.run(
         ['xcodebuild', '-showsdks'],
         universal_newlines=True,
-    )
+        check=True,
+        stdout=subprocess.PIPE,
+    ).stdout
 
     return [m.group(1) for m in re.finditer(r'-sdk (macosx\S+)', output)]
 
@@ -125,7 +127,7 @@ def make_symlinks(installation_bin_path: Path, python_executable: str, pip_execu
 
 
 def install_cpython(version: str, url: str) -> Path:
-    installed_system_packages = subprocess.check_output(['pkgutil', '--pkgs'], universal_newlines=True).splitlines()
+    installed_system_packages = subprocess.run(['pkgutil', '--pkgs'], universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
     python_package_identifier = f'org.python.Python.PythonFramework-{version}'
@@ -211,7 +213,7 @@ def setup_python(python_configuration: PythonConfiguration,
     # check what version we're on
     call(['which', 'python'], env=env)
     call(['python', '--version'], env=env)
-    which_python = subprocess.check_output(['which', 'python'], env=env, universal_newlines=True).strip()
+    which_python = subprocess.run(['which', 'python'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.strip()
     if which_python != '/tmp/cibw_bin/python':
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
         sys.exit(1)
@@ -221,7 +223,7 @@ def setup_python(python_configuration: PythonConfiguration,
     assert (installation_bin_path / 'pip').exists()
     call(['which', 'pip'], env=env)
     call(['pip', '--version'], env=env)
-    which_pip = subprocess.check_output(['which', 'pip'], env=env, universal_newlines=True).strip()
+    which_pip = subprocess.run(['which', 'pip'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.strip()
     if which_pip != '/tmp/cibw_bin/pip':
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
         sys.exit(1)
@@ -413,12 +415,12 @@ def build(options: BuildOptions) -> None:
                             raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
 
                     # define a custom 'call' function that adds the arch prefix each time
-                    def call_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> int:
+                    def call_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> None:
                         if isinstance(args, str):
                             args = ' '.join(arch_prefix) + ' ' + args
                         else:
                             args = [*arch_prefix, *args]
-                        return call(args, **kwargs)
+                        call(args, **kwargs)
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv

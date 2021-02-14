@@ -34,11 +34,11 @@ def main():
 
     if options.open:
         if sys.platform == 'darwin':
-            subprocess.check_call(['open', '--', project_dir])
+            subprocess.run(['open', '--', project_dir], check=True)
         elif sys.platform == 'linux2':
-            subprocess.check_call(['xdg-open', '--', project_dir])
+            subprocess.run(['xdg-open', '--', project_dir], check=True)
         elif sys.platform == 'win32':
-            subprocess.check_call(['explorer', project_dir])
+            subprocess.run(['explorer', project_dir], check=True)
 
 
 if __name__ == '__main__':

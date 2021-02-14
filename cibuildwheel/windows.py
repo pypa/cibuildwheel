@@ -33,12 +33,12 @@ def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None,
     print('+ ' + ' '.join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
     # https://bugs.python.org/issue8557
-    subprocess.check_call([str(a) for a in args], env=env, cwd=cwd, shell=True)
+    subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=True)
 
 
 def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> None:
     print(f'+ {command}')
-    subprocess.check_call(command, env=env, cwd=cwd, shell=True)
+    subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
@@ -152,7 +152,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     call(['where', 'python'], env=env)
     call(['python', '--version'], env=env)
     call(['python', '-c', '"import struct; print(struct.calcsize(\'P\') * 8)"'], env=env)
-    where_python = subprocess.check_output(['where', 'python'], env=env, universal_newlines=True).splitlines()[0].strip()
+    where_python = subprocess.run(['where', 'python'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.splitlines()[0].strip()
     if where_python != str(installation_path / 'python.exe'):
         print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
         sys.exit(1)
@@ -161,7 +161,7 @@ def setup_python(python_configuration: PythonConfiguration, dependency_constrain
     if not (installation_path / 'Scripts' / 'pip.exe').exists():
         call(['python', get_pip_script, *dependency_constraint_flags], env=env, cwd="C:\\cibw")
     assert (installation_path / 'Scripts' / 'pip.exe').exists()
-    where_pip = subprocess.check_output(['where', 'pip'], env=env, universal_newlines=True).splitlines()[0].strip()
+    where_pip = subprocess.run(['where', 'pip'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.splitlines()[0].strip()
     if where_pip.strip() != str(installation_path / 'Scripts' / 'pip.exe'):
         print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
         sys.exit(1)

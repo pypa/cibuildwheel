@@ -31,11 +31,13 @@ def cibuildwheel_get_build_identifiers(project_path, env=None):
     Returns the list of build identifiers that cibuildwheel will try to build
     for the current platform.
     '''
-    cmd_output = subprocess.check_output(
+    cmd_output = subprocess.run(
         [sys.executable, '-m', 'cibuildwheel', '--print-build-identifiers', str(project_path)],
         universal_newlines=True,
         env=env,
-    )
+        check=True,
+        stdout=subprocess.PIPE,
+    ).stdout
 
     return cmd_output.strip().split('\n')
 
@@ -64,10 +66,11 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
         env.update(add_env)
 
     with TemporaryDirectoryIfNone(output_dir) as _output_dir:
-        subprocess.check_call(
+        subprocess.run(
             [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir), str(package_dir)],
             env=env,
             cwd=project_path,
+            check=True,
         )
         wheels = os.listdir(_output_dir)
     return wheels

@@ -49,7 +49,8 @@ def get_python_configurations(
 
 def build(options: BuildOptions) -> None:
     try:
-        subprocess.check_output(['docker', '--version'])
+        # check docker is installed
+        subprocess.run(['docker', '--version'], check=True, stdout=subprocess.DEVNULL)
     except Exception:
         print('cibuildwheel: Docker not found. Docker is required to run Linux builds. '
               'If you\'re building on Travis CI, add `services: [docker]` to your .travis.yml.'

@@ -15,10 +15,12 @@ ALL_MACOS_WHEELS = (
 
 
 def get_xcode_version() -> Tuple[int, int]:
-    output = subprocess.check_output(
+    output = subprocess.run(
         ['xcodebuild', '-version'],
         universal_newlines=True,
-    )
+        check=True,
+        stdout=subprocess.PIPE,
+    ).stdout
     lines = output.splitlines()
     _, version_str = lines[0].split()
 
