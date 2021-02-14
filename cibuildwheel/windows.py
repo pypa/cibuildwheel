@@ -22,8 +22,6 @@ from .util import (
     read_python_configs,
 )
 
-IS_RUNNING_ON_AZURE = Path("C:\\hostedtoolcache").exists()
-
 
 def call(
     args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None
@@ -40,7 +38,7 @@ def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str]
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
-    python_name = "python" if version[0] == "3" else "python2"
+    python_name = "python"
     if arch == "32":
         python_name += "x86"
     return [
@@ -74,13 +72,6 @@ def get_python_configurations(
         "32": Architecture.x86,
         "64": Architecture.AMD64,
     }
-
-    # Only supported with custom compiler, since MS removed the 2008 compiler download
-    custom_compiler = os.environ.get("DISTUTILS_USE_SDK") and os.environ.get("MSSdk")
-    if not custom_compiler:
-        python_configurations = [
-            c for c in python_configurations if not c.version.startswith("2.7")
-        ]
 
     # skip builds as required
     python_configurations = [
@@ -116,8 +107,7 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
         download(url, pypy_zip)
         # Extract to the parent directory because the zip file still contains a directory
         extract_zip(pypy_zip, installation_path.parent)
-        pypy_exe = "pypy3.exe" if version[0] == "3" else "pypy.exe"
-        (installation_path / "python.exe").symlink_to(installation_path / pypy_exe)
+        (installation_path / "python.exe").symlink_to(installation_path / "pypy3.exe")
     return installation_path
 
 

@@ -24,9 +24,6 @@ STAT_0o775 = (
     | stat.S_IXOTH
 )
 
-if sys.version_info[0] == 2:
-    FileNotFoundError = OSError
-
 
 def main():
     openssl_dir, openssl_cafile = os.path.split(ssl.get_default_verify_paths().openssl_cafile)

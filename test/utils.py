@@ -6,11 +6,9 @@ This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 
 import os
 import platform as pm
-import shutil
 import subprocess
 import sys
-from contextlib import contextmanager
-from tempfile import mkdtemp
+from tempfile import TemporaryDirectory
 
 platform: str
 
@@ -24,17 +22,6 @@ elif sys.platform in ["win32", "cygwin"]:
     platform = "windows"
 else:
     raise Exception("Unsupported platform")
-
-
-# Python 2 does not have a tempfile.TemporaryDirectory context manager
-@contextmanager
-def TemporaryDirectoryIfNone(path):
-    _path = path or mkdtemp()
-    try:
-        yield _path
-    finally:
-        if path is None:
-            shutil.rmtree(_path)
 
 
 def cibuildwheel_get_build_identifiers(project_path, env=None):
@@ -76,21 +63,21 @@ def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, outp
     if add_env is not None:
         env.update(add_env)
 
-    with TemporaryDirectoryIfNone(output_dir) as _output_dir:
+    with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(
             [
                 sys.executable,
                 "-m",
                 "cibuildwheel",
                 "--output-dir",
-                str(_output_dir),
+                str(output_dir or tmp_output_dir),
                 str(package_dir),
             ],
             env=env,
             cwd=project_path,
             check=True,
         )
-        wheels = os.listdir(_output_dir)
+        wheels = os.listdir(output_dir or tmp_output_dir)
     return wheels
 
 
@@ -113,8 +100,6 @@ def expected_wheels(
     manylinux_versions=None,
     macosx_deployment_target="10.9",
     machine_arch=None,
-    *,
-    exclude_27=platform == "windows",
 ):
     """
     Returns a list of expected wheels from a run of cibuildwheel.
@@ -136,10 +121,7 @@ def expected_wheels(
     python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
 
     if machine_arch in ["x86_64", "AMD64", "x86"]:
-        python_abi_tags += ["cp27-cp27m", "pp27-pypy_73", "pp36-pypy36_pp73", "pp37-pypy37_pp73"]
-
-        if platform == "linux":
-            python_abi_tags.append("cp27-cp27mu")  # python 2.7 has 2 different ABI on manylinux
+        python_abi_tags += ["pp36-pypy36_pp73", "pp37-pypy37_pp73"]
 
     if platform == "macos" and get_macos_version() >= (10, 16):
         # 10.16 is sometimes reported as the macOS version on macOS 11.
@@ -192,11 +174,6 @@ def expected_wheels(
 
         for platform_tag in platform_tags:
             wheels.append(f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl")
-
-    # Travis on Windows does not support using the default Python 2.7 compiler,
-    # so we support skipping here.
-    if exclude_27:
-        wheels = [w for w in wheels if "-cp27-" not in w and "-pp2" not in w]
 
     return wheels
 

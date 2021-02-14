@@ -52,8 +52,7 @@ class TestSpam(TestCase):
         # sys.prefix is different from sys.base_prefix when running a virtualenv
         # See https://docs.python.org/3/library/venv.html, which virtualenv seems
         # to honor in recent releases
-        # Python 2 doesn't have sys.base_prefix by default
-        if not hasattr(sys, 'base_prefix') or sys.prefix == sys.base_prefix:
+        if sys.prefix == sys.base_prefix:
             self.fail("Not running in a virtualenv")
 
         self.assertTrue(path_contains(sys.prefix, sys.executable))

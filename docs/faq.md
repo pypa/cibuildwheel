@@ -14,6 +14,10 @@ If your wheel didn't compile, check the list below for some debugging tips.
 
 - MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/joerick/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
 
+### Building Python 2.7 / PyPy2 wheels
+
+See the [cibuildwheel verison 1 docs](https://cibuildwheel.readthedocs.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
+
 ### Linux builds on Docker
 
 Linux wheels are built in the [`manylinux` docker images](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 571](https://www.python.org/dev/peps/pep-0571/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
@@ -136,35 +140,6 @@ Here's an example GitHub Actions workflow with a job that builds for Apple Silic
 {% include "../examples/github-apple-silicon.yml" %}
 ```
 
-### Windows and Python 2.7
-
-Building 2.7 extensions on Windows is difficult, because the VS 2008 compiler that was used for the original Python compilation was discontinued in 2018, and has since been removed from Microsoft's downloads. Most people choose to not build Windows 2.7 wheels, or to override the compiler to something more modern.
-
-To override, you need to have a modern compiler toolchain activated, and set `DISTUTILS_USE_SDK=1` and `MSSdk=1`. For example, on GitHub Actions, you would add these steps:
-
-```yaml
-    - name: Prepare compiler environment for Windows
-      if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: x64
-
-    - name: Set Windows environment variables
-      if: runner.os == 'Windows'
-      shell: bash
-      run: |
-        echo "DISTUTILS_USE_SDK=1" >> $GITHUB_ENV
-        echo "MSSdk=1" >> $GITHUB_ENV
-
-    # invoke cibuildwheel...
-```
-
-cibuildwheel will not try to build 2.7 on Windows unless it detects that the above two variables are set. Note that changing to a more modern compiler will mean your wheel picks up a runtime dependency to a different [Visual C++ Redistributable][]. You also need to be [a bit careful][] in designing your extension; some major binding tools like pybind11 do this for you.
-
-More on setting a custom Windows toolchain in our docs on modern C++ standards [here](cpp_standards.md#windows-and-python-27).
-
-[Visual C++ Redistributable]: https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0
-[a bit careful]: https://pybind11.readthedocs.io/en/stable/faq.html#working-with-ancient-visual-studio-2008-builds-on-windows
 
 ### Building packages with optional C extensions
 
@@ -206,7 +181,7 @@ python3 -m twine upload wheelhouse/*.whl
 
 ### 'ImportError: DLL load failed: The specific module could not be found' error on Windows
 
-Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, these are included with Python, but when compiling with a newer version of Visual Studio, it is possible users will run into problems on systems that do not have these runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it. Since a Python installation normally includes these VC++ Redistributable files for [the version of the MSVC compiler used to compile Python](https://wiki.python.org/moin/WindowsCompilers), this is typically only a problem when compiling a Python 2.7 C extension with a newer compiler, e.g. to support a modern C++ standard (see [the section on modern C++ standards for Python 2.7](cpp_standards.md#windows-and-python-27) for more details).
+Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, these are included with Python, but when compiling with a newer version of Visual Studio, it is possible users will run into problems on systems that do not have these runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it. Since a Python installation normally includes these VC++ Redistributable files for [the version of the MSVC compiler used to compile Python](https://wiki.python.org/moin/WindowsCompilers), this is typically only a problem when compiling a Python C extension with a newer compiler.
 
 Additionally, Visual Studio 2019 started linking to an even newer DLL, `VCRUNTIME140_1.dll`, besides the `VCRUNTIME140.dll` that is included with recent Python versions (starting from Python 3.5; see [here](https://wiki.python.org/moin/WindowsCompilers) for more details on the corresponding Visual Studio & MSVC versions used to compile the different Python versions). To avoid this extra dependency on `VCRUNTIME140_1.dll`, the [`/d2FH4-` flag](https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/) can be added to the MSVC invocations (check out [this issue](https://github.com/joerick/cibuildwheel/issues/423) for details and references).
 

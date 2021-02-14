@@ -47,31 +47,28 @@ def get_versions_from_constraint_file(constraint_file):
     }
 
 
-@pytest.mark.parametrize("python_version", ["2.7", "3.6", "3.8", "3.9"])
+@pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.9"])
 def test_pinned_versions(tmp_path, python_version):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
-
-    if utils.platform == "windows" and python_version == "2.7":
-        pytest.skip("Windows requires a workaround")
 
     project_dir = tmp_path / "project"
     project_with_expected_version_checks.generate(project_dir)
 
     build_environment = {}
 
-    if python_version == "2.7":
-        constraint_filename = "constraints-python27.txt"
-        build_pattern = "[cp]p27-*"
-    elif python_version == "3.6":
+    if python_version == "3.6":
         constraint_filename = "constraints-python36.txt"
         build_pattern = "[cp]p36-*"
     elif python_version == "3.7":
         constraint_filename = "constraints-python37.txt"
         build_pattern = "[cp]p37-*"
+    elif python_version == "3.8":
+        constraint_filename = "constraints-python38.txt"
+        build_pattern = "[cp]p38-*"
     else:
         constraint_filename = "constraints.txt"
-        build_pattern = "[cp]p38-*"
+        build_pattern = "[cp]p39-*"
 
     constraint_file = cibuildwheel.util.resources_dir / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
@@ -92,11 +89,7 @@ def test_pinned_versions(tmp_path, python_version):
     )
 
     # also check that we got the right wheels
-    if python_version == "2.7":
-        expected_wheels = [
-            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp27" in w or "-pp27" in w
-        ]
-    elif python_version == "3.6":
+    if python_version == "3.6":
         expected_wheels = [
             w for w in utils.expected_wheels("spam", "0.1.0") if "-cp36" in w or "-pp36" in w
         ]
@@ -104,26 +97,26 @@ def test_pinned_versions(tmp_path, python_version):
         expected_wheels = [
             w for w in utils.expected_wheels("spam", "0.1.0") if "-cp38" in w or "-pp38" in w
         ]
+    elif python_version == "3.9":
+        expected_wheels = [
+            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp39" in w or "-pp39" in w
+        ]
     else:
         raise ValueError("unhandled python version")
 
     assert set(actual_wheels) == set(expected_wheels)
 
 
-@pytest.mark.parametrize("python_version", ["2.7", "3.x"])
-def test_dependency_constraints_file(tmp_path, python_version):
+def test_dependency_constraints_file(tmp_path):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
-
-    if utils.platform == "windows" and python_version == "2.7":
-        pytest.skip("Windows + Travis CI requires a workaround")
 
     project_dir = tmp_path / "project"
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
         "pip": "20.0.2",
-        "setuptools": "44.0.0" if python_version == "2.7" else "46.0.0",
+        "setuptools": "53.0.0",
         "wheel": "0.34.2",
         "virtualenv": "20.0.10",
     }
@@ -154,22 +147,12 @@ def test_dependency_constraints_file(tmp_path, python_version):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "[cp]p27-*" if python_version == "2.7" else "[cp]p3?-*",
             "CIBW_ENVIRONMENT": cibw_environment_option,
             "CIBW_DEPENDENCY_VERSIONS": str(constraints_file),
         },
     )
 
     # also check that we got the right wheels
-    if python_version == "2.7":
-        expected_wheels = [
-            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp27" in w or "-pp27" in w
-        ]
-    else:
-        expected_wheels = [
-            w
-            for w in utils.expected_wheels("spam", "0.1.0")
-            if "-cp27" not in w and "-pp27" not in w
-        ]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
 
     assert set(actual_wheels) == set(expected_wheels)

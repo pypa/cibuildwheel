@@ -7,10 +7,7 @@ project_with_ssl_tests = test_projects.new_c_project(
         r"""
         import ssl
 
-        if sys.version_info[0] == 2:
-            from urllib2 import urlopen
-        else:
-            from urllib.request import urlopen
+        from urllib.request import urlopen
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         data = urlopen("https://www.nist.gov", context=context)

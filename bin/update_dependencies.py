@@ -17,7 +17,7 @@ os.chdir("..")
 # regenerate the constraints files
 os.environ["CUSTOM_COMPILE_COMMAND"] = "bin/update_dependencies.py"
 
-PYTHON_VERSIONS = ["27", "36", "37", "38", "39"]
+PYTHON_VERSIONS = ["36", "37", "38", "39"]
 
 if "--no-docker" in sys.argv:
     for python_version in PYTHON_VERSIONS:
@@ -32,8 +32,7 @@ if "--no-docker" in sys.argv:
             check=True,
         )
 else:
-    # latest manylinux2010 image with cpython 2.7 support
-    image_runner = "quay.io/pypa/manylinux2010_x86_64:2021-02-06-3d322a5"
+    image_runner = "quay.io/pypa/manylinux2010_x86_64:latest"
     subprocess.run(["docker", "pull", image_runner], check=True)
     for python_version in PYTHON_VERSIONS:
         abi_flags = "" if int(python_version) >= 38 else "m"
@@ -77,9 +76,9 @@ class Image(NamedTuple):
 images = [
     Image("manylinux1", "x86_64", "quay.io/pypa/manylinux1_x86_64", None),
     Image("manylinux1", "i686", "quay.io/pypa/manylinux1_i686", None),
-    # Images for manylinux2010 are pinned to the latest tag supporting cp27
-    Image("manylinux2010", "x86_64", "quay.io/pypa/manylinux2010_x86_64", "2021-02-06-3d322a5"),
-    Image("manylinux2010", "i686", "quay.io/pypa/manylinux2010_i686", "2021-02-06-3d322a5"),
+    # 2010 images
+    Image("manylinux2010", "x86_64", "quay.io/pypa/manylinux2010_x86_64", None),
+    Image("manylinux2010", "i686", "quay.io/pypa/manylinux2010_i686", None),
     Image("manylinux2010", "pypy_x86_64", "pypywheels/manylinux2010-pypy_x86_64", None),
     # 2014 images
     Image("manylinux2014", "x86_64", "quay.io/pypa/manylinux2014_x86_64", None),
