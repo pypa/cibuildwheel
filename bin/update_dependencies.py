@@ -28,7 +28,8 @@ if '--no-docker' in sys.argv:
             '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
         ], check=True)
 else:
-    image_runner = 'quay.io/pypa/manylinux2010_x86_64:latest'
+    # latest manylinux2010 image with cpython 2.7 support
+    image_runner = 'quay.io/pypa/manylinux2010_x86_64:2021-02-06-3d322a5'
     subprocess.run(['docker', 'pull', image_runner], check=True)
     for python_version in PYTHON_VERSIONS:
         abi_flags = '' if int(python_version) >= 38 else 'm'
@@ -52,28 +53,34 @@ Image = namedtuple('Image', [
     'manylinux_version',
     'platform',
     'image_name',
+    'tag',
 ])
 
 images = [
-    Image('manylinux1', 'x86_64', 'quay.io/pypa/manylinux1_x86_64'),
-    Image('manylinux1', 'i686', 'quay.io/pypa/manylinux1_i686'),
+    Image('manylinux1', 'x86_64', 'quay.io/pypa/manylinux1_x86_64', None),
+    Image('manylinux1', 'i686', 'quay.io/pypa/manylinux1_i686', None),
 
-    Image('manylinux2010', 'x86_64', 'quay.io/pypa/manylinux2010_x86_64'),
-    Image('manylinux2010', 'i686', 'quay.io/pypa/manylinux2010_i686'),
-    Image('manylinux2010', 'pypy_x86_64', 'pypywheels/manylinux2010-pypy_x86_64'),
+    # Images for manylinux2010 are pinned to the latest tag supporting cp27
+    Image('manylinux2010', 'x86_64', 'quay.io/pypa/manylinux2010_x86_64', '2021-02-06-3d322a5'),
+    Image('manylinux2010', 'i686', 'quay.io/pypa/manylinux2010_i686', '2021-02-06-3d322a5'),
 
-    Image('manylinux2014', 'x86_64', 'quay.io/pypa/manylinux2014_x86_64'),
-    Image('manylinux2014', 'i686', 'quay.io/pypa/manylinux2014_i686'),
-    Image('manylinux2014', 'aarch64', 'quay.io/pypa/manylinux2014_aarch64'),
-    Image('manylinux2014', 'ppc64le', 'quay.io/pypa/manylinux2014_ppc64le'),
-    Image('manylinux2014', 's390x', 'quay.io/pypa/manylinux2014_s390x'),
+    Image('manylinux2010', 'pypy_x86_64', 'pypywheels/manylinux2010-pypy_x86_64', None),
+
+    Image('manylinux2014', 'x86_64', 'quay.io/pypa/manylinux2014_x86_64', None),
+    Image('manylinux2014', 'i686', 'quay.io/pypa/manylinux2014_i686', None),
+    Image('manylinux2014', 'aarch64', 'quay.io/pypa/manylinux2014_aarch64', None),
+    Image('manylinux2014', 'ppc64le', 'quay.io/pypa/manylinux2014_ppc64le', None),
+    Image('manylinux2014', 's390x', 'quay.io/pypa/manylinux2014_s390x', None),
 ]
 
 config = configparser.ConfigParser()
 
 for image in images:
     # get the tag name whose digest matches 'latest'
-    if image.image_name.startswith('quay.io/'):
+    if image.tag is not None:
+        # image has been pinned, do not update
+        tag_name = image.tag
+    elif image.image_name.startswith('quay.io/'):
         _, _, repository_name = image.image_name.partition('/')
         response = requests.get(
             f'https://quay.io/api/v1/repository/{repository_name}?includeTags=true'
