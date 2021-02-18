@@ -60,12 +60,21 @@ MOD_INIT(spam)
 '''
 
 SETUP_PY_TEMPLATE = r'''
+import sys
 from setuptools import setup, Extension
 
 {{ setup_py_add }}
 
+libraries = []
+if sys.platform.startswith('linux'):
+    libraries.extend(['m', 'c'])
+
 setup(
-    ext_modules=[Extension('spam', sources=['spam.c'])],
+    ext_modules=[Extension(
+        'spam',
+        sources=['spam.c'],
+        libraries=libraries,
+    )],
     {{ setup_py_setup_args_add | indent(4) }}
 )
 '''

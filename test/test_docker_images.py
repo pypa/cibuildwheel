@@ -7,7 +7,7 @@ from . import test_projects, utils
 
 dockcross_only_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
-        import os, sys
+        import os
 
         # check that we're running in the correct docker image as specified in the
         # environment options CIBW_MANYLINUX1_*_IMAGE

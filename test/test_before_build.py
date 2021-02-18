@@ -7,7 +7,7 @@ from . import test_projects, utils
 
 project_with_before_build_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
-        import sys, os
+        import os
 
         # assert that the Python version as written to pythonversion.txt in the CIBW_BEFORE_BUILD step
         # is the same one as is currently running.

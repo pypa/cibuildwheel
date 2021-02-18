@@ -5,7 +5,6 @@ from . import test_projects, utils
 project_with_ssl_tests = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(r'''
         import ssl
-        import sys
 
         if sys.version_info[0] == 2:
             from urllib2 import urlopen
