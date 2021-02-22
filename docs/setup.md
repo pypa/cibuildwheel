@@ -50,7 +50,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
             run: choco install vcpython27 -f -y
 
           - name: Build wheels
-            run: pix run cibuildwheel==1.9.0
+            run: pipx run cibuildwheel==1.9.0
 
           - uses: actions/upload-artifact@v2
             with:

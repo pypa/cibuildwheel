@@ -19,7 +19,7 @@ config = [
     ('cibuildwheel/__init__.py', "__version__ = '{}'"),
     ('docs/faq.md', "cibuildwheel=={}"),
     ('docs/faq.md', "cibuildwheel@v{}"),
-    ('docs/setup.md', "cibuildwheel@v{}"),
+    ('docs/setup.md', "cibuildwheel=={}"),
     ('examples/*', "cibuildwheel=={}"),
     ('examples/*', "cibuildwheel@v{}"),
     ('setup.cfg', "version = {}"),

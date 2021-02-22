@@ -340,7 +340,7 @@ _5 February 2021_
 
   ```yaml
   - name: Build wheels
-    uses: joerick/cibuildwheel@v1.9.0
+    uses: joerick/cibuildwheel@version # e.g. v1.9.0
     with:
       output-dir: wheelhouse
     # env:
