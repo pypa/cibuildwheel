@@ -23,7 +23,7 @@ repos:
     files: ^bin/update_pythons.py|setup.py$
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v0.800
+  rev: v0.812
   hooks:
   - id: mypy
     exclude: ^(bin/|cibuildwheel/resources/).*py$
