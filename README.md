@@ -86,7 +86,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.9.0
+        run: python -m pip install cibuildwheel==1.10.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -312,6 +312,21 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### v1.10.0
+
+_22 Feb 2021_
+
+- ✨ Added `manylinux_2_24` support. To use these new Debian-based manylinux
+  images, set your [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)
+  options to `manylinux_2_24`.
+- 🛠 On macOS, we now set `MACOSX_DEPLOYMENT_TARGET` in before running
+  `CIBW_BEFORE_ALL`. This is useful when using `CIBW_BEFORE_ALL` to build a
+  shared library.
+- 🛠 An empty `CIBW_BUILD` option is now the same as being unset i.e, `*`.
+  This makes some build matrix configuration easier. (#588)
+- 📚 Neatened up documentation - added tabs to a few places (#576), fixed some
+  formatting issues.
 
 ### v1.9.0
 

@@ -18,7 +18,7 @@ jobs:
         run: choco install vcpython27 -f -y
 
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.9.0
+        uses: joerick/cibuildwheel@v1.10.0
         # to supply options, put them in 'env', like:
         # env:
         #   CIBW_SOME_OPTION: value
