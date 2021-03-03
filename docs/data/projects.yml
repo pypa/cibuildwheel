@@ -293,3 +293,8 @@
   ci: [github]
   os: [apple, linux, windows]
   notes: Time mocking library using only the CPython C API.
+- name: polaroid
+  gh: daggy1234/polaroid
+  ci: [github]
+  os: [apple, linux, windows]
+  notes: Full range of wheels for setuptools rust, with auto release and PyPI deploy.
