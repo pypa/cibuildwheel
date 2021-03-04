@@ -29,7 +29,7 @@ pathlib2==2.3.5
     #   virtualenv
 scandir==1.10.0
     # via pathlib2
-singledispatch==3.6.0
+singledispatch==3.6.1
     # via importlib-resources
 six==1.15.0
     # via

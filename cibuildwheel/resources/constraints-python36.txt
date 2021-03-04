@@ -12,9 +12,9 @@ distlib==0.3.1
     # via virtualenv
 filelock==3.0.12
     # via virtualenv
-importlib-metadata==3.4.0
+importlib-metadata==3.7.0
     # via virtualenv
-importlib-resources==5.1.0
+importlib-resources==5.1.1
     # via virtualenv
 six==1.15.0
     # via virtualenv
@@ -34,5 +34,5 @@ zipp==3.4.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==21.0.1
     # via -r cibuildwheel/resources/constraints.in
-setuptools==53.0.0
+setuptools==54.0.0
     # via -r cibuildwheel/resources/constraints.in
