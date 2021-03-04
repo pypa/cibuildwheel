@@ -2,9 +2,9 @@
 title: Contributing
 ---
 
-Wheel-building can be pretty complex. I expect users to find many edge-cases - please help the rest of the community out by documenting these, adding features to support them, and reporting bugs.
+Wheel-building can be pretty complex. We expect users to find edge-cases - please help the rest of the community out by documenting these, adding features to support them, and reporting bugs.
 
-I plan to be pretty liberal in accepting pull requests, as long as they align with the design goals below.
+If you have an idea for a modification or feature, it's probably best to raise an issue first and discuss it with the maintainer team. Once we have rough consensus on a design, begin work in a PR.
 
 `cibuildwheel` is indie open source. We're not paid to work on this.
 
@@ -27,12 +27,12 @@ cibuildwheel doesn't really do anything itself - it's always deferring to other 
 
 We're not responsible for errors in those tools, for fixing errors/crashes there. But cibuildwheel's job is providing users with an 'integrated' user experience across those tools. We provide an abstraction. The user says 'build me some wheels', not 'open the docker container, build a wheel with pip, fix up the symbols with auditwheel' etc.  However, errors have a habit of breaking abstractions. And this is where users get confused, because the mechanism of cibuildwheel is laid bare, and they must understand a little bit how it works to debug.
 
-So, if we can, I'd like to improve the experience on errors as well. In [this](https://github.com/joerick/cibuildwheel/issues/139) case, it takes a bit of knowledge to understand that the linux builds are happening in a totally different OS via docker, that the linked symbols won't match, that auditwheel will fail because of this. A problem with how the tools fit together, instead of the tools themselves.
+So, if we can, I'd like to improve the experience on errors as well. In [this](https://github.com/joerick/cibuildwheel/issues/139) case, it takes a bit of knowledge to understand that the Linux builds are happening in a different OS via Docker, that the linked symbols won't match, that auditwheel will fail because of this. A problem with how the tools fit together, instead of the tools themselves.
 
 Maintainer notes
 ----------------
 
-## Local testing
+### Local testing
 
 You should run:
 
@@ -44,10 +44,9 @@ pip install -e .[dev]
 
 To prepare a development environment.
 
-## Testing minimal configs
+### Testing sample configs
 
-
-cibuildwheel's _minimal_ example configs can be tested on a simple project on cibuildwheel's existing CI. These should be run whenever the minimal configs change.
+cibuildwheel's  example configs can be tested on a simple project on cibuildwheel's existing CI. These should be run whenever the minimal configs change.
 
 To test minimal configs, make sure you have a clean git repo, then run the script:
 
@@ -57,9 +56,15 @@ bin/run_example_ci_configs.py
 
 The script will create an isolated 'orphan' commit containing all the minimal config CI files, and a simple C extension project, and push that to a branch on the `origin` repo. The project's CI is already set up to run on branch push, so will begin testing.
 
+You can test any other configs using `bin/run_example_ci_configs.py CONFIG_PATH`, e.g.
+
+```bash
+bin/run_example_ci_configs.py examples/github-with-qemu.yml
+```
+
 The script then outputs a Markdown table that can be copy/pasted into a PR to monitor and record the test.
 
-## Preparing environments
+### Preparing environments
 
 This has been moved to using docker, so you only need the following instructions if you add `--no-docker` to avoid using docker.
 
@@ -92,16 +97,9 @@ And, you need to install the requirements into each environment:
 for f in env*/bin/pip; do $f install pip-tools; done
 ```
 
+### Making a release
 
-## Making a release
-
-Before making a release, ensure pinned dependencies are up-to-date. Run the script:
-
-```bash
-bin/make_dependency_update_pr.py
-```
-
-If updates are needed, this will push a PR with those updates for the CI to test. Once green, merge this PR.
+Before making a release, ensure pinned dependencies are up-to-date. Autoupdates are run weekly, with a PR being raised with any changes as required, so just make sure the latest one is merged before continuing.
 
 Then, increment the project version number using:
 
@@ -119,3 +117,5 @@ python setup.py sdist bdist_wheel
 twine upload dist/*
 git push && git push --tags
 ```
+
+Then head to https://github.com/joerick/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry.
