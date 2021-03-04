@@ -39,3 +39,4 @@ markdown_extensions:
 
 plugins:
   - include-markdown
+  - search
