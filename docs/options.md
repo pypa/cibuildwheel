@@ -354,6 +354,11 @@ CIBW_BEFORE_ALL: make -C third_party_lib
 CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
 ```
 
+Note that manylinux2_24 builds occur inside a Debian9 docker, where
+manylinux2010 and manylinux2014 builds occur inside a CentOS one. So for
+`manylinux2_24` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
+instead.
+
 ### `CIBW_BEFORE_BUILD` {: #before-build}
 > Execute a shell command preparing each wheel's build
 
