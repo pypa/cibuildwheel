@@ -209,9 +209,7 @@ class NonPlatformWheelError(Exception):
 
 
 def strtobool(val: str) -> bool:
-    if val.lower() in ('y', 'yes', 't', 'true', 'on', '1'):
-        return True
-    return False
+    return val.lower() in {'y', 'yes', 't', 'true', 'on', '1'}
 
 
 class CIProvider(Enum):

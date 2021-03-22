@@ -94,12 +94,12 @@ def test_binary_output():
 
         data = bytes(output, encoding='utf8', errors='surrogateescape')
 
-        for i in range(0, 512):
+        for i in range(512):
             assert data[i] == i % 256
 
         # check that environment variables can carry binary data, except null characters
         # (https://www.gnu.org/software/libc/manual/html_node/Environment-Variables.html)
-        binary_data = bytes(n for n in range(1, 256))
+        binary_data = bytes(range(1, 256))
         binary_data_string = str(binary_data, encoding='utf8', errors='surrogateescape')
         output = container.call(
             ['python2', '-c', 'import os, sys; sys.stdout.write(os.environ["TEST_VAR"])'],

@@ -91,12 +91,11 @@ class WindowsVersions:
 
         version = versions[-1]
         identifier = f"cp{version.major}{version.minor}-{self.arch}"
-        result = ConfigWinCP(
+        return ConfigWinCP(
             identifier=identifier,
             version=str(version),
             arch=self.arch_str,
         )
-        return result
 
 
 class PyPyVersions:

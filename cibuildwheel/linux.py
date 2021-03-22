@@ -253,5 +253,5 @@ def troubleshoot(package_dir: Path, error: Exception) -> None:
             '''), file=sys.stderr)
 
             print('  Files detected:')
-            print('\n'.join([f'    {f}' for f in so_files]))
+            print('\n'.join(f'    {f}' for f in so_files))
             print('')
