@@ -94,7 +94,7 @@ def test_binary_output():
 
         data = bytes(output, encoding='utf8', errors='surrogateescape')
 
-        for i in range(0, 512):
+        for i in range(512):
             assert data[i] == i % 256
 
         # check that environment variables can carry binary data, except null characters

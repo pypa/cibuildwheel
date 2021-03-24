@@ -85,9 +85,7 @@ def evaluate_nodes_as_compound_command(nodes: Sequence[bashlex.ast.node], contex
         if node.kind == 'command':
             result += evaluate_command_node(node, context=context)
         elif node.kind == 'operator':
-            if node.op == ';':
-                pass
-            else:
+            if node.op != ';':
                 raise ValueError(f'Unsupported bash operator: "{node.op}"')
         else:
             raise ValueError(f'Unsupported bash node in compound command: "{node.kind}"')

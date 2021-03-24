@@ -257,23 +257,23 @@ def setup_python(python_configuration: PythonConfiguration,
                 # set ARCHFLAGS otherwise CPython sets it to `-arch x86_64`
                 env.setdefault('ARCHFLAGS', '-arch arm64 -arch x86_64')
 
-    if python_configuration.identifier.endswith('arm64') or python_configuration.identifier.endswith('universal2'):
-        if get_macos_version() < (10, 16) and 'SDKROOT' not in env:
-            # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
-            # needs the correct SDK selected.
-            sdks = get_macos_sdks()
+    building_arm64 = python_configuration.identifier.endswith('arm64') or python_configuration.identifier.endswith('universal2')
+    if building_arm64 and get_macos_version() < (10, 16) and 'SDKROOT' not in env:
+        # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
+        # needs the correct SDK selected.
+        sdks = get_macos_sdks()
 
-            # Different versions of Xcode contain different SDK versions...
-            # we're happy with anything newer than macOS 11.0
-            arm64_compatible_sdks = [s for s in sdks if not s.startswith('macosx10.')]
+        # Different versions of Xcode contain different SDK versions...
+        # we're happy with anything newer than macOS 11.0
+        arm64_compatible_sdks = [s for s in sdks if not s.startswith('macosx10.')]
 
-            if not arm64_compatible_sdks:
-                log.warning(unwrap('''
+        if not arm64_compatible_sdks:
+            log.warning(unwrap('''
                     SDK for building arm64-compatible wheels not found. You need Xcode 12.2 or later
                     to build universal2 or arm64 wheels.
                 '''))
-            else:
-                env.setdefault('SDKROOT', arm64_compatible_sdks[0])
+        else:
+            env.setdefault('SDKROOT', arm64_compatible_sdks[0])
 
     log.step('Installing build tools...')
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)

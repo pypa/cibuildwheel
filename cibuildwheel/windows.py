@@ -44,7 +44,7 @@ def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str]
 def get_nuget_args(version: str, arch: str) -> List[str]:
     python_name = 'python' if version[0] == '3' else 'python2'
     if arch == '32':
-        python_name = python_name + 'x86'
+        python_name += 'x86'
     return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
 
 

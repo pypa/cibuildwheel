@@ -134,7 +134,7 @@ def test_repair_command(repair_command, platform_specific, platform, intercepted
 ])
 @pytest.mark.parametrize('platform_specific', [False, True])
 def test_environment(environment, platform_specific, platform, intercepted_build_args, monkeypatch):
-    env_string = ' '.join([f'{k}={v}' for k, v in environment.items()])
+    env_string = ' '.join(f'{k}={v}' for k, v in environment.items())
     if platform_specific:
         monkeypatch.setenv('CIBW_ENVIRONMENT_' + platform.upper(), env_string)
         monkeypatch.setenv('CIBW_ENVIRONMENT', 'overwritten')

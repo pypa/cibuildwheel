@@ -14,11 +14,10 @@ class InlineArrayDictEncoder(toml.encoder.TomlEncoder):  # type: ignore
         self.dump_funcs[Version] = lambda v: f'"{v}"'
 
     def dump_sections(self, o: Dict[str, Any], sup: str) -> Any:
-        if all(isinstance(a, list) for a in o.values()):
-            val = ""
-            for k, v in o.items():
-                inner = ",\n  ".join(self.dump_inline_table(d_i).strip() for d_i in v)
-                val += f"{k} = [\n  {inner},\n]\n"
-            return val, self._dict()
-        else:
+        if not all(isinstance(a, list) for a in o.values()):
             return super().dump_sections(o, sup)
+        val = ""
+        for k, v in o.items():
+            inner = ",\n  ".join(self.dump_inline_table(d_i).strip() for d_i in v)
+            val += f"{k} = [\n  {inner},\n]\n"
+        return val, self._dict()
