@@ -257,14 +257,8 @@ def setup_python(python_configuration: PythonConfiguration,
                 # set ARCHFLAGS otherwise CPython sets it to `-arch x86_64`
                 env.setdefault('ARCHFLAGS', '-arch arm64 -arch x86_64')
 
-    if (
-        (
-            python_configuration.identifier.endswith('arm64')
-            or python_configuration.identifier.endswith('universal2')
-        )
-        and get_macos_version() < (10, 16)
-        and 'SDKROOT' not in env
-    ):
+    building_arm64 = python_configuration.identifier.endswith('arm64') or python_configuration.identifier.endswith('universal2')
+    if building_arm64 and get_macos_version() < (10, 16) and 'SDKROOT' not in env:
         # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
         # needs the correct SDK selected.
         sdks = get_macos_sdks()
