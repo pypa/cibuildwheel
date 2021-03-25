@@ -61,6 +61,6 @@ python_configurations = [
   { identifier = "cp38-win_amd64", version = "3.8.9", arch = "64" },
   { identifier = "cp39-win32", version = "3.9.4", arch = "32" },
   { identifier = "cp39-win_amd64", version = "3.9.4", arch = "64" },
-  { identifier = "pp27-win32", version = "2.7", arch = "32", url = "https://downloads.python.org/pypy/pypy2.7-v7.3.4rc1-win32.zip" },
-  { identifier = "pp37-win32", version = "3.7", arch = "32", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.4rc1-win32.zip" },
+  { identifier = "pp27-win_amd64", version = "2.7", arch = "32", url = "https://downloads.python.org/pypy/pypy2.7-v7.3.4rc1-win64.zip" },
+  { identifier = "pp37-win_amd64", version = "3.7", arch = "32", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.4rc1-win64.zip" },
 ]

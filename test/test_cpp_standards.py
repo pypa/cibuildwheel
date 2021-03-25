@@ -86,11 +86,11 @@ def test_cpp11(tmp_path):
     cpp11_project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
-    add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
+    add_env = {'CIBW_SKIP': 'cp27-win* pp27-win_amd64'}
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                       if 'cp27-cp27m-win' not in w and 'pp27-pypy_73-win32' not in w]
+                       if 'cp27-cp27m-win' not in w and 'pp27-pypy_73-win_amd64' not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -110,12 +110,12 @@ def test_cpp14(tmp_path):
 
     # VC++ for Python 2.7 does not support modern standards
     # The manylinux1 docker image does not have a compiler which supports C++11
-    add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
+    add_env = {'CIBW_SKIP': 'cp27-win* pp27-win_amd64'}
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
                        if 'cp27-cp27m-win' not in w
-                       and 'pp27-pypy_73-win32' not in w]
+                       and 'pp27-pypy_73-win_amd64' not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -195,15 +195,15 @@ def test_cpp17_py27_modern_msvc_workaround(tmp_path):
         return env
 
     add_env_x86 = add_vcvars(add_env, 'x86')
-    add_env_x86['CIBW_BUILD'] = '?p27-win32'
+    add_env_x86['CIBW_BUILD'] = 'cp27-win32'
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env_x86)
 
     add_env_x64 = add_vcvars(add_env, 'x64')
-    add_env_x64['CIBW_BUILD'] = 'cp27-win_amd64'
+    add_env_x64['CIBW_BUILD'] = '?p27-win_amd64'
     actual_wheels += utils.cibuildwheel_run(project_dir, add_env=add_env_x64)
 
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0', exclude_27=False)
                        if 'cp27-cp27m-win' in w
-                       or 'pp27-pypy_73-win32' in w]
+                       or 'pp27-pypy_73-win_amd64' in w]
 
     assert set(actual_wheels) == set(expected_wheels)
