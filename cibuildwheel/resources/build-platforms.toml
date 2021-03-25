@@ -44,5 +44,5 @@ python_configurations = [
   { identifier = "cp38-win_amd64", version = "3.8.10", arch = "64" },
   { identifier = "cp39-win32", version = "3.9.5", arch = "32" },
   { identifier = "cp39-win_amd64", version = "3.9.5", arch = "64" },
-  { identifier = "pp37-win32", version = "3.7", arch = "32", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.3-win32.zip" },
+  { identifier = "pp37-win32", version = "3.7", arch = "32", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.4rc1-win32.zip" },
 ]
