@@ -21,6 +21,7 @@ jobs:
 
   test:
     name: Test cibuildwheel on ${{ matrix.os }}
+    needs: pre-commit
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -70,6 +71,7 @@ jobs:
 
   test-emulated:
     name: Test emulated cibuildwheel using qemu
+    needs: pre-commit
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
