@@ -35,16 +35,21 @@ else:
     for python_version in PYTHON_VERSIONS:
         abi_flags = '' if int(python_version) >= 38 else 'm'
         python_path = f'/opt/python/cp{python_version}-cp{python_version}{abi_flags}/bin/'
-        subprocess.run([
-            'docker', 'run', '--rm',
-            '-e', 'CUSTOM_COMPILE_COMMAND',
-            '-v', f'{os.getcwd()}:/volume',
-            '--workdir', '/volume', image_runner,
-            'bash', '-c',
-            f'{python_path}pip install pip-tools &&'
-            f'{python_path}pip-compile --allow-unsafe --upgrade '
+        command = (
+            f'{python_path}pip install pip-tools && '
+            '{python_path}pip-compile --allow-unsafe --upgrade '
             'cibuildwheel/resources/constraints.in '
             f'--output-file cibuildwheel/resources/constraints-python{python_version}.txt'
+        )
+        subprocess.run([
+            'docker', 'run',
+            '--rm',
+            '--env=CUSTOM_COMPILE_COMMAND',
+            "--volume={os.getcwd()}:/volume",
+            '--workdir=/volume',
+            image_runner,
+            'bash', '-c',
+            command,
         ], check=True)
 
 # default constraints.txt

@@ -125,7 +125,7 @@ def run_example_ci_configs(config_files=None):
             shutil.copyfile(src_config_file, dst_config_file)
 
         run(['git', 'add', example_project], check=True)
-        message = textwrap.dedent(f'''
+        message = textwrap.dedent(f'''\
             Test example minimal configs
 
             Testing files: {config_files}

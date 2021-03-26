@@ -64,7 +64,8 @@ def test(manylinux_image, tmp_path):
         add_env['CIBW_SKIP'] = 'pp*'
     elif manylinux_image in {'manylinux2014', 'manylinux_2_24'}:
         # We don't have a manylinux2014 / 'manylinux_2_24' image for PyPy (yet?)
-        add_env['CIBW_SKIP'] = 'cp27* pp*'  # Python 2.7 not available on manylinux2014 / 'manylinux_2_24'
+        # Python 2.7 not available on manylinux2014 / 'manylinux_2_24'
+        add_env['CIBW_SKIP'] = 'cp27* pp*'
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
     expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0', manylinux_versions=[manylinux_image])]

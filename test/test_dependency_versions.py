@@ -54,11 +54,11 @@ def test_pinned_versions(tmp_path, python_version):
     if utils.platform == 'windows' and python_version == '2.7':
         pytest.skip('Windows requires a workaround')
 
-    is_running_on_macos_11_or_later = (
+    is_macos_11_or_later = (
         utils.platform == 'macos' and utils.get_macos_version() >= (10, 16)
     )
 
-    if is_running_on_macos_11_or_later and python_version == '3.5':
+    if is_macos_11_or_later and python_version == '3.5':
         pytest.skip('CPython 3.5 doesn\'t work on macOS Big Sur+')
 
     project_dir = tmp_path / 'project'

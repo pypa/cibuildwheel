@@ -180,7 +180,7 @@ def str_projects(
 @click.option("--auth", help="GitHub authentication token")
 @click.option("--readme", type=click.File("r+"), help="Modify a readme file if given")
 def projects(
-    input: TextIO, online: bool, auth: str | None, readme: TextIO | None
+    input: TextIO, online: bool, auth: str | None, readme: TextIO | None,
 ) -> None:
     config = yaml.safe_load(input)
     output = str_projects(config, online=online, auth=auth)

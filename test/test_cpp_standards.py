@@ -8,7 +8,7 @@ from .test_projects import TestProject
 
 cpp_test_project = TestProject()
 
-cpp_test_project.files['setup.py'] = jinja2.Template(r'''
+setup_py_template = r'''\
 from setuptools import Extension, setup
 
 setup(
@@ -16,9 +16,9 @@ setup(
     ext_modules=[Extension('spam', sources=['spam.cpp'], language="c++", extra_compile_args={{ extra_compile_args }})],
     version="0.1.0",
 )
-''')
+'''
 
-cpp_test_project.files['spam.cpp'] = jinja2.Template(r'''
+spam_cpp_template = r'''\
 #include <Python.h>
 
 {{ spam_cpp_top_level_add }}
@@ -69,8 +69,10 @@ MOD_INIT(spam)
 
     MOD_RETURN(m)
 }
-''')
+'''
 
+cpp_test_project.files['setup.py'] = jinja2.Template(setup_py_template)
+cpp_test_project.files['spam.cpp'] = jinja2.Template(spam_cpp_template)
 
 cpp11_project = cpp_test_project.copy()
 cpp11_project.template_context['extra_compile_args'] = (

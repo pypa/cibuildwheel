@@ -8,10 +8,10 @@ from . import test_projects, utils
 
 basic_project = test_projects.new_c_project()
 
-ALL_MACOS_WHEELS = (
-    utils.expected_wheels('spam', '0.1.0', machine_arch='x86_64')
-    + utils.expected_wheels('spam', '0.1.0', machine_arch='arm64')
-)
+ALL_MACOS_WHEELS = {
+    *utils.expected_wheels('spam', '0.1.0', machine_arch='x86_64'),
+    *utils.expected_wheels('spam', '0.1.0', machine_arch='arm64')
+}
 
 
 def get_xcode_version() -> Tuple[int, int]:

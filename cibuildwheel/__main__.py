@@ -105,7 +105,7 @@ def main() -> None:
 
     parser.add_argument('--allow-empty',
                         action='store_true',
-                        help='Do not report an error code if the build does not match any wheels.')
+                        help='Do not report an error code if the build does not match any wheels.',)
 
     args = parser.parse_args()
 
@@ -117,10 +117,10 @@ def main() -> None:
         ci_provider = detect_ci_provider()
         if ci_provider is None:
             print(textwrap.dedent('''
-                cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server;
-                Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, and Gitlab are
-                supported. You can run on your development machine or other CI providers using the
-                --platform argument. Check --help output for more information.
+                    cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server;
+                    Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, and Gitlab are
+                    supported. You can run on your development machine or other CI providers using the
+                    --platform argument. Check --help output for more information.
             '''), file=sys.stderr)
             sys.exit(2)
         if sys.platform.startswith('linux'):
