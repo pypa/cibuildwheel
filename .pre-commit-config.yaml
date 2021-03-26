@@ -19,10 +19,9 @@ repos:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 21.4b1
+  rev: 21.4b2
   hooks:
   - id: black
-    files: ^bin/update_pythons.py|setup.py$
 
 - repo: https://github.com/asottile/setup-cfg-fmt
   rev: v1.17.0

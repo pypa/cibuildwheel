@@ -22,6 +22,6 @@ if __name__ == '__main__':
     subprocess.run([
         sys.executable, '-m', 'test.test_projects',
         options.project_python_path, project_dir
-    ], check=True)
+    ], check=True,)
 
     sys.exit(subprocess.run([sys.executable, '-m', 'cibuildwheel'], cwd=project_dir).returncode)
