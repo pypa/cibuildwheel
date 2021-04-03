@@ -114,9 +114,9 @@ def expected_wheels(
 
     if manylinux_versions is None:
         if machine_arch == "x86_64":
-            manylinux_versions = ["manylinux1", "manylinux2010"]
+            manylinux_versions = ["manylinux_2_5", "manylinux1", "manylinux_2_12", "manylinux2010"]
         else:
-            manylinux_versions = ["manylinux2014"]
+            manylinux_versions = ["manylinux_2_17", "manylinux2014"]
 
     python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
 
@@ -144,9 +144,13 @@ def expected_wheels(
                 architectures.append("i686")
 
             platform_tags = [
-                f"{manylinux_version}_{architecture}"
+                ".".join(
+                    [
+                        f"{manylinux_version}_{architecture}"
+                        for manylinux_version in manylinux_versions
+                    ]
+                )
                 for architecture in architectures
-                for manylinux_version in manylinux_versions
             ]
 
         elif platform == "windows":
