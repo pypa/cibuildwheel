@@ -157,7 +157,7 @@ def expected_wheels(
             if python_abi_tag.startswith("cp"):
                 platform_tags = ["win32", "win_amd64"]
             else:
-                platform_tags = ["win32"]
+                platform_tags = ['win_amd64']
 
         elif platform == "macos":
             if python_abi_tag == "cp39-cp39" and machine_arch == "arm64":
