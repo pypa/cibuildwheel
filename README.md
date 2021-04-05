@@ -30,7 +30,7 @@ What does it do?
 | CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PyPy 2.7 v7.3.4 | ✅ |    |    | ✅  |    | ✅ |    |    |   |
+| PyPy 2.7 v7.3.4 | ✅ |    |    |    |    | ✅ |    |    |   |
 | PyPy 3.7 v7.3.4 | ✅ |    |    | ✅  |    | ✅ |    |    |   |
 
 <sup>¹ Not supported on Travis</sup><br>
