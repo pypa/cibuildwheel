@@ -115,8 +115,8 @@ class PyPyVersions:
         self.arch = arch_str
 
     def update_version_windows(self, spec: Specifier) -> ConfigWinCP:
-        if self.arch != "32":
-            raise RuntimeError("64 bit releases not supported yet on Windows")
+        if self.arch != "64":
+            raise RuntimeError("32 bit releases not supported on Windows")
 
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
         releases = sorted(releases, key=lambda r: r["pypy_version"])
@@ -126,14 +126,14 @@ class PyPyVersions:
 
         release = releases[-1]
         version = release["python_version"]
-        identifier = f"pp{version.major}{version.minor}-win32"
+        identifier = f"pp{version.major}{version.minor}-win_amd64"
 
-        (url,) = [rf["download_url"] for rf in release["files"] if "" in rf["platform"] == "win32"]
+        (url,) = [rf["download_url"] for rf in release["files"] if "" in rf["platform"] == "win64"]
 
         return ConfigWinPP(
             identifier=identifier,
             version=f"{version.major}.{version.minor}",
-            arch="32",
+            arch="64",
             url=url,
         )
 
