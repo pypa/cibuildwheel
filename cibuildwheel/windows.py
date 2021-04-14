@@ -295,7 +295,7 @@ def build(options: BuildOptions) -> None:
                 ])
 
                 # check that we are using the Python from the virtual environment
-                call(['which', 'python'], env=virtualenv_env)
+                call(['where', 'python'], env=virtualenv_env)
 
                 if options.before_test:
                     before_test_prepared = prepare_command(
