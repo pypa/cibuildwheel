@@ -36,13 +36,13 @@ repos:
     args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.11.0
+  rev: v2.12.0
   hooks:
   - id: pyupgrade
     args: ["--py36-plus"]
 
 - repo: https://github.com/PyCQA/flake8
-  rev: 3.9.0
+  rev: 3.9.1
   hooks:
   - id: flake8
     exclude: cibuildwheel/resources/
