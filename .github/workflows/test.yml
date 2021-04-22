@@ -42,7 +42,7 @@ jobs:
     - name: Install Visual C++ for Python 2.7
       if: runner.os == 'Windows'
       run: |
-        choco install vcpython27 -f -y
+        choco upgrade vcpython27 -y
 
     - name: Get PR labels
       id: pr-labels
