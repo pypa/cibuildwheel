@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import copy
 import difflib
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Union
 
 import click
 import requests
@@ -80,7 +82,7 @@ class WindowsVersions:
         versions = (Version(v) for v in cp_info["versions"])
         self.versions = sorted(v for v in versions if not v.is_devrelease)
 
-    def update_version_windows(self, spec: Specifier) -> Optional[ConfigWinCP]:
+    def update_version_windows(self, spec: Specifier) -> ConfigWinCP | None:
         versions = sorted(v for v in self.versions if spec.contains(v))
         if not all(v.is_prerelease for v in versions):
             versions = [v for v in versions if not v.is_prerelease]
@@ -170,7 +172,7 @@ class CPythonVersions:
 
         releases_info = response.json()
 
-        self.versions_dict: Dict[Version, int] = {}
+        self.versions_dict: dict[Version, int] = {}
         for release in releases_info:
             # Removing the prefix, Python 3.9 would use: release["name"].removeprefix("Python ")
             version = Version(release["name"][7:])
@@ -179,7 +181,7 @@ class CPythonVersions:
                 uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
                 self.versions_dict[version] = uri
 
-    def update_version_macos(self, identifier: str, spec: Specifier) -> Optional[ConfigMacOS]:
+    def update_version_macos(self, identifier: str, spec: Specifier) -> ConfigMacOS | None:
         file_idents = ("macos11.pkg", "macosx10.9.pkg", "macosx10.6.pkg")
         sorted_versions = sorted(v for v in self.versions_dict if spec.contains(v))
 
@@ -215,13 +217,13 @@ class AllVersions:
         self.macos_cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
 
-    def update_config(self, config: Dict[str, str]) -> None:
+    def update_config(self, config: dict[str, str]) -> None:
         identifier = config["identifier"]
         version = Version(config["version"])
         spec = Specifier(f"=={version.major}.{version.minor}.*")
         log.info(f"Reading in '{identifier}' -> {spec} @ {version}")
         orig_config = copy.copy(config)
-        config_update: Optional[AnyConfig]
+        config_update: AnyConfig | None
 
         # We need to use ** in update due to MyPy (probably a bug)
         if "macos" in identifier:

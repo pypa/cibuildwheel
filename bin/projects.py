@@ -9,14 +9,17 @@ Suggested usage:
     git diff
 """
 
+from __future__ import annotations
+
 import builtins
 import functools
+import textwrap
 import urllib.request
 import xml.dom.minidom
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TextIO
+from typing import Any, TextIO
 
 import click
 import yaml
@@ -38,7 +41,7 @@ ICONS = (
 class Project:
     NAME: int = 0
 
-    def __init__(self, config: Dict[str, Any], github: Optional[Github] = None):
+    def __init__(self, config: dict[str, Any], github: Github | None = None):
         try:
             self.name: str = config["name"]
             self.gh: str = config["gh"]
@@ -48,8 +51,8 @@ class Project:
 
         self.stars_repo: str = config.get("stars", self.gh)
         self.notes: str = config.get("notes", "")
-        self.ci: List[str] = config.get("ci", [])
-        self.os: List[str] = config.get("os", [])
+        self.ci: list[str] = config.get("ci", [])
+        self.os: list[str] = config.get("os", [])
 
         self.online = github is not None
         if github is not None:
@@ -72,7 +75,7 @@ class Project:
         name_len = len(self.name) + 4
         self.__class__.NAME = max(self.__class__.NAME, name_len)
 
-    def __lt__(self, other: "Project") -> bool:
+    def __lt__(self, other: Project) -> bool:
         if self.online:
             return self.num_stars < other.num_stars
         else:
@@ -80,10 +83,9 @@ class Project:
 
     @classmethod
     def header(cls) -> str:
-        return (
-            f"| {'Name':{cls.NAME}} | CI | OS | Notes |\n"
-            f"|{'':-^{cls.NAME+2  }}|----|----|:------|"
-        )
+        return textwrap.dedent(f"""\
+                | {'Name':{cls.NAME}} | CI | OS | Notes |
+                |{'':-^{cls.NAME+2  }}|----|----|:------|""")
 
     @property
     def namelink(self) -> str:
@@ -140,7 +142,7 @@ def path_for_icon(icon_name: str) -> Path:
 
 
 def str_projects(
-    config: List[Dict[str, Any]], *, online: bool = True, auth: Optional[str] = None
+    config: list[dict[str, Any]], *, online: bool = True, auth: str | None = None,
 ) -> str:
     io = StringIO()
     print = functools.partial(builtins.print, file=io)
@@ -178,7 +180,7 @@ def str_projects(
 @click.option("--auth", help="GitHub authentication token")
 @click.option("--readme", type=click.File("r+"), help="Modify a readme file if given")
 def projects(
-    input: TextIO, online: bool, auth: Optional[str], readme: Optional[TextIO]
+    input: TextIO, online: bool, auth: str | None, readme: TextIO | None
 ) -> None:
     config = yaml.safe_load(input)
     output = str_projects(config, online=online, auth=auth)

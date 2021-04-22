@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import os
 import shutil
 import sys
@@ -123,13 +125,14 @@ def run_example_ci_configs(config_files=None):
             shutil.copyfile(src_config_file, dst_config_file)
 
         run(['git', 'add', example_project], check=True)
-        run(['git', 'commit', '--no-verify', '-m', textwrap.dedent(f'''
+        message = textwrap.dedent(f'''
             Test example minimal configs
 
             Testing files: {config_files}
             Generated from branch: {previous_branch}
             Time: {timestamp}
-        ''')], check=True)
+            ''')
+        run(['git', 'commit', '--no-verify', '--message', message], check=True)
         shell(f'git subtree --prefix={example_project} push origin {branch_name}', check=True)
 
         print('---')
