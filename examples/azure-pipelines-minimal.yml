@@ -31,7 +31,7 @@ jobs:
   pool: {vmImage: 'vs2017-win2016'}
   steps:
     - task: UsePythonVersion@0
-    - script: choco install vcpython27 -f -y
+    - script: choco upgrade vcpython27 -y
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         set -o errexit

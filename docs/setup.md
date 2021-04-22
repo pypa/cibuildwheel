@@ -47,7 +47,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
 
           - name: Install Visual C++ for Python 2.7
             if: runner.os == 'Windows'
-            run: choco install vcpython27 -f -y
+            run: choco upgrade vcpython27 -y
 
           - name: Build wheels
             run: pipx run cibuildwheel==1.10.0
@@ -89,7 +89,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
 
           - name: Install Visual C++ for Python 2.7
             if: runner.os == 'Windows'
-            run: choco install vcpython27 -f -y
+            run: choco upgrade vcpython27 -y
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse

@@ -26,7 +26,7 @@ jobs:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.6'
-    - script: choco install vcpython27 -f -y
+    - script: choco upgrade vcpython27 -y
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install -e ".[dev]" pytest-azurepipelines
@@ -39,7 +39,7 @@ jobs:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.8'
-    - script: choco install vcpython27 -f -y
+    - script: choco upgrade vcpython27 -y
       displayName: Install Visual C++ for Python 2.7
     - bash: |
         python -m pip install -e ".[dev]" pytest-azurepipelines
