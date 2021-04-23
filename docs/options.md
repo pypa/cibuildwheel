@@ -4,7 +4,7 @@
 
 ## Setting options
 
-cibuildwheel is configured using environment variables, that can be set using
+cibuildwheel is configured using environment variables that can be set using
 your CI config.
 
 For example, to configure cibuildwheel to run tests, add the following YAML to
@@ -90,9 +90,20 @@ Default: `auto`
 
 `auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
 
-For `linux` you need Docker running, on macOS or Linux. For `macos`, you need a Mac machine, and note that this script is going to automatically install MacPython on your system, so don't run on your development machine. For `windows`, you need to run in Windows, and cibuildwheel will install required versions of Python to `C:\cibw\python` using NuGet.
+- For `linux`, you need Docker running, on macOS or Linux.
+- For `macos`, you need a Mac machine. Note that cibuildwheel is going to install MacPython on your system, so you probably don't want to run this on your development machine.
+- For `windows`, you need to run in Windows. cibuildwheel will install required versions of Python to `C:\cibw\python` using NuGet.
 
 This option can also be set using the [command-line option](#command-line) `--platform`.
+
+!!! tip
+    If you have Docker installed on macOS or Linux, you can locally debug your cibuildwheel Linux config, instead of pushing to CI to test every change. For example:
+
+    ```bash
+    export CIBW_BUILD='cp37-*'
+    export CIBW_TEST_COMMAND='pytest {package}/tests'
+    cibuildwheel --platform linux .
+    ```
 
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
@@ -103,7 +114,7 @@ Space-separated list of builds to build and skip. Each build has an identifier l
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
-When setting the options, you can use shell-style globbing syntax, as per [`fnmatch`](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [`bracex`](https://pypi.org/project/bracex/). All the build identifiers supported by cibuildwheel are shown below:
+When setting the options, you can use shell-style globbing syntax, as per [fnmatch](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [bracex](https://pypi.org/project/bracex/). All the build identifiers supported by cibuildwheel are shown below:
 
 <div class="build-id-table-marker"></div>
 
@@ -276,8 +287,8 @@ the package is compatible with all versions of Python that it can build.
 
     Currently, setuptools has not yet added support for reading this value from
     pyproject.toml yet, and so does not copy it to Requires-Python in the wheel
-    metadata. This mechanism is used by `pip` to scan through older versions of
-    your package until it finds a release compatible with the curernt version
+    metadata. This mechanism is used by pip to scan through older versions of
+    your package until it finds a release compatible with the current version
     of Python compatible when installing, so it is an important value to set if
     you plan to drop support for a version of Python in the future.
 
@@ -471,14 +482,14 @@ The available options are:
 
 Set an alternative Docker image to be used for building [manylinux](https://github.com/pypa/manylinux) wheels. cibuildwheel will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), and [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x).
 
-The value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux) and [PyPy manylinux images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. Note that for PyPy, only the official `manylinux2010` image is currently available. For architectures other
-than x86 (x86\_64 and i686) `manylinux2014` or `manylinux_2_24` must be used because the first version of the manylinux specification that supports additional architectures is `manylinux2014`.
-
-You'll need to set a Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/) and  [PEP 600](https://www.python.org/dev/peps/pep-0600/)  for more details).
-
-Note that auditwheel detects the version of the manylinux standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
+The value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux) and [PyPy manylinux images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, only the official `manylinux2010` image is currently available. For architectures other
+than x86 (x86\_64 and i686) `manylinux2014` or `manylinux_2_24` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`.
 
 Note that `manylinux2014`/`manylinux_2_24` don't support builds with Python 2.7 - when building with `manylinux2014`/`manylinux_2_24`, skip Python 2.7 using `CIBW_SKIP` (see example below).
+
+If setting a custom Docker image, you'll need to make sure it can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/) and  [PEP 600](https://www.python.org/dev/peps/pep-0600/)  for more details).
+
+Auditwheel detects the version of the manylinux standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
 #### Examples
 
@@ -562,8 +573,7 @@ CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
 
 Shell command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. To ensure the wheel is
-imported by your tests (instead of your source copy), tests are run from a
-different directory. Use the placeholders `{project}` and `{package}` when
+imported by your tests (instead of your source copy), **tests are not run from your project directory**. Use the placeholders `{project}` and `{package}` when
 specifying paths in your project. If this variable is not set, your wheel will
 not be installed after building.
 
@@ -594,8 +604,8 @@ CIBW_TEST_COMMAND: "echo Wheel installed"
 ### `CIBW_BEFORE_TEST` {: #before-test}
 > Execute a shell command before testing each wheel
 
-A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install a non pip package, change values of environment variables
-or perform multi step pip installation (e.g. installing `scikit-build` or `cython` before install test package)
+A shell command to run in **each** test virtual environment, before your wheel is installed and tested. This is useful if you need to install a non-pip package, invoke pip with different environment variables,
+or perform a multi-step pip installation (e.g. installing scikit-build or Cython before installing test package).
 
 The active Python binary can be accessed using `python`, and pip with `pip`; cibuildwheel makes sure the right version of Python and pip will be executed. The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by cibuildwheel.
 
@@ -662,7 +672,7 @@ CIBW_TEST_EXTRAS: test,qt
 ### `CIBW_TEST_SKIP` {: #test-skip}
 > Skip running tests on some builds
 
-This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to mask up slow tests on emulated architectures.
+This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to skip slow tests on emulated architectures.
 
 With macOS `universal2` wheels, you can also skip the the individual archs inside the wheel using an `:arch` suffix. For example, `cp39-macosx_universal2:x86_64` or `cp39-macosx_universal2:arm64`.
 
