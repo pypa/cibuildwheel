@@ -13,10 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Visual C++ for Python 2.7
-        if: runner.os == 'Windows'
-        run: choco upgrade vcpython27 -y
-
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.10.0
         # to supply options, put them in 'env', like:

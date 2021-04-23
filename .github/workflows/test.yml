@@ -39,11 +39,6 @@ jobs:
       run: |
         python -m pip install -e ".[dev]"
 
-    - name: Install Visual C++ for Python 2.7
-      if: runner.os == 'Windows'
-      run: |
-        choco upgrade vcpython27 -y
-
     - name: Get PR labels
       id: pr-labels
       uses: joerick/pr-labels-action@v1.0.6

@@ -18,10 +18,6 @@ jobs:
         with:
           python-version: '3.7'
 
-      - name: Install Visual C++ for Python 2.7
-        if: runner.os == 'Windows'
-        run: choco upgrade vcpython27 -y
-
       - name: Set up QEMU
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v1
