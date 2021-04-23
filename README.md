@@ -34,7 +34,7 @@ What does it do?
 | PyPy 3.6 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
 | PyPy 3.7 (beta) v7.3.3 | ✅ | |  | ✅  | ✅ |    |    |   |    |
 
-<sup>¹ Not supported on Travis</sup><br>
+<sup>¹ Only using a workaround with a newer compiler; Microsoft removed the 2008 compiler for Python 2.7 in April 2021.</sup><br>
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI

@@ -51,8 +51,8 @@ def test_pinned_versions(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    if utils.IS_WINDOWS_RUNNING_ON_TRAVIS and python_version == '2.7':
-        pytest.skip('Windows + Travis CI requires a workaround')
+    if utils.platform == 'windows' and python_version == '2.7':
+        pytest.skip('Windows requires a workaround')
 
     is_running_on_macos_11_or_later = (
         utils.platform == 'macos' and utils.get_macos_version() >= (10, 16)
@@ -123,7 +123,7 @@ def test_dependency_constraints_file(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    if utils.IS_WINDOWS_RUNNING_ON_TRAVIS and python_version == '2.7':
+    if utils.platform == 'windows' and python_version == '2.7':
         pytest.skip('Windows + Travis CI requires a workaround')
 
     project_dir = tmp_path / 'project'
