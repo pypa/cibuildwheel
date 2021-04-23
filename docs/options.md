@@ -457,17 +457,26 @@ CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {
 ```
 
 
-### `CIBW_MANYLINUX_X86_64_IMAGE`, `CIBW_MANYLINUX_I686_IMAGE`, `CIBW_MANYLINUX_PYPY_X86_64_IMAGE`, `CIBW_MANYLINUX_AARCH64_IMAGE`, `CIBW_MANYLINUX_PPC64LE_IMAGE`, `CIBW_MANYLINUX_S390X_IMAGE` {: #manylinux-image}
-> Specify alternative manylinux docker images
+### CIBW_MANYLINUX_*_IMAGE {: #manylinux-image}
+> Specify alternative manylinux Docker images
 
-An alternative Docker image to be used for building [`manylinux`](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), and [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x).
+The available options are:
 
-The value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official `manylinux` images](https://github.com/pypa/manylinux) and [PyPy `manylinux` images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. Note that for PyPy, only the official `manylinux2010` image is currently available. For architectures other
+- `CIBW_MANYLINUX_X86_64_IMAGE`
+- `CIBW_MANYLINUX_I686_IMAGE`
+- `CIBW_MANYLINUX_PYPY_X86_64_IMAGE`
+- `CIBW_MANYLINUX_AARCH64_IMAGE`
+- `CIBW_MANYLINUX_PPC64LE_IMAGE`
+- `CIBW_MANYLINUX_S390X_IMAGE`
+
+Set an alternative Docker image to be used for building [manylinux](https://github.com/pypa/manylinux) wheels. `cibuildwheel` will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), and [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x).
+
+The value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux) and [PyPy manylinux images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. Note that for PyPy, only the official `manylinux2010` image is currently available. For architectures other
 than x86 (x86\_64 and i686) `manylinux2014` or `manylinux_2_24` must be used because the first version of the manylinux specification that supports additional architectures is `manylinux2014`.
 
-Beware to specify a valid Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid `manylinux1`/`manylinux2010`/`manylinux2014`/`manylinux_2_24` wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/) and  [PEP 600](https://www.python.org/dev/peps/pep-0600/)  for more details).
+You'll need to set a Docker image that can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the `auditwheel` tool needs to be present for `cibuildwheel` to work. Apart from that, the architecture and relevant shared system libraries need to be manylinux1-, manylinux2010- or manylinux2014-compatible in order to produce valid `manylinux1`/`manylinux2010`/`manylinux2014`/`manylinux_2_24` wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/) and  [PEP 600](https://www.python.org/dev/peps/pep-0600/)  for more details).
 
-Note that `auditwheel` detects the version of the `manylinux` standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
+Note that `auditwheel` detects the version of the manylinux standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as `cibuildwheel` has no way of detecting the correct `--plat` command line argument to pass to `auditwheel` for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
 Note that `manylinux2014`/`manylinux_2_24` don't support builds with Python 2.7 - when building with `manylinux2014`/`manylinux_2_24`, skip Python 2.7 using `CIBW_SKIP` (see example below).
 
@@ -764,7 +773,7 @@ optional arguments:
 
     $('.rst-content h3')
       .filter(function (i, el) {
-        return !!$(el).text().match(/(^([A-Z0-9, _]| and )+)¶$/);
+        return !!$(el).text().match(/(^([A-Z0-9, _*]| and )+)¶$/);
       })
       .each(function (i, el) {
         var optionName = $(el).text().replace('¶', '');
