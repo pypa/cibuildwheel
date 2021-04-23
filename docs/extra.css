@@ -40,6 +40,14 @@ h1, h2, h3, h4, h5, h6 {
     white-space: normal;
 }
 
+.rst-content .admonition {
+  line-height: inherit;
+}
+
+.admonition code {
+  border: none;
+}
+
 /*
     Code block filename style
 
