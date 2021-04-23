@@ -437,14 +437,14 @@ Platform-specific variants also available:<br/>
 
     **If that's an issue for you, check out [delvewheel]** - a new package that aims to do the same as `auditwheel` or `delocate` for Windows.
 
-    Because delvewheel is still relatively early-stage,  cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
+    Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
 
     [Delvewheel]: https://github.com/adang1345/delvewheel
 
 #### Examples
 
 ```yaml
-# use delvewheel on windows
+# use delvewheel on windows (only works on Python 3.6+)
 CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
 CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
