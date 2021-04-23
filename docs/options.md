@@ -97,7 +97,7 @@ Default: `auto`
 This option can also be set using the [command-line option](#command-line) `--platform`.
 
 !!! tip
-    If you have Docker installed on macOS or Linux, you can locally debug your cibuildwheel Linux config, instead of pushing to CI to test every change. For example:
+    If you have Docker installed, you can locally debug your cibuildwheel Linux config, instead of pushing to CI to test every change. For example:
 
     ```bash
     export CIBW_BUILD='cp37-*'
