@@ -39,7 +39,13 @@ repos:
   rev: v2.12.0
   hooks:
   - id: pyupgrade
+    name: PyUpgrade 3.6+
     args: ["--py36-plus"]
+    exclude: ^bin/
+  - id: pyupgrade
+    name: PyUpgrade 3.7+ on bin
+    exclude: ^(cibuildwheel|unit_test|test)/
+    args: ["--py37-plus"]
 
 - repo: https://github.com/PyCQA/flake8
   rev: 3.9.1

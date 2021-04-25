@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 import configparser
 import os
 import shutil
 import subprocess
 import sys
-from collections import namedtuple
+from typing import NamedTuple
 
 import requests
 
@@ -25,7 +26,7 @@ if '--no-docker' in sys.argv:
             '--allow-unsafe',
             '--upgrade',
             'cibuildwheel/resources/constraints.in',
-            '--output-file', f'cibuildwheel/resources/constraints-python{python_version}.txt'
+            '--output-file=cibuildwheel/resources/constraints-python{python_version}.txt',
         ], check=True)
 else:
     # latest manylinux2010 image with cpython 2.7 support
@@ -47,14 +48,15 @@ else:
         ], check=True)
 
 # default constraints.txt
-shutil.copyfile(f'cibuildwheel/resources/constraints-python{PYTHON_VERSIONS[-1]}.txt', 'cibuildwheel/resources/constraints.txt')
+shutil.copyfile(f'cibuildwheel/resources/constraints-python{PYTHON_VERSIONS[-1]}.txt', 'cibuildwheel/resources/constraints.txt',)
 
-Image = namedtuple('Image', [
-    'manylinux_version',
-    'platform',
-    'image_name',
-    'tag',
-])
+
+class Image(NamedTuple):
+    manylinux_version: str
+    platform: str
+    image_name: str
+    tag: str | None
+
 
 images = [
     Image('manylinux1', 'x86_64', 'quay.io/pypa/manylinux1_x86_64', None),
@@ -66,12 +68,14 @@ images = [
 
     Image('manylinux2010', 'pypy_x86_64', 'pypywheels/manylinux2010-pypy_x86_64', None),
 
+    # 2014 images
     Image('manylinux2014', 'x86_64', 'quay.io/pypa/manylinux2014_x86_64', None),
     Image('manylinux2014', 'i686', 'quay.io/pypa/manylinux2014_i686', None),
     Image('manylinux2014', 'aarch64', 'quay.io/pypa/manylinux2014_aarch64', None),
     Image('manylinux2014', 'ppc64le', 'quay.io/pypa/manylinux2014_ppc64le', None),
     Image('manylinux2014', 's390x', 'quay.io/pypa/manylinux2014_s390x', None),
 
+    # 2_24 images
     Image('manylinux_2_24', 'x86_64', 'quay.io/pypa/manylinux_2_24_x86_64', None),
     Image('manylinux_2_24', 'i686', 'quay.io/pypa/manylinux_2_24_i686', None),
     Image('manylinux_2_24', 'aarch64', 'quay.io/pypa/manylinux_2_24_aarch64', None),

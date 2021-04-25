@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 
+from __future__ import annotations
+
 import glob
 import os
 import subprocess
@@ -25,24 +27,26 @@ config = [
     ('setup.cfg', "version = {}"),
 ]
 
+RED = "\u001b[31m"
+GREEN = "\u001b[32m"
+OFF = "\u001b[0m"
 
-# This file requires Python 3.7
-# Setting -> None will cause MyPy to notice this.
+
 @click.command()
-def bump_version():
+def bump_version() -> None:
     current_version = cibuildwheel.__version__
 
     try:
         commit_date_str = subprocess.run([
             'git',
-            'show', '-s', '--pretty=format:%ci',
-            f'v{current_version}^{{commit}}'
+            'show', '--no-patch', '--pretty=format:%ci',
+            f'v{current_version}^{{commit}}',
         ], check=True, capture_output=True, encoding='utf8').stdout
-        commit_date_parts = commit_date_str.split(' ')
+        cd_date, cd_time, cd_tz = commit_date_str.split(' ')
 
-        url = 'https://github.com/joerick/cibuildwheel/pulls?' + urllib.parse.urlencode({
-            'q': f'is:pr merged:>{commit_date_parts[0]}T{commit_date_parts[1]}{commit_date_parts[2]}',
-        })
+        url_opts = urllib.parse.urlencode({'q': f'is:pr merged:>{cd_date}T{cd_time}{cd_tz}'})
+        url = f'https://github.com/joerick/cibuildwheel/pulls?{url_opts}'
+
         print(f'PRs merged since last release:\n  {url}')
         print()
     except subprocess.CalledProcessError as e:
@@ -56,8 +60,10 @@ def bump_version():
         print('error: Uncommitted changes detected.')
         sys.exit(1)
 
+    # fmt: off
     print(              'Current version:', current_version)  # noqa
     new_version = input('    New version: ').strip()
+    # fmt: on
 
     try:
         Version(new_version)
@@ -72,7 +78,7 @@ def bump_version():
         paths = [Path(p) for p in glob.glob(path_pattern)]
 
         if not paths:
-            print(f'error: Pattern {path_pattern} didn’t match any files')
+            print(f"error: Pattern {path_pattern} didn't match any files")
             sys.exit(1)
 
         find_pattern = version_pattern.format(current_version)
@@ -84,11 +90,11 @@ def bump_version():
             if find_pattern in contents:
                 found_at_least_one_file_needing_update = True
                 actions.append(
-                    (path, find_pattern, replace_pattern)
+                    (path, find_pattern, replace_pattern,)
                 )
 
         if not found_at_least_one_file_needing_update:
-            print(f'error: Didn’t find any occurrences of “{find_pattern}” in “{path_pattern}”')
+            print(f'''error: Didn't find any occurrences of "{find_pattern}" in "{path_pattern}"''')
             sys.exit(1)
 
     print()
@@ -96,10 +102,8 @@ def bump_version():
     print()
 
     for action in actions:
-        print('{}  {red}{}{off} → {green}{}{off}'.format(
-            *action,
-            red="\u001b[31m", green="\u001b[32m", off="\u001b[0m"
-        ))
+        path, find, replace = action
+        print(f'{path}  {RED}{find}{OFF} → {GREEN}{replace}{OFF}')
 
     print(f'Then commit, and tag as v{new_version}')
 
@@ -123,21 +127,20 @@ def bump_version():
 
     subprocess.run([
         'git', 'commit',
-        '-a',
-        '-m', f'Bump version: v{new_version}'
+        '--all',
+        f"--message='Bump version: v{new_version}'",
     ], check=True)
 
     subprocess.run([
         'git', 'tag',
-        '-a',
-        '-m', f'v{new_version}',
-        f'v{new_version}'
+        '--annotate',
+        f"--message='v{new_version}'",
+        f'v{new_version}',
     ], check=True)
 
     print('Done.')
 
 
 if __name__ == '__main__':
-    os.chdir(os.path.dirname(__file__))
-    os.chdir('..')
+    os.chdir(Path(__file__).parent.parent.resolve())
     bump_version()
