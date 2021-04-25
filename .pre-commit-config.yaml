@@ -6,6 +6,8 @@ repos:
   - id: check-case-conflict
   - id: check-merge-conflict
   - id: check-yaml
+  - id: check-toml
+  - id: debug-statements
   - id: end-of-file-fixer
     exclude: (cibuildwheel/resources/pinned_docker_images.cfg)|(.svg$)
   - id: mixed-line-ending
@@ -21,6 +23,12 @@ repos:
   hooks:
   - id: black
     files: ^bin/update_pythons.py|setup.py$
+
+- repo: https://github.com/asottile/setup-cfg-fmt
+  rev: v1.16.0
+  hooks:
+  - id: setup-cfg-fmt
+    stages: [manual]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v0.812
@@ -54,8 +62,6 @@ repos:
     exclude: cibuildwheel/resources/
     additional_dependencies: [flake8-bugbear]
 
-
-# The original pybind11 checks for a few C++ style items
 - repo: local
   hooks:
   - id: disallow-caps
