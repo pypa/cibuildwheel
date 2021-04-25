@@ -45,10 +45,10 @@ class DockerContainer:
         subprocess.run(
             [
                 'docker', 'create',
-                '--env', 'CIBUILDWHEEL',
-                '--name', self.name,
-                '-i',
-                '-v', '/:/host',  # ignored on CircleCI
+                '--env=CIBUILDWHEEL',
+                f'--name={self.name}',
+                '--interactive',
+                '--volume=/:/host',  # ignored on CircleCI
                 *cwd_args,
                 self.docker_image,
                 *shell_args
@@ -169,13 +169,15 @@ class DockerContainer:
         while True:
             line = self.bash_stdout.readline()
 
-            if line.endswith(b'%s\n' % (bytes(end_of_message, encoding='utf8'))):
+            if line.endswith(bytes(end_of_message, encoding='utf8') + b'\n'):
+                # fmt: off
                 footer_offset = (
                     len(line)
                     - 1  # newline character
                     - len(end_of_message)  # delimiter
                     - 4  # 4 returncode decimals
                 )
+                # fmt: on
                 returncode_str = line[footer_offset:footer_offset+4]
                 returncode = int(returncode_str)
                 # add the last line to output, without the footer
