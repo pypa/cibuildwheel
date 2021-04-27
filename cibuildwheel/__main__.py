@@ -53,7 +53,6 @@ def get_option_from_environment(option_name: str, *, platform: Optional[str] = N
 
 def main() -> None:
     platform: PlatformName
-    arch_list_str = ", ".join(a.name for a in Architecture)
 
     parser = argparse.ArgumentParser(
         description='Build wheels for all the platforms.',
@@ -74,6 +73,7 @@ def main() -> None:
                             Python. Default: auto.
                         ''')
 
+    arch_list_str = ", ".join(a.name for a in Architecture)
     parser.add_argument('--archs',
                         default=None,
                         help=f'''
@@ -372,8 +372,12 @@ def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:
         option_value = getattr(build_options, option_name)
 
         if option_value and ('{python}' in option_value or '{pip}' in option_value):
-            msg = ": '{python}' and '{pip}' are no longer needed, and will be removed in a future release. Simply use 'python' or 'pip' instead."
-            warnings.append(option_name + msg)
+            # Reminder: in an f-string, double braces means literal single brace
+            msg = (
+                f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
+                "and will be removed in a future release. Simply use 'python' or 'pip' instead."
+            )
+            warnings.append(msg)
 
     return warnings
 

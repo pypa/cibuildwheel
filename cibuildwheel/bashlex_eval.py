@@ -59,7 +59,7 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
         if part_string not in value:
             raise RuntimeError(
                 f'bash parse failed. part "{part_string}" not found in "{value}". '
-                'Word was "{node.word}". Full input was "{context.input}"'
+                f'Word was "{node.word}". Full input was "{context.input}"'
             )
 
         value = value.replace(part_string, part_value, 1)
