@@ -487,7 +487,7 @@ than x86 (x86\_64 and i686) `manylinux2014` or `manylinux_2_24` must be used, be
 
 Note that `manylinux2014`/`manylinux_2_24` don't support builds with Python 2.7 - when building with `manylinux2014`/`manylinux_2_24`, skip Python 2.7 using `CIBW_SKIP` (see example below).
 
-If setting a custom Docker image, you'll need to make sure it can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/) and  [PEP 600](https://www.python.org/dev/peps/pep-0600/)  for more details).
+If setting a custom Docker image, you'll need to make sure it can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/) and [PEP 600](https://www.python.org/dev/peps/pep-0600/) for more details).
 
 Auditwheel detects the version of the manylinux standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
@@ -573,7 +573,8 @@ CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
 
 Shell command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. To ensure the wheel is
-imported by your tests (instead of your source copy), **tests are not run from your project directory**. Use the placeholders `{project}` and `{package}` when
+imported by your tests (instead of your source copy), **tests are not run from
+your project directory**. Use the placeholders `{project}` and `{package}` when
 specifying paths in your project. If this variable is not set, your wheel will
 not be installed after building.
 
