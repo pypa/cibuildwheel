@@ -56,4 +56,8 @@ jobs:
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
-script: $PYTHON ./bin/run_tests.py
+script: |
+  $PYTHON -c "import os; print(os.environ)"
+  nuget sources list
+  nuget config
+  $PYTHON ./bin/run_tests.py
