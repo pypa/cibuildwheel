@@ -8,12 +8,14 @@ from cibuildwheel.logger import Logger
 from . import test_projects, utils
 
 basic_project = test_projects.new_c_project(
-    setup_py_add=textwrap.dedent('''
+    setup_py_add=textwrap.dedent(
+        '''
         import os
 
         if os.environ.get("CIBUILDWHEEL", "0") != "1":
             raise Exception("CIBUILDWHEEL environment variable is not set to 1")
-    ''')
+    '''
+    )
 )
 
 
@@ -55,8 +57,11 @@ def test_build_identifiers(tmp_path):
     # can be multiple wheels for each wheel, though, so we need to limit
     # the expected wheels
     if platform.machine() in ['x86_64', 'i686']:
-        expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                           if '-manylinux' not in w or '-manylinux1' in w]
+        expected_wheels = [
+            w
+            for w in utils.expected_wheels('spam', '0.1.0')
+            if '-manylinux' not in w or '-manylinux1' in w
+        ]
     else:
         expected_wheels = utils.expected_wheels('spam', '0.1.0')
     build_identifiers = utils.cibuildwheel_get_build_identifiers(project_dir)

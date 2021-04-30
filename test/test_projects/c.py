@@ -88,22 +88,32 @@ version = 0.1.0
 '''
 
 
-def new_c_project(*, spam_c_top_level_add='', spam_c_function_add='', setup_py_add='',
-                  setup_py_setup_args_add='', setup_cfg_add=''):
+def new_c_project(
+    *,
+    spam_c_top_level_add='',
+    spam_c_function_add='',
+    setup_py_add='',
+    setup_py_setup_args_add='',
+    setup_cfg_add='',
+):
     project = TestProject()
 
-    project.files.update({
-        'spam.c': jinja2.Template(SPAM_C_TEMPLATE),
-        'setup.py': jinja2.Template(SETUP_PY_TEMPLATE),
-        'setup.cfg': jinja2.Template(SETUP_CFG_TEMPLATE),
-    })
+    project.files.update(
+        {
+            'spam.c': jinja2.Template(SPAM_C_TEMPLATE),
+            'setup.py': jinja2.Template(SETUP_PY_TEMPLATE),
+            'setup.cfg': jinja2.Template(SETUP_CFG_TEMPLATE),
+        }
+    )
 
-    project.template_context.update({
-        'spam_c_top_level_add': spam_c_top_level_add,
-        'spam_c_function_add': spam_c_function_add,
-        'setup_py_add': setup_py_add,
-        'setup_py_setup_args_add': setup_py_setup_args_add,
-        'setup_cfg_add': setup_cfg_add,
-    })
+    project.template_context.update(
+        {
+            'spam_c_top_level_add': spam_c_top_level_add,
+            'spam_c_function_add': spam_c_function_add,
+            'setup_py_add': setup_py_add,
+            'setup_py_setup_args_add': setup_py_setup_args_add,
+            'setup_cfg_add': setup_cfg_add,
+        }
+    )
 
     return project

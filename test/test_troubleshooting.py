@@ -9,7 +9,9 @@ so_file_project = TestProject()
 
 so_file_project.files['libnothing.so'] = ''
 
-so_file_project.files['setup.py'] = '''
+so_file_project.files[
+    'setup.py'
+] = '''
 raise Exception('this build will fail')
 '''
 

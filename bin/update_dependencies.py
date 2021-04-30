@@ -21,13 +21,16 @@ PYTHON_VERSIONS = ['27', '35', '36', '37', '38', '39']
 
 if '--no-docker' in sys.argv:
     for python_version in PYTHON_VERSIONS:
-        subprocess.run([
-            f'./env{python_version}/bin/pip-compile',
-            '--allow-unsafe',
-            '--upgrade',
-            'cibuildwheel/resources/constraints.in',
-            '--output-file=cibuildwheel/resources/constraints-python{python_version}.txt',
-        ], check=True)
+        subprocess.run(
+            [
+                f'./env{python_version}/bin/pip-compile',
+                '--allow-unsafe',
+                '--upgrade',
+                'cibuildwheel/resources/constraints.in',
+                '--output-file=cibuildwheel/resources/constraints-python{python_version}.txt',
+            ],
+            check=True,
+        )
 else:
     # latest manylinux2010 image with cpython 2.7 support
     image_runner = 'quay.io/pypa/manylinux2010_x86_64:2021-02-06-3d322a5'
@@ -41,19 +44,27 @@ else:
             'cibuildwheel/resources/constraints.in '
             f'--output-file cibuildwheel/resources/constraints-python{python_version}.txt'
         )
-        subprocess.run([
-            'docker', 'run',
-            '--rm',
-            '--env=CUSTOM_COMPILE_COMMAND',
-            "--volume={os.getcwd()}:/volume",
-            '--workdir=/volume',
-            image_runner,
-            'bash', '-c',
-            command,
-        ], check=True)
+        subprocess.run(
+            [
+                'docker',
+                'run',
+                '--rm',
+                '--env=CUSTOM_COMPILE_COMMAND',
+                "--volume={os.getcwd()}:/volume",
+                '--workdir=/volume',
+                image_runner,
+                'bash',
+                '-c',
+                command,
+            ],
+            check=True,
+        )
 
 # default constraints.txt
-shutil.copyfile(f'cibuildwheel/resources/constraints-python{PYTHON_VERSIONS[-1]}.txt', 'cibuildwheel/resources/constraints.txt',)
+shutil.copyfile(
+    f'cibuildwheel/resources/constraints-python{PYTHON_VERSIONS[-1]}.txt',
+    'cibuildwheel/resources/constraints.txt',
+)
 
 
 class Image(NamedTuple):
@@ -66,20 +77,16 @@ class Image(NamedTuple):
 images = [
     Image('manylinux1', 'x86_64', 'quay.io/pypa/manylinux1_x86_64', None),
     Image('manylinux1', 'i686', 'quay.io/pypa/manylinux1_i686', None),
-
     # Images for manylinux2010 are pinned to the latest tag supporting cp27
     Image('manylinux2010', 'x86_64', 'quay.io/pypa/manylinux2010_x86_64', '2021-02-06-3d322a5'),
     Image('manylinux2010', 'i686', 'quay.io/pypa/manylinux2010_i686', '2021-02-06-3d322a5'),
-
     Image('manylinux2010', 'pypy_x86_64', 'pypywheels/manylinux2010-pypy_x86_64', None),
-
     # 2014 images
     Image('manylinux2014', 'x86_64', 'quay.io/pypa/manylinux2014_x86_64', None),
     Image('manylinux2014', 'i686', 'quay.io/pypa/manylinux2014_i686', None),
     Image('manylinux2014', 'aarch64', 'quay.io/pypa/manylinux2014_aarch64', None),
     Image('manylinux2014', 'ppc64le', 'quay.io/pypa/manylinux2014_ppc64le', None),
     Image('manylinux2014', 's390x', 'quay.io/pypa/manylinux2014_s390x', None),
-
     # 2_24 images
     Image('manylinux_2_24', 'x86_64', 'quay.io/pypa/manylinux_2_24_x86_64', None),
     Image('manylinux_2_24', 'i686', 'quay.io/pypa/manylinux_2_24_i686', None),
@@ -112,23 +119,17 @@ for image in images:
             if info['manifest_digest'] == latest_tag['manifest_digest']
         )
     else:
-        response = requests.get(
-            f'https://hub.docker.com/v2/repositories/{image.image_name}/tags'
-        )
+        response = requests.get(f'https://hub.docker.com/v2/repositories/{image.image_name}/tags')
         response.raise_for_status()
         tags = response.json()['results']
 
-        latest_tag = next(
-            tag for tag in tags if tag['name'] == 'latest'
-        )
+        latest_tag = next(tag for tag in tags if tag['name'] == 'latest')
         # i don't know what it would mean to have multiple images per tag
         assert len(latest_tag['images']) == 1
         digest = latest_tag['images'][0]['digest']
 
         pinned_tag = next(
-            tag
-            for tag in tags
-            if tag != latest_tag and tag['images'][0]['digest'] == digest
+            tag for tag in tags if tag != latest_tag and tag['images'][0]['digest'] == digest
         )
         tag_name = pinned_tag['name']
 

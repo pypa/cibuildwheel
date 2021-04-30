@@ -37,11 +37,18 @@ def bump_version() -> None:
     current_version = cibuildwheel.__version__
 
     try:
-        commit_date_str = subprocess.run([
-            'git',
-            'show', '--no-patch', '--pretty=format:%ci',
-            f'v{current_version}^{{commit}}',
-        ], check=True, capture_output=True, encoding='utf8').stdout
+        commit_date_str = subprocess.run(
+            [
+                'git',
+                'show',
+                '--no-patch',
+                '--pretty=format:%ci',
+                f'v{current_version}^{{commit}}',
+            ],
+            check=True,
+            capture_output=True,
+            encoding='utf8',
+        ).stdout
         cd_date, cd_time, cd_tz = commit_date_str.split(' ')
 
         url_opts = urllib.parse.urlencode({'q': f'is:pr merged:>{cd_date}T{cd_time}{cd_tz}'})
@@ -90,7 +97,11 @@ def bump_version() -> None:
             if find_pattern in contents:
                 found_at_least_one_file_needing_update = True
                 actions.append(
-                    (path, find_pattern, replace_pattern,)
+                    (
+                        path,
+                        find_pattern,
+                        replace_pattern,
+                    )
                 )
 
         if not found_at_least_one_file_needing_update:
@@ -125,18 +136,26 @@ def bump_version() -> None:
     while input('Type "done" to continue: ').strip().lower() != 'done':
         pass
 
-    subprocess.run([
-        'git', 'commit',
-        '--all',
-        f"--message=Bump version: v{new_version}",
-    ], check=True)
+    subprocess.run(
+        [
+            'git',
+            'commit',
+            '--all',
+            f"--message=Bump version: v{new_version}",
+        ],
+        check=True,
+    )
 
-    subprocess.run([
-        'git', 'tag',
-        '--annotate',
-        f"--message=v{new_version}",
-        f'v{new_version}',
-    ], check=True)
+    subprocess.run(
+        [
+            'git',
+            'tag',
+            '--annotate',
+            f"--message=v{new_version}",
+            f'v{new_version}',
+        ],
+        check=True,
+    )
 
     print('Done.')
 

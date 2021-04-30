@@ -5,11 +5,13 @@ import pytest
 from . import test_projects, utils
 
 project_with_unicode = test_projects.new_c_project(
-    spam_c_function_add=textwrap.dedent(r'''
+    spam_c_function_add=textwrap.dedent(
+        r'''
         {
             Py_XDECREF(PyUnicode_FromStringAndSize("foo", 4));
         }
-    '''),
+    '''
+    ),
 )
 
 
@@ -21,9 +23,9 @@ def test(tmp_path):
     project_with_unicode.generate(project_dir)
 
     # build the wheels
-    actual_wheels = utils.cibuildwheel_run(project_dir, add_env={
-        'CIBW_TEST_COMMAND': 'python -c "import spam"'
-    })
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir, add_env={'CIBW_TEST_COMMAND': 'python -c "import spam"'}
+    )
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels('spam', '0.1.0')

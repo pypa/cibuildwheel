@@ -19,9 +19,9 @@ if __name__ == '__main__':
     options = parser.parse_args()
 
     project_dir = tempfile.mkdtemp()
-    subprocess.run([
-        sys.executable, '-m', 'test.test_projects',
-        options.project_python_path, project_dir
-    ], check=True,)
+    subprocess.run(
+        [sys.executable, '-m', 'test.test_projects', options.project_python_path, project_dir],
+        check=True,
+    )
 
     sys.exit(subprocess.run([sys.executable, '-m', 'cibuildwheel'], cwd=project_dir).returncode)

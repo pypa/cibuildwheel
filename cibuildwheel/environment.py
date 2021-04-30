@@ -32,7 +32,7 @@ def split_env_items(env_string: str) -> List[str]:
     result = []
 
     for word_node in command_node.parts:
-        part_string = env_string[word_node.pos[0]:word_node.pos[1]]
+        part_string = env_string[word_node.pos[0] : word_node.pos[1]]
         result.append(part_string)
 
     return result
@@ -46,7 +46,11 @@ class EnvironmentAssignment:
         self.name = name
         self.value = value
 
-    def evaluated_value(self, environment: Dict[str, str], executor: Optional[bashlex_eval.EnvironmentExecutor] = None) -> str:
+    def evaluated_value(
+        self,
+        environment: Dict[str, str],
+        executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
+    ) -> str:
         '''Returns the value of this assignment, as evaluated in the environment'''
         return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
 
@@ -61,9 +65,11 @@ class ParsedEnvironment:
     def __init__(self, assignments: List[EnvironmentAssignment]):
         self.assignments = assignments
 
-    def as_dictionary(self,
-                      prev_environment: Mapping[str, str],
-                      executor: Optional[bashlex_eval.EnvironmentExecutor] = None) -> Dict[str, str]:
+    def as_dictionary(
+        self,
+        prev_environment: Mapping[str, str],
+        executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
+    ) -> Dict[str, str]:
         environment = dict(**prev_environment)
 
         for assignment in self.assignments:

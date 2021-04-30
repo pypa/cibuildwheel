@@ -50,10 +50,14 @@ def test_override_env(platform, monkeypatch, intercepted_build_args):
 
 def test_override_setup_cfg(platform, monkeypatch, intercepted_build_args, fake_package_dir):
 
-    fake_package_dir.joinpath("setup.cfg").write_text(textwrap.dedent("""
+    fake_package_dir.joinpath("setup.cfg").write_text(
+        textwrap.dedent(
+            """
         [options]
         python_requires = >=3.8
-    """))
+    """
+        )
+    )
 
     main()
 
@@ -67,10 +71,14 @@ def test_override_setup_cfg(platform, monkeypatch, intercepted_build_args, fake_
 
 def test_override_pyproject_toml(platform, monkeypatch, intercepted_build_args, fake_package_dir):
 
-    fake_package_dir.joinpath("pyproject.toml").write_text(textwrap.dedent("""
+    fake_package_dir.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            """
         [project]
         requires-python = ">=3.8"
-    """))
+    """
+        )
+    )
 
     main()
 
@@ -84,14 +92,18 @@ def test_override_pyproject_toml(platform, monkeypatch, intercepted_build_args, 
 
 def test_override_setup_py_simple(platform, monkeypatch, intercepted_build_args, fake_package_dir):
 
-    fake_package_dir.joinpath("setup.py").write_text(textwrap.dedent("""
+    fake_package_dir.joinpath("setup.py").write_text(
+        textwrap.dedent(
+            """
         from setuptools import setup
 
         setup(
             name = "other",
             python_requires = ">=3.7",
         )
-    """))
+    """
+        )
+    )
 
     main()
 
