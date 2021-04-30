@@ -73,7 +73,13 @@ class Architecture(Enum):
     @staticmethod
     def all_archs(platform: PlatformName) -> 'Set[Architecture]':
         if platform == 'linux':
-            return {Architecture.x86_64, Architecture.i686, Architecture.aarch64, Architecture.ppc64le, Architecture.s390x}
+            return {
+                Architecture.x86_64,
+                Architecture.i686,
+                Architecture.aarch64,
+                Architecture.ppc64le,
+                Architecture.s390x,
+            }
         elif platform == 'macos':
             return {Architecture.x86_64, Architecture.arm64, Architecture.universal2}
         elif platform == 'windows':

@@ -89,7 +89,9 @@ class Logger:
         duration = time.time() - self.build_start_time
 
         print()
-        print(f'{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration:.2f}s')
+        print(
+            f'{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration:.2f}s'
+        )
         self.build_start_time = None
         self.active_build_identifier = None
 
@@ -143,7 +145,9 @@ class Logger:
         if self.active_fold_group_name:
             fold_start_pattern = FOLD_PATTERNS.get(self.fold_mode, DEFAULT_FOLD_PATTERN)[1]
             identifier = self._fold_group_identifier(self.active_fold_group_name)
-            print(fold_start_pattern.format(name=self.active_fold_group_name, identifier=identifier))
+            print(
+                fold_start_pattern.format(name=self.active_fold_group_name, identifier=identifier)
+            )
             sys.stdout.flush()
             self.active_fold_group_name = None
 
@@ -231,11 +235,11 @@ def file_supports_color(file_obj: IO[AnyStr]) -> bool:
     Returns True if the running system's terminal supports color.
     """
     plat = sys.platform
-    supported_platform = (plat != 'win32' or 'ANSICON' in os.environ)
+    supported_platform = plat != 'win32' or 'ANSICON' in os.environ
 
     is_a_tty = file_is_a_tty(file_obj)
 
-    return (supported_platform and is_a_tty)
+    return supported_platform and is_a_tty
 
 
 def file_is_a_tty(file_obj: IO[AnyStr]) -> bool:
@@ -249,7 +253,7 @@ def file_supports_unicode(file_obj: IO[AnyStr]) -> bool:
 
     codec_info = codecs.lookup(encoding)
 
-    return ('utf' in codec_info.name)
+    return 'utf' in codec_info.name
 
 
 '''

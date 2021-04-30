@@ -17,4 +17,7 @@ if __name__ == '__main__':
     subprocess.run(unit_test_args, check=True)
 
     # run the integration tests
-    subprocess.run([sys.executable, '-m', 'pytest', '-x', '--durations', '0', '--timeout=2400', 'test'], check=True)
+    subprocess.run(
+        [sys.executable, '-m', 'pytest', '-x', '--durations', '0', '--timeout=2400', 'test'],
+        check=True,
+    )

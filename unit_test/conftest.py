@@ -2,9 +2,7 @@ import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--run-docker", action="store_true", default=False, help="run docker tests"
-    )
+    parser.addoption("--run-docker", action="store_true", default=False, help="run docker tests")
 
 
 def pytest_configure(config):

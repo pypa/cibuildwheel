@@ -62,7 +62,9 @@ class IdentifierSelector:
     numeric digits before the first dash.
     """
 
-    def __init__(self, *, build_config: str, skip_config: str, requires_python: Optional[SpecifierSet] = None):
+    def __init__(
+        self, *, build_config: str, skip_config: str, requires_python: Optional[SpecifierSet] = None
+    ):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
         self.requires_python = requires_python
@@ -77,7 +79,9 @@ class IdentifierSelector:
             if not self.requires_python.contains(version):
                 return False
 
-        build_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.build_patterns)
+        build_patterns = itertools.chain.from_iterable(
+            bracex.expand(p) for p in self.build_patterns
+        )
         skip_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.skip_patterns)
 
         build: bool = any(fnmatch.fnmatch(build_id, pat) for pat in build_patterns)
@@ -153,9 +157,7 @@ class DependencyConstraints:
 
     @staticmethod
     def with_defaults() -> 'DependencyConstraints':
-        return DependencyConstraints(
-            base_file_path=resources_dir / 'constraints.txt'
-        )
+        return DependencyConstraints(base_file_path=resources_dir / 'constraints.txt')
 
     def get_for_python_version(self, version: str) -> Path:
         version_parts = version.split('.')
@@ -195,7 +197,8 @@ class BuildOptions(NamedTuple):
 
 class NonPlatformWheelError(Exception):
     def __init__(self) -> None:
-        message = textwrap.dedent('''
+        message = textwrap.dedent(
+            '''
             cibuildwheel: Build failed because a pure Python wheel was generated.
 
             If you intend to build a pure-Python wheel, you don't need cibuildwheel - use
@@ -203,7 +206,8 @@ class NonPlatformWheelError(Exception):
 
             If you expected a platform wheel, check your project configuration, or run
             cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
-        ''')
+        '''
+        )
 
         super().__init__(message)
 

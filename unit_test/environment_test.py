@@ -6,9 +6,7 @@ from cibuildwheel.environment import parse_environment
 def test_basic_parsing():
     environment_recipe = parse_environment('VAR=1 VBR=2')
 
-    environment_dict = environment_recipe.as_dictionary(
-        prev_environment={}
-    )
+    environment_dict = environment_recipe.as_dictionary(prev_environment={})
     environment_cmds = environment_recipe.as_shell_commands()
 
     assert environment_dict == {'VAR': '1', 'VBR': '2'}
@@ -18,9 +16,7 @@ def test_basic_parsing():
 def test_quotes():
     environment_recipe = parse_environment('A=1 VAR="1 NOT_A_VAR=2" VBR=\'vbr\'')
 
-    environment_dict = environment_recipe.as_dictionary(
-        prev_environment={}
-    )
+    environment_dict = environment_recipe.as_dictionary(prev_environment={})
     environment_cmds = environment_recipe.as_shell_commands()
 
     assert environment_dict == {'A': '1', 'VAR': '1 NOT_A_VAR=2', 'VBR': 'vbr'}
@@ -30,9 +26,7 @@ def test_quotes():
 def test_inheritance():
     environment_recipe = parse_environment('PATH=$PATH:/usr/local/bin')
 
-    environment_dict = environment_recipe.as_dictionary(
-        prev_environment={'PATH': '/usr/bin'}
-    )
+    environment_dict = environment_recipe.as_dictionary(prev_environment={'PATH': '/usr/bin'})
     environment_cmds = environment_recipe.as_shell_commands()
 
     assert environment_dict == {'PATH': '/usr/bin:/usr/local/bin'}
@@ -45,9 +39,7 @@ def test_shell_eval():
     env_copy = os.environ.copy()
     env_copy.pop('VAR', None)
 
-    environment_dict = environment_recipe.as_dictionary(
-        prev_environment=env_copy
-    )
+    environment_dict = environment_recipe.as_dictionary(prev_environment=env_copy)
     environment_cmds = environment_recipe.as_shell_commands()
 
     assert environment_dict['VAR'] == 'a   test string'
@@ -57,9 +49,7 @@ def test_shell_eval():
 def test_shell_eval_and_env():
     environment_recipe = parse_environment('VAR="$(echo "$PREV_VAR" string)"')
 
-    environment_dict = environment_recipe.as_dictionary(
-        prev_environment={'PREV_VAR': '1 2 3'}
-    )
+    environment_dict = environment_recipe.as_dictionary(prev_environment={'PREV_VAR': '1 2 3'})
     environment_cmds = environment_recipe.as_shell_commands()
 
     assert environment_dict == {'PREV_VAR': '1 2 3', 'VAR': '1 2 3 string'}
@@ -69,9 +59,7 @@ def test_shell_eval_and_env():
 def test_empty_var():
     environment_recipe = parse_environment('CFLAGS=')
 
-    environment_dict = environment_recipe.as_dictionary(
-        prev_environment={'CFLAGS': '-Wall'}
-    )
+    environment_dict = environment_recipe.as_dictionary(prev_environment={'CFLAGS': '-Wall'})
     environment_cmds = environment_recipe.as_shell_commands()
 
     assert environment_dict == {'CFLAGS': ''}
@@ -91,7 +79,9 @@ def test_no_vars():
 def test_no_vars_pass_through():
     environment_recipe = parse_environment('')
 
-    environment_dict = environment_recipe.as_dictionary(prev_environment={'CIBUILDWHEEL': 'awesome'})
+    environment_dict = environment_recipe.as_dictionary(
+        prev_environment={'CIBUILDWHEEL': 'awesome'}
+    )
 
     assert environment_dict == {'CIBUILDWHEEL': 'awesome'}
 
@@ -109,15 +99,15 @@ def test_substitution_with_backslash():
     environment_recipe = parse_environment('PATH2="somewhere_else;$PATH1"')
 
     # pass the existing process env so PATH is available
-    environment_dict = environment_recipe.as_dictionary(prev_environment={
-        'PATH1': 'c:\\folder\\'
-    })
+    environment_dict = environment_recipe.as_dictionary(prev_environment={'PATH1': 'c:\\folder\\'})
 
     assert environment_dict.get('PATH2') == 'somewhere_else;c:\\folder\\'
 
 
 def test_awkwardly_quoted_variable():
-    environment_recipe = parse_environment('VAR2=something"like this""$VAR1"$VAR1$(echo "theres more")"$(echo "and more!")"')
+    environment_recipe = parse_environment(
+        'VAR2=something"like this""$VAR1"$VAR1$(echo "theres more")"$(echo "and more!")"'
+    )
 
     # pass the existing process env so PATH is available
     environment_dict = environment_recipe.as_dictionary({'VAR1': 'but wait'})

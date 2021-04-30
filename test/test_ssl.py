@@ -3,7 +3,8 @@ import textwrap
 from . import test_projects, utils
 
 project_with_ssl_tests = test_projects.new_c_project(
-    setup_py_add=textwrap.dedent(r'''
+    setup_py_add=textwrap.dedent(
+        r'''
         import ssl
 
         if sys.version_info[0] == 2:
@@ -15,7 +16,8 @@ project_with_ssl_tests = test_projects.new_c_project(
         data = urlopen("https://www.nist.gov", context=context)
         data = urlopen("https://raw.githubusercontent.com/joerick/cibuildwheel/master/CI.md", context=context)
         data = urlopen("https://raw.githubusercontent.com/joerick/cibuildwheel/master/CI.md")
-    ''')
+    '''
+    )
 )
 
 

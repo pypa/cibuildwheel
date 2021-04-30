@@ -112,7 +112,9 @@ class PyPyVersions:
             release["python_version"] = Version(release["python_version"])
 
         self.releases = [
-            r for r in releases if not r["pypy_version"].is_prerelease and not r["pypy_version"].is_devrelease
+            r
+            for r in releases
+            if not r["pypy_version"].is_prerelease and not r["pypy_version"].is_devrelease
         ]
         self.arch = arch_str
 
@@ -154,7 +156,9 @@ class PyPyVersions:
         identifier = f"pp{version.major}{version.minor}-macosx_x86_64"
 
         (url,) = [
-            rf["download_url"] for rf in release["files"] if "" in rf["platform"] == "darwin" and rf["arch"] == "x64"
+            rf["download_url"]
+            for rf in release["files"]
+            if "" in rf["platform"] == "darwin" and rf["arch"] == "x64"
         ]
 
         return ConfigMacOS(
@@ -167,7 +171,9 @@ class PyPyVersions:
 class CPythonVersions:
     def __init__(self) -> None:
 
-        response = requests.get("https://www.python.org/api/v2/downloads/release/?is_published=true")
+        response = requests.get(
+            "https://www.python.org/api/v2/downloads/release/?is_published=true"
+        )
         response.raise_for_status()
 
         releases_info = response.json()
@@ -188,7 +194,9 @@ class CPythonVersions:
         for version in reversed(sorted_versions):
             # Find the first patch version that contains the requested file
             uri = self.versions_dict[version]
-            response = requests.get(f"https://www.python.org/api/v2/downloads/release_file/?release={uri}")
+            response = requests.get(
+                f"https://www.python.org/api/v2/downloads/release_file/?release={uri}"
+            )
             response.raise_for_status()
             file_info = response.json()
 
@@ -252,7 +260,9 @@ class AllVersions:
 
 @click.command()
 @click.option("--force", is_flag=True)
-@click.option("--level", default="INFO", type=click.Choice(["INFO", "DEBUG", "TRACE"], case_sensitive=False))
+@click.option(
+    "--level", default="INFO", type=click.Choice(["INFO", "DEBUG", "TRACE"], case_sensitive=False)
+)
 def update_pythons(force: bool, level: str) -> None:
 
     logging.basicConfig(

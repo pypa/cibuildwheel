@@ -35,9 +35,8 @@ class Analyzer(ast.NodeVisitor):
         if node.arg == "python_requires":
             # Must not be nested in an if or other structure
             # This will be Module -> Expr -> Call -> keyword
-            if (
-                not hasattr(node.parent.parent.parent, "parent")  # type: ignore
-                and isinstance(node.value, Constant)
+            if not hasattr(node.parent.parent.parent, "parent") and isinstance(  # type: ignore
+                node.value, Constant
             ):
                 self.requires_python = get_constant(node.value)
 

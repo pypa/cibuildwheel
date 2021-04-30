@@ -91,8 +91,11 @@ def test_cpp11(tmp_path):
     add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
-    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                       if 'cp27-cp27m-win' not in w and 'pp27-pypy_73-win32' not in w]
+    expected_wheels = [
+        w
+        for w in utils.expected_wheels('spam', '0.1.0')
+        if 'cp27-cp27m-win' not in w and 'pp27-pypy_73-win32' not in w
+    ]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -115,9 +118,11 @@ def test_cpp14(tmp_path):
     add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
-    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0')
-                       if 'cp27-cp27m-win' not in w
-                       and 'pp27-pypy_73-win32' not in w]
+    expected_wheels = [
+        w
+        for w in utils.expected_wheels('spam', '0.1.0')
+        if 'cp27-cp27m-win' not in w and 'pp27-pypy_73-win32' not in w
+    ]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -129,7 +134,9 @@ cpp17_project = cpp_test_project.copy()
 cpp17_project.template_context['extra_compile_args'] = (
     ['/std:c++17', '/wd5033'] if utils.platform == 'windows' else ['-std=c++17', '-Wno-register']
 )
-cpp17_project.template_context['spam_cpp_top_level_add'] = r'''
+cpp17_project.template_context[
+    'spam_cpp_top_level_add'
+] = r'''
 #include <utility>
 auto a = std::pair(5.0, false);
 '''
@@ -152,9 +159,11 @@ def test_cpp17(tmp_path):
         add_env['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
-    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0', macosx_deployment_target='10.13')
-                       if 'cp27-cp27m-win' not in w
-                       and '-pp' not in w]
+    expected_wheels = [
+        w
+        for w in utils.expected_wheels('spam', '0.1.0', macosx_deployment_target='10.13')
+        if 'cp27-cp27m-win' not in w and '-pp' not in w
+    ]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -204,8 +213,10 @@ def test_cpp17_py27_modern_msvc_workaround(tmp_path):
     add_env_x64['CIBW_BUILD'] = 'cp27-win_amd64'
     actual_wheels += utils.cibuildwheel_run(project_dir, add_env=add_env_x64)
 
-    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0', exclude_27=False)
-                       if 'cp27-cp27m-win' in w
-                       or 'pp27-pypy_73-win32' in w]
+    expected_wheels = [
+        w
+        for w in utils.expected_wheels('spam', '0.1.0', exclude_27=False)
+        if 'cp27-cp27m-win' in w or 'pp27-pypy_73-win32' in w
+    ]
 
     assert set(actual_wheels) == set(expected_wheels)

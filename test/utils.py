@@ -78,7 +78,14 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
 
     with TemporaryDirectoryIfNone(output_dir) as _output_dir:
         subprocess.run(
-            [sys.executable, '-m', 'cibuildwheel', '--output-dir', str(_output_dir), str(package_dir)],
+            [
+                sys.executable,
+                '-m',
+                'cibuildwheel',
+                '--output-dir',
+                str(_output_dir),
+                str(package_dir),
+            ],
             env=env,
             cwd=project_path,
             check=True,
@@ -100,9 +107,15 @@ def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
         return macosx_deployment_target
 
 
-def expected_wheels(package_name, package_version, manylinux_versions=None,
-                    macosx_deployment_target='10.9', machine_arch=None, *,
-                    exclude_27=platform == 'windows'):
+def expected_wheels(
+    package_name,
+    package_version,
+    manylinux_versions=None,
+    macosx_deployment_target='10.9',
+    machine_arch=None,
+    *,
+    exclude_27=platform == 'windows',
+):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -164,7 +177,9 @@ def expected_wheels(package_name, package_version, manylinux_versions=None,
 
         elif platform == 'macos':
             if python_abi_tag == 'cp39-cp39' and machine_arch == 'arm64':
-                arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(macosx_deployment_target)
+                arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(
+                    macosx_deployment_target
+                )
                 platform_tags = [
                     f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
                     f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64',

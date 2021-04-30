@@ -83,9 +83,11 @@ class Project:
 
     @classmethod
     def header(cls) -> str:
-        return textwrap.dedent(f"""\
+        return textwrap.dedent(
+            f"""\
                 | {'Name':{cls.NAME}} | CI | OS | Notes |
-                |{'':-^{cls.NAME+2  }}|----|----|:------|""")
+                |{'':-^{cls.NAME+2  }}|----|----|:------|"""
+        )
 
     @property
     def namelink(self) -> str:
@@ -142,7 +144,10 @@ def path_for_icon(icon_name: str) -> Path:
 
 
 def str_projects(
-    config: list[dict[str, Any]], *, online: bool = True, auth: str | None = None,
+    config: list[dict[str, Any]],
+    *,
+    online: bool = True,
+    auth: str | None = None,
 ) -> str:
     io = StringIO()
     print = functools.partial(builtins.print, file=io)
@@ -180,7 +185,10 @@ def str_projects(
 @click.option("--auth", help="GitHub authentication token")
 @click.option("--readme", type=click.File("r+"), help="Modify a readme file if given")
 def projects(
-    input: TextIO, online: bool, auth: str | None, readme: TextIO | None,
+    input: TextIO,
+    online: bool,
+    auth: str | None,
+    readme: TextIO | None,
 ) -> None:
     config = yaml.safe_load(input)
     output = str_projects(config, online=online, auth=auth)

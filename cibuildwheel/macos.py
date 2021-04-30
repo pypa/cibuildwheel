@@ -28,7 +28,12 @@ from .util import (
 )
 
 
-def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None, shell: bool = False) -> None:
+def call(
+    args: Sequence[PathOrStr],
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[str] = None,
+    shell: bool = False,
+) -> None:
     # print the command executing for the logs
     if shell:
         print(f'+ {args}')
@@ -69,16 +74,20 @@ class PythonConfiguration(NamedTuple):
     url: str
 
 
-def get_python_configurations(build_selector: BuildSelector,
-                              architectures: Set[Architecture]) -> List[PythonConfiguration]:
+def get_python_configurations(
+    build_selector: BuildSelector, architectures: Set[Architecture]
+) -> List[PythonConfiguration]:
 
     full_python_configs = read_python_configs('macos')
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
     # filter out configs that don't match any of the selected architectures
-    python_configurations = [c for c in python_configurations
-                             if any(c.identifier.endswith(a.value) for a in architectures)]
+    python_configurations = [
+        c
+        for c in python_configurations
+        if any(c.identifier.endswith(a.value) for a in architectures)
+    ]
 
     # skip builds as required by BUILD/SKIP
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
@@ -89,21 +98,33 @@ def get_python_configurations(build_selector: BuildSelector,
         if any(c.identifier.startswith('pp') for c in python_configurations):
             # pypy doesn't work on macOS 11 yet
             # See https://foss.heptapod.net/pypy/pypy/-/issues/3314
-            log.warning(unwrap('''
+            log.warning(
+                unwrap(
+                    '''
                 PyPy is currently unsupported when building on macOS 11. To build macOS PyPy wheels,
                 build on an older OS, such as macOS 10.15. To silence this warning, deselect PyPy by
                 adding "pp*-macosx*" to your CIBW_SKIP option.
-            '''))
-            python_configurations = [c for c in python_configurations if not c.identifier.startswith('pp')]
+            '''
+                )
+            )
+            python_configurations = [
+                c for c in python_configurations if not c.identifier.startswith('pp')
+            ]
 
         if any(c.identifier.startswith('cp35') for c in python_configurations):
             # CPython 3.5 doesn't work on macOS 11
-            log.warning(unwrap('''
+            log.warning(
+                unwrap(
+                    '''
                 CPython 3.5 is unsupported when building on macOS 11. To build CPython 3.5 wheels,
                 build on an older OS, such as macOS 10.15. To silence this warning, deselect CPython
                 3.5 by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
-            '''))
-            python_configurations = [c for c in python_configurations if not c.identifier.startswith('cp35')]
+            '''
+                )
+            )
+            python_configurations = [
+                c for c in python_configurations if not c.identifier.startswith('cp35')
+            ]
 
     return python_configurations
 
@@ -122,12 +143,16 @@ def make_symlinks(installation_bin_path: Path, python_executable: str, pip_execu
     SYMLINKS_DIR.mkdir(parents=True)
 
     (SYMLINKS_DIR / 'python').symlink_to(installation_bin_path / python_executable)
-    (SYMLINKS_DIR / 'python-config').symlink_to(installation_bin_path / (python_executable + '-config'))
+    (SYMLINKS_DIR / 'python-config').symlink_to(
+        installation_bin_path / (python_executable + '-config')
+    )
     (SYMLINKS_DIR / 'pip').symlink_to(installation_bin_path / pip_executable)
 
 
 def install_cpython(version: str, url: str) -> Path:
-    installed_system_packages = subprocess.run(['pkgutil', '--pkgs'], universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.splitlines()
+    installed_system_packages = subprocess.run(
+        ['pkgutil', '--pkgs'], universal_newlines=True, check=True, stdout=subprocess.PIPE
+    ).stdout.splitlines()
 
     # if this version of python isn't installed, get it from python.org and install
     python_package_identifier = f'org.python.Python.PythonFramework-{version}'
@@ -143,9 +168,18 @@ def install_cpython(version: str, url: str) -> Path:
         if version == '3.5':
             open_ssl_patch_url = f'https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.1.1h/patch-macos-python-{version}-openssl-v1.1.1h.tar.gz'
             download(open_ssl_patch_url, Path('/tmp/python-patch.tar.gz'))
-            call(['sudo', 'tar', '-C', f'/Library/Frameworks/Python.framework/Versions/{version}/', '-xmf', '/tmp/python-patch.tar.gz'])
+            call(
+                [
+                    'sudo',
+                    'tar',
+                    '-C',
+                    f'/Library/Frameworks/Python.framework/Versions/{version}/',
+                    '-xmf',
+                    '/tmp/python-patch.tar.gz',
+                ]
+            )
 
-        call(["sudo", str(installation_bin_path/python_executable), str(install_certifi_script)])
+        call(["sudo", str(installation_bin_path / python_executable), str(install_certifi_script)])
 
     pip_executable = 'pip3' if version[0] == '3' else 'pip'
     make_symlinks(installation_bin_path, python_executable, pip_executable)
@@ -157,7 +191,7 @@ def install_pypy(version: str, url: str) -> Path:
     pypy_tar_bz2 = url.rsplit('/', 1)[-1]
     extension = ".tar.bz2"
     assert pypy_tar_bz2.endswith(extension)
-    pypy_base_filename = pypy_tar_bz2[:-len(extension)]
+    pypy_base_filename = pypy_tar_bz2[: -len(extension)]
     installation_path = Path('/tmp') / pypy_base_filename
     if not installation_path.exists():
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
@@ -176,14 +210,18 @@ def install_pypy(version: str, url: str) -> Path:
     return installation_bin_path
 
 
-def setup_python(python_configuration: PythonConfiguration,
-                 dependency_constraint_flags: Sequence[PathOrStr],
-                 environment: ParsedEnvironment) -> Dict[str, str]:
+def setup_python(
+    python_configuration: PythonConfiguration,
+    dependency_constraint_flags: Sequence[PathOrStr],
+    environment: ParsedEnvironment,
+) -> Dict[str, str]:
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f'Installing Python {implementation_id}...')
 
     if implementation_id.startswith('cp'):
-        installation_bin_path = install_cpython(python_configuration.version, python_configuration.url)
+        installation_bin_path = install_cpython(
+            python_configuration.version, python_configuration.url
+        )
     elif implementation_id.startswith('pp'):
         installation_bin_path = install_pypy(python_configuration.version, python_configuration.url)
     else:
@@ -192,11 +230,13 @@ def setup_python(python_configuration: PythonConfiguration,
     log.step('Setting up build environment...')
 
     env = os.environ.copy()
-    env['PATH'] = os.pathsep.join([
-        str(SYMLINKS_DIR),
-        str(installation_bin_path),
-        env['PATH'],
-    ])
+    env['PATH'] = os.pathsep.join(
+        [
+            str(SYMLINKS_DIR),
+            str(installation_bin_path),
+            env['PATH'],
+        ]
+    )
 
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
     # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
@@ -213,9 +253,14 @@ def setup_python(python_configuration: PythonConfiguration,
     # check what version we're on
     call(['which', 'python'], env=env)
     call(['python', '--version'], env=env)
-    which_python = subprocess.run(['which', 'python'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.strip()
+    which_python = subprocess.run(
+        ['which', 'python'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE
+    ).stdout.strip()
     if which_python != '/tmp/cibw_bin/python':
-        print("cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.", file=sys.stderr)
+        print(
+            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     # install pip & wheel
@@ -223,9 +268,14 @@ def setup_python(python_configuration: PythonConfiguration,
     assert (installation_bin_path / 'pip').exists()
     call(['which', 'pip'], env=env)
     call(['pip', '--version'], env=env)
-    which_pip = subprocess.run(['which', 'pip'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE).stdout.strip()
+    which_pip = subprocess.run(
+        ['which', 'pip'], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE
+    ).stdout.strip()
     if which_pip != '/tmp/cibw_bin/pip':
-        print("cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.", file=sys.stderr)
+        print(
+            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
@@ -271,15 +321,30 @@ def setup_python(python_configuration: PythonConfiguration,
         arm64_compatible_sdks = [s for s in sdks if not s.startswith('macosx10.')]
 
         if not arm64_compatible_sdks:
-            log.warning(unwrap('''
+            log.warning(
+                unwrap(
+                    '''
                     SDK for building arm64-compatible wheels not found. You need Xcode 12.2 or later
                     to build universal2 or arm64 wheels.
-                '''))
+                '''
+                )
+            )
         else:
             env.setdefault('SDKROOT', arm64_compatible_sdks[0])
 
     log.step('Installing build tools...')
-    call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
+    call(
+        [
+            'pip',
+            'install',
+            '--upgrade',
+            'setuptools',
+            'wheel',
+            'delocate',
+            *dependency_constraint_flags,
+        ],
+        env=env,
+    )
 
     return env
 
@@ -294,10 +359,14 @@ def build(options: BuildOptions) -> None:
             log.step('Running before_all...')
             env = options.environment.as_dictionary(prev_environment=os.environ)
             env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
-            before_all_prepared = prepare_command(options.before_all, project='.', package=options.package_dir)
+            before_all_prepared = prepare_command(
+                options.before_all, project='.', package=options.package_dir
+            )
             call([before_all_prepared], shell=True, env=env)
 
-        python_configurations = get_python_configurations(options.build_selector, options.architectures)
+        python_configurations = get_python_configurations(
+            options.build_selector, options.architectures
+        )
 
         for config in python_configurations:
             log.build_start(config.identifier)
@@ -308,14 +377,17 @@ def build(options: BuildOptions) -> None:
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if options.dependency_constraints:
                 dependency_constraint_flags = [
-                    '-c', options.dependency_constraints.get_for_python_version(config.version)
+                    '-c',
+                    options.dependency_constraints.get_for_python_version(config.version),
                 ]
 
             env = setup_python(config, dependency_constraint_flags, options.environment)
 
             if options.before_build:
                 log.step('Running before_build...')
-                before_build_prepared = prepare_command(options.before_build, project='.', package=options.package_dir)
+                before_build_prepared = prepare_command(
+                    options.before_build, project='.', package=options.package_dir
+                )
                 call(before_build_prepared, env=env, shell=True)
 
             log.step('Building wheel...')
@@ -325,13 +397,18 @@ def build(options: BuildOptions) -> None:
 
             # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
             # see https://github.com/joerick/cibuildwheel/pull/369
-            call([
-                'pip', 'wheel',
-                options.package_dir.resolve(),
-                '--wheel-dir', built_wheel_dir,
-                '--no-deps',
-                *get_build_verbosity_extra_flags(options.build_verbosity)
-            ], env=env)
+            call(
+                [
+                    'pip',
+                    'wheel',
+                    options.package_dir.resolve(),
+                    '--wheel-dir',
+                    built_wheel_dir,
+                    '--no-deps',
+                    *get_build_verbosity_extra_flags(options.build_verbosity),
+                ],
+                env=env,
+            )
 
             built_wheel = next(built_wheel_dir.glob('*.whl'))
 
@@ -385,27 +462,39 @@ def build(options: BuildOptions) -> None:
 
                     if machine_arch == 'x86_64' and testing_arch == 'arm64':
                         if config_is_arm64:
-                            log.warning(unwrap('''
+                            log.warning(
+                                unwrap(
+                                    '''
                                 While arm64 wheels can be built on x86_64, they cannot be tested. The
                                 ability to test the arm64 wheels will be added in a future release of
                                 cibuildwheel, once Apple Silicon CI runners are widely available. To
                                 silence this warning, set `CIBW_TEST_SKIP: *-macosx_arm64`.
-                            '''))
+                            '''
+                                )
+                            )
                         elif config_is_universal2:
-                            log.warning(unwrap('''
+                            log.warning(
+                                unwrap(
+                                    '''
                                 While universal2 wheels can be built on x86_64, the arm64 part of them
                                 cannot currently be tested. The ability to test the arm64 part of a
                                 universal2 wheel will be added in a future release of cibuildwheel, once
                                 Apple Silicon CI runners are widely available. To silence this warning,
                                 set `CIBW_TEST_SKIP: *-macosx_universal2:arm64`.
-                            '''))
+                            '''
+                                )
+                            )
                         else:
                             raise RuntimeError('unreachable')
 
                         # skip this test
                         continue
 
-                    log.step('Testing wheel...' if testing_arch == machine_arch else f'Testing wheel on {testing_arch}...')
+                    log.step(
+                        'Testing wheel...'
+                        if testing_arch == machine_arch
+                        else f'Testing wheel on {testing_arch}...'
+                    )
 
                     # set up a virtual environment to install and test from, to make sure
                     # there are no dependencies that were pulled in at build time.
@@ -418,7 +507,9 @@ def build(options: BuildOptions) -> None:
                             # rosetta2 will provide the emulation with just the arch prefix.
                             arch_prefix = ['arch', '-x86_64']
                         else:
-                            raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
+                            raise RuntimeError(
+                                "don't know how to emulate {testing_arch} on {machine_arch}"
+                            )
 
                     # define a custom 'call' function that adds the arch prefix each time
                     def call_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> None:
@@ -430,27 +521,38 @@ def build(options: BuildOptions) -> None:
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv
-                    call_with_arch(['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env)
+                    call_with_arch(
+                        ['python', '-m', 'virtualenv', '--no-download', venv_dir], env=env
+                    )
 
                     virtualenv_env = env.copy()
-                    virtualenv_env['PATH'] = os.pathsep.join([
-                        str(venv_dir / 'bin'),
-                        virtualenv_env['PATH'],
-                    ])
+                    virtualenv_env['PATH'] = os.pathsep.join(
+                        [
+                            str(venv_dir / 'bin'),
+                            virtualenv_env['PATH'],
+                        ]
+                    )
 
                     # check that we are using the Python from the virtual environment
                     call_with_arch(['which', 'python'], env=virtualenv_env)
 
                     if options.before_test:
-                        before_test_prepared = prepare_command(options.before_test, project='.', package=options.package_dir)
+                        before_test_prepared = prepare_command(
+                            options.before_test, project='.', package=options.package_dir
+                        )
                         call_with_arch(before_test_prepared, env=virtualenv_env, shell=True)
 
                     # install the wheel
-                    call_with_arch(['pip', 'install', f"{repaired_wheel}{options.test_extras}"], env=virtualenv_env)
+                    call_with_arch(
+                        ['pip', 'install', f"{repaired_wheel}{options.test_extras}"],
+                        env=virtualenv_env,
+                    )
 
                     # test the wheel
                     if options.test_requires:
-                        call_with_arch(['pip', 'install'] + options.test_requires, env=virtualenv_env)
+                        call_with_arch(
+                            ['pip', 'install'] + options.test_requires, env=virtualenv_env
+                        )
 
                     # run the tests from $HOME, with an absolute path in the command
                     # (this ensures that Python runs the tests against the installed wheel
@@ -458,9 +560,14 @@ def build(options: BuildOptions) -> None:
                     test_command_prepared = prepare_command(
                         options.test_command,
                         project=Path('.').resolve(),
-                        package=options.package_dir.resolve()
+                        package=options.package_dir.resolve(),
                     )
-                    call_with_arch(test_command_prepared, cwd=os.environ['HOME'], env=virtualenv_env, shell=True)
+                    call_with_arch(
+                        test_command_prepared,
+                        cwd=os.environ['HOME'],
+                        env=virtualenv_env,
+                        shell=True,
+                    )
 
                     # clean up
                     shutil.rmtree(venv_dir)
@@ -469,5 +576,7 @@ def build(options: BuildOptions) -> None:
             shutil.move(str(repaired_wheel), options.output_dir)
             log.build_end()
     except subprocess.CalledProcessError as error:
-        log.step_end_with_error(f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}')
+        log.step_end_with_error(
+            f'Command {error.cmd} failed with code {error.returncode}. {error.stdout}'
+        )
         sys.exit(1)
