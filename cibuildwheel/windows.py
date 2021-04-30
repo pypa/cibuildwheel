@@ -44,7 +44,12 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
     python_name = 'python' if version[0] == '3' else 'python2'
     if arch == '32':
         python_name += 'x86'
-    return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
+    return [
+        python_name,
+        '-Version', version,
+        '-FallbackSource', 'https://api.nuget.org/v3/index.json',
+        '-OutputDirectory', 'C:\\cibw\\python',
+    ]
 
 
 class PythonConfiguration(NamedTuple):
