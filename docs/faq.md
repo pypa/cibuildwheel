@@ -136,6 +136,36 @@ Here's an example GitHub Actions workflow with a job that builds for Apple Silic
 {% include "../examples/github-apple-silicon.yml" %}
 ```
 
+### Windows and Python 2.7
+
+Building 2.7 extensions on Windows is difficult, because the VS 2008 compiler that was used for the original Python compilation was discontinued in 2018, and has since been removed from Microsoft's downloads. Most people choose to not build Windows 2.7 wheels, or to override the compiler to something more modern.
+
+To override, you need to have a modern compiler toolchain activated, and set `DISTUTILS_USE_SDK=1` and `MSSdk=1`. For example, on GitHub Actions, you would add these steps:
+
+```yaml
+    - name: Prepare compiler environment for Windows
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Set Windows environment variables
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        echo "DISTUTILS_USE_SDK=1" >> $GITHUB_ENV
+        echo "MSSdk=1" >> $GITHUB_ENV
+
+    # invoke cibuildwheel...
+```
+
+cibuildwheel will not try to build 2.7 on Windows unless it detects that the above two variables are set. Note that changing to a more modern compiler will mean your wheel picks up a runtime dependency to a different [Visual C++ Redistributable][]. You also need to be [a bit careful][] in designing your extension; some major binding tools like pybind11 do this for you.
+
+More on setting a custom Windows toolchain in our docs on modern C++ standards [here](cpp_standards.md#windows-and-python-27).
+
+[Visual C++ Redistributable]: https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0
+[a bit careful]: https://pybind11.readthedocs.io/en/stable/faq.html#working-with-ancient-visual-studio-2008-builds-on-windows
+
 ### Building packages with optional C extensions
 
 `cibuildwheel` defines the environment variable `CIBUILDWHEEL` to the value `1` allowing projects for which the C extension is optional to make it mandatory when building wheels.
