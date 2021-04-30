@@ -299,7 +299,7 @@ def build(options: BuildOptions) -> None:
                     before_test_prepared = prepare_command(
                         options.before_test,
                         project='.',
-                        package=options.package_dir
+                        package=options.package_dir,
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
@@ -316,7 +316,7 @@ def build(options: BuildOptions) -> None:
                 test_command_prepared = prepare_command(
                     options.test_command,
                     project=Path('.').resolve(),
-                    package=options.package_dir.resolve()
+                    package=options.package_dir.resolve(),
                 )
                 shell(test_command_prepared, cwd='c:\\', env=virtualenv_env)
 

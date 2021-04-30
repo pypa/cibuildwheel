@@ -31,7 +31,7 @@ class PythonConfiguration(NamedTuple):
 
 def get_python_configurations(
     build_selector: BuildSelector,
-    architectures: Set[Architecture]
+    architectures: Set[Architecture],
 ) -> List[PythonConfiguration]:
 
     full_python_configs = read_python_configs('linux')
@@ -159,7 +159,7 @@ def build(options: BuildOptions) -> None:
                     docker.call([
                         'pip', 'wheel',
                         container_package_dir,
-                        '-w', built_wheel_dir,
+                        '--wheel-dir', built_wheel_dir,
                         '--no-deps',
                         *get_build_verbosity_extra_flags(options.build_verbosity)
                     ], env=env)
