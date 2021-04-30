@@ -123,12 +123,10 @@ def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
     main()
     build_options = intercepted_build_args.args[0]
 
-    if platform == 'linux':
+    if platform in {'linux', 'macos'}:
         assert build_options.architectures == {Architecture.x86_64}
     elif platform == 'windows':
         assert build_options.architectures == {Architecture.AMD64}
-    elif platform == 'macos':
-        assert build_options.architectures == {Architecture.x86_64}
 
 
 def test_archs_platform_auto64(platform, intercepted_build_args, monkeypatch):
@@ -137,12 +135,10 @@ def test_archs_platform_auto64(platform, intercepted_build_args, monkeypatch):
     main()
     build_options = intercepted_build_args.args[0]
 
-    if platform == 'linux':
+    if platform in {'linux', 'macos'}:
         assert build_options.architectures == {Architecture.x86_64}
     elif platform == 'windows':
         assert build_options.architectures == {Architecture.AMD64}
-    elif platform == 'macos':
-        assert build_options.architectures == {Architecture.x86_64}
 
 
 def test_archs_platform_auto32(platform, intercepted_build_args, monkeypatch):

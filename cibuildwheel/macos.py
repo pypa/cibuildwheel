@@ -233,6 +233,9 @@ def setup_python(python_configuration: PythonConfiguration,
     # inconsistencies if it's left unset.
     env.setdefault('MACOSX_DEPLOYMENT_TARGET', '10.9')
 
+    config_is_arm64 = python_configuration.identifier.endswith('arm64')
+    config_is_universal2 = python_configuration.identifier.endswith('universal2')
+
     if python_configuration.version == '3.5':
         # Cross-compilation platform override - CPython 3.5 has an
         # i386/x86_64 version of Python, but we only want a x64_64 build
@@ -246,34 +249,34 @@ def setup_python(python_configuration: PythonConfiguration,
             # compatible back to 10.9.
             env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-10.9-x86_64')
             env.setdefault('ARCHFLAGS', '-arch x86_64')
-        elif python_configuration.identifier.endswith('arm64'):
+        elif config_is_arm64:
             # macOS 11 is the first OS with arm64 support, so the wheels
             # have that as a minimum.
             env.setdefault('_PYTHON_HOST_PLATFORM', 'macosx-11.0-arm64')
             env.setdefault('ARCHFLAGS', '-arch arm64')
-        elif python_configuration.identifier.endswith('universal2'):
+        elif config_is_universal2:
             if get_macos_version() < (10, 16):
                 # we can do universal2 builds on macos 10.15, but we need to
                 # set ARCHFLAGS otherwise CPython sets it to `-arch x86_64`
                 env.setdefault('ARCHFLAGS', '-arch arm64 -arch x86_64')
 
-    if python_configuration.identifier.endswith('arm64') or python_configuration.identifier.endswith('universal2'):
-        if get_macos_version() < (10, 16) and 'SDKROOT' not in env:
-            # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
-            # needs the correct SDK selected.
-            sdks = get_macos_sdks()
+    building_arm64 = config_is_arm64 or config_is_universal2
+    if building_arm64 and get_macos_version() < (10, 16) and 'SDKROOT' not in env:
+        # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
+        # needs the correct SDK selected.
+        sdks = get_macos_sdks()
 
-            # Different versions of Xcode contain different SDK versions...
-            # we're happy with anything newer than macOS 11.0
-            arm64_compatible_sdks = [s for s in sdks if not s.startswith('macosx10.')]
+        # Different versions of Xcode contain different SDK versions...
+        # we're happy with anything newer than macOS 11.0
+        arm64_compatible_sdks = [s for s in sdks if not s.startswith('macosx10.')]
 
-            if not arm64_compatible_sdks:
-                log.warning(unwrap('''
+        if not arm64_compatible_sdks:
+            log.warning(unwrap('''
                     SDK for building arm64-compatible wheels not found. You need Xcode 12.2 or later
                     to build universal2 or arm64 wheels.
                 '''))
-            else:
-                env.setdefault('SDKROOT', arm64_compatible_sdks[0])
+        else:
+            env.setdefault('SDKROOT', arm64_compatible_sdks[0])
 
     log.step('Installing build tools...')
     call(['pip', 'install', '--upgrade', 'setuptools', 'wheel', 'delocate', *dependency_constraint_flags], env=env)
@@ -299,6 +302,9 @@ def build(options: BuildOptions) -> None:
         for config in python_configurations:
             log.build_start(config.identifier)
 
+            config_is_arm64 = config.identifier.endswith('arm64')
+            config_is_universal2 = config.identifier.endswith('universal2')
+
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if options.dependency_constraints:
                 dependency_constraint_flags = [
@@ -322,7 +328,7 @@ def build(options: BuildOptions) -> None:
             call([
                 'pip', 'wheel',
                 options.package_dir.resolve(),
-                '-w', built_wheel_dir,
+                '--wheel-dir', built_wheel_dir,
                 '--no-deps',
                 *get_build_verbosity_extra_flags(options.build_verbosity)
             ], env=env)
@@ -339,9 +345,9 @@ def build(options: BuildOptions) -> None:
             if options.repair_command:
                 log.step('Repairing wheel...')
 
-                if config.identifier.endswith('universal2'):
+                if config_is_universal2:
                     delocate_archs = 'x86_64,arm64'
-                elif config.identifier.endswith('arm64'):
+                elif config_is_arm64:
                     delocate_archs = 'arm64'
                 else:
                     delocate_archs = 'x86_64'
@@ -364,28 +370,28 @@ def build(options: BuildOptions) -> None:
                 machine_arch = platform.machine()
                 testing_archs: List[Literal['x86_64', 'arm64']] = []
 
-                if config.identifier.endswith('_arm64'):
+                if config_is_arm64:
                     testing_archs = ['arm64']
-                elif config.identifier.endswith('_universal2'):
+                elif config_is_universal2:
                     testing_archs = ['x86_64', 'arm64']
                 else:
                     testing_archs = ['x86_64']
 
                 for testing_arch in testing_archs:
-                    if config.identifier.endswith('_universal2'):
+                    if config_is_universal2:
                         arch_specific_identifier = f'{config.identifier}:{testing_arch}'
                         if not options.test_selector(arch_specific_identifier):
                             continue
 
                     if machine_arch == 'x86_64' and testing_arch == 'arm64':
-                        if config.identifier.endswith('_arm64'):
+                        if config_is_arm64:
                             log.warning(unwrap('''
                                 While arm64 wheels can be built on x86_64, they cannot be tested. The
                                 ability to test the arm64 wheels will be added in a future release of
                                 cibuildwheel, once Apple Silicon CI runners are widely available. To
                                 silence this warning, set `CIBW_TEST_SKIP: *-macosx_arm64`.
                             '''))
-                        elif config.identifier.endswith('_universal2'):
+                        elif config_is_universal2:
                             log.warning(unwrap('''
                                 While universal2 wheels can be built on x86_64, the arm64 part of them
                                 cannot currently be tested. The ability to test the arm64 part of a
@@ -440,7 +446,7 @@ def build(options: BuildOptions) -> None:
                         call_with_arch(before_test_prepared, env=virtualenv_env, shell=True)
 
                     # install the wheel
-                    call_with_arch(['pip', 'install', str(repaired_wheel) + options.test_extras], env=virtualenv_env)
+                    call_with_arch(['pip', 'install', f"{repaired_wheel}{options.test_extras}"], env=virtualenv_env)
 
                     # test the wheel
                     if options.test_requires:

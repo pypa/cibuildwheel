@@ -58,9 +58,8 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
 
         if part_string not in value:
             raise RuntimeError(
-                'bash parse failed. part "{}" not found in "{}". Word was "{}". Full input was "{}"'.format(
-                    part_string, value, node.word, context.input,
-                )
+                f'bash parse failed. part "{part_string}" not found in "{value}". '
+                f'Word was "{node.word}". Full input was "{context.input}"'
             )
 
         value = value.replace(part_string, part_value, 1)
@@ -85,9 +84,7 @@ def evaluate_nodes_as_compound_command(nodes: Sequence[bashlex.ast.node], contex
         if node.kind == 'command':
             result += evaluate_command_node(node, context=context)
         elif node.kind == 'operator':
-            if node.op == ';':
-                pass
-            else:
+            if node.op != ';':
                 raise ValueError(f'Unsupported bash operator: "{node.op}"')
         else:
             raise ValueError(f'Unsupported bash node in compound command: "{node.kind}"')

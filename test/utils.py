@@ -12,7 +12,18 @@ import sys
 from contextlib import contextmanager
 from tempfile import mkdtemp
 
-IS_WINDOWS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
+platform: str
+
+if 'CIBW_PLATFORM' in os.environ:
+    platform = os.environ['CIBW_PLATFORM']
+elif sys.platform.startswith('linux'):
+    platform = 'linux'
+elif sys.platform.startswith('darwin'):
+    platform = 'macos'
+elif sys.platform in ['win32', 'cygwin']:
+    platform = 'windows'
+else:
+    raise Exception('Unsupported platform')
 
 
 # Python 2 does not have a tempfile.TemporaryDirectory context manager
@@ -91,7 +102,7 @@ def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
 
 def expected_wheels(package_name, package_version, manylinux_versions=None,
                     macosx_deployment_target='10.9', machine_arch=None, *,
-                    exclude_27=IS_WINDOWS_RUNNING_ON_TRAVIS):
+                    exclude_27=platform == 'windows'):
     '''
     Returns a list of expected wheels from a run of cibuildwheel.
     '''
@@ -187,17 +198,3 @@ def get_macos_version():
     '''
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))
-
-
-platform = None
-
-if 'CIBW_PLATFORM' in os.environ:
-    platform = os.environ['CIBW_PLATFORM']
-elif sys.platform.startswith('linux'):
-    platform = 'linux'
-elif sys.platform.startswith('darwin'):
-    platform = 'macos'
-elif sys.platform in ['win32', 'cygwin']:
-    platform = 'windows'
-else:
-    raise Exception('Unsupported platform')

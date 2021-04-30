@@ -29,7 +29,7 @@ pathlib2==2.3.5
     #   virtualenv
 scandir==1.10.0
     # via pathlib2
-singledispatch==3.6.0
+singledispatch==3.6.1
     # via importlib-resources
 six==1.15.0
     # via
@@ -37,7 +37,7 @@ six==1.15.0
     #   virtualenv
 typing==3.7.4.3
     # via importlib-resources
-virtualenv==20.4.2
+virtualenv==20.4.3
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.36.2
     # via

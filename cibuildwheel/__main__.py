@@ -73,19 +73,22 @@ def main() -> None:
                             Python. Default: auto.
                         ''')
 
+    arch_list_str = ", ".join(a.name for a in Architecture)
     parser.add_argument('--archs',
                         default=None,
-                        help='''
+                        help=f'''
                             Comma-separated list of CPU architectures to build for.
                             When set to 'auto', builds the architectures natively supported
                             on this machine. Set this option to build an architecture
                             via emulation, for example, using binfmt_misc and QEMU.
                             Default: auto.
-                            Choices: auto, auto64, auto32, native, all, {}
-                        '''.format(", ".join(a.name for a in Architecture)))
+                            Choices: auto, auto64, auto32, native, all, {arch_list_str}
+                        ''')
+
     parser.add_argument('--output-dir',
                         default=os.environ.get('CIBW_OUTPUT_DIR', 'wheelhouse'),
                         help='Destination folder for the wheels.')
+
     parser.add_argument('package_dir',
                         default='.',
                         nargs='?',
@@ -99,6 +102,7 @@ def main() -> None:
     parser.add_argument('--print-build-identifiers',
                         action='store_true',
                         help='Print the build identifiers matched by the current invocation and exit.')
+
     parser.add_argument('--allow-empty',
                         action='store_true',
                         help='Do not report an error code if the build does not match any wheels.')
@@ -367,9 +371,13 @@ def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:
     for option_name in ['test_command', 'before_build']:
         option_value = getattr(build_options, option_name)
 
-        if option_value:
-            if '{python}' in option_value or '{pip}' in option_value:
-                warnings.append(option_name + ": '{python}' and '{pip}' are no longer needed, and will be removed in a future release. Simply use 'python' or 'pip' instead.")
+        if option_value and ('{python}' in option_value or '{pip}' in option_value):
+            # Reminder: in an f-string, double braces means literal single brace
+            msg = (
+                f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
+                "and will be removed in a future release. Simply use 'python' or 'pip' instead."
+            )
+            warnings.append(msg)
 
     return warnings
 

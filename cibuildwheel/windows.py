@@ -25,7 +25,6 @@ from .util import (
 )
 
 IS_RUNNING_ON_AZURE = Path('C:\\hostedtoolcache').exists()
-IS_RUNNING_ON_TRAVIS = os.environ.get('TRAVIS_OS_NAME') == 'windows'
 
 
 def call(args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None,
@@ -44,7 +43,7 @@ def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str]
 def get_nuget_args(version: str, arch: str) -> List[str]:
     python_name = 'python' if version[0] == '3' else 'python2'
     if arch == '32':
-        python_name = python_name + 'x86'
+        python_name += 'x86'
     return [python_name, '-Version', version, '-OutputDirectory', 'C:\\cibw\\python']
 
 
@@ -69,10 +68,9 @@ def get_python_configurations(
         '64': Architecture.AMD64,
     }
 
+    # Only supported with custom compiler, since MS removed the 2008 compiler download
     custom_compiler = os.environ.get('DISTUTILS_USE_SDK') and os.environ.get('MSSdk')
-    if IS_RUNNING_ON_TRAVIS and not custom_compiler:
-        # cannot install VCForPython27.msi which is needed for compiling C software
-        # try with (and similar): msiexec /i VCForPython27.msi ALLUSERS=1 ACCEPT=YES /passive
+    if not custom_compiler:
         python_configurations = [c for c in python_configurations if not c.version.startswith('2.7')]
 
     # skip builds as required
@@ -295,13 +293,13 @@ def build(options: BuildOptions) -> None:
                 ])
 
                 # check that we are using the Python from the virtual environment
-                call(['which', 'python'], env=virtualenv_env)
+                call(['where', 'python'], env=virtualenv_env)
 
                 if options.before_test:
                     before_test_prepared = prepare_command(
                         options.before_test,
                         project='.',
-                        package=options.package_dir
+                        package=options.package_dir,
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
@@ -318,7 +316,7 @@ def build(options: BuildOptions) -> None:
                 test_command_prepared = prepare_command(
                     options.test_command,
                     project=Path('.').resolve(),
-                    package=options.package_dir.resolve()
+                    package=options.package_dir.resolve(),
                 )
                 shell(test_command_prepared, cwd='c:\\', env=virtualenv_env)
 

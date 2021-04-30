@@ -31,7 +31,7 @@ def test(tmp_path):
         # write python version information to a temporary file, this is
         # checked in setup.py
         'CIBW_BEFORE_ALL': before_all_command,
-        'CIBW_BEFORE_ALL_LINUX': before_all_command + ''' && python -c "import sys; assert sys.version_info >= (3, 6)"''',
+        'CIBW_BEFORE_ALL_LINUX': f'{before_all_command} && python -c "import sys; assert sys.version_info >= (3, 6)"',
         'CIBW_ENVIRONMENT': "TEST_VAL='123'"
     })
 

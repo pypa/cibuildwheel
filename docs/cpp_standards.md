@@ -30,11 +30,11 @@ For more details see https://en.cppreference.com/w/cpp/compiler_support, https:/
 
 ## Windows and Python 2.7
 
-In previous years, Microsoft distributed a compiler toolchain called 'Visual C++ for Python 2.7', which was a distribution of MSVC 9 that was created to make it easier to build Python 2.7 extensions on Windows, because it was fully compatible with the toolchain that built Python 2.7.
+In previous years, Microsoft distributed a compiler toolchain called 'Visual C++ for Python 2.7', which was a distribution of MSVC 2008 that was created to make it easier to build Python 2.7 extensions on Windows, because it was fully compatible with the toolchain that built Python 2.7.
 
-This toolchain does not support modern C++ standards (i.e., C++11 and later). And it is hard to find this toolchain these days, since Microsoft have stopped distributing it. So, by default, cibuildwheel does not attempt to build Python 2.7 extensions on Windows.
+This toolchain does not support modern C++ standards (i.e., C++11 and later). And it is hard to find this toolchain these days, since Microsoft removed the download for the required Visual Studio 2008 needed to build a native extension in April, 2021. So, by default, cibuildwheel does not attempt to build Python 2.7 extensions on Windows.
 
-There is an optional workaround for this, though: the pybind11 project argues and shows that it is [possible to compile Python 2.7 extension with a newer compiler](https://pybind11.readthedocs.io/en/stable/faq.html#working-with-ancient-visual-studio-2008-builds-on-windows) and has an example project showing how to do this: https://github.com/pybind/python_example. The main catch is that a user might need to install [a newer "Microsoft Visual C++ Redistributable"](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads), since the newer C++ standard library's binaries are not included by default with the Python 2.7 installation.
+There is an optional workaround, though: the pybind11 project argues and shows that it is [possible to compile Python 2.7 extension with a newer compiler](https://pybind11.readthedocs.io/en/stable/faq.html#working-with-ancient-visual-studio-2008-builds-on-windows) and has an example project showing how to do this: https://github.com/pybind/python_example. The main catch is that a user might need to install [a newer "Microsoft Visual C++ Redistributable"](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads), since the newer C++ standard library's binaries are not included by default with the Python 2.7 installation.
 
 Forcing `distutils` or `setuptools` to use a more recent version of MSVC that supports modern C++ can be done in the following way:
 

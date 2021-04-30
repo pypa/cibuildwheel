@@ -2,6 +2,7 @@
 # name: required, printed name
 # gh: GitHub repo (eventually a url: could be added for non-github projects)
 # stars: GitHub repo (optional, if different from package, such as for Twisted)
+# pypi: The pypi name, if different from the GitHub package name
 # os: Operating system list, [windows, apple, linux] (optional)
 # ci: [appveyor, github, azurepipelines, circleci, gitlab, travisci] (optional)
 # notes: (text, optional)
@@ -29,6 +30,7 @@
 
 - name: Parselmouth
   gh: YannickJadoul/Parselmouth
+  pypi: praat-parselmouth
   notes: A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels.
   ci: [github]
   os: [windows, apple, linux]
@@ -82,6 +84,7 @@
 
 - name: PyAV
   gh: PyAV-Org/PyAV
+  pypi: av
   ci: [github]
   os: [windows, apple, linux]
   notes: Pythonic bindings for FFmpeg's libraries.
@@ -109,6 +112,7 @@
 
 - name: etebase-py
   gh: etesync/etebase-py
+  pypi: etebase
   notes: Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed.
   ci: [travisci]
   os: [linux]
@@ -175,6 +179,7 @@
 
 - name: jq.py
   gh: mwilliamson/jq.py
+  pypi: jq
   ci: [travisci]
   os: [apple, linux]
 
@@ -226,6 +231,7 @@
 
 - name: Dependency Injector
   gh: ets-labs/python-dependency-injector
+  pypi: dependency-injector
   ci: [travisci]
   os: [windows, apple, linux]
   notes: Dependency injection framework for Python, uses Windows TravisCI
@@ -237,11 +243,13 @@
 
 - name: PyTables
   gh: PyTables/PyTables
+  pypi: tables
   ci: [github]
   os: [windows, apple, linux]
 
 - name: dd-trace-py
   gh: DataDog/dd-trace-py
+  pypi: ddtrace
   ci: [github]
   os: [windows, apple, linux]
   notes: Uses custom alternate arch emulation on GitHub
@@ -270,6 +278,7 @@
 - name: MyPy
   gh: mypyc/mypy_mypyc-wheels
   stars: python/mypy
+  pypi: mypy
   ci: [github]
   os: [apple, linux, windows]
   notes: MyPyC, the compiled component of MyPy.
@@ -277,6 +286,7 @@
 - name: Imagecodecs (fork)
   gh: czaki/imagecodecs_build
   stars: cgohlke/imagecodecs
+  pypi: imagecodecs
   ci: [azurepipelines]
   ci_config: azure-pipelines.yaml
   os: [apple, linux]
@@ -293,3 +303,24 @@
   ci: [github]
   os: [apple, linux, windows]
   notes: Time mocking library using only the CPython C API.
+
+- name: polaroid
+  gh: daggy1234/polaroid
+  ci: [github]
+  os: [apple, linux, windows]
+  notes: Full range of wheels for setuptools rust, with auto release and PyPI deploy.
+
+- name: python-snappy
+  gh: andrix/python-snappy
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: sourmash
+  gh: dib-lab/sourmash
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: markupsafe
+  gh: pallets/markupsafe
+  ci: [github]
+  os: [apple, linux, windows]

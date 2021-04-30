@@ -21,6 +21,7 @@ jobs:
 
   test:
     name: Test cibuildwheel on ${{ matrix.os }}
+    needs: pre-commit
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -37,11 +38,6 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install -e ".[dev]"
-
-    - name: Install Visual C++ for Python 2.7
-      if: runner.os == 'Windows'
-      run: |
-        choco install vcpython27 -f -y
 
     - name: Get PR labels
       id: pr-labels
@@ -70,6 +66,7 @@ jobs:
 
   test-emulated:
     name: Test emulated cibuildwheel using qemu
+    needs: pre-commit
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:

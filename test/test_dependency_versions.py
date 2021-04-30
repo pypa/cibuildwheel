@@ -40,11 +40,10 @@ VERSION_REGEX = r'([\w-]+)==([^\s]+)'
 def get_versions_from_constraint_file(constraint_file):
     constraint_file_text = constraint_file.read_text(encoding='utf8')
 
-    versions = {}
-    for package, version in re.findall(VERSION_REGEX, constraint_file_text):
-        versions[package] = version
-
-    return versions
+    return {
+        package: version
+        for package, version in re.findall(VERSION_REGEX, constraint_file_text)
+    }
 
 
 @pytest.mark.parametrize('python_version', ['2.7', '3.5', '3.6', '3.8'])
@@ -52,8 +51,8 @@ def test_pinned_versions(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    if utils.IS_WINDOWS_RUNNING_ON_TRAVIS and python_version == '2.7':
-        pytest.skip('Windows + Travis CI requires a workaround')
+    if utils.platform == 'windows' and python_version == '2.7':
+        pytest.skip('Windows requires a workaround')
 
     is_running_on_macos_11_or_later = (
         utils.platform == 'macos' and utils.get_macos_version() >= (10, 16)
@@ -91,7 +90,7 @@ def test_pinned_versions(tmp_path, python_version):
         build_environment[env_name] = constraint_versions[package]
 
     cibw_environment_option = ' '.join(
-        [f'{k}={v}' for k, v in build_environment.items()]
+        f'{k}={v}' for k, v in build_environment.items()
     )
 
     # build and test the wheels
@@ -124,7 +123,7 @@ def test_dependency_constraints_file(tmp_path, python_version):
     if utils.platform == 'linux':
         pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
 
-    if utils.IS_WINDOWS_RUNNING_ON_TRAVIS and python_version == '2.7':
+    if utils.platform == 'windows' and python_version == '2.7':
         pytest.skip('Windows + Travis CI requires a workaround')
 
     project_dir = tmp_path / 'project'
@@ -154,7 +153,7 @@ def test_dependency_constraints_file(tmp_path, python_version):
         build_environment[env_name] = version
 
     cibw_environment_option = ' '.join(
-        [f'{k}={v}' for k, v in build_environment.items()]
+        f'{k}={v}' for k, v in build_environment.items()
     )
 
     # build and test the wheels

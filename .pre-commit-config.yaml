@@ -6,21 +6,29 @@ repos:
   - id: check-case-conflict
   - id: check-merge-conflict
   - id: check-yaml
+  - id: check-toml
+  - id: debug-statements
   - id: end-of-file-fixer
     exclude: (cibuildwheel/resources/pinned_docker_images.cfg)|(.svg$)
   - id: mixed-line-ending
   - id: trailing-whitespace
 
 - repo: https://github.com/PyCQA/isort
-  rev: 5.7.0
+  rev: 5.8.0
   hooks:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 20.8b1
+  rev: 21.4b1
   hooks:
   - id: black
     files: ^bin/update_pythons.py|setup.py$
+
+- repo: https://github.com/asottile/setup-cfg-fmt
+  rev: v1.17.0
+  hooks:
+  - id: setup-cfg-fmt
+    stages: [manual]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v0.812
@@ -36,20 +44,24 @@ repos:
     args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.10.0
+  rev: v2.13.0
   hooks:
   - id: pyupgrade
+    name: PyUpgrade 3.6+
     args: ["--py36-plus"]
+    exclude: ^bin/
+  - id: pyupgrade
+    name: PyUpgrade 3.7+ on bin
+    exclude: ^(cibuildwheel|unit_test|test)/
+    args: ["--py37-plus"]
 
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.8.4
+- repo: https://github.com/PyCQA/flake8
+  rev: 3.9.1
   hooks:
   - id: flake8
     exclude: cibuildwheel/resources/
     additional_dependencies: [flake8-bugbear]
 
-
-# The original pybind11 checks for a few C++ style items
 - repo: local
   hooks:
   - id: disallow-caps
