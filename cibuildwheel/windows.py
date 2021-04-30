@@ -47,8 +47,8 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
     return [
         python_name,
         '-Version', version,
-        '-OutputDirectory', 'C:\\cibw\\python',
         '-FallbackSource', 'https://api.nuget.org/v3/index.json',
+        '-OutputDirectory', 'C:\\cibw\\python',
     ]
 
 
