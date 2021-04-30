@@ -56,9 +56,4 @@ jobs:
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
-script: |
-  $PYTHON -c "import os, pprint; pprint.pprint(os.environ)"
-  $PYTHON -c "import os; config_path = os.environ['APPDATA']+'/NuGet/NuGet.Config'; print(open(config_path).read())"
-  ls $APPDATA
-  ls $APPDATA\NuGet
-  $PYTHON ./bin/run_tests.py
+script: $PYTHON ./bin/run_tests.py
