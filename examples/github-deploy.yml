@@ -27,7 +27,7 @@ jobs:
           python-version: '3.8'
 
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.10.1
+        uses: joerick/cibuildwheel@v1.11.0
 
       - uses: actions/upload-artifact@v2
         with:
