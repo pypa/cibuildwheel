@@ -61,7 +61,7 @@ def main():
                 'gh', 'pr', 'create',
                 '--repo=joerick/cibuildwheel',
                 '--base=master',
-                "--title='Update dependencies'",
+                "--title=Update dependencies",
                 f"--body='{body}'",
             ],
             check=True

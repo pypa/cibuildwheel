@@ -128,13 +128,13 @@ def bump_version() -> None:
     subprocess.run([
         'git', 'commit',
         '--all',
-        f"--message='Bump version: v{new_version}'",
+        f"--message=Bump version: v{new_version}",
     ], check=True)
 
     subprocess.run([
         'git', 'tag',
         '--annotate',
-        f"--message='v{new_version}'",
+        f"--message=v{new_version}",
         f'v{new_version}',
     ], check=True)
 
