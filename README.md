@@ -327,6 +327,8 @@ Changelog
 
 ### v1.11.0
 
+_1 May 2021_
+
 - 📚 Lots of docs improvements! (#650, #623, #616, #609, #606)
 - 🐛 Fix nuget "Package is not found" error on Windows. (#653)
 - ⚠️ cibuildwheel will no longer build Windows 2.7 wheels, unless you specify a custom toolchain using `DISTUTILS_USE_SDK=1` and `MSSdk=1`. This is because Microsoft have stopped distributing Visual C++ Compiler for Python 2.7. See [this FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-and-python-27) for more details. (#649)
