@@ -133,7 +133,7 @@ def expected_wheels(
         else:
             manylinux_versions = ["manylinux2014"]
 
-    python_abi_tags = ["cp35-cp35m", "cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
+    python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
 
     if machine_arch in ["x86_64", "AMD64", "x86"]:
         python_abi_tags += ["cp27-cp27m", "pp27-pypy_73", "pp36-pypy36_pp73", "pp37-pypy37_pp73"]
@@ -143,8 +143,6 @@ def expected_wheels(
 
     if platform == "macos" and get_macos_version() >= (10, 16):
         # 10.16 is sometimes reported as the macOS version on macOS 11.
-        # CPython 3.5 doesn't work on macOS 11.
-        python_abi_tags.remove("cp35-cp35m")
         # pypy not supported on macOS 11.
         python_abi_tags = [t for t in python_abi_tags if not t.startswith("pp")]
 

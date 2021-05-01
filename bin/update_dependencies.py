@@ -17,7 +17,7 @@ os.chdir("..")
 # regenerate the constraints files
 os.environ["CUSTOM_COMPILE_COMMAND"] = "bin/update_dependencies.py"
 
-PYTHON_VERSIONS = ["27", "35", "36", "37", "38", "39"]
+PYTHON_VERSIONS = ["27", "36", "37", "38", "39"]
 
 if "--no-docker" in sys.argv:
     for python_version in PYTHON_VERSIONS:

@@ -111,21 +111,6 @@ def get_python_configurations(
                 c for c in python_configurations if not c.identifier.startswith("pp")
             ]
 
-        if any(c.identifier.startswith("cp35") for c in python_configurations):
-            # CPython 3.5 doesn't work on macOS 11
-            log.warning(
-                unwrap(
-                    """
-                    CPython 3.5 is unsupported when building on macOS 11. To build CPython 3.5
-                    wheels, build on an older OS, such as macOS 10.15. To silence this warning,
-                    deselect CPython 3.5 by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
-                    """
-                )
-            )
-            python_configurations = [
-                c for c in python_configurations if not c.identifier.startswith("cp35")
-            ]
-
     return python_configurations
 
 
@@ -164,21 +149,6 @@ def install_cpython(version: str, url: str) -> Path:
         download(url, Path("/tmp/Python.pkg"))
         # install
         call(["sudo", "installer", "-pkg", "/tmp/Python.pkg", "-target", "/"])
-        # patch open ssl
-        if version == "3.5":
-            open_ssl_patch_url = f"https://github.com/mayeut/patch-macos-python-openssl/releases/download/v1.1.1h/patch-macos-python-{version}-openssl-v1.1.1h.tar.gz"
-            download(open_ssl_patch_url, Path("/tmp/python-patch.tar.gz"))
-            call(
-                [
-                    "sudo",
-                    "tar",
-                    "-C",
-                    f"/Library/Frameworks/Python.framework/Versions/{version}/",
-                    "-xmf",
-                    "/tmp/python-patch.tar.gz",
-                ]
-            )
-
         call(["sudo", str(installation_bin_path / python_executable), str(install_certifi_script)])
 
     pip_executable = "pip3" if version[0] == "3" else "pip"
@@ -279,19 +249,11 @@ def setup_python(
         sys.exit(1)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
-    # CPython 3.5 defaults to 10.6, and pypy defaults to 10.7, causing
-    # inconsistencies if it's left unset.
+    # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
     env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
 
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
-
-    if python_configuration.version == "3.5":
-        # Cross-compilation platform override - CPython 3.5 has an
-        # i386/x86_64 version of Python, but we only want a x64_64 build
-        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
-        # https://github.com/python/cpython/blob/a5ed2fe0eedefa1649aa93ee74a0bafc8e628a10/Lib/_osx_support.py#L260
-        env.setdefault("ARCHFLAGS", "-arch x86_64")
 
     if python_configuration.version == "3.9":
         if python_configuration.identifier.endswith("x86_64"):
