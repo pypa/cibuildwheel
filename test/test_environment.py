@@ -27,7 +27,7 @@ project_with_environment_asserts = test_projects.new_c_project(
             raise Exception('PATH should contain "/opt/cibw_test_path". It was "%s"' % PATH)
         if "$PATH" in PATH:
             raise Exception('$PATH should be expanded in PATH. It was "%s"' % PATH)
-    '''
+        '''
     )
 )
 

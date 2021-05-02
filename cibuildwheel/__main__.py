@@ -79,13 +79,13 @@ def main() -> None:
         choices=['auto', 'linux', 'macos', 'windows'],
         default=os.environ.get('CIBW_PLATFORM', 'auto'),
         help='''
-                            Platform to build for. For "linux" you need docker running, on Mac
-                            or Linux. For "macos", you need a Mac machine, and note that this
-                            script is going to automatically install MacPython on your system,
-                            so don't run on your development machine. For "windows", you need to
-                            run in Windows, and it will build and test for all versions of
-                            Python. Default: auto.
-                        ''',
+            Platform to build for. For "linux" you need docker running, on Mac
+            or Linux. For "macos", you need a Mac machine, and note that this
+            script is going to automatically install MacPython on your system,
+            so don't run on your development machine. For "windows", you need to
+            run in Windows, and it will build and test for all versions of
+            Python. Default: auto.
+        ''',
     )
 
     arch_list_str = ", ".join(a.name for a in Architecture)
@@ -93,13 +93,13 @@ def main() -> None:
         '--archs',
         default=None,
         help=f'''
-                            Comma-separated list of CPU architectures to build for.
-                            When set to 'auto', builds the architectures natively supported
-                            on this machine. Set this option to build an architecture
-                            via emulation, for example, using binfmt_misc and QEMU.
-                            Default: auto.
-                            Choices: auto, auto64, auto32, native, all, {arch_list_str}
-                        ''',
+            Comma-separated list of CPU architectures to build for.
+            When set to 'auto', builds the architectures natively supported
+            on this machine. Set this option to build an architecture
+            via emulation, for example, using binfmt_misc and QEMU.
+            Default: auto.
+            Choices: auto, auto64, auto32, native, all, {arch_list_str}
+        ''',
     )
 
     parser.add_argument(
@@ -113,11 +113,11 @@ def main() -> None:
         default='.',
         nargs='?',
         help='''
-                            Path to the package that you want wheels for. Must be a subdirectory of
-                            the working directory. When set, the working directory is still
-                            considered the 'project' and is copied into the Docker container on
-                            Linux. Default: the working directory.
-                        ''',
+            Path to the package that you want wheels for. Must be a subdirectory of
+            the working directory. When set, the working directory is still
+            considered the 'project' and is copied into the Docker container on
+            Linux. Default: the working directory.
+        ''',
     )
 
     parser.add_argument(
@@ -148,7 +148,7 @@ def main() -> None:
                     Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, and Gitlab are
                     supported. You can run on your development machine or other CI providers using the
                     --platform argument. Check --help output for more information.
-            '''
+                    '''
                 ),
                 file=sys.stderr,
             )
@@ -387,11 +387,11 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
     print(
         textwrap.dedent(
             '''
-             _ _       _ _   _       _           _
-         ___|_| |_ _ _|_| |_| |_ _ _| |_ ___ ___| |
-        |  _| | . | | | | | . | | | |   | -_| -_| |
-        |___|_|___|___|_|_|___|_____|_|_|___|___|_|
-        '''
+                 _ _       _ _   _       _           _
+             ___|_| |_ _ _|_| |_| |_ _ _| |_ ___ ___| |
+            |  _| | . | | | | | . | | | |   | -_| -_| |
+            |___|_|___|___|_|_|___|_____|_|_|___|___|_|
+            '''
         )
     )
 

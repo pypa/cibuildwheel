@@ -31,7 +31,7 @@ project_with_expected_version_checks = test_projects.new_c_project(
             assert '{}=={}'.format(package_name, expected_version) in versions, (
                 'error: {} version should equal {}'.format(package_name, expected_version)
             )
-    '''
+        '''
     )
 )
 
@@ -148,7 +148,7 @@ def test_dependency_constraints_file(tmp_path, python_version):
             setuptools=={setuptools}
             wheel=={wheel}
             virtualenv=={virtualenv}
-        '''.format(
+            '''.format(
                 **tool_versions
             )
         )

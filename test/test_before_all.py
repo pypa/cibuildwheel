@@ -15,7 +15,7 @@ project_with_before_build_asserts = test_projects.new_c_project(
 
         print("## stored text: " + stored_text)
         assert stored_text == "sample text 123"
-    '''
+        '''
     )
 )
 

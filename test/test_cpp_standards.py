@@ -8,7 +8,7 @@ from .test_projects import TestProject
 
 cpp_test_project = TestProject()
 
-setup_py_template = r'''\
+setup_py_template = r'''
 from setuptools import Extension, setup
 
 setup(
@@ -18,7 +18,7 @@ setup(
 )
 '''
 
-spam_cpp_template = r'''\
+spam_cpp_template = r'''
 #include <Python.h>
 
 {{ spam_cpp_top_level_add }}
