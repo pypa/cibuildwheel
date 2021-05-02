@@ -8,15 +8,15 @@ def test_read_setup_py_simple(tmp_path):
         f.write(
             dedent(
                 """
-            from setuptools import setup
+                from setuptools import setup
 
-            setup(
-                name = "hello",
-                other = 23,
-                example = ["item", "other"],
-                python_requires = "1.23",
-            )
-            """
+                setup(
+                    name = "hello",
+                    other = 23,
+                    example = ["item", "other"],
+                    python_requires = "1.23",
+                )
+                """
             )
         )
 
@@ -29,17 +29,17 @@ def test_read_setup_py_full(tmp_path):
         f.write(
             dedent(
                 """
-            import setuptools
+                import setuptools
 
-            setuptools.randomfunc()
+                setuptools.randomfunc()
 
-            setuptools.setup(
-                name = "hello",
-                other = 23,
-                example = ["item", "other"],
-                python_requires = "1.24",
-            )
-            """
+                setuptools.setup(
+                    name = "hello",
+                    other = 23,
+                    example = ["item", "other"],
+                    python_requires = "1.24",
+                )
+                """
             )
         )
 
@@ -52,17 +52,17 @@ def test_read_setup_py_assign(tmp_path):
         f.write(
             dedent(
                 """
-            from setuptools import setup
+                from setuptools import setup
 
-            REQUIRES = "3.21"
+                REQUIRES = "3.21"
 
-            setuptools.setup(
-                name = "hello",
-                other = 23,
-                example = ["item", "other"],
-                python_requires = REQUIRES,
-            )
-            """
+                setuptools.setup(
+                    name = "hello",
+                    other = 23,
+                    example = ["item", "other"],
+                    python_requires = REQUIRES,
+                )
+                """
             )
         )
 
@@ -75,17 +75,17 @@ def test_read_setup_py_None(tmp_path):
         f.write(
             dedent(
                 """
-            from setuptools import setup
+                from setuptools import setup
 
-            REQUIRES = None
+                REQUIRES = None
 
-            setuptools.setup(
-                name = "hello",
-                other = 23,
-                example = ["item", "other"],
-                python_requires = None,
-            )
-            """
+                setuptools.setup(
+                    name = "hello",
+                    other = 23,
+                    example = ["item", "other"],
+                    python_requires = None,
+                )
+                """
             )
         )
 
@@ -98,16 +98,16 @@ def test_read_setup_py_empty(tmp_path):
         f.write(
             dedent(
                 """
-            from setuptools import setup
+                from setuptools import setup
 
-            REQUIRES = "3.21"
+                REQUIRES = "3.21"
 
-            setuptools.setup(
-                name = "hello",
-                other = 23,
-                example = ["item", "other"],
-            )
-            """
+                setuptools.setup(
+                    name = "hello",
+                    other = 23,
+                    example = ["item", "other"],
+                )
+                """
             )
         )
 
@@ -120,11 +120,11 @@ def test_read_setup_cfg(tmp_path):
         f.write(
             dedent(
                 """
-            [options]
-            python_requires = 1.234
-            [metadata]
-            something = other
-            """
+                [options]
+                python_requires = 1.234
+                [metadata]
+                something = other
+                """
             )
         )
 
@@ -136,11 +136,11 @@ def test_read_setup_cfg_empty(tmp_path):
         f.write(
             dedent(
                 """
-            [options]
-            other = 1.234
-            [metadata]
-            something = other
-            """
+                [options]
+                other = 1.234
+                [metadata]
+                something = other
+                """
             )
         )
 
@@ -152,12 +152,12 @@ def test_read_pyproject_toml(tmp_path):
         f.write(
             dedent(
                 """
-            [project]
-            requires-python = "1.654"
+                [project]
+                requires-python = "1.654"
 
-            [tool.cibuildwheel]
-            something = "other"
-            """
+                [tool.cibuildwheel]
+                something = "other"
+                """
             )
         )
 
@@ -169,9 +169,9 @@ def test_read_pyproject_toml_empty(tmp_path):
         f.write(
             dedent(
                 """
-            [project]
-            other = 1.234
-            """
+                [project]
+                other = 1.234
+                """
             )
         )
 

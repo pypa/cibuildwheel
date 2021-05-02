@@ -16,7 +16,7 @@ dockcross_only_project = test_projects.new_c_project(
             raise Exception(
                 "/dockcross directory not found. Is this test running in the correct docker image?"
             )
-    '''
+        '''
     )
 )
 

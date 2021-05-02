@@ -10,7 +10,7 @@ project_with_skip_asserts = test_projects.new_c_project(
             raise Exception("Python 2.7 should not be built")
         if sys.version_info[0:2] == (3, 7):
             raise Exception("Python 3.7 should be skipped")
-    '''
+        '''
     )
 )
 

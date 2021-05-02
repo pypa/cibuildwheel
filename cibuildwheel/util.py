@@ -206,7 +206,7 @@ class NonPlatformWheelError(Exception):
 
             If you expected a platform wheel, check your project configuration, or run
             cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
-        '''
+            '''
         )
 
         super().__init__(message)

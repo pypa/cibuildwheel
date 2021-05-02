@@ -319,14 +319,14 @@ def troubleshoot(package_dir: Path, error: Exception) -> None:
             print(
                 textwrap.dedent(
                     '''
-                NOTE: Shared object (.so) files found in this project.
+                    NOTE: Shared object (.so) files found in this project.
 
-                  These files might be built against the wrong OS, causing problems with
-                  auditwheel.
+                    These files might be built against the wrong OS, causing problems with
+                    auditwheel.
 
-                  If you're using Cython and have previously done an in-place build,
-                  remove those build files (*.so and *.c) before starting cibuildwheel.
-            '''
+                    If you're using Cython and have previously done an in-place build,
+                    remove those build files (*.so and *.c) before starting cibuildwheel.
+                    '''
                 ),
                 file=sys.stderr,
             )

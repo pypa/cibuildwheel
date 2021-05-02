@@ -10,7 +10,7 @@ project_with_unicode = test_projects.new_c_project(
         {
             Py_XDECREF(PyUnicode_FromStringAndSize("foo", 4));
         }
-    '''
+        '''
     ),
 )
 

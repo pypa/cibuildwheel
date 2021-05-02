@@ -11,7 +11,7 @@ project_with_a_test = test_projects.new_c_project(
         r'''
         [options.extras_require]
         test = nose
-    '''
+        '''
     )
 )
 

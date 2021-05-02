@@ -107,9 +107,9 @@ def test_binary_output():
                 '-c',
                 textwrap.dedent(
                     '''
-            import sys
-            sys.stdout.write(''.join(chr(n) for n in range(0, 256)))
-        '''
+                    import sys
+                    sys.stdout.write(''.join(chr(n) for n in range(0, 256)))
+                    '''
                 ),
             ]
         )
@@ -121,9 +121,9 @@ def test_binary_output():
                 '-c',
                 textwrap.dedent(
                     '''
-            import sys
-            sys.stdout.write(''.join(chr(n % 256) for n in range(0, 512)))
-        '''
+                    import sys
+                    sys.stdout.write(''.join(chr(n % 256) for n in range(0, 512)))
+                    '''
                 ),
             ],
             capture_output=True,

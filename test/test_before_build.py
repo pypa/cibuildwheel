@@ -27,7 +27,7 @@ project_with_before_build_asserts = test_projects.new_c_project(
         print('sys.executable', sys.executable)
         # windows/mac are case insensitive
         assert os.path.realpath(stored_executable).lower() == os.path.realpath(sys.executable).lower()
-    '''
+        '''
     )
 )
 

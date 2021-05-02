@@ -101,10 +101,10 @@ def get_python_configurations(
             log.warning(
                 unwrap(
                     '''
-                PyPy is currently unsupported when building on macOS 11. To build macOS PyPy wheels,
-                build on an older OS, such as macOS 10.15. To silence this warning, deselect PyPy by
-                adding "pp*-macosx*" to your CIBW_SKIP option.
-            '''
+                    PyPy is currently unsupported when building on macOS 11. To build macOS PyPy
+                    wheels, build on an older OS, such as macOS 10.15. To silence this warning,
+                    deselect PyPy by adding "pp*-macosx*" to your CIBW_SKIP option.
+                    '''
                 )
             )
             python_configurations = [
@@ -116,10 +116,10 @@ def get_python_configurations(
             log.warning(
                 unwrap(
                     '''
-                CPython 3.5 is unsupported when building on macOS 11. To build CPython 3.5 wheels,
-                build on an older OS, such as macOS 10.15. To silence this warning, deselect CPython
-                3.5 by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
-            '''
+                    CPython 3.5 is unsupported when building on macOS 11. To build CPython 3.5
+                    wheels, build on an older OS, such as macOS 10.15. To silence this warning,
+                    deselect CPython 3.5 by adding "cp35-macosx_x86_64" to your CIBW_SKIP option.
+                    '''
                 )
             )
             python_configurations = [
@@ -326,7 +326,7 @@ def setup_python(
                     '''
                     SDK for building arm64-compatible wheels not found. You need Xcode 12.2 or later
                     to build universal2 or arm64 wheels.
-                '''
+                    '''
                 )
             )
         else:
@@ -465,23 +465,25 @@ def build(options: BuildOptions) -> None:
                             log.warning(
                                 unwrap(
                                     '''
-                                While arm64 wheels can be built on x86_64, they cannot be tested. The
-                                ability to test the arm64 wheels will be added in a future release of
-                                cibuildwheel, once Apple Silicon CI runners are widely available. To
-                                silence this warning, set `CIBW_TEST_SKIP: *-macosx_arm64`.
-                            '''
+                                    While arm64 wheels can be built on x86_64, they cannot be
+                                    tested. The ability to test the arm64 wheels will be added in a
+                                    future release of cibuildwheel, once Apple Silicon CI runners
+                                    are widely available. To silence this warning, set
+                                    `CIBW_TEST_SKIP: *-macosx_arm64`.
+                                    '''
                                 )
                             )
                         elif config_is_universal2:
                             log.warning(
                                 unwrap(
                                     '''
-                                While universal2 wheels can be built on x86_64, the arm64 part of them
-                                cannot currently be tested. The ability to test the arm64 part of a
-                                universal2 wheel will be added in a future release of cibuildwheel, once
-                                Apple Silicon CI runners are widely available. To silence this warning,
-                                set `CIBW_TEST_SKIP: *-macosx_universal2:arm64`.
-                            '''
+                                    While universal2 wheels can be built on x86_64, the arm64 part
+                                    of them cannot currently be tested. The ability to test the
+                                    arm64 part of a universal2 wheel will be added in a future
+                                    release of cibuildwheel, once Apple Silicon CI runners are
+                                    widely available. To silence this warning, set
+                                    `CIBW_TEST_SKIP: *-macosx_universal2:arm64`.
+                                    '''
                                 )
                             )
                         else:
