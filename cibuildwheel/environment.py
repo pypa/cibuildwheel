@@ -10,7 +10,7 @@ class EnvironmentParseError(Exception):
 
 
 def split_env_items(env_string: str) -> List[str]:
-    '''Splits space-separated variable assignments into a list of individual assignments.
+    """Splits space-separated variable assignments into a list of individual assignments.
 
     >>> split_env_items('VAR=abc')
     ['VAR=abc']
@@ -24,7 +24,7 @@ def split_env_items(env_string: str) -> List[str]:
     ['PATH="$PATH;/opt/cibw_test_path"']
     >>> split_env_items('PATH2="something with spaces"')
     ['PATH2="something with spaces"']
-    '''
+    """
     if not env_string:
         return []
 
@@ -40,7 +40,7 @@ def split_env_items(env_string: str) -> List[str]:
 
 class EnvironmentAssignment:
     def __init__(self, assignment: str):
-        name, equals, value = assignment.partition('=')
+        name, equals, value = assignment.partition("=")
         if not equals:
             raise EnvironmentParseError(assignment)
         self.name = name
@@ -51,14 +51,14 @@ class EnvironmentAssignment:
         environment: Dict[str, str],
         executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
     ) -> str:
-        '''Returns the value of this assignment, as evaluated in the environment'''
+        """Returns the value of this assignment, as evaluated in the environment"""
         return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
 
     def as_shell_assignment(self) -> str:
-        return f'export {self.name}={self.value}'
+        return f"export {self.name}={self.value}"
 
     def __repr__(self) -> str:
-        return f'{self.name}={self.value}'
+        return f"{self.name}={self.value}"
 
 
 class ParsedEnvironment:
@@ -82,7 +82,7 @@ class ParsedEnvironment:
         return [a.as_shell_assignment() for a in self.assignments]
 
     def __repr__(self) -> str:
-        return f'ParsedEnvironment({[repr(a) for a in self.assignments]!r})'
+        return f"ParsedEnvironment({[repr(a) for a in self.assignments]!r})"
 
 
 def parse_environment(env_string: str) -> ParsedEnvironment:

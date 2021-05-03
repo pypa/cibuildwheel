@@ -25,7 +25,7 @@ def evaluate(
     if not value:
         # empty string evaluates to empty string
         # (but trips up bashlex)
-        return ''
+        return ""
 
     command_node = bashlex.parsesingle(value)
 
@@ -43,13 +43,13 @@ def evaluate(
 
 
 def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
-    if node.kind == 'word':
+    if node.kind == "word":
         return evaluate_word_node(node, context=context)
-    elif node.kind == 'commandsubstitution':
+    elif node.kind == "commandsubstitution":
         node_result = evaluate_command_node(node.command, context=context)
         # bash removes training newlines in command substitution
         return node_result.rstrip()
-    elif node.kind == 'parameter':
+    elif node.kind == "parameter":
         return evaluate_parameter_node(node, context=context)
     else:
         raise ValueError(f'Unsupported bash construct: "{node.kind}"')
@@ -74,7 +74,7 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
 
 
 def evaluate_command_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
-    if any(n.kind == 'operator' for n in node.parts):
+    if any(n.kind == "operator" for n in node.parts):
         return evaluate_nodes_as_compound_command(node.parts, context=context)
     else:
         return evaluate_nodes_as_simple_command(node.parts, context=context)
@@ -87,12 +87,12 @@ def evaluate_nodes_as_compound_command(
     # substitutions, so we only need to handle that case. We do so assuming
     # that `set -o errexit` is on, because it's easier to code!
 
-    result = ''
+    result = ""
     for node in nodes:
-        if node.kind == 'command':
+        if node.kind == "command":
             result += evaluate_command_node(node, context=context)
-        elif node.kind == 'operator':
-            if node.op != ';':
+        elif node.kind == "operator":
+            if node.op != ";":
                 raise ValueError(f'Unsupported bash operator: "{node.op}"')
         else:
             raise ValueError(f'Unsupported bash node in compound command: "{node.kind}"')
@@ -108,4 +108,4 @@ def evaluate_nodes_as_simple_command(
 
 
 def evaluate_parameter_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
-    return context.environment.get(node.value, '')
+    return context.environment.get(node.value, "")

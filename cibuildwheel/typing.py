@@ -36,4 +36,4 @@ PLATFORMS: Final[Set[PlatformName]] = {"linux", "macos", "windows"}
 
 
 def assert_never(value: NoReturn) -> NoReturn:
-    assert False, f'Unhandled value: {value} ({type(value).__name__})'  # noqa: B011
+    assert False, f"Unhandled value: {value} ({type(value).__name__})"  # noqa: B011

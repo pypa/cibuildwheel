@@ -17,14 +17,14 @@ import cibuildwheel
 
 config = [
     # file path, version find/replace format
-    ('README.md', "cibuildwheel=={}"),
-    ('cibuildwheel/__init__.py', "__version__ = '{}'"),
-    ('docs/faq.md', "cibuildwheel=={}"),
-    ('docs/faq.md', "cibuildwheel@v{}"),
-    ('docs/setup.md', "cibuildwheel=={}"),
-    ('examples/*', "cibuildwheel=={}"),
-    ('examples/*', "cibuildwheel@v{}"),
-    ('setup.cfg', "version = {}"),
+    ("README.md", "cibuildwheel=={}"),
+    ("cibuildwheel/__init__.py", "__version__ = '{}'"),
+    ("docs/faq.md", "cibuildwheel=={}"),
+    ("docs/faq.md", "cibuildwheel@v{}"),
+    ("docs/setup.md", "cibuildwheel=={}"),
+    ("examples/*", "cibuildwheel=={}"),
+    ("examples/*", "cibuildwheel@v{}"),
+    ("setup.cfg", "version = {}"),
 ]
 
 RED = "\u001b[31m"
@@ -39,32 +39,32 @@ def bump_version() -> None:
     try:
         commit_date_str = subprocess.run(
             [
-                'git',
-                'show',
-                '--no-patch',
-                '--pretty=format:%ci',
-                f'v{current_version}^{{commit}}',
+                "git",
+                "show",
+                "--no-patch",
+                "--pretty=format:%ci",
+                f"v{current_version}^{{commit}}",
             ],
             check=True,
             capture_output=True,
-            encoding='utf8',
+            encoding="utf8",
         ).stdout
-        cd_date, cd_time, cd_tz = commit_date_str.split(' ')
+        cd_date, cd_time, cd_tz = commit_date_str.split(" ")
 
-        url_opts = urllib.parse.urlencode({'q': f'is:pr merged:>{cd_date}T{cd_time}{cd_tz}'})
-        url = f'https://github.com/joerick/cibuildwheel/pulls?{url_opts}'
+        url_opts = urllib.parse.urlencode({"q": f"is:pr merged:>{cd_date}T{cd_time}{cd_tz}"})
+        url = f"https://github.com/joerick/cibuildwheel/pulls?{url_opts}"
 
-        print(f'PRs merged since last release:\n  {url}')
+        print(f"PRs merged since last release:\n  {url}")
         print()
     except subprocess.CalledProcessError as e:
         print(e)
-        print('Failed to get previous version tag information.')
+        print("Failed to get previous version tag information.")
 
-    git_changes_result = subprocess.run(['git diff-index --quiet HEAD --'], shell=True)
+    git_changes_result = subprocess.run(["git diff-index --quiet HEAD --"], shell=True)
     repo_has_uncommitted_changes = git_changes_result.returncode != 0
 
     if repo_has_uncommitted_changes:
-        print('error: Uncommitted changes detected.')
+        print("error: Uncommitted changes detected.")
         sys.exit(1)
 
     # fmt: off
@@ -76,7 +76,7 @@ def bump_version() -> None:
         Version(new_version)
     except InvalidVersion:
         print("error: This version doesn't conform to PEP440")
-        print('       https://www.python.org/dev/peps/pep-0440/')
+        print("       https://www.python.org/dev/peps/pep-0440/")
         sys.exit(1)
 
     actions = []
@@ -93,7 +93,7 @@ def bump_version() -> None:
         found_at_least_one_file_needing_update = False
 
         for path in paths:
-            contents = path.read_text(encoding='utf8')
+            contents = path.read_text(encoding="utf8")
             if find_pattern in contents:
                 found_at_least_one_file_needing_update = True
                 actions.append(
@@ -114,33 +114,33 @@ def bump_version() -> None:
 
     for action in actions:
         path, find, replace = action
-        print(f'{path}  {RED}{find}{OFF} → {GREEN}{replace}{OFF}')
+        print(f"{path}  {RED}{find}{OFF} → {GREEN}{replace}{OFF}")
 
-    print(f'Then commit, and tag as v{new_version}')
+    print(f"Then commit, and tag as v{new_version}")
 
-    answer = input('Proceed? [y/N] ').strip()
+    answer = input("Proceed? [y/N] ").strip()
 
-    if answer != 'y':
-        print('Aborted')
+    if answer != "y":
+        print("Aborted")
         sys.exit(1)
 
     for path, find, replace in actions:
-        contents = path.read_text(encoding='utf8')
+        contents = path.read_text(encoding="utf8")
         contents = contents.replace(find, replace)
-        path.write_text(contents, encoding='utf8')
+        path.write_text(contents, encoding="utf8")
 
-    print('Files updated. If you want to update the changelog as part of this')
-    print('commit, do that now.')
+    print("Files updated. If you want to update the changelog as part of this")
+    print("commit, do that now.")
     print()
 
-    while input('Type "done" to continue: ').strip().lower() != 'done':
+    while input('Type "done" to continue: ').strip().lower() != "done":
         pass
 
     subprocess.run(
         [
-            'git',
-            'commit',
-            '--all',
+            "git",
+            "commit",
+            "--all",
             f"--message=Bump version: v{new_version}",
         ],
         check=True,
@@ -148,18 +148,18 @@ def bump_version() -> None:
 
     subprocess.run(
         [
-            'git',
-            'tag',
-            '--annotate',
+            "git",
+            "tag",
+            "--annotate",
             f"--message=v{new_version}",
-            f'v{new_version}',
+            f"v{new_version}",
         ],
         check=True,
     )
 
-    print('Done.')
+    print("Done.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     os.chdir(Path(__file__).parent.parent.resolve())
     bump_version()

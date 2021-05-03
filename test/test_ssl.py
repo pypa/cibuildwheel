@@ -4,7 +4,7 @@ from . import test_projects, utils
 
 project_with_ssl_tests = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
-        r'''
+        r"""
         import ssl
 
         if sys.version_info[0] == 2:
@@ -16,7 +16,7 @@ project_with_ssl_tests = test_projects.new_c_project(
         data = urlopen("https://www.nist.gov", context=context)
         data = urlopen("https://raw.githubusercontent.com/joerick/cibuildwheel/master/CI.md", context=context)
         data = urlopen("https://raw.githubusercontent.com/joerick/cibuildwheel/master/CI.md")
-        '''
+        """
     )
 )
 
@@ -24,10 +24,10 @@ project_with_ssl_tests = test_projects.new_c_project(
 def test(tmp_path):
     # this test checks that SSL is working in the build environment using
     # some checks in setup.py.
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
     project_with_ssl_tests.generate(project_dir)
 
     actual_wheels = utils.cibuildwheel_run(project_dir)
 
-    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)

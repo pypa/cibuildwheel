@@ -8,13 +8,13 @@ from .test_projects.c import SPAM_C_TEMPLATE
 
 subdir_package_project = TestProject()
 
-subdir_package_project.files['src/spam/spam.c'] = jinja2.Template(SPAM_C_TEMPLATE)
-subdir_package_project.template_context['spam_c_top_level_add'] = ''
-subdir_package_project.template_context['spam_c_function_add'] = ''
+subdir_package_project.files["src/spam/spam.c"] = jinja2.Template(SPAM_C_TEMPLATE)
+subdir_package_project.template_context["spam_c_top_level_add"] = ""
+subdir_package_project.template_context["spam_c_function_add"] = ""
 
 subdir_package_project.files[
-    'src/spam/setup.py'
-] = r'''
+    "src/spam/setup.py"
+] = r"""
 from setuptools import Extension, setup
 
 setup(
@@ -22,40 +22,40 @@ setup(
     ext_modules=[Extension('spam', sources=['spam.c'])],
     version="0.1.0",
 )
-'''
+"""
 
 subdir_package_project.files[
-    'src/spam/test/run_tests.py'
-] = r'''
+    "src/spam/test/run_tests.py"
+] = r"""
 print('run_tests.py executed!')
-'''
+"""
 
 subdir_package_project.files[
-    'bin/before_build.py'
-] = r'''
+    "bin/before_build.py"
+] = r"""
 print('before_build.py executed!')
-'''
+"""
 
 
 def test(capfd, tmp_path):
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
     subdir_package_project.generate(project_dir)
 
-    package_dir = Path('src', 'spam')
+    package_dir = Path("src", "spam")
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         package_dir=package_dir,
         add_env={
-            'CIBW_BEFORE_BUILD': 'python {project}/bin/before_build.py',
-            'CIBW_TEST_COMMAND': 'python {package}/test/run_tests.py',
+            "CIBW_BEFORE_BUILD": "python {project}/bin/before_build.py",
+            "CIBW_TEST_COMMAND": "python {package}/test/run_tests.py",
             # this shouldn't depend on the version of python, so build only CPython 3.6
-            'CIBW_BUILD': 'cp36-*',
+            "CIBW_BUILD": "cp36-*",
         },
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels('spam', '0.1.0') if 'cp36' in w]
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp36" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
     captured = capfd.readouterr()

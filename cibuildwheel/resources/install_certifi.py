@@ -54,5 +54,5 @@ def main():
     print(" -- update complete")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
