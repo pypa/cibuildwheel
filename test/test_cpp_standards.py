@@ -8,7 +8,7 @@ from .test_projects import TestProject
 
 cpp_test_project = TestProject()
 
-setup_py_template = r'''
+setup_py_template = r"""
 from setuptools import Extension, setup
 
 setup(
@@ -16,9 +16,9 @@ setup(
     ext_modules=[Extension('spam', sources=['spam.cpp'], language="c++", extra_compile_args={{ extra_compile_args }})],
     version="0.1.0",
 )
-'''
+"""
 
-spam_cpp_template = r'''
+spam_cpp_template = r"""
 #include <Python.h>
 
 {{ spam_cpp_top_level_add }}
@@ -69,59 +69,59 @@ MOD_INIT(spam)
 
     MOD_RETURN(m)
 }
-'''
+"""
 
-cpp_test_project.files['setup.py'] = jinja2.Template(setup_py_template)
-cpp_test_project.files['spam.cpp'] = jinja2.Template(spam_cpp_template)
+cpp_test_project.files["setup.py"] = jinja2.Template(setup_py_template)
+cpp_test_project.files["spam.cpp"] = jinja2.Template(spam_cpp_template)
 
 cpp11_project = cpp_test_project.copy()
-cpp11_project.template_context['extra_compile_args'] = (
-    ['/std:c++11'] if utils.platform == 'windows' else ['-std=c++11']
+cpp11_project.template_context["extra_compile_args"] = (
+    ["/std:c++11"] if utils.platform == "windows" else ["-std=c++11"]
 )
-cpp11_project.template_context['spam_cpp_top_level_add'] = '#include <array>'
+cpp11_project.template_context["spam_cpp_top_level_add"] = "#include <array>"
 
 
 def test_cpp11(tmp_path):
     # This test checks that the C++11 standard is supported
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
 
     cpp11_project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
-    add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
+    add_env = {"CIBW_SKIP": "cp27-win* pp27-win32"}
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
     expected_wheels = [
         w
-        for w in utils.expected_wheels('spam', '0.1.0')
-        if 'cp27-cp27m-win' not in w and 'pp27-pypy_73-win32' not in w
+        for w in utils.expected_wheels("spam", "0.1.0")
+        if "cp27-cp27m-win" not in w and "pp27-pypy_73-win32" not in w
     ]
 
     assert set(actual_wheels) == set(expected_wheels)
 
 
 cpp14_project = cpp_test_project.copy()
-cpp14_project.template_context['extra_compile_args'] = (
-    ['/std:c++14'] if utils.platform == 'windows' else ['-std=c++14']
+cpp14_project.template_context["extra_compile_args"] = (
+    ["/std:c++14"] if utils.platform == "windows" else ["-std=c++14"]
 )
-cpp14_project.template_context['spam_cpp_top_level_add'] = "int a = 100'000;"
+cpp14_project.template_context["spam_cpp_top_level_add"] = "int a = 100'000;"
 
 
 def test_cpp14(tmp_path):
     # This test checks that the C++14 standard is supported
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
 
     cpp14_project.generate(project_dir)
 
     # VC++ for Python 2.7 does not support modern standards
     # The manylinux1 docker image does not have a compiler which supports C++11
-    add_env = {'CIBW_SKIP': 'cp27-win* pp27-win32'}
+    add_env = {"CIBW_SKIP": "cp27-win* pp27-win32"}
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
     expected_wheels = [
         w
-        for w in utils.expected_wheels('spam', '0.1.0')
-        if 'cp27-cp27m-win' not in w and 'pp27-pypy_73-win32' not in w
+        for w in utils.expected_wheels("spam", "0.1.0")
+        if "cp27-cp27m-win" not in w and "pp27-pypy_73-win32" not in w
     ]
 
     assert set(actual_wheels) == set(expected_wheels)
@@ -131,38 +131,38 @@ cpp17_project = cpp_test_project.copy()
 
 # Python and PyPy 2.7 headers use the `register` keyword, which is forbidden in
 # the C++17 standard, so we need the -Wno-register or /wd5033 options
-cpp17_project.template_context['extra_compile_args'] = (
-    ['/std:c++17', '/wd5033'] if utils.platform == 'windows' else ['-std=c++17', '-Wno-register']
+cpp17_project.template_context["extra_compile_args"] = (
+    ["/std:c++17", "/wd5033"] if utils.platform == "windows" else ["-std=c++17", "-Wno-register"]
 )
 cpp17_project.template_context[
-    'spam_cpp_top_level_add'
-] = r'''
+    "spam_cpp_top_level_add"
+] = r"""
 #include <utility>
 auto a = std::pair(5.0, false);
-'''
+"""
 
 
 def test_cpp17(tmp_path):
     # This test checks that the C++17 standard is supported
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
 
     cpp17_project.generate(project_dir)
 
-    if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
-        pytest.skip('Visual Studio 2015 does not support C++17')
+    if os.environ.get("APPVEYOR_BUILD_WORKER_IMAGE", "") == "Visual Studio 2015":
+        pytest.skip("Visual Studio 2015 does not support C++17")
 
     # Pypy's distutils sets the default compiler to 'msvc9compiler', which
     # is too old to support cpp17.
-    add_env = {'CIBW_SKIP': 'cp27-win* pp??-*'}
+    add_env = {"CIBW_SKIP": "cp27-win* pp??-*"}
 
-    if utils.platform == 'macos':
-        add_env['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
+    if utils.platform == "macos":
+        add_env["MACOSX_DEPLOYMENT_TARGET"] = "10.13"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
     expected_wheels = [
         w
-        for w in utils.expected_wheels('spam', '0.1.0', macosx_deployment_target='10.13')
-        if 'cp27-cp27m-win' not in w and '-pp' not in w
+        for w in utils.expected_wheels("spam", "0.1.0", macosx_deployment_target="10.13")
+        if "cp27-cp27m-win" not in w and "-pp" not in w
     ]
 
     assert set(actual_wheels) == set(expected_wheels)
@@ -171,13 +171,13 @@ def test_cpp17(tmp_path):
 def test_cpp17_py27_modern_msvc_workaround(tmp_path):
     # This test checks the workaround for building Python 2.7 wheel with MSVC 14
 
-    if utils.platform != 'windows':
-        pytest.skip('the test is only relevant to the Windows build')
+    if utils.platform != "windows":
+        pytest.skip("the test is only relevant to the Windows build")
 
-    if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2015':
-        pytest.skip('Visual Studio 2015 does not support C++17')
+    if os.environ.get("APPVEYOR_BUILD_WORKER_IMAGE", "") == "Visual Studio 2015":
+        pytest.skip("Visual Studio 2015 does not support C++17")
 
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
     cpp17_project.generate(project_dir)
 
     # VC++ for Python 2.7 (i.e., MSVC 9) does not support modern standards
@@ -186,7 +186,7 @@ def test_cpp17_py27_modern_msvc_workaround(tmp_path):
     # included with Python: see documentation for more info
     # DISTUTILS_USE_SDK and MSSdk=1 tell distutils/setuptools that we are adding
     # MSVC's compiler, tools, and libraries to PATH ourselves
-    add_env = {'DISTUTILS_USE_SDK': '1', 'MSSdk': '1'}
+    add_env = {"DISTUTILS_USE_SDK": "1", "MSSdk": "1"}
 
     # Use existing setuptools code to run Visual Studio's vcvarsall.bat and get the
     # necessary environment variables, since running vcvarsall.bat in a subprocess
@@ -201,22 +201,22 @@ def test_cpp17_py27_modern_msvc_workaround(tmp_path):
     def add_vcvars(prev_env, platform):
         vcvarsall_env = setuptools.msvc.msvc14_get_vc_env(platform)
         env = prev_env.copy()
-        for vcvar in ['path', 'include', 'lib']:
+        for vcvar in ["path", "include", "lib"]:
             env[vcvar] = vcvarsall_env[vcvar]
         return env
 
-    add_env_x86 = add_vcvars(add_env, 'x86')
-    add_env_x86['CIBW_BUILD'] = '?p27-win32'
+    add_env_x86 = add_vcvars(add_env, "x86")
+    add_env_x86["CIBW_BUILD"] = "?p27-win32"
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env_x86)
 
-    add_env_x64 = add_vcvars(add_env, 'x64')
-    add_env_x64['CIBW_BUILD'] = 'cp27-win_amd64'
+    add_env_x64 = add_vcvars(add_env, "x64")
+    add_env_x64["CIBW_BUILD"] = "cp27-win_amd64"
     actual_wheels += utils.cibuildwheel_run(project_dir, add_env=add_env_x64)
 
     expected_wheels = [
         w
-        for w in utils.expected_wheels('spam', '0.1.0', exclude_27=False)
-        if 'cp27-cp27m-win' in w or 'pp27-pypy_73-win32' in w
+        for w in utils.expected_wheels("spam", "0.1.0", exclude_27=False)
+        if "cp27-cp27m-win" in w or "pp27-pypy_73-win32" in w
     ]
 
     assert set(actual_wheels) == set(expected_wheels)

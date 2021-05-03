@@ -9,7 +9,7 @@ from . import test_projects, utils
 
 project_with_expected_version_checks = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
-        r'''
+        r"""
         import subprocess
         import os
 
@@ -31,124 +31,124 @@ project_with_expected_version_checks = test_projects.new_c_project(
             assert '{}=={}'.format(package_name, expected_version) in versions, (
                 'error: {} version should equal {}'.format(package_name, expected_version)
             )
-        '''
+        """
     )
 )
 
 
-VERSION_REGEX = r'([\w-]+)==([^\s]+)'
+VERSION_REGEX = r"([\w-]+)==([^\s]+)"
 
 
 def get_versions_from_constraint_file(constraint_file):
-    constraint_file_text = constraint_file.read_text(encoding='utf8')
+    constraint_file_text = constraint_file.read_text(encoding="utf8")
 
     return {
         package: version for package, version in re.findall(VERSION_REGEX, constraint_file_text)
     }
 
 
-@pytest.mark.parametrize('python_version', ['2.7', '3.5', '3.6', '3.8'])
+@pytest.mark.parametrize("python_version", ["2.7", "3.5", "3.6", "3.8"])
 def test_pinned_versions(tmp_path, python_version):
-    if utils.platform == 'linux':
-        pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
+    if utils.platform == "linux":
+        pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 
-    if utils.platform == 'windows' and python_version == '2.7':
-        pytest.skip('Windows requires a workaround')
+    if utils.platform == "windows" and python_version == "2.7":
+        pytest.skip("Windows requires a workaround")
 
-    is_macos_11_or_later = utils.platform == 'macos' and utils.get_macos_version() >= (10, 16)
+    is_macos_11_or_later = utils.platform == "macos" and utils.get_macos_version() >= (10, 16)
 
-    if is_macos_11_or_later and python_version == '3.5':
-        pytest.skip('CPython 3.5 doesn\'t work on macOS Big Sur+')
+    if is_macos_11_or_later and python_version == "3.5":
+        pytest.skip("CPython 3.5 doesn't work on macOS Big Sur+")
 
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
     project_with_expected_version_checks.generate(project_dir)
 
     build_environment = {}
 
-    if python_version == '2.7':
-        constraint_filename = 'constraints-python27.txt'
-        build_pattern = '[cp]p27-*'
-    elif python_version == '3.5':
-        constraint_filename = 'constraints-python35.txt'
-        build_pattern = '[cp]p35-*'
-    elif python_version == '3.6':
-        constraint_filename = 'constraints-python36.txt'
-        build_pattern = '[cp]p36-*'
-    elif python_version == '3.7':
-        constraint_filename = 'constraints-python37.txt'
-        build_pattern = '[cp]p37-*'
+    if python_version == "2.7":
+        constraint_filename = "constraints-python27.txt"
+        build_pattern = "[cp]p27-*"
+    elif python_version == "3.5":
+        constraint_filename = "constraints-python35.txt"
+        build_pattern = "[cp]p35-*"
+    elif python_version == "3.6":
+        constraint_filename = "constraints-python36.txt"
+        build_pattern = "[cp]p36-*"
+    elif python_version == "3.7":
+        constraint_filename = "constraints-python37.txt"
+        build_pattern = "[cp]p37-*"
     else:
-        constraint_filename = 'constraints.txt'
-        build_pattern = '[cp]p38-*'
+        constraint_filename = "constraints.txt"
+        build_pattern = "[cp]p38-*"
 
     constraint_file = cibuildwheel.util.resources_dir / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 
-    for package in ['pip', 'setuptools', 'wheel', 'virtualenv']:
-        env_name = f'EXPECTED_{package.upper()}_VERSION'
+    for package in ["pip", "setuptools", "wheel", "virtualenv"]:
+        env_name = f"EXPECTED_{package.upper()}_VERSION"
         build_environment[env_name] = constraint_versions[package]
 
-    cibw_environment_option = ' '.join(f'{k}={v}' for k, v in build_environment.items())
+    cibw_environment_option = " ".join(f"{k}={v}" for k, v in build_environment.items())
 
     # build and test the wheels
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            'CIBW_BUILD': build_pattern,
-            'CIBW_ENVIRONMENT': cibw_environment_option,
+            "CIBW_BUILD": build_pattern,
+            "CIBW_ENVIRONMENT": cibw_environment_option,
         },
     )
 
     # also check that we got the right wheels
-    if python_version == '2.7':
+    if python_version == "2.7":
         expected_wheels = [
-            w for w in utils.expected_wheels('spam', '0.1.0') if '-cp27' in w or '-pp27' in w
+            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp27" in w or "-pp27" in w
         ]
-    elif python_version == '3.5':
+    elif python_version == "3.5":
         expected_wheels = [
-            w for w in utils.expected_wheels('spam', '0.1.0') if '-cp35' in w or '-pp35' in w
+            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp35" in w or "-pp35" in w
         ]
-    elif python_version == '3.6':
+    elif python_version == "3.6":
         expected_wheels = [
-            w for w in utils.expected_wheels('spam', '0.1.0') if '-cp36' in w or '-pp36' in w
+            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp36" in w or "-pp36" in w
         ]
-    elif python_version == '3.8':
+    elif python_version == "3.8":
         expected_wheels = [
-            w for w in utils.expected_wheels('spam', '0.1.0') if '-cp38' in w or '-pp38' in w
+            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp38" in w or "-pp38" in w
         ]
     else:
-        raise ValueError('unhandled python version')
+        raise ValueError("unhandled python version")
 
     assert set(actual_wheels) == set(expected_wheels)
 
 
-@pytest.mark.parametrize('python_version', ['2.7', '3.x'])
+@pytest.mark.parametrize("python_version", ["2.7", "3.x"])
 def test_dependency_constraints_file(tmp_path, python_version):
-    if utils.platform == 'linux':
-        pytest.skip('linux doesn\'t pin individual tool versions, it pins manylinux images instead')
+    if utils.platform == "linux":
+        pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 
-    if utils.platform == 'windows' and python_version == '2.7':
-        pytest.skip('Windows + Travis CI requires a workaround')
+    if utils.platform == "windows" and python_version == "2.7":
+        pytest.skip("Windows + Travis CI requires a workaround")
 
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
-        'pip': '20.0.2',
-        'setuptools': '44.0.0' if python_version == '2.7' else '46.0.0',
-        'wheel': '0.34.2',
-        'virtualenv': '20.0.10',
+        "pip": "20.0.2",
+        "setuptools": "44.0.0" if python_version == "2.7" else "46.0.0",
+        "wheel": "0.34.2",
+        "virtualenv": "20.0.10",
     }
 
-    constraints_file = tmp_path / 'constraints.txt'
+    constraints_file = tmp_path / "constraints.txt"
     constraints_file.write_text(
         textwrap.dedent(
-            '''
+            """
             pip=={pip}
             setuptools=={setuptools}
             wheel=={wheel}
             virtualenv=={virtualenv}
-            '''.format(
+            """.format(
                 **tool_versions
             )
         )
@@ -157,31 +157,31 @@ def test_dependency_constraints_file(tmp_path, python_version):
     build_environment = {}
 
     for package_name, version in tool_versions.items():
-        env_name = f'EXPECTED_{package_name.upper()}_VERSION'
+        env_name = f"EXPECTED_{package_name.upper()}_VERSION"
         build_environment[env_name] = version
 
-    cibw_environment_option = ' '.join(f'{k}={v}' for k, v in build_environment.items())
+    cibw_environment_option = " ".join(f"{k}={v}" for k, v in build_environment.items())
 
     # build and test the wheels
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            'CIBW_BUILD': '[cp]p27-*' if python_version == '2.7' else '[cp]p3?-*',
-            'CIBW_ENVIRONMENT': cibw_environment_option,
-            'CIBW_DEPENDENCY_VERSIONS': str(constraints_file),
+            "CIBW_BUILD": "[cp]p27-*" if python_version == "2.7" else "[cp]p3?-*",
+            "CIBW_ENVIRONMENT": cibw_environment_option,
+            "CIBW_DEPENDENCY_VERSIONS": str(constraints_file),
         },
     )
 
     # also check that we got the right wheels
-    if python_version == '2.7':
+    if python_version == "2.7":
         expected_wheels = [
-            w for w in utils.expected_wheels('spam', '0.1.0') if '-cp27' in w or '-pp27' in w
+            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp27" in w or "-pp27" in w
         ]
     else:
         expected_wheels = [
             w
-            for w in utils.expected_wheels('spam', '0.1.0')
-            if '-cp27' not in w and '-pp27' not in w
+            for w in utils.expected_wheels("spam", "0.1.0")
+            if "-cp27" not in w and "-pp27" not in w
         ]
 
     assert set(actual_wheels) == set(expected_wheels)

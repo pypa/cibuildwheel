@@ -22,35 +22,35 @@ from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .typing import PathOrStr, PlatformName
 
-resources_dir = Path(__file__).parent / 'resources'
+resources_dir = Path(__file__).parent / "resources"
 
-get_pip_script = resources_dir / 'get-pip.py'
+get_pip_script = resources_dir / "get-pip.py"
 install_certifi_script = resources_dir / "install_certifi.py"
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
-    '''
+    """
     Preprocesses a command by expanding variables like {python}.
 
     For example, used in the test_command option to specify the path to the
     project's root.
-    '''
-    return command.format(python='python', pip='pip', **kwargs)
+    """
+    return command.format(python="python", pip="pip", **kwargs)
 
 
 def get_build_verbosity_extra_flags(level: int) -> List[str]:
     if level > 0:
-        return ['-' + level * 'v']
+        return ["-" + level * "v"]
     elif level < 0:
-        return ['-' + -level * 'q']
+        return ["-" + -level * "q"]
     else:
         return []
 
 
 def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
-    input_file = resources_dir / 'build-platforms.toml'
+    input_file = resources_dir / "build-platforms.toml"
     loaded_file = toml.load(input_file)
-    results: List[Dict[str, str]] = list(loaded_file[config]['python_configurations'])
+    results: List[Dict[str, str]] = list(loaded_file[config]["python_configurations"])
     return results
 
 
@@ -72,7 +72,7 @@ class IdentifierSelector:
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
-            py_ver_str = build_id.split('-')[0]
+            py_ver_str = build_id.split("-")[0]
             major = int(py_ver_str[2])
             minor = int(py_ver_str[3:])
             version = Version(f"{major}.{minor}.99")
@@ -124,14 +124,14 @@ class Unbuffered:
 
 
 def download(url: str, dest: Path) -> None:
-    print(f'+ Download {url} to {dest}')
+    print(f"+ Download {url} to {dest}")
     dest_dir = dest.parent
     if not dest_dir.exists():
         dest_dir.mkdir(parents=True)
 
     # we've had issues when relying on the host OS' CA certificates on Windows,
     # so we use certifi (this sounds odd but requests also does this by default)
-    cafile = os.environ.get('SSL_CERT_FILE', certifi.where())
+    cafile = os.environ.get("SSL_CERT_FILE", certifi.where())
     context = ssl.create_default_context(cafile=cafile)
     repeat_num = 3
     for i in range(repeat_num):
@@ -156,15 +156,15 @@ class DependencyConstraints:
         self.base_file_path = base_file_path.resolve()
 
     @staticmethod
-    def with_defaults() -> 'DependencyConstraints':
-        return DependencyConstraints(base_file_path=resources_dir / 'constraints.txt')
+    def with_defaults() -> "DependencyConstraints":
+        return DependencyConstraints(base_file_path=resources_dir / "constraints.txt")
 
     def get_for_python_version(self, version: str) -> Path:
-        version_parts = version.split('.')
+        version_parts = version.split(".")
 
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python27.txt
-        specific_stem = self.base_file_path.stem + f'-python{version_parts[0]}{version_parts[1]}'
+        specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)
         if specific_file_path.exists():
@@ -173,7 +173,7 @@ class DependencyConstraints:
             return self.base_file_path
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}{self.base_file_path!r})'
+        return f"{self.__class__.__name__}{self.base_file_path!r})"
 
 
 class BuildOptions(NamedTuple):
@@ -198,7 +198,7 @@ class BuildOptions(NamedTuple):
 class NonPlatformWheelError(Exception):
     def __init__(self) -> None:
         message = textwrap.dedent(
-            '''
+            """
             cibuildwheel: Build failed because a pure Python wheel was generated.
 
             If you intend to build a pure-Python wheel, you don't need cibuildwheel - use
@@ -206,65 +206,65 @@ class NonPlatformWheelError(Exception):
 
             If you expected a platform wheel, check your project configuration, or run
             cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
-            '''
+            """
         )
 
         super().__init__(message)
 
 
 def strtobool(val: str) -> bool:
-    return val.lower() in {'y', 'yes', 't', 'true', 'on', '1'}
+    return val.lower() in {"y", "yes", "t", "true", "on", "1"}
 
 
 class CIProvider(Enum):
-    travis_ci = 'travis'
-    appveyor = 'appveyor'
-    circle_ci = 'circle_ci'
-    azure_pipelines = 'azure_pipelines'
-    github_actions = 'github_actions'
-    gitlab = 'gitlab'
-    other = 'other'
+    travis_ci = "travis"
+    appveyor = "appveyor"
+    circle_ci = "circle_ci"
+    azure_pipelines = "azure_pipelines"
+    github_actions = "github_actions"
+    gitlab = "gitlab"
+    other = "other"
 
 
 def detect_ci_provider() -> Optional[CIProvider]:
-    if 'TRAVIS' in os.environ:
+    if "TRAVIS" in os.environ:
         return CIProvider.travis_ci
-    elif 'APPVEYOR' in os.environ:
+    elif "APPVEYOR" in os.environ:
         return CIProvider.appveyor
-    elif 'CIRCLECI' in os.environ:
+    elif "CIRCLECI" in os.environ:
         return CIProvider.circle_ci
-    elif 'AZURE_HTTP_USER_AGENT' in os.environ:
+    elif "AZURE_HTTP_USER_AGENT" in os.environ:
         return CIProvider.azure_pipelines
-    elif 'GITHUB_ACTIONS' in os.environ:
+    elif "GITHUB_ACTIONS" in os.environ:
         return CIProvider.github_actions
-    elif 'GITLAB_CI' in os.environ:
+    elif "GITLAB_CI" in os.environ:
         return CIProvider.gitlab
-    elif strtobool(os.environ.get('CI', 'false')):
+    elif strtobool(os.environ.get("CI", "false")):
         return CIProvider.other
     else:
         return None
 
 
 def unwrap(text: str) -> str:
-    '''
+    """
     Unwraps multi-line text to a single line
-    '''
+    """
     # remove initial line indent
     text = textwrap.dedent(text)
     # remove leading/trailing whitespace
     text = text.strip()
     # remove consecutive whitespace
-    return re.sub(r'\s+', ' ', text)
+    return re.sub(r"\s+", " ", text)
 
 
 @contextlib.contextmanager
 def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
-    '''
+    """
     Prints the new items in a directory upon exiting. The message to display
     can include {n} for number of wheels, {s} for total number of seconds,
     and/or {m} for total number of minutes. Does not print anything if this
     exits via exception.
-    '''
+    """
 
     start_time = time.time()
     existing_contents = set(output_dir.iterdir())

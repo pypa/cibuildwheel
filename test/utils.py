@@ -1,8 +1,8 @@
-'''
+"""
 Utility functions used by the cibuildwheel tests.
 
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
-'''
+"""
 
 import os
 import platform as pm
@@ -14,16 +14,16 @@ from tempfile import mkdtemp
 
 platform: str
 
-if 'CIBW_PLATFORM' in os.environ:
-    platform = os.environ['CIBW_PLATFORM']
-elif sys.platform.startswith('linux'):
-    platform = 'linux'
-elif sys.platform.startswith('darwin'):
-    platform = 'macos'
-elif sys.platform in ['win32', 'cygwin']:
-    platform = 'windows'
+if "CIBW_PLATFORM" in os.environ:
+    platform = os.environ["CIBW_PLATFORM"]
+elif sys.platform.startswith("linux"):
+    platform = "linux"
+elif sys.platform.startswith("darwin"):
+    platform = "macos"
+elif sys.platform in ["win32", "cygwin"]:
+    platform = "windows"
 else:
-    raise Exception('Unsupported platform')
+    raise Exception("Unsupported platform")
 
 
 # Python 2 does not have a tempfile.TemporaryDirectory context manager
@@ -38,23 +38,23 @@ def TemporaryDirectoryIfNone(path):
 
 
 def cibuildwheel_get_build_identifiers(project_path, env=None):
-    '''
+    """
     Returns the list of build identifiers that cibuildwheel will try to build
     for the current platform.
-    '''
+    """
     cmd_output = subprocess.run(
-        [sys.executable, '-m', 'cibuildwheel', '--print-build-identifiers', str(project_path)],
+        [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)],
         universal_newlines=True,
         env=env,
         check=True,
         stdout=subprocess.PIPE,
     ).stdout
 
-    return cmd_output.strip().split('\n')
+    return cmd_output.strip().split("\n")
 
 
-def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, output_dir=None):
-    '''
+def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, output_dir=None):
+    """
     Runs cibuildwheel as a subprocess, building the project at project_path.
 
     Uses the current Python interpreter.
@@ -67,11 +67,11 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
     :param output_dir: directory where wheels are saved. If None, a temporary
     directory will be used for the duration of the command.
     :return: list of built wheels (file names).
-    '''
+    """
     if env is None:
         env = os.environ.copy()
         # If present in the host environment, remove the MACOSX_DEPLOYMENT_TARGET for consistency
-        env.pop('MACOSX_DEPLOYMENT_TARGET', None)
+        env.pop("MACOSX_DEPLOYMENT_TARGET", None)
 
     if add_env is not None:
         env.update(add_env)
@@ -80,9 +80,9 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
         subprocess.run(
             [
                 sys.executable,
-                '-m',
-                'cibuildwheel',
-                '--output-dir',
+                "-m",
+                "cibuildwheel",
+                "--output-dir",
                 str(_output_dir),
                 str(package_dir),
             ],
@@ -95,14 +95,14 @@ def cibuildwheel_run(project_path, package_dir='.', env=None, add_env=None, outp
 
 
 def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
-    '''
+    """
     The first version of macOS that supports arm is 11.0. So the wheel tag
     cannot contain an earlier deployment target, even if
     MACOSX_DEPLOYMENT_TARGET sets it.
-    '''
-    version_tuple = tuple(map(int, macosx_deployment_target.split('.')))
+    """
+    version_tuple = tuple(map(int, macosx_deployment_target.split(".")))
     if version_tuple <= (11, 0):
-        return '11.0'
+        return "11.0"
     else:
         return macosx_deployment_target
 
@@ -111,14 +111,14 @@ def expected_wheels(
     package_name,
     package_version,
     manylinux_versions=None,
-    macosx_deployment_target='10.9',
+    macosx_deployment_target="10.9",
     machine_arch=None,
     *,
-    exclude_27=platform == 'windows',
+    exclude_27=platform == "windows",
 ):
-    '''
+    """
     Returns a list of expected wheels from a run of cibuildwheel.
-    '''
+    """
     # per PEP 425 (https://www.python.org/dev/peps/pep-0425/), wheel files shall have name of the form
     # {distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
@@ -128,55 +128,55 @@ def expected_wheels(
         machine_arch = pm.machine()
 
     if manylinux_versions is None:
-        if machine_arch == 'x86_64':
-            manylinux_versions = ['manylinux1', 'manylinux2010']
+        if machine_arch == "x86_64":
+            manylinux_versions = ["manylinux1", "manylinux2010"]
         else:
-            manylinux_versions = ['manylinux2014']
+            manylinux_versions = ["manylinux2014"]
 
-    python_abi_tags = ['cp35-cp35m', 'cp36-cp36m', 'cp37-cp37m', 'cp38-cp38', 'cp39-cp39']
+    python_abi_tags = ["cp35-cp35m", "cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
 
-    if machine_arch in ['x86_64', 'AMD64', 'x86']:
-        python_abi_tags += ['cp27-cp27m', 'pp27-pypy_73', 'pp36-pypy36_pp73', 'pp37-pypy37_pp73']
+    if machine_arch in ["x86_64", "AMD64", "x86"]:
+        python_abi_tags += ["cp27-cp27m", "pp27-pypy_73", "pp36-pypy36_pp73", "pp37-pypy37_pp73"]
 
-        if platform == 'linux':
-            python_abi_tags.append('cp27-cp27mu')  # python 2.7 has 2 different ABI on manylinux
+        if platform == "linux":
+            python_abi_tags.append("cp27-cp27mu")  # python 2.7 has 2 different ABI on manylinux
 
-    if platform == 'macos' and get_macos_version() >= (10, 16):
+    if platform == "macos" and get_macos_version() >= (10, 16):
         # 10.16 is sometimes reported as the macOS version on macOS 11.
         # CPython 3.5 doesn't work on macOS 11.
-        python_abi_tags.remove('cp35-cp35m')
+        python_abi_tags.remove("cp35-cp35m")
         # pypy not supported on macOS 11.
-        python_abi_tags = [t for t in python_abi_tags if not t.startswith('pp')]
+        python_abi_tags = [t for t in python_abi_tags if not t.startswith("pp")]
 
-    if platform == 'macos' and machine_arch == 'arm64':
+    if platform == "macos" and machine_arch == "arm64":
         # currently, arm64 macs are only supported by cp39
-        python_abi_tags = ['cp39-cp39']
+        python_abi_tags = ["cp39-cp39"]
 
     wheels = []
 
     for python_abi_tag in python_abi_tags:
         platform_tags = []
 
-        if platform == 'linux':
+        if platform == "linux":
             architectures = [machine_arch]
 
-            if machine_arch == 'x86_64' and python_abi_tag.startswith('cp'):
-                architectures.append('i686')
+            if machine_arch == "x86_64" and python_abi_tag.startswith("cp"):
+                architectures.append("i686")
 
             platform_tags = [
-                f'{manylinux_version}_{architecture}'
+                f"{manylinux_version}_{architecture}"
                 for architecture in architectures
                 for manylinux_version in manylinux_versions
             ]
 
-        elif platform == 'windows':
-            if python_abi_tag.startswith('cp'):
-                platform_tags = ['win32', 'win_amd64']
+        elif platform == "windows":
+            if python_abi_tag.startswith("cp"):
+                platform_tags = ["win32", "win_amd64"]
             else:
-                platform_tags = ['win32']
+                platform_tags = ["win32"]
 
-        elif platform == 'macos':
-            if python_abi_tag == 'cp39-cp39' and machine_arch == 'arm64':
+        elif platform == "macos":
+            if python_abi_tag == "cp39-cp39" and machine_arch == "arm64":
                 arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(
                     macosx_deployment_target
                 )
@@ -190,26 +190,26 @@ def expected_wheels(
                 ]
 
         else:
-            raise Exception('unsupported platform')
+            raise Exception("unsupported platform")
 
         for platform_tag in platform_tags:
-            wheels.append(f'{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl')
+            wheels.append(f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl")
 
     # Travis on Windows does not support using the default Python 2.7 compiler,
     # so we support skipping here.
     if exclude_27:
-        wheels = [w for w in wheels if '-cp27-' not in w and '-pp2' not in w]
+        wheels = [w for w in wheels if "-cp27-" not in w and "-pp2" not in w]
 
     return wheels
 
 
 def get_macos_version():
-    '''
+    """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
 
     These tuples can be used in comparisons, e.g.
         (10, 14) <= (11, 0) == True
         (11, 2) <= (11, 0) != True
-    '''
+    """
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))

@@ -8,15 +8,15 @@ from . import test_projects, utils
 
 project_with_a_test = test_projects.new_c_project(
     setup_cfg_add=textwrap.dedent(
-        r'''
+        r"""
         [options.extras_require]
         test = nose
-        '''
+        """
     )
 )
 
 project_with_a_test.files[
-    'test/spam_test.py'
+    "test/spam_test.py"
 ] = r'''
 import os
 import platform
@@ -75,63 +75,63 @@ class TestSpam(TestCase):
 
 
 def test(tmp_path):
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
 
     # build and test the wheels
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            'CIBW_TEST_REQUIRES': 'nose',
+            "CIBW_TEST_REQUIRES": "nose",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-            'CIBW_TEST_COMMAND_WINDOWS': 'COLOR 00 || nosetests {project}/test',
+            "CIBW_TEST_COMMAND": "false || nosetests {project}/test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || nosetests {project}/test",
         },
     )
 
     # also check that we got the right wheels
-    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
 
 
 def test_extras_require(tmp_path):
-    project_dir = tmp_path / 'project'
+    project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
 
     # build and test the wheels
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            'CIBW_TEST_EXTRAS': 'test',
+            "CIBW_TEST_EXTRAS": "test",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            'CIBW_TEST_COMMAND': 'false || nosetests {project}/test',
-            'CIBW_TEST_COMMAND_WINDOWS': 'COLOR 00 || nosetests {project}/test',
+            "CIBW_TEST_COMMAND": "false || nosetests {project}/test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || nosetests {project}/test",
         },
     )
 
     # also check that we got the right wheels
-    expected_wheels = utils.expected_wheels('spam', '0.1.0')
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
 
 
 project_with_a_failing_test = test_projects.new_c_project()
 project_with_a_failing_test.files[
-    'test/spam_test.py'
-] = r'''
+    "test/spam_test.py"
+] = r"""
 from unittest import TestCase
 
 class TestSpam(TestCase):
     def test_something(self):
         self.fail('this test is supposed to fail')
-'''
+"""
 
 
 def test_failing_test(tmp_path):
     """Ensure a failing test causes cibuildwheel to error out and exit"""
-    project_dir = tmp_path / 'project'
-    output_dir = tmp_path / 'output'
+    project_dir = tmp_path / "project"
+    output_dir = tmp_path / "output"
     project_with_a_failing_test.generate(project_dir)
 
     with pytest.raises(subprocess.CalledProcessError):
@@ -139,12 +139,12 @@ def test_failing_test(tmp_path):
             project_dir,
             output_dir=output_dir,
             add_env={
-                'CIBW_TEST_REQUIRES': 'nose',
-                'CIBW_TEST_COMMAND': 'nosetests {project}/test',
+                "CIBW_TEST_REQUIRES": "nose",
+                "CIBW_TEST_COMMAND": "nosetests {project}/test",
                 # manylinux1 has a version of bash that's been shown to have
                 # problems with this, so let's check that.
-                'CIBW_MANYLINUX_I686_IMAGE': 'manylinux1',
-                'CIBW_MANYLINUX_X86_64_IMAGE': 'manylinux1',
+                "CIBW_MANYLINUX_I686_IMAGE": "manylinux1",
+                "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux1",
             },
         )
 

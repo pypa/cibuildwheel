@@ -13,7 +13,7 @@ from .typing import PathOrStr, PopenBytes
 
 
 class DockerContainer:
-    '''
+    """
     An object that represents a running Docker container.
 
     Intended for use as a context manager e.g.
@@ -22,9 +22,9 @@ class DockerContainer:
     A bash shell is running in the remote container. When `call()` is invoked,
     the command is relayed to the remote shell, and the results are streamed
     back to cibuildwheel.
-    '''
+    """
 
-    UTILITY_PYTHON = '/opt/python/cp38-cp38/bin/python'
+    UTILITY_PYTHON = "/opt/python/cp38-cp38/bin/python"
 
     process: PopenBytes
     bash_stdin: IO[bytes]
@@ -41,18 +41,18 @@ class DockerContainer:
         self.cwd = cwd
         self.name: Optional[str] = None
 
-    def __enter__(self) -> 'DockerContainer':
-        self.name = f'cibuildwheel-{uuid.uuid4()}'
-        cwd_args = ['-w', str(self.cwd)] if self.cwd else []
-        shell_args = ['linux32', '/bin/bash'] if self.simulate_32_bit else ['/bin/bash']
+    def __enter__(self) -> "DockerContainer":
+        self.name = f"cibuildwheel-{uuid.uuid4()}"
+        cwd_args = ["-w", str(self.cwd)] if self.cwd else []
+        shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
         subprocess.run(
             [
-                'docker',
-                'create',
-                '--env=CIBUILDWHEEL',
-                f'--name={self.name}',
-                '--interactive',
-                '--volume=/:/host',  # ignored on CircleCI
+                "docker",
+                "create",
+                "--env=CIBUILDWHEEL",
+                f"--name={self.name}",
+                "--interactive",
+                "--volume=/:/host",  # ignored on CircleCI
                 *cwd_args,
                 self.docker_image,
                 *shell_args,
@@ -61,10 +61,10 @@ class DockerContainer:
         )
         self.process = subprocess.Popen(
             [
-                'docker',
-                'start',
-                '--attach',
-                '--interactive',
+                "docker",
+                "start",
+                "--attach",
+                "--interactive",
                 self.name,
             ],
             stdin=subprocess.PIPE,
@@ -76,7 +76,7 @@ class DockerContainer:
         self.bash_stdout = self.process.stdout
 
         # run a noop command to block until the container is responding
-        self.call(['/bin/true'])
+        self.call(["/bin/true"])
 
         return self
 
@@ -93,7 +93,7 @@ class DockerContainer:
 
         assert isinstance(self.name, str)
 
-        subprocess.run(['docker', 'rm', '--force', '-v', self.name], stdout=subprocess.DEVNULL)
+        subprocess.run(["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL)
         self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
@@ -103,9 +103,9 @@ class DockerContainer:
         # Use `docker exec` instead.
 
         if from_path.is_dir():
-            self.call(['mkdir', '-p', to_path])
+            self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f'tar cf - . | docker exec -i {self.name} tar -xC {shell_quote(to_path)} -f -',
+                f"tar cf - . | docker exec -i {self.name} tar -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
@@ -122,7 +122,7 @@ class DockerContainer:
         to_path.mkdir(parents=True, exist_ok=True)
 
         subprocess.run(
-            f'docker exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -',
+            f"docker exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -",
             shell=True,
             check=True,
             cwd=to_path,
@@ -135,8 +135,8 @@ class DockerContainer:
             self.call(
                 [
                     self.UTILITY_PYTHON,
-                    '-c',
-                    f'import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)',
+                    "-c",
+                    f"import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)",
                 ],
                 capture_output=True,
             )
@@ -152,17 +152,17 @@ class DockerContainer:
         cwd: Optional[PathOrStr] = None,
     ) -> str:
 
-        chdir = f'cd {cwd}' if cwd else ''
+        chdir = f"cd {cwd}" if cwd else ""
         env_assignments = (
-            ' '.join(f'{shlex.quote(k)}={shlex.quote(v)}' for k, v in env.items())
+            " ".join(f"{shlex.quote(k)}={shlex.quote(v)}" for k, v in env.items())
             if env is not None
-            else ''
+            else ""
         )
-        command = ' '.join(shlex.quote(str(a)) for a in args)
+        command = " ".join(shlex.quote(str(a)) for a in args)
         end_of_message = str(uuid.uuid4())
 
         # log the command we're executing
-        print(f'    + {command}')
+        print(f"    + {command}")
 
         # Write a command to the remote shell. First we change the
         # cwd, if that's required. Then, we use the `env` utility to run
@@ -173,14 +173,14 @@ class DockerContainer:
         # the returncode of `command`.
         self.bash_stdin.write(
             bytes(
-                f'''(
+                f"""(
             {chdir}
             env {env_assignments} {command}
             printf "%04d%s\n" $? {end_of_message}
         )
-        ''',
-                encoding='utf8',
-                errors='surrogateescape',
+        """,
+                encoding="utf8",
+                errors="surrogateescape",
             )
         )
         self.bash_stdin.flush()
@@ -193,7 +193,7 @@ class DockerContainer:
         while True:
             line = self.bash_stdout.readline()
 
-            if line.endswith(bytes(end_of_message, encoding='utf8') + b'\n'):
+            if line.endswith(bytes(end_of_message, encoding="utf8") + b"\n"):
                 # fmt: off
                 footer_offset = (
                     len(line)
@@ -211,9 +211,9 @@ class DockerContainer:
                 output_io.write(line)
 
         if isinstance(output_io, io.BytesIO):
-            output = str(output_io.getvalue(), encoding='utf8', errors='surrogateescape')
+            output = str(output_io.getvalue(), encoding="utf8", errors="surrogateescape")
         else:
-            output = ''
+            output = ""
 
         if returncode != 0:
             raise subprocess.CalledProcessError(returncode, args, output)
@@ -225,8 +225,8 @@ class DockerContainer:
             self.call(
                 [
                     self.UTILITY_PYTHON,
-                    '-c',
-                    'import sys, json, os; json.dump(os.environ.copy(), sys.stdout)',
+                    "-c",
+                    "import sys, json, os; json.dump(os.environ.copy(), sys.stdout)",
                 ],
                 capture_output=True,
             )
