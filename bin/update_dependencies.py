@@ -27,7 +27,7 @@ if "--no-docker" in sys.argv:
                 "--allow-unsafe",
                 "--upgrade",
                 "cibuildwheel/resources/constraints.in",
-                "--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
+                f"--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
             ],
             check=True,
         )
@@ -39,7 +39,7 @@ else:
         python_path = f"/opt/python/cp{python_version}-cp{python_version}{abi_flags}/bin/"
         command = (
             f"{python_path}pip install pip-tools && "
-            "{python_path}pip-compile --allow-unsafe --upgrade "
+            f"{python_path}pip-compile --allow-unsafe --upgrade "
             "cibuildwheel/resources/constraints.in "
             f"--output-file cibuildwheel/resources/constraints-python{python_version}.txt"
         )
@@ -49,7 +49,7 @@ else:
                 "run",
                 "--rm",
                 "--env=CUSTOM_COMPILE_COMMAND",
-                "--volume={os.getcwd()}:/volume",
+                f"--volume={os.getcwd()}:/volume",
                 "--workdir=/volume",
                 image_runner,
                 "bash",
