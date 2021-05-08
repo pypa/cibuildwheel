@@ -4,13 +4,13 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set
+from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
-from .typing import PathOrStr
+from .typing import CompletedProcess, PathOrStr
 from .util import (
     BuildOptions,
     BuildSelector,
@@ -27,7 +27,7 @@ def call(
     env: Optional[Dict[str, str]] = None,
     cwd: Optional[str] = None,
     check: bool = True,
-) -> subprocess.CompletedProcess[Any]:
+) -> CompletedProcess:
     print("+ " + " ".join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
     # https://bugs.python.org/issue8557
