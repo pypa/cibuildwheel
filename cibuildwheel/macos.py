@@ -19,7 +19,6 @@ from .util import (
     NonPlatformWheelError,
     download,
     get_build_verbosity_extra_flags,
-    get_pip_script,
     install_certifi_script,
     prepare_command,
     read_python_configs,
@@ -232,8 +231,18 @@ def setup_python(
         )
         sys.exit(1)
 
-    # install pip & wheel
-    call(["python", get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
+    # install pip
+    call(
+        ["python", "-m", "ensurepip", "--default-pip"],
+        env=env,
+        cwd="/tmp",
+    )
+    # ensure we have the version that matches our constraints
+    call(
+        ["python", "-m", "pip", "install", "--upgrade", "pip", *dependency_constraint_flags],
+        env=env,
+        cwd="/tmp",
+    )
     assert (installation_bin_path / "pip").exists()
     call(["which", "pip"], env=env)
     call(["pip", "--version"], env=env)

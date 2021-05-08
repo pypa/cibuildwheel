@@ -24,7 +24,6 @@ from .typing import PathOrStr, PlatformName
 
 resources_dir = Path(__file__).parent / "resources"
 
-get_pip_script = resources_dir / "get-pip.py"
 install_certifi_script = resources_dir / "install_certifi.py"
 
 

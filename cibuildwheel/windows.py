@@ -17,7 +17,6 @@ from .util import (
     NonPlatformWheelError,
     download,
     get_build_verbosity_extra_flags,
-    get_pip_script,
     prepare_command,
     read_python_configs,
 )
@@ -176,7 +175,7 @@ def setup_python(
 
     # make sure pip is installed
     if not (installation_path / "Scripts" / "pip.exe").exists():
-        call(["python", get_pip_script, *dependency_constraint_flags], env=env, cwd="C:\\cibw")
+        call(["python", "-m", "ensurepip", "--default-pip"], env=env, cwd="C:\\cibw")
     assert (installation_path / "Scripts" / "pip.exe").exists()
     where_pip = (
         subprocess.run(
