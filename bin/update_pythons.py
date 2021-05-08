@@ -6,7 +6,7 @@ import copy
 import difflib
 import logging
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 import click
 import requests
@@ -114,30 +114,39 @@ class PyPyVersions:
         self.releases = [
             r
             for r in releases
-            if not r["pypy_version"].is_prerelease and not r["pypy_version"].is_devrelease
+            if not r["pypy_version"].is_prerelease
+            and not r["pypy_version"].is_devrelease
+            and not r["pypy_version"] == Version("7.3.4")
         ]
         self.arch = arch_str
 
-    def update_version_windows(self, spec: Specifier) -> ConfigWinCP:
-        if self.arch != "32":
-            raise RuntimeError("64 bit releases not supported yet on Windows")
+    def get_arch_file(self, release: dict[str, Any]) -> str:
+        urls = [
+            rf["download_url"]
+            for rf in release["files"]
+            if "" in rf["platform"] == f"win{self.arch}"
+        ]
+        return urls[0] if urls else ""
 
+    def update_version_windows(self, spec: Specifier) -> ConfigWinCP:
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
         releases = sorted(releases, key=lambda r: r["pypy_version"])
+        releases = [r for r in releases if self.get_arch_file(r)]
 
         if not releases:
             raise RuntimeError(f"PyPy Win {self.arch} not found for {spec}! {self.releases}")
 
+        version_arch = "win32" if self.arch == "32" else "win_amd64"
+
         release = releases[-1]
         version = release["python_version"]
-        identifier = f"pp{version.major}{version.minor}-win32"
-
-        (url,) = [rf["download_url"] for rf in release["files"] if "" in rf["platform"] == "win32"]
+        identifier = f"pp{version.major}{version.minor}-{version_arch}"
+        url = self.get_arch_file(release)
 
         return ConfigWinPP(
             identifier=identifier,
             version=f"{version.major}.{version.minor}",
-            arch="32",
+            arch=self.arch,
             url=url,
         )
 
