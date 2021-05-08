@@ -4,7 +4,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Set
+from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
 
 from .architecture import Architecture
@@ -23,12 +23,15 @@ from .util import (
 
 
 def call(
-    args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None
-) -> None:
+    args: Sequence[PathOrStr],
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[str] = None,
+    check: bool = True,
+) -> subprocess.CompletedProcess[Any]:
     print("+ " + " ".join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
     # https://bugs.python.org/issue8557
-    subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=True)
+    return subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=check)
 
 
 def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> None:
@@ -179,8 +182,7 @@ def setup_python(
     if not (installation_path / "Scripts" / "pip.exe").exists():
         # perhaps pip is installed, but not available as 'pip.exe'...
         pip_is_installed = (
-            subprocess.run(["python", "-m", "pip", "--version"], env=env, cwd="C:\\cibw").returncode
-            == 0
+            call(["python", "-m", "pip", "--version"], env=env, cwd="C:\\cibw").returncode == 0
         )
         if pip_is_installed:
             # if it's there, remove that version of pip.
