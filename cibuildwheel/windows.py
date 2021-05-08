@@ -173,9 +173,18 @@ def setup_python(
         )
         sys.exit(1)
 
-    # make sure pip is installed
+    log.step("Installing build tools...")
+
+    # make sure pip is installed and available on PATH
     if not (installation_path / "Scripts" / "pip.exe").exists():
+        # perhaps pip is installed, but not available as 'pip.exe'...
+        if (installation_path / "Scripts" / "pip3.exe").exists():
+            # if it's there, remove that version of pip.
+            call(["python", "-m", "pip", "uninstall", "pip"])
+
+        # Then reinstall. '--default-pip' ensures that it's installed as 'pip.exe'
         call(["python", "-m", "ensurepip", "--default-pip"], env=env, cwd="C:\\cibw")
+
     assert (installation_path / "Scripts" / "pip.exe").exists()
     where_pip = (
         subprocess.run(
@@ -190,8 +199,6 @@ def setup_python(
             file=sys.stderr,
         )
         sys.exit(1)
-
-    log.step("Installing build tools...")
 
     call(
         ["python", "-m", "pip", "install", "--upgrade", "pip", *dependency_constraint_flags],
