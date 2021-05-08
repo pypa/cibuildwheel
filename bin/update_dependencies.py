@@ -1,141 +1,43 @@
 #!/usr/bin/env python3
-from __future__ import annotations
+# This file supports 3.6+
 
-import configparser
 import os
 import shutil
 import subprocess
 import sys
-from typing import NamedTuple
+from pathlib import Path
 
-import requests
+DIR = Path(__file__).parent.resolve()
+RESOURCES = DIR.parent / "cibuildwheel/resources"
 
-os.chdir(os.path.dirname(__file__))
-os.chdir("..")
+python_version = "".join(str(v) for v in sys.version_info[:2])
+
+env = os.environ.copy()
 
 # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
 # regenerate the constraints files
-os.environ["CUSTOM_COMPILE_COMMAND"] = "bin/update_dependencies.py"
+env["CUSTOM_COMPILE_COMMAND"] = "bin/update_dependencies.py"
 
-PYTHON_VERSIONS = ["36", "37", "38", "39"]
+if python_version == "36":
+    # Bug with click and Python 3.6
+    env["LC_ALL"] = "C.UTF-8"
+    env["LANG"] = "C.UTF-8"
 
-if "--no-docker" in sys.argv:
-    for python_version in PYTHON_VERSIONS:
-        subprocess.run(
-            [
-                f"./env{python_version}/bin/pip-compile",
-                "--allow-unsafe",
-                "--upgrade",
-                "cibuildwheel/resources/constraints.in",
-                f"--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
-            ],
-            check=True,
-        )
-else:
-    image_runner = "quay.io/pypa/manylinux2010_x86_64:latest"
-    subprocess.run(["docker", "pull", image_runner], check=True)
-    for python_version in PYTHON_VERSIONS:
-        abi_flags = "" if int(python_version) >= 38 else "m"
-        python_path = f"/opt/python/cp{python_version}-cp{python_version}{abi_flags}/bin/"
-        command = (
-            f"{python_path}pip install pip-tools && "
-            f"{python_path}pip-compile --allow-unsafe --upgrade "
-            "cibuildwheel/resources/constraints.in "
-            f"--output-file cibuildwheel/resources/constraints-python{python_version}.txt"
-        )
-        subprocess.run(
-            [
-                "docker",
-                "run",
-                "--rm",
-                "--env=CUSTOM_COMPILE_COMMAND",
-                f"--volume={os.getcwd()}:/volume",
-                "--workdir=/volume",
-                image_runner,
-                "bash",
-                "-c",
-                command,
-            ],
-            check=True,
-        )
-
-# default constraints.txt
-shutil.copyfile(
-    f"cibuildwheel/resources/constraints-python{PYTHON_VERSIONS[-1]}.txt",
-    "cibuildwheel/resources/constraints.txt",
+subprocess.run(
+    [
+        "pip-compile",
+        "--allow-unsafe",
+        "--upgrade",
+        f"{RESOURCES}/constraints.in",
+        f"--output-file={RESOURCES}/constraints-python{python_version}.txt",
+    ],
+    check=True,
+    env=env,
 )
 
-
-class Image(NamedTuple):
-    manylinux_version: str
-    platform: str
-    image_name: str
-    tag: str | None
-
-
-images = [
-    Image("manylinux1", "x86_64", "quay.io/pypa/manylinux1_x86_64", None),
-    Image("manylinux1", "i686", "quay.io/pypa/manylinux1_i686", None),
-    # 2010 images
-    Image("manylinux2010", "x86_64", "quay.io/pypa/manylinux2010_x86_64", None),
-    Image("manylinux2010", "i686", "quay.io/pypa/manylinux2010_i686", None),
-    Image("manylinux2010", "pypy_x86_64", "pypywheels/manylinux2010-pypy_x86_64", None),
-    # 2014 images
-    Image("manylinux2014", "x86_64", "quay.io/pypa/manylinux2014_x86_64", None),
-    Image("manylinux2014", "i686", "quay.io/pypa/manylinux2014_i686", None),
-    Image("manylinux2014", "aarch64", "quay.io/pypa/manylinux2014_aarch64", None),
-    Image("manylinux2014", "ppc64le", "quay.io/pypa/manylinux2014_ppc64le", None),
-    Image("manylinux2014", "s390x", "quay.io/pypa/manylinux2014_s390x", None),
-    # 2_24 images
-    Image("manylinux_2_24", "x86_64", "quay.io/pypa/manylinux_2_24_x86_64", None),
-    Image("manylinux_2_24", "i686", "quay.io/pypa/manylinux_2_24_i686", None),
-    Image("manylinux_2_24", "aarch64", "quay.io/pypa/manylinux_2_24_aarch64", None),
-    Image("manylinux_2_24", "ppc64le", "quay.io/pypa/manylinux_2_24_ppc64le", None),
-    Image("manylinux_2_24", "s390x", "quay.io/pypa/manylinux_2_24_s390x", None),
-]
-
-config = configparser.ConfigParser()
-
-for image in images:
-    # get the tag name whose digest matches 'latest'
-    if image.tag is not None:
-        # image has been pinned, do not update
-        tag_name = image.tag
-    elif image.image_name.startswith("quay.io/"):
-        _, _, repository_name = image.image_name.partition("/")
-        response = requests.get(
-            f"https://quay.io/api/v1/repository/{repository_name}?includeTags=true"
-        )
-        response.raise_for_status()
-        repo_info = response.json()
-        tags_dict = repo_info["tags"]
-
-        latest_tag = tags_dict.pop("latest")
-        # find the tag whose manifest matches 'latest'
-        tag_name = next(
-            name
-            for (name, info) in tags_dict.items()
-            if info["manifest_digest"] == latest_tag["manifest_digest"]
-        )
-    else:
-        response = requests.get(f"https://hub.docker.com/v2/repositories/{image.image_name}/tags")
-        response.raise_for_status()
-        tags = response.json()["results"]
-
-        latest_tag = next(tag for tag in tags if tag["name"] == "latest")
-        # i don't know what it would mean to have multiple images per tag
-        assert len(latest_tag["images"]) == 1
-        digest = latest_tag["images"][0]["digest"]
-
-        pinned_tag = next(
-            tag for tag in tags if tag != latest_tag and tag["images"][0]["digest"] == digest
-        )
-        tag_name = pinned_tag["name"]
-
-    if not config.has_section(image.platform):
-        config[image.platform] = {}
-
-    config[image.platform][image.manylinux_version] = f"{image.image_name}:{tag_name}"
-
-with open("cibuildwheel/resources/pinned_docker_images.cfg", "w") as f:
-    config.write(f)
+# default constraints.txt
+if python_version == "39":
+    shutil.copyfile(
+        RESOURCES / f"constraints-python{python_version}.txt",
+        RESOURCES / "constraints.txt",
+    )

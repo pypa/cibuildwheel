@@ -114,3 +114,6 @@ site/
 
 # Virtual environments
 venv*
+
+# PyCharm
+.idea/
