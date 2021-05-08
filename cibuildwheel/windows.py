@@ -178,7 +178,11 @@ def setup_python(
     # make sure pip is installed and available on PATH
     if not (installation_path / "Scripts" / "pip.exe").exists():
         # perhaps pip is installed, but not available as 'pip.exe'...
-        if (installation_path / "Scripts" / "pip3.exe").exists():
+        pip_is_installed = (
+            subprocess.run(["python", "-m", "pip", "--version"], env=env, cwd="C:\\cibw").returncode
+            == 0
+        )
+        if pip_is_installed:
             # if it's there, remove that version of pip.
             call(["python", "-m", "pip", "uninstall", "--yes", "pip"], env=env, cwd="C:\\cibw")
 
