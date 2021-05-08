@@ -196,27 +196,32 @@ class CPythonVersions:
                 uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
                 self.versions_dict[version] = uri
 
-    def update_version_macos(self, identifier: str, spec: Specifier) -> ConfigMacOS | None:
-        file_idents = ("macos11.pkg", "macosx10.9.pkg", "macosx10.6.pkg")
+    def update_version_macos(
+        self, identifier: str, version: Version, spec: Specifier
+    ) -> ConfigMacOS | None:
         sorted_versions = sorted(v for v in self.versions_dict if spec.contains(v))
 
-        for version in reversed(sorted_versions):
+        if version <= Version("3.8.9999"):
+            file_ident = "macosx10.9.pkg"
+        else:
+            file_ident = "macos11.pkg"
+
+        for new_version in reversed(sorted_versions):
             # Find the first patch version that contains the requested file
-            uri = self.versions_dict[version]
+            uri = self.versions_dict[new_version]
             response = requests.get(
                 f"https://www.python.org/api/v2/downloads/release_file/?release={uri}"
             )
             response.raise_for_status()
             file_info = response.json()
 
-            for file_ident in file_idents:
-                urls = [rf["url"] for rf in file_info if file_ident in rf["url"]]
-                if urls:
-                    return ConfigMacOS(
-                        identifier=identifier,
-                        version=f"{version.major}.{version.minor}",
-                        url=urls[0],
-                    )
+            urls = [rf["url"] for rf in file_info if file_ident in rf["url"]]
+            if urls:
+                return ConfigMacOS(
+                    identifier=identifier,
+                    version=f"{new_version.major}.{new_version.minor}",
+                    url=urls[0],
+                )
 
         return None
 
@@ -247,7 +252,7 @@ class AllVersions:
             if identifier.startswith("pp"):
                 config_update = self.macos_pypy.update_version_macos(spec)
             else:
-                config_update = self.macos_cpython.update_version_macos(identifier, spec)
+                config_update = self.macos_cpython.update_version_macos(identifier, version, spec)
 
             assert config_update is not None, f"MacOS {spec} not found!"
             config.update(**config_update)
