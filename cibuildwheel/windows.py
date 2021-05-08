@@ -180,7 +180,7 @@ def setup_python(
         # perhaps pip is installed, but not available as 'pip.exe'...
         if (installation_path / "Scripts" / "pip3.exe").exists():
             # if it's there, remove that version of pip.
-            call(["python", "-m", "pip", "uninstall", "pip"])
+            call(["python", "-m", "pip", "uninstall", "--yes", "pip"])
 
         # Then reinstall. '--default-pip' ensures that it's installed as 'pip.exe'
         call(["python", "-m", "ensurepip", "--default-pip"], env=env, cwd="C:\\cibw")
