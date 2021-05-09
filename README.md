@@ -28,8 +28,7 @@ What does it do?
 | CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PyPy 3.6 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
-| PyPy 3.7 (beta) v7.3.3 | ✅ | |  | ✅  | ✅ |    |    |   |    |
+| PyPy 3.7 v7.3   | ✅ |   | ✅  |    | ✅ |    |    |    |   |
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI

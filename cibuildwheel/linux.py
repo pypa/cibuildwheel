@@ -15,7 +15,6 @@ from .util import (
     get_build_verbosity_extra_flags,
     prepare_command,
     read_python_configs,
-    resources_dir,
 )
 
 
@@ -122,25 +121,6 @@ def build(options: BuildOptions) -> None:
                     log.build_start(config.identifier)
 
                     dependency_constraint_flags: List[PathOrStr] = []
-                    if config.identifier.startswith("pp36"):
-                        # Patch PyPy to make sure headers get installed into a venv
-                        patch_path = resources_dir / "pypy_venv.patch"
-                        patch_docker_path = PurePath("/pypy_venv.patch")
-                        docker.copy_into(patch_path, patch_docker_path)
-                        try:
-                            docker.call(
-                                [
-                                    "patch",
-                                    "--force",
-                                    "-p1",
-                                    "-d",
-                                    config.path,
-                                    "-i",
-                                    patch_docker_path,
-                                ]
-                            )
-                        except subprocess.CalledProcessError:
-                            print("PyPy patch not applied", file=sys.stderr)
 
                     if options.dependency_constraints:
                         constraints_file = options.dependency_constraints.get_for_python_version(

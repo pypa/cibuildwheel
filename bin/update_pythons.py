@@ -114,9 +114,7 @@ class PyPyVersions:
         self.releases = [
             r
             for r in releases
-            if not r["pypy_version"].is_prerelease
-            and not r["pypy_version"].is_devrelease
-            and not r["pypy_version"] == Version("7.3.4")
+            if not r["pypy_version"].is_prerelease and not r["pypy_version"].is_devrelease
         ]
         self.arch = arch_str
 
