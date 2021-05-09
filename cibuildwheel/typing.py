@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from typing import TYPE_CHECKING, Any, NoReturn, Set, Union
+from typing import TYPE_CHECKING, NoReturn, Set, Union
 
 if sys.version_info < (3, 8):
     from typing_extensions import Final, Literal, TypedDict
@@ -26,11 +26,9 @@ __all__ = (
 if TYPE_CHECKING:
     PopenBytes = subprocess.Popen[bytes]
     PathOrStr = Union[str, os.PathLike[str]]
-    CompletedProcess = subprocess.CompletedProcess[Any]
 else:
     PopenBytes = subprocess.Popen
     PathOrStr = Union[str, "os.PathLike[str]"]
-    CompletedProcess = subprocess.CompletedProcess
 
 
 PlatformName = Literal["linux", "macos", "windows"]

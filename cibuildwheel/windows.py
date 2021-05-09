@@ -10,7 +10,7 @@ from zipfile import ZipFile
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
-from .typing import CompletedProcess, PathOrStr
+from .typing import PathOrStr
 from .util import (
     BuildOptions,
     BuildSelector,
@@ -23,15 +23,12 @@ from .util import (
 
 
 def call(
-    args: Sequence[PathOrStr],
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[str] = None,
-    check: bool = True,
-) -> CompletedProcess:
+    args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None
+) -> None:
     print("+ " + " ".join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
     # https://bugs.python.org/issue8557
-    return subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=check)
+    subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=True)
 
 
 def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> None:
@@ -181,12 +178,13 @@ def setup_python(
     # make sure pip is installed and available on PATH
     if not (installation_path / "Scripts" / "pip.exe").exists():
         # perhaps pip is installed, but not available as 'pip.exe'...
-        pip_is_installed = (
-            call(
-                ["python", "-m", "pip", "--version"], env=env, cwd="C:\\cibw", check=False
-            ).returncode
-            == 0
-        )
+        try:
+            call(["python", "-m", "pip", "--version"], env=env, cwd="C:\\cibw")
+        except subprocess.CalledProcessError:
+            pip_is_installed = False
+        else:
+            pip_is_installed = True
+
         if pip_is_installed:
             # if it's there, remove that version of pip.
             call(["python", "-m", "pip", "uninstall", "--yes", "pip"], env=env, cwd="C:\\cibw")

@@ -231,7 +231,7 @@ def setup_python(
         )
         sys.exit(1)
 
-    # install pip
+    # ensure pip is installed
     call(
         ["python", "-m", "ensurepip", "--default-pip"],
         env=env,
