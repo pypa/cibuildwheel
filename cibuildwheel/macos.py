@@ -243,10 +243,10 @@ def setup_python(
 
         if pip_is_installed:
             # if it's there, remove that version of pip.
-            call(["python", "-m", "pip", "uninstall", "--yes", "pip"], env=env, cwd="C:\\cibw")
+            call(["python", "-m", "pip", "uninstall", "--yes", "pip"], env=env, cwd="/tmp")
 
         # Then reinstall. '--default-pip' ensures that it's installed as 'pip'
-        call(["python", "-m", "ensurepip", "--default-pip"], env=env, cwd="C:\\cibw")
+        call(["python", "-m", "ensurepip", "--default-pip"], env=env, cwd="/tmp")
 
     # ensure we have the version that matches our constraints
     call(
