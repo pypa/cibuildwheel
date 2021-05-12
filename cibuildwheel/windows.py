@@ -95,7 +95,7 @@ def install_cpython(version: str, arch: str, nuget: Path) -> Path:
 
 
 def install_pypy(version: str, arch: str, url: str) -> Path:
-    assert arch == '64' and 'win64' in url
+    assert arch == "64" and "win64" in url
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
