@@ -121,7 +121,7 @@ def expected_wheels(
     python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
 
     if machine_arch in ["x86_64", "AMD64", "x86"]:
-        python_abi_tags += ["pp36-pypy36_pp73", "pp37-pypy37_pp73"]
+        python_abi_tags += ["pp37-pypy37_pp73"]
 
     if platform == "macos" and get_macos_version() >= (10, 16):
         # 10.16 is sometimes reported as the macOS version on macOS 11.

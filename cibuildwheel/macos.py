@@ -23,7 +23,6 @@ from .util import (
     install_certifi_script,
     prepare_command,
     read_python_configs,
-    resources_dir,
     unwrap,
 )
 
@@ -167,9 +166,6 @@ def install_pypy(version: str, url: str) -> Path:
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
         download(url, downloaded_tar_bz2)
         call(["tar", "-C", "/tmp", "-xf", downloaded_tar_bz2])
-        # Patch PyPy to make sure headers get installed into a venv
-        patch_path = resources_dir / "pypy_venv.patch"
-        call(["patch", "--force", "-p1", "-d", installation_path, "-i", patch_path])
 
     installation_bin_path = installation_path / "bin"
     python_executable = "pypy3"
