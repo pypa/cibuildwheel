@@ -180,7 +180,15 @@ def setup_python(
     # ensure we have the version that matches our constraints
     # use "--force-reinstall" ensures that it's installed as 'pip.exe'
     call(
-        ["python", "-m", "pip", "install", "--force-reinstall", "pip", *dependency_constraint_flags],
+        [
+            "python",
+            "-m",
+            "pip",
+            "install",
+            "--force-reinstall",
+            "pip",
+            *dependency_constraint_flags,
+        ],
         env=env,
     )
 
