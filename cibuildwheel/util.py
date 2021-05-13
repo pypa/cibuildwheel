@@ -3,14 +3,17 @@ import fnmatch
 import itertools
 import os
 import re
+import shlex
 import ssl
+import subprocess
+import sys
 import textwrap
 import time
 import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Dict, Iterator, List, NamedTuple, Optional, Set
+from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Sequence, Set, Union
 
 import bracex
 import certifi
@@ -26,6 +29,27 @@ resources_dir = Path(__file__).parent / "resources"
 
 get_pip_script = resources_dir / "get-pip.py"
 install_certifi_script = resources_dir / "install_certifi.py"
+IS_WIN = sys.platform.startswith("win")
+
+
+def run(
+    args: Union[Sequence[PathOrStr], str],
+    shell: bool = IS_WIN,
+    **kwargs: Any,
+) -> "subprocess.CompletedProcess[str]":
+    """
+    Run subprocess.run, but print the commands first. Takes the commands as
+    *args. Should use shell=True on Windows due to a bug. Also converts to
+    Paths to strings, due to Windows behavior at least on older Pythons.
+    https://bugs.python.org/issue8557
+    """
+
+    if isinstance(args, str):
+        print(f"+ {args}")
+        return subprocess.run(args, shell=shell, **kwargs)
+
+    print("+ " + " ".join(shlex.quote(str(a)) for a in args))
+    return subprocess.run([str(a) for a in args], shell=shell, **kwargs)
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:

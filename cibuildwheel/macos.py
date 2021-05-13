@@ -1,13 +1,12 @@
 import os
 import platform
 import re
-import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
+from typing import Any, Dict, List, NamedTuple, Sequence, Set, Tuple, cast
 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
@@ -23,23 +22,9 @@ from .util import (
     install_certifi_script,
     prepare_command,
     read_python_configs,
+    run,
     unwrap,
 )
-
-
-def call(
-    args: Sequence[PathOrStr],
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[str] = None,
-    shell: bool = False,
-) -> None:
-    # print the command executing for the logs
-    if shell:
-        print(f"+ {args}")
-    else:
-        print("+ " + " ".join(shlex.quote(str(a)) for a in args))
-
-    subprocess.run(args, env=env, cwd=cwd, shell=shell, check=True)
 
 
 def get_macos_version() -> Tuple[int, int]:
@@ -147,8 +132,11 @@ def install_cpython(version: str, url: str) -> Path:
         # download the pkg
         download(url, Path("/tmp/Python.pkg"))
         # install
-        call(["sudo", "installer", "-pkg", "/tmp/Python.pkg", "-target", "/"])
-        call(["sudo", str(installation_bin_path / python_executable), str(install_certifi_script)])
+        run(["sudo", "installer", "-pkg", "/tmp/Python.pkg", "-target", "/"], check=True)
+        run(
+            ["sudo", str(installation_bin_path / python_executable), str(install_certifi_script)],
+            check=True,
+        )
 
     pip_executable = "pip3"
     make_symlinks(installation_bin_path, python_executable, pip_executable)
@@ -165,7 +153,7 @@ def install_pypy(version: str, url: str) -> Path:
     if not installation_path.exists():
         downloaded_tar_bz2 = Path("/tmp") / pypy_tar_bz2
         download(url, downloaded_tar_bz2)
-        call(["tar", "-C", "/tmp", "-xf", downloaded_tar_bz2])
+        run(["tar", "-C", "/tmp", "-xf", downloaded_tar_bz2], check=True)
 
     installation_bin_path = installation_path / "bin"
     python_executable = "pypy3"
@@ -216,8 +204,8 @@ def setup_python(
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
     # check what version we're on
-    call(["which", "python"], env=env)
-    call(["python", "--version"], env=env)
+    run(["which", "python"], env=env, check=True)
+    run(["python", "--version"], env=env, check=True)
     which_python = subprocess.run(
         ["which", "python"], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE
     ).stdout.strip()
@@ -229,10 +217,10 @@ def setup_python(
         sys.exit(1)
 
     # install pip & wheel
-    call(["python", get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp")
+    run(["python", get_pip_script, *dependency_constraint_flags], env=env, cwd="/tmp", check=True)
     assert (installation_bin_path / "pip").exists()
-    call(["which", "pip"], env=env)
-    call(["pip", "--version"], env=env)
+    run(["which", "pip"], env=env, check=True)
+    run(["pip", "--version"], env=env, check=True)
     which_pip = subprocess.run(
         ["which", "pip"], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE
     ).stdout.strip()
@@ -290,7 +278,7 @@ def setup_python(
             env.setdefault("SDKROOT", arm64_compatible_sdks[0])
 
     log.step("Installing build tools...")
-    call(
+    run(
         [
             "pip",
             "install",
@@ -301,6 +289,7 @@ def setup_python(
             *dependency_constraint_flags,
         ],
         env=env,
+        check=True,
     )
 
     return env
@@ -319,7 +308,7 @@ def build(options: BuildOptions) -> None:
             before_all_prepared = prepare_command(
                 options.before_all, project=".", package=options.package_dir
             )
-            call([before_all_prepared], shell=True, env=env)
+            run([before_all_prepared], shell=True, env=env, check=True)
 
         python_configurations = get_python_configurations(
             options.build_selector, options.architectures
@@ -345,7 +334,7 @@ def build(options: BuildOptions) -> None:
                 before_build_prepared = prepare_command(
                     options.before_build, project=".", package=options.package_dir
                 )
-                call(before_build_prepared, env=env, shell=True)
+                run(before_build_prepared, env=env, shell=True, check=True)
 
             log.step("Building wheel...")
             if built_wheel_dir.exists():
@@ -354,7 +343,7 @@ def build(options: BuildOptions) -> None:
 
             # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
             # see https://github.com/joerick/cibuildwheel/pull/369
-            call(
+            run(
                 [
                     "pip",
                     "wheel",
@@ -365,6 +354,7 @@ def build(options: BuildOptions) -> None:
                     *get_build_verbosity_extra_flags(options.build_verbosity),
                 ],
                 env=env,
+                check=True,
             )
 
             built_wheel = next(built_wheel_dir.glob("*.whl"))
@@ -392,7 +382,7 @@ def build(options: BuildOptions) -> None:
                     dest_dir=repaired_wheel_dir,
                     delocate_archs=delocate_archs,
                 )
-                call(repair_command_prepared, env=env, shell=True)
+                run(repair_command_prepared, env=env, shell=True, check=True)
             else:
                 shutil.move(str(built_wheel), repaired_wheel_dir)
 
@@ -457,7 +447,11 @@ def build(options: BuildOptions) -> None:
 
                     # set up a virtual environment to install and test from, to make sure
                     # there are no dependencies that were pulled in at build time.
-                    call(["pip", "install", "virtualenv", *dependency_constraint_flags], env=env)
+                    run(
+                        ["pip", "install", "virtualenv", *dependency_constraint_flags],
+                        env=env,
+                        check=True,
+                    )
                     venv_dir = Path(tempfile.mkdtemp())
 
                     arch_prefix = []
@@ -470,18 +464,20 @@ def build(options: BuildOptions) -> None:
                                 "don't know how to emulate {testing_arch} on {machine_arch}"
                             )
 
-                    # define a custom 'call' function that adds the arch prefix each time
-                    def call_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> None:
+                    # define a custom 'run' function that adds the arch prefix each time
+                    def run_with_arch(args: Sequence[PathOrStr], **kwargs: Any) -> None:
                         if isinstance(args, str):
                             args = " ".join(arch_prefix) + " " + args
                         else:
                             args = [*arch_prefix, *args]
-                        call(args, **kwargs)
+                        run(args, **kwargs)
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv
-                    call_with_arch(
-                        ["python", "-m", "virtualenv", "--no-download", venv_dir], env=env
+                    run_with_arch(
+                        ["python", "-m", "virtualenv", "--no-download", venv_dir],
+                        env=env,
+                        check=True,
                     )
 
                     virtualenv_env = env.copy()
@@ -493,24 +489,29 @@ def build(options: BuildOptions) -> None:
                     )
 
                     # check that we are using the Python from the virtual environment
-                    call_with_arch(["which", "python"], env=virtualenv_env)
+                    run_with_arch(["which", "python"], env=virtualenv_env, check=True)
 
                     if options.before_test:
                         before_test_prepared = prepare_command(
                             options.before_test, project=".", package=options.package_dir
                         )
-                        call_with_arch(before_test_prepared, env=virtualenv_env, shell=True)
+                        run_with_arch(
+                            before_test_prepared, env=virtualenv_env, shell=True, check=True
+                        )
 
                     # install the wheel
-                    call_with_arch(
+                    run_with_arch(
                         ["pip", "install", f"{repaired_wheel}{options.test_extras}"],
                         env=virtualenv_env,
+                        check=True,
                     )
 
                     # test the wheel
                     if options.test_requires:
-                        call_with_arch(
-                            ["pip", "install"] + options.test_requires, env=virtualenv_env
+                        run_with_arch(
+                            ["pip", "install"] + options.test_requires,
+                            env=virtualenv_env,
+                            check=True,
                         )
 
                     # run the tests from $HOME, with an absolute path in the command
@@ -521,11 +522,12 @@ def build(options: BuildOptions) -> None:
                         project=Path(".").resolve(),
                         package=options.package_dir.resolve(),
                     )
-                    call_with_arch(
+                    run_with_arch(
                         test_command_prepared,
                         cwd=os.environ["HOME"],
                         env=virtualenv_env,
                         shell=True,
+                        check=True,
                     )
 
                     # clean up
