@@ -232,25 +232,11 @@ def setup_python(
         sys.exit(1)
 
     # ensure pip is installed
-    if not (installation_bin_path / "pip").exists():
-        # perhaps pip is installed, but not available as 'pip'...
-        try:
-            call(["python", "-m", "pip", "--version"], env=env, cwd="/tmp")
-        except subprocess.CalledProcessError:
-            pip_is_installed = False
-        else:
-            pip_is_installed = True
-
-        if pip_is_installed:
-            # if it's there, remove that version of pip.
-            call(["python", "-m", "pip", "uninstall", "--yes", "pip"], env=env, cwd="/tmp")
-
-        # Then reinstall. '--default-pip' ensures that it's installed as 'pip'
-        call(["python", "-m", "ensurepip", "--default-pip"], env=env, cwd="/tmp")
-
+    call(["python", "-m", "ensurepip"], env=env, cwd="/tmp")
     # ensure we have the version that matches our constraints
+    # use "--force-install" ensures that it's installed as 'pip'
     call(
-        ["python", "-m", "pip", "install", "--upgrade", "pip", *dependency_constraint_flags],
+        ["python", "-m", "pip", "install", "--force-install", "pip", *dependency_constraint_flags],
         env=env,
         cwd="/tmp",
     )

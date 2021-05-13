@@ -175,22 +175,14 @@ def setup_python(
 
     log.step("Installing build tools...")
 
-    # make sure pip is installed and available on PATH
-    if not (installation_path / "Scripts" / "pip.exe").exists():
-        # perhaps pip is installed, but not available as 'pip.exe'...
-        try:
-            call(["python", "-m", "pip", "--version"], env=env, cwd="C:\\cibw")
-        except subprocess.CalledProcessError:
-            pip_is_installed = False
-        else:
-            pip_is_installed = True
-
-        if pip_is_installed:
-            # if it's there, remove that version of pip.
-            call(["python", "-m", "pip", "uninstall", "--yes", "pip"], env=env, cwd="C:\\cibw")
-
-        # Then reinstall. '--default-pip' ensures that it's installed as 'pip.exe'
-        call(["python", "-m", "ensurepip", "--default-pip"], env=env, cwd="C:\\cibw")
+    # ensure pip is installed
+    call(["python", "-m", "ensurepip"], env=env, cwd="C:\\cibw")
+    # ensure we have the version that matches our constraints
+    # use "--force-install" ensures that it's installed as 'pip.exe'
+    call(
+        ["python", "-m", "pip", "install", "--force-install", "pip", *dependency_constraint_flags],
+        env=env,
+    )
 
     assert (installation_path / "Scripts" / "pip.exe").exists()
     where_pip = (
@@ -207,10 +199,6 @@ def setup_python(
         )
         sys.exit(1)
 
-    call(
-        ["python", "-m", "pip", "install", "--upgrade", "pip", *dependency_constraint_flags],
-        env=env,
-    )
     call(["pip", "--version"], env=env)
     call(
         ["pip", "install", "--upgrade", "setuptools", "wheel", *dependency_constraint_flags],
