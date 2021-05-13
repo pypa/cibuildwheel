@@ -234,9 +234,9 @@ def setup_python(
     # ensure pip is installed
     call(["python", "-m", "ensurepip"], env=env, cwd="/tmp")
     # ensure we have the version that matches our constraints
-    # use "--force-install" ensures that it's installed as 'pip'
+    # use "--force-reinstall" ensures that it's installed as 'pip'
     call(
-        ["python", "-m", "pip", "install", "--force-install", "pip", *dependency_constraint_flags],
+        ["python", "-m", "pip", "install", "--force-reinstall", "pip", *dependency_constraint_flags],
         env=env,
         cwd="/tmp",
     )

@@ -178,9 +178,9 @@ def setup_python(
     # ensure pip is installed
     call(["python", "-m", "ensurepip"], env=env, cwd="C:\\cibw")
     # ensure we have the version that matches our constraints
-    # use "--force-install" ensures that it's installed as 'pip.exe'
+    # use "--force-reinstall" ensures that it's installed as 'pip.exe'
     call(
-        ["python", "-m", "pip", "install", "--force-install", "pip", *dependency_constraint_flags],
+        ["python", "-m", "pip", "install", "--force-reinstall", "pip", *dependency_constraint_flags],
         env=env,
     )
 
