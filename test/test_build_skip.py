@@ -23,7 +23,7 @@ def test(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp3?-*",
+            "CIBW_BUILD": "cp3*-*",
             "CIBW_SKIP": "cp37-*",
         },
     )
