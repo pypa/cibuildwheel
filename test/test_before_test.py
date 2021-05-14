@@ -49,11 +49,11 @@ def test(tmp_path):
             # checked in setup.py
             "CIBW_BEFORE_TEST": """python -c "import sys; open('/tmp/pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('/tmp/pythonprefix.txt', 'w').write(sys.prefix)" && python -m pip install {project}/dependency""",
             "CIBW_BEFORE_TEST_WINDOWS": """python -c "import sys; open('c:\\pythonversion.txt', 'w').write(sys.version)" && python -c "import sys; open('c:\\pythonprefix.txt', 'w').write(sys.prefix)" && python -m pip install {project}/dependency""",
-            "CIBW_TEST_REQUIRES": "nose",
+            "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": "false || nosetests {project}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "nosetests {project}/test",
+            "CIBW_TEST_COMMAND": "false || pytest {project}/test",
+            "CIBW_TEST_COMMAND_WINDOWS": "pytest {project}/test",
         },
     )
 
