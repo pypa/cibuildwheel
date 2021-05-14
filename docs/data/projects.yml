@@ -324,7 +324,7 @@
   gh: pallets/markupsafe
   ci: [github]
   os: [apple, linux, windows]
-  
+
 - name: SiPM
   gh: EdoPro98/SimSiPM
   ci: [github]
