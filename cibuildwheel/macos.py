@@ -232,22 +232,30 @@ def setup_python(
         sys.exit(1)
 
     # ensure pip is installed
-    call(["python", "-m", "ensurepip"], env=env, cwd="/tmp")
+    if not (installation_bin_path / "pip").exists():
+        call(["python", "-m", "ensurepip"], env=env, cwd="/tmp")
+        # use "--force-reinstall" ensures that it's installed as 'pip'
+        call(
+            [
+                "python",
+                "-m",
+                "pip",
+                "install",
+                "--force-reinstall",
+                "pip",
+                *dependency_constraint_flags,
+            ],
+            env=env,
+            cwd="/tmp",
+        )
+
     # ensure we have the version that matches our constraints
-    # use "--force-reinstall" ensures that it's installed as 'pip'
     call(
-        [
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--force-reinstall",
-            "pip",
-            *dependency_constraint_flags,
-        ],
+        ["python", "-m", "pip", "install", "--upgrade", "pip", *dependency_constraint_flags],
         env=env,
         cwd="/tmp",
     )
+
     assert (installation_bin_path / "pip").exists()
     call(["which", "pip"], env=env)
     call(["pip", "--version"], env=env)

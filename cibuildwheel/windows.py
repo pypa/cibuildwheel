@@ -176,19 +176,25 @@ def setup_python(
     log.step("Installing build tools...")
 
     # ensure pip is installed
-    call(["python", "-m", "ensurepip"], env=env, cwd="C:\\cibw")
+    if not (installation_path / "Scripts" / "pip.exe").exists():
+        call(["python", "-m", "ensurepip"], env=env, cwd="C:\\cibw")
+        # use "--force-reinstall" ensures that it's installed as 'pip.exe'
+        call(
+            [
+                "python",
+                "-m",
+                "pip",
+                "install",
+                "--force-reinstall",
+                "pip",
+                *dependency_constraint_flags,
+            ],
+            env=env,
+        )
+
     # ensure we have the version that matches our constraints
-    # use "--force-reinstall" ensures that it's installed as 'pip.exe'
     call(
-        [
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--force-reinstall",
-            "pip",
-            *dependency_constraint_flags,
-        ],
+        ["python", "-m", "pip", "install", "--upgrade", "pip", *dependency_constraint_flags],
         env=env,
     )
 
