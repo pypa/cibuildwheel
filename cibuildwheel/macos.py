@@ -231,12 +231,15 @@ def setup_python(
         )
         sys.exit(1)
 
-    # ensure pip is installed
-    call(["python", "-m", "ensurepip"], env=env, cwd="/tmp")
+    # Install pip
 
-    # upgrade to the version matching our constraints
-    # if necessary, reinstall it to ensure that it's installed as 'pip'
     requires_reinstall = not (installation_bin_path / "pip").exists()
+    if requires_reinstall:
+        # maybe pip isn't installed at all. ensurepip resolves that.
+        call(["python", "-m", "ensurepip"], env=env, cwd="/tmp")
+
+    # upgrade pip to the version matching our constraints
+    # if necessary, reinstall it to ensure that it's available on PATH as 'pip'
     call(
         [
             "python",
