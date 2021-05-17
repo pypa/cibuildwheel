@@ -58,17 +58,27 @@ class IdentifierSelector:
     This class holds a set of build/skip patterns. You call an instance with a
     build identifier, and it returns True if that identifier should be
     included. Only call this on valid identifiers, ones that have at least 2
-    numeric digits before the first dash.
+    numeric digits before the first dash. If a pre-release version X.Y is present,
+    you can filter it with prerelease="XY".
     """
 
     def __init__(
-        self, *, build_config: str, skip_config: str, requires_python: Optional[SpecifierSet] = None
+        self,
+        *,
+        build_config: str,
+        skip_config: str,
+        requires_python: Optional[SpecifierSet] = None,
+        filter_prerelease: str = "",
     ):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
         self.requires_python = requires_python
+        self.filter_prerelease = filter_prerelease
 
     def __call__(self, build_id: str) -> bool:
+        if self.filter_prerelease and build_id[2:].startswith(self.filter_prerelease):
+            return False
+
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
             py_ver_str = build_id.split("-")[0]

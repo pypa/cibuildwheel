@@ -132,6 +132,12 @@ def main() -> None:
         help="Do not report an error code if the build does not match any wheels.",
     )
 
+    parser.add_argument(
+        "--pre",
+        action="store_true",
+        help="Enable pre-release Python versions if available.",
+    )
+
     args = parser.parse_args()
 
     detect_obsolete_options()
@@ -222,8 +228,14 @@ def main() -> None:
     ) or get_requires_python_str(package_dir)
     requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
+    # Filters Python 3.10 unless --pre is passed
     build_selector = BuildSelector(
-        build_config=build_config, skip_config=skip_config, requires_python=requires_python
+        build_config=build_config,
+        skip_config=skip_config,
+        requires_python=requires_python,
+        filter_prerelease=""
+        if args.pre
+        else "310",  # hardcode pre-releases here, current: Python 3.10
     )
     test_selector = TestSelector(skip_config=test_skip)
 

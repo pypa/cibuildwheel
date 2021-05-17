@@ -24,13 +24,17 @@ else:
     raise Exception("Unsupported platform")
 
 
-def cibuildwheel_get_build_identifiers(project_path, env=None):
+def cibuildwheel_get_build_identifiers(project_path, env=None, *, pre=False):
     """
     Returns the list of build identifiers that cibuildwheel will try to build
     for the current platform.
     """
+    cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
+    if pre:
+        cmd.append("--pre")
+
     cmd_output = subprocess.run(
-        [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)],
+        cmd,
         universal_newlines=True,
         env=env,
         check=True,
@@ -69,6 +73,7 @@ def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, outp
                 sys.executable,
                 "-m",
                 "cibuildwheel",
+                "--pre",
                 "--output-dir",
                 str(output_dir or tmp_output_dir),
                 str(package_dir),
