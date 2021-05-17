@@ -22,7 +22,7 @@ init:
 install: python -m pip install -e ".[dev]" pytest-custom-exit-code
 
 # the '-u' flag is required so the output is in the correct order.
-# See https://github.com/joerick/cibuildwheel/pull/24 for more info.
+# See https://github.com/pypa/cibuildwheel/pull/24 for more info.
 test_script: python -u ./bin/run_tests.py
 
 branches:

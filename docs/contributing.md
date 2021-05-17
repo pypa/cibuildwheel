@@ -29,7 +29,7 @@ cibuildwheel doesn't really do anything itself - it's always deferring to other 
 
 We're not responsible for errors in those tools, for fixing errors/crashes there. But cibuildwheel's job is providing users with an 'integrated' user experience across those tools. We provide an abstraction. The user says 'build me some wheels', not 'open the docker container, build a wheel with pip, fix up the symbols with auditwheel' etc.  However, errors have a habit of breaking abstractions. And this is where users get confused, because the mechanism of cibuildwheel is laid bare, and they must understand a little bit how it works to debug.
 
-So, if we can, I'd like to improve the experience on errors as well. In [this](https://github.com/joerick/cibuildwheel/issues/139) case, it takes a bit of knowledge to understand that the Linux builds are happening in a different OS via Docker, that the linked symbols won't match, that auditwheel will fail because of this. A problem with how the tools fit together, instead of the tools themselves.
+So, if we can, I'd like to improve the experience on errors as well. In [this](https://github.com/pypa/cibuildwheel/issues/139) case, it takes a bit of knowledge to understand that the Linux builds are happening in a different OS via Docker, that the linked symbols won't match, that auditwheel will fail because of this. A problem with how the tools fit together, instead of the tools themselves.
 
 Maintainer notes
 ----------------
@@ -136,4 +136,4 @@ twine upload dist/*
 git push && git push --tags
 ```
 
-Then head to https://github.com/joerick/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry.
+Then head to https://github.com/pypa/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry.

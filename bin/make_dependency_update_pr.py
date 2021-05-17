@@ -62,7 +62,7 @@ def main():
                 "gh",
                 "pr",
                 "create",
-                "--repo=joerick/cibuildwheel",
+                "--repo=pypa/cibuildwheel",
                 "--base=master",
                 "--title=Update dependencies",
                 f"--body='{body}'",
