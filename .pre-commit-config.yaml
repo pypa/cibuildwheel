@@ -1,7 +1,7 @@
 repos:
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v3.4.0
+  rev: v4.0.1
   hooks:
   - id: check-case-conflict
   - id: check-merge-conflict
@@ -43,7 +43,7 @@ repos:
     args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.15.0
+  rev: v2.16.0
   hooks:
   - id: pyupgrade
     name: PyUpgrade 3.6+
