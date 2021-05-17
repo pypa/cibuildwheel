@@ -1,7 +1,0 @@
-# config file for https://github.com/bobvanderlinden/probot-auto-merge
-
-# no approvals required, just the label is enough
-minApprovals: {}
-
-requiredLabels:
-- merge when green
