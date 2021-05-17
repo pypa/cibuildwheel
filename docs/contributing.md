@@ -8,6 +8,8 @@ If you have an idea for a modification or feature, it's probably best to raise a
 
 `cibuildwheel` is indie open source. We're not paid to work on this.
 
+Everyone contributing to the cibuildwheel project is expected to follow the [PSF Code of Conduct](https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md).
+
 Design Goals
 ------------
 
