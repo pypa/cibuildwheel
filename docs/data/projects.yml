@@ -324,3 +324,42 @@
   gh: pallets/markupsafe
   ci: [github]
   os: [apple, linux, windows]
+
+- name: SiPM
+  gh: EdoPro98/SimSiPM
+  ci: [github]
+  os: [apple, linux]
+  notes: High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics.
+
+- name: CorrectionLib
+  gh: cms-nanoAOD/correctionlib
+  ci: [github]
+  os: [apple, linux]
+  notes: Structured JSON powered correction library for HEP, designed for the CMS experiment at CERN.
+
+- name: GSD
+  gh: glotzerlab/gsd
+  ci: [github]
+  os: [apple, linux, windows]
+  notes: Cython and NumPy project with 64-bit wheels.
+
+- name: PyGLM
+  gh: Zuzu-Typ/PyGLM
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: iDynTree
+  gh: robotology/idyntree
+  ci: [github]
+  os: [linux]
+  notes: Uses manylinux_2_24
+
+- name: H3-py
+  gh: uber/h3-py
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: DeepForest
+  gh: LAMDA-NJU/Deep-Forest
+  ci: [github]
+  os: [apple, linux, windows]
