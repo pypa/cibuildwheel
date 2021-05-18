@@ -17,7 +17,6 @@ from .util import (
     NonPlatformWheelError,
     download,
     get_build_verbosity_extra_flags,
-    get_pip_script,
     prepare_command,
     read_python_configs,
 )
@@ -174,9 +173,31 @@ def setup_python(
         )
         sys.exit(1)
 
-    # make sure pip is installed
-    if not (installation_path / "Scripts" / "pip.exe").exists():
-        call(["python", get_pip_script, *dependency_constraint_flags], env=env, cwd="C:\\cibw")
+    log.step("Installing build tools...")
+
+    # Install pip
+
+    requires_reinstall = not (installation_path / "Scripts" / "pip.exe").exists()
+    if requires_reinstall:
+        # maybe pip isn't installed at all. ensurepip resolves that.
+        call(["python", "-m", "ensurepip"], env=env, cwd="C:\\cibw")
+
+    # upgrade pip to the version matching our constraints
+    # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
+    call(
+        [
+            "python",
+            "-m",
+            "pip",
+            "install",
+            "--force-reinstall" if requires_reinstall else "--upgrade",
+            "pip",
+            *dependency_constraint_flags,
+        ],
+        env=env,
+        cwd="C:\\cibw",
+    )
+
     assert (installation_path / "Scripts" / "pip.exe").exists()
     where_pip = (
         subprocess.run(
@@ -192,12 +213,6 @@ def setup_python(
         )
         sys.exit(1)
 
-    log.step("Installing build tools...")
-
-    call(
-        ["python", "-m", "pip", "install", "--upgrade", "pip", *dependency_constraint_flags],
-        env=env,
-    )
     call(["pip", "--version"], env=env)
     call(
         ["pip", "install", "--upgrade", "setuptools", "wheel", *dependency_constraint_flags],
