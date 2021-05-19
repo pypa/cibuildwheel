@@ -228,14 +228,12 @@ def main() -> None:
     ) or get_requires_python_str(package_dir)
     requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
-    # Filters Python 3.10 unless --pre is passed
+    # Hardcode pre-releases here, current: Python 3.10
     build_selector = BuildSelector(
         build_config=build_config,
         skip_config=skip_config,
         requires_python=requires_python,
-        filter_prerelease=""
-        if args.pre
-        else "310",  # hardcode pre-releases here, current: Python 3.10
+        filter_prerelease="" if args.pre else "310",
     )
     test_selector = TestSelector(skip_config=test_skip)
 
