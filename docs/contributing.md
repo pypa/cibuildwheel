@@ -34,11 +34,32 @@ So, if we can, I'd like to improve the experience on errors as well. In [this](h
 Maintainer notes
 ----------------
 
+### Nox support
+
+Most developer tasks have a nox interface. This allows you to very simply run tasks without worrying about setting up a development environment (as shown below). This is a slower than setting up a development environment and reusing it, but has the (important) benefit of being highly reproducible; an earlier run does not affect a current run, or anything else on your machine.
+
+Install [nox](https://nox.thea.codes); homebrew is recommend on macOS, otherwise, pipx is a great choice - in fact, you can use `pipx run nox` and avoid installing completely.
+
+You can see a list of sessions by typing `nox -l`; here are a few common ones:
+
+```console
+nox -s lint          # Run the linters (default)
+nox -s tests         # Run the tests   (default)
+nox -s docs -- serve # Build and serve the documentation
+nox -s build         # Make SDist and wheel
+```
+
+More advanced users can run the update scripts. `update_pins` should work directly, but `update_constraints` needs all versions of Python installed. If you don't want to do that locally, a fast way to run it to use docker to run nox:
+
+```console
+docker run --rm -it -v $PWD:/src quay.io/pypa/manylinux2010_x86_64:latest pipx run nox -f src/noxfile.py -s update_constraints
+```
+
 ### Local testing
 
 You should run:
 
-```python
+```console
 python3 -m venv venv
 . venv/bin/activate
 pip install -e .[dev]
