@@ -133,7 +133,7 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "--pre",
+        "--prerelease-pythons",
         action="store_true",
         help="Enable pre-release Python versions if available.",
     )
@@ -212,6 +212,9 @@ def main() -> None:
     build_verbosity_str = get_option_from_environment(
         "CIBW_BUILD_VERBOSITY", platform=platform, default=""
     )
+    prerelease_pythons = args.prerelease_pythons or get_option_from_environment(
+        "CIBW_PRERELEASE_PYTHONS", platform=platform, default="0"
+    ) not in {"", "0"}
 
     package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
 
@@ -233,7 +236,7 @@ def main() -> None:
         build_config=build_config,
         skip_config=skip_config,
         requires_python=requires_python,
-        filter_prerelease="" if args.pre else "310",
+        filter_prerelease="" if prerelease_pythons else "310",
     )
     test_selector = TestSelector(skip_config=test_skip)
 

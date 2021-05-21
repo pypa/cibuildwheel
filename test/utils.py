@@ -31,7 +31,7 @@ def cibuildwheel_get_build_identifiers(project_path, env=None, *, pre=False):
     """
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
     if pre:
-        cmd.append("--pre")
+        cmd.append("--prerelease-pythons")
 
     cmd_output = subprocess.run(
         cmd,
@@ -73,7 +73,7 @@ def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, outp
                 sys.executable,
                 "-m",
                 "cibuildwheel",
-                "--pre",
+                "--prerelease-pythons",
                 "--output-dir",
                 str(output_dir or tmp_output_dir),
                 str(package_dir),
