@@ -59,3 +59,5 @@ before_install: |
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
 script: $PYTHON ./bin/run_tests.py
+
+after_script: df -h
