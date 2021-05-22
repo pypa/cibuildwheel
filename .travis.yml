@@ -6,11 +6,11 @@ branches:
 
 jobs:
   include:
-    - name: Linux | x86_64 + i686 | Python 3.6
-      language: python
-      python: 3.6
-      services: docker
-      env: PYTHON=python
+    #- name: Linux | x86_64 + i686 | Python 3.6
+    #  language: python
+    #  python: 3.6
+    #  services: docker
+    #  env: PYTHON=python
 
     - name: Linux | arm64 | Python 3.6
       language: python
@@ -26,15 +26,15 @@ jobs:
       arch: ppc64le
       env: PYTHON=python
 
-    - name: Windows | x86_64 | Python 3.6
-      os: windows
-      language: shell
-      before_install:
-        - choco upgrade python3 -y --version 3.6.8 --limit-output
-        # Update root certificates to fix SSL error; see http://www.chawn.com/RootCerts.htm
-        - powershell "md C:\temp\certs; CertUtil -generateSSTFromWU C:\temp\certs\RootStore.sst; Get-ChildItem -Path C:\\temp\certs\Rootstore.sst | Import-Certificate -CertStoreLocation Cert:\\LocalMachine\\Root\\ | out-null"
-      env:
-        - PYTHON=C:\\Python36\\python
+    #- name: Windows | x86_64 | Python 3.6
+    #  os: windows
+    #  language: shell
+    #  before_install:
+    #    - choco upgrade python3 -y --version 3.6.8 --limit-output
+    #    # Update root certificates to fix SSL error; see http://www.chawn.com/RootCerts.htm
+    #    - powershell "md C:\temp\certs; CertUtil -generateSSTFromWU C:\temp\certs\RootStore.sst; Get-ChildItem -Path C:\\temp\certs\Rootstore.sst | Import-Certificate -CertStoreLocation Cert:\\LocalMachine\\Root\\ | out-null"
+    #  env:
+    #    - PYTHON=C:\\Python36\\python
 
     - &linux_s390x_36
       name: Linux | s390x | Python 3.6
@@ -47,6 +47,11 @@ jobs:
   allow_failures:
     # must repeat the s390x job above exactly to match
     - *linux_s390x_36
+
+before_install: |
+  df -h
+  ls -al ${HOME}/.cache
+  ls -al ${HOME}/.cache/pip
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
