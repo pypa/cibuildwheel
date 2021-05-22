@@ -1,3 +1,4 @@
+import os
 import platform
 import textwrap
 
@@ -44,9 +45,12 @@ project_with_manylinux_symbols = test_projects.new_c_project(
     "manylinux_image", ["manylinux1", "manylinux2010", "manylinux2014", "manylinux_2_24"]
 )
 def test(manylinux_image, tmp_path):
+    pm = platform.machine()
     if utils.platform != "linux":
         pytest.skip("the docker test is only relevant to the linux build")
-    elif platform.machine() not in ["x86_64", "i686"]:
+    elif pm == "ppc64le" and "TRAVIS" in os.environ:
+        pytest.skip("this test requires too much disk space for this runner")
+    elif pm not in ["x86_64", "i686"]:
         if manylinux_image in ["manylinux1", "manylinux2010"]:
             pytest.skip("manylinux1 and 2010 doesn't exist for non-x86 architectures")
 
