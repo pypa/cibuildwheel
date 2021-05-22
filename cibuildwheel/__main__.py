@@ -5,7 +5,7 @@ import textwrap
 import traceback
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union, overload
+from typing import Dict, List, Optional, Set, Union
 
 from packaging.specifiers import SpecifierSet
 
@@ -16,6 +16,7 @@ import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
+from cibuildwheel.options import ConfigOptions
 from cibuildwheel.projectfiles import get_requires_python_str
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
@@ -27,40 +28,6 @@ from cibuildwheel.util import (
     detect_ci_provider,
     resources_dir,
 )
-
-
-@overload
-def get_option_from_environment(
-    option_name: str, *, platform: Optional[str] = None, default: str
-) -> str:
-    ...  # noqa: E704
-
-
-@overload
-def get_option_from_environment(
-    option_name: str, *, platform: Optional[str] = None, default: None = None
-) -> Optional[str]:
-    ...  # noqa: E704 E302
-
-
-def get_option_from_environment(
-    option_name: str, *, platform: Optional[str] = None, default: Optional[str] = None
-) -> Optional[str]:  # noqa: E302
-    """
-    Returns an option from the environment, optionally scoped by the platform.
-
-    Example:
-      get_option_from_environment('CIBW_COLOR', platform='macos')
-
-      This will return the value of CIBW_COLOR_MACOS if it exists, otherwise the value of
-      CIBW_COLOR.
-    """
-    if platform:
-        option = os.environ.get(f"{option_name}_{platform.upper()}")
-        if option is not None:
-            return option
-
-    return os.environ.get(option_name, default)
 
 
 def main() -> None:
@@ -178,38 +145,26 @@ def main() -> None:
     package_dir = Path(args.package_dir)
     output_dir = Path(args.output_dir)
 
-    if platform == "linux":
-        repair_command_default = "auditwheel repair -w {dest_dir} {wheel}"
-    elif platform == "macos":
-        repair_command_default = "delocate-listdeps {wheel} && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
-    elif platform == "windows":
-        repair_command_default = ""
-    else:
-        assert_never(platform)
+    options = ConfigOptions(package_dir, platform=platform)
 
-    build_config = os.environ.get("CIBW_BUILD") or "*"
-    skip_config = os.environ.get("CIBW_SKIP", "")
-    test_skip = os.environ.get("CIBW_TEST_SKIP", "")
-    environment_config = get_option_from_environment(
-        "CIBW_ENVIRONMENT", platform=platform, default=""
-    )
-    before_all = get_option_from_environment("CIBW_BEFORE_ALL", platform=platform, default="")
-    before_build = get_option_from_environment("CIBW_BEFORE_BUILD", platform=platform)
-    repair_command = get_option_from_environment(
-        "CIBW_REPAIR_WHEEL_COMMAND", platform=platform, default=repair_command_default
-    )
-    dependency_versions = get_option_from_environment(
-        "CIBW_DEPENDENCY_VERSIONS", platform=platform, default="pinned"
-    )
-    test_command = get_option_from_environment("CIBW_TEST_COMMAND", platform=platform)
-    before_test = get_option_from_environment("CIBW_BEFORE_TEST", platform=platform)
-    test_requires = get_option_from_environment(
-        "CIBW_TEST_REQUIRES", platform=platform, default=""
-    ).split()
-    test_extras = get_option_from_environment("CIBW_TEST_EXTRAS", platform=platform, default="")
-    build_verbosity_str = get_option_from_environment(
-        "CIBW_BUILD_VERBOSITY", platform=platform, default=""
-    )
+    build_config = options("build", platform_variants=False) or "*"
+    skip_config = options("skip", platform_variants=False)
+    test_skip = options("test-skip", platform_variants=False)
+
+    archs_config_str = options("archs") if args.archs is None else args.archs
+
+    environment_config = options("environment")
+    before_all = options("before-all")
+    before_build = options("before-build")
+    repair_command = options("repair-command")
+
+    dependency_versions = options("dependency-versions")
+    test_command = options("test-command")
+    before_test = options("before-test")
+    test_requires = options("test-requires").split()
+    test_extras = options("test-extras")
+    build_verbosity_str = options("build-verbosity")
+
     prerelease_pythons = args.prerelease_pythons or cibuildwheel.util.strtobool(
         os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
     )
@@ -218,11 +173,11 @@ def main() -> None:
 
     if not any(package_dir.joinpath(name).exists() for name in package_files):
         names = ", ".join(sorted(package_files, reverse=True))
-        print(
-            f"cibuildwheel: Could not find any of {{{names}}} at root of package", file=sys.stderr
-        )
+        msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
+        print(msg, file=sys.stderr)
         sys.exit(2)
 
+    # This is not supported in tool.cibuildwheel, as it comes from a standard location.
     # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
     requires_python_str: Optional[str] = os.environ.get(
         "CIBW_PROJECT_REQUIRES_PYTHON"
@@ -269,13 +224,6 @@ def main() -> None:
     # Add CIBUILDWHEEL environment variable
     # This needs to be passed on to the docker container in linux.py
     os.environ["CIBUILDWHEEL"] = "1"
-
-    if args.archs is not None:
-        archs_config_str = args.archs
-    else:
-        archs_config_str = get_option_from_environment(
-            "CIBW_ARCHS", platform=platform, default="auto"
-        )
 
     archs = Architecture.parse_config(archs_config_str, platform=platform)
 
