@@ -26,12 +26,6 @@ jobs:
       arch: ppc64le
       env: PYTHON=python
 
-    - name: macOS | x86_64 | Python 3.x
-      os: osx
-      env:
-        - PYTHON=python3
-        - PYTEST_ADDOPTS='-k "unit_test or test_0_basic" --suppress-no-test-exit-code'
-
     - name: Windows | x86_64 | Python 3.6
       os: windows
       language: shell
