@@ -13,6 +13,7 @@ jobs:
     #  env: PYTHON=python
 
     - name: Linux | arm64 | Python 3.6
+      dist: focal
       language: python
       python: 3.6
       services: docker
@@ -20,6 +21,7 @@ jobs:
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.6
+      dist: focal
       language: python
       python: 3.6
       services: docker
@@ -38,6 +40,7 @@ jobs:
 
     - &linux_s390x_36
       name: Linux | s390x | Python 3.6
+      dist: focal
       language: python
       python: 3.6
       services: docker
