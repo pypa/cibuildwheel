@@ -1,6 +1,8 @@
 # As written, this configuration will build your wheels on every
 # commit, but will only push to PyPI on tagged commits.
 
+os: linux
+dist: focal
 language: python
 
 jobs:
