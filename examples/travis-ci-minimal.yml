@@ -13,9 +13,6 @@ jobs:
     # perform a linux S390X build
     - services: docker
       arch: s390x
-    # and a mac build
-    - os: osx
-      language: shell
     # and a windows build
     - os: windows
       language: shell
