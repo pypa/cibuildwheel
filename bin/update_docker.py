@@ -24,7 +24,7 @@ images = [
     # 2010 images
     Image("manylinux2010", "x86_64", "quay.io/pypa/manylinux2010_x86_64", None),
     Image("manylinux2010", "i686", "quay.io/pypa/manylinux2010_i686", None),
-    Image("manylinux2010", "pypy_x86_64", "pypywheels/manylinux2010-pypy_x86_64", None),
+    Image("manylinux2010", "pypy_x86_64", "quay.io/pypa/manylinux2010_x86_64", None),
     # 2014 images
     Image("manylinux2014", "x86_64", "quay.io/pypa/manylinux2014_x86_64", None),
     Image("manylinux2014", "i686", "quay.io/pypa/manylinux2014_i686", None),
