@@ -7,9 +7,6 @@ jobs:
   include:
     # perform a linux build
     - services: docker
-    # and a mac build
-    - os: osx
-      language: shell
     # and a windows build
     - os: windows
       language: shell
