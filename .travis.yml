@@ -1,4 +1,6 @@
-language: minimal
+os: linux
+dist: focal
+language: python
 
 branches:
   only:
@@ -7,24 +9,25 @@ branches:
 jobs:
   include:
     - name: Linux | x86_64 + i686 | Python 3.6
-      language: python
       python: 3.6
       services: docker
       env: PYTHON=python
 
     - name: Linux | arm64 | Python 3.6
-      language: python
       python: 3.6
       services: docker
       arch: arm64
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.6
-      language: python
       python: 3.6
       services: docker
       arch: ppc64le
-      env: PYTHON=python
+      env:
+        - PYTHON=python
+        # skip test_manylinuxXXXX_only, it uses too much disk space
+        # c.f. https://travis-ci.community/t/running-out-of-disk-space-quota-when-using-docker-on-ppc64le/11634
+        - PYTEST_ADDOPTS='-k "not test_manylinuxXXXX_only"'
 
     - name: Windows | x86_64 | Python 3.6
       os: windows
@@ -36,17 +39,11 @@ jobs:
       env:
         - PYTHON=C:\\Python36\\python
 
-    - &linux_s390x_36
-      name: Linux | s390x | Python 3.6
-      language: python
+    - name: Linux | s390x | Python 3.6
       python: 3.6
       services: docker
       arch: s390x
       env: PYTHON=python
-
-  allow_failures:
-    # must repeat the s390x job above exactly to match
-    - *linux_s390x_36
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 

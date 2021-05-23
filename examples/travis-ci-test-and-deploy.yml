@@ -5,6 +5,8 @@
 # repo is yours (e.g. it won't run on a Pull Request). For convenience, a source
 # distribution is also created.
 
+os: linux
+dist: focal
 language: python
 python:
   - 3.6
