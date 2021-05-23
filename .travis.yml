@@ -1,4 +1,6 @@
-language: minimal
+os: linux
+dist: focal
+language: python
 
 branches:
   only:
@@ -7,22 +9,17 @@ branches:
 jobs:
   include:
     - name: Linux | x86_64 + i686 | Python 3.6
-      language: python
       python: 3.6
       services: docker
       env: PYTHON=python
 
     - name: Linux | arm64 | Python 3.6
-      dist: focal
-      language: python
       python: 3.6
       services: docker
       arch: arm64
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.6
-      dist: focal
-      language: python
       python: 3.6
       services: docker
       arch: ppc64le
@@ -39,8 +36,6 @@ jobs:
         - PYTHON=C:\\Python36\\python
 
     - name: Linux | s390x | Python 3.6
-      dist: focal
-      language: python
       python: 3.6
       services: docker
       arch: s390x
