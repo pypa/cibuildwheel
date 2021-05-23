@@ -46,7 +46,7 @@ Usage
 |-----------------|-------|-------|---------|--------------|
 | GitHub Actions  | ✅    | ✅    | ✅      | ✅¹           |
 | Azure Pipelines | ✅    | ✅    | ✅      |              |
-| Travis CI       | ✅    | ✅    | ✅      | ✅           |
+| Travis CI       | ✅    |       | ✅      | ✅           |
 | AppVeyor        | ✅    | ✅    | ✅      |              |
 | CircleCI        | ✅    | ✅    |         |              |
 | Gitlab CI       | ✅    |       |         |              |

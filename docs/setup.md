@@ -113,9 +113,9 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-# Travis CI [linux/mac/windows] {: #travis-ci}
+# Travis CI [linux/windows] {: #travis-ci}
 
-To build Linux, Mac, and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
+To build Linux and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
 
 > .travis.yml
 
