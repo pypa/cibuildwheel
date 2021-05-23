@@ -25,6 +25,8 @@ jobs:
       arch: ppc64le
       env:
         - PYTHON=python
+        # skip test_manylinuxXXXX_only, it uses too much disk space
+        # c.f. https://travis-ci.community/t/running-out-of-disk-space-quota-when-using-docker-on-ppc64le/11634
         - PYTEST_ADDOPTS='-k "not test_manylinuxXXXX_only"'
 
     - name: Windows | x86_64 | Python 3.6
