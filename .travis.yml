@@ -13,6 +13,7 @@ jobs:
       env: PYTHON=python
 
     - name: Linux | arm64 | Python 3.6
+      dist: focal
       language: python
       python: 3.6
       services: docker
@@ -20,6 +21,7 @@ jobs:
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.6
+      dist: focal
       language: python
       python: 3.6
       services: docker
@@ -36,17 +38,13 @@ jobs:
       env:
         - PYTHON=C:\\Python36\\python
 
-    - &linux_s390x_36
-      name: Linux | s390x | Python 3.6
+    - name: Linux | s390x | Python 3.6
+      dist: focal
       language: python
       python: 3.6
       services: docker
       arch: s390x
       env: PYTHON=python
-
-  allow_failures:
-    # must repeat the s390x job above exactly to match
-    - *linux_s390x_36
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
