@@ -36,7 +36,7 @@ before_install: |
   mkdir -p ${HOME}/.podman/bin
   ln -s $(which podman) ${HOME}/.podman/bin/docker
   export PATH=${HOME}/.podman/bin:$PATH
-  cat /etc/subpid
+  cat /etc/subuid
   cat /etc/subgid
   sudo podman info
   podman info
