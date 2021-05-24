@@ -76,3 +76,9 @@ before_install: |
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
 script: $PYTHON ./bin/run_tests.py
+
+after_script: |
+  if [ -f ${HOME}/dockerd-rootless.pid ]; then
+    kill -15 $(cat ${HOME}/dockerd-rootless.pid);
+  fi
+  df -h
