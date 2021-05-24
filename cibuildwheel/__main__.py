@@ -70,7 +70,7 @@ def main() -> None:
         description="Build wheels for all the platforms.",
         epilog="""
             Most options are supplied via environment variables.
-            See https://github.com/joerick/cibuildwheel#options for info.
+            See https://github.com/pypa/cibuildwheel#options for info.
         """,
     )
 

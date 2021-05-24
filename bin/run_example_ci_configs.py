@@ -39,7 +39,7 @@ services = [
     CIService(
         name="appveyor",
         dst_config_path="appveyor.yml",
-        badge_md="[![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/{branch}?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/{branch})",
+        badge_md="[![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/{branch}?svg=true)](https://ci.appveyor.com/project/pypa/cibuildwheel/branch/{branch})",
     ),
     CIService(
         name="azure-pipelines",
@@ -49,22 +49,22 @@ services = [
     CIService(
         name="circleci",
         dst_config_path=".circleci/config.yml",
-        badge_md="[![CircleCI](https://circleci.com/gh/joerick/cibuildwheel/tree/{branch_escaped}.svg?style=svg)](https://circleci.com/gh/joerick/cibuildwheel/tree/{branch})",
+        badge_md="[![CircleCI](https://circleci.com/gh/pypa/cibuildwheel/tree/{branch_escaped}.svg?style=svg)](https://circleci.com/gh/pypa/cibuildwheel/tree/{branch})",
     ),
     CIService(
         name="github",
         dst_config_path=".github/workflows/example.yml",
-        badge_md="[![Build](https://github.com/joerick/cibuildwheel/workflows/Build/badge.svg?branch={branch})](https://github.com/joerick/cibuildwheel/actions)",
+        badge_md="[![Build](https://github.com/pypa/cibuildwheel/workflows/Build/badge.svg?branch={branch})](https://github.com/pypa/cibuildwheel/actions)",
     ),
     CIService(
         name="travis-ci",
         dst_config_path=".travis.yml",
-        badge_md="[![Build Status](https://travis-ci.org/joerick/cibuildwheel.svg?branch={branch})](https://travis-ci.org/joerick/cibuildwheel)",
+        badge_md="[![Build Status](https://travis-ci.org/pypa/cibuildwheel.svg?branch={branch})](https://travis-ci.org/pypa/cibuildwheel)",
     ),
     CIService(
         name="gitlab",
         dst_config_path=".gitlab-ci.yml",
-        badge_md="[![Gitlab](https://gitlab.com/joerick/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/joerick/cibuildwheel/-/commits/{branch})",
+        badge_md="[![Gitlab](https://gitlab.com/pypa/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/pypa/cibuildwheel/-/commits/{branch})",
     ),
 ]
 
@@ -140,9 +140,7 @@ def run_example_ci_configs(config_files=None):
         print()
         print("> **Examples test run**")
         print("> ")
-        print(
-            f"> Branch: [{branch_name}](https://github.com/joerick/cibuildwheel/tree/{branch_name})"
-        )
+        print(f"> Branch: [{branch_name}](https://github.com/pypa/cibuildwheel/tree/{branch_name})")
         print("> ")
         print("> | Service | Config | Status |")
         print("> |---|---|---|")
