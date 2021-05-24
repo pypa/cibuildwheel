@@ -32,7 +32,8 @@ before_install: |
   sudo apt-get update
   sudo apt-get -y install podman
   sudo mkdir -p /etc/containers
-  sudo bash -c 'echo -e "[registries.search]\nregistries = [\"docker.io\"]" > /etc/containers/registries.conf'
+  sudo bash -c 'echo "unqualified-search-registries = [\"docker.io\"]" > /etc/containers/registries.conf'
+  cat /etc/containers/registries.conf
   mkdir -p ${HOME}/.podman/bin
   ln -s $(which podman) ${HOME}/.podman/bin/docker
   export PATH=${HOME}/.podman/bin:$PATH
@@ -40,9 +41,9 @@ before_install: |
   cat /etc/subgid
   cat /etc/containers/storage.conf
   mkdir -p ${HOME}/.config/containers
-  echo -e "[storage]\ndriver = \"vfs\"\n" > ${HOME}/.config/containers/storage.conf
+  echo -e "[storage]\ndriver = \"vfs\"\nrootless_storage_path = \"${HOME}/.local/share/containers/storage\"" > ${HOME}/.config/containers/storage.conf
   cat ${HOME}/.config/containers/storage.conf
-  podman --storage-driver vfs info
+  podman info
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
