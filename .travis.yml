@@ -48,7 +48,7 @@ before_install: |
     DOCKERD_ROOTLESS_PID=$!
     echo "${DOCKERD_ROOTLESS_PID}" > ${HOME}/dockerd-rootless.pid
     docker context use rootless
-  elif if [ "$(uname -m)" == "aarch64" ]; then
+  elif [ "$(uname -m)" == "aarch64" ]; then
     # We need to run a rootless docker daemon due to travis-ci LXD configuration
     # Update docker, c.f. https://developer.ibm.com/components/ibm-power/tutorials/install-docker-on-linux-on-power/
     sudo systemctl stop docker
