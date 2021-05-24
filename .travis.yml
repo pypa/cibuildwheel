@@ -38,6 +38,7 @@ before_install: |
   export PATH=${HOME}/.podman/bin:$PATH
   cat /etc/subuid
   cat /etc/subgid
+  cat /etc/containers/storage.conf
   sudo podman info
   podman info
 
