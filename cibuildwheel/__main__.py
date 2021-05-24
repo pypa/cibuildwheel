@@ -236,7 +236,7 @@ def main() -> None:
         build_config=build_config,
         skip_config=skip_config,
         requires_python=requires_python,
-        filter_prerelease="" if prerelease_pythons else "310",
+        skip_prerelease="" if prerelease_pythons else "cp310-*",
     )
     test_selector = TestSelector(skip_config=test_skip)
 

@@ -33,7 +33,7 @@ def test_build():
 
 def test_build_filter_pre():
     build_selector = BuildSelector(
-        build_config="cp3*-* *-manylinux*", skip_config="", filter_prerelease="310"
+        build_config="cp3*-* *-manylinux*", skip_config="", skip_prerelease="cp310-*"
     )
 
     assert build_selector("cp37-manylinux_x86_64")

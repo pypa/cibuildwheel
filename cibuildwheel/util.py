@@ -68,17 +68,13 @@ class IdentifierSelector:
         build_config: str,
         skip_config: str,
         requires_python: Optional[SpecifierSet] = None,
-        filter_prerelease: str = "",
+        skip_prerelease: str = "",
     ):
         self.build_patterns = build_config.split()
-        self.skip_patterns = skip_config.split()
+        self.skip_patterns = skip_config.split() + skip_prerelease.split()
         self.requires_python = requires_python
-        self.filter_prerelease = filter_prerelease
 
     def __call__(self, build_id: str) -> bool:
-        if self.filter_prerelease and build_id[2:].startswith(self.filter_prerelease):
-            return False
-
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
             py_ver_str = build_id.split("-")[0]
