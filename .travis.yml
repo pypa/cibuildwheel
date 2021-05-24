@@ -73,6 +73,7 @@ before_install: |
     cat /proc/self/cgroup
     cat /proc/self/setgroups
     ls -al /proc/sys/kernel/| grep unpriv
+    cat /proc/sys/kernel/unprivileged_userns_clone
     dockerd-rootless.sh &
     DOCKERD_ROOTLESS_PID=$!
     echo "${DOCKERD_ROOTLESS_PID}" > ${HOME}/dockerd-rootless.pid
