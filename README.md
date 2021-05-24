@@ -7,7 +7,7 @@ cibuildwheel
 [![Travis Status](https://img.shields.io/travis/pypa/cibuildwheel/master?logo=travis)](https://travis-ci.org/pypa/cibuildwheel)
 [![Appveyor status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master)
 [![CircleCI Status](https://img.shields.io/circleci/build/gh/pypa/cibuildwheel/master?logo=circleci)](https://circleci.com/gh/pypa/cibuildwheel)
-[![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName=master)
+[![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=4&branchName=master)
 
 
 [Documentation](https://cibuildwheel.readthedocs.org)
