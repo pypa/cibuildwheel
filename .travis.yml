@@ -13,11 +13,10 @@ jobs:
       arch: arm64
       env: PYTHON=python
 
-    #- name: Linux | ppc64le | Python 3.6
-    #  python: 3.6
-    #  arch: ppc64le
-    #  env: PYTHON=python
-
+    - name: Linux | ppc64le | Python 3.6
+      python: 3.6
+      arch: ppc64le
+      env: PYTHON=python
 
     - name: Linux | s390x | Python 3.6
       python: 3.6
@@ -25,28 +24,54 @@ jobs:
       env: PYTHON=python
 
 before_install: |
-  set -eo pipefail
-  . /etc/os-release
-  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-  curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
-  sudo apt-get update
-  sudo apt-get -y install podman
-  sudo mkdir -p /etc/containers
-  sudo bash -c 'echo "unqualified-search-registries = [\"docker.io\"]" > /etc/containers/registries.conf'
-  cat /etc/containers/registries.conf
-  mkdir -p ${HOME}/.podman/bin
-  ln -s $(which podman) ${HOME}/.podman/bin/docker
-  export PATH=${HOME}/.podman/bin:$PATH
-  cat /etc/subuid
-  cat /etc/subgid
-  cat /etc/containers/storage.conf
-  mkdir -p ${HOME}/.config/containers
-  echo -e "[storage]\ndriver = \"vfs\"\nrootless_storage_path = \"${HOME}/.local/share/containers/storage\"" > ${HOME}/.config/containers/storage.conf
-  cat ${HOME}/.config/containers/storage.conf
-  echo -e "[engine]\ncgroup_manager = \"cgroupfs\"" > ${HOME}/.config/containers/containers.conf
-  cat ${HOME}/.config/containers/containers.conf
-  #ls /sys/fs/cgroup/cgroup.controllers
-  podman info --debug
+  if [ "$(uname -m)" == "ppc64le" ]; then
+    # We need to run a rootless docker daemon due to travis-ci LXD configuration
+    # Update docker, c.f. https://developer.ibm.com/components/ibm-power/tutorials/install-docker-on-linux-on-power/
+    sudo systemctl stop docker
+    sudo apt-get update
+    sudo apt-get remove -y docker docker.io containerd runc
+    sudo apt-get install -y --no-install-recommends containerd uidmap slirp4netns fuse-overlayfs
+    curl -fsSLO https://oplab9.parqtec.unicamp.br/pub/ppc64el/docker/version-20.10.6/ubuntu-focal/docker-ce-cli_20.10.6~3-0~ubuntu-focal_ppc64el.deb
+    curl -fsSLO https://oplab9.parqtec.unicamp.br/pub/ppc64el/docker/version-20.10.6/ubuntu-focal/docker-ce_20.10.6~3-0~ubuntu-focal_ppc64el.deb
+    curl -fsSLO https://oplab9.parqtec.unicamp.br/pub/ppc64el/docker/version-20.10.6/ubuntu-focal/docker-ce-rootless-extras_20.10.6~3-0~ubuntu-focal_ppc64el.deb
+    # prevent the docker service to start upon installation
+    echo -e '#!/bin/sh\nexit 101' | sudo tee /usr/sbin/policy-rc.d
+    sudo chmod +x /usr/sbin/policy-rc.d
+    # install docker
+    sudo dpkg -i docker-ce-cli_20.10.6~3-0~ubuntu-focal_ppc64el.deb docker-ce-rootless-extras_20.10.6~3-0~ubuntu-focal_ppc64el.deb docker-ce_20.10.6~3-0~ubuntu-focal_ppc64el.deb
+    # "restore" policy-rc.d
+    sudo rm -f /usr/sbin/policy-rc.d
+    # prepare & start the rootless docker daemon
+    dockerd-rootless-setuptool.sh install --force
+    export XDG_RUNTIME_DIR=/home/travis/.docker/run
+    dockerd-rootless.sh &> /dev/null &
+    DOCKERD_ROOTLESS_PID=$!
+    echo "${DOCKERD_ROOTLESS_PID}" > ${HOME}/dockerd-rootless.pid
+    docker context use rootless
+  elif if [ "$(uname -m)" == "aarch64" ]; then
+    # We need to run a rootless docker daemon due to travis-ci LXD configuration
+    # Update docker, c.f. https://developer.ibm.com/components/ibm-power/tutorials/install-docker-on-linux-on-power/
+    sudo systemctl stop docker
+    sudo apt-get update
+    sudo apt-get remove -y docker docker.io containerd runc
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+    sudo apt-get update
+    # prevent the docker service to start upon installation
+    echo -e '#!/bin/sh\nexit 101' | sudo tee /usr/sbin/policy-rc.d
+    sudo chmod +x /usr/sbin/policy-rc.d
+    # install docker
+    sudo apt-get install -y --no-install-recommends containerd uidmap slirp4netns fuse-overlayfs docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io
+    # "restore" policy-rc.d
+    sudo rm -f /usr/sbin/policy-rc.d
+    # prepare & start the rootless docker daemon
+    dockerd-rootless-setuptool.sh install --force
+    export XDG_RUNTIME_DIR=/home/travis/.docker/run
+    dockerd-rootless.sh &> /dev/null &
+    DOCKERD_ROOTLESS_PID=$!
+    echo "${DOCKERD_ROOTLESS_PID}" > ${HOME}/dockerd-rootless.pid
+    docker context use rootless
+  fi
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
