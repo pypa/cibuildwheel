@@ -302,14 +302,15 @@ CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6"
 ###  `CIBW_PRERELEASE_PYTHONS` {: #prerelease-pythons}
 > Enable building with pre-release versions of Python
 
-By default, cibuildwheel only builds wheels compatible with minor versions of
-Python. However, during the Beta period when new versions of Python are being
-tested, cibuildwheel will often gain early support for beta releases. If you
-would like to test wheel building with these versions, you can enable this
-flag.  Please _do not_ upload these wheels to PyPI, as they are not guaranteed
-to work with the final Python release. Once Python is ABI stable and enters the
-release candidate phase, that version of Python will become available without
-this flag.
+During the beta period, when new versions of Python are being tested,
+cibuildwheel will often gain early support for beta releases. If you would
+like to test wheel building with these versions, you can enable this flag.
+
+!!! caution
+    Please _do not_ upload these wheels to PyPI, as they are not guaranteed to
+    work with the final Python release. Once Python is ABI stable and enters
+    the release candidate phase, that version of Python will become available
+    without this flag.
 
 Default: Off (0) if Python is available in beta phase. No effect otherwise.
 
