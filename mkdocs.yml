@@ -5,7 +5,7 @@ theme:
   highlightjs: true
   hljs_languages:
       - yaml
-repo_url: https://github.com/joerick/cibuildwheel
+repo_url: https://github.com/pypa/cibuildwheel
 
 extra_css:
   - extra.css

@@ -52,7 +52,7 @@ def bump_version() -> None:
         cd_date, cd_time, cd_tz = commit_date_str.split(" ")
 
         url_opts = urllib.parse.urlencode({"q": f"is:pr merged:>{cd_date}T{cd_time}{cd_tz}"})
-        url = f"https://github.com/joerick/cibuildwheel/pulls?{url_opts}"
+        url = f"https://github.com/pypa/cibuildwheel/pulls?{url_opts}"
 
         print(f"PRs merged since last release:\n  {url}")
         print()
