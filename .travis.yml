@@ -29,7 +29,7 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq -y software-properties-common podman
 - sudo mkdir -p /etc/containers
-- sudo sh -c 'echo -e "[registries.search]\nregistries = [\"docker.io\"]" > /etc/containers/registries.conf'
+- sudo bash -c 'echo -e "[registries.search]\nregistries = [\"docker.io\"]" > /etc/containers/registries.conf'
 - mkdir -p ${HOME}/.podman/bin
 - ln -s $(which podman) ${HOME}/.podman/bin/docker
 - export PATH=${HOME}/.podman/bin:$PATH
