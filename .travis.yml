@@ -40,12 +40,12 @@ before_install: |
   cat /etc/subgid
   cat /etc/containers/storage.conf
   mkdir -p ${HOME}/.config/containers
-  cat << PODMANEOF > ${HOME}/.config/containers/storage.conf
-  [storage]
-  driver = "overlay"
-  [storage.options]
-  mount_program = "/usr/bin/fuse-overlayfs"
-  PODMANEOF
+  cat << EOF > ${HOME}/.config/containers/storage.conf
+[storage]
+driver = "overlay"
+[storage.options]
+mount_program = "/usr/bin/fuse-overlayfs"
+EOF
   podman info
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
