@@ -16,7 +16,7 @@ import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
-from cibuildwheel.options import ConfigOptions
+from cibuildwheel.options import ConfigNamespace, ConfigOptions
 from cibuildwheel.projectfiles import get_requires_python_str
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
@@ -71,7 +71,6 @@ def main() -> None:
 
     parser.add_argument(
         "--output-dir",
-        default=os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse"),
         help="Destination folder for the wheels.",
     )
 
@@ -143,20 +142,24 @@ def main() -> None:
         sys.exit(2)
 
     package_dir = Path(args.package_dir)
-    output_dir = Path(args.output_dir)
 
     options = ConfigOptions(package_dir, platform=platform)
+    output_dir = Path(
+        args.output_dir
+        if args.output_dir is not None
+        else options("output-dir", namespace=ConfigNamespace.MAIN)
+    )
 
-    build_config = options("build", platform_variants=False) or "*"
-    skip_config = options("skip", platform_variants=False)
-    test_skip = options("test-skip", platform_variants=False)
+    build_config = options("build", namespace=ConfigNamespace.MAIN) or "*"
+    skip_config = options("skip", namespace=ConfigNamespace.MAIN)
+    test_skip = options("test-skip", namespace=ConfigNamespace.MAIN)
 
     archs_config_str = options("archs") if args.archs is None else args.archs
 
     environment_config = options("environment")
     before_all = options("before-all")
     before_build = options("before-build")
-    repair_command = options("repair-command")
+    repair_command = options("repair-wheel-command")
 
     dependency_versions = options("dependency-versions")
     test_command = options("test-command")
@@ -259,8 +262,7 @@ def main() -> None:
         ]:
             pinned_images = all_pinned_docker_images[build_platform]
 
-            config_name = f"CIBW_MANYLINUX_{build_platform.upper()}_IMAGE"
-            config_value = os.environ.get(config_name)
+            config_value = options(f"{build_platform}-image", namespace=ConfigNamespace.MANYLINUX)
 
             if config_value is None:
                 # default to manylinux2010 if it's available, otherwise manylinux2014

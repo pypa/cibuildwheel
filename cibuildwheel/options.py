@@ -1,6 +1,7 @@
+import enum
 import os
 from pathlib import Path
-from typing import Dict, Mapping, Tuple
+from typing import Any, Dict, Mapping, Tuple
 
 import toml
 
@@ -26,6 +27,12 @@ def _dig_first(*pairs: Tuple[Mapping[str, Setting], str]) -> Setting:
     return dict_like.get(key, _dig_first(*others)) if others else dict_like[key]
 
 
+class ConfigNamespace(enum.Enum):
+    PLATFORM = enum.auto()  # Available in "global" and plat-specific namespace
+    MAIN = enum.auto()  # Available without a namespace
+    MANYLINUX = enum.auto()  # Only in the manylinux namespace
+
+
 class ConfigOptions:
     """
     Gets options from the environment, optionally scoped by the platform.
@@ -42,22 +49,22 @@ class ConfigOptions:
 
     def __init__(self, project_path: Path, *, platform: str) -> None:
         self.platform = platform
-        self.global_options: Dict[str, Setting] = {}
-        self.platform_options: Dict[str, Setting] = {}
+        self.config: Dict[str, Any] = {}
 
         # Open defaults.toml and load tool.cibuildwheel.global, then update with tool.cibuildwheel.<platform>
-        self._load_file(DIR.joinpath("resources", "defaults.toml"), check=False)
+        self._load_file(DIR.joinpath("resources", "defaults.toml"), update=False)
 
         # Open pyproject.toml if it exists and load from there
         pyproject_toml = project_path.joinpath("pyproject.toml")
-        self._load_file(pyproject_toml, check=True)
-
-        # Open cibuildwheel.toml if it exists and load from there
-        cibuildwheel_toml = project_path.joinpath("cibuildwheel.toml")
-        self._load_file(cibuildwheel_toml, check=True)
+        self._load_file(pyproject_toml, update=True)
 
     def _update(
-        self, old_dict: Dict[str, Setting], new_dict: Dict[str, Setting], *, check: bool
+        self,
+        old_dict: Dict[str, Any],
+        new_dict: Dict[str, Any],
+        *,
+        update: bool,
+        path: str = "",
     ) -> None:
         """
         Updates a dict with a new dict - optionally checking to see if the key
@@ -65,57 +72,88 @@ class ConfigOptions:
         check=False when loading the defaults.toml file, and all future files
         will be forced to have no new keys.
         """
+
         for key in new_dict:
-            if check and key not in self.global_options:
-                raise ConfigOptionError(f"Key not supported, problem in config file: {key}")
+            # Check to see if key is already present (in global too if a platform)
+            if update:
+                options = set(self.config[path] if path else self.config)
+                if path in PLATFORMS:
+                    options |= set(self.config["global"])
 
-            old_dict[key] = new_dict[key]
+                if key not in options:
+                    raise ConfigOptionError(
+                        f"Key not supported, problem in config file: {path} {key}"
+                    )
 
-    def _load_file(self, filename: Path, *, check: bool) -> None:
+            # This is recursive; update dicts (subsections) if needed. Only handles one level.
+            if isinstance(new_dict[key], dict):
+                if path:
+                    raise ConfigOptionError(
+                        f"Nested keys not supported, {key} should not be in {path}"
+                    )
+
+                if key not in old_dict:
+                    old_dict[key] = {}
+
+                self._update(old_dict[key], new_dict[key], update=update, path=key)
+            else:
+                old_dict[key] = new_dict[key]
+
+    def _load_file(self, filename: Path, *, update: bool) -> None:
         """
-        Load a toml file, global and current platform. Raise an error if any unexpected
-        sections are present in tool.cibuildwheel, and pass on check to _update.
+        Load a toml file, global and current platform. Raise an error if any
+        unexpected sections are present in tool.cibuildwheel if updating, and
+        raise if any are missing if not.
         """
         # Only load if present.
         try:
             config = toml.load(filename)
         except FileNotFoundError:
+            assert update, "Missing default.toml, this should not happen!"
             return
 
         # If these sections are not present, go on.
-        if not config.get("tool", {}).get("cibuildwheel"):
+        tool_cibuildwheel = config.get("tool", {}).get("cibuildwheel")
+        if not tool_cibuildwheel:
+            assert update, "Malformed internal default.toml, this should not happen!"
             return
 
-        unsupported = set(config["tool"]["cibuildwheel"]) - (PLATFORMS | {"global"})
-        if unsupported:
-            raise ConfigOptionError(f"Unsupported configuration section(s): {unsupported}")
+        self._update(self.config, tool_cibuildwheel, update=update)
 
-        self._update(self.global_options, config["tool"]["cibuildwheel"]["global"], check=check)
-        self._update(
-            self.platform_options, config["tool"]["cibuildwheel"][self.platform], check=check
-        )
-
-    def __call__(self, name: str, *, platform_variants: bool = True) -> Setting:
+    def __call__(
+        self, name: str, *, namespace: ConfigNamespace = ConfigNamespace.PLATFORM
+    ) -> Setting:
         """
         Get and return envvar for name or the override or the default.
         """
-        if name not in self.global_options:
-            raise ConfigOptionError(
-                f"{name} was not loaded from the cibuildwheel/resources/defaults.toml file"
-            )
 
-        envvar = f"CIBW_{name.upper().replace('-', '_')}"
+        # Get config settings for the requested namespace and current platform
+        if namespace == ConfigNamespace.MAIN:
+            config = self.config
+        elif namespace == ConfigNamespace.MANYLINUX:
+            config = self.config["manylinux"]
+        elif namespace == ConfigNamespace.PLATFORM:
+            config = {**self.config["global"], **self.config[self.platform]}
 
-        if platform_variants:
+        if name not in config:
+            raise ConfigOptionError(f"{name} must be in cibuildwheel/resources/defaults.toml file")
+
+        # Environment variable form
+        if namespace == ConfigNamespace.MANYLINUX:
+            envvar = f"CIBW_MANYLINUX_{name.upper().replace('-', '_')}"
+        else:
+            envvar = f"CIBW_{name.upper().replace('-', '_')}"
+
+        # Let environment variable override setting in config
+        if namespace == ConfigNamespace.PLATFORM:
             plat_envvar = f"{envvar}_{self.platform.upper()}"
             return _dig_first(
                 (os.environ, plat_envvar),
-                (self.platform_options, name),
                 (os.environ, envvar),
-                (self.global_options, name),
+                (config, name),
             )
         else:
             return _dig_first(
                 (os.environ, envvar),
-                (self.global_options, name),
+                (config, name),
             )
