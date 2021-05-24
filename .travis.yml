@@ -13,10 +13,10 @@ jobs:
       arch: arm64
       env: PYTHON=python
 
-    - name: Linux | ppc64le | Python 3.6
-      python: 3.6
-      arch: ppc64le
-      env: PYTHON=python
+    #- name: Linux | ppc64le | Python 3.6
+    #  python: 3.6
+    #  arch: ppc64le
+    #  env: PYTHON=python
 
 
     - name: Linux | s390x | Python 3.6
@@ -43,8 +43,9 @@ before_install: |
   mkdir -p ${HOME}/.config/containers
   echo -e "[storage]\ndriver = \"vfs\"\nrootless_storage_path = \"${HOME}/.local/share/containers/storage\"" > ${HOME}/.config/containers/storage.conf
   cat ${HOME}/.config/containers/storage.conf
-  ls /sys/fs/cgroup/cgroup.controllers
-  podman info
+  echo "cgroup_manager=\"cgroupfs\"" > ${HOME}/.config/containers/containers.conf
+  #ls /sys/fs/cgroup/cgroup.controllers
+  podman info --debug
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
