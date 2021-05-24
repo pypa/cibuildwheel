@@ -285,7 +285,15 @@ def main() -> None:
 
         manylinux_images = {}
 
-        for build_platform in ["x86_64", "i686", "pypy_x86_64", "aarch64", "ppc64le", "s390x"]:
+        for build_platform in [
+            "x86_64",
+            "i686",
+            "pypy_x86_64",
+            "aarch64",
+            "ppc64le",
+            "s390x",
+            "pypy_aarch64",
+        ]:
             pinned_images = all_pinned_docker_images[build_platform]
 
             config_name = f"CIBW_MANYLINUX_{build_platform.upper()}_IMAGE"

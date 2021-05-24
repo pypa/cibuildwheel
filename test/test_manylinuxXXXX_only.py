@@ -64,6 +64,7 @@ def test(manylinux_image, tmp_path):
         "CIBW_MANYLINUX_AARCH64_IMAGE": manylinux_image,
         "CIBW_MANYLINUX_PPC64LE_IMAGE": manylinux_image,
         "CIBW_MANYLINUX_S390X_IMAGE": manylinux_image,
+        "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE": manylinux_image,
     }
     if manylinux_image in {"manylinux1"}:
         # We don't have a manylinux1 image for PyPy
