@@ -34,9 +34,9 @@ stages:
   # Only execute deployment stage on tagged commits, and from your repository
   # (e.g. not PRs). Replace with your repo name.
   - name: deploy
-    if: tag IS PRESENT AND repo = joerick/cibuildwheel
+    if: tag IS PRESENT AND repo = pypa/cibuildwheel
     # To only build tags that look like vX.Y.Z:
-    #   if: tag =~ ^v\d+\.\d+\.\d+$ AND repo = joerick/cibuildwheel
+    #   if: tag =~ ^v\d+\.\d+\.\d+$ AND repo = pypa/cibuildwheel
 
 jobs:
   include:

@@ -12,7 +12,7 @@ If your wheel didn't compile, check the list below for some debugging tips.
 
 - Windows: missing C feature. The Windows C compiler doesn't support C language features invented after 1990, so you'll have to backport your C code to C90. For me, this mostly involved putting my variable declarations at the top of the function like an animal.
 
-- MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/joerick/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
+- MacOS: calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/pypa/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
 
 ### Building Python 2.7 / PyPy2 wheels
 
@@ -183,7 +183,7 @@ python3 -m twine upload wheelhouse/*.whl
 
 Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, these are included with Python, but when compiling with a newer version of Visual Studio, it is possible users will run into problems on systems that do not have these runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it. Since a Python installation normally includes these VC++ Redistributable files for [the version of the MSVC compiler used to compile Python](https://wiki.python.org/moin/WindowsCompilers), this is typically only a problem when compiling a Python C extension with a newer compiler.
 
-Additionally, Visual Studio 2019 started linking to an even newer DLL, `VCRUNTIME140_1.dll`, besides the `VCRUNTIME140.dll` that is included with recent Python versions (starting from Python 3.5; see [here](https://wiki.python.org/moin/WindowsCompilers) for more details on the corresponding Visual Studio & MSVC versions used to compile the different Python versions). To avoid this extra dependency on `VCRUNTIME140_1.dll`, the [`/d2FH4-` flag](https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/) can be added to the MSVC invocations (check out [this issue](https://github.com/joerick/cibuildwheel/issues/423) for details and references).
+Additionally, Visual Studio 2019 started linking to an even newer DLL, `VCRUNTIME140_1.dll`, besides the `VCRUNTIME140.dll` that is included with recent Python versions (starting from Python 3.5; see [here](https://wiki.python.org/moin/WindowsCompilers) for more details on the corresponding Visual Studio & MSVC versions used to compile the different Python versions). To avoid this extra dependency on `VCRUNTIME140_1.dll`, the [`/d2FH4-` flag](https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/) can be added to the MSVC invocations (check out [this issue](https://github.com/pypa/cibuildwheel/issues/423) for details and references).
 
 To add the `/d2FH4-` flag to a standard `setup.py` using `setuptools`, the `extra_compile_args` option can be used:
 
@@ -210,7 +210,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: joerick/cibuildwheel@v1.11.0
+uses: pypa/cibuildwheel@v1.11.0
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.

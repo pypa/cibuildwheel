@@ -3,11 +3,11 @@ cibuildwheel
 
 [![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel)
 [![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.readthedocs.io/en/stable/?badge=stable)
-[![Actions Status](https://github.com/joerick/cibuildwheel/workflows/Test/badge.svg)](https://github.com/joerick/cibuildwheel/actions)
-[![Travis Status](https://img.shields.io/travis/joerick/cibuildwheel/master?logo=travis)](https://travis-ci.org/joerick/cibuildwheel)
-[![AppVeyor status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master)
-[![CircleCI Status](https://img.shields.io/circleci/build/gh/joerick/cibuildwheel/master?logo=circleci)](https://circleci.com/gh/joerick/cibuildwheel)
-[![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName=master)
+[![Actions Status](https://github.com/pypa/cibuildwheel/workflows/Test/badge.svg)](https://github.com/pypa/cibuildwheel/actions)
+[![Travis Status](https://img.shields.io/travis/com/pypa/cibuildwheel/master?logo=travis)](https://travis-ci.com/pypa/cibuildwheel)
+[![Appveyor status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/master?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/master)
+[![CircleCI Status](https://img.shields.io/circleci/build/gh/pypa/cibuildwheel/master?logo=circleci)](https://circleci.com/gh/pypa/cibuildwheel)
+[![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName=master)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=4&branchName=master)
 
 
 [Documentation](https://cibuildwheel.readthedocs.org)
@@ -95,7 +95,7 @@ jobs:
           path: ./wheelhouse/*.whl
 ```
 
-For more information, including PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/joerick/cibuildwheel/tree/master/examples).
+For more information, including PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/pypa/cibuildwheel/tree/master/examples).
 
 Options
 -------
@@ -322,7 +322,7 @@ Here are some repos that use cibuildwheel.
 
 <!-- END bin/projects.py -->
 
-> Add your repo here! Let us know on [GitHub Discussions](https://github.com/joerick/cibuildwheel/discussions/485), or send a PR, adding your information to `docs/data/projects.yml`.
+> Add your repo here! Let us know on [GitHub Discussions](https://github.com/pypa/cibuildwheel/discussions/485), or send a PR, adding your information to `docs/data/projects.yml`.
 >
 > <sup>I'd like to include notes here to indicate why an example might be interesting to cibuildwheel users - the styles/technologies/techniques used in each. Please include that in future additions!</sup>
 
@@ -393,7 +393,7 @@ _5 February 2021_
 
   ```yaml
   - name: Build wheels
-    uses: joerick/cibuildwheel@version # e.g. v1.9.0
+    uses: pypa/cibuildwheel@version # e.g. v1.9.0
     with:
       output-dir: wheelhouse
     # env:
@@ -721,7 +721,7 @@ _26 May 2019_
 - 🌟 Add support for building on Azure pipelines! This lets you build all
   Linux, Mac and Windows wheels on one service, so it promises to be the
   easiest to set up! Check out the quickstart in the docs, or
-  [cibuildwheel-azure-example](https://github.com/joerick/cibuildwheel-azure-example)
+  [cibuildwheel-azure-example](https://github.com/pypa/cibuildwheel-azure-example)
   for an example project. (#126, #132)
 - 🛠 Internal change - the end-to-end test projects format was updated, so we
   can more precisely assert what should be produced for each one. (#136, #137).
@@ -897,9 +897,9 @@ Credits
 
 Massive props also to-
 
-- @zfrenchee for [help debugging many issues](https://github.com/joerick/cibuildwheel/issues/2)
-- @lelit for some great bug reports and [contributions](https://github.com/joerick/cibuildwheel/pull/73)
-- @mayeut for a [phenomenal PR](https://github.com/joerick/cibuildwheel/pull/71) patching Python itself for better compatibility!
+- @zfrenchee for [help debugging many issues](https://github.com/pypa/cibuildwheel/issues/2)
+- @lelit for some great bug reports and [contributions](https://github.com/pypa/cibuildwheel/pull/73)
+- @mayeut for a [phenomenal PR](https://github.com/pypa/cibuildwheel/pull/71) patching Python itself for better compatibility!
 - @czaki for being a super-contributor over many PRs and helping out with countless issues!
 - @mattip for his help with adding PyPy support to cibuildwheel
 

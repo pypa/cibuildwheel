@@ -266,7 +266,7 @@ def build(options: BuildOptions) -> None:
                 shutil.rmtree(built_wheel_dir)
             built_wheel_dir.mkdir(parents=True)
             # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-            # see https://github.com/joerick/cibuildwheel/pull/369
+            # see https://github.com/pypa/cibuildwheel/pull/369
             call(
                 [
                     "pip",
