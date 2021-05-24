@@ -67,7 +67,7 @@ before_install: |
     # prepare & start the rootless docker daemon
     dockerd-rootless-setuptool.sh install --force
     export XDG_RUNTIME_DIR=/home/travis/.docker/run
-    dockerd-rootless.sh &> /dev/null &
+    dockerd-rootless.sh &
     DOCKERD_ROOTLESS_PID=$!
     echo "${DOCKERD_ROOTLESS_PID}" > ${HOME}/dockerd-rootless.pid
     docker context use rootless
