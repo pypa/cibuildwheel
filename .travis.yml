@@ -61,7 +61,7 @@ before_install: |
     echo -e '#!/bin/sh\nexit 101' | sudo tee /usr/sbin/policy-rc.d
     sudo chmod +x /usr/sbin/policy-rc.d
     # install docker
-    sudo apt-get install -y --no-install-recommends containerd uidmap slirp4netns fuse-overlayfs docker-ce docker-ce-cli docker-ce-rootless-extras
+    sudo apt-get install -y --no-install-recommends uidmap slirp4netns fuse-overlayfs docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io
     # "restore" policy-rc.d
     sudo rm -f /usr/sbin/policy-rc.d
     # prepare & start the rootless docker daemon
