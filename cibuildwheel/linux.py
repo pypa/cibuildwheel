@@ -70,6 +70,7 @@ def build(options: BuildOptions) -> None:
         ("cp", "manylinux_s390x", options.manylinux_images["s390x"]),
         ("pp", "manylinux_x86_64", options.manylinux_images["pypy_x86_64"]),
         ("pp", "manylinux_aarch64", options.manylinux_images["pypy_aarch64"]),
+        ("pp", "manylinux_i686", options.manylinux_images["pypy_i686"]),
     ]
 
     cwd = Path.cwd()

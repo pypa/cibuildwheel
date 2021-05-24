@@ -140,7 +140,7 @@ def expected_wheels(
         if platform == "linux":
             architectures = [machine_arch]
 
-            if machine_arch == "x86_64" and python_abi_tag.startswith("cp"):
+            if machine_arch == "x86_64":
                 architectures.append("i686")
 
             platform_tags = [

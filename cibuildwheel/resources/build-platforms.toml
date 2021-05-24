@@ -22,6 +22,7 @@ python_configurations = [
   { identifier = "cp38-manylinux_s390x", version = "3.8", path_str = "/opt/python/cp38-cp38" },
   { identifier = "cp39-manylinux_s390x", version = "3.9", path_str = "/opt/python/cp39-cp39" },
   { identifier = "pp37-manylinux_aarch64", version = "3.7", path_str = "/opt/python/pp37-pypy37_pp73" },
+  { identifier = "pp37-manylinux_i686", version = "3.7", path_str = "/opt/python/pp37-pypy37_pp73" },
 ]
 
 [macos]

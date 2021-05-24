@@ -293,6 +293,7 @@ def main() -> None:
             "ppc64le",
             "s390x",
             "pypy_aarch64",
+            "pypy_i686",
         ]:
             pinned_images = all_pinned_docker_images[build_platform]
 
