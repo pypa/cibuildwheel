@@ -43,7 +43,7 @@ before_install: |
   mkdir -p ${HOME}/.config/containers
   echo -e "[storage]\ndriver = \"vfs\"\nrootless_storage_path = \"${HOME}/.local/share/containers/storage\"" > ${HOME}/.config/containers/storage.conf
   cat ${HOME}/.config/containers/storage.conf
-  echo "cgroup_manager=\"cgroupfs\"" > ${HOME}/.config/containers/containers.conf
+  echo -e "[engine]\ncgroup_manager = \"cgroupfs\"" > ${HOME}/.config/containers/containers.conf
   cat ${HOME}/.config/containers/containers.conf
   #ls /sys/fs/cgroup/cgroup.controllers
   podman info --debug
