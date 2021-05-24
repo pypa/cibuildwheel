@@ -25,7 +25,7 @@ jobs:
       env: PYTHON=python
 
 before_install: |
-  set -exo pipefail
+  set -eo pipefail
   . /etc/os-release
   echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
   curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
@@ -36,6 +36,10 @@ before_install: |
   mkdir -p ${HOME}/.podman/bin
   ln -s $(which podman) ${HOME}/.podman/bin/docker
   export PATH=${HOME}/.podman/bin:$PATH
+  cat /etc/subpid
+  cat /etc/subgid
+  sudo podman info
+  podman info
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
