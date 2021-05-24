@@ -24,13 +24,13 @@ else:
     raise Exception("Unsupported platform")
 
 
-def cibuildwheel_get_build_identifiers(project_path, env=None, *, pre=False):
+def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pythons=False):
     """
     Returns the list of build identifiers that cibuildwheel will try to build
     for the current platform.
     """
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
-    if pre:
+    if prerelease_pythons:
         cmd.append("--prerelease-pythons")
 
     cmd_output = subprocess.run(
