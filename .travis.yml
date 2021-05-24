@@ -1,5 +1,5 @@
 os: linux
-dist: focal
+dist: bionic
 language: python
 
 branches:
@@ -8,42 +8,31 @@ branches:
 
 jobs:
   include:
-    - name: Linux | x86_64 + i686 | Python 3.6
-      python: 3.6
-      services: docker
-      env: PYTHON=python
-
     - name: Linux | arm64 | Python 3.6
       python: 3.6
-      services: docker
       arch: arm64
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.6
       python: 3.6
-      services: docker
       arch: ppc64le
-      env:
-        - PYTHON=python
-        # skip test_manylinuxXXXX_only, it uses too much disk space
-        # c.f. https://travis-ci.community/t/running-out-of-disk-space-quota-when-using-docker-on-ppc64le/11634
-        - PYTEST_ADDOPTS='-k "not test_manylinuxXXXX_only"'
+      env: PYTHON=python
 
-    - name: Windows | x86_64 | Python 3.6
-      os: windows
-      language: shell
-      before_install:
-        - choco upgrade python3 -y --version 3.6.8 --limit-output
-        # Update root certificates to fix SSL error; see http://www.chawn.com/RootCerts.htm
-        - powershell "md C:\temp\certs; CertUtil -generateSSTFromWU C:\temp\certs\RootStore.sst; Get-ChildItem -Path C:\\temp\certs\Rootstore.sst | Import-Certificate -CertStoreLocation Cert:\\LocalMachine\\Root\\ | out-null"
-      env:
-        - PYTHON=C:\\Python36\\python
 
     - name: Linux | s390x | Python 3.6
       python: 3.6
-      services: docker
       arch: s390x
       env: PYTHON=python
+
+before_install:
+- sudo add-apt-repository -y ppa:projectatomic/ppa
+- sudo apt-get update -qq
+- sudo apt-get install -qq -y software-properties-common podman
+- sudo mkdir -p /etc/containers
+- sudo sh -c 'echo -e "[registries.search]\nregistries = [\"docker.io\"]" > /etc/containers/registries.conf'
+- mkdir -p ${HOME}/.podman/bin
+- ln -s $(which podman) ${HOME}/.podman/bin/docker
+- export PATH=${HOME}/.podman/bin:$PATH
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
