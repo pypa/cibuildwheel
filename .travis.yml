@@ -24,6 +24,22 @@ jobs:
       env: PYTHON=python
 
 before_install: |
+  echo "mount"
+  mount
+  echo "id"
+  id
+  echo "subuid"
+  cat /etc/subuid
+  echo "subgid"
+  cat /etc/subgid
+  echo "cgroup"
+  cat /proc/self/cgroup
+  echo "setgroups"
+  cat /proc/self/setgroups
+  echo "unpriv"
+  ls -al /proc/sys/kernel/| grep unpriv
+  echo "unprivileged_userns_clone"
+  cat /proc/sys/kernel/unprivileged_userns_clone
   if [ "$(uname -m)" == "ppc64le" ]; then
     # We need to run a rootless docker daemon due to travis-ci LXD configuration
     # Update docker, c.f. https://developer.ibm.com/components/ibm-power/tutorials/install-docker-on-linux-on-power/
@@ -67,15 +83,7 @@ before_install: |
     # prepare & start the rootless docker daemon
     dockerd-rootless-setuptool.sh install --force
     export XDG_RUNTIME_DIR=${HOME}/.docker/run
-    mount
     find ${HOME}/.docker
-    id
-    cat /etc/subuid
-    cat /etc/subgid
-    cat /proc/self/cgroup
-    cat /proc/self/setgroups
-    ls -al /proc/sys/kernel/| grep unpriv
-    cat /proc/sys/kernel/unprivileged_userns_clone
     dockerd-rootless.sh &
     DOCKERD_ROOTLESS_PID=$!
     echo "${DOCKERD_ROOTLESS_PID}" > ${HOME}/dockerd-rootless.pid
