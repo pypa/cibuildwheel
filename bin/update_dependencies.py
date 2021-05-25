@@ -18,18 +18,15 @@ env = os.environ.copy()
 # regenerate the constraints files
 env["CUSTOM_COMPILE_COMMAND"] = "bin/update_dependencies.py"
 
-if python_version == "36":
-    # Bug with click and Python 3.6
-    env["LC_ALL"] = "C.UTF-8"
-    env["LANG"] = "C.UTF-8"
+os.chdir(DIR.parent)
 
 subprocess.run(
     [
         "pip-compile",
         "--allow-unsafe",
         "--upgrade",
-        f"{RESOURCES}/constraints.in",
-        f"--output-file={RESOURCES}/constraints-python{python_version}.txt",
+        "cibuildwheel/resources/constraints.in",
+        f"--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
     ],
     check=True,
     env=env,
