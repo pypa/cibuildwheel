@@ -24,11 +24,11 @@ What does it do?
 
 |   | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
 |---|---|---|---|---|---|---|---|---|---|
-| CPython 3.6     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.6     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.7     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.8     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PyPy 3.7 v7.3   | ✅ |   | ✅  |    | ✅ | ✅  | ✅  |    |   |
+| PyPy 3.7 v7.3   | ✅ | N/A | ✅  |    | ✅ | ✅  | ✅  |    |   |
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
