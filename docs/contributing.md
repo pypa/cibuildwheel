@@ -52,7 +52,7 @@ nox -s build         # Make SDist and wheel
 More advanced users can run the update scripts. `update_pins` should work directly, but `update_constraints` needs all versions of Python installed. If you don't want to do that locally, a fast way to run it to use docker to run nox:
 
 ```console
-docker run --rm -it -v $PWD:/src quay.io/pypa/manylinux2010_x86_64:latest pipx run nox -f src/noxfile.py -s update_constraints
+docker run --rm -itv $PWD:/src -w /src quay.io/pypa/manylinux_2_24_x86_64:latest pipx run nox -s update_constraints
 ```
 
 ### Local testing
