@@ -38,6 +38,5 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      # disabled until CircleCI enable open-source mac builds on pypa
-      # - osx-python3.6
+      - osx-python3.6
       - linux-python3.6
