@@ -321,7 +321,7 @@ Platform-specific variants also available:<br/>
 
 ```yaml
 # Include latest Python beta
-CIBW_PRERELEASE_PYTHONS=1
+CIBW_PRERELEASE_PYTHONS: True
 ```
 
 ## Build customization
