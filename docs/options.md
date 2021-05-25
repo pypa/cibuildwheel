@@ -307,10 +307,12 @@ cibuildwheel will often gain early support for beta releases. If you would
 like to test wheel building with these versions, you can enable this flag.
 
 !!! caution
-    Please _do not_ upload these wheels to PyPI, as they are not guaranteed to
-    work with the final Python release. Once Python is ABI stable and enters
-    the release candidate phase, that version of Python will become available
-    without this flag.
+    This option is provided for testing purposes only. It is not
+    recommended to distribute wheels built when `CIBW_PRERELEASE_PYTHONS` is
+    set, such as uploading to PyPI.  Please _do not_ upload these wheels to
+    PyPI, as they are not guaranteed to work with the final Python release.
+    Once Python is ABI stable and enters the release candidate phase, that
+    version of Python will become available without this flag.
 
 Default: Off (0) if Python is available in beta phase. No effect otherwise.
 

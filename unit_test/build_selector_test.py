@@ -8,7 +8,7 @@ def test_build():
 
     assert build_selector("cp36-manylinux_x86_64")
     assert build_selector("cp37-manylinux_x86_64")
-    assert build_selector("cp310-manylinux_x86_64")
+    assert not build_selector("cp310-manylinux_x86_64")
     assert build_selector("pp36-manylinux_x86_64")
     assert build_selector("pp37-manylinux_x86_64")
     assert build_selector("cp36-manylinux_i686")
@@ -26,20 +26,22 @@ def test_build():
     assert not build_selector("pp37-win32")
     assert build_selector("cp36-win_amd64")
     assert build_selector("cp37-win_amd64")
-    assert build_selector("cp310-win_amd64")
+    assert not build_selector("cp310-win_amd64")
     assert not build_selector("pp36-win_amd64")
     assert not build_selector("pp37-win_amd64")
 
 
 def test_build_filter_pre():
     build_selector = BuildSelector(
-        build_config="cp3*-* *-manylinux*", skip_config="", skip_prerelease="cp310-*"
+        build_config="cp3*-* *-manylinux*",
+        skip_config="",
+        prerelease_pythons=True,
     )
 
     assert build_selector("cp37-manylinux_x86_64")
-    assert not build_selector("cp310-manylinux_x86_64")
+    assert build_selector("cp310-manylinux_x86_64")
     assert build_selector("cp37-win_amd64")
-    assert not build_selector("cp310-win_amd64")
+    assert build_selector("cp310-win_amd64")
 
 
 def test_skip():
