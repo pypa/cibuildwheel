@@ -11,17 +11,8 @@ on:
     # allow manual runs on branches without a PR
 
 jobs:
-  pre-commit:
-    name: Pre-commit checks (mypy, flake8, etc.)
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-    - uses: pre-commit/action@v2.0.0
-
   test:
     name: Test cibuildwheel on ${{ matrix.os }}
-    needs: pre-commit
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -62,7 +53,6 @@ jobs:
 
   test-emulated:
     name: Test emulated cibuildwheel using qemu
-    needs: pre-commit
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
