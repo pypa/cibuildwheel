@@ -232,7 +232,7 @@ class AllVersions:
     def __init__(self) -> None:
         self.windows_32 = WindowsVersions("32")
         self.windows_64 = WindowsVersions("64")
-        self.windows_pypy = PyPyVersions("32")
+        self.windows_pypy = PyPyVersions("64")
 
         self.macos_cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
@@ -262,9 +262,12 @@ class AllVersions:
                 if config_update:
                     config.update(**config_update)
         elif "win_amd64" in identifier:
-            config_update = self.windows_64.update_version_windows(spec)
-            if config_update:
-                config.update(**config_update)
+            if identifier.startswith("pp"):
+                config.update(**self.windows_pypy.update_version_windows(spec))
+            else:
+                config_update = self.windows_64.update_version_windows(spec)
+                if config_update:
+                    config.update(**config_update)
 
         if config != orig_config:
             log.info(f"  Updated {orig_config} to {config}")
