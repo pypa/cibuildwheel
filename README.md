@@ -28,7 +28,7 @@ What does it do?
 | CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PyPy 3.7 v7.3   | ✅ |   | ✅  |    | ✅ |    |    |    |   |
+| PyPy 3.7 v7.3   | ✅ |   | ✅  |    | ✅ | ✅  | ✅  |    |   |
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
@@ -110,7 +110,7 @@ Options
 |   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
 |   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
 |   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each (non-pure Python) built wheel |
-|   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_AARCH64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PPC64LE_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_S390X_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
+|   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_AARCH64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PPC64LE_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_S390X_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_AARCH64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
 |   | [`CIBW_DEPENDENCY_VERSIONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)  | Specify how cibuildwheel controls the versions of the tools it uses |
 | **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
 |   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-test)  | Execute a shell command before testing each wheel |

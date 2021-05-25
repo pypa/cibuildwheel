@@ -124,7 +124,7 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.7   | cp37-macosx_x86_64                                                  | cp37-win_amd64<br/>cp37-win32 | cp37-manylinux_x86_64<br/>cp37-manylinux_i686 | cp37-manylinux_aarch64<br/>cp37-manylinux_ppc64le<br/>cp37-manylinux_s390x |
 | Python 3.8   | cp38-macosx_x86_64                                                  | cp38-win_amd64<br/>cp38-win32 | cp38-manylinux_x86_64<br/>cp38-manylinux_i686 | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x |
 | Python 3.9   | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64 | cp39-win_amd64<br/>cp39-win32 | cp39-manylinux_x86_64<br/>cp39-manylinux_i686 | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x |
-| PyPy3.7 v7.3 | pp37-macosx_x86_64                                                  |                    pp37-win32 | pp37-manylinux_x86_64                         |                                                                            |
+| PyPy3.7 v7.3 | pp37-macosx_x86_64                                                  |                pp37-win_amd64 | pp37-manylinux_x86_64                         |                                                                            |
 
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
@@ -478,10 +478,12 @@ The available options are:
 - `CIBW_MANYLINUX_AARCH64_IMAGE`
 - `CIBW_MANYLINUX_PPC64LE_IMAGE`
 - `CIBW_MANYLINUX_S390X_IMAGE`
+- `CIBW_MANYLINUX_PYPY_AARCH64_IMAGE`
+- `CIBW_MANYLINUX_PYPY_I686_IMAGE`
 
-Set an alternative Docker image to be used for building [manylinux](https://github.com/pypa/manylinux) wheels. cibuildwheel will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`pypywheels/manylinux2010-pypy_x86_64`](https://hub.docker.com/r/pypywheels/manylinux2010-pypy_x86_64), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), and [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x).
+Set an alternative Docker image to be used for building [manylinux](https://github.com/pypa/manylinux) wheels. cibuildwheel will then pull these instead of the default images, [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686), [`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64), [`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64), [`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le), and [`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x).
 
-The value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux) and [PyPy manylinux images](https://github.com/pypy/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, only the official `manylinux2010` image is currently available. For architectures other
+The value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
 than x86 (x86\_64 and i686) `manylinux2014` or `manylinux_2_24` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`.
 
 
@@ -501,12 +503,15 @@ CIBW_SKIP: pp*
 # build using the manylinux2014 image
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
 CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-CIBW_SKIP: cp27-manylinux*
+CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
+CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux2014
 
 # build using the latest manylinux2010 release, instead of the cibuildwheel
 # pinned version
 CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
 CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
+CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
+CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
 
 # build using a different image from the docker registry
 CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64

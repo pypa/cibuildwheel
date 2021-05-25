@@ -92,8 +92,7 @@ def test_build_limited_python():
     assert not build_selector("cp36-win32")
     assert build_selector("cp37-win32")
     assert build_selector("cp38-win32")
-    assert not build_selector("pp36-win32")
-    assert build_selector("pp37-win32")
+    assert build_selector("pp37-win_amd64")
 
 
 def test_build_limited_python_partial():

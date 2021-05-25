@@ -120,7 +120,7 @@ def expected_wheels(
 
     python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
 
-    if machine_arch in ["x86_64", "AMD64", "x86"]:
+    if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
         python_abi_tags += ["pp37-pypy37_pp73"]
 
     if platform == "macos" and get_macos_version() >= (10, 16):
@@ -140,7 +140,7 @@ def expected_wheels(
         if platform == "linux":
             architectures = [machine_arch]
 
-            if machine_arch == "x86_64" and python_abi_tag.startswith("cp"):
+            if machine_arch == "x86_64":
                 architectures.append("i686")
 
             platform_tags = [
@@ -157,7 +157,7 @@ def expected_wheels(
             if python_abi_tag.startswith("cp"):
                 platform_tags = ["win32", "win_amd64"]
             else:
-                platform_tags = ["win32"]
+                platform_tags = ["win_amd64"]
 
         elif platform == "macos":
             if python_abi_tag == "cp39-cp39" and machine_arch == "arm64":

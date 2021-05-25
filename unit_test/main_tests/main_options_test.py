@@ -81,10 +81,11 @@ def test_empty_selector(platform, intercepted_build_args, monkeypatch):
         ("i686", "manylinux2014", "quay.io/pypa/manylinux2014_i686:*"),
         ("i686", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_i686:*"),
         ("i686", "custom_image", "custom_image"),
-        ("pypy_x86_64", None, "pypywheels/manylinux2010-pypy_x86_64:*"),
+        ("pypy_x86_64", None, "quay.io/pypa/manylinux2010_x86_64:*"),
         ("pypy_x86_64", "manylinux1", "manylinux1"),  # Does not exist
-        ("pypy_x86_64", "manylinux2010", "pypywheels/manylinux2010-pypy_x86_64:*"),
-        ("pypy_x86_64", "manylinux2014", "manylinux2014"),  # Does not exist (yet)
+        ("pypy_x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
+        ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
+        ("pypy_x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
         ("pypy_x86_64", "custom_image", "custom_image"),
     ],
 )
