@@ -740,6 +740,7 @@ CIBW_BUILD_VERBOSITY: 1
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--archs ARCHS] [--output-dir OUTPUT_DIR]
                     [--print-build-identifiers] [--allow-empty]
+                    [--prerelease-pythons]
                     [package_dir]
 
 Build wheels for all the platforms.
@@ -766,8 +767,8 @@ optional arguments:
                         natively supported on this machine. Set this option to
                         build an architecture via emulation, for example,
                         using binfmt_misc and QEMU. Default: auto. Choices:
-                        auto, native, all, x86_64, i686, aarch64, ppc64le,
-                        s390x, x86, AMD64
+                        auto, auto64, auto32, native, all, x86_64, i686,
+                        aarch64, ppc64le, s390x, universal2, arm64, x86, AMD64
   --output-dir OUTPUT_DIR
                         Destination folder for the wheels.
   --print-build-identifiers
@@ -775,6 +776,7 @@ optional arguments:
                         invocation and exit.
   --allow-empty         Do not report an error code if the build does not
                         match any wheels.
+  --prerelease-pythons  Enable pre-release Python versions if available.
 ```
 
 <style>
