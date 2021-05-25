@@ -1,7 +1,7 @@
 import enum
 import os
 from pathlib import Path
-from typing import Any, Dict, Mapping, Tuple
+from typing import Any, Dict, Iterator, KeysView, Mapping, Tuple
 
 import toml
 
@@ -25,6 +25,14 @@ def _dig_first(*pairs: Tuple[Mapping[str, Setting], str]) -> Setting:
     """
     (dict_like, key), *others = pairs
     return dict_like.get(key, _dig_first(*others)) if others else dict_like[key]
+
+
+def _global_first(keys: KeysView[str]) -> Iterator[str]:
+    keys_ = set(keys)
+    if "global" in keys_:
+        keys_.remove("global")
+        yield "global"
+    yield from keys_
 
 
 class ConfigNamespace(enum.Enum):
@@ -73,7 +81,7 @@ class ConfigOptions:
         will be forced to have no new keys.
         """
 
-        for key in new_dict:
+        for key in _global_first(new_dict.keys()):
             # Check to see if key is already present (in global too if a platform)
             if update:
                 options = set(self.config[path] if path else self.config)
@@ -94,6 +102,13 @@ class ConfigOptions:
 
                 if key not in old_dict:
                     old_dict[key] = {}
+
+                if update and key == "global":
+                    # "new global" overrides "old platform"
+                    # this requires processing the "global" key first
+                    for sub_key in new_dict[key]:
+                        for platform in PLATFORMS:
+                            old_dict[platform].pop(sub_key, None)
 
                 self._update(old_dict[key], new_dict[key], update=update, path=key)
             else:
