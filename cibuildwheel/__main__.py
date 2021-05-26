@@ -376,7 +376,7 @@ def main() -> None:
 
 
 def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
-    if "p27" in selector or "p35" in selector:
+    if "p2" in selector or "p35" in selector:
         msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
         print(msg, file=sys.stderr)
         if error:
