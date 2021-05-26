@@ -232,7 +232,7 @@ class AllVersions:
     def __init__(self) -> None:
         self.windows_32 = WindowsVersions("32")
         self.windows_64 = WindowsVersions("64")
-        self.windows_pypy = PyPyVersions("32")
+        self.windows_pypy_64 = PyPyVersions("64")
 
         self.macos_cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
@@ -243,28 +243,25 @@ class AllVersions:
         spec = Specifier(f"=={version.major}.{version.minor}.*")
         log.info(f"Reading in '{identifier}' -> {spec} @ {version}")
         orig_config = copy.copy(config)
-        config_update: AnyConfig | None
+        config_update: AnyConfig | None = None
 
         # We need to use ** in update due to MyPy (probably a bug)
         if "macos" in identifier:
-            if identifier.startswith("pp"):
-                config_update = self.macos_pypy.update_version_macos(spec)
-            else:
+            if identifier.startswith("cp"):
                 config_update = self.macos_cpython.update_version_macos(identifier, version, spec)
-
-            assert config_update is not None, f"MacOS {spec} not found!"
-            config.update(**config_update)
+            elif identifier.startswith("pp"):
+                config_update = self.macos_pypy.update_version_macos(spec)
         elif "win32" in identifier:
-            if identifier.startswith("pp"):
-                config.update(**self.windows_pypy.update_version_windows(spec))
-            else:
+            if identifier.startswith("cp"):
                 config_update = self.windows_32.update_version_windows(spec)
-                if config_update:
-                    config.update(**config_update)
         elif "win_amd64" in identifier:
-            config_update = self.windows_64.update_version_windows(spec)
-            if config_update:
-                config.update(**config_update)
+            if identifier.startswith("cp"):
+                config_update = self.windows_64.update_version_windows(spec)
+            elif identifier.startswith("pp"):
+                config_update = self.windows_pypy_64.update_version_windows(spec)
+
+        assert config_update is not None, f"{identifier} not found!"
+        config.update(**config_update)
 
         if config != orig_config:
             log.info(f"  Updated {orig_config} to {config}")
