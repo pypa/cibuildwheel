@@ -26,9 +26,11 @@ What does it do?
 |---|---|---|---|---|---|---|---|---|---|
 | CPython 3.6     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.7     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.8     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.8     | ✅ | N/A¹ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PyPy 3.7 v7.3   | ✅ | N/A | ✅  |    | ✅ | ✅  | ✅  |    |   |
+| PyPy 3.7 v7.3   | ✅ | N/A | ✅  | N/A | ✅ | ✅  | ✅  | N/A | N/A |
+
+<sup>¹ CPython 3.8's final binary release has experimental Universal2 support, but does not support macOS 10.x, so this is not currently available.</sup><br>
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
