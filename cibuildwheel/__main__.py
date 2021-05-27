@@ -16,7 +16,7 @@ import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.environment import EnvironmentParseError, parse_environment
-from cibuildwheel.options import ConfigNamespace, ConfigOptions
+from cibuildwheel.options import ConfigOptions
 from cibuildwheel.projectfiles import get_requires_python_str
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
@@ -147,12 +147,12 @@ def main() -> None:
     output_dir = Path(
         args.output_dir
         if args.output_dir is not None
-        else options("output-dir", namespace=ConfigNamespace.MAIN)
+        else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
     )
 
-    build_config = options("build", namespace=ConfigNamespace.MAIN) or "*"
-    skip_config = options("skip", namespace=ConfigNamespace.MAIN)
-    test_skip = options("test-skip", namespace=ConfigNamespace.MAIN)
+    build_config = options("build", env_plat=False) or "*"
+    skip_config = options("skip", env_plat=False)
+    test_skip = options("test-skip", env_plat=False)
 
     archs_config_str = options("archs") if args.archs is None else args.archs
 
@@ -262,7 +262,7 @@ def main() -> None:
         ]:
             pinned_images = all_pinned_docker_images[build_platform]
 
-            config_value = options(f"{build_platform}-image", namespace=ConfigNamespace.MANYLINUX)
+            config_value = options(f"manylinux.{build_platform}-image")
 
             if config_value is None:
                 # default to manylinux2010 if it's available, otherwise manylinux2014

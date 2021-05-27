@@ -1,17 +1,16 @@
 import pytest
 
-from cibuildwheel.options import ConfigNamespace, ConfigOptions
+from cibuildwheel.options import ConfigOptions
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = "cp39*"
 
-[tool.cibuildwheel.manylinux]
-x86_64-image = "manylinux1"
-
-[tool.cibuildwheel.global]
 test-command = "pyproject"
 test-requires = "something"
+
+[tool.cibuildwheel.manylinux]
+x86_64-image = "manylinux1"
 
 [tool.cibuildwheel.macos]
 test-requires = "else"
@@ -32,8 +31,7 @@ def test_simple_settings(tmp_path, platform):
 
     options = ConfigOptions(tmp_path, platform=platform)
 
-    assert options("build", namespace=ConfigNamespace.MAIN) == "cp39*"
-    assert options("output-dir", namespace=ConfigNamespace.MAIN) == "wheelhouse"
+    assert options("build", env_plat=False) == "cp39*"
 
     assert options("test-command") == "pyproject"
     assert options("archs") == "auto"
@@ -42,8 +40,8 @@ def test_simple_settings(tmp_path, platform):
         == {"windows": "something", "macos": "else", "linux": "other"}[platform]
     )
 
-    assert options("x86_64-image", namespace=ConfigNamespace.MANYLINUX) == "manylinux1"
-    assert options("i686-image", namespace=ConfigNamespace.MANYLINUX) == "manylinux2010"
+    assert options("manylinux.x86_64-image") == "manylinux1"
+    assert options("manylinux.i686-image") == "manylinux2010"
 
 
 def test_envvar_override(tmp_path, platform, monkeypatch):
@@ -60,9 +58,14 @@ def test_envvar_override(tmp_path, platform, monkeypatch):
 
     assert options("archs") == "auto"
 
-    assert options("build", namespace=ConfigNamespace.MAIN) == "cp38*"
-    assert options("x86_64-image", namespace=ConfigNamespace.MANYLINUX) == "manylinux2014"
-    assert options("i686-image", namespace=ConfigNamespace.MANYLINUX) == "manylinux2010"
+    assert (
+        options(
+            "build",
+        )
+        == "cp38*"
+    )
+    assert options("manylinux.x86_64-image") == "manylinux2014"
+    assert options("manylinux.i686-image") == "manylinux2010"
 
     assert (
         options("test-requires") == {"windows": "docs", "macos": "docs", "linux": "scod"}[platform]
@@ -73,7 +76,7 @@ def test_envvar_override(tmp_path, platform, monkeypatch):
 def test_project_global_override_default_platform(tmp_path, platform):
     tmp_path.joinpath("pyproject.toml").write_text(
         """
-[tool.cibuildwheel.global]
+[tool.cibuildwheel]
 repair-wheel-command = "repair-project-global"
 """
     )
@@ -112,7 +115,7 @@ repair-wheel-command = "repair-project-linux"
 repair-wheel-command = "repair-project-windows"
 [tool.cibuildwheel.macos]
 repair-wheel-command = "repair-project-macos"
-[tool.cibuildwheel.global]
+[tool.cibuildwheel]
 repair-wheel-command = "repair-project-global"
 """
     )

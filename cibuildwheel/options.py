@@ -1,7 +1,6 @@
-import enum
 import os
 from pathlib import Path
-from typing import Any, Dict, Iterator, KeysView, Mapping, Tuple
+from typing import Any, Dict, Mapping, Tuple
 
 import toml
 
@@ -10,6 +9,11 @@ from .typing import PLATFORMS
 DIR = Path(__file__).parent.resolve()
 
 Setting = str
+
+# These keys are allowed to merge; setting one will not go away if another is
+# set in a overriding file. tool.cibuildwheel.manylinux.X will not remove
+# tool.cibuildwheel.manylinux.Y from defaults, for example.
+ALLOWED_TO_MERGE = {"manylinux"}
 
 
 class ConfigOptionError(KeyError):
@@ -25,20 +29,6 @@ def _dig_first(*pairs: Tuple[Mapping[str, Setting], str]) -> Setting:
     """
     (dict_like, key), *others = pairs
     return dict_like.get(key, _dig_first(*others)) if others else dict_like[key]
-
-
-def _global_first(keys: KeysView[str]) -> Iterator[str]:
-    keys_ = set(keys)
-    if "global" in keys_:
-        keys_.remove("global")
-        yield "global"
-    yield from keys_
-
-
-class ConfigNamespace(enum.Enum):
-    PLATFORM = enum.auto()  # Available in "global" and plat-specific namespace
-    MAIN = enum.auto()  # Available without a namespace
-    MANYLINUX = enum.auto()  # Only in the manylinux namespace
 
 
 class ConfigOptions:
@@ -72,7 +62,7 @@ class ConfigOptions:
         new_dict: Dict[str, Any],
         *,
         update: bool,
-        path: str = "",
+        _platform: bool = False,
     ) -> None:
         """
         Updates a dict with a new dict - optionally checking to see if the key
@@ -81,38 +71,33 @@ class ConfigOptions:
         will be forced to have no new keys.
         """
 
-        for key in _global_first(new_dict.keys()):
-            # Check to see if key is already present (in global too if a platform)
-            if update:
-                options = set(self.config[path] if path else self.config)
-                if path in PLATFORMS:
-                    options |= set(self.config["global"])
+        # _platform will be True if this is being called on tool.cibuildwheel.<platform>
+        # for the new_dict (old_dict does not have platforms in it)
+        if _platform:
+            normal_keys = set(new_dict)
+        else:
+            normal_keys = set(new_dict) - PLATFORMS
 
-                if key not in options:
-                    raise ConfigOptionError(
-                        f"Key not supported, problem in config file: {path} {key}"
-                    )
+        for key in normal_keys:
+            # Check to see if key is already present
+            if update:
+                # TODO: Also check nested items
+                if key not in self.config:
+                    msg = f"Key not supported, problem in config file: {key}"
+                    raise ConfigOptionError(msg)
 
             # This is recursive; update dicts (subsections) if needed. Only handles one level.
-            if isinstance(new_dict[key], dict):
-                if path:
-                    raise ConfigOptionError(
-                        f"Nested keys not supported, {key} should not be in {path}"
-                    )
-
+            if key in ALLOWED_TO_MERGE and isinstance(new_dict[key], dict):
                 if key not in old_dict:
                     old_dict[key] = {}
 
-                if update and key == "global":
-                    # "new global" overrides "old platform"
-                    # this requires processing the "global" key first
-                    for sub_key in new_dict[key]:
-                        for platform in PLATFORMS:
-                            old_dict[platform].pop(sub_key, None)
-
-                self._update(old_dict[key], new_dict[key], update=update, path=key)
+                old_dict[key].update(new_dict[key])
             else:
                 old_dict[key] = new_dict[key]
+
+        # Allow new_dict[<platform>][key] to override old_dict[key]
+        if not _platform and self.platform in new_dict:
+            self._update(old_dict, new_dict[self.platform], update=update, _platform=True)
 
     def _load_file(self, filename: Path, *, update: bool) -> None:
         """
@@ -135,40 +120,35 @@ class ConfigOptions:
 
         self._update(self.config, tool_cibuildwheel, update=update)
 
-    def __call__(
-        self, name: str, *, namespace: ConfigNamespace = ConfigNamespace.PLATFORM
-    ) -> Setting:
+    def __call__(self, name: str, *, env_plat: bool = True) -> Setting:
         """
         Get and return envvar for name or the override or the default.
         """
+        config = self.config
 
-        # Get config settings for the requested namespace and current platform
-        if namespace == ConfigNamespace.MAIN:
-            config = self.config
-        elif namespace == ConfigNamespace.MANYLINUX:
-            config = self.config["manylinux"]
-        elif namespace == ConfigNamespace.PLATFORM:
-            config = {**self.config["global"], **self.config[self.platform]}
+        # Allow singly nested names, like manylinux.X
+        if "." in name:
+            parent, key = name.split(".")
+            config = self.config[parent]
+        else:
+            key = name
 
-        if name not in config:
+        if key not in config:
             raise ConfigOptionError(f"{name} must be in cibuildwheel/resources/defaults.toml file")
 
         # Environment variable form
-        if namespace == ConfigNamespace.MANYLINUX:
-            envvar = f"CIBW_MANYLINUX_{name.upper().replace('-', '_')}"
-        else:
-            envvar = f"CIBW_{name.upper().replace('-', '_')}"
+        envvar = f"CIBW_{name.upper().replace('-', '_').replace('.', '_')}"
 
         # Let environment variable override setting in config
-        if namespace == ConfigNamespace.PLATFORM:
+        if env_plat:
             plat_envvar = f"{envvar}_{self.platform.upper()}"
             return _dig_first(
                 (os.environ, plat_envvar),
                 (os.environ, envvar),
-                (config, name),
+                (config, key),
             )
         else:
             return _dig_first(
                 (os.environ, envvar),
-                (config, name),
+                (config, key),
             )
