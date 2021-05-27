@@ -82,6 +82,10 @@ class WindowsVersions:
         self.version_dict = {Version(v): v for v in cp_info["versions"]}
 
     def update_version_windows(self, spec: Specifier) -> ConfigWinCP | None:
+
+        # Specifier.filter selects all non pre-releases that match the spec,
+        # unless there are only pre-releases, then it selects pre-releases
+        # instead (like pip)
         unsorted_versions = cast(Iterable[Version], spec.filter(self.version_dict))
         versions = sorted(unsorted_versions, reverse=True)
 
@@ -196,6 +200,7 @@ class CPythonVersions:
         self, identifier: str, version: Version, spec: Specifier
     ) -> ConfigMacOS | None:
 
+        # see note above on Specifier.filter
         unsorted_versions = cast(Iterable[Version], spec.filter(self.versions_dict))
         sorted_versions = sorted(unsorted_versions, reverse=True)
 
