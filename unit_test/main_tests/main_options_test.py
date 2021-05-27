@@ -252,6 +252,7 @@ def test_build_verbosity(
         "cp27-*",
         "cp35-*",
         "?p27*",
+        "?p2*",
         "?p35*",
     ],
 )
