@@ -40,7 +40,7 @@ def main():
     timestamp = time.strftime("%Y-%m-%dT%H-%M-%S", time.gmtime())
     branch_name = f"update-constraints-{timestamp}"
 
-    shell(f"git checkout -b {branch_name} origin/master", check=True)
+    shell(f"git checkout -b {branch_name} origin/main", check=True)
 
     try:
         shell("bin/update_dependencies.py", check=True)
@@ -63,7 +63,7 @@ def main():
                 "pr",
                 "create",
                 "--repo=pypa/cibuildwheel",
-                "--base=master",
+                "--base=main",
                 "--title=Update dependencies",
                 f"--body='{body}'",
             ],
