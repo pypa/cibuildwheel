@@ -3,9 +3,9 @@ build = "*"
 skip = ""
 test-skip = ""
 
-archs = "auto"
+archs = ["auto"]
 dependency-versions = "pinned"
-environment = ""
+environment = {}
 build-verbosity = ""
 
 before-all = ""
@@ -14,8 +14,8 @@ repair-wheel-command = ""
 
 test-command = ""
 before-test = ""
-test-requires = ""
-test-extras = ""
+test-requires = []
+test-extras = []
 
 
 [tool.cibuildwheel.manylinux]
@@ -33,6 +33,9 @@ pypy_aarch64-image = "manylinux2014"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.macos]
-repair-wheel-command = "delocate-listdeps {wheel} && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
+repair-wheel-command = [
+  "delocate-listdeps {wheel}",
+  "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}",
+]
 
 [tool.cibuildwheel.windows]

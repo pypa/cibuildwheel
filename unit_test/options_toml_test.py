@@ -5,9 +5,11 @@ from cibuildwheel.options import ConfigOptions
 PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = "cp39*"
+environment = {THING = "OTHER", FOO="BAR"}
 
 test-command = "pyproject"
 test-requires = "something"
+test-extras = ["one", "two"]
 
 [tool.cibuildwheel.manylinux]
 x86_64-image = "manylinux1"
@@ -16,7 +18,7 @@ x86_64-image = "manylinux1"
 test-requires = "else"
 
 [tool.cibuildwheel.linux]
-test-requires = "other"
+test-requires = ["other", "many"]
 """
 
 
@@ -37,8 +39,11 @@ def test_simple_settings(tmp_path, platform):
     assert options("archs") == "auto"
     assert (
         options("test-requires")
-        == {"windows": "something", "macos": "else", "linux": "other"}[platform]
+        == {"windows": "something", "macos": "else", "linux": "other many"}[platform]
     )
+
+    assert options("environment") == 'THING="OTHER" FOO="BAR"'
+    assert options("test-extras", sep=",") == "one,two"
 
     assert options("manylinux.x86_64-image") == "manylinux1"
     assert options("manylinux.i686-image") == "manylinux2010"
@@ -58,12 +63,7 @@ def test_envvar_override(tmp_path, platform, monkeypatch):
 
     assert options("archs") == "auto"
 
-    assert (
-        options(
-            "build",
-        )
-        == "cp38*"
-    )
+    assert options("build") == "cp38*"
     assert options("manylinux.x86_64-image") == "manylinux2014"
     assert options("manylinux.i686-image") == "manylinux2010"
 

@@ -157,15 +157,15 @@ def main() -> None:
     archs_config_str = options("archs") if args.archs is None else args.archs
 
     environment_config = options("environment")
-    before_all = options("before-all")
-    before_build = options("before-build")
-    repair_command = options("repair-wheel-command")
+    before_all = options("before-all", sep=" && ")
+    before_build = options("before-build", sep=" && ")
+    repair_command = options("repair-wheel-command", sep=" && ")
 
     dependency_versions = options("dependency-versions")
-    test_command = options("test-command")
-    before_test = options("before-test")
+    test_command = options("test-command", sep=" && ")
+    before_test = options("before-test", sep=" && ")
     test_requires = options("test-requires").split()
-    test_extras = options("test-extras")
+    test_extras = options("test-extras", sep=",")
     build_verbosity_str = options("build-verbosity")
 
     prerelease_pythons = args.prerelease_pythons or cibuildwheel.util.strtobool(

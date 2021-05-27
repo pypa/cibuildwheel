@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, Mapping, Tuple
+from typing import Any, Dict, List, Mapping, Tuple, Union
 
 import toml
 
@@ -8,19 +8,20 @@ from .typing import PLATFORMS
 
 DIR = Path(__file__).parent.resolve()
 
-Setting = str
-
 # These keys are allowed to merge; setting one will not go away if another is
 # set in a overriding file. tool.cibuildwheel.manylinux.X will not remove
 # tool.cibuildwheel.manylinux.Y from defaults, for example.
 ALLOWED_TO_MERGE = {"manylinux"}
 
 
+Setting = Union[Dict[str, str], List[str], str]
+
+
 class ConfigOptionError(KeyError):
     pass
 
 
-def _dig_first(*pairs: Tuple[Mapping[str, Setting], str]) -> Setting:
+def _dig_first(*pairs: Tuple[Mapping[str, Any], str]) -> Setting:
     """
     Return the first dict item that matches from pairs of dicts and keys.
     Final result is will throw a KeyError if missing.
@@ -120,9 +121,11 @@ class ConfigOptions:
 
         self._update(self.config, tool_cibuildwheel, update=update)
 
-    def __call__(self, name: str, *, env_plat: bool = True) -> Setting:
+    def __call__(self, name: str, *, env_plat: bool = True, sep: str = " ") -> str:
         """
-        Get and return envvar for name or the override or the default.
+        Get and return envvar for name or the override or the default. If env_plat is False,
+        then don't accept platform versions of the environment variable. If this is an array
+        or a dict, it will be merged with sep before returning.
         """
         config = self.config
 
@@ -138,17 +141,24 @@ class ConfigOptions:
 
         # Environment variable form
         envvar = f"CIBW_{name.upper().replace('-', '_').replace('.', '_')}"
+        plat_envvar = f"{envvar}_{self.platform.upper()}"
 
         # Let environment variable override setting in config
         if env_plat:
-            plat_envvar = f"{envvar}_{self.platform.upper()}"
-            return _dig_first(
+            result = _dig_first(
                 (os.environ, plat_envvar),
                 (os.environ, envvar),
                 (config, key),
             )
         else:
-            return _dig_first(
+            result = _dig_first(
                 (os.environ, envvar),
                 (config, key),
             )
+
+        if isinstance(result, dict):
+            return sep.join(f'{k}="{v}"' for k, v in result.items())
+        elif isinstance(result, list):
+            return sep.join(result)
+        else:
+            return result
