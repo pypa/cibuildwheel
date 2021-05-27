@@ -8,10 +8,12 @@ output-dir = "wheelhouse"
 [tool.cibuildwheel.manylinux]
 x86_64-image = "manylinux2010"
 i686-image = "manylinux2010"
-pypy_x86_64-image = "manylinux2010"
 aarch64-image = "manylinux2014"
 ppc64le-image = "manylinux2014"
 s390x-image = "manylinux2014"
+pypy_x86_64-image = "manylinux2010"
+pypy_i686-image = "manylinux2010"
+pypy_aarch64-image = "manylinux2014"
 
 
 [tool.cibuildwheel.global]
