@@ -15,7 +15,7 @@ init:
 - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
 - ps: |
       $BRANCH = if ($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) { $env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH } else { $env:APPVEYOR_REPO_BRANCH }
-      if (-not ($BRANCH -eq 'master' -or $BRANCH.ToLower().StartsWith('appveyor-'))) {
+      if (-not ($BRANCH -eq 'main' -or $BRANCH.ToLower().StartsWith('appveyor-'))) {
         $env:PYTEST_ADDOPTS='-k "unit_test or test_0_basic" --suppress-no-test-exit-code'
       }
 
@@ -27,7 +27,7 @@ test_script: python -u ./bin/run_tests.py
 
 branches:
   only:
-    - master
+    - main
 
 skip_commits:
   files:

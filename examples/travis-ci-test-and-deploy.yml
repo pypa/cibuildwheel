@@ -1,7 +1,7 @@
 # In this configuration, the package is tested against multiple versions of python
 # on Linux and on one version of Python on Windows. If and only if all tests pass
 # will the wheels be built and deployed. Further, deployment is only initiated if
-# the current branch is "master", the current commit is tagged, and the current
+# the current branch is "main", the current commit is tagged, and the current
 # repo is yours (e.g. it won't run on a Pull Request). For convenience, a source
 # distribution is also created.
 
