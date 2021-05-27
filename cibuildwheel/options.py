@@ -160,5 +160,7 @@ class ConfigOptions:
             return sep.join(f'{k}="{v}"' for k, v in result.items())
         elif isinstance(result, list):
             return sep.join(result)
+        elif isinstance(result, int):
+            return str(result)
         else:
             return result
