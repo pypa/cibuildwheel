@@ -18,7 +18,7 @@ import cibuildwheel
 config = [
     # file path, version find/replace format
     ("README.md", "cibuildwheel=={}"),
-    ("cibuildwheel/__init__.py", "__version__ = '{}'"),
+    ("cibuildwheel/__init__.py", '__version__ = "{}"'),
     ("docs/faq.md", "cibuildwheel=={}"),
     ("docs/faq.md", "cibuildwheel@v{}"),
     ("docs/setup.md", "cibuildwheel=={}"),
