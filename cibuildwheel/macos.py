@@ -270,22 +270,20 @@ def setup_python(
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
 
-    if python_configuration.version not in {"3.6", "3.7", "3.8"}:
-        if python_configuration.identifier.endswith("x86_64"):
-            # even on the macos11.0 Python installer, on the x86_64 side it's
-            # compatible back to 10.9.
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
-            env.setdefault("ARCHFLAGS", "-arch x86_64")
-        elif config_is_arm64:
+    if python_configuration.version not in {"3.6", "3.7"}:
+        if config_is_arm64:
             # macOS 11 is the first OS with arm64 support, so the wheels
             # have that as a minimum.
             env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
             env.setdefault("ARCHFLAGS", "-arch arm64")
         elif config_is_universal2:
-            if get_macos_version() < (10, 16):
-                # we can do universal2 builds on macos 10.15, but we need to
-                # set ARCHFLAGS otherwise CPython sets it to `-arch x86_64`
-                env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
+            env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+        elif python_configuration.identifier.endswith("x86_64"):
+            # even on the macos11.0 Python installer, on the x86_64 side it's
+            # compatible back to 10.9.
+            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
+            env.setdefault("ARCHFLAGS", "-arch x86_64")
 
     building_arm64 = config_is_arm64 or config_is_universal2
     if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in env:

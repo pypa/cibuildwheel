@@ -35,6 +35,8 @@ python_configurations = [
   { identifier = "cp36-macosx_x86_64", version = "3.6", url = "https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg" },
   { identifier = "cp37-macosx_x86_64", version = "3.7", url = "https://www.python.org/ftp/python/3.7.9/python-3.7.9-macosx10.9.pkg" },
   { identifier = "cp38-macosx_x86_64", version = "3.8", url = "https://www.python.org/ftp/python/3.8.10/python-3.8.10-macosx10.9.pkg" },
+  { identifier = "cp38-macosx_arm64", version = "3.8", url = "https://www.python.org/ftp/python/3.8.10/python-3.8.10-macosx10.9.pkg" },
+  { identifier = "cp38-macosx_universal2", version = "3.8", url = "https://www.python.org/ftp/python/3.8.10/python-3.8.10-macosx10.9.pkg" },
   { identifier = "cp39-macosx_x86_64", version = "3.9", url = "https://www.python.org/ftp/python/3.9.5/python-3.9.5-macos11.pkg" },
   { identifier = "cp39-macosx_arm64", version = "3.9", url = "https://www.python.org/ftp/python/3.9.5/python-3.9.5-macos11.pkg" },
   { identifier = "cp39-macosx_universal2", version = "3.9", url = "https://www.python.org/ftp/python/3.9.5/python-3.9.5-macos11.pkg" },
