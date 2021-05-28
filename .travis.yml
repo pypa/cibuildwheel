@@ -16,7 +16,9 @@ jobs:
     - name: Linux | arm64 | Python 3.6
       python: 3.6
       services: docker
-      arch: arm64
+      arch: arm64-graviton2
+      group: edge
+      virt: lxd
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.6
