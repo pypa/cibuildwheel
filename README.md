@@ -84,7 +84,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.11.0
+        run: python -m pip install cibuildwheel==1.11.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -343,6 +343,14 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### v1.11.1
+
+_28 May 2021_
+
+- ✨ cibuildwheel is now part of the PyPA!
+- 📚 Minor docs changes, fixing links related to the above transition
+- 🛠 Update manylinux pins to the last version containing Python 2.7 and 3.5. (#674)
 
 ### v1.11.0
 
