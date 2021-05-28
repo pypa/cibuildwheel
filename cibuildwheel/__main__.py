@@ -213,7 +213,7 @@ def main() -> None:
         "CIBW_BUILD_VERBOSITY", platform=platform, default=""
     )
     prerelease_pythons = args.prerelease_pythons or cibuildwheel.util.strtobool(
-        get_option_from_environment("CIBW_PRERELEASE_PYTHONS", platform=platform, default="0")
+        os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
     )
 
     package_files = {"setup.py", "setup.cfg", "pyproject.toml"}

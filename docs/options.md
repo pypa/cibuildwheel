@@ -316,9 +316,6 @@ like to test wheel building with these versions, you can enable this flag.
 
 Default: Off (0) if Python is available in beta phase. No effect otherwise.
 
-Platform-specific variants also available:<br/>
-`CIBW_PRERELEASE_PYTHONS_MACOS` | `CIBW_PRERELEASE_PYTHONS_WINDOWS` | `CIBW_PRERELEASE_PYTHONS_LINUX`
-
 #### Examples
 
 ```yaml
