@@ -24,13 +24,17 @@ else:
     raise Exception("Unsupported platform")
 
 
-def cibuildwheel_get_build_identifiers(project_path, env=None):
+def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pythons=False):
     """
     Returns the list of build identifiers that cibuildwheel will try to build
     for the current platform.
     """
+    cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
+    if prerelease_pythons:
+        cmd.append("--prerelease-pythons")
+
     cmd_output = subprocess.run(
-        [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)],
+        cmd,
         universal_newlines=True,
         env=env,
         check=True,
@@ -69,6 +73,7 @@ def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, outp
                 sys.executable,
                 "-m",
                 "cibuildwheel",
+                "--prerelease-pythons",
                 "--output-dir",
                 str(output_dir or tmp_output_dir),
                 str(package_dir),
@@ -118,7 +123,7 @@ def expected_wheels(
         else:
             manylinux_versions = ["manylinux_2_17", "manylinux2014"]
 
-    python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39"]
+    python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39", "cp310-cp310"]
 
     if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
         python_abi_tags += ["pp37-pypy37_pp73"]
@@ -129,8 +134,8 @@ def expected_wheels(
         python_abi_tags = [t for t in python_abi_tags if not t.startswith("pp")]
 
     if platform == "macos" and machine_arch == "arm64":
-        # currently, arm64 macs are only supported by cp39
-        python_abi_tags = ["cp39-cp39"]
+        # currently, arm64 macs are only supported by cp39 & cp310
+        python_abi_tags = ["cp39-cp39", "cp310-cp310"]
 
     wheels = []
 

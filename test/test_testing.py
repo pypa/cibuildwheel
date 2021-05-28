@@ -10,7 +10,7 @@ project_with_a_test = test_projects.new_c_project(
     setup_cfg_add=textwrap.dedent(
         r"""
         [options.extras_require]
-        test = nose
+        test = pytest
         """
     )
 )
@@ -77,11 +77,11 @@ def test(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_TEST_REQUIRES": "nose",
+            "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": "false || nosetests {project}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || nosetests {project}/test",
+            "CIBW_TEST_COMMAND": "false || pytest {project}/test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
         },
     )
 
@@ -101,8 +101,8 @@ def test_extras_require(tmp_path):
             "CIBW_TEST_EXTRAS": "test",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": "false || nosetests {project}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || nosetests {project}/test",
+            "CIBW_TEST_COMMAND": "false || pytest {project}/test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
         },
     )
 

@@ -37,7 +37,7 @@ def test(tmp_path):
         add_env={
             "CIBW_MANYLINUX_X86_64_IMAGE": "dockcross/manylinux2010-x64",
             "CIBW_MANYLINUX_I686_IMAGE": "dockcross/manylinux2010-x86",
-            "CIBW_SKIP": "pp* cp39-*",
+            "CIBW_BUILD": "cp3{6,7,8,9}-*",
         },
     )
 
@@ -49,6 +49,6 @@ def test(tmp_path):
     expected_wheels = [
         w
         for w in utils.expected_wheels("spam", "0.1.0", manylinux_versions=["manylinux2010"])
-        if "-pp" not in w and "-cp39-" not in w
+        if "-cp36-" in w or "-cp37-" in w or "-cp38-" in w or "-cp39-" in w
     ]
     assert set(actual_wheels) == set(expected_wheels)

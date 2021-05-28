@@ -6,7 +6,7 @@ import copy
 import difflib
 import logging
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Iterable, Union, cast
 
 import click
 import requests
@@ -79,23 +79,26 @@ class WindowsVersions:
         response.raise_for_status()
         cp_info = response.json()
 
-        versions = (Version(v) for v in cp_info["versions"])
-        self.versions = sorted(v for v in versions if not v.is_devrelease)
+        self.version_dict = {Version(v): v for v in cp_info["versions"]}
 
     def update_version_windows(self, spec: Specifier) -> ConfigWinCP | None:
-        versions = sorted(v for v in self.versions if spec.contains(v))
-        if not all(v.is_prerelease for v in versions):
-            versions = [v for v in versions if not v.is_prerelease]
+
+        # Specifier.filter selects all non pre-releases that match the spec,
+        # unless there are only pre-releases, then it selects pre-releases
+        # instead (like pip)
+        unsorted_versions = cast(Iterable[Version], spec.filter(self.version_dict))
+        versions = sorted(unsorted_versions, reverse=True)
+
         log.debug(f"Windows {self.arch} {spec} has {', '.join(str(v) for v in versions)}")
 
         if not versions:
             return None
 
-        version = versions[-1]
+        version = versions[0]
         identifier = f"cp{version.major}{version.minor}-{self.arch}"
         return ConfigWinCP(
             identifier=identifier,
-            version=str(version),
+            version=self.version_dict[version],
             arch=self.arch_str,
         )
 
@@ -190,21 +193,23 @@ class CPythonVersions:
             # Removing the prefix, Python 3.9 would use: release["name"].removeprefix("Python ")
             version = Version(release["name"][7:])
 
-            if not version.is_prerelease and not version.is_devrelease:
-                uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
-                self.versions_dict[version] = uri
+            uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
+            self.versions_dict[version] = uri
 
     def update_version_macos(
         self, identifier: str, version: Version, spec: Specifier
     ) -> ConfigMacOS | None:
-        sorted_versions = sorted(v for v in self.versions_dict if spec.contains(v))
+
+        # see note above on Specifier.filter
+        unsorted_versions = cast(Iterable[Version], spec.filter(self.versions_dict))
+        sorted_versions = sorted(unsorted_versions, reverse=True)
 
         if version <= Version("3.8.9999"):
             file_ident = "macosx10.9.pkg"
         else:
             file_ident = "macos11.pkg"
 
-        for new_version in reversed(sorted_versions):
+        for new_version in sorted_versions:
             # Find the first patch version that contains the requested file
             uri = self.versions_dict[new_version]
             response = requests.get(
@@ -270,7 +275,7 @@ class AllVersions:
 @click.command()
 @click.option("--force", is_flag=True)
 @click.option(
-    "--level", default="INFO", type=click.Choice(["INFO", "DEBUG", "TRACE"], case_sensitive=False)
+    "--level", default="INFO", type=click.Choice(["WARNING", "INFO", "DEBUG"], case_sensitive=False)
 )
 def update_pythons(force: bool, level: str) -> None:
 

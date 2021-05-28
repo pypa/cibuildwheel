@@ -256,6 +256,8 @@ def test_build_selector_migrations(
     build_selector_patterns,
     allow_empty,
 ):
+    # prevent modifying the test outcome when there are pre-releases
+    monkeypatch.setenv("CIBW_PRERELEASE_PYTHONS", "true")
     monkeypatch.setenv(option_name, option_value)
 
     main()

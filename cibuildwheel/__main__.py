@@ -132,6 +132,12 @@ def main() -> None:
         help="Do not report an error code if the build does not match any wheels.",
     )
 
+    parser.add_argument(
+        "--prerelease-pythons",
+        action="store_true",
+        help="Enable pre-release Python versions if available.",
+    )
+
     args = parser.parse_args()
 
     detect_obsolete_options()
@@ -206,6 +212,9 @@ def main() -> None:
     build_verbosity_str = get_option_from_environment(
         "CIBW_BUILD_VERBOSITY", platform=platform, default=""
     )
+    prerelease_pythons = args.prerelease_pythons or cibuildwheel.util.strtobool(
+        os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
+    )
 
     package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
 
@@ -222,8 +231,12 @@ def main() -> None:
     ) or get_requires_python_str(package_dir)
     requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
+    # Hardcode pre-releases here, current: Python 3.10
     build_selector = BuildSelector(
-        build_config=build_config, skip_config=skip_config, requires_python=requires_python
+        build_config=build_config,
+        skip_config=skip_config,
+        requires_python=requires_python,
+        prerelease_pythons=prerelease_pythons,
     )
     test_selector = TestSelector(skip_config=test_skip)
 

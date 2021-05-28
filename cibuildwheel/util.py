@@ -58,15 +58,25 @@ class IdentifierSelector:
     This class holds a set of build/skip patterns. You call an instance with a
     build identifier, and it returns True if that identifier should be
     included. Only call this on valid identifiers, ones that have at least 2
-    numeric digits before the first dash.
+    numeric digits before the first dash. If a pre-release version X.Y is present,
+    you can filter it with prerelease="XY".
     """
 
+    # a pattern that skips prerelease versions, when include_prereleases is False.
+    PRERELEASE_SKIP = "cp310-*"
+
     def __init__(
-        self, *, build_config: str, skip_config: str, requires_python: Optional[SpecifierSet] = None
+        self,
+        *,
+        build_config: str,
+        skip_config: str,
+        requires_python: Optional[SpecifierSet] = None,
+        prerelease_pythons: bool = False,
     ):
         self.build_patterns = build_config.split()
         self.skip_patterns = skip_config.split()
         self.requires_python = requires_python
+        self.prerelease_pythons = prerelease_pythons
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
@@ -81,17 +91,33 @@ class IdentifierSelector:
         build_patterns = itertools.chain.from_iterable(
             bracex.expand(p) for p in self.build_patterns
         )
-        skip_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in self.skip_patterns)
+
+        unexpanded_skip_patterns = self.skip_patterns.copy()
+
+        if not self.prerelease_pythons:
+            # filter out the prerelease pythons, alongside the user-defined
+            # skip patterns
+            unexpanded_skip_patterns += BuildSelector.PRERELEASE_SKIP.split()
+
+        skip_patterns = itertools.chain.from_iterable(
+            bracex.expand(p) for p in unexpanded_skip_patterns
+        )
 
         build: bool = any(fnmatch.fnmatch(build_id, pat) for pat in build_patterns)
         skip: bool = any(fnmatch.fnmatch(build_id, pat) for pat in skip_patterns)
         return build and not skip
 
     def __repr__(self) -> str:
-        if not self.skip_patterns:
-            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r})'
-        else:
-            return f'{self.__class__.__name__}({" ".join(self.build_patterns)!r} - {" ".join(self.skip_patterns)!r})'
+        result = f'{self.__class__.__name__}(build_config={" ".join(self.build_patterns)!r}'
+
+        if self.skip_patterns:
+            result += f', skip_config={" ".join(self.skip_patterns)!r}'
+        if self.prerelease_pythons:
+            result += ", prerelease_pythons=True"
+
+        result += ")"
+
+        return result
 
 
 class BuildSelector(IdentifierSelector):

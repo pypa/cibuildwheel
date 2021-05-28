@@ -53,5 +53,7 @@ def test_build_identifiers(tmp_path):
     # check that the number of expected wheels matches the number of build
     # identifiers
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
-    build_identifiers = utils.cibuildwheel_get_build_identifiers(project_dir)
+    build_identifiers = utils.cibuildwheel_get_build_identifiers(
+        project_dir, prerelease_pythons=True
+    )
     assert len(expected_wheels) == len(build_identifiers)

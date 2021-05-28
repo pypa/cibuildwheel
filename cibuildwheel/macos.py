@@ -270,7 +270,7 @@ def setup_python(
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
 
-    if python_configuration.version == "3.9":
+    if python_configuration.version not in {"3.6", "3.7", "3.8"}:
         if python_configuration.identifier.endswith("x86_64"):
             # even on the macos11.0 Python installer, on the x86_64 side it's
             # compatible back to 10.9.
