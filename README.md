@@ -31,7 +31,6 @@ What does it do?
 | CPython 3.10²   | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | PyPy 3.7 v7.3   | ✅ | N/A | ✅  | N/A | ✅ | ✅  | ✅  | N/A | N/A |
 
-
 <sup>¹ CPython 3.8's final binary release has experimental Universal2 support, but does not support macOS 10.x, so this is not currently available.</sup><br>
 <sup>² Available as a prerelease under a [flag](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons)</sup><br>
 

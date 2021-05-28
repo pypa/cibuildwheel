@@ -316,6 +316,8 @@ like to test wheel building with these versions, you can enable this flag.
 
 Default: Off (0) if Python is available in beta phase. No effect otherwise.
 
+This option can also be set using the [command-line option](#command-line) `--prerelease-pythons`.
+
 #### Examples
 
 ```yaml
