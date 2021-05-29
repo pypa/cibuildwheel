@@ -49,4 +49,4 @@ jobs:
 
 install: $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
-script: travis_wait 20 $PYTHON ./bin/run_tests.py
+script: travis_wait 60 $PYTHON ./bin/run_tests.py
