@@ -238,37 +238,40 @@ def test_build_verbosity(
     assert intercepted_build_args.args[0].build_verbosity == expected_verbosity
 
 
-@pytest.mark.parametrize("option_name", ["CIBW_BUILD", "CIBW_SKIP"])
 @pytest.mark.parametrize(
-    "option_value, build_selector_patterns",
+    "selector",
     [
-        ("*-manylinux1_*", ["*-manylinux_*"]),
-        ("*-macosx_10_6_intel", ["*-macosx_x86_64"]),
-        ("*-macosx_10_9_x86_64", ["*-macosx_x86_64"]),
-        ("cp37-macosx_10_9_x86_64", ["cp37-macosx_x86_64"]),
+        "CIBW_BUILD",
+        "CIBW_SKIP",
+        "CIBW_TEST_SKIP",
     ],
 )
-def test_build_selector_migrations(
-    intercepted_build_args,
-    monkeypatch,
-    option_name,
-    option_value,
-    build_selector_patterns,
-    allow_empty,
+@pytest.mark.parametrize(
+    "pattern",
+    [
+        "cp27-*",
+        "cp35-*",
+        "?p27*",
+        "?p2*",
+        "?p35*",
+    ],
+)
+def test_build_selector_deprecated_error(
+    monkeypatch, platform, intercepted_build_args, selector, pattern, allow_empty, capsys
 ):
-    # prevent modifying the test outcome when there are pre-releases
-    monkeypatch.setenv("CIBW_PRERELEASE_PYTHONS", "true")
-    monkeypatch.setenv(option_name, option_value)
+    monkeypatch.setenv(selector, pattern)
 
-    main()
+    if selector == "CIBW_BUILD":
+        with pytest.raises(SystemExit) as ex:
+            main()
+        assert ex.value.code == 4
 
-    intercepted_build_selector = intercepted_build_args.args[0].build_selector
-    assert isinstance(intercepted_build_selector, BuildSelector)
-
-    if option_name == "CIBW_BUILD":
-        assert intercepted_build_selector.build_patterns == build_selector_patterns
     else:
-        assert intercepted_build_selector.skip_patterns == build_selector_patterns
+        main()
+
+    stderr = capsys.readouterr().err
+    msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {selector}"
+    assert msg in stderr
 
 
 @pytest.mark.parametrize("before_all", ["", None, "test text"])

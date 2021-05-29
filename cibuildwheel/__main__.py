@@ -140,8 +140,6 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    detect_obsolete_options()
-
     if args.platform != "auto":
         platform = args.platform
     else:
@@ -231,7 +229,10 @@ def main() -> None:
     ) or get_requires_python_str(package_dir)
     requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
-    # Hardcode pre-releases here, current: Python 3.10
+    deprecated_selectors("CIBW_BUILD", build_config, error=True)
+    deprecated_selectors("CIBW_SKIP", skip_config)
+    deprecated_selectors("CIBW_TEST_SKIP", test_skip)
+
     build_selector = BuildSelector(
         build_config=build_config,
         skip_config=skip_config,
@@ -374,35 +375,12 @@ def main() -> None:
             assert_never(platform)
 
 
-def detect_obsolete_options() -> None:
-    # Check the old 'MANYLINUX1_*_IMAGE' options
-    for (deprecated, alternative) in [
-        ("CIBW_MANYLINUX1_X86_64_IMAGE", "CIBW_MANYLINUX_X86_64_IMAGE"),
-        ("CIBW_MANYLINUX1_I686_IMAGE", "CIBW_MANYLINUX_I686_IMAGE"),
-    ]:
-        if deprecated in os.environ:
-            print(
-                f"'{deprecated}' has been deprecated, and will be removed in a future release. Use the option '{alternative}' instead."
-            )
-            if alternative not in os.environ:
-                print(f"Using value of option '{deprecated}' as replacement for '{alternative}'")
-                os.environ[alternative] = os.environ[deprecated]
-            else:
-                print(f"Option '{alternative}' is not empty. Please unset '{deprecated}'")
-                sys.exit(2)
-
-    # Check for deprecated identifiers in 'CIBW_BUILD' and 'CIBW_SKIP' options
-    for option in ["CIBW_BUILD", "CIBW_SKIP"]:
-        for deprecated, alternative in [
-            ("manylinux1", "manylinux"),
-            ("macosx_10_6_intel", "macosx_x86_64"),
-            ("macosx_10_9_x86_64", "macosx_x86_64"),
-        ]:
-            if option in os.environ and deprecated in os.environ[option]:
-                print(
-                    f"Build identifiers with '{deprecated}' have been deprecated. Replacing all occurences of '{deprecated}' with '{alternative}' in the option '{option}'"
-                )
-                os.environ[option] = os.environ[option].replace(deprecated, alternative)
+def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
+    if "p2" in selector or "p35" in selector:
+        msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
+        print(msg, file=sys.stderr)
+        if error:
+            sys.exit(4)
 
 
 def print_preamble(platform: str, build_options: BuildOptions) -> None:
