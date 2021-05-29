@@ -16,13 +16,16 @@ jobs:
     - name: Linux | arm64 | Python 3.6
       python: 3.6
       services: docker
-      arch: arm64
+      arch: arm64-graviton2
+      group: edge
+      virt: vm
       env: PYTHON=python
 
     - name: Linux | ppc64le | Python 3.6
       python: 3.6
       services: docker
       arch: ppc64le
+      allow_failure: True
       env:
         - PYTHON=python
         # skip test_manylinuxXXXX_only, it uses too much disk space
