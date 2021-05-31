@@ -150,10 +150,10 @@ def expected_wheels(
 
             platform_tags = [
                 ".".join(
-                    [
+                    
                         f"{manylinux_version}_{architecture}"
                         for manylinux_version in manylinux_versions
-                    ]
+                    
                 )
                 for architecture in architectures
             ]

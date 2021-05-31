@@ -165,11 +165,11 @@ class PyPyVersions:
         version = release["python_version"]
         identifier = f"pp{version.major}{version.minor}-macosx_x86_64"
 
-        (url,) = [
+        (url,) = (
             rf["download_url"]
             for rf in release["files"]
             if "" in rf["platform"] == "darwin" and rf["arch"] == "x64"
-        ]
+        )
 
         return ConfigMacOS(
             identifier=identifier,
