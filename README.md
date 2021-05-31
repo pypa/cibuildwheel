@@ -23,16 +23,15 @@ What does it do?
 ----------------
 
 |   | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x |
-|---|---|---|---|---|---|---|---|---|---|
-| CPython 3.6     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.7     | ✅ | N/A | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.8     | ✅ | N/A¹ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.10²   | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PyPy 3.7 v7.3   | ✅ | N/A | ✅  | N/A | ✅ | ✅  | ✅  | N/A | N/A |
+|---------------|----|-----|-----|-----|----|-----|----|-----|-----|
+| CPython 3.6   | ✅ | N/A | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.7   | ✅ | N/A | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.8   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.9   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.10¹ | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| PyPy 3.7 v7.3 | ✅ | N/A | ✅  | N/A | ✅ | ✅  | ✅ | N/A | N/A |
 
-<sup>¹ CPython 3.8's final binary release has experimental Universal2 support, but does not support macOS 10.x, so this is not currently available.</sup><br>
-<sup>² Available as a prerelease under a [flag](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons)</sup><br>
+<sup>¹ Available as a prerelease under a [flag](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons)</sup><br>
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
@@ -48,7 +47,7 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM |
 |-----------------|-------|-------|---------|--------------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹           |
+| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹          |
 | Azure Pipelines | ✅    | ✅    | ✅      |              |
 | Travis CI       | ✅    |       | ✅      | ✅           |
 | AppVeyor        | ✅    | ✅    | ✅      |              |
