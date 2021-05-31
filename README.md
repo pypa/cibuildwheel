@@ -28,7 +28,7 @@ What does it do?
 | CPython 3.5     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.6     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.7     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CPython 3.8     | ✅ |   | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CPython 3.8     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CPython 3.9     | ✅ | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ | ✅ | ✅ |
 | PyPy 2.7 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
 | PyPy 3.6 v7.3.3 | ✅ |    |    | ✅  | ✅ |    |    |    |   |
@@ -48,7 +48,7 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM |
 |-----------------|-------|-------|---------|--------------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹           |
+| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹          |
 | Azure Pipelines | ✅    | ✅    | ✅      |              |
 | Travis CI       | ✅    | ✅    | ✅      | ✅           |
 | AppVeyor        | ✅    | ✅    | ✅      |              |
