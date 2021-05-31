@@ -13,6 +13,18 @@ repos:
   - id: mixed-line-ending
   - id: trailing-whitespace
 
+- repo: https://github.com/asottile/pyupgrade
+  rev: v2.19.0
+  hooks:
+  - id: pyupgrade
+    name: PyUpgrade 3.6+
+    args: ["--py36-plus"]
+    exclude: ^bin/
+  - id: pyupgrade
+    name: PyUpgrade 3.7+ on bin
+    exclude: ^(cibuildwheel|unit_test|test)/
+    args: ["--py37-plus"]
+
 - repo: https://github.com/PyCQA/isort
   rev: 5.8.0
   hooks:
@@ -41,18 +53,6 @@ repos:
     files: ^bin/.*py$
     additional_dependencies: [packaging]
     args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
-
-- repo: https://github.com/asottile/pyupgrade
-  rev: v2.19.0
-  hooks:
-  - id: pyupgrade
-    name: PyUpgrade 3.6+
-    args: ["--py36-plus"]
-    exclude: ^bin/
-  - id: pyupgrade
-    name: PyUpgrade 3.7+ on bin
-    exclude: ^(cibuildwheel|unit_test|test)/
-    args: ["--py37-plus"]
 
 - repo: https://github.com/PyCQA/flake8
   rev: 3.9.2
