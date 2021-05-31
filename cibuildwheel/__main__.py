@@ -150,13 +150,13 @@ def main() -> None:
         else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
     )
 
-    build_config = options("build", env_plat=False) or "*"
-    skip_config = options("skip", env_plat=False)
-    test_skip = options("test-skip", env_plat=False)
+    build_config = options("build", env_plat=False, sep=" ") or "*"
+    skip_config = options("skip", env_plat=False, sep=" ")
+    test_skip = options("test-skip", env_plat=False, sep=" ")
 
-    archs_config_str = options("archs") if args.archs is None else args.archs
+    archs_config_str = options("archs", sep=" ") if args.archs is None else args.archs
 
-    environment_config = options("environment")
+    environment_config = options("environment", sep=" ")
     before_all = options("before-all", sep=" && ")
     before_build = options("before-build", sep=" && ")
     repair_command = options("repair-wheel-command", sep=" && ")
@@ -164,7 +164,7 @@ def main() -> None:
     dependency_versions = options("dependency-versions")
     test_command = options("test-command", sep=" && ")
     before_test = options("before-test", sep=" && ")
-    test_requires = options("test-requires").split()
+    test_requires = options("test-requires", sep=" ").split()
     test_extras = options("test-extras", sep=",")
     build_verbosity_str = options("build-verbosity")
 

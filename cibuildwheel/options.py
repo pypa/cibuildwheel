@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Tuple, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 import toml
 
@@ -121,7 +121,7 @@ class ConfigOptions:
 
         self._update(self.config, tool_cibuildwheel, update=update)
 
-    def __call__(self, name: str, *, env_plat: bool = True, sep: str = " ") -> str:
+    def __call__(self, name: str, *, env_plat: bool = True, sep: Optional[str] = None) -> str:
         """
         Get and return envvar for name or the override or the default. If env_plat is False,
         then don't accept platform versions of the environment variable. If this is an array
@@ -157,8 +157,12 @@ class ConfigOptions:
             )
 
         if isinstance(result, dict):
+            if sep is None:
+                raise ConfigOptionError(f"{name} does not accept a table")
             return sep.join(f'{k}="{v}"' for k, v in result.items())
         elif isinstance(result, list):
+            if sep is None:
+                raise ConfigOptionError(f"{name} does not accept a list")
             return sep.join(result)
         elif isinstance(result, int):
             return str(result)

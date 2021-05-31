@@ -33,16 +33,16 @@ def test_simple_settings(tmp_path, platform):
 
     options = ConfigOptions(tmp_path, platform=platform)
 
-    assert options("build", env_plat=False) == "cp39*"
+    assert options("build", env_plat=False, sep=" ") == "cp39*"
 
     assert options("test-command") == "pyproject"
-    assert options("archs") == "auto"
+    assert options("archs", sep=" ") == "auto"
     assert (
-        options("test-requires")
+        options("test-requires", sep=" ")
         == {"windows": "something", "macos": "else", "linux": "other many"}[platform]
     )
 
-    assert options("environment") == 'THING="OTHER" FOO="BAR"'
+    assert options("environment", sep=" ") == 'THING="OTHER" FOO="BAR"'
     assert options("test-extras", sep=",") == "one,two"
 
     assert options("manylinux.x86_64-image") == "manylinux1"
@@ -61,14 +61,15 @@ def test_envvar_override(tmp_path, platform, monkeypatch):
 
     options = ConfigOptions(tmp_path, platform=platform)
 
-    assert options("archs") == "auto"
+    assert options("archs", sep=" ") == "auto"
 
-    assert options("build") == "cp38*"
+    assert options("build", sep=" ") == "cp38*"
     assert options("manylinux.x86_64-image") == "manylinux2014"
     assert options("manylinux.i686-image") == "manylinux2010"
 
     assert (
-        options("test-requires") == {"windows": "docs", "macos": "docs", "linux": "scod"}[platform]
+        options("test-requires", sep=" ")
+        == {"windows": "docs", "macos": "docs", "linux": "scod"}[platform]
     )
     assert options("test-command") == "mytest"
 
