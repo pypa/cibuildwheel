@@ -19,7 +19,7 @@ repos:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 21.5b1
+  rev: 21.5b2
   hooks:
   - id: black
 
@@ -43,7 +43,7 @@ repos:
     args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.16.0
+  rev: v2.19.0
   hooks:
   - id: pyupgrade
     name: PyUpgrade 3.6+
