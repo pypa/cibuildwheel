@@ -75,6 +75,12 @@ def main() -> None:
     )
 
     parser.add_argument(
+        "--config-file",
+        help="TOML config file for cibuildwheel; usually pyproject.toml, but can be overridden with this option. Use {project} for the project directory",
+        default="{project}/pyproject.toml",
+    )
+
+    parser.add_argument(
         "package_dir",
         default=".",
         nargs="?",
@@ -143,7 +149,7 @@ def main() -> None:
 
     package_dir = Path(args.package_dir)
 
-    options = ConfigOptions(package_dir, platform=platform)
+    options = ConfigOptions(package_dir, args.config_file, platform=platform)
     output_dir = Path(
         args.output_dir
         if args.output_dir is not None

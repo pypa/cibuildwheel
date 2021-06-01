@@ -26,11 +26,12 @@ def platform(request):
     return request.param
 
 
-def test_simple_settings(tmp_path, platform):
-    with tmp_path.joinpath("pyproject.toml").open("w") as f:
+@pytest.mark.parametrize("fname", ["pyproject.toml", "cibuildwheel.toml"])
+def test_simple_settings(tmp_path, platform, fname):
+    with tmp_path.joinpath(fname).open("w") as f:
         f.write(PYPROJECT_1)
 
-    options = ConfigOptions(tmp_path, platform=platform)
+    options = ConfigOptions(tmp_path, f"{{project}}/{fname}", platform=platform)
 
     assert options("build", env_plat=False, sep=" ") == "cp39*"
 

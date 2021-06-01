@@ -41,16 +41,24 @@ class ConfigOptions:
       keys or sections in tool.cibuildwheel.
     """
 
-    def __init__(self, project_path: Path, *, platform: str) -> None:
+    def __init__(
+        self,
+        project_path: Path,
+        config_file: str = "{project}/pyproject.toml",
+        *,
+        platform: str,
+    ) -> None:
         self.platform = platform
         self.config: Dict[str, Any] = {}
 
         # Open defaults.toml and load tool.cibuildwheel.global, then update with tool.cibuildwheel.<platform>
         self._load_file(DIR.joinpath("resources", "defaults.toml"), update=False)
 
-        # Open pyproject.toml if it exists and load from there
-        pyproject_toml = project_path.joinpath("pyproject.toml")
-        self._load_file(pyproject_toml, update=True)
+        # Open pyproject.toml or user specified file
+        config_toml = Path(config_file.format(project=project_path))
+        if config_toml != project_path / "pyproject.toml" and not config_toml.exists():
+            raise FileNotFoundError(f"{config_toml} required.")
+        self._load_file(config_toml, update=True)
 
     def _update(
         self,
