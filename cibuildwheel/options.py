@@ -44,7 +44,7 @@ class ConfigOptions:
     def __init__(
         self,
         project_path: Path,
-        config_file: str = "{project}/pyproject.toml",
+        config_file: str = "{package}/pyproject.toml",
         *,
         platform: str,
     ) -> None:
@@ -55,7 +55,7 @@ class ConfigOptions:
         self._load_file(DIR.joinpath("resources", "defaults.toml"), update=False)
 
         # Open pyproject.toml or user specified file
-        config_toml = Path(config_file.format(project=project_path))
+        config_toml = Path(config_file.format(package=project_path))
         if config_toml != project_path / "pyproject.toml" and not config_toml.exists():
             raise FileNotFoundError(f"{config_toml} required.")
         self._load_file(config_toml, update=True)

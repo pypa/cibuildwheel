@@ -36,8 +36,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Build wheels for all the platforms.",
         epilog="""
-            Most options are supplied via environment variables.
-            See https://github.com/pypa/cibuildwheel#options for info.
+            Most options are supplied via environment variables or in
+            --config-file (pyproject.toml usually). See
+            https://github.com/pypa/cibuildwheel#options for info.
         """,
     )
 
@@ -76,8 +77,11 @@ def main() -> None:
 
     parser.add_argument(
         "--config-file",
-        help="TOML config file for cibuildwheel; usually pyproject.toml, but can be overridden with this option. Use {project} for the project directory",
-        default="{project}/pyproject.toml",
+        help="""
+            TOML config file for cibuildwheel; usually pyproject.toml, but
+            can be overridden with this option. Use {package} for the package
+            directory.""",
+        default="{package}/pyproject.toml",
     )
 
     parser.add_argument(

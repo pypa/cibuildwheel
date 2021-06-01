@@ -109,7 +109,8 @@ The complete set of defaults for the current version of cibuildwheel are shown b
     you run `cibuildwheel --plat linux`. This is preferred, but environment
     variables are better if you need to change per-matrix element
     (`CIBW_BUILD` is often in this category, for example), or if you cannot or do
-    not want to change a `pyproject.toml` file.
+    not want to change a `pyproject.toml` file. You can specify a different file to
+    use with `--config-file` on the command line, as well.
 
 
 ## Build selection
@@ -1117,18 +1118,18 @@ Platform-specific variants also available:<br/>
 ```text
 usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
                     [--archs ARCHS] [--output-dir OUTPUT_DIR]
-                    [--print-build-identifiers] [--allow-empty]
-                    [--prerelease-pythons]
+                    [--config-file CONFIG_FILE] [--print-build-identifiers]
+                    [--allow-empty] [--prerelease-pythons]
                     [package_dir]
 
 Build wheels for all the platforms.
 
 positional arguments:
   package_dir           Path to the package that you want wheels for. Must be
-                        a subdirectory of the working directory. When set, the
-                        working directory is still considered the 'project'
-                        and is copied into the Docker container on Linux.
-                        Default: the working directory.
+                        a subdirectory of the working directory. When set,
+                        the working directory is still considered the
+                        'project' and is copied into the Docker container on
+                        Linux. Default: the working directory.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -1138,23 +1139,32 @@ optional arguments:
                         machine, and note that this script is going to
                         automatically install MacPython on your system, so
                         don't run on your development machine. For "windows",
-                        you need to run in Windows, and it will build and test
-                        for all versions of Python. Default: auto.
+                        you need to run in Windows, and it will build and
+                        test for all versions of Python. Default: auto.
   --archs ARCHS         Comma-separated list of CPU architectures to build
                         for. When set to 'auto', builds the architectures
-                        natively supported on this machine. Set this option to
-                        build an architecture via emulation, for example,
+                        natively supported on this machine. Set this option
+                        to build an architecture via emulation, for example,
                         using binfmt_misc and QEMU. Default: auto. Choices:
                         auto, auto64, auto32, native, all, x86_64, i686,
-                        aarch64, ppc64le, s390x, universal2, arm64, x86, AMD64
+                        aarch64, ppc64le, s390x, universal2, arm64, x86,
+                        AMD64
   --output-dir OUTPUT_DIR
                         Destination folder for the wheels.
+  --config-file CONFIG_FILE
+                        TOML config file for cibuildwheel; usually
+                        pyproject.toml, but can be overridden with this
+                        option. Use {package} for the package directory
   --print-build-identifiers
                         Print the build identifiers matched by the current
                         invocation and exit.
   --allow-empty         Do not report an error code if the build does not
                         match any wheels.
   --prerelease-pythons  Enable pre-release Python versions if available.
+
+Most options are supplied via environment variables or in --config-file
+(pyproject.toml usually). See https://github.com/pypa/cibuildwheel#options
+for info.
 ```
 
 <style>
