@@ -753,30 +753,26 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
 
     # Build using the manylinux1 image to ensure manylinux1 wheels are produced
     # Not setting PyPy to manylinux1, since there is no manylinux1 PyPy image.
-    manylinux.x86_64-image = "manylinux1"
-    manylinux.i686-image = "manylinux1"
+    manylinux-x86_64-image = "manylinux1"
+    manylinux-i686-image = "manylinux1"
 
     # Build using the manylinux2014 image
-    manylinux.x86_64_image = "manylinux2014"
-    manylinux.i686-image = "manylinux2014"
-    manylinux.pypy_x86_64-image = "manylinux2014"
-    manylinux.pypy_i686-image = "manylinux2014"
+    manylinux-x86_64_image = "manylinux2014"
+    manylinux-i686-image = "manylinux2014"
+    manylinux-pypy_x86_64-image = "manylinux2014"
+    manylinux-pypy_i686-image = "manylinux2014"
 
     # Build using the latest manylinux2010 release, instead of the cibuildwheel
     # pinned version
-    manylinux.x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
-    manylinux.i686-image = "quay.io/pypa/manylinux2010_i686:latest"
-    manylinux.pypy_x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
-    manylinux.pypy_i686-image = "quay.io/pypa/manylinux2010_i686:latest"
+    manylinux-x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
+    manylinux-i686-image = "quay.io/pypa/manylinux2010_i686:latest"
+    manylinux-pypy_x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
+    manylinux-pypy_i686-image = "quay.io/pypa/manylinux2010_i686:latest"
 
     # Build using a different image from the docker registry
-    manylinux.x86_64-image = "dockcross/manylinux-x64"
-    manylinux.i686-image = "dockcross/manylinux-x86"
+    manylinux-x86_64-image = "dockcross/manylinux-x64"
+    manylinux-i686-image = "dockcross/manylinux-x86"
     ```
-
-    You can also place these inside `[tool.cibuildwheel.linux.manylinux]` to
-    above repeating the `manylinux.` portion on each line, following [standard
-    TOML rules][TOML].
 
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
 > Specify how cibuildwheel controls the versions of the tools it uses

@@ -262,7 +262,7 @@ def main() -> None:
         ]:
             pinned_images = all_pinned_docker_images[build_platform]
 
-            config_value = options(f"manylinux.{build_platform}-image")
+            config_value = options(f"manylinux-{build_platform}-image")
 
             if config_value is None:
                 # default to manylinux2010 if it's available, otherwise manylinux2014

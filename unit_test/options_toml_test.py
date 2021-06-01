@@ -11,8 +11,7 @@ test-command = "pyproject"
 test-requires = "something"
 test-extras = ["one", "two"]
 
-[tool.cibuildwheel.manylinux]
-x86_64-image = "manylinux1"
+manylinux-x86_64-image = "manylinux1"
 
 [tool.cibuildwheel.macos]
 test-requires = "else"
@@ -45,8 +44,8 @@ def test_simple_settings(tmp_path, platform):
     assert options("environment", sep=" ") == 'THING="OTHER" FOO="BAR"'
     assert options("test-extras", sep=",") == "one,two"
 
-    assert options("manylinux.x86_64-image") == "manylinux1"
-    assert options("manylinux.i686-image") == "manylinux2010"
+    assert options("manylinux-x86_64-image") == "manylinux1"
+    assert options("manylinux-i686-image") == "manylinux2010"
 
 
 def test_envvar_override(tmp_path, platform, monkeypatch):
@@ -64,8 +63,8 @@ def test_envvar_override(tmp_path, platform, monkeypatch):
     assert options("archs", sep=" ") == "auto"
 
     assert options("build", sep=" ") == "cp38*"
-    assert options("manylinux.x86_64-image") == "manylinux2014"
-    assert options("manylinux.i686-image") == "manylinux2010"
+    assert options("manylinux-x86_64-image") == "manylinux2014"
+    assert options("manylinux-i686-image") == "manylinux2010"
 
     assert (
         options("test-requires", sep=" ")

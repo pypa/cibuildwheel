@@ -8,11 +8,6 @@ from .typing import PLATFORMS
 
 DIR = Path(__file__).parent.resolve()
 
-# These keys are allowed to merge; setting one will not go away if another is
-# set in a overriding file. tool.cibuildwheel.manylinux.X will not remove
-# tool.cibuildwheel.manylinux.Y from defaults, for example.
-ALLOWED_TO_MERGE = {"manylinux"}
-
 
 Setting = Union[Dict[str, str], List[str], str]
 
@@ -87,14 +82,7 @@ class ConfigOptions:
                     msg = f"Key not supported, problem in config file: {key}"
                     raise ConfigOptionError(msg)
 
-            # This is recursive; update dicts (subsections) if needed. Only handles one level.
-            if key in ALLOWED_TO_MERGE and isinstance(new_dict[key], dict):
-                if key not in old_dict:
-                    old_dict[key] = {}
-
-                old_dict[key].update(new_dict[key])
-            else:
-                old_dict[key] = new_dict[key]
+            old_dict[key] = new_dict[key]
 
         # Allow new_dict[<platform>][key] to override old_dict[key]
         if not _platform and self.platform in new_dict:
@@ -127,16 +115,8 @@ class ConfigOptions:
         then don't accept platform versions of the environment variable. If this is an array
         or a dict, it will be merged with sep before returning.
         """
-        config = self.config
 
-        # Allow singly nested names, like manylinux.X
-        if "." in name:
-            parent, key = name.split(".")
-            config = self.config[parent]
-        else:
-            key = name
-
-        if key not in config:
+        if name not in self.config:
             raise ConfigOptionError(f"{name} must be in cibuildwheel/resources/defaults.toml file")
 
         # Environment variable form
@@ -148,12 +128,12 @@ class ConfigOptions:
             result = _dig_first(
                 (os.environ, plat_envvar),
                 (os.environ, envvar),
-                (config, key),
+                (self.config, name),
             )
         else:
             result = _dig_first(
                 (os.environ, envvar),
-                (config, key),
+                (self.config, name),
             )
 
         if isinstance(result, dict):
