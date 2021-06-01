@@ -85,8 +85,7 @@ You can configure cibuildwheel with a `pyproject.toml` file. Options have the
 same names as the environment variable overrides, but are placed in
 `[tool.cibuildwheel]` and are lower case, with dashes, following common [TOML][]
 practice. Anything placed in subsections `linux`, `windows`, or `macos` will
-only affect those platforms. Lists can be used most places instead of strings
-where applicable, such as when listing commands (will be joined by `&&`).
+only affect those platforms. Lists can be used instead of strings for items that are natually a list.
 Multiline strings also work just like in in the environment variables.
 Environment variables will take precedence if defined.
 
@@ -129,7 +128,7 @@ Default: `auto`
 - For `macos`, you need a Mac machine. Note that cibuildwheel is going to install MacPython on your system, so you probably don't want to run this on your development machine.
 - For `windows`, you need to run in Windows. cibuildwheel will install required versions of Python to `C:\cibw\python` using NuGet.
 
-This option can also be set using the [command-line option](#command-line) `--platform`.
+This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
 !!! tip
     If you have Docker installed, you can locally debug your cibuildwheel Linux config, instead of pushing to CI to test every change. For example:
@@ -140,7 +139,6 @@ This option can also be set using the [command-line option](#command-line) `--pl
     cibuildwheel --platform linux .
     ```
 
-This option is not available in the `pyproject.toml` config.
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
 
@@ -170,6 +168,7 @@ For CPython, the minimally supported macOS version is 10.9; for PyPy 3.7, macOS 
 
 See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end of life versions of Python, and PyPy2.7.
 
+#### Examples
 
 !!! tab "Environment examples"
 
@@ -210,41 +209,49 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Only build on CPython 3.6
+    [tool.cibuildwheel]
     build = "cp36-*"
 
     # Skip building on CPython 3.6 on the Mac
+    [tool.cibuildwheel]
     skip = "cp36-macosx_x86_64"
 
     # Skip building on CPython 3.8 on the Mac
+    [tool.cibuildwheel]
     skip = "cp38-macosx_x86_64"
 
     # Skip building on CPython 3.6 on all platforms
+    [tool.cibuildwheel]
     skip = "cp36-*"
 
     # Skip CPython 3.6 on Windows
+    [tool.cibuildwheel]
     skip = "cp36-win*"
 
     # Skip CPython 3.6 on 32-bit Windows
+    [tool.cibuildwheel]
     skip = "cp36-win32"
 
     # Skip CPython 3.6 and CPython 3.7
+    [tool.cibuildwheel]
     skip = ["cp36-*", "cp37-*"]
 
     # Skip Python 3.6 on Linux
+    [tool.cibuildwheel]
     skip = "cp36-manylinux*"
 
     # Skip 32-bit builds
+    [tool.cibuildwheel]
     skip = ["*-win32", "*-manylinux_i686"]
 
     # Disable building PyPy wheels on all platforms
+    [tool.cibuildwheel]
     skip = "pp*"
     ```
 
     It is generally recommened to set `CIBW_BUILD` as a variable, though `skip`
-    tends to be useful in a config file; you can statically declare you don't
+    tends to be useful in a config file; you can statically declare that you don't
     support pypy, for example.
 
 <style>
@@ -310,6 +317,8 @@ Platform-specific variants also available:<br/>
 
 This option can also be set using the [command-line option](#command-line) `--archs`.
 
+#### Examples
+
 !!! tab "Environment examples"
 
     ```yaml
@@ -339,9 +348,9 @@ This option can also be set using the [command-line option](#command-line) `--ar
     archs: ["auto", "aarch64"]
     ```
 
-    It is generally recommmended to use the environment variable for Linux, as
-    selecting archs often depends on your specific runner having qemu
-    installed.
+    It is generally recommmended to use the environment variable or
+    command-line option for Linux, as selecting archs often depends
+    on your specific runner having qemu installed.
 
 
 ###  `CIBW_PROJECT_REQUIRES_PYTHON` {: #requires-python}
@@ -422,7 +431,7 @@ like to test wheel building with these versions, you can enable this flag.
 
 Default: Off (0) if Python is available in beta phase. No effect otherwise.
 
-This option can also be set using the [command-line option](#command-line) `--prerelease-pythons`.
+This option can also be set using the [command-line option](#command-line) `--prerelease-pythons`. This option is not available in the `pyproject.toml` config.
 
 #### Examples
 
@@ -446,6 +455,8 @@ To specify more than one environment variable, separate the assignments by space
 
 Platform-specific variants also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
+
+#### Examples
 
 !!! tab "Environment examples"
 
@@ -471,18 +482,20 @@ Platform-specific variants also available:<br/>
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Set some compiler flags
+    [tool.cibuildwheel]
     environment = { CFLAGS="-g -Wall", CXXFLAGS="-Wall" }
 
     # Append a directory to the PATH variable (this is expanded in the build environment)
+    [tool.cibuildwheel]
     environment = { PATH="$PATH:/usr/local/bin" }
 
     # Set BUILD_TIME to the output of the `date` command
+    [tool.cibuildwheel]
     environment = { BUILD_TIME="$(date)" }
 
     # Supply options to `pip` to affect how it downloads dependencies
+    [tool.cibuildwheel]
     environment = { PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple" }
 
     # Set two flags on linux only
@@ -557,6 +570,7 @@ The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
+#### Examples
 
 !!! tab "Environment examples"
 
@@ -598,7 +612,8 @@ Platform-specific variants also available:<br/>
     before-build = "{package}/script/prepare_for_build.sh"
     ```
 
-    In configuration mode, you can use an inline array, and the items will be joined with `&&`.
+    In configuration mode, you can use an inline array, and the items will be joined with `&&`. In TOML, using a single-quote string will avoid escapes - useful for
+    Windows paths.
 
 !!! note
     If you need dependencies installed for the build, we recommend using
@@ -626,6 +641,7 @@ Platform-specific variants also available:<br/>
     [PyPA-build]: https://pypa-build.readthedocs.io/en/latest/
     [PEP 517]: https://www.python.org/dev/peps/pep-0517/
     [PEP 518]: https://www.python.org/dev/peps/pep-0517/
+
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
 > Execute a shell command to repair each (non-pure Python) built wheel
@@ -658,6 +674,8 @@ Platform-specific variants also available:<br/>
     Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
 
     [Delvewheel]: https://github.com/adang1345/delvewheel
+
+#### Examples
 
 !!! tab "Environment variables"
 
@@ -749,14 +767,14 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel.linux]
-
     # Build using the manylinux1 image to ensure manylinux1 wheels are produced
     # Not setting PyPy to manylinux1, since there is no manylinux1 PyPy image.
+    [tool.cibuildwheel]
     manylinux-x86_64-image = "manylinux1"
     manylinux-i686-image = "manylinux1"
 
     # Build using the manylinux2014 image
+    [tool.cibuildwheel]
     manylinux-x86_64_image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
     manylinux-pypy_x86_64-image = "manylinux2014"
@@ -764,15 +782,20 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
 
     # Build using the latest manylinux2010 release, instead of the cibuildwheel
     # pinned version
+    [tool.cibuildwheel]
     manylinux-x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
     manylinux-i686-image = "quay.io/pypa/manylinux2010_i686:latest"
     manylinux-pypy_x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
     manylinux-pypy_i686-image = "quay.io/pypa/manylinux2010_i686:latest"
 
     # Build using a different image from the docker registry
+    [tool.cibuildwheel]
     manylinux-x86_64-image = "dockcross/manylinux-x64"
     manylinux-i686-image = "dockcross/manylinux-x86"
     ```
+
+    Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
+    if you perfer; they have no effect on `macos` and `windows`.
 
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
 > Specify how cibuildwheel controls the versions of the tools it uses
@@ -810,6 +833,8 @@ Platform-specific variants also available:<br/>
     dependency versions on Linux, use the [CIBW_MANYLINUX_*](#manylinux-image)
     options.
 
+#### Examples
+
 !!! tab "Environment examples"
 
     ```yaml
@@ -826,15 +851,16 @@ Platform-specific variants also available:<br/>
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Use tools versions that are bundled with cibuildwheel (this is the default)
+    [tool.cibuildwheel]
     dependency-versions = "pinned"
 
     # Use the latest versions available on PyPI
+    [tool.cibuildwheel]
     dependency-versions = "latest"
 
     # Use your own pip constraints file
+    [tool.cibuildwheel]
     dependency-versions = "./constraints.txt"
     ```
 
@@ -861,6 +887,8 @@ The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 Platform-specific variants also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
 
+#### Examples
+
 !!! tab "Environment examples"
 
     ```yaml
@@ -877,15 +905,16 @@ Platform-specific variants also available:<br/>
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Run the project tests against the installed wheel using `nose`
+    [tool.cibuildwheel]
     test-command = "nosetests {project}/tests"
 
     # Run the package tests using `pytest`
+    [tool.cibuildwheel]
     test-command = "pytest {package}/tests"
 
     # Trigger an install of the package, but run nothing of note
+    [tool.cibuildwheel]
     test-command = "echo Wheel installed"
     ```
 
@@ -904,6 +933,8 @@ The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
+
+#### Examples
 
 !!! tab "Environment examples"
 
@@ -924,18 +955,19 @@ Platform-specific variants also available:<br/>
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Install test dependencies with overwritten environment variables.
+    [tool.cibuildwheel]
     before-test = "CC=gcc CXX=g++ pip install -r requirements.txt"
 
     # Chain commands using && or an Array
+    [tool.cibuildwheel]
     before-test = [
         "rm -rf ./data/cache",
         "mkdir -p ./data/cache",
     ]
 
     # Install non pip python package
+    [tool.cibuildwheel]
     before-test = [
         "cd some_dir",
         "./configure",
@@ -944,6 +976,7 @@ Platform-specific variants also available:<br/>
     ]
 
     # Install python packages that are required to install test dependencies
+    [tool.cibuildwheel]
     before-test = "pip install cmake scikit-build"
     ```
 
@@ -958,6 +991,8 @@ Space-separated list of dependencies required for running the tests.
 Platform-specific variants also available:<br/>
 `CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
+#### Examples
+
 !!! tab "Environment examples"
 
     ```yaml
@@ -971,12 +1006,12 @@ Platform-specific variants also available:<br/>
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Install pytest before running CIBW_TEST_COMMAND
+    [tool.cibuildwheel]
     test-requires = "pytest"
 
     # Install specific versions of test dependencies
+    [tool.cibuildwheel]
     test-requires = ["nose==1.3.7", "moto==0.4.31"]
     ```
 
@@ -1010,9 +1045,8 @@ Platform-specific variants also available:<br/>
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
+    [tool.cibuildwheel]
     test-extras: ["test", "qt"]
     ```
 
@@ -1040,12 +1074,12 @@ With macOS `universal2` wheels, you can also skip the individual archs inside th
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Will avoid testing on emulated architectures
+    [tool.cibuildwheel]
     test-skip = "*-manylinux_{aarch64,ppc64le,s390x}"
 
     # Skip trying to test arm64 builds on Intel Macs
+    [tool.cibuildwheel]
     test-skip = "*-macosx_arm64 *-macosx_universal2:arm64"
     ```
 
@@ -1060,6 +1094,8 @@ An number from 1 to 3 to increase the level of verbosity (corresponding to invok
 Platform-specific variants also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
 
+#### Examples
+
 !!! tab "Environment examples"
 
     ```yaml
@@ -1070,9 +1106,8 @@ Platform-specific variants also available:<br/>
 !!! tab "pyproject.toml"
 
     ```toml
-    [tool.cibuildwheel]
-
     # Increase pip debugging output
+    [tool.cibuildwheel]
     build-verbosity = 1
     ```
 
