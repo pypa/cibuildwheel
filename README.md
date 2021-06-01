@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.0a1
+        run: python -m pip install cibuildwheel==2.0.0a2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -350,7 +350,7 @@ Changelog
 
 _This release is currently in prerelease. The below release notes will be condensed into a single entry when we do a final release._
 
-_v2.0.0a1 (1 Jun 2021)_
+_v2.0.0a2 (1 Jun 2021)_
 
 - 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/latest/options/#prerelease-pythons) to test. (#675)
 - ✨ Added the ability to build CPython 3.8 wheels on Apple Silicon. (#704)
