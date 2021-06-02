@@ -4,13 +4,13 @@
 
 ## Setting options
 
-cibuildwheel is configured using environment variables that can be set using
-your CI config. You can also set these values in your `pyproject.toml` file,
-in a `[tool.cibuildwheel]` section.
+cibuildwheel can either be configured using environment variables, or from
+config file such as `pyproject.toml`.
 
-For example, to configure cibuildwheel to run tests, add the following YAML to
-your CI config file:
+### Environment variables {: #environment}
 
+Environment variables can be set in your CI config. For example, to configure
+cibuildwheel to run tests, add the following YAML to your CI config file:
 
 !!! tab "GitHub Actions"
 
@@ -77,9 +77,7 @@ your CI config file:
         CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
-
-
-## Configuration {: #configuration}
+### Configuration file {: #configuration}
 
 You can configure cibuildwheel with a `pyproject.toml` file. Options have the
 same names as the environment variable overrides, but are placed in
@@ -313,7 +311,7 @@ If not listed above, `auto` is the same as `native`.
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
  `CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX`
 
 This option can also be set using the [command-line option](#command-line) `--archs`.
@@ -453,7 +451,7 @@ You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to 
 
 To specify more than one environment variable, separate the assignments by spaces.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
 
 #### Examples
@@ -524,8 +522,10 @@ The placeholder `{package}` can be used here; it will be replaced by the path to
 
 On Windows and macOS, the version of Python available inside `CIBW_BEFORE_ALL` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
 
-Platform-specific variants also available:<br/>
- `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+Platform-specific environment variables also available:<br/>
+`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+
+#### Examples
 
 !!! tab examples "Environment variables"
 
@@ -567,7 +567,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
 
 #### Examples
@@ -663,7 +663,7 @@ The following placeholders must be used inside the command and will be replaced 
 
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
 
 !!! tip
@@ -824,7 +824,7 @@ here and it will be used instead.
     `./constraints-python37.txt` on Python 3.7, or fallback to
     `./constraints.txt` if that's not found.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
 `CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS`
 
 !!! note
@@ -884,7 +884,7 @@ not be installed after building.
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
 
 #### Examples
@@ -931,7 +931,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
  `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
 
 #### Examples
@@ -988,7 +988,7 @@ Platform-specific variants also available:<br/>
 
 Space-separated list of dependencies required for running the tests.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
 
 #### Examples
@@ -1028,7 +1028,7 @@ tests. This can be used to avoid having to redefine test dependencies in
 `CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
 `setup.cfg`.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
 
 #### Examples
@@ -1091,7 +1091,7 @@ With macOS `universal2` wheels, you can also skip the individual archs inside th
 
 An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
 
-Platform-specific variants also available:<br/>
+Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
 
 #### Examples
