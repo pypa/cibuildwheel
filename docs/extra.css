@@ -24,9 +24,9 @@ code, pre, tt {
     font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
 }
 
-.hljs {
-    padding: 1em;
-    background-color: #f6f8fa;
+pre code, pre code.hljs {
+  padding: 1em;
+  background-color: #f6f8fa;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -179,6 +179,16 @@ h1, h2, h3, h4, h5, h6 {
 .tabs.examples .tabs-content {
   padding: 0;
   background-color: transparent;
+  background-color: #f6f8fa;
+}
+.tabs.examples .tabs-content .tab > * {
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+}
+.tabs.examples .tabs-content .tab > pre {
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: 0;
 }
 .tabs.examples pre:first-child {
   margin-top: 0;
