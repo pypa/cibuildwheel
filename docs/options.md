@@ -7,7 +7,7 @@
 cibuildwheel can either be configured using environment variables, or from
 config file such as `pyproject.toml`.
 
-### Environment variables {: #environment}
+### Environment variables {: #environment-variables}
 
 Environment variables can be set in your CI config. For example, to configure
 cibuildwheel to run tests, add the following YAML to your CI config file:
@@ -77,7 +77,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
         CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
-### Configuration file {: #configuration}
+### Configuration file {: #configuration-file}
 
 You can configure cibuildwheel with a `pyproject.toml` file. Options have the
 same names as the environment variable overrides, but are placed in
