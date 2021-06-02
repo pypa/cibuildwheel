@@ -167,14 +167,26 @@ h1, h2, h3, h4, h5, h6 {
 /* Examples tabs styling */
 
 .tabs.examples .tabs-header {
-  /* justify-content: flex-end; */
+  justify-content: flex-end;
   background-color: transparent;
-  /* background: #f6f8fa; */
+  background: #f6f8fa;
   border-bottom-style: none;
+  padding: 0 4px;
 }
+.tabs.examples .tabs-header button {
+  padding: 6px 8px;
+  border-bottom: none;
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 0.8em;
+}
+.tabs-header button:hover {
+  background-color: unset;
+}
+
 .tabs.examples .tabs-header button.active {
   border-bottom-style: none;
   background: #f6f8fa;
+  color: inherit;
 }
 .tabs.examples .tabs-content {
   padding: 0;
@@ -188,7 +200,10 @@ h1, h2, h3, h4, h5, h6 {
 .tabs.examples .tabs-content .tab > pre {
   padding-left: 0;
   padding-right: 0;
-  margin-bottom: 0;
+  margin-bottom: 0.5em;
+}
+.tabs.examples .tabs-content .tab > pre > code {
+  padding-top: 0.5em;
 }
 .tabs.examples pre:first-child {
   margin-top: 0;
