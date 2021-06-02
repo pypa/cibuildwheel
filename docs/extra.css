@@ -159,6 +159,9 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f1f6fa;
   padding: 1px 1em;
   padding-top: 0.8em;
+
+  /* don't collapse inner margins */
+  overflow-y: hidden;
 }
 
 /* Examples tabs styling */
