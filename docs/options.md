@@ -171,7 +171,7 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Only build on CPython 3.6
@@ -207,7 +207,7 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 
     Separate multiple selectors with a space.
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Only build on CPython 3.6
@@ -320,7 +320,7 @@ This option can also be set using the [command-line option](#command-line) `--ar
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Build `universal2` and `arm64` wheels on an Intel runner.
@@ -334,10 +334,9 @@ This option can also be set using the [command-line option](#command-line) `--ar
 
     Separate multiple archs with a space.
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
-
     # Build `universal2` and `arm64` wheels on an Intel runner.
     # Note that the `arm64` wheel and the `arm64` part of the `universal2`
     # wheel cannot be tested in this configuration.
@@ -459,7 +458,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Set some compiler flags
@@ -480,7 +479,7 @@ Platform-specific variants also available:<br/>
 
     Separate multiple values with a space.
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Set some compiler flags
@@ -528,7 +527,7 @@ On Windows and macOS, the version of Python available inside `CIBW_BEFORE_ALL` i
 Platform-specific variants also available:<br/>
  `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Build third party library
@@ -538,7 +537,7 @@ Platform-specific variants also available:<br/>
     CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Build third party library
@@ -573,7 +572,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Install something required for the build (you might want to use pyproject.toml instead)
@@ -589,7 +588,7 @@ Platform-specific variants also available:<br/>
     CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
 
@@ -678,7 +677,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment variables"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Use delvewheel on windows
@@ -692,7 +691,7 @@ Platform-specific variants also available:<br/>
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Use delvewheel on windows
@@ -739,7 +738,7 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
 #### Examples
 
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Build using the manylinux1 image to ensure manylinux1 wheels are produced
@@ -765,7 +764,7 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
     CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Build using the manylinux1 image to ensure manylinux1 wheels are produced
@@ -836,7 +835,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Use tools versions that are bundled with cibuildwheel (this is the default)
@@ -849,7 +848,7 @@ Platform-specific variants also available:<br/>
     CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Use tools versions that are bundled with cibuildwheel (this is the default)
@@ -890,7 +889,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Run the project tests against the installed wheel using `nose`
@@ -903,7 +902,7 @@ Platform-specific variants also available:<br/>
     CIBW_TEST_COMMAND: "echo Wheel installed"
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Run the project tests against the installed wheel using `nose`
@@ -937,7 +936,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Install test dependencies with overwritten environment variables.
@@ -953,7 +952,7 @@ Platform-specific variants also available:<br/>
     CIBW_BEFORE_TEST: pip install cmake scikit-build
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Install test dependencies with overwritten environment variables.
@@ -994,7 +993,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Install pytest before running CIBW_TEST_COMMAND
@@ -1004,7 +1003,7 @@ Platform-specific variants also available:<br/>
     CIBW_TEST_REQUIRES: nose==1.3.7 moto==0.4.31
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Install pytest before running CIBW_TEST_COMMAND
@@ -1034,7 +1033,7 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
@@ -1043,7 +1042,7 @@ Platform-specific variants also available:<br/>
 
     Seperate multiple items with a comma.
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
@@ -1062,7 +1061,7 @@ With macOS `universal2` wheels, you can also skip the individual archs inside th
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Will avoid testing on emulated architectures
@@ -1072,7 +1071,7 @@ With macOS `universal2` wheels, you can also skip the individual archs inside th
     CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Will avoid testing on emulated architectures
@@ -1097,14 +1096,14 @@ Platform-specific variants also available:<br/>
 
 #### Examples
 
-!!! tab "Environment examples"
+!!! tab examples "Environment variables"
 
     ```yaml
     # Increase pip debugging output
     CIBW_BUILD_VERBOSITY: 1
     ```
 
-!!! tab "pyproject.toml"
+!!! tab examples "pyproject.toml"
 
     ```toml
     # Increase pip debugging output

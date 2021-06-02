@@ -1,6 +1,10 @@
 
 /* Global styles */
 
+body {
+    overflow-wrap: break-word;
+}
+
 p {
     margin-bottom: 12px;
     line-height: 26px;
@@ -113,6 +117,8 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   justify-content: flex-start;
   border-bottom: 2px solid #ccc;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* Style the buttons that are used to open the tab content */
@@ -153,4 +159,24 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f1f6fa;
   padding: 1px 1em;
   padding-top: 0.8em;
+}
+
+/* Examples tabs styling */
+
+.tabs.examples .tabs-header {
+  /* justify-content: flex-end; */
+  background-color: transparent;
+  /* background: #f6f8fa; */
+  border-bottom-style: none;
+}
+.tabs.examples .tabs-header button.active {
+  border-bottom-style: none;
+  background: #f6f8fa;
+}
+.tabs.examples .tabs-content {
+  padding: 0;
+  background-color: transparent;
+}
+.tabs.examples pre:first-child {
+  margin-top: 0;
 }
