@@ -208,48 +208,39 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Only build on CPython 3.6
     [tool.cibuildwheel]
+    # Only build on CPython 3.6
     build = "cp36-*"
 
     # Skip building on CPython 3.6 on the Mac
-    [tool.cibuildwheel]
     skip = "cp36-macosx_x86_64"
 
     # Skip building on CPython 3.8 on the Mac
-    [tool.cibuildwheel]
     skip = "cp38-macosx_x86_64"
 
     # Skip building on CPython 3.6 on all platforms
-    [tool.cibuildwheel]
     skip = "cp36-*"
 
     # Skip CPython 3.6 on Windows
-    [tool.cibuildwheel]
     skip = "cp36-win*"
 
     # Skip CPython 3.6 on 32-bit Windows
-    [tool.cibuildwheel]
     skip = "cp36-win32"
 
     # Skip CPython 3.6 and CPython 3.7
-    [tool.cibuildwheel]
     skip = ["cp36-*", "cp37-*"]
 
     # Skip Python 3.6 on Linux
-    [tool.cibuildwheel]
     skip = "cp36-manylinux*"
 
     # Skip 32-bit builds
-    [tool.cibuildwheel]
     skip = ["*-win32", "*-manylinux_i686"]
 
     # Disable building PyPy wheels on all platforms
-    [tool.cibuildwheel]
     skip = "pp*"
     ```
 
-    It is generally recommened to set `CIBW_BUILD` as a variable, though `skip`
+    It is generally recommened to set `CIBW_BUILD` as an environment variable, though `skip`
     tends to be useful in a config file; you can statically declare that you don't
     support pypy, for example.
 
@@ -408,9 +399,11 @@ This option is not available in `pyproject.toml` under
 
 #### Examples
 
-```yaml
-CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6"
-```
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6"
+    ```
 
 ###  `CIBW_PRERELEASE_PYTHONS` {: #prerelease-pythons}
 > Enable building with pre-release versions of Python
@@ -433,10 +426,12 @@ This option can also be set using the [command-line option](#command-line) `--pr
 
 #### Examples
 
-```yaml
-# Include latest Python beta
-CIBW_PRERELEASE_PYTHONS: True
-```
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Include latest Python beta
+    CIBW_PRERELEASE_PYTHONS: True
+    ```
 
 ## Build customization
 
@@ -480,33 +475,33 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Set some compiler flags
     [tool.cibuildwheel]
+    # Set some compiler flags
+    environment = "CFLAGS='-g -Wall' CXXFLAGS='-Wall'"
+
+    # Set some compiler flags using a TOML table
     environment = { CFLAGS="-g -Wall", CXXFLAGS="-Wall" }
 
     # Append a directory to the PATH variable (this is expanded in the build environment)
-    [tool.cibuildwheel]
     environment = { PATH="$PATH:/usr/local/bin" }
 
     # Set BUILD_TIME to the output of the `date` command
-    [tool.cibuildwheel]
     environment = { BUILD_TIME="$(date)" }
 
     # Supply options to `pip` to affect how it downloads dependencies
-    [tool.cibuildwheel]
     environment = { PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple" }
 
     # Set two flags on linux only
     [tool.cibuildwheel.linux]
     environment = { BUILD_TIME="$(date)", SAMPLE_TEXT="sample text" }
 
-    # Alternate form with out-of-line table
+    # Alternate form with out-of-line table for setting a few values
     [tool.cibuildwheel.linux.environment]
     BUILD_TIME = "$(date)"
     SAMPLE_TEXT = "sample text"
     ```
 
-    In configuration mode, you can use an inline [TOML][] table instead of a raw string as shown above.
+    In configuration mode, you can use a [TOML][] table instead of a raw string as shown above.
 
 !!! note
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
@@ -535,7 +530,16 @@ Platform-specific environment variables also available:<br/>
 
     # Install system library
     CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
+
+    # chain multiple commands using && and > in a YAML file, like:
+    CIBW_BEFORE_ALL: >
+      yum install bzip2 -y &&
+      make third_party
     ```
+
+    For multiline commands, see the last example. The character `>` means that
+    whitespace is collapsed to a single line, and '&&' between each command
+    ensures that errors are not ignored.
 
 !!! tab examples "pyproject.toml"
 
@@ -547,9 +551,15 @@ Platform-specific environment variables also available:<br/>
     # Install system library
     [tool.cibuildwheel.linux]
     before-all = "yum install -y libffi-dev"
+
+    # run multiple commands using an array
+    before-all = [
+      'yum install bzip2 -y',
+      'make third_party',
+    ]
     ```
 
-    In configuration mode, you can use an inline array, and the items will be joined with `&&`.
+    In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
 
 Note that manylinux2_24 builds occur inside a Debian9 docker, where
 manylinux2010 and manylinux2014 builds occur inside a CentOS one. So for
@@ -579,7 +589,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_BEFORE_BUILD: pip install pybind11
 
     # Chain commands using &&
-    CIBW_BEFORE_BUILD_LINUX: yum install -y libffi-dev && make clean
+    CIBW_BEFORE_BUILD_LINUX: python scripts/install-deps.py && make clean
 
     # Run a script that's inside your project
     CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
@@ -591,32 +601,31 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-
-    # Install something required for the build (you might want to use pyproject.toml instead)
     [tool.cibuildwheel]
+
+    # Install something required for the build
+    # (you might want to use build-system.requires instead)
     before-build = "pip install pybind11"
 
     # Chain commands using && or make an array.
-    [tool.cibuildwheel.linux]
+    before-build = "python scripts/install-deps.py && make clean"
     before-build = [
-        "yum install -y libffi-dev",
+        "python scripts/install-deps.py",
         "make clean",
     ]
 
     # Run a script that's inside your project
-    [tool.cibuildwheel]
     before-build = "bash scripts/prepare_for_build.sh"
 
     # If cibuildwheel is called with a package_dir argument, it's available as {package}
-    [tool.cibuildwheel]
     before-build = "{package}/script/prepare_for_build.sh"
     ```
 
-    In configuration mode, you can use an inline array, and the items will be joined with `&&`. In TOML, using a single-quote string will avoid escapes - useful for
+    In configuration mode, you can use a array, and the items will be joined with `&&`. In TOML, using a single-quote string will avoid escapes - useful for
     Windows paths.
 
 !!! note
-    If you need dependencies installed for the build, we recommend using
+    If you need Python dependencies installed for the build, we recommend using
     `pyproject.toml`'s `build-system.requires` instead. This is an example
     `pyproject.toml` file:
 
@@ -767,14 +776,13 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
 !!! tab examples "pyproject.toml"
 
     ```toml
+    [tool.cibuildwheel]
     # Build using the manylinux1 image to ensure manylinux1 wheels are produced
     # Not setting PyPy to manylinux1, since there is no manylinux1 PyPy image.
-    [tool.cibuildwheel]
     manylinux-x86_64-image = "manylinux1"
     manylinux-i686-image = "manylinux1"
 
     # Build using the manylinux2014 image
-    [tool.cibuildwheel]
     manylinux-x86_64_image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
     manylinux-pypy_x86_64-image = "manylinux2014"
@@ -782,14 +790,12 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
 
     # Build using the latest manylinux2010 release, instead of the cibuildwheel
     # pinned version
-    [tool.cibuildwheel]
     manylinux-x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
     manylinux-i686-image = "quay.io/pypa/manylinux2010_i686:latest"
     manylinux-pypy_x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
     manylinux-pypy_i686-image = "quay.io/pypa/manylinux2010_i686:latest"
 
     # Build using a different image from the docker registry
-    [tool.cibuildwheel]
     manylinux-x86_64-image = "dockcross/manylinux-x64"
     manylinux-i686-image = "dockcross/manylinux-x86"
     ```
@@ -851,19 +857,16 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Use tools versions that are bundled with cibuildwheel (this is the default)
     [tool.cibuildwheel]
+    # Use tools versions that are bundled with cibuildwheel (this is the default)
     dependency-versions = "pinned"
 
     # Use the latest versions available on PyPI
-    [tool.cibuildwheel]
     dependency-versions = "latest"
 
     # Use your own pip constraints file
-    [tool.cibuildwheel]
     dependency-versions = "./constraints.txt"
     ```
-
 
 ## Testing
 
@@ -905,20 +908,18 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Run the project tests against the installed wheel using `nose`
     [tool.cibuildwheel]
+    # Run the project tests against the installed wheel using `nose`
     test-command = "nosetests {project}/tests"
 
     # Run the package tests using `pytest`
-    [tool.cibuildwheel]
     test-command = "pytest {package}/tests"
 
     # Trigger an install of the package, but run nothing of note
-    [tool.cibuildwheel]
     test-command = "echo Wheel installed"
     ```
 
-    In configuration mode, you can use an inline array, and the items will be joined with `&&`.
+    In configuration files, you can use an array, and the items will be joined with `&&`.
 
 
 ### `CIBW_BEFORE_TEST` {: #before-test}
@@ -955,19 +956,18 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Install test dependencies with overwritten environment variables.
     [tool.cibuildwheel]
+    # Install test dependencies with overwritten environment variables.
     before-test = "CC=gcc CXX=g++ pip install -r requirements.txt"
 
-    # Chain commands using && or an Array
-    [tool.cibuildwheel]
+    # Chain commands using && or using an array
+    before-test = "rm -rf ./data/cache && mkdir -p ./data/cache"
     before-test = [
         "rm -rf ./data/cache",
         "mkdir -p ./data/cache",
     ]
 
     # Install non pip python package
-    [tool.cibuildwheel]
     before-test = [
         "cd some_dir",
         "./configure",
@@ -980,7 +980,7 @@ Platform-specific environment variables are also available:<br/>
     before-test = "pip install cmake scikit-build"
     ```
 
-    In configuration mode, you can use an inline array, and the items will be joined with `&&`.
+    In configuration files, you can use an array, and the items will be joined with `&&`.
 
 
 ### `CIBW_TEST_REQUIRES` {: #test-requires}
@@ -1015,7 +1015,7 @@ Platform-specific environment variables are also available:<br/>
     test-requires = ["nose==1.3.7", "moto==0.4.31"]
     ```
 
-    In configuration mode, you can use an inline array, and the items will be joined with a space.
+    In configuration files, you can use an array, and the items will be joined with a space.
 
 
 ### `CIBW_TEST_EXTRAS` {: #test-extras}
@@ -1045,12 +1045,12 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
     [tool.cibuildwheel]
+    # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
     test-extras: ["test", "qt"]
     ```
 
-    In configuration mode, you can use an inline array, and the items will be joined with a space.
+    In configuration files, you can use an inline array, and the items will be joined with a comma.
 
 ### `CIBW_TEST_SKIP` {: #test-skip}
 > Skip running tests on some builds
@@ -1074,15 +1074,13 @@ With macOS `universal2` wheels, you can also skip the individual archs inside th
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Will avoid testing on emulated architectures
     [tool.cibuildwheel]
+    # Will avoid testing on emulated architectures
     test-skip = "*-manylinux_{aarch64,ppc64le,s390x}"
 
     # Skip trying to test arm64 builds on Intel Macs
-    [tool.cibuildwheel]
     test-skip = "*-macosx_arm64 *-macosx_universal2:arm64"
     ```
-
 
 ## Other
 
@@ -1106,8 +1104,8 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Increase pip debugging output
     [tool.cibuildwheel]
+    # Increase pip debugging output
     build-verbosity = 1
     ```
 
