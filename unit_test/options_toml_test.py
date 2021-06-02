@@ -1,6 +1,6 @@
 import pytest
 
-from cibuildwheel.options import ConfigOptions
+from cibuildwheel.options import ConfigOptionError, ConfigOptions
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -122,3 +122,42 @@ repair-wheel-command = "repair-project-global"
     )
     options = ConfigOptions(tmp_path, platform=platform)
     assert options("repair-wheel-command") == f"repair-project-{platform}"
+
+
+def test_unexpected_key(tmp_path):
+    # Note that platform contents are only checked when running
+    # for that platform.
+    tmp_path.joinpath("pyproject.toml").write_text(
+        """
+[tool.cibuildwheel]
+repairs-wheel-command = "repair-project-linux"
+"""
+    )
+
+    with pytest.raises(ConfigOptionError):
+        ConfigOptions(tmp_path, platform="linux")
+
+
+def test_unexpected_table(tmp_path):
+    tmp_path.joinpath("pyproject.toml").write_text(
+        """
+[tool.cibuildwheel.linus]
+repair-wheel-command = "repair-project-linux"
+"""
+    )
+    with pytest.raises(ConfigOptionError):
+        ConfigOptions(tmp_path, platform="linux")
+
+
+def test_unsupported_join(tmp_path):
+    tmp_path.joinpath("pyproject.toml").write_text(
+        """
+[tool.cibuildwheel]
+build = ["1", "2"]
+"""
+    )
+    options = ConfigOptions(tmp_path, platform="linux")
+
+    assert "1, 2" == options("build", sep=", ")
+    with pytest.raises(ConfigOptionError):
+        options("build")
