@@ -531,7 +531,7 @@ Platform-specific environment variables also available:<br/>
     # Install system library
     CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
 
-    # chain multiple commands using && and > in a YAML file, like:
+    # Chain multiple commands using && and > in a YAML file, like:
     CIBW_BEFORE_ALL: >
       yum install bzip2 -y &&
       make third_party
@@ -539,7 +539,8 @@ Platform-specific environment variables also available:<br/>
 
     For multiline commands, see the last example. The character `>` means that
     whitespace is collapsed to a single line, and '&&' between each command
-    ensures that errors are not ignored.
+    ensures that errors are not ignored. [Further reading on multiline YAML
+    here.](https://yaml-multiline.info).
 
 !!! tab examples "pyproject.toml"
 
@@ -552,10 +553,10 @@ Platform-specific environment variables also available:<br/>
     [tool.cibuildwheel.linux]
     before-all = "yum install -y libffi-dev"
 
-    # run multiple commands using an array
+    # Run multiple commands using an array
     before-all = [
-      'yum install bzip2 -y',
-      'make third_party',
+      "yum install bzip2 -y",
+      "make third_party",
     ]
     ```
 
