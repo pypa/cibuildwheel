@@ -161,3 +161,16 @@ build = ["1", "2"]
     assert "1, 2" == options("build", sep=", ")
     with pytest.raises(ConfigOptionError):
         options("build")
+
+
+def test_disallowed_a(tmp_path):
+    tmp_path.joinpath("pyproject.toml").write_text(
+        """
+[tool.cibuildwheel.windows]
+manylinux-x64_86-image = "manylinux1"
+"""
+    )
+    disallow = {"windows": {"manylinux-x64_86-image"}}
+    ConfigOptions(tmp_path, platform="linux", disallow=disallow)
+    with pytest.raises(ConfigOptionError):
+        ConfigOptions(tmp_path, platform="windows", disallow=disallow)

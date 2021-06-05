@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Union
 
 import toml
 
@@ -47,9 +47,11 @@ class ConfigOptions:
         config_file: str = "{package}/pyproject.toml",
         *,
         platform: str,
+        disallow: Optional[Dict[str, Set[str]]] = None,
     ) -> None:
         self.platform = platform
         self.config: Dict[str, Any] = {}
+        self.disallow = disallow or {}
 
         # Open defaults.toml and load tool.cibuildwheel.global, then update with tool.cibuildwheel.<platform>
         self._load_file(DIR.joinpath("resources", "defaults.toml"), update=False)
@@ -79,6 +81,10 @@ class ConfigOptions:
         # for the new_dict (old_dict does not have platforms in it)
         if _platform:
             normal_keys = set(new_dict)
+            bad_keys = self.disallow.get(self.platform, set()) & normal_keys
+            if bad_keys:
+                msg = f"Options {bad_keys} not allowed in {self.platform}"
+                raise ConfigOptionError(msg)
         else:
             normal_keys = set(new_dict) - PLATFORMS
 

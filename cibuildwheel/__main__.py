@@ -29,6 +29,17 @@ from cibuildwheel.util import (
     resources_dir,
 )
 
+MANYLINUX_ARCHS = (
+    "x86_64",
+    "i686",
+    "pypy_x86_64",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+    "pypy_aarch64",
+    "pypy_i686",
+)
+
 
 def main() -> None:
     platform: PlatformName
@@ -153,7 +164,15 @@ def main() -> None:
 
     package_dir = Path(args.package_dir)
 
-    options = ConfigOptions(package_dir, args.config_file, platform=platform)
+    manylinux_identifiers = {
+        f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS
+    }
+    disallow = {
+        "linux": {"dependency-versions"},
+        "macos": manylinux_identifiers,
+        "windows": manylinux_identifiers,
+    }
+    options = ConfigOptions(package_dir, args.config_file, platform=platform, disallow=disallow)
     output_dir = Path(
         args.output_dir
         if args.output_dir is not None
@@ -164,7 +183,7 @@ def main() -> None:
     skip_config = options("skip", env_plat=False, sep=" ")
     test_skip = options("test-skip", env_plat=False, sep=" ")
 
-    archs_config_str = options("archs", sep=" ") if args.archs is None else args.archs
+    archs_config_str = args.archs or options("archs", sep=" ")
 
     environment_config = options("environment", sep=" ")
     before_all = options("before-all", sep=" && ")
@@ -247,7 +266,7 @@ def main() -> None:
             print(identifier)
         sys.exit(0)
 
-    manylinux_images: Optional[Dict[str, str]] = None
+    manylinux_images: Dict[str, str] = {}
     if platform == "linux":
         pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
         all_pinned_docker_images = ConfigParser()
@@ -258,18 +277,7 @@ def main() -> None:
         #   'pypy_x86_64': {'manylinux2010': '...' }
         #   ... }
 
-        manylinux_images = {}
-
-        for build_platform in [
-            "x86_64",
-            "i686",
-            "pypy_x86_64",
-            "aarch64",
-            "ppc64le",
-            "s390x",
-            "pypy_aarch64",
-            "pypy_i686",
-        ]:
+        for build_platform in MANYLINUX_ARCHS:
             pinned_images = all_pinned_docker_images[build_platform]
 
             config_value = options(f"manylinux-{build_platform}-image")
@@ -300,7 +308,7 @@ def main() -> None:
         repair_command=repair_command,
         environment=environment,
         dependency_constraints=dependency_constraints,
-        manylinux_images=manylinux_images,
+        manylinux_images=manylinux_images or None,
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
