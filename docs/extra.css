@@ -169,7 +169,6 @@ h1, h2, h3, h4, h5, h6 {
 .tabs.examples .tabs-header {
   justify-content: flex-end;
   background-color: transparent;
-  background: #f6f8fa;
   border-bottom-style: none;
   padding: 0 4px;
 }
