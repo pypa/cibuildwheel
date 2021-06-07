@@ -42,13 +42,9 @@ def test(tmp_path):
     )
 
     # also check that we got the right wheels built
-    # there's no auditwheel 4+ on dockcross image
-    # remove manylinux1 wheels from the list of actual_wheels
-    # and restrict expected_wheels to manylinux2010 wheels
-    actual_wheels = [w for w in actual_wheels if "-manylinux1" not in w]
     expected_wheels = [
         w
-        for w in utils.expected_wheels("spam", "0.1.0", manylinux_versions=["manylinux2010"])
+        for w in utils.expected_wheels("spam", "0.1.0")
         if "-cp36-" in w or "-cp37-" in w or "-cp38-" in w or "-cp39-" in w
     ]
     assert set(actual_wheels) == set(expected_wheels)
