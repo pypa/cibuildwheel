@@ -84,7 +84,7 @@ by default, and require opt-in by setting `CIBW_ARCHS_MACOS`.
 !!! note
     Your runner needs Xcode Command Line Tools 12.2 or later to build `universal2` or `arm64`.
 
-    So far, only CPython 3.9 supports `universal2` and `arm64` wheels.
+    Only CPython 3.8 and newer support `universal2` and `arm64` wheels.
 
 Here's an example GitHub Actions workflow with a job that builds for Apple Silicon:
 
