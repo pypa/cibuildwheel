@@ -4,12 +4,17 @@ from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Union
 
 import toml
 
-from .typing import PLATFORMS
+from .typing import PLATFORMS, TypedDict
 
 DIR = Path(__file__).parent.resolve()
 
 
 Setting = Union[Dict[str, str], List[str], str]
+
+
+class TableFmt(TypedDict):
+    item: str
+    sep: str
 
 
 class ConfigOptionError(KeyError):
@@ -123,11 +128,20 @@ class ConfigOptions:
 
         self._update(self.config, tool_cibuildwheel, update=update)
 
-    def __call__(self, name: str, *, env_plat: bool = True, sep: Optional[str] = None) -> str:
+    def __call__(
+        self,
+        name: str,
+        *,
+        env_plat: bool = True,
+        sep: Optional[str] = None,
+        table: Optional[TableFmt] = None,
+    ) -> str:
         """
-        Get and return envvar for name or the override or the default. If env_plat is False,
-        then don't accept platform versions of the environment variable. If this is an array
-        or a dict, it will be merged with sep before returning.
+        Get and return envvar for name or the override or the default. If
+        env_plat is False, then don't accept platform versions of the
+        environment variable. If this is an array it will be merged with "sep"
+        before returning. If it is a table, it will be formatted with
+        "table['item']" using {k} and {v} and merged with "table['sep']".
         """
 
         if name not in self.config:
@@ -151,9 +165,9 @@ class ConfigOptions:
             )
 
         if isinstance(result, dict):
-            if sep is None:
+            if table is None:
                 raise ConfigOptionError(f"{name} does not accept a table")
-            return sep.join(f'{k}="{v}"' for k, v in result.items())
+            return table["sep"].join(table["item"].format(k=k, v=v) for k, v in result.items())
         elif isinstance(result, list):
             if sep is None:
                 raise ConfigOptionError(f"{name} does not accept a list")

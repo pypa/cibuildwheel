@@ -42,11 +42,25 @@ def test_simple_settings(tmp_path, platform, fname):
         == {"windows": "something", "macos": "else", "linux": "other many"}[platform]
     )
 
-    assert options("environment", sep=" ") == 'THING="OTHER" FOO="BAR"'
+    # Also testing options for support for both lists and tables
+    assert (
+        options("environment", table={"item": '{k}="{v}"', "sep": " "}) == 'THING="OTHER" FOO="BAR"'
+    )
+    assert (
+        options("environment", sep="x", table={"item": '{k}="{v}"', "sep": " "})
+        == 'THING="OTHER" FOO="BAR"'
+    )
     assert options("test-extras", sep=",") == "one,two"
+    assert options("test-extras", sep=",", table={"item": '{k}="{v}"', "sep": " "}) == "one,two"
 
     assert options("manylinux-x86_64-image") == "manylinux1"
     assert options("manylinux-i686-image") == "manylinux2010"
+
+    with pytest.raises(ConfigOptionError):
+        options("environment", sep=" ")
+
+    with pytest.raises(ConfigOptionError):
+        options("test-extras", table={"item": '{k}="{v}"', "sep": " "})
 
 
 def test_envvar_override(tmp_path, platform, monkeypatch):

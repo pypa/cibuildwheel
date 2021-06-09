@@ -185,7 +185,7 @@ def main() -> None:
 
     archs_config_str = args.archs or options("archs", sep=" ")
 
-    environment_config = options("environment", sep=" ")
+    environment_config = options("environment", table={"item": '{k}="{v}"', "sep": " "})
     before_all = options("before-all", sep=" && ")
     before_build = options("before-build", sep=" && ")
     repair_command = options("repair-wheel-command", sep=" && ")
