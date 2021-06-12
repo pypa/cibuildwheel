@@ -11,7 +11,7 @@ def test_compare_configs():
 
     dict_txt = toml.loads(txt)
 
-    new_txt = toml.dumps(dict_txt, encoder=InlineArrayDictEncoder())
+    new_txt = toml.dumps(dict_txt, encoder=InlineArrayDictEncoder())  # type: ignore
     print(new_txt)
 
     assert new_txt == txt
@@ -35,6 +35,6 @@ python_configurations = [
 ]
 """
 
-    output = toml.dumps(example, encoder=InlineArrayDictEncoder())
+    output = toml.dumps(example, encoder=InlineArrayDictEncoder())  # type: ignore
     print(output)
     assert output == result
