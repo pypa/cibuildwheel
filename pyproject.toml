@@ -6,6 +6,66 @@ requires = [
 
 build-backend = "setuptools.build_meta"
 
+
 [tool.black]
 line-length = 100
 target-version = ['py36', 'py37', 'py38', 'py39']
+
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+
+[tool.pytest.ini_options]
+junit_family = "xunit2"
+testpaths = [
+    "test",
+    "unit_test",
+]
+
+
+[tool.mypy]
+minversion = 6.0
+python_version = 3.7
+files = [
+    "cibuildwheel/*.py",
+    "test/**/*.py",
+    "unit_test/**/*.py",
+    "bin/*.py"
+]
+warn_unused_configs = true
+warn_redundant_casts = true
+
+# Don't require typed functions for tests
+[[tool.mypy.overrides]]
+module = ["test", "unit_test"]
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "cibuildwheel"
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "setuptools",
+    "pytest", # ignored in pre-commit to speed up check
+    "bashlex",
+    "toml.encoder", # missing from stub package
+    "bracex",
+    "importlib_resources",
+    "nox",
+    "github",
+]
+ignore_missing_imports = true

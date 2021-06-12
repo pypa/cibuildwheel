@@ -8,7 +8,7 @@ extras = {
     ],
     "test": [
         "jinja2",
-        "pytest>=4",
+        "pytest>=6",
         "pytest-timeout",
     ],
     "bin": [
@@ -24,7 +24,7 @@ extras = {
 }
 
 extras["dev"] = [
-    "mypy>=0.800",
+    "mypy>=0.901",
     *extras["test"],
     *extras["bin"],
 ]
