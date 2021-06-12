@@ -11,21 +11,24 @@ extras = {
         "pytest>=4",
         "pytest-timeout",
     ],
-    "dev": [
+    "bin": [
         "click",
         "ghapi",
-        "mypy>=0.800",
-        "packaging>=20.8",
         "pip-tools",
         "pygithub",
         "pyyaml",
         "requests",
         "rich>=9.6",
-        "typing-extensions",
+        "packaging>=20.8",
     ],
 }
 
+extras["dev"] = [
+    "mypy>=0.800",
+    *extras["test"],
+    *extras["bin"],
+]
+
 extras["all"] = sum(extras.values(), [])
-extras["dev"] += extras["test"]
 
 setup(extras_require=extras)

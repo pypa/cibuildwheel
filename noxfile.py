@@ -48,7 +48,7 @@ def update_pins(session):
     """
     Update the python and docker pins version inplace.
     """
-    session.install("-e", ".[dev]")
+    session.install("-e", ".[bin]")
     session.run("python", "bin/update_pythons.py", "--force")
     session.run("python", "bin/update_docker.py")
 
@@ -58,7 +58,7 @@ def update_proj(session):
     """
     Update the README inplace.
     """
-    session.install("-e", ".[dev]")
+    session.install("-e", ".[bin]")
     session.run("./bin/projects.py", "docs/data/projects.yml", "--readme=README.md")
 
 
