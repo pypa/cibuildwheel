@@ -116,9 +116,21 @@ h1, h2, h3, h4, h5, h6 {
   background-color: white;
   display: flex;
   justify-content: flex-start;
-  border-bottom: 2px solid #ccc;
   overflow-x: auto;
   overflow-y: hidden;
+  position: relative;
+}
+.tabs-header::before {
+  position: absolute;
+  content: "";
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ccc;
+}
+.tabs-header > * {
+  position: relative;
 }
 
 /* Style the buttons that are used to open the tab content */
@@ -132,15 +144,13 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.9em;
   font-weight: 600;
   padding: 8px 16px;
-  border-bottom: 2px solid transparent;
-
-  /* put the border on top of the parent border */
-  margin-bottom: -2px;
+  border-bottom: 2px solid #ccc;
 }
 
 .tabs-header button:focus-visible {
   /* preserve an outline for accesibility purposes */
   outline: 1px solid currentColor;
+  outline-offset: -1px;
 }
 
 /* Change background color of buttons on hover */
