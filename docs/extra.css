@@ -180,13 +180,18 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: flex-end;
   background-color: transparent;
   border-bottom-style: none;
-  padding: 0 4px;
+  padding: 0;
+}
+.tabs.examples .tabs-header::before {
+  height: 0;
 }
 .tabs.examples .tabs-header button {
-  padding: 6px 8px;
+  padding: 6px 12px;
   border-bottom: none;
   color: rgba(0, 0, 0, 0.3);
   font-size: 0.8em;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
 }
 .tabs-header button:hover {
   background-color: unset;
@@ -210,9 +215,6 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 0;
   padding-right: 0;
   margin-bottom: 0.5em;
-}
-.tabs.examples .tabs-content .tab > pre > code {
-  padding-top: 0.5em;
 }
 .tabs.examples pre:first-child {
   margin-top: 0;
