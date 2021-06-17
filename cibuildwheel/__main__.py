@@ -89,10 +89,9 @@ def main() -> None:
     parser.add_argument(
         "--config-file",
         help="""
-            TOML config file for cibuildwheel; usually pyproject.toml, but
-            can be overridden with this option. Use {package} for the package
-            directory.""",
-        default="{package}/pyproject.toml",
+            TOML config file for cibuildwheel. Defaults to pyproject.toml, but
+            can be overridden with this option.
+        """,
     )
 
     parser.add_argument(
