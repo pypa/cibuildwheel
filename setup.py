@@ -21,10 +21,21 @@ extras = {
         "rich>=9.6",
         "packaging>=20.8",
     ],
+    "mypy": [
+        "mypy>=0.901",
+        "types-jinja2",
+        "types-certifi",
+        "types-toml",
+        "types-jinja2",
+        "types-pyyaml",
+        "types-click",
+        "types-requests",
+        "types-toml",
+    ],
 }
 
 extras["dev"] = [
-    "mypy>=0.901",
+    *extras["mypy"],
     *extras["test"],
     *extras["bin"],
 ]
