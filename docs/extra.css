@@ -22,6 +22,7 @@ code {
 
 code, pre, tt {
     font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    line-height: 1.4;
 }
 
 pre code, pre code.hljs {
