@@ -35,7 +35,7 @@ def test(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_MANYLINUX_X86_64_IMAGE": "dockcross/manylinux2010-x86:20210210-84c47e5",
+            "CIBW_MANYLINUX_X86_64_IMAGE": "dockcross/manylinux2010-x64:20210210-84c47e5",
             "CIBW_MANYLINUX_I686_IMAGE": "dockcross/manylinux2010-x86:20210210-84c47e5",
             "CIBW_SKIP": "pp* cp27-* cp39-*",
         },
