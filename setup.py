@@ -1,11 +1,15 @@
+import os
+
 from setuptools import setup
+
+DIR = os.path.dirname(os.path.abspath(__file__))
 
 extras = {
     "docs": [
         "mkdocs-include-markdown-plugin==2.8.0",
         "mkdocs==1.0.4",
         "pymdown-extensions",
-        "./docs/mkdocs_execute_python_plugin",
+        f"mkdocs_execute_python_plugin @ file://{DIR}/docs/mkdocs_execute_python_plugin",
     ],
     "test": [
         "jinja2",
