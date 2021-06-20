@@ -8,24 +8,38 @@ extras = {
     ],
     "test": [
         "jinja2",
-        "pytest>=4",
+        "pytest>=6",
         "pytest-timeout",
     ],
-    "dev": [
+    "bin": [
         "click",
         "ghapi",
-        "mypy>=0.800",
-        "packaging>=20.8",
         "pip-tools",
         "pygithub",
         "pyyaml",
         "requests",
         "rich>=9.6",
-        "typing-extensions",
+        "packaging>=20.8",
+    ],
+    "mypy": [
+        "mypy>=0.901",
+        "types-jinja2",
+        "types-certifi",
+        "types-toml",
+        "types-jinja2",
+        "types-pyyaml",
+        "types-click",
+        "types-requests",
+        "types-toml",
     ],
 }
 
+extras["dev"] = [
+    *extras["mypy"],
+    *extras["test"],
+    *extras["bin"],
+]
+
 extras["all"] = sum(extras.values(), [])
-extras["dev"] += extras["test"]
 
 setup(extras_require=extras)

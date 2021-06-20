@@ -63,6 +63,7 @@ def test_container_removed():
             stdout=subprocess.PIPE,
             universal_newlines=True,
         ).stdout
+        assert container.name is not None
         assert container.name in docker_containers_listing
         old_container_name = container.name
 

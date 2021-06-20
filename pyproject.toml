@@ -6,6 +6,62 @@ requires = [
 
 build-backend = "setuptools.build_meta"
 
+
 [tool.black]
 line-length = 100
 target-version = ['py36', 'py37', 'py38', 'py39']
+
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+
+[tool.pytest.ini_options]
+minversion = 6.0
+junit_family = "xunit2"
+testpaths = [
+    "test",
+    "unit_test",
+]
+
+
+[tool.mypy]
+python_version = 3.7
+files = [
+    "cibuildwheel/*.py",
+    "test/**/*.py",
+    "unit_test/**/*.py",
+    "bin/*.py"
+]
+warn_unused_configs = true
+warn_redundant_casts = true
+no_implicit_reexport = true
+strict_equality = true
+warn_unused_ignores = true
+check_untyped_defs = true
+
+disallow_subclassing_any = true
+disallow_any_generics = true
+warn_return_any = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = "cibuildwheel.*"
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+
+[[tool.mypy.overrides]]
+module = [
+    "setuptools",
+    "pytest", # ignored in pre-commit to speed up check
+    "bashlex",
+    "toml.encoder", # encoder missing from stub package
+    "bracex",
+    "importlib_resources",
+    "nox",
+    "github",
+]
+ignore_missing_imports = true

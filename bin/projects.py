@@ -62,7 +62,7 @@ class Project:
                 print(f"Broken: {self.stars_repo}")
                 raise
 
-            self.num_stars = repo.stargazers_count
+            self.num_stars: int = repo.stargazers_count
             self.pushed_at = repo.pushed_at
             if not self.notes:
                 notes = repo.description
