@@ -1,7 +1,3 @@
-## Options summary
-
-<div class="options-toc"></div>
-
 ## Setting options
 
 cibuildwheel can either be configured using environment variables, or from
@@ -79,13 +75,14 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
 
 ### Configuration file {: #configuration-file}
 
-You can configure cibuildwheel with a `pyproject.toml` file. Options have the
-same names as the environment variable overrides, but are placed in
-`[tool.cibuildwheel]` and are lower case, with dashes, following common [TOML][]
-practice. Anything placed in subsections `linux`, `windows`, or `macos` will
-only affect those platforms. Lists can be used instead of strings for items that are natually a list.
-Multiline strings also work just like in in the environment variables.
-Environment variables will take precedence if defined.
+You can configure cibuildwheel with a config file, such as `pyproject.toml`.
+Options have the same names as the environment variable overrides, but are
+placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
+common [TOML][] practice. Anything placed in subsections `linux`, `windows`,
+or `macos` will only affect those platforms. Lists can be used instead of
+strings for items that are natually a list. Multiline strings also work just
+like in in the environment variables. Environment variables will take
+precedence if defined.
 
 The example above using environment variables could have been written like this:
 
@@ -110,6 +107,9 @@ The complete set of defaults for the current version of cibuildwheel are shown b
     not want to change a `pyproject.toml` file. You can specify a different file to
     use with `--config-file` on the command line, as well.
 
+## Options summary
+
+<div class="options-toc"></div>
 
 ## Build selection
 
@@ -1124,10 +1124,10 @@ Build wheels for all the platforms.
 
 positional arguments:
   package_dir           Path to the package that you want wheels for. Must be
-                        a subdirectory of the working directory. When set,
-                        the working directory is still considered the
-                        'project' and is copied into the Docker container on
-                        Linux. Default: the working directory.
+                        a subdirectory of the working directory. When set, the
+                        working directory is still considered the 'project'
+                        and is copied into the Docker container on Linux.
+                        Default: the working directory.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -1137,22 +1137,21 @@ optional arguments:
                         machine, and note that this script is going to
                         automatically install MacPython on your system, so
                         don't run on your development machine. For "windows",
-                        you need to run in Windows, and it will build and
-                        test for all versions of Python. Default: auto.
+                        you need to run in Windows, and it will build and test
+                        for all versions of Python. Default: auto.
   --archs ARCHS         Comma-separated list of CPU architectures to build
                         for. When set to 'auto', builds the architectures
-                        natively supported on this machine. Set this option
-                        to build an architecture via emulation, for example,
+                        natively supported on this machine. Set this option to
+                        build an architecture via emulation, for example,
                         using binfmt_misc and QEMU. Default: auto. Choices:
                         auto, auto64, auto32, native, all, x86_64, i686,
-                        aarch64, ppc64le, s390x, universal2, arm64, x86,
-                        AMD64
+                        aarch64, ppc64le, s390x, universal2, arm64, x86, AMD64
   --output-dir OUTPUT_DIR
                         Destination folder for the wheels.
   --config-file CONFIG_FILE
                         TOML config file for cibuildwheel; usually
                         pyproject.toml, but can be overridden with this
-                        option. Use {package} for the package directory
+                        option. Use {package} for the package directory.
   --print-build-identifiers
                         Print the build identifiers matched by the current
                         invocation and exit.
@@ -1161,8 +1160,9 @@ optional arguments:
   --prerelease-pythons  Enable pre-release Python versions if available.
 
 Most options are supplied via environment variables or in --config-file
-(pyproject.toml usually). See https://github.com/pypa/cibuildwheel#options
-for info.
+(pyproject.toml usually). See https://github.com/pypa/cibuildwheel#options for
+info.
+```
 ```
 
 <style>
