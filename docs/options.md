@@ -737,47 +737,12 @@ CIBW_BUILD_VERBOSITY: 1
 
 ## Command line options {: #command-line}
 
-```text
-usage: cibuildwheel [-h] [--platform {auto,linux,macos,windows}]
-                    [--archs ARCHS] [--output-dir OUTPUT_DIR]
-                    [--print-build-identifiers] [--allow-empty]
-                    [--prerelease-pythons]
-                    [package_dir]
+```python execute-and-replace
+import subprocess
 
-Build wheels for all the platforms.
-
-positional arguments:
-  package_dir           Path to the package that you want wheels for. Must be
-                        a subdirectory of the working directory. When set, the
-                        working directory is still considered the 'project'
-                        and is copied into the Docker container on Linux.
-                        Default: the working directory.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --platform {auto,linux,macos,windows}
-                        Platform to build for. For "linux" you need docker
-                        running, on Mac or Linux. For "macos", you need a Mac
-                        machine, and note that this script is going to
-                        automatically install MacPython on your system, so
-                        don't run on your development machine. For "windows",
-                        you need to run in Windows, and it will build and test
-                        for all versions of Python. Default: auto.
-  --archs ARCHS         Comma-separated list of CPU architectures to build
-                        for. When set to 'auto', builds the architectures
-                        natively supported on this machine. Set this option to
-                        build an architecture via emulation, for example,
-                        using binfmt_misc and QEMU. Default: auto. Choices:
-                        auto, auto64, auto32, native, all, x86_64, i686,
-                        aarch64, ppc64le, s390x, universal2, arm64, x86, AMD64
-  --output-dir OUTPUT_DIR
-                        Destination folder for the wheels.
-  --print-build-identifiers
-                        Print the build identifiers matched by the current
-                        invocation and exit.
-  --allow-empty         Do not report an error code if the build does not
-                        match any wheels.
-  --prerelease-pythons  Enable pre-release Python versions if available.
+print('```text')
+subprocess.run(['cibuildwheel', '--help'], check=True, stderr=subprocess.STDOUT)
+print('```')
 ```
 
 <style>
