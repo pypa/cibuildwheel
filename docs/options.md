@@ -435,6 +435,36 @@ This option can also be set using the [command-line option](#command-line) `--pr
 
 ## Build customization
 
+### `CIBW_BUILD_FRONTEND` {: #build-frontend}
+> Set the tool to use to build, either "pip" (default for now) or "build"
+
+A selector for the build backend to use. Can either be "pip", which will run
+`python -m pip wheel`, or "build", which will run `python -m build --wheel`.
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Switch to using build
+    CIBW_BUILD_FRONTEND: "build"
+
+    # Ensure pip is used even if the default changes in the future
+    CIBW_BUILD_FRONTEND: "pip"
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Switch to using build
+    build-frontend = "build"
+
+    # Ensure pip is used even if the default changes in the future
+    build-frontend = "pip"
+    ```
+
+
 ### `CIBW_ENVIRONMENT` {: #environment}
 > Set environment variables needed during the build
 

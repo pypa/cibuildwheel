@@ -23,6 +23,8 @@ def pytest_collection_modifyitems(config, items) -> None:
             item.add_marker(skip_emulation)
 
 
-@pytest.fixture(params=[{"CIBW_PYPA_BUILD": "0"}, {"CIBW_PYPA_BUILD": "1"}], ids=["pip", "pypa"])
+@pytest.fixture(
+    params=[{"CIBW_BUILD_FRONTEND": "pip"}, {"CIBW_BUILD_FRONTEND": "build"}], ids=["pip", "build"]
+)
 def build_mode(request) -> Dict[str, str]:
-    return request.param
+    return request.param  # type: ignore

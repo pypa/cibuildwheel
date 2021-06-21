@@ -27,7 +27,6 @@ from cibuildwheel.util import (
     Unbuffered,
     detect_ci_provider,
     resources_dir,
-    strtobool,
 )
 
 MANYLINUX_ARCHS = (
@@ -40,6 +39,8 @@ MANYLINUX_ARCHS = (
     "pypy_aarch64",
     "pypy_i686",
 )
+
+BUILD_FRONTENDS = {"pip", "build"}
 
 
 def main() -> None:
@@ -182,10 +183,10 @@ def main() -> None:
     build_config = options("build", env_plat=False, sep=" ") or "*"
     skip_config = options("skip", env_plat=False, sep=" ")
     test_skip = options("test-skip", env_plat=False, sep=" ")
-    pypa_build = strtobool(os.environ.get("CIBW_PYPA_BUILD", "0"))
 
     archs_config_str = args.archs or options("archs", sep=" ")
 
+    build_frontend = options("build-frontend", env_plat=False)
     environment_config = options("environment", table={"item": '{k}="{v}"', "sep": " "})
     before_all = options("before-all", sep=" && ")
     before_build = options("before-build", sep=" && ")
@@ -201,6 +202,11 @@ def main() -> None:
     prerelease_pythons = args.prerelease_pythons or cibuildwheel.util.strtobool(
         os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
     )
+
+    if build_frontend not in BUILD_FRONTENDS:
+        msg = f"cibuildwheel: Unrecognised build front end '{build_frontend}', only {BUILD_FRONTENDS} supported"
+        print(msg, file=sys.stderr)
+        sys.exit(2)
 
     package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
 
@@ -310,7 +316,7 @@ def main() -> None:
         environment=environment,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images or None,
-        pypa_build=pypa_build,
+        build_frontend=build_frontend,
     )
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'

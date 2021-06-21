@@ -182,7 +182,21 @@ def build(options: BuildOptions) -> None:
 
                     verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
 
-                    if options.pypa_build:
+                    if options.build_frontend == "pip":
+                        docker.call(
+                            [
+                                "python",
+                                "-m",
+                                "pip",
+                                "wheel",
+                                container_package_dir,
+                                f"--wheel-dir={built_wheel_dir}",
+                                "--no-deps",
+                                *verbosity_flags,
+                            ],
+                            env=env,
+                        )
+                    elif options.build_frontend == "build":
                         config_setting = " ".join(verbosity_flags)
                         docker.call(
                             [
@@ -197,18 +211,8 @@ def build(options: BuildOptions) -> None:
                             env=env,
                         )
                     else:
-                        docker.call(
-                            [
-                                "python",
-                                "-m",
-                                "pip",
-                                "wheel",
-                                container_package_dir,
-                                f"--wheel-dir={built_wheel_dir}",
-                                "--no-deps",
-                                *verbosity_flags,
-                            ],
-                            env=env,
+                        raise RuntimeError(
+                            f"build_frontend {options.build_frontend!r} not understood"
                         )
 
                     built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]

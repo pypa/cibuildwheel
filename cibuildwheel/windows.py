@@ -115,7 +115,7 @@ def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
-    pypa_build: bool,
+    build_frontend: str,
 ) -> Dict[str, str]:
 
     nuget = Path("C:\\cibw\\nuget.exe")
@@ -218,12 +218,7 @@ def setup_python(
 
     call(["pip", "--version"], env=env)
 
-    if pypa_build:
-        call(
-            ["pip", "install", "--upgrade", "build[virtualenv]", *dependency_constraint_flags],
-            env=env,
-        )
-    else:
+    if build_frontend == "pip":
         call(
             [
                 "pip",
@@ -235,6 +230,13 @@ def setup_python(
             ],
             env=env,
         )
+    elif build_frontend == "build":
+        call(
+            ["pip", "install", "--upgrade", "build[virtualenv]", *dependency_constraint_flags],
+            env=env,
+        )
+    else:
+        raise RuntimeError(f"build_frontend {build_frontend!r} not understood")
 
     return env
 
@@ -272,7 +274,7 @@ def build(options: BuildOptions) -> None:
                 config,
                 dependency_constraint_flags,
                 options.environment,
-                options.pypa_build,
+                options.build_frontend,
             )
 
             # run the before_build command
@@ -290,7 +292,23 @@ def build(options: BuildOptions) -> None:
 
             verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
 
-            if options.pypa_build:
+            if options.build_frontend == "pip":
+                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                # see https://github.com/pypa/cibuildwheel/pull/369
+                call(
+                    [
+                        "python",
+                        "-m",
+                        "pip",
+                        "wheel",
+                        options.package_dir.resolve(),
+                        f"--wheel-dir={built_wheel_dir}",
+                        "--no-deps",
+                        *get_build_verbosity_extra_flags(options.build_verbosity),
+                    ],
+                    env=env,
+                )
+            elif options.build_frontend == "build":
                 config_setting = " ".join(verbosity_flags)
                 build_env = dict(env)
                 if options.dependency_constraints:
@@ -311,21 +329,7 @@ def build(options: BuildOptions) -> None:
                     env=build_env,
                 )
             else:
-                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                # see https://github.com/pypa/cibuildwheel/pull/369
-                call(
-                    [
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        options.package_dir.resolve(),
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *get_build_verbosity_extra_flags(options.build_verbosity),
-                    ],
-                    env=env,
-                )
+                raise RuntimeError(f"build_frontend {options.build_frontend!r} not understood")
 
             built_wheel = next(built_wheel_dir.glob("*.whl"))
 

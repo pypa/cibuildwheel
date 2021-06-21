@@ -4,6 +4,7 @@ skip = ""
 test-skip = ""
 
 archs = ["auto"]
+build-frontend = "pip"
 dependency-versions = "pinned"
 environment = {}
 build-verbosity = ""

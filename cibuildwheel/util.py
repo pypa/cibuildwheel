@@ -220,7 +220,7 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
-    pypa_build: bool
+    build_frontend: str
 
 
 class NonPlatformWheelError(Exception):
@@ -312,9 +312,9 @@ def get_pip_version(env: Dict[str, str]) -> str:
     versions_output_text = subprocess.check_output(
         ["python", "-m", "pip", "freeze", "--all"], universal_newlines=True, shell=shell, env=env
     )
-    (pip_version,) = [
+    (pip_version,) = (
         version[5:]
         for version in versions_output_text.strip().splitlines()
         if version.startswith("pip==")
-    ]
+    )
     return pip_version
