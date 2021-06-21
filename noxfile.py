@@ -59,7 +59,7 @@ def update_proj(session):
     Update the README inplace.
     """
     session.install("-e", ".[bin]")
-    session.run("./bin/projects.py", "docs/data/projects.yml", "--readme=README.md")
+    session.run("python", "bin/projects.py", "docs/data/projects.yml", "--readme=README.md")
 
 
 @nox.session
