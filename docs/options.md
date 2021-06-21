@@ -737,13 +737,10 @@ CIBW_BUILD_VERBOSITY: 1
 
 ## Command line options {: #command-line}
 
-```python execute-and-replace
-import subprocess
-
-print('```text')
-subprocess.run(['cibuildwheel', '--help'], check=True, stderr=subprocess.STDOUT)
-print('```')
+```text
+« cibuildwheel_help_txt() »
 ```
+
 
 <style>
   .options-toc {
