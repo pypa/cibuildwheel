@@ -1,6 +1,10 @@
 
 /* Global styles */
 
+body {
+    overflow-wrap: break-word;
+}
+
 p {
     margin-bottom: 12px;
     line-height: 26px;
@@ -20,9 +24,9 @@ code, pre, tt {
     font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
 }
 
-.hljs {
-    padding: 1em;
-    background-color: #f6f8fa;
+pre code, pre code.hljs {
+  padding: 1em;
+  background-color: #f6f8fa;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -112,7 +116,21 @@ h1, h2, h3, h4, h5, h6 {
   background-color: white;
   display: flex;
   justify-content: flex-start;
-  border-bottom: 2px solid #ccc;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+}
+.tabs-header::before {
+  position: absolute;
+  content: "";
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ccc;
+}
+.tabs-header > * {
+  position: relative;
 }
 
 /* Style the buttons that are used to open the tab content */
@@ -126,15 +144,13 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.9em;
   font-weight: 600;
   padding: 8px 16px;
-  border-bottom: 2px solid transparent;
-
-  /* put the border on top of the parent border */
-  margin-bottom: -2px;
+  border-bottom: 2px solid #ccc;
 }
 
 .tabs-header button:focus-visible {
   /* preserve an outline for accesibility purposes */
   outline: 1px solid currentColor;
+  outline-offset: -1px;
 }
 
 /* Change background color of buttons on hover */
@@ -153,4 +169,53 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f1f6fa;
   padding: 1px 1em;
   padding-top: 0.8em;
+
+  /* don't collapse inner margins */
+  overflow-y: hidden;
+}
+
+/* Examples tabs styling */
+
+.tabs.examples .tabs-header {
+  justify-content: flex-end;
+  background-color: transparent;
+  border-bottom-style: none;
+  padding: 0;
+}
+.tabs.examples .tabs-header::before {
+  height: 0;
+}
+.tabs.examples .tabs-header button {
+  padding: 6px 12px;
+  border-bottom: none;
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 0.8em;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+.tabs-header button:hover {
+  background-color: unset;
+}
+
+.tabs.examples .tabs-header button.active {
+  border-bottom-style: none;
+  background: #f6f8fa;
+  color: inherit;
+}
+.tabs.examples .tabs-content {
+  padding: 0;
+  background-color: transparent;
+  background-color: #f6f8fa;
+}
+.tabs.examples .tabs-content .tab > * {
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+}
+.tabs.examples .tabs-content .tab > pre {
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: 0.5em;
+}
+.tabs.examples pre:first-child {
+  margin-top: 0;
 }

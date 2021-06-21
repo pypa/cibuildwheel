@@ -20,6 +20,17 @@ while (true) {
   tabContainer.insertBefore(firstTab);
   tabContainer.append(headerContainer, contentContainer)
 
+  // add extra classes from the first tab to the container
+  const classes = Array.from(firstTab[0].classList)
+
+  for (let i = 0; i < classes.length; i++) {
+    const element = classes[i];
+    if (element == 'tab' || element == 'admonition') {
+      continue
+    }
+    tabContainer.addClass(element)
+  }
+
   const selectTab = function (index) {
     headerContainer.children().removeClass('active')
     headerContainer.children().eq(index).addClass('active')

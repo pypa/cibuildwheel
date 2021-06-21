@@ -200,7 +200,7 @@ def test_test_command(
 
     main()
 
-    assert intercepted_build_args.args[0].test_command == test_command
+    assert intercepted_build_args.args[0].test_command == (test_command or "")
 
 
 @pytest.mark.parametrize("before_build", [None, "before --build"])
@@ -217,7 +217,7 @@ def test_before_build(
 
     main()
 
-    assert intercepted_build_args.args[0].before_build == before_build
+    assert intercepted_build_args.args[0].before_build == (before_build or "")
 
 
 @pytest.mark.parametrize("build_verbosity", [None, 0, 2, -2, 4, -4])
@@ -286,7 +286,4 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
 
     main()
 
-    if before_all is None:
-        before_all = ""
-
-    assert intercepted_build_args.args[0].before_all == before_all
+    assert intercepted_build_args.args[0].before_all == (before_all or "")
