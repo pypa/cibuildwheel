@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.0a2
+        run: python -m pip install cibuildwheel==2.0.0a3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -351,10 +351,14 @@ Changelog
 
 _This release is currently in prerelease. The below release notes will be condensed into a single entry when we do a final release._
 
+_v2.0.0a3 (22 Jun 2021)_
+
+- 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.readthedocs.io/en/latest/options/#setting-options) for more info.
+
 _v2.0.0a2 (1 Jun 2021)_
 
 - 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/latest/options/#prerelease-pythons) to test. (#675)
-- ✨ Added the ability to build CPython 3.8 wheels on Apple Silicon. (#704)
+- ✨ Added the ability to build CPython 3.8 wheels for Apple Silicon. (#704)
 - 🛠 Update to the latest build dependencies, including auditwheel 4. (#633)
 - 🛠 Use the unified pypa/manylinux images to build PyPy (#671)
 - ⚠️ Removed support for building Python 2.7 and Python 3.5 wheels, for both CPython and PyPy. If you still need to build on these versions, please use the latest v1.x version. (#596)
@@ -363,7 +367,7 @@ _v2.0.0a2 (1 Jun 2021)_
 
 _22 June 2021_
 
-- ✨ Adds support building universal2/arm64 wheels on Python 3.8.
+- ✨ Adds support building macOS universal2/arm64 wheels on Python 3.8.
 
 ### v1.11.1
 
