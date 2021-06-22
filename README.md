@@ -359,6 +359,11 @@ _v2.0.0a2 (1 Jun 2021)_
 - 🛠 Use the unified pypa/manylinux images to build PyPy (#671)
 - ⚠️ Removed support for building Python 2.7 and Python 3.5 wheels, for both CPython and PyPy. If you still need to build on these versions, please use the latest v1.x version. (#596)
 
+### v1.12.0
+
+_22 June 2021_
+
+- ✨ Adds support building universal2/arm64 wheels on Python 3.8.
 
 ### v1.11.1
 
