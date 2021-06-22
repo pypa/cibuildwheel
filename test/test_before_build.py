@@ -31,7 +31,7 @@ project_with_before_build_asserts = test_projects.new_c_project(
         current_path = os.path.realpath(sys.executable).lower()
 
         # TODO: This is not valid in an virtual environment
-        # assert stored_path == current_path, '{0} != {1}'.format(stored_path, current_path)
+        assert stored_path == current_path, '{0} != {1}'.format(stored_path, current_path)
         """
     )
 )
