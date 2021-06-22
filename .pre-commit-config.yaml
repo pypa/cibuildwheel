@@ -45,12 +45,12 @@ repos:
   rev: v0.812
   hooks:
   - id: mypy
-    exclude: ^(bin/|cibuildwheel/resources/|docs/).*py$
+    exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
     additional_dependencies: [packaging]
     args: ["--python-version=3.6", "--ignore-missing-imports", "--scripts-are-modules"]
   - id: mypy
     name: mypy 3.7+ on bin/
-    files: ^bin/.*py$
+    files: ^(bin|docs)/.*py$
     additional_dependencies: [packaging]
     args: ["--python-version=3.7", "--ignore-missing-imports", "--scripts-are-modules"]
 
