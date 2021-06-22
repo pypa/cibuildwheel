@@ -7,7 +7,7 @@ from typing import List, NamedTuple, Set
 from .architecture import Architecture
 from .docker_container import DockerContainer
 from .logger import log
-from .typing import PathOrStr
+from .typing import PathOrStr, assert_never
 from .util import (
     BuildOptions,
     BuildSelector,
@@ -211,9 +211,7 @@ def build(options: BuildOptions) -> None:
                             env=env,
                         )
                     else:
-                        raise RuntimeError(
-                            f"build_frontend {options.build_frontend!r} not understood"
-                        )
+                        assert_never(options.build_frontend)
 
                     built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
 

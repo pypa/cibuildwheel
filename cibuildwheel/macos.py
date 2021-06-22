@@ -12,8 +12,9 @@ from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
-from .typing import Literal, PathOrStr
+from .typing import Literal, PathOrStr, assert_never
 from .util import (
+    BuildFrontend,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
@@ -179,7 +180,7 @@ def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
-    build_frontend: str,
+    build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
 
     implementation_id = python_configuration.identifier.split("-")[0]
@@ -337,7 +338,7 @@ def setup_python(
             env=env,
         )
     else:
-        raise RuntimeError(f"build_frontend {build_frontend!r} not understood")
+        assert_never(build_frontend)
 
     return env
 
@@ -432,7 +433,7 @@ def build(options: BuildOptions) -> None:
                     env=build_env,
                 )
             else:
-                raise RuntimeError(f"build_frontend {options.build_frontend!r} not understood")
+                assert_never(options.build_frontend)
 
             built_wheel = next(built_wheel_dir.glob("*.whl"))
 

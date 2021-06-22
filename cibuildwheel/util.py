@@ -22,11 +22,13 @@ from packaging.version import Version
 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
-from .typing import PathOrStr, PlatformName
+from .typing import Literal, PathOrStr, PlatformName
 
 resources_dir = Path(__file__).parent / "resources"
 
 install_certifi_script = resources_dir / "install_certifi.py"
+
+BuildFrontend = Literal["pip", "build"]
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -220,7 +222,7 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
-    build_frontend: str
+    build_frontend: BuildFrontend
 
 
 class NonPlatformWheelError(Exception):
