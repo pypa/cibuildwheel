@@ -41,3 +41,7 @@ markdown_extensions:
 plugins:
   - include-markdown
   - search
+  - macros:
+      module_name: docs/main
+      j2_variable_start_string: «
+      j2_variable_end_string: »

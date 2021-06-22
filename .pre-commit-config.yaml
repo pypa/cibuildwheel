@@ -45,7 +45,7 @@ repos:
   rev: v0.902
   hooks:
   - id: mypy
-    exclude: ^(bin/|cibuildwheel/resources/).*py$
+    exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
     args: ["--python-version=3.6", "--scripts-are-modules"]
     additional_dependencies:
       - packaging
@@ -54,7 +54,7 @@ repos:
       - types-toml
   - id: mypy
     name: mypy 3.7+ on bin/
-    files: ^bin/.*py$
+    files: ^(bin|docs)/.*py$
     args: ["--python-version=3.7", "--scripts-are-modules"]
     additional_dependencies:
       - packaging
