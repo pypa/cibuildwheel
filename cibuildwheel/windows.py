@@ -310,7 +310,7 @@ def build(options: BuildOptions) -> None:
                 )
             elif options.build_frontend == "build":
                 config_setting = " ".join(verbosity_flags)
-                build_env = dict(env)
+                build_env = env.copy()
                 if options.dependency_constraints:
                     build_env["PIP_CONSTRAINT"] = str(
                         options.dependency_constraints.get_for_python_version(config.version)

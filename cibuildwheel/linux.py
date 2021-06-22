@@ -317,7 +317,7 @@ def troubleshoot(package_dir: Path, error: Exception) -> None:
         error.cmd[0:4] == ["python", "-m", "pip", "wheel"]
         or error.cmd[0:3] == ["python", "-m", "build"]
     ):
-        # the 'pip wheel' step failed.
+        # the wheel build step failed
         print("Checking for common errors...")
         so_files = list(package_dir.glob("**/*.so"))
 

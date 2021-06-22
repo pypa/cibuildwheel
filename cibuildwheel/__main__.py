@@ -204,7 +204,7 @@ def main() -> None:
     )
 
     if build_frontend not in BUILD_FRONTENDS:
-        msg = f"cibuildwheel: Unrecognised build front end '{build_frontend}', only {BUILD_FRONTENDS} supported"
+        msg = f"cibuildwheel: Unrecognised build frontend '{build_frontend}', only {BUILD_FRONTENDS} supported"
         print(msg, file=sys.stderr)
         sys.exit(2)
 
