@@ -86,7 +86,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==1.11.1.post1
+        run: python -m pip install cibuildwheel==1.12.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -345,6 +345,12 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### v1.12.0
+
+_22 June 2021_
+
+- ✨ Adds support building universal2/arm64 wheels on Python 3.8.
 
 ### v1.11.1
 
