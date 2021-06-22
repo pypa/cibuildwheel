@@ -26,5 +26,5 @@ def pytest_collection_modifyitems(config, items) -> None:
 @pytest.fixture(
     params=[{"CIBW_BUILD_FRONTEND": "pip"}, {"CIBW_BUILD_FRONTEND": "build"}], ids=["pip", "build"]
 )
-def build_mode(request) -> Dict[str, str]:
+def build_frontend_env(request) -> Dict[str, str]:
     return request.param  # type: ignore

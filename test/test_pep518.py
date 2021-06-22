@@ -32,13 +32,13 @@ build-backend = "setuptools.build_meta"
 """
 
 
-def test_pep518(tmp_path, build_mode):
+def test_pep518(tmp_path, build_frontend_env):
 
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
     # build the wheels
-    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=build_mode)
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=build_frontend_env)
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
