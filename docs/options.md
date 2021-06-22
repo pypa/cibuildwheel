@@ -738,7 +738,7 @@ CIBW_BUILD_VERBOSITY: 1
 ## Command line options {: #command-line}
 
 ```text
-« cibuildwheel_help_txt() »
+« subprocess_run("cibuildwheel", "--help") »
 ```
 
 

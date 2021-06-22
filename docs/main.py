@@ -8,7 +8,6 @@ def define_env(env: Any) -> None:
     "Hook function for mkdocs-macros"
 
     @env.macro
-    def cibuildwheel_help_txt() -> str:
-        return subprocess.run(
-            ["cibuildwheel", "--help"], check=True, capture_output=True, text=True
-        ).stdout
+    def subprocess_run(*args: str) -> str:
+        "Run a subprocess and return the stdout"
+        return subprocess.run(args, check=True, capture_output=True, text=True).stdout
