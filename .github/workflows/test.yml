@@ -37,7 +37,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install -e ".[dev]"
+        python -m pip install ".[test]"
 
     - name: Sample build
       if: "contains(github.event.pull_request.labels.*.name, 'CI: Sample build')"
@@ -70,7 +70,7 @@ jobs:
     - uses: actions/setup-python@v2
     - name: Install dependencies
       run: |
-        python -m pip install -r requirements-dev.txt
+        python -m pip install ".[test]"
 
     - name: Set up QEMU
       id: qemu
