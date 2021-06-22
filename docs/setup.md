@@ -8,8 +8,6 @@ Before starting to configure cibuildwheel, it's useful to try to build a wheel
 on your local machine. It's much easier to debug problems on your machine than
 inside a CI system!
 
-## Invoking a build
-
 Start with a clean checkout of your project, inside a new clean virtual
 environment. Make sure your `pip` is up to date, and then invoke:
 
@@ -17,8 +15,8 @@ environment. Make sure your `pip` is up to date, and then invoke:
 pip wheel -w wheelhouse .
 ```
 
-If your build completes without a problem, congratulations! You can move on to
-the next step. Otherwise, you might have one of the following issues:
+If your build completes without a problem, you're in good shape! You can move on to
+the next step. Otherwise, you might have one of the following issues.
 
 ### Missing build dependencies
 
@@ -97,9 +95,49 @@ but otherwise, make a note of these for inclusion in the cibuildwheel option
 
 # Run cibuildwheel locally
 
-`cibuildwheel --platform linux`
+If you've got [Docker](https://www.docker.com/products/docker-desktop)
+installed on your development machine, you can run a Linux build without even
+touching CI.
 
-TODO
+!!! tip
+    Even Windows can run Linux containers these days, but there are a few
+    hoops to jump through. Check [this
+    document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
+    for more info.
+
+This is convenient as it's quicker to iterate, and because the builds are
+happening in manylinux Docker containers, they're perfectly reproducable.
+
+Install cibuildwheel and run a build like this:
+
+```sh
+pip install cibuildwheel
+cibuildwheel --platform linux
+```
+
+You should see the builds taking place. You can experiment with options by exporting environment variables, for example:
+
+!!! tab "POSIX shell (Linux/macOS)"
+
+    ```sh
+    # build only CPython 3.9
+    export CIBW_BUILD='cp39-*'
+    # run a command to set up the build system
+    export CIBW_BEFORE_ALL='apt install libpng-dev'
+
+    cibuildwheel --platform linux
+    ```
+
+!!! tab "CMD (Windows)"
+
+    ```
+    # build only CPython 3.9
+    set CIBW_BUILD='cp39-*'
+    # run a command to set up the build system
+    set CIBW_BEFORE_ALL='apt install libpng-dev'
+
+    cibuildwheel --platform linux
+    ```
 
 # Configure a CI service
 
