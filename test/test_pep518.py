@@ -1,4 +1,3 @@
-import os
 import textwrap
 
 from . import test_projects, utils
@@ -33,13 +32,13 @@ build-backend = "setuptools.build_meta"
 """
 
 
-def test_pep518(tmp_path):
+def test_pep518(tmp_path, build_frontend_env):
 
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
     # build the wheels
-    actual_wheels = utils.cibuildwheel_run(project_dir)
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=build_frontend_env)
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
@@ -50,4 +49,12 @@ def test_pep518(tmp_path):
     assert not (project_dir / "42").exists()
     assert not (project_dir / "4.1.2").exists()
 
-    assert len(os.listdir(project_dir)) == len(basic_project.files)
+    # pypa/build creates a "build" folder & a "*.egg-info" folder for the wheel being built,
+    # this should be harmless so remove them
+    contents = [
+        item
+        for item in project_dir.iterdir()
+        if item.name != "build" and not item.name.endswith(".egg-info")
+    ]
+
+    assert len(contents) == len(basic_project.files)

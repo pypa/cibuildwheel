@@ -10,13 +10,15 @@ from zipfile import ZipFile
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
-from .typing import PathOrStr
+from .typing import PathOrStr, assert_never
 from .util import (
+    BuildFrontend,
     BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
     download,
     get_build_verbosity_extra_flags,
+    get_pip_version,
     prepare_command,
     read_python_configs,
 )
@@ -114,7 +116,9 @@ def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
+    build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
+
     nuget = Path("C:\\cibw\\nuget.exe")
     if not nuget.exists():
         log.step("Downloading nuget...")
@@ -214,10 +218,26 @@ def setup_python(
         sys.exit(1)
 
     call(["pip", "--version"], env=env)
-    call(
-        ["pip", "install", "--upgrade", "setuptools", "wheel", *dependency_constraint_flags],
-        env=env,
-    )
+
+    if build_frontend == "pip":
+        call(
+            [
+                "pip",
+                "install",
+                "--upgrade",
+                "setuptools",
+                "wheel",
+                *dependency_constraint_flags,
+            ],
+            env=env,
+        )
+    elif build_frontend == "build":
+        call(
+            ["pip", "install", "--upgrade", "build[virtualenv]", *dependency_constraint_flags],
+            env=env,
+        )
+    else:
+        assert_never(build_frontend)
 
     return env
 
@@ -251,7 +271,12 @@ def build(options: BuildOptions) -> None:
                 ]
 
             # install Python
-            env = setup_python(config, dependency_constraint_flags, options.environment)
+            env = setup_python(
+                config,
+                dependency_constraint_flags,
+                options.environment,
+                options.build_frontend,
+            )
 
             # run the before_build command
             if options.before_build:
@@ -265,20 +290,47 @@ def build(options: BuildOptions) -> None:
             if built_wheel_dir.exists():
                 shutil.rmtree(built_wheel_dir)
             built_wheel_dir.mkdir(parents=True)
-            # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-            # see https://github.com/pypa/cibuildwheel/pull/369
-            call(
-                [
-                    "pip",
-                    "wheel",
-                    options.package_dir.resolve(),
-                    "-w",
-                    built_wheel_dir,
-                    "--no-deps",
-                    *get_build_verbosity_extra_flags(options.build_verbosity),
-                ],
-                env=env,
-            )
+
+            verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
+
+            if options.build_frontend == "pip":
+                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                # see https://github.com/pypa/cibuildwheel/pull/369
+                call(
+                    [
+                        "python",
+                        "-m",
+                        "pip",
+                        "wheel",
+                        options.package_dir.resolve(),
+                        f"--wheel-dir={built_wheel_dir}",
+                        "--no-deps",
+                        *get_build_verbosity_extra_flags(options.build_verbosity),
+                    ],
+                    env=env,
+                )
+            elif options.build_frontend == "build":
+                config_setting = " ".join(verbosity_flags)
+                build_env = env.copy()
+                if options.dependency_constraints:
+                    build_env["PIP_CONSTRAINT"] = str(
+                        options.dependency_constraints.get_for_python_version(config.version)
+                    )
+                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                call(
+                    [
+                        "python",
+                        "-m",
+                        "build",
+                        options.package_dir,
+                        "--wheel",
+                        f"--outdir={built_wheel_dir}",
+                        f"--config-setting={config_setting}",
+                    ],
+                    env=build_env,
+                )
+            else:
+                assert_never(options.build_frontend)
 
             built_wheel = next(built_wheel_dir.glob("*.whl"))
 

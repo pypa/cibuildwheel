@@ -435,6 +435,45 @@ This option can also be set using the [command-line option](#command-line) `--pr
 
 ## Build customization
 
+### `CIBW_BUILD_FRONTEND` {: #build-frontend}
+> Set the tool to use to build, either "pip" (default for now) or "build"
+
+Choose which build backend to use. Can either be "pip", which will run
+`python -m pip wheel`, or "build", which will run `python -m build --wheel`.
+
+!!! tip
+    Until v2.0.0, [pip] was the only way to build wheels, and is still the
+    default. However, we expect that at some point in the future, cibuildwheel
+    will change the default to [build], in line with the PyPA's recommendation.
+    If you want to try `build` before this, you can use this option.
+
+[pip]: https://pip.pypa.io/en/stable/cli/pip_wheel/
+[build]: https://github.com/pypa/build/
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Switch to using build
+    CIBW_BUILD_FRONTEND: "build"
+
+    # Ensure pip is used even if the default changes in the future
+    CIBW_BUILD_FRONTEND: "pip"
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Switch to using build
+    build-frontend = "build"
+
+    # Ensure pip is used even if the default changes in the future
+    build-frontend = "pip"
+    ```
+
+
 ### `CIBW_ENVIRONMENT` {: #environment}
 > Set environment variables needed during the build
 
