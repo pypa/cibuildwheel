@@ -232,14 +232,14 @@ updates:
 
 #### Option 2: Requirement files
 
-The second option, and the only one that supports other CI systems, is using a `requirements-*.txt` file. The file should have a distinct name and have only one entry:
+The second option, and the only one that supports other CI systems, is using a `.github/requirements-*.txt` file. The file should have a distinct name and have only one entry:
 
 ```bash
 # requirements-cibw.txt
 cibuildwheel==2.0.0a3
 ```
 
-Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `dependabot.yml` file could look like this:
+Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
 
 ```yaml
 version: 2
