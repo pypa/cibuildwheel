@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.0a3
+        run: python -m pip install cibuildwheel==2.0.0a4
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
