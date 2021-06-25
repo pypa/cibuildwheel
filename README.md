@@ -351,6 +351,10 @@ Changelog
 
 _This release is currently in prerelease. The below release notes will be condensed into a single entry when we do a final release._
 
+_v2.0.0a4 (25 Jun 2021)_
+
+- 🌟 Added support for building wheels with [build](https://github.com/pypa/build), as well as pip. This feature is controlled with the [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.readthedocs.io/en/latest/options/#build-frontend) option.
+
 _v2.0.0a3 (22 Jun 2021)_
 
 - 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.readthedocs.io/en/latest/options/#setting-options) for more info.
