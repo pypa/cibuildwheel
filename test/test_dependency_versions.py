@@ -122,7 +122,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
         "virtualenv": "20.0.35",
     }
 
-    constraints_file = tmp_path / "constraints.txt"
+    constraints_file = tmp_path / "constraints file.txt"
     constraints_file.write_text(
         textwrap.dedent(
             """
