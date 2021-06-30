@@ -215,7 +215,7 @@ uses: pypa/cibuildwheel@v2.0.0a4
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
 
-Then, your `dependabot.yml` file could look like this:
+Then, your `.github/dependabot.yml` file could look like this:
 
 ```yaml
 version: 2
@@ -239,7 +239,7 @@ The second option, and the only one that supports other CI systems, is using a `
 cibuildwheel==2.0.0a4
 ```
 
-Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `dependabot.yml` file could look like this:
+Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
 
 ```yaml
 version: 2
