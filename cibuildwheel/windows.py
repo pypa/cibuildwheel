@@ -314,7 +314,7 @@ def build(options: BuildOptions) -> None:
                 build_env = env.copy()
                 if options.dependency_constraints:
                     constr = options.dependency_constraints.get_for_python_version(config.version)
-                    build_env["PIP_CONSTRAINT"] = f"'{constr}'"
+                    build_env["PIP_CONSTRAINT"] = constr.as_uri()
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 call(
                     [
