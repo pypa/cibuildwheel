@@ -315,9 +315,9 @@ def build(options: BuildOptions) -> None:
                 if options.dependency_constraints:
                     constr = options.dependency_constraints.get_for_python_version(config.version)
                     uri = constr.as_uri()
-                    # Bug in pip <= 21.1.3
+                    # Bug in pip <= 21.1.3 - we can use an path with percent encoded escapes
                     if uri.startswith(f"file:///{constr.drive}"):
-                        uri = f"file://{uri[8:]}"
+                        uri = uri[8:]
                     build_env["PIP_CONSTRAINT"] = uri
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 call(
