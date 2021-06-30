@@ -189,6 +189,7 @@ def build(options: BuildOptions) -> None:
                                 "-m",
                                 "pip",
                                 "wheel",
+                                "--use-feature=in-tree-build",
                                 container_package_dir,
                                 f"--wheel-dir={built_wheel_dir}",
                                 "--no-deps",

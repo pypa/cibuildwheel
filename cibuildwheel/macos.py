@@ -405,6 +405,7 @@ def build(options: BuildOptions) -> None:
                         "-m",
                         "pip",
                         "wheel",
+                        "--use-feature=in-tree-build",
                         options.package_dir.resolve(),
                         f"--wheel-dir={built_wheel_dir}",
                         "--no-deps",
