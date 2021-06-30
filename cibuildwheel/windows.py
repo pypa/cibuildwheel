@@ -314,7 +314,11 @@ def build(options: BuildOptions) -> None:
                 build_env = env.copy()
                 if options.dependency_constraints:
                     constr = options.dependency_constraints.get_for_python_version(config.version)
-                    build_env["PIP_CONSTRAINT"] = constr.as_uri()
+                    uri = constr.as_uri()
+                    # Bug in pip <= 21.1.3
+                    if uri.startswith(f"file:///{constr.drive}"):
+                        uri = f"file://{uri[8:]}"
+                    build_env["PIP_CONSTRAINT"] = uri
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 call(
                     [
