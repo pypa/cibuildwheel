@@ -6,7 +6,7 @@ import copy
 import difflib
 import logging
 from pathlib import Path
-from typing import Any, Iterable, Union, cast
+from typing import Any, Union
 
 import click
 import requests
@@ -86,7 +86,7 @@ class WindowsVersions:
         # Specifier.filter selects all non pre-releases that match the spec,
         # unless there are only pre-releases, then it selects pre-releases
         # instead (like pip)
-        unsorted_versions = cast(Iterable[Version], spec.filter(self.version_dict))
+        unsorted_versions = spec.filter(self.version_dict)
         versions = sorted(unsorted_versions, reverse=True)
 
         log.debug(f"Windows {self.arch} {spec} has {', '.join(str(v) for v in versions)}")
@@ -201,7 +201,7 @@ class CPythonVersions:
     ) -> ConfigMacOS | None:
 
         # see note above on Specifier.filter
-        unsorted_versions = cast(Iterable[Version], spec.filter(self.versions_dict))
+        unsorted_versions = spec.filter(self.versions_dict)
         sorted_versions = sorted(unsorted_versions, reverse=True)
 
         if version <= Version("3.8.9999"):
