@@ -314,24 +314,31 @@ def build(options: BuildOptions) -> None:
                 build_env = env.copy()
                 if options.dependency_constraints:
                     constr = options.dependency_constraints.get_for_python_version(config.version)
-                    uri = constr.as_uri()
-                    # Bug in pip <= 21.1.3 - we can use an path with percent encoded escapes
-                    if uri.startswith(f"file:///{constr.drive}"):
-                        uri = uri[8:]
-                    build_env["PIP_CONSTRAINT"] = uri
-                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-                call(
-                    [
-                        "python",
-                        "-m",
-                        "build",
-                        options.package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        f"--config-setting={config_setting}",
-                    ],
-                    env=build_env,
-                )
+                    # Bug in pip <= 21.1.3 - we can't have a space in the
+                    # constraints file, and pip doesn't support drive letters
+                    # in uhi.  After probably pip 21.2, we can use uri. For
+                    # now, use a temporary file.
+                    if " " in str(constr):
+                        with tempfile.NamedTemporaryFile(
+                            "w", suffix="constraints.txt", delete=False
+                        ) as constr_file, open(constr) as f:
+                            constr_file.write(f.read())
+                            constr = Path(constr_file.name)
+
+                    build_env["PIP_CONSTRAINT"] = str(constr)
+                    build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                    call(
+                        [
+                            "python",
+                            "-m",
+                            "build",
+                            options.package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            f"--config-setting={config_setting}",
+                        ],
+                        env=build_env,
+                    )
             else:
                 assert_never(options.build_frontend)
 
