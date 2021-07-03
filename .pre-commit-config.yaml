@@ -57,7 +57,7 @@ repos:
     files: ^(bin|docs)/.*py$
     args: ["--python-version=3.7", "--scripts-are-modules"]
     additional_dependencies:
-      - packaging
+      - packaging>=21.0
       - rich
       - types-jinja2
       - types-pyyaml
