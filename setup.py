@@ -20,7 +20,7 @@ extras = {
         "pyyaml",
         "requests",
         "rich>=9.6",
-        "packaging>=20.8",
+        "packaging>=21.0",
     ],
     "mypy": [
         "mypy>=0.901",
