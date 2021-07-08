@@ -23,6 +23,8 @@ from .util import (
     read_python_configs,
 )
 
+CIBW_INSTALL_PATH = Path("C:\\cibw")
+
 
 def call(
     args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None
@@ -49,7 +51,7 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
         "-FallbackSource",
         "https://api.nuget.org/v3/index.json",
         "-OutputDirectory",
-        "C:\\cibw\\python",
+        str(CIBW_INSTALL_PATH / "python"),
     ]
 
 
@@ -102,9 +104,9 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
     assert zip_filename.endswith(extension)
-    installation_path = Path("C:\\cibw") / zip_filename[: -len(extension)]
+    installation_path = CIBW_INSTALL_PATH / zip_filename[: -len(extension)]
     if not installation_path.exists():
-        pypy_zip = Path("C:\\cibw") / zip_filename
+        pypy_zip = CIBW_INSTALL_PATH / zip_filename
         download(url, pypy_zip)
         # Extract to the parent directory because the zip file still contains a directory
         extract_zip(pypy_zip, installation_path.parent)
@@ -119,7 +121,7 @@ def setup_python(
     build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
 
-    nuget = Path("C:\\cibw\\nuget.exe")
+    nuget = CIBW_INSTALL_PATH / "nuget.exe"
     if not nuget.exists():
         log.step("Downloading nuget...")
         download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
@@ -184,7 +186,7 @@ def setup_python(
     requires_reinstall = not (installation_path / "Scripts" / "pip.exe").exists()
     if requires_reinstall:
         # maybe pip isn't installed at all. ensurepip resolves that.
-        call(["python", "-m", "ensurepip"], env=env, cwd="C:\\cibw")
+        call(["python", "-m", "ensurepip"], env=env, cwd=str(CIBW_INSTALL_PATH))
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
@@ -199,7 +201,7 @@ def setup_python(
             *dependency_constraint_flags,
         ],
         env=env,
-        cwd="C:\\cibw",
+        cwd=str(CIBW_INSTALL_PATH),
     )
 
     assert (installation_path / "Scripts" / "pip.exe").exists()
@@ -319,9 +321,10 @@ def build(options: BuildOptions) -> None:
                     # in uhi.  After probably pip 21.2, we can use uri. For
                     # now, use a temporary file.
                     if " " in str(constr):
-                        with tempfile.NamedTemporaryFile(
-                            "w", suffix="constraints.txt", delete=False
-                        ) as constr_file, open(constr) as f:
+                        tmp_file = tempfile.NamedTemporaryFile(
+                            "w", suffix="constraints.txt", delete=False, dir=CIBW_INSTALL_PATH
+                        )
+                        with tmp_file as constr_file, open(constr) as f:
                             constr_file.write(f.read())
                             constr = Path(constr_file.name)
 
