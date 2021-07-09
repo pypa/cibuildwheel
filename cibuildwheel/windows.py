@@ -23,9 +23,11 @@ from .util import (
     read_python_configs,
 )
 
+CIBW_INSTALL_PATH = Path("C:\\cibw")
+
 
 def call(
-    args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None
+    args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
 ) -> None:
     print("+ " + " ".join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
@@ -33,7 +35,9 @@ def call(
     subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=True)
 
 
-def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> None:
+def shell(
+    command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
+) -> None:
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
 
@@ -49,7 +53,7 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
         "-FallbackSource",
         "https://api.nuget.org/v3/index.json",
         "-OutputDirectory",
-        "C:\\cibw\\python",
+        str(CIBW_INSTALL_PATH / "python"),
     ]
 
 
@@ -102,9 +106,9 @@ def install_pypy(version: str, arch: str, url: str) -> Path:
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
     assert zip_filename.endswith(extension)
-    installation_path = Path("C:\\cibw") / zip_filename[: -len(extension)]
+    installation_path = CIBW_INSTALL_PATH / zip_filename[: -len(extension)]
     if not installation_path.exists():
-        pypy_zip = Path("C:\\cibw") / zip_filename
+        pypy_zip = CIBW_INSTALL_PATH / zip_filename
         download(url, pypy_zip)
         # Extract to the parent directory because the zip file still contains a directory
         extract_zip(pypy_zip, installation_path.parent)
@@ -119,7 +123,7 @@ def setup_python(
     build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
 
-    nuget = Path("C:\\cibw\\nuget.exe")
+    nuget = CIBW_INSTALL_PATH / "nuget.exe"
     if not nuget.exists():
         log.step("Downloading nuget...")
         download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
@@ -184,7 +188,7 @@ def setup_python(
     requires_reinstall = not (installation_path / "Scripts" / "pip.exe").exists()
     if requires_reinstall:
         # maybe pip isn't installed at all. ensurepip resolves that.
-        call(["python", "-m", "ensurepip"], env=env, cwd="C:\\cibw")
+        call(["python", "-m", "ensurepip"], env=env, cwd=CIBW_INSTALL_PATH)
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
@@ -199,7 +203,7 @@ def setup_python(
             *dependency_constraint_flags,
         ],
         env=env,
-        cwd="C:\\cibw",
+        cwd=CIBW_INSTALL_PATH,
     )
 
     assert (installation_path / "Scripts" / "pip.exe").exists()
@@ -313,22 +317,35 @@ def build(options: BuildOptions) -> None:
                 config_setting = " ".join(verbosity_flags)
                 build_env = env.copy()
                 if options.dependency_constraints:
-                    build_env["PIP_CONSTRAINT"] = str(
-                        options.dependency_constraints.get_for_python_version(config.version)
+                    constraints_path = options.dependency_constraints.get_for_python_version(
+                        config.version
                     )
-                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-                call(
-                    [
-                        "python",
-                        "-m",
-                        "build",
-                        options.package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        f"--config-setting={config_setting}",
-                    ],
-                    env=build_env,
-                )
+                    # Bug in pip <= 21.1.3 - we can't have a space in the
+                    # constraints file, and pip doesn't support drive letters
+                    # in uhi.  After probably pip 21.2, we can use uri. For
+                    # now, use a temporary file.
+                    if " " in str(constraints_path):
+                        tmp_file = tempfile.NamedTemporaryFile(
+                            "w", suffix="constraints.txt", delete=False, dir=CIBW_INSTALL_PATH
+                        )
+                        with tmp_file as new_constraints_file, open(constraints_path) as f:
+                            new_constraints_file.write(f.read())
+                            constraints_path = Path(new_constraints_file.name)
+
+                    build_env["PIP_CONSTRAINT"] = str(constraints_path)
+                    build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                    call(
+                        [
+                            "python",
+                            "-m",
+                            "build",
+                            options.package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            f"--config-setting={config_setting}",
+                        ],
+                        env=build_env,
+                    )
             else:
                 assert_never(options.build_frontend)
 

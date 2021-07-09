@@ -416,9 +416,8 @@ def build(options: BuildOptions) -> None:
                 config_setting = " ".join(verbosity_flags)
                 build_env = env.copy()
                 if options.dependency_constraints:
-                    build_env["PIP_CONSTRAINT"] = str(
-                        options.dependency_constraints.get_for_python_version(config.version)
-                    )
+                    constr = options.dependency_constraints.get_for_python_version(config.version)
+                    build_env["PIP_CONSTRAINT"] = constr.as_uri()
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 call(
                     [
