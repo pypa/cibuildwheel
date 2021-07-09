@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.0a4
+        run: python -m pip install cibuildwheel==2.0.0b1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -352,15 +352,19 @@ Changelog
 
 _This release is currently in prerelease. The below release notes will be condensed into a single entry when we do a final release._
 
-_v2.0.0a4 (25 Jun 2021)_
+_v2.0.0b1 (9 July 2021)_
+
+- 🐛 Bug fixes & docs improvements
+
+_v2.0.0a4 (25 June 2021)_
 
 - 🌟 Added support for building wheels with [build](https://github.com/pypa/build), as well as pip. This feature is controlled with the [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.readthedocs.io/en/latest/options/#build-frontend) option.
 
-_v2.0.0a3 (22 Jun 2021)_
+_v2.0.0a3 (22 June 2021)_
 
 - 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.readthedocs.io/en/latest/options/#setting-options) for more info.
 
-_v2.0.0a2 (1 Jun 2021)_
+_v2.0.0a2 (1 June 2021)_
 
 - 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/latest/options/#prerelease-pythons) to test. (#675)
 - ✨ Added the ability to build CPython 3.8 wheels for Apple Silicon. (#704)
