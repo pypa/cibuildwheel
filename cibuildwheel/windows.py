@@ -27,7 +27,7 @@ CIBW_INSTALL_PATH = Path("C:\\cibw")
 
 
 def call(
-    args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None
+    args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
 ) -> None:
     print("+ " + " ".join(str(a) for a in args))
     # we use shell=True here, even though we don't need a shell due to a bug
@@ -35,7 +35,9 @@ def call(
     subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=True)
 
 
-def shell(command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[str] = None) -> None:
+def shell(
+    command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
+) -> None:
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
 
@@ -186,7 +188,7 @@ def setup_python(
     requires_reinstall = not (installation_path / "Scripts" / "pip.exe").exists()
     if requires_reinstall:
         # maybe pip isn't installed at all. ensurepip resolves that.
-        call(["python", "-m", "ensurepip"], env=env, cwd=str(CIBW_INSTALL_PATH))
+        call(["python", "-m", "ensurepip"], env=env, cwd=CIBW_INSTALL_PATH)
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
@@ -201,7 +203,7 @@ def setup_python(
             *dependency_constraint_flags,
         ],
         env=env,
-        cwd=str(CIBW_INSTALL_PATH),
+        cwd=CIBW_INSTALL_PATH,
     )
 
     assert (installation_path / "Scripts" / "pip.exe").exists()
