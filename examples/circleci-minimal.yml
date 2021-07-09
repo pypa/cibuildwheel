@@ -19,7 +19,7 @@ jobs:
   osx-wheels:
     working_directory: ~/osx-wheels
     macos:
-      xcode: 10.0.0
+      xcode: 12.5.1
     steps:
       - checkout
       - run:
