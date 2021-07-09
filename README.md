@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.0b1
+        run: python -m pip install cibuildwheel==2.0.0b2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -351,6 +351,10 @@ Changelog
 ### v2.0.0 (prerelease)
 
 _This release is currently in prerelease. The below release notes will be condensed into a single entry when we do a final release._
+
+_v2.0.0b2 (9 July 2021)_
+
+- 🐛 Bug fix to the GitHub action (#753)
 
 _v2.0.0b1 (9 July 2021)_
 
