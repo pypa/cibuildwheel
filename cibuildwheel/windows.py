@@ -317,20 +317,22 @@ def build(options: BuildOptions) -> None:
                 config_setting = " ".join(verbosity_flags)
                 build_env = env.copy()
                 if options.dependency_constraints:
-                    constr = options.dependency_constraints.get_for_python_version(config.version)
+                    constraints_path = options.dependency_constraints.get_for_python_version(
+                        config.version
+                    )
                     # Bug in pip <= 21.1.3 - we can't have a space in the
                     # constraints file, and pip doesn't support drive letters
                     # in uhi.  After probably pip 21.2, we can use uri. For
                     # now, use a temporary file.
-                    if " " in str(constr):
+                    if " " in str(constraints_path):
                         tmp_file = tempfile.NamedTemporaryFile(
                             "w", suffix="constraints.txt", delete=False, dir=CIBW_INSTALL_PATH
                         )
-                        with tmp_file as constr_file, open(constr) as f:
-                            constr_file.write(f.read())
-                            constr = Path(constr_file.name)
+                        with tmp_file as new_constraints_file, open(constraints_path) as f:
+                            new_constraints_file.write(f.read())
+                            constraints_path = Path(new_constraints_file.name)
 
-                    build_env["PIP_CONSTRAINT"] = str(constr)
+                    build_env["PIP_CONSTRAINT"] = str(constraints_path)
                     build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                     call(
                         [
