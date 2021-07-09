@@ -330,11 +330,11 @@ This option can also be set using the [command-line option](#command-line) `--ar
     # Note that the `arm64` wheel and the `arm64` part of the `universal2`
     # wheel cannot be tested in this configuration.
     [tool.cibuildwheel.macos]
-    archs: ["x86_64", "universal2", "arm64"]
+    archs = ["x86_64", "universal2", "arm64"]
 
     # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
     [tool.cibuildwheel.linux]
-    archs: ["auto", "aarch64"]
+    archs = ["auto", "aarch64"]
     ```
 
     It is generally recommmended to use the environment variable or
