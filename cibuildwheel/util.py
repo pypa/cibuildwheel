@@ -144,8 +144,8 @@ class Unbuffered:
         self.stream.write(data)
         self.stream.flush()
 
-    def writelines(self, datas):  # type: ignore
-        self.stream.writelines(datas)
+    def writelines(self, data):  # type: ignore
+        self.stream.writelines(data)
         self.stream.flush()
 
     def __getattr__(self, attr):  # type: ignore

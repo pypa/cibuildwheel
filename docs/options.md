@@ -240,7 +240,7 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
     skip = "pp*"
     ```
 
-    It is generally recommened to set `CIBW_BUILD` as an environment variable, though `skip`
+    It is generally recommended to set `CIBW_BUILD` as an environment variable, though `skip`
     tends to be useful in a config file; you can statically declare that you don't
     support pypy, for example.
 
@@ -337,7 +337,7 @@ This option can also be set using the [command-line option](#command-line) `--ar
     archs = ["auto", "aarch64"]
     ```
 
-    It is generally recommmended to use the environment variable or
+    It is generally recommended to use the environment variable or
     command-line option for Linux, as selecting archs often depends
     on your specific runner having qemu installed.
 
@@ -841,7 +841,7 @@ Auditwheel detects the version of the manylinux standard in the Docker image thr
     ```
 
     Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
-    if you perfer; they have no effect on `macos` and `windows`.
+    if you prefer; they have no effect on `macos` and `windows`.
 
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
 > Specify how cibuildwheel controls the versions of the tools it uses
@@ -1080,7 +1080,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_EXTRAS: "test,qt"
     ```
 
-    Seperate multiple items with a comma.
+    Separate multiple items with a comma.
 
 !!! tab examples "pyproject.toml"
 
