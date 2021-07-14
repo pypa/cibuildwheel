@@ -16,7 +16,7 @@ If your wheel didn't compile, check the list below for some debugging tips.
 
 ### Building Python 2.7 / PyPy2 wheels
 
-See the [cibuildwheel verison 1 docs](https://cibuildwheel.readthedocs.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
+See the [cibuildwheel version 1 docs](https://cibuildwheel.readthedocs.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
 
 ### Linux builds on Docker
 

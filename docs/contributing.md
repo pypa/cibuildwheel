@@ -20,7 +20,7 @@ Design Goals
 
 Other notes:
 
-- The platforms are very similar, until they're not. I'd rather have straight-forward code than totally DRY code, so let's keep airy platfrom abstractions to a minimum.
+- The platforms are very similar, until they're not. I'd rather have straight-forward code than totally DRY code, so let's keep airy platform abstractions to a minimum.
 - I might want to break the options into a shared config file one day, so that config is more easily shared. That has motivated some of the design decisions.
 
 ### cibuildwheel's relationship with build errors

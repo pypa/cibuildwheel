@@ -77,6 +77,12 @@ repos:
   - id: disallow-caps
     name: Disallow improper capitalization
     language: pygrep
-    entry: PyBind|Numpy|Cmake|Github
+    entry: PyBind|Numpy|Cmake|Github|PyTest
     types:
     - markdown
+
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.1.0
+  hooks:
+  - id: codespell
+    args: ["-L", "sur"]
