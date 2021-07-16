@@ -738,6 +738,11 @@ Platform-specific environment variables are also available:<br/>
 
     # Pass the `--lib-sdir .` flag to auditwheel on Linux
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
+
+    # Multi-line example - use && to join on all platforms
+    CIBW_REPAIR_WHEEL_COMMAND: >
+      python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
+      python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
     ```
 
 !!! tab examples "pyproject.toml"
@@ -745,16 +750,23 @@ Platform-specific environment variables are also available:<br/>
     ```toml
     # Use delvewheel on windows
     [tool.cibuildwheel.windows]
-    before_build = "pip install delvewheel"
-    repair_wheel_command = "delvewheel repair -w {dest_dir} {wheel}"
+    before-build = "pip install delvewheel"
+    repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
 
     # Don't repair macOS wheels
     [tool.cibuildwheel.macos]
-    repair_wheel_command = ""
+    repair-wheel-command = ""
 
     # Pass the `--lib-sdir .` flag to auditwheel on Linux
     [tool.cibuildwheel.linux]
-    repair_wheel_command = "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
+    repair-wheel-command = "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
+
+    # Multi-line example
+    [tool.cibuildwheel]
+    repair-wheel-command = [
+      'python scripts/repair_wheel.py -w {dest_dir} {wheel}',
+      'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
+    ]
     ```
 
     In configuration mode, you can use an inline array, and the items will be joined with `&&`.
@@ -943,6 +955,11 @@ Platform-specific environment variables are also available:<br/>
 
     # Trigger an install of the package, but run nothing of note
     CIBW_TEST_COMMAND: "echo Wheel installed"
+
+    # Multi-line example - join with && on all platforms
+    CIBW_TEST_COMMAND: >
+      pytest {package}/tests &&
+      python {package}/test.py
     ```
 
 !!! tab examples "pyproject.toml"
@@ -957,6 +974,12 @@ Platform-specific environment variables are also available:<br/>
 
     # Trigger an install of the package, but run nothing of note
     test-command = "echo Wheel installed"
+
+    # Multiline example
+    test-command = [
+      "pytest {package}/tests",
+      "python {package}/test.py",
+    ]
     ```
 
     In configuration files, you can use an array, and the items will be joined with `&&`.
@@ -987,7 +1010,11 @@ Platform-specific environment variables are also available:<br/>
     CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
 
     # Install non pip python package
-    CIBW_BEFORE_TEST: cd some_dir; ./configure; make; make install
+    CIBW_BEFORE_TEST: >
+      cd some_dir &&
+      ./configure &&
+      make &&
+      make install
 
     # Install python packages that are required to install test dependencies
     CIBW_BEFORE_TEST: pip install cmake scikit-build
