@@ -12,7 +12,7 @@ DIR = Path(__file__).parent.resolve()
 
 
 @nox.session
-def tests(session):
+def tests(session: nox.Session) -> None:
     """
     Run the unit and regular tests.
     """
@@ -26,16 +26,16 @@ def tests(session):
 
 
 @nox.session
-def lint(session):
+def lint(session: nox.Session) -> None:
     """
     Run the linter.
     """
     session.install("pre-commit")
-    session.run("pre-commit", "run", "--all-files")
+    session.run("pre-commit", "run", "--all-files", *session.posargs)
 
 
 @nox.session(python=PYTHON_ALL_VERSIONS)
-def update_constraints(session):
+def update_constraints(session: nox.Session) -> None:
     """
     Update the dependencies inplace.
     """
@@ -44,7 +44,7 @@ def update_constraints(session):
 
 
 @nox.session
-def update_pins(session):
+def update_pins(session: nox.Session) -> None:
     """
     Update the python and docker pins version inplace.
     """
@@ -54,16 +54,22 @@ def update_pins(session):
 
 
 @nox.session
-def update_proj(session):
+def update_proj(session: nox.Session) -> None:
     """
     Update the README inplace.
     """
     session.install("-e", ".[bin]")
-    session.run("python", "bin/projects.py", "docs/data/projects.yml", "--readme=README.md")
+    session.run(
+        "python",
+        "bin/projects.py",
+        "docs/data/projects.yml",
+        "--readme=README.md",
+        *session.posargs,
+    )
 
 
 @nox.session
-def docs(session):
+def docs(session: nox.Session) -> None:
     """
     Build the docs.
     """
@@ -73,13 +79,13 @@ def docs(session):
         if "serve" in session.posargs:
             session.run("mkdocs", "serve")
         else:
-            print("Unrecognized args, use 'serve'")
+            session.error("Unrecognized args, use 'serve'")
     else:
         session.run("mkdocs", "build")
 
 
 @nox.session
-def build(session):
+def build(session: nox.Session) -> None:
     """
     Build an SDist and wheel.
     """

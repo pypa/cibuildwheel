@@ -54,7 +54,7 @@ repos:
       - types-toml
   - id: mypy
     name: mypy 3.7+ on bin/
-    files: ^(bin|docs)/.*py$
+    files: ^((bin|docs)/.*py|noxfile.py)$
     args: ["--python-version=3.7", "--scripts-are-modules"]
     additional_dependencies:
       - packaging>=21.0
