@@ -56,4 +56,6 @@ def test_build_identifiers(tmp_path):
     build_identifiers = utils.cibuildwheel_get_build_identifiers(
         project_dir, prerelease_pythons=True
     )
-    assert len(expected_wheels) == len(build_identifiers)
+    assert len(expected_wheels) == len(
+        build_identifiers
+    ), f"{expected_wheels} vs {build_identifiers}"

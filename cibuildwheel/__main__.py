@@ -41,6 +41,14 @@ MANYLINUX_ARCHS = (
     "pypy_i686",
 )
 
+MUSLLINUX_ARCHS = (
+    "x86_64",
+    "i686",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+)
+
 
 def main() -> None:
     platform: PlatformName
@@ -167,10 +175,13 @@ def main() -> None:
     manylinux_identifiers = {
         f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS
     }
+    musllinux_identifiers = {
+        f"musllinux-{build_platform}-image" for build_platform in MUSLLINUX_ARCHS
+    }
     disallow = {
         "linux": {"dependency-versions"},
-        "macos": manylinux_identifiers,
-        "windows": manylinux_identifiers,
+        "macos": manylinux_identifiers | musllinux_identifiers,
+        "windows": manylinux_identifiers | musllinux_identifiers,
     }
     options = ConfigOptions(package_dir, args.config_file, platform=platform, disallow=disallow)
     output_dir = Path(
@@ -278,6 +289,7 @@ def main() -> None:
         sys.exit(0)
 
     manylinux_images: Dict[str, str] = {}
+    musllinux_images: Dict[str, str] = {}
     if platform == "linux":
         pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
         all_pinned_docker_images = ConfigParser()
@@ -303,6 +315,20 @@ def main() -> None:
 
             manylinux_images[build_platform] = image
 
+        for build_platform in MUSLLINUX_ARCHS:
+            pinned_images = all_pinned_docker_images[build_platform]
+
+            config_value = options(f"musllinux-{build_platform}-image")
+
+            if config_value is None:
+                image = pinned_images.get("musllinux_1_1")
+            elif config_value in pinned_images:
+                image = pinned_images[config_value]
+            else:
+                image = config_value
+
+            musllinux_images[build_platform] = image
+
     build_options = BuildOptions(
         architectures=archs,
         package_dir=package_dir,
@@ -320,6 +346,7 @@ def main() -> None:
         environment=environment,
         dependency_constraints=dependency_constraints,
         manylinux_images=manylinux_images or None,
+        musllinux_images=musllinux_images or None,
         build_frontend=build_frontend,
     )
 

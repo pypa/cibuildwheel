@@ -27,6 +27,12 @@ manylinux-pypy_x86_64-image = "manylinux2010"
 manylinux-pypy_i686-image = "manylinux2010"
 manylinux-pypy_aarch64-image = "manylinux2014"
 
+musllinux-x86_64-image = "musllinux_1_1"
+musllinux-i686-image = "musllinux_1_1"
+musllinux-aarch64-image = "musllinux_1_1"
+musllinux-ppc64le-image = "musllinux_1_1"
+musllinux-s390x-image = "musllinux_1_1"
+
 
 [tool.cibuildwheel.linux]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"

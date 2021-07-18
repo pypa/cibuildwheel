@@ -57,6 +57,7 @@ def test(manylinux_image, tmp_path):
     # CFLAGS environment variable is necessary to fail on 'malloc_info' (on manylinux1) during compilation/linking,
     # rather than when dynamically loading the Python
     add_env = {
+        "CIBW_BUILD": "*-manylinux*",
         "CIBW_ENVIRONMENT": 'CFLAGS="$CFLAGS -O0 -Werror=implicit-function-declaration"',
         "CIBW_MANYLINUX_X86_64_IMAGE": manylinux_image,
         "CIBW_MANYLINUX_I686_IMAGE": manylinux_image,
@@ -79,7 +80,10 @@ def test(manylinux_image, tmp_path):
         "manylinux2014": ["manylinux_2_17", "manylinux2014"],
     }
     expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", manylinux_versions=platform_tag_map.get(manylinux_image, [manylinux_image])
+        "spam",
+        "0.1.0",
+        manylinux_versions=platform_tag_map.get(manylinux_image, [manylinux_image]),
+        musllinux_versions=[],
     )
     if manylinux_image in {"manylinux1"}:
         # remove PyPy & CPython 3.10 and above

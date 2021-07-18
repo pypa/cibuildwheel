@@ -61,6 +61,7 @@ def build(options: BuildOptions) -> None:
         sys.exit(2)
 
     assert options.manylinux_images is not None
+    assert options.musllinux_images is not None
     python_configurations = get_python_configurations(options.build_selector, options.architectures)
     platforms = [
         ("cp", "manylinux_x86_64", options.manylinux_images["x86_64"]),
@@ -71,6 +72,11 @@ def build(options: BuildOptions) -> None:
         ("pp", "manylinux_x86_64", options.manylinux_images["pypy_x86_64"]),
         ("pp", "manylinux_aarch64", options.manylinux_images["pypy_aarch64"]),
         ("pp", "manylinux_i686", options.manylinux_images["pypy_i686"]),
+        ("cp", "musllinux_x86_64", options.musllinux_images["x86_64"]),
+        ("cp", "musllinux_i686", options.musllinux_images["i686"]),
+        ("cp", "musllinux_aarch64", options.musllinux_images["aarch64"]),
+        ("cp", "musllinux_ppc64le", options.musllinux_images["ppc64le"]),
+        ("cp", "musllinux_s390x", options.musllinux_images["s390x"]),
     ]
 
     cwd = Path.cwd()
