@@ -494,19 +494,23 @@ Platform-specific environment variables are also available:<br/>
 
     ```yaml
     # Set some compiler flags
-    CIBW_ENVIRONMENT: "CFLAGS='-g -Wall' CXXFLAGS='-Wall'"
+    CIBW_ENVIRONMENT: CFLAGS='-g -Wall' CXXFLAGS='-Wall'
 
     # Append a directory to the PATH variable (this is expanded in the build environment)
-    CIBW_ENVIRONMENT: "PATH=$PATH:/usr/local/bin"
+    CIBW_ENVIRONMENT: PATH=$PATH:/usr/local/bin
+
+    # Prepend a directory containing spaces on Windows.
+    CIBW_ENVIRONMENT_WINDOWS: >
+      PATH="C:\\Program Files\\PostgreSQL\\13\\bin;$PATH"
 
     # Set BUILD_TIME to the output of the `date` command
-    CIBW_ENVIRONMENT: "BUILD_TIME=$(date)"
+    CIBW_ENVIRONMENT: BUILD_TIME="$(date)"
 
     # Supply options to `pip` to affect how it downloads dependencies
-    CIBW_ENVIRONMENT: "PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple"
+    CIBW_ENVIRONMENT: PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple
 
     # Set two flags on linux only
-    CIBW_ENVIRONMENT_LINUX: "BUILD_TIME=$(date) SAMPLE_TEXT=\"sample text\""
+    CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
     ```
 
     Separate multiple values with a space.
@@ -523,6 +527,10 @@ Platform-specific environment variables are also available:<br/>
 
     # Append a directory to the PATH variable (this is expanded in the build environment)
     environment = { PATH="$PATH:/usr/local/bin" }
+
+    # Prepend a directory containing spaces on Windows.
+    [tool.cibuildwheel.windows]
+    environment = { PATH='C:\\Program Files\\PostgreSQL\\13\\bin;$PATH' }
 
     # Set BUILD_TIME to the output of the `date` command
     environment = { BUILD_TIME="$(date)" }
