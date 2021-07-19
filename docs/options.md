@@ -500,7 +500,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_ENVIRONMENT: PATH=$PATH:/usr/local/bin
 
     # Prepend a directory containing spaces on Windows.
-    CIBW_ENVIRONMENT_WINDOWS: >-
+    CIBW_ENVIRONMENT_WINDOWS: >
       PATH="C:\\Program Files\\PostgreSQL\\13\\bin;$PATH"
 
     # Set BUILD_TIME to the output of the `date` command
