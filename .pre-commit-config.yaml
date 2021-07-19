@@ -14,7 +14,7 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.21.0
+  rev: v2.21.2
   hooks:
   - id: pyupgrade
     name: PyUpgrade 3.6+
@@ -31,7 +31,7 @@ repos:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 21.6b0
+  rev: 21.7b0
   hooks:
   - id: black
 
