@@ -504,13 +504,13 @@ Platform-specific environment variables are also available:<br/>
       PATH="C:\\Program Files\\PostgreSQL\\13\\bin;$PATH"
 
     # Set BUILD_TIME to the output of the `date` command
-    CIBW_ENVIRONMENT: BUILD_TIME=$(date)
+    CIBW_ENVIRONMENT: BUILD_TIME="$(date)"
 
     # Supply options to `pip` to affect how it downloads dependencies
     CIBW_ENVIRONMENT: PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple
 
     # Set two flags on linux only
-    CIBW_ENVIRONMENT_LINUX: BUILD_TIME=$(date) SAMPLE_TEXT="sample text"
+    CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
     ```
 
     Separate multiple values with a space.
