@@ -528,6 +528,10 @@ Platform-specific environment variables are also available:<br/>
     # Append a directory to the PATH variable (this is expanded in the build environment)
     environment = { PATH="$PATH:/usr/local/bin" }
 
+    # Prepend a directory containing spaces on Windows.
+    [tool.cibuildwheel.windows]
+    environment = { PATH='C:\\Program Files\\PostgreSQL\\13\\bin;$PATH' }
+
     # Set BUILD_TIME to the output of the `date` command
     environment = { BUILD_TIME="$(date)" }
 
