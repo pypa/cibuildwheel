@@ -363,3 +363,16 @@
   gh: LAMDA-NJU/Deep-Forest
   ci: [github]
   os: [apple, linux, windows]
+
+- name: cmake
+  gh: scikit-build/cmake-python-distributions
+  stars: Kitware/CMake
+  ci: [github, travisci]
+  os: [apple, linux, windows]
+  notes: Multitagged binary builds for all supported platforms, using cibw 2 config configuration.
+
+- name: ninja
+  gh: scikit-build/ninja-python-distributions
+  ci: [github, travisci]
+  os: [apple, linux, windows]
+  notes: Multitagged binary builds for all supported platforms, using cibw 2 config configuration.

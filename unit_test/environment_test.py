@@ -106,10 +106,12 @@ def test_substitution_with_backslash():
 
 def test_awkwardly_quoted_variable():
     environment_recipe = parse_environment(
-        'VAR2=something"like this""$VAR1"$VAR1$(echo "theres more")"$(echo "and more!")"'
+        'VAR2=something"like this""$VAR1"$VAR1$(echo "there is more")"$(echo "and more!")"'
     )
 
     # pass the existing process env so PATH is available
     environment_dict = environment_recipe.as_dictionary({"VAR1": "but wait"})
 
-    assert environment_dict.get("VAR2") == "somethinglike thisbut waitbut waittheres moreand more!"
+    assert (
+        environment_dict.get("VAR2") == "somethinglike thisbut waitbut waitthere is moreand more!"
+    )

@@ -3,7 +3,7 @@ version: 2
 jobs:
   osx-python3.6:
     macos:
-      xcode: 9.4.1
+      xcode: 12.5.1
     environment:
       PYTHON: python3
     steps:
