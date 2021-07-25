@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.0
+        run: python -m pip install cibuildwheel==2.0.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -353,6 +353,13 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### v2.0.1
+
+_25 July 2021_
+
+- 📚 Docs improvements (#767)
+- 🛠 Dependency updates, including delocate 0.9.0.
 
 ### v2.0.0 🎉
 
