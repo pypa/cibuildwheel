@@ -6,7 +6,7 @@
 #
 backports.entry-points-selectable==1.1.0
     # via virtualenv
-delocate==0.8.2
+delocate==0.9.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.2
     # via virtualenv
@@ -21,10 +21,14 @@ importlib-resources==5.2.0
 platformdirs==2.0.2
     # via virtualenv
 six==1.16.0
-    # via virtualenv
+    # via
+    #   delocate
+    #   virtualenv
 typing-extensions==3.10.0.0
-    # via importlib-metadata
-virtualenv==20.5.0
+    # via
+    #   delocate
+    #   importlib-metadata
+virtualenv==20.6.0
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.36.2
     # via
@@ -36,7 +40,7 @@ zipp==3.5.0
     #   importlib-resources
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==21.1.3
+pip==21.2.1
     # via -r cibuildwheel/resources/constraints.in
-setuptools==57.1.0
+setuptools==57.4.0
     # via -r cibuildwheel/resources/constraints.in
