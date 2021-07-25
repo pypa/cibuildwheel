@@ -182,8 +182,8 @@ Here are some repos that use cibuildwheel.
 | [Tokenizer][]                     | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
 | [PyGLM][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Fast OpenGL Mathematics (GLM) for Python |
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
-| [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [iDynTree][]                      | ![github icon][] | ![linux icon][] | Uses manylinux_2_24 |
+| [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
 | [TgCrypto][]                      | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
@@ -243,8 +243,8 @@ Here are some repos that use cibuildwheel.
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
 [PyGLM]: https://github.com/Zuzu-Typ/PyGLM
 [bx-python]: https://github.com/bxlab/bx-python
-[boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [iDynTree]: https://github.com/robotology/idyntree
+[boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [pybase64]: https://github.com/mayeut/pybase64
 [TgCrypto]: https://github.com/pyrogram/tgcrypto
 [etebase-py]: https://github.com/etesync/etebase-py
@@ -271,66 +271,66 @@ Here are some repos that use cibuildwheel.
 [apple icon]: docs/data/readme_icons/apple.svg
 [linux icon]: docs/data/readme_icons/linux.svg
 
-<!-- scikit-learn: 46430, last pushed 0 days ago -->
-<!-- Matplotlib: 13903, last pushed 0 days ago -->
-<!-- MyPy: 11014, last pushed 0 days ago -->
-<!-- psutil: 7484, last pushed 15 days ago -->
-<!-- scikit-image: 4419, last pushed 0 days ago -->
-<!-- twisted-iocpsupport: 4296, last pushed 0 days ago -->
-<!-- cmake: 4013, last pushed 0 days ago -->
-<!-- websockets: 3457, last pushed 19 days ago -->
-<!-- pyzmq: 2848, last pushed 6 days ago -->
-<!-- aiortc: 2470, last pushed 4 days ago -->
-<!-- River: 1749, last pushed 3 days ago -->
-<!-- coverage.py: 1646, last pushed 0 days ago -->
-<!-- numexpr: 1605, last pushed 8 days ago -->
-<!-- h5py: 1540, last pushed 3 days ago -->
-<!-- Dependency Injector: 1447, last pushed 21 days ago -->
-<!-- PyAV: 1295, last pushed 39 days ago -->
-<!-- PyTables: 1042, last pushed 112 days ago -->
-<!-- ruptures: 757, last pushed 9 days ago -->
-<!-- aioquic: 708, last pushed 1 days ago -->
-<!-- pikepdf: 683, last pushed 2 days ago -->
-<!-- google neuroglancer: 661, last pushed 0 days ago -->
-<!-- DeepForest: 629, last pushed 0 days ago -->
-<!-- AutoPy: 550, last pushed 28 days ago -->
-<!-- Parselmouth: 524, last pushed 22 days ago -->
-<!-- python-rapidjson: 425, last pushed 20 days ago -->
-<!-- Rtree: 413, last pushed 117 days ago -->
-<!-- python-snappy: 405, last pushed 140 days ago -->
-<!-- markupsafe: 404, last pushed 9 days ago -->
-<!-- H3-py: 402, last pushed 33 days ago -->
-<!-- pybind11 cmake_example: 289, last pushed 6 days ago -->
-<!-- KDEpy: 285, last pushed 42 days ago -->
-<!-- cyvcf2: 264, last pushed 77 days ago -->
-<!-- pybind11 python_example: 258, last pushed 1 days ago -->
-<!-- dd-trace-py: 256, last pushed 0 days ago -->
+<!-- scikit-learn: 46576, last pushed 0 days ago -->
+<!-- Matplotlib: 13940, last pushed 0 days ago -->
+<!-- MyPy: 11060, last pushed 0 days ago -->
+<!-- psutil: 7508, last pushed 0 days ago -->
+<!-- scikit-image: 4433, last pushed 0 days ago -->
+<!-- twisted-iocpsupport: 4304, last pushed 1 days ago -->
+<!-- cmake: 4022, last pushed 0 days ago -->
+<!-- websockets: 3472, last pushed 0 days ago -->
+<!-- pyzmq: 2857, last pushed 0 days ago -->
+<!-- aiortc: 2485, last pushed 13 days ago -->
+<!-- River: 1773, last pushed 1 days ago -->
+<!-- coverage.py: 1658, last pushed 0 days ago -->
+<!-- numexpr: 1607, last pushed 17 days ago -->
+<!-- h5py: 1546, last pushed 2 days ago -->
+<!-- Dependency Injector: 1463, last pushed 0 days ago -->
+<!-- PyAV: 1297, last pushed 48 days ago -->
+<!-- PyTables: 1044, last pushed 5 days ago -->
+<!-- ruptures: 764, last pushed 2 days ago -->
+<!-- aioquic: 711, last pushed 0 days ago -->
+<!-- pikepdf: 695, last pushed 2 days ago -->
+<!-- google neuroglancer: 665, last pushed 0 days ago -->
+<!-- DeepForest: 634, last pushed 1 days ago -->
+<!-- AutoPy: 553, last pushed 37 days ago -->
+<!-- Parselmouth: 528, last pushed 31 days ago -->
+<!-- python-rapidjson: 424, last pushed 29 days ago -->
+<!-- Rtree: 414, last pushed 126 days ago -->
+<!-- python-snappy: 406, last pushed 3 days ago -->
+<!-- markupsafe: 406, last pushed 18 days ago -->
+<!-- H3-py: 402, last pushed 42 days ago -->
+<!-- pybind11 cmake_example: 290, last pushed 8 days ago -->
+<!-- KDEpy: 286, last pushed 51 days ago -->
+<!-- cyvcf2: 265, last pushed 4 days ago -->
+<!-- pybind11 python_example: 258, last pushed 6 days ago -->
+<!-- dd-trace-py: 256, last pushed 1 days ago -->
 <!-- sourmash: 253, last pushed 0 days ago -->
-<!-- time-machine: 187, last pushed 2 days ago -->
-<!-- iminuit: 180, last pushed 11 days ago -->
-<!-- CTranslate2: 177, last pushed 0 days ago -->
-<!-- matrixprofile: 170, last pushed 20 days ago -->
-<!-- jq.py: 162, last pushed 23 days ago -->
-<!-- Tokenizer: 148, last pushed 20 days ago -->
-<!-- PyGLM: 106, last pushed 65 days ago -->
-<!-- bx-python: 103, last pushed 6 days ago -->
-<!-- boost-histogram: 82, last pushed 3 days ago -->
-<!-- iDynTree: 82, last pushed 0 days ago -->
-<!-- pybase64: 68, last pushed 0 days ago -->
-<!-- TgCrypto: 67, last pushed 46 days ago -->
-<!-- etebase-py: 51, last pushed 192 days ago -->
-<!-- fathon: 32, last pushed 43 days ago -->
-<!-- pyjet: 29, last pushed 57 days ago -->
-<!-- numpythia: 29, last pushed 6 days ago -->
-<!-- polaroid: 19, last pushed 17 days ago -->
+<!-- time-machine: 186, last pushed 5 days ago -->
+<!-- iminuit: 181, last pushed 0 days ago -->
+<!-- CTranslate2: 177, last pushed 2 days ago -->
+<!-- matrixprofile: 174, last pushed 29 days ago -->
+<!-- jq.py: 164, last pushed 32 days ago -->
+<!-- Tokenizer: 150, last pushed 30 days ago -->
+<!-- PyGLM: 106, last pushed 4 days ago -->
+<!-- bx-python: 104, last pushed 16 days ago -->
+<!-- iDynTree: 84, last pushed 1 days ago -->
+<!-- boost-histogram: 83, last pushed 1 days ago -->
+<!-- pybase64: 70, last pushed 5 days ago -->
+<!-- TgCrypto: 68, last pushed 55 days ago -->
+<!-- etebase-py: 51, last pushed 201 days ago -->
+<!-- fathon: 32, last pushed 52 days ago -->
+<!-- pyjet: 29, last pushed 66 days ago -->
+<!-- numpythia: 29, last pushed 0 days ago -->
+<!-- polaroid: 19, last pushed 3 days ago -->
 <!-- ninja: 19, last pushed 0 days ago -->
-<!-- GSD: 16, last pushed 14 days ago -->
-<!-- pybind11 scikit_build_example: 14, last pushed 6 days ago -->
-<!-- Imagecodecs (fork): 11, last pushed 20 days ago -->
-<!-- pyinstrument_cext: 10, last pushed 15 days ago -->
-<!-- xmlstarlet: 7, last pushed 3 days ago -->
-<!-- CorrectionLib: 6, last pushed 23 days ago -->
-<!-- SiPM: 4, last pushed 6 days ago -->
+<!-- GSD: 16, last pushed 3 days ago -->
+<!-- pybind11 scikit_build_example: 15, last pushed 6 days ago -->
+<!-- Imagecodecs (fork): 13, last pushed 29 days ago -->
+<!-- pyinstrument_cext: 10, last pushed 9 days ago -->
+<!-- xmlstarlet: 7, last pushed 2 days ago -->
+<!-- CorrectionLib: 6, last pushed 8 days ago -->
+<!-- SiPM: 4, last pushed 15 days ago -->
 
 <!-- END bin/projects.py -->
 
