@@ -16,7 +16,7 @@ importlib-metadata==4.6.1
     # via
     #   backports.entry-points-selectable
     #   virtualenv
-platformdirs==2.0.2
+platformdirs==2.1.0
     # via virtualenv
 six==1.16.0
     # via
