@@ -174,11 +174,11 @@ class DockerContainer:
         self.bash_stdin.write(
             bytes(
                 f"""(
-            {chdir}
-            env {env_assignments} {command}
-            printf "%04d%s\n" $? {end_of_message}
-        )
-        """,
+                    {chdir}
+                    env {env_assignments} {command}
+                    printf "%04d%s\n" $? {end_of_message}
+                )
+                """,
                 encoding="utf8",
                 errors="surrogateescape",
             )

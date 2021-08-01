@@ -1,8 +1,9 @@
+import os
 import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import List, NamedTuple, Set
+from typing import Dict, List, NamedTuple, Set
 
 from .architecture import Architecture
 from .docker_container import DockerContainer
@@ -105,7 +106,7 @@ def build(options: BuildOptions) -> None:
                 if options.before_all:
                     log.step("Running before_all...")
 
-                    env = docker.get_environment()
+                    env = {**get_prefixed_host_environment(), **docker.get_environment()}
                     env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
                     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
                     env = options.environment.as_dictionary(
@@ -135,7 +136,7 @@ def build(options: BuildOptions) -> None:
 
                     log.step("Setting up build environment...")
 
-                    env = docker.get_environment()
+                    env = {**get_prefixed_host_environment(), **docker.get_environment()}
 
                     # put this config's python top of the list
                     python_bin = config.path / "bin"
@@ -338,3 +339,7 @@ def troubleshoot(package_dir: Path, error: Exception) -> None:
             print("  Files detected:")
             print("\n".join(f"    {f}" for f in so_files))
             print("")
+
+
+def get_prefixed_host_environment() -> Dict[str, str]:
+    return {f"HOST_{k}": v for k, v in os.environ.items()}

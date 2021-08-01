@@ -15,6 +15,7 @@ project_with_environment_asserts = test_projects.new_c_project(
         CIBW_TEST_VAR = os.environ.get("CIBW_TEST_VAR")
         CIBW_TEST_VAR_2 = os.environ.get("CIBW_TEST_VAR_2")
         CIBW_TEST_VAR_3 = os.environ.get("CIBW_TEST_VAR_3")
+        CIBW_TEST_VAR_4 = os.environ.get("CIBW_TEST_VAR_4")
         PATH = os.environ.get("PATH")
 
         if CIBW_TEST_VAR != "a b c":
@@ -23,6 +24,8 @@ project_with_environment_asserts = test_projects.new_c_project(
             raise Exception('CIBW_TEST_VAR_2 should equal "1". It was "%s"' % CIBW_TEST_VAR_2)
         if CIBW_TEST_VAR_3 != "test string 3":
             raise Exception('CIBW_TEST_VAR_3 should equal "test string 3". It was "%s"' % CIBW_TEST_VAR_3)
+        if CIBW_TEST_VAR_4 != "Host var: 12345":
+            raise Exception('CIBW_TEST_VAR_4 should equal "Host var: 12345". It was "%s"' % CIBW_TEST_VAR_4)
         if "/opt/cibw_test_path" not in PATH:
             raise Exception('PATH should contain "/opt/cibw_test_path". It was "%s"' % PATH)
         if "$PATH" in PATH:
@@ -32,9 +35,11 @@ project_with_environment_asserts = test_projects.new_c_project(
 )
 
 
-def test(tmp_path):
+def test(tmp_path, monkeypatch):
     project_dir = tmp_path / "project"
     project_with_environment_asserts.generate(project_dir)
+
+    monkeypatch.setenv("SOME_VARIABLE", "12345")
 
     # write some information into the CIBW_ENVIRONMENT, for expansion and
     # insertion into the environment by cibuildwheel. This is checked
@@ -42,8 +47,8 @@ def test(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_ENVIRONMENT": """CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$(echo 'test string 3')" PATH=$PATH:/opt/cibw_test_path""",
-            "CIBW_ENVIRONMENT_WINDOWS": '''CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$(echo 'test string 3')" PATH="$PATH;/opt/cibw_test_path"''',
+            "CIBW_ENVIRONMENT": """CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$(echo 'test string 3')" CIBW_TEST_VAR_4="Host var: $HOST_SOME_VARIABLE" PATH=$PATH:/opt/cibw_test_path""",
+            "CIBW_ENVIRONMENT_WINDOWS": '''CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$(echo 'test string 3')" CIBW_TEST_VAR_4="Host var: $HOST_SOME_VARIABLE" PATH="$PATH;/opt/cibw_test_path"''',
         },
     )
 
