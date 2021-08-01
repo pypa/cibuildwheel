@@ -481,6 +481,8 @@ A list of environment variables to set during the build. Bash syntax should be u
 
 You must set this variable to pass variables to Linux builds (since they execute in a Docker container). It also works for the other platforms.
 
+On Linux, host environment variables are available inside the Docker container with a `HOST_` prefix.
+
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
 To specify more than one environment variable, separate the assignments by spaces.
@@ -511,6 +513,12 @@ Platform-specific environment variables are also available:<br/>
 
     # Set two flags on linux only
     CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
+
+    # pass an environment variable from the host into the linux docker build
+    CIBW_ENVIRONMENT_LINUX: PACKAGE_VERSION=$HOST_PACKAGE_VERSION
+
+    # passthrough and rewrite the host environment variable "DATA_DIR"
+    CIBW_ENVIRONMENT_LINUX: DATA_DIR=/host/$HOST_DATA_DIR
     ```
 
     Separate multiple values with a space.
@@ -546,6 +554,13 @@ Platform-specific environment variables are also available:<br/>
     [tool.cibuildwheel.linux.environment]
     BUILD_TIME = "$(date)"
     SAMPLE_TEXT = "sample text"
+
+    [tool.cibuildwheel.linux]
+    # pass an environment variable from the host into the linux docker build
+    environment = { PACKAGE_VERSION="$HOST_PACKAGE_VERSION" }
+
+    # passthrough and rewrite the host environment variable "DATA_DIR"
+    environment = { DATA_DIR="/host/$HOST_DATA_DIR" }
     ```
 
     In configuration mode, you can use a [TOML][] table instead of a raw string as shown above.
