@@ -576,7 +576,7 @@ Platform-specific environment variables also available:<br/>
     CIBW_BEFORE_ALL: make -C third_party_lib
 
     # Install system library
-    CIBW_BEFORE_ALL_LINUX: yum install -y libffi-dev
+    CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel
 
     # Chain multiple commands using && and > in a YAML file, like:
     CIBW_BEFORE_ALL: >
@@ -598,7 +598,7 @@ Platform-specific environment variables also available:<br/>
 
     # Install system library
     [tool.cibuildwheel.linux]
-    before-all = "yum install -y libffi-dev"
+    before-all = "yum install -y libffi-devel"
 
     # Run multiple commands using an array
     before-all = [
