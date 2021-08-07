@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.1
+        run: python -m pip install cibuildwheel==2.1.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -353,6 +353,10 @@ Changelog
 =========
 
 <!--changelog-start-->
+
+### v2.1.0
+
+- ✨ Corresponding with the release of CPython 3.10.0rc1, which is ABI stable, cibuildwheel now builds CPython 3.10 by default - without the CIBW_PRERELEASE_PYTHONS flag.
 
 ### v2.0.1
 
