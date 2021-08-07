@@ -40,9 +40,9 @@ python_configurations = [
   { identifier = "cp39-macosx_x86_64", version = "3.9", url = "https://www.python.org/ftp/python/3.9.6/python-3.9.6-macos11.pkg" },
   { identifier = "cp39-macosx_arm64", version = "3.9", url = "https://www.python.org/ftp/python/3.9.6/python-3.9.6-macos11.pkg" },
   { identifier = "cp39-macosx_universal2", version = "3.9", url = "https://www.python.org/ftp/python/3.9.6/python-3.9.6-macos11.pkg" },
-  { identifier = "cp310-macosx_x86_64", version = "3.10", url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0b4-macos11.pkg" },
-  { identifier = "cp310-macosx_arm64", version = "3.10", url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0b4-macos11.pkg" },
-  { identifier = "cp310-macosx_universal2", version = "3.10", url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0b4-macos11.pkg" },
+  { identifier = "cp310-macosx_x86_64", version = "3.10", url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0rc1-macos11.pkg" },
+  { identifier = "cp310-macosx_arm64", version = "3.10", url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0rc1-macos11.pkg" },
+  { identifier = "cp310-macosx_universal2", version = "3.10", url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0rc1-macos11.pkg" },
   { identifier = "pp37-macosx_x86_64", version = "3.7", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.5-osx64.tar.bz2" },
 ]
 
@@ -56,7 +56,7 @@ python_configurations = [
   { identifier = "cp38-win_amd64", version = "3.8.10", arch = "64" },
   { identifier = "cp39-win32", version = "3.9.6", arch = "32" },
   { identifier = "cp39-win_amd64", version = "3.9.6", arch = "64" },
-  { identifier = "cp310-win32", version = "3.10.0-b4", arch = "32" },
-  { identifier = "cp310-win_amd64", version = "3.10.0-b4", arch = "64" },
+  { identifier = "cp310-win32", version = "3.10.0-rc1", arch = "32" },
+  { identifier = "cp310-win_amd64", version = "3.10.0-rc1", arch = "64" },
   { identifier = "pp37-win_amd64", version = "3.7", arch = "64", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.5-win64.zip" },
 ]
