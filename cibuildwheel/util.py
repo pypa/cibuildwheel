@@ -67,7 +67,7 @@ class IdentifierSelector:
     """
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP = "cp310-*"
+    PRERELEASE_SKIP = ""
 
     def __init__(
         self,
