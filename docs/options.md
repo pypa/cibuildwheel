@@ -406,7 +406,7 @@ This option is not available in `pyproject.toml` under
     ```
 
 ###  `CIBW_PRERELEASE_PYTHONS` {: #prerelease-pythons}
-> Enable building with pre-release versions of Python
+> Enable building with pre-release versions of Python if available
 
 During the beta period, when new versions of Python are being tested,
 cibuildwheel will often gain early support for beta releases. If you would
