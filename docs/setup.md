@@ -2,97 +2,6 @@
 title: 'Setup'
 ---
 
-# Build your wheel locally
-
-Before starting to configure cibuildwheel, it's useful to try to build a wheel
-on your local machine. It's much easier to debug problems on your machine than
-inside a CI system!
-
-Start with a clean checkout of your project, inside a new clean virtual
-environment. Make sure your `pip` is up to date, and then invoke:
-
-```shell
-pip wheel -w wheelhouse .
-```
-
-If your build completes without a problem, you're in good shape! You can move on to
-the next step. Otherwise, you might have one of the following issues.
-
-### Missing build dependencies
-
-If your build needs Python dependencies, you can resolve this by adding
-package names to the
-[`build-system.requires`](https://www.python.org/dev/peps/pep-0518/#build-system-table)
-section of your pyproject.toml. For example, if your project requires Cython
-to build, your pyproject.toml might include a section like this:
-
-```toml
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel",
-    "Cython",
-]
-
-build-backend = "setuptools.build_meta"
-```
-
-If you have other dependencies, you should make a note of these, you'll be
-able to install them using the cibuildwheel options [`CIBW_BEFORE_BUILD`](options.md#before-build) or
-[`CIBW_BEFORE_ALL`](options.md#before-all).
-
-### Actions you need to perform before building
-
-You might need to run some other commands before building, like running a
-script that performs codegen or downloading some data that's not stored in
-your source tree. There are a couple ways to deal with this:
-
--   Incorporate this into your build process, by adding it to your package's
-    `setup.py`. You can add extra build steps using a structure like this:
-
-    ```python
-    import subprocess
-    import setuptools
-    import setuptools.command.build_py
-
-
-    class BuildPyCommand(setuptools.command.build_py.build_py):
-      """Custom build command."""
-
-      def run(self):
-        # your custom build steps here
-        # e.g.
-        #   subprocess.run(['python', 'scripts/my_custom_script.py'], check=True)
-        setuptools.command.build_py.build_py.run(self)
-
-
-    setuptools.setup(
-        cmdclass={
-            'build_py': BuildPyCommand,
-        },
-        # Usual setup() args.
-        # ...
-    )
-    ```
-
-    This method is usually preferred because in addition to adding being
-    included in the wheel build process, it will help users building from
-    source tarballs as well.
-
--   Alternatively, you can instruct cibuildwheel to run commands before
-    building your wheel. Take a look at the cibuildwheel options
-    [`CIBW_BEFORE_BUILD`](options.md#before-build) or
-    [`CIBW_BEFORE_ALL`](options.md#before-all).
-
-### Environment variables
-
-Your wheel build might need some environment variables to be set. Consider
-incorporating these into setup.py to allow source tarballs to build (for
-example, using [`extra_compile_args` or
-`extra_link_args`](https://docs.python.org/3/distutils/setupscript.html#other-options)),
-but otherwise, make a note of these for inclusion in the cibuildwheel option
-[`CIBW_ENVIRONMENT`](options.md#environment).
-
 # Run cibuildwheel locally
 
 If you've got [Docker](https://www.docker.com/products/docker-desktop)
@@ -106,7 +15,7 @@ touching CI.
     for more info.
 
 This is convenient as it's quicker to iterate, and because the builds are
-happening in manylinux Docker containers, they're perfectly reproducable.
+happening in manylinux Docker containers, they're perfectly reproducible.
 
 Install cibuildwheel and run a build like this:
 
@@ -115,29 +24,46 @@ pip install cibuildwheel
 cibuildwheel --platform linux
 ```
 
-You should see the builds taking place. You can experiment with options by exporting environment variables, for example:
+You should see the builds taking place. You can experiment with options using environment variables or pyproject.toml.
 
-!!! tab "POSIX shell (Linux/macOS)"
+!!! tab "Environment variables"
+
+    cibuildwheel will read config from the environment. Syntax varies, depending on your shell:
+
+    > POSIX shell (Linux/macOS)
 
     ```sh
-    # build only CPython 3.9
-    export CIBW_BUILD='cp39-*'
     # run a command to set up the build system
     export CIBW_BEFORE_ALL='apt install libpng-dev'
 
     cibuildwheel --platform linux
     ```
 
-!!! tab "CMD (Windows)"
+    > CMD (Windows)
 
-    ```
-    # build only CPython 3.9
-    set CIBW_BUILD='cp39-*'
-    # run a command to set up the build system
+    ```bat
     set CIBW_BEFORE_ALL='apt install libpng-dev'
 
     cibuildwheel --platform linux
     ```
+
+!!! tab "pyproject.toml"
+
+    If you write your options into [`pyproject.toml`](options.md#configuration-file), you can work on your options locally, and they'll be automatically picked up when running in CI.
+
+    > pyproject.toml
+
+    ```
+    [tool.cibuildwheel]
+    before-all = "apt install libpng-dev"
+    ```
+
+    Then invoke cibuildwheel, like:
+
+    ```console
+    cibuildwheel --platform linux
+    ```
+
 
 # Configure a CI service
 
@@ -317,7 +243,7 @@ Gitlab will store the built wheels for you - you can access them from the Pipeli
 
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
-# Further setup
+# Next steps
 
 Once you've got the wheel building successfully, you might want to set up [testing](options.md#test-command) or [automatic releases to PyPI](deliver-to-pypi.md#automatic-method).
 

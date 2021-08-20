@@ -2,6 +2,73 @@
 title: Tips and tricks
 ---
 
+### Alternatives to cibuildwheel options
+
+cibuildwheel provides lots of opportunities to configure the build
+environment. However, sometimes there's a way to add this build configuration
+into the package itself - in general, this is prefered, because users of your
+package's sdist will also benefit.
+
+#### Missing build dependencies
+
+If your build needs Python dependencies, rather than using CIBW_BEFORE_BUILD, it's best to add these to the
+[`build-system.requires`](https://www.python.org/dev/peps/pep-0518/#build-system-table)
+section of your pyproject.toml. For example, if your project requires Cython
+to build, your pyproject.toml might include a section like this:
+
+```toml
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+    "Cython",
+]
+
+build-backend = "setuptools.build_meta"
+```
+
+#### Actions you need to perform before building
+
+You might need to run some other commands before building, like running a
+script that performs codegen or downloading some data that's not stored in
+your source tree.
+
+Rather than using CIBW_BEFORE_ALL or CIBW_BEFORE_BUILD, you could incorporate
+these steps into your package's build process. For example, if you're using
+setuptools, you can add steps to your package's `setup.py` using a structure
+like this:
+
+    ```python
+    import subprocess
+    import setuptools
+    import setuptools.command.build_py
+
+
+    class BuildPyCommand(setuptools.command.build_py.build_py):
+      """Custom build command."""
+
+      def run(self):
+        # your custom build steps here
+        # e.g.
+        #   subprocess.run(['python', 'scripts/my_custom_script.py'], check=True)
+        setuptools.command.build_py.build_py.run(self)
+
+
+    setuptools.setup(
+        cmdclass={
+            'build_py': BuildPyCommand,
+        },
+        # Usual setup() args.
+        # ...
+    )
+    ```
+
+#### Compiler flags
+
+Your build might need some compiler flags to be set through environment variables.
+Consider incorporating these into your package, for example, in `setup.py` using [`extra_compile_args` or
+`extra_link_args`](https://docs.python.org/3/distutils/setupscript.html#other-options).
+
 ### Troubleshooting
 
 If your wheel didn't compile, check the list below for some debugging tips.
