@@ -18,12 +18,12 @@ basic_project = test_projects.new_c_project(
 )
 
 
-def test(tmp_path):
+def test(tmp_path, build_frontend_env):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
     # build the wheels
-    actual_wheels = utils.cibuildwheel_run(project_dir)
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=build_frontend_env)
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")

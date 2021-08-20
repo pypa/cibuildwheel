@@ -48,7 +48,7 @@ def get_versions_from_constraint_file(constraint_file):
 
 
 @pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.9"])
-def test_pinned_versions(tmp_path, python_version):
+def test_pinned_versions(tmp_path, python_version, build_frontend_env):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 
@@ -85,6 +85,7 @@ def test_pinned_versions(tmp_path, python_version):
         add_env={
             "CIBW_BUILD": build_pattern,
             "CIBW_ENVIRONMENT": cibw_environment_option,
+            **build_frontend_env,
         },
     )
 
@@ -107,7 +108,7 @@ def test_pinned_versions(tmp_path, python_version):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_dependency_constraints_file(tmp_path):
+def test_dependency_constraints_file(tmp_path, build_frontend_env):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 
@@ -118,10 +119,10 @@ def test_dependency_constraints_file(tmp_path):
         "pip": "20.0.2",
         "setuptools": "53.0.0",
         "wheel": "0.34.2",
-        "virtualenv": "20.0.10",
+        "virtualenv": "20.0.35",
     }
 
-    constraints_file = tmp_path / "constraints.txt"
+    constraints_file = tmp_path / "constraints file.txt"
     constraints_file.write_text(
         textwrap.dedent(
             """
@@ -129,6 +130,7 @@ def test_dependency_constraints_file(tmp_path):
             setuptools=={setuptools}
             wheel=={wheel}
             virtualenv=={virtualenv}
+            importlib-metadata<3,>=0.12; python_version < "3.8"
             """.format(
                 **tool_versions
             )
@@ -149,6 +151,7 @@ def test_dependency_constraints_file(tmp_path):
         add_env={
             "CIBW_ENVIRONMENT": cibw_environment_option,
             "CIBW_DEPENDENCY_VERSIONS": str(constraints_file),
+            **build_frontend_env,
         },
     )
 

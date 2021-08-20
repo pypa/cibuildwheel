@@ -4,6 +4,8 @@ import itertools
 import os
 import re
 import ssl
+import subprocess
+import sys
 import textwrap
 import time
 import urllib.request
@@ -20,11 +22,13 @@ from packaging.version import Version
 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
-from .typing import PathOrStr, PlatformName
+from .typing import Literal, PathOrStr, PlatformName
 
 resources_dir = Path(__file__).parent / "resources"
 
 install_certifi_script = resources_dir / "install_certifi.py"
+
+BuildFrontend = Literal["pip", "build"]
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -63,7 +67,7 @@ class IdentifierSelector:
     """
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP = "cp310-*"
+    PRERELEASE_SKIP = ""
 
     def __init__(
         self,
@@ -140,8 +144,8 @@ class Unbuffered:
         self.stream.write(data)
         self.stream.flush()
 
-    def writelines(self, datas):  # type: ignore
-        self.stream.writelines(datas)
+    def writelines(self, data):  # type: ignore
+        self.stream.writelines(data)
         self.stream.flush()
 
     def __getattr__(self, attr):  # type: ignore
@@ -218,6 +222,7 @@ class BuildOptions(NamedTuple):
     test_requires: List[str]
     test_extras: str
     build_verbosity: int
+    build_frontend: BuildFrontend
 
 
 class NonPlatformWheelError(Exception):
@@ -300,3 +305,18 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
     s = time.time() - start_time
     m = s / 60
     print(msg.format(n=n, s=s, m=m), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
+
+
+def get_pip_version(env: Dict[str, str]) -> str:
+    # we use shell=True here for windows, even though we don't need a shell due to a bug
+    # https://bugs.python.org/issue8557
+    shell = sys.platform.startswith("win")
+    versions_output_text = subprocess.check_output(
+        ["python", "-m", "pip", "freeze", "--all"], universal_newlines=True, shell=shell, env=env
+    )
+    (pip_version,) = (
+        version[5:]
+        for version in versions_output_text.strip().splitlines()
+        if version.startswith("pip==")
+    )
+    return pip_version

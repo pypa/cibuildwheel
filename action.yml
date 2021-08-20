@@ -17,12 +17,12 @@ runs:
   using: composite
   steps:
 
-    # This needs powershell-core because github.action path is a Windows-style
-    # path on Windows.  Powershell-core understands both types of paths.
+    # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: >
         pipx run
-        --spec ${{ github.action_path }}
+        --spec '${{ github.action_path }}'
         cibuildwheel
         ${{ inputs.package-dir }}
         --output-dir ${{ inputs.output-dir }}
-      shell: pwsh
+        2>&1
+      shell: bash

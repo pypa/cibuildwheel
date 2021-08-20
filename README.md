@@ -28,10 +28,9 @@ What does it do?
 | CPython 3.7   | ✅ | N/A | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.8   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.9   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.10¹ | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.10  | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
 | PyPy 3.7 v7.3 | ✅ | N/A | ✅  | N/A | ✅ | ✅  | ✅ | N/A | N/A |
 
-<sup>¹ Available as a prerelease under a [flag](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons)</sup><br>
 
 - Builds manylinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
@@ -85,7 +84,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.0.0a3
+        run: python -m pip install cibuildwheel==2.1.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -107,14 +106,15 @@ Options
 |---|--------|-------------|
 | **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.readthedocs.io/en/stable/options/#platform)  | Override the auto-detected target platform |
 |   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  <br> [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
-|   | [`CIBW_ARCHS`](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)  | Change the architectures built on your machine by default |
+|   | [`CIBW_ARCHS`](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)  | Change the architectures built on your machine by default. |
 |   | [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python)  | Manually set the Python compatibility of your project |
-|   | [`CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons)  | Enable building with pre-release versions of Python |
-| **Build customization** | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
+|   | [`CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons)  | Enable building with pre-release versions of Python if available |
+| **Build customization** | [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend)  | Set the tool to use to build, either "pip" (default for now) or "build" |
+|   | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
 |   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
 |   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
 |   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each (non-pure Python) built wheel |
-|   | [`CIBW_MANYLINUX_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_X86_64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_AARCH64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PPC64LE_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_S390X_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_AARCH64_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  <br> [`CIBW_MANYLINUX_PYPY_I686_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux docker images |
+|   | [`CIBW_MANYLINUX_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)  | Specify alternative manylinux Docker images |
 |   | [`CIBW_DEPENDENCY_VERSIONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)  | Specify how cibuildwheel controls the versions of the tools it uses |
 | **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
 |   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-test)  | Execute a shell command before testing each wheel |
@@ -144,6 +144,7 @@ Here are some repos that use cibuildwheel.
 | [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
 | [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
 | [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
+| [cmake][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
 | [websockets][]                    | ![travisci icon][] | ![apple icon][] ![linux icon][] | Library for building WebSocket servers and clients. Mostly written in Python, with a small C 'speedups' extension module.  |
 | [pyzmq][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython and CFFI.  |
 | [aiortc][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | WebRTC and ORTC implementation for Python using asyncio. |
@@ -163,36 +164,37 @@ Here are some repos that use cibuildwheel.
 | [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS ¶ |
-| [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
 | [markupsafe][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Safely add untrusted strings to HTML/XML markup. |
 | [H3-py][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for H3, a hierarchical hexagonal geospatial indexing system |
+| [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
 | [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
-| [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
-| [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Jupyter-friendly Python interface for C++ MINUIT2 |
-| [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
-| [CTranslate2][]                   | ![github icon][] | ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://software.intel.com/content/www/us/en/develop/tools/oneapi/base-toolkit.html). The Linux wheels also include CUDA libraries for GPU execution. |
+| [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
 | [matrixprofile][]                 | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python 3 library making time series data mining tasks, utilizing matrix profile algorithms, accessible to everyone. |
+| [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
+| [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Jupyter-friendly Python interface for C++ MINUIT2 |
+| [CTranslate2][]                   | ![github icon][] | ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://software.intel.com/content/www/us/en/develop/tools/oneapi/base-toolkit.html). The Linux wheels also include CUDA libraries for GPU execution. |
 | [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
 | [Tokenizer][]                     | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
 | [PyGLM][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Fast OpenGL Mathematics (GLM) for Python |
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
 | [iDynTree][]                      | ![github icon][] | ![linux icon][] | Uses manylinux_2_24 |
 | [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
-| [TgCrypto][]                      | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
+| [TgCrypto][]                      | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
+| [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
-| [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
-| [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
 | [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
+| [ninja][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
+| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
+| [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [pyinstrument_cext][]             | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A simple C extension, without external dependencies |
-| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [xmlstarlet][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
 | [CorrectionLib][]                 | ![github icon][] | ![apple icon][] ![linux icon][] | Structured JSON powered correction library for HEP, designed for the CMS experiment at CERN. |
 | [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
@@ -203,6 +205,7 @@ Here are some repos that use cibuildwheel.
 [psutil]: https://github.com/giampaolo/psutil
 [scikit-image]: https://github.com/scikit-image/scikit-image
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
+[cmake]: https://github.com/scikit-build/cmake-python-distributions
 [websockets]: https://github.com/aaugustin/websockets
 [pyzmq]: https://github.com/zeromq/pyzmq
 [aiortc]: https://github.com/aiortc/aiortc
@@ -222,36 +225,37 @@ Here are some repos that use cibuildwheel.
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [Rtree]: https://github.com/Toblerity/rtree
-[python-snappy]: https://github.com/andrix/python-snappy
 [markupsafe]: https://github.com/pallets/markupsafe
 [H3-py]: https://github.com/uber/h3-py
+[python-snappy]: https://github.com/andrix/python-snappy
 [pybind11 cmake_example]: https://github.com/pybind/cmake_example
 [KDEpy]: https://github.com/tommyod/KDEpy
 [cyvcf2]: https://github.com/brentp/cyvcf2
 [pybind11 python_example]: https://github.com/pybind/python_example
-[sourmash]: https://github.com/dib-lab/sourmash
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
-[iminuit]: https://github.com/scikit-hep/iminuit
-[time-machine]: https://github.com/adamchainz/time-machine
-[CTranslate2]: https://github.com/OpenNMT/CTranslate2
+[sourmash]: https://github.com/dib-lab/sourmash
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
+[time-machine]: https://github.com/adamchainz/time-machine
+[iminuit]: https://github.com/scikit-hep/iminuit
+[CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [jq.py]: https://github.com/mwilliamson/jq.py
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
 [PyGLM]: https://github.com/Zuzu-Typ/PyGLM
 [bx-python]: https://github.com/bxlab/bx-python
 [iDynTree]: https://github.com/robotology/idyntree
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
-[TgCrypto]: https://github.com/pyrogram/tgcrypto
 [pybase64]: https://github.com/mayeut/pybase64
+[TgCrypto]: https://github.com/pyrogram/tgcrypto
 [etebase-py]: https://github.com/etesync/etebase-py
+[fathon]: https://github.com/stfbnc/fathon
 [pyjet]: https://github.com/scikit-hep/pyjet
 [numpythia]: https://github.com/scikit-hep/numpythia
-[fathon]: https://github.com/stfbnc/fathon
-[GSD]: https://github.com/glotzerlab/gsd
 [polaroid]: https://github.com/daggy1234/polaroid
+[ninja]: https://github.com/scikit-build/ninja-python-distributions
+[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
+[GSD]: https://github.com/glotzerlab/gsd
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
-[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [xmlstarlet]: https://github.com/dimitern/xmlstarlet
 [CorrectionLib]: https://github.com/cms-nanoAOD/correctionlib
 [SiPM]: https://github.com/EdoPro98/SimSiPM
@@ -266,64 +270,66 @@ Here are some repos that use cibuildwheel.
 [apple icon]: docs/data/readme_icons/apple.svg
 [linux icon]: docs/data/readme_icons/linux.svg
 
-<!-- scikit-learn: 46184, last pushed 0 days ago -->
-<!-- Matplotlib: 13797, last pushed 0 days ago -->
-<!-- MyPy: 10905, last pushed 0 days ago -->
-<!-- psutil: 7420, last pushed 14 days ago -->
-<!-- scikit-image: 4387, last pushed 0 days ago -->
-<!-- twisted-iocpsupport: 4280, last pushed 0 days ago -->
-<!-- websockets: 3418, last pushed 0 days ago -->
-<!-- pyzmq: 2821, last pushed 3 days ago -->
-<!-- aiortc: 2441, last pushed 9 days ago -->
-<!-- River: 1669, last pushed 0 days ago -->
-<!-- coverage.py: 1630, last pushed 0 days ago -->
-<!-- numexpr: 1597, last pushed 109 days ago -->
-<!-- h5py: 1530, last pushed 0 days ago -->
-<!-- Dependency Injector: 1396, last pushed 0 days ago -->
-<!-- PyAV: 1279, last pushed 15 days ago -->
-<!-- PyTables: 1028, last pushed 87 days ago -->
-<!-- ruptures: 739, last pushed 4 days ago -->
-<!-- aioquic: 680, last pushed 6 days ago -->
-<!-- pikepdf: 655, last pushed 0 days ago -->
-<!-- google neuroglancer: 646, last pushed 0 days ago -->
-<!-- DeepForest: 621, last pushed 21 days ago -->
-<!-- AutoPy: 542, last pushed 4 days ago -->
-<!-- Parselmouth: 521, last pushed 27 days ago -->
-<!-- python-rapidjson: 423, last pushed 0 days ago -->
-<!-- Rtree: 408, last pushed 92 days ago -->
-<!-- python-snappy: 403, last pushed 116 days ago -->
-<!-- markupsafe: 401, last pushed 4 days ago -->
-<!-- H3-py: 392, last pushed 8 days ago -->
-<!-- pybind11 cmake_example: 278, last pushed 21 days ago -->
-<!-- KDEpy: 276, last pushed 18 days ago -->
-<!-- cyvcf2: 266, last pushed 53 days ago -->
-<!-- pybind11 python_example: 255, last pushed 21 days ago -->
-<!-- sourmash: 250, last pushed 0 days ago -->
-<!-- dd-trace-py: 248, last pushed 0 days ago -->
-<!-- iminuit: 181, last pushed 17 days ago -->
-<!-- time-machine: 173, last pushed 6 days ago -->
-<!-- CTranslate2: 168, last pushed 0 days ago -->
-<!-- matrixprofile: 166, last pushed 17 days ago -->
-<!-- jq.py: 159, last pushed 10 days ago -->
-<!-- Tokenizer: 146, last pushed 13 days ago -->
-<!-- PyGLM: 104, last pushed 41 days ago -->
-<!-- bx-python: 103, last pushed 7 days ago -->
-<!-- iDynTree: 82, last pushed 6 days ago -->
-<!-- boost-histogram: 80, last pushed 3 days ago -->
-<!-- TgCrypto: 66, last pushed 22 days ago -->
-<!-- pybase64: 62, last pushed 5 days ago -->
-<!-- etebase-py: 50, last pushed 168 days ago -->
-<!-- pyjet: 28, last pushed 32 days ago -->
-<!-- numpythia: 28, last pushed 21 days ago -->
-<!-- fathon: 26, last pushed 19 days ago -->
-<!-- GSD: 17, last pushed 17 days ago -->
-<!-- polaroid: 16, last pushed 12 days ago -->
-<!-- pybind11 scikit_build_example: 14, last pushed 20 days ago -->
-<!-- pyinstrument_cext: 10, last pushed 129 days ago -->
-<!-- Imagecodecs (fork): 9, last pushed 13 days ago -->
-<!-- xmlstarlet: 7, last pushed 63 days ago -->
-<!-- CorrectionLib: 6, last pushed 9 days ago -->
-<!-- SiPM: 3, last pushed 18 days ago -->
+<!-- scikit-learn: 46799, last pushed 0 days ago -->
+<!-- Matplotlib: 14050, last pushed 0 days ago -->
+<!-- MyPy: 11138, last pushed 0 days ago -->
+<!-- psutil: 7561, last pushed 4 days ago -->
+<!-- scikit-image: 4456, last pushed 0 days ago -->
+<!-- twisted-iocpsupport: 4331, last pushed 2 days ago -->
+<!-- cmake: 4072, last pushed 0 days ago -->
+<!-- websockets: 3501, last pushed 0 days ago -->
+<!-- pyzmq: 2873, last pushed 4 days ago -->
+<!-- aiortc: 2510, last pushed 35 days ago -->
+<!-- River: 1848, last pushed 2 days ago -->
+<!-- coverage.py: 1677, last pushed 0 days ago -->
+<!-- numexpr: 1621, last pushed 39 days ago -->
+<!-- h5py: 1560, last pushed 3 days ago -->
+<!-- Dependency Injector: 1498, last pushed 4 days ago -->
+<!-- PyAV: 1318, last pushed 70 days ago -->
+<!-- PyTables: 1050, last pushed 27 days ago -->
+<!-- ruptures: 772, last pushed 12 days ago -->
+<!-- aioquic: 726, last pushed 20 days ago -->
+<!-- pikepdf: 714, last pushed 1 days ago -->
+<!-- google neuroglancer: 677, last pushed 1 days ago -->
+<!-- DeepForest: 642, last pushed 23 days ago -->
+<!-- AutoPy: 567, last pushed 59 days ago -->
+<!-- Parselmouth: 538, last pushed 2 days ago -->
+<!-- python-rapidjson: 424, last pushed 51 days ago -->
+<!-- Rtree: 415, last pushed 148 days ago -->
+<!-- markupsafe: 413, last pushed 4 days ago -->
+<!-- H3-py: 409, last pushed 2 days ago -->
+<!-- python-snappy: 407, last pushed 25 days ago -->
+<!-- pybind11 cmake_example: 299, last pushed 4 days ago -->
+<!-- KDEpy: 288, last pushed 73 days ago -->
+<!-- cyvcf2: 267, last pushed 18 days ago -->
+<!-- pybind11 python_example: 261, last pushed 7 days ago -->
+<!-- dd-trace-py: 260, last pushed 0 days ago -->
+<!-- sourmash: 258, last pushed 0 days ago -->
+<!-- matrixprofile: 192, last pushed 51 days ago -->
+<!-- time-machine: 192, last pushed 1 days ago -->
+<!-- iminuit: 182, last pushed 0 days ago -->
+<!-- CTranslate2: 180, last pushed 9 days ago -->
+<!-- jq.py: 170, last pushed 13 days ago -->
+<!-- Tokenizer: 151, last pushed 9 days ago -->
+<!-- PyGLM: 109, last pushed 26 days ago -->
+<!-- bx-python: 105, last pushed 37 days ago -->
+<!-- iDynTree: 85, last pushed 8 days ago -->
+<!-- boost-histogram: 83, last pushed 4 days ago -->
+<!-- pybase64: 72, last pushed 3 days ago -->
+<!-- TgCrypto: 69, last pushed 77 days ago -->
+<!-- etebase-py: 51, last pushed 223 days ago -->
+<!-- fathon: 34, last pushed 74 days ago -->
+<!-- pyjet: 30, last pushed 88 days ago -->
+<!-- numpythia: 30, last pushed 6 days ago -->
+<!-- polaroid: 23, last pushed 20 days ago -->
+<!-- ninja: 19, last pushed 4 days ago -->
+<!-- Imagecodecs (fork): 18, last pushed 6 days ago -->
+<!-- GSD: 17, last pushed 13 days ago -->
+<!-- pybind11 scikit_build_example: 16, last pushed 4 days ago -->
+<!-- pyinstrument_cext: 10, last pushed 30 days ago -->
+<!-- xmlstarlet: 7, last pushed 24 days ago -->
+<!-- CorrectionLib: 6, last pushed 6 days ago -->
+<!-- SiPM: 4, last pushed 37 days ago -->
 
 <!-- END bin/projects.py -->
 
@@ -347,21 +353,33 @@ Changelog
 
 <!--changelog-start-->
 
-### v2.0.0 (prerelease)
+### v2.1.1
 
-_This release is currently in prerelease. The below release notes will be condensed into a single entry when we do a final release._
+_7 August 2021_
 
-_v2.0.0a3 (22 Jun 2021)_
+- ✨ Corresponding with the release of CPython 3.10.0rc1, which is ABI stable, cibuildwheel now builds CPython 3.10 by default - without the CIBW_PRERELEASE_PYTHONS flag.
 
-- 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.readthedocs.io/en/latest/options/#setting-options) for more info.
+<sup>Note: v2.1.0 was a bad release, it was yanked from PyPI.</sup>
 
-_v2.0.0a2 (1 Jun 2021)_
+### v2.0.1
 
-- 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/latest/options/#prerelease-pythons) to test. (#675)
+_25 July 2021_
+
+- 📚 Docs improvements (#767)
+- 🛠 Dependency updates, including delocate 0.9.0.
+
+### v2.0.0 🎉
+
+_16 July 2021_
+
+- 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.readthedocs.io/en/stable/options/#setting-options) for more info.
+- 🌟 Added support for building wheels with [build](https://github.com/pypa/build), as well as pip. This feature is controlled with the [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend) option.
+- 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons) to test. (#675) This version of cibuildwheel includes CPython 3.10.0b4.
+- ⚠️ **Removed support for building Python 2.7 and Python 3.5 wheels**, for both CPython and PyPy. If you still need to build on these versions, please use the latest v1.x version. (#596)
 - ✨ Added the ability to build CPython 3.8 wheels for Apple Silicon. (#704)
-- 🛠 Update to the latest build dependencies, including auditwheel 4. (#633)
+- 🛠 Update to the latest build dependencies, including Auditwheel 4. (#633)
 - 🛠 Use the unified pypa/manylinux images to build PyPy (#671)
-- ⚠️ Removed support for building Python 2.7 and Python 3.5 wheels, for both CPython and PyPy. If you still need to build on these versions, please use the latest v1.x version. (#596)
+- 🐛 Numerous bug fixes & docs improvements
 
 ### v1.12.0
 

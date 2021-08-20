@@ -25,8 +25,13 @@ project_with_before_build_asserts = test_projects.new_c_project(
             stored_executable = f.read()
         print('stored_executable', stored_executable)
         print('sys.executable', sys.executable)
+
         # windows/mac are case insensitive
-        assert os.path.realpath(stored_executable).lower() == os.path.realpath(sys.executable).lower()
+        stored_path = os.path.realpath(stored_executable).lower()
+        current_path = os.path.realpath(sys.executable).lower()
+
+        # TODO: This is not valid in an virtual environment
+        assert stored_path == current_path, '{0} != {1}'.format(stored_path, current_path)
         """
     )
 )

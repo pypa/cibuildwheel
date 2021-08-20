@@ -157,7 +157,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tabs-header button:focus-visible {
-  /* preserve an outline for accesibility purposes */
+  /* preserve an outline for accessibility purposes */
   outline: 1px solid currentColor;
   outline-offset: -1px;
 }
