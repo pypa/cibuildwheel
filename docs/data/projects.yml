@@ -376,3 +376,10 @@
   ci: [github, travisci]
   os: [apple, linux, windows]
   notes: Multitagged binary builds for all supported platforms, using cibw 2 config configuration.
+
+- name: tgcalls
+  gh: MarshalX/tgcalls
+  pypi: pytgcalls
+  ci: [github]
+  os: [apple, windows]
+  notes: Python `pybind11` binding to Telegram's WebRTC library with third parties dependensies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc.
