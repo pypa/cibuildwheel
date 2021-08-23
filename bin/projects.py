@@ -140,10 +140,7 @@ def fetch_icon(icon_name: str) -> None:
 
 
 def path_for_icon(icon_name: str, relative_to: Path | None = None) -> Path:
-    if relative_to is None:
-        from_path = Path.cwd()
-    else:
-        from_path = relative_to.parent
+    from_path = Path.cwd() if relative_to is None else relative_to.parent
 
     absolute_path = PROJECT_ROOT / "docs" / "data" / "readme_icons" / f"{icon_name}.svg"
 
@@ -165,7 +162,7 @@ def get_projects(
     return sorted((Project(item, github) for item in config), reverse=online)
 
 
-def render_projects(projects: list[Project], *, include_info: bool = True, dest_path: Path):
+def render_projects(projects: list[Project], *, dest_path: Path, include_info: bool = True):
     io = StringIO()
     print = functools.partial(builtins.print, file=io)
 
