@@ -2,6 +2,21 @@
 title: Changelog
 ---
 
+### v2.1.1
+
+_7 August 2021_
+
+- ✨ Corresponding with the release of CPython 3.10.0rc1, which is ABI stable, cibuildwheel now builds CPython 3.10 by default - without the CIBW_PRERELEASE_PYTHONS flag.
+
+<sup>Note: v2.1.0 was a bad release, it was yanked from PyPI.</sup>
+
+### v2.0.1
+
+_25 July 2021_
+
+- 📚 Docs improvements (#767)
+- 🛠 Dependency updates, including delocate 0.9.0.
+
 ### v2.0.0 🎉
 
 _16 July 2021_
