@@ -382,4 +382,4 @@
   pypi: pytgcalls
   ci: [github]
   os: [apple, windows]
-  notes: Python `pybind11` binding to Telegram's WebRTC library with third parties dependensies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc.
+  notes: Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc.
