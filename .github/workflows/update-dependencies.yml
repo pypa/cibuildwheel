@@ -8,6 +8,7 @@ on:
 jobs:
   update-dependencies:
     name: Update dependencies
+    if: github.repository_owner == 'pypa'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
