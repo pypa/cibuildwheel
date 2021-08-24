@@ -26,9 +26,13 @@ manylinux-s390x-image = "manylinux2014"
 manylinux-pypy_x86_64-image = "manylinux2010"
 manylinux-pypy_i686-image = "manylinux2010"
 manylinux-pypy_aarch64-image = "manylinux2014"
+manylinux-cross_aarch64-image = "manylinux2014"
 
 
 [tool.cibuildwheel.linux]
+repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
+
+[tool.cibuildwheel.crosslinux]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.macos]

@@ -30,6 +30,15 @@ python_configurations = [
   { identifier = "pp37-manylinux_i686", version = "3.7", path_str = "/opt/python/pp37-pypy37_pp73" },
 ]
 
+[crosslinux]
+python_configurations = [
+  { identifier = "cp36-manylinux_aarch64", version = "3.6", path_str = "/opt/python/cp36-cp36m-xc/cross" },
+  { identifier = "cp37-manylinux_aarch64", version = "3.7", path_str = "/opt/python/cp37-cp37m-xc/cross" },
+  { identifier = "cp38-manylinux_aarch64", version = "3.8", path_str = "/opt/python/cp38-cp38-xc/cross" },
+  { identifier = "cp39-manylinux_aarch64", version = "3.9", path_str = "/opt/python/cp39-cp39-xc/cross" },
+  { identifier = "cp310-manylinux_aarch64", version = "3.10", path_str = "/opt/python/cp310-cp310-xc/cross" },
+]
+
 [macos]
 python_configurations = [
   { identifier = "cp36-macosx_x86_64", version = "3.6", url = "https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg" },

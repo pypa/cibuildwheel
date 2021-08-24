@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Set, Union
 from packaging.specifiers import SpecifierSet
 
 import cibuildwheel
+import cibuildwheel.crosslinux
 import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.util
@@ -35,6 +36,7 @@ MANYLINUX_ARCHS = (
     "i686",
     "pypy_x86_64",
     "aarch64",
+    "cross_aarch64",
     "ppc64le",
     "s390x",
     "pypy_aarch64",
@@ -56,7 +58,7 @@ def main() -> None:
 
     parser.add_argument(
         "--platform",
-        choices=["auto", "linux", "macos", "windows"],
+        choices=["auto", "linux", "crosslinux", "macos", "windows"],
         default=os.environ.get("CIBW_PLATFORM", "auto"),
         help="""
             Platform to build for. For "linux" you need docker running, on Mac
@@ -278,7 +280,7 @@ def main() -> None:
         sys.exit(0)
 
     manylinux_images: Dict[str, str] = {}
-    if platform == "linux":
+    if platform in {"linux", "crosslinux"}:
         pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
         all_pinned_docker_images = ConfigParser()
         all_pinned_docker_images.read(pinned_docker_images_file)
@@ -347,6 +349,8 @@ def main() -> None:
     ):
         if platform == "linux":
             cibuildwheel.linux.build(build_options)
+        elif platform == "crosslinux":
+            cibuildwheel.crosslinux.build(build_options)
         elif platform == "windows":
             cibuildwheel.windows.build(build_options)
         elif platform == "macos":
@@ -400,7 +404,7 @@ def get_build_identifiers(
         List[cibuildwheel.macos.PythonConfiguration],
     ]
 
-    if platform == "linux":
+    if platform == "linux" or platform == "crosslinux": #To satisfy mypy
         python_configurations = cibuildwheel.linux.get_python_configurations(
             build_selector, architectures
         )
