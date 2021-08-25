@@ -404,7 +404,7 @@ def get_build_identifiers(
         List[cibuildwheel.macos.PythonConfiguration],
     ]
 
-    if platform == "linux" or platform == "crosslinux": #To satisfy mypy
+    if platform == "linux" or platform == "crosslinux":  # To satisfy mypy
         python_configurations = cibuildwheel.linux.get_python_configurations(
             build_selector, architectures
         )
