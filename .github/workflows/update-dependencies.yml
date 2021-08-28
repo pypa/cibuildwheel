@@ -8,6 +8,7 @@ on:
 jobs:
   update-dependencies:
     name: Update dependencies
+    if: github.repository_owner == 'pypa' || github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -24,6 +25,7 @@ jobs:
     # run the GHA tests.
     - uses: tibdex/github-app-token@v1
       id: generate-token
+      if: github.ref == 'refs/heads/main' && github.repository == 'pypa/cibuildwheel'
       with:
         app_id: ${{ secrets.CIBUILDWHEEL_BOT_APP_ID }}
         private_key: ${{ secrets.CIBUILDWHEEL_BOT_APP_PRIVATE_KEY }}
