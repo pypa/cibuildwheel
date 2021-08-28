@@ -48,7 +48,7 @@ def test_failed_repair_with_so_files(tmp_path, capfd, project_contains_so_files)
     project.generate(project_dir)
 
     with pytest.raises(subprocess.CalledProcessError):
-        utils.cibuildwheel_run(project_dir, add_env={"CIBW_REPAIR_COMMAND": "false"})
+        utils.cibuildwheel_run(project_dir, add_env={"CIBW_REPAIR_WHEEL_COMMAND": "false"})
 
     captured = capfd.readouterr()
     print("out", captured.out)
