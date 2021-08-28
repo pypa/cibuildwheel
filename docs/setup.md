@@ -2,16 +2,18 @@
 title: 'Setup'
 ---
 
-# Run cibuildwheel locally {: #local}
+# Run cibuildwheel locally (optional) {: #local}
 
-If you've got [Docker](https://www.docker.com/products/docker-desktop)
-installed on your development machine, you can run a Linux build without even
+Before getting to CI setup, it can be convenient to test cibuildwheel
+locally to quickly iterate and track down issues. If you've got
+[Docker](https://www.docker.com/products/docker-desktop) installed on
+your development machine, you can run a Linux build without even
 touching CI.
 
 !!! tip
-    Even Windows can run Linux containers these days, but there are a few
-    hoops to jump through. Check [this
-    document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
+    You can run the Linux build on any platform. Even Windows can run
+    Linux containers these days, but there are a few  hoops to jump
+    through. Check [this document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
     for more info.
 
 This is convenient as it's quicker to iterate, and because the builds are
@@ -22,6 +24,11 @@ Install cibuildwheel and run a build like this:
 ```sh
 pip install cibuildwheel
 cibuildwheel --platform linux
+```
+
+Or, using [pipx](https://github.com/pypa/pipx):
+```sh
+pipx run cibuildwheel --platform linux
 ```
 
 You should see the builds taking place. You can experiment with options using environment variables or pyproject.toml.
