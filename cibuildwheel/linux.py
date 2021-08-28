@@ -306,18 +306,27 @@ def build(options: BuildOptions) -> None:
             log.step_end_with_error(
                 f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
             )
-            troubleshoot(options.package_dir, error)
+            troubleshoot(options, error)
             sys.exit(1)
 
 
-def troubleshoot(package_dir: Path, error: Exception) -> None:
+def _matches_prepared_command(error_cmd: List[str], command_template: str) -> bool:
+    if len(error_cmd) < 3 or error_cmd[0:2] != ["sh", "-c"]:
+        return False
+    command_prefix = command_template.split("{", maxsplit=1)[0].strip()
+    return error_cmd[2].startswith(command_prefix)
+
+
+def troubleshoot(options: BuildOptions, error: Exception) -> None:
+
     if isinstance(error, subprocess.CalledProcessError) and (
         error.cmd[0:4] == ["python", "-m", "pip", "wheel"]
         or error.cmd[0:3] == ["python", "-m", "build"]
+        or _matches_prepared_command(error.cmd, options.repair_command)
     ):
         # the wheel build step failed
         print("Checking for common errors...")
-        so_files = list(package_dir.glob("**/*.so"))
+        so_files = list(options.package_dir.glob("**/*.so"))
 
         if so_files:
             print(
@@ -326,10 +335,17 @@ def troubleshoot(package_dir: Path, error: Exception) -> None:
                     NOTE: Shared object (.so) files found in this project.
 
                     These files might be built against the wrong OS, causing problems with
-                    auditwheel.
+                    auditwheel. If possible, run cibuildwheel in a clean checkout.
 
                     If you're using Cython and have previously done an in-place build,
                     remove those build files (*.so and *.c) before starting cibuildwheel.
+
+                    setuptools uses the build/ folder to store its build cache. It
+                    may be necessary to remove those build files (*.so and *.o) before
+                    starting cibuildwheel.
+
+                    Files that belong to a virtual environment are probably not an issue
+                    unless you used a custom command telling cibuildwheel to activate it.
                     """
                 ),
                 file=sys.stderr,
