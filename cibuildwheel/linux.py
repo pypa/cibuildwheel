@@ -309,6 +309,7 @@ def build(options: BuildOptions) -> None:
             troubleshoot(options, error)
             sys.exit(1)
 
+
 def _matches_prepared_command(error_cmd: List[str], command_template: str) -> bool:
     if len(error_cmd) < 3 or error_cmd[0:2] != ["sh", "-c"]:
         return False
