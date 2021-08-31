@@ -63,7 +63,6 @@ def update_proj(session: nox.Session) -> None:
         "python",
         "bin/projects.py",
         "docs/data/projects.yml",
-        "--readme=README.md",
         *session.posargs,
     )
 
