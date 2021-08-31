@@ -12,17 +12,17 @@ distlib==0.3.2
     # via virtualenv
 filelock==3.0.12
     # via virtualenv
-importlib-metadata==4.6.4
+importlib-metadata==4.8.1
     # via
     #   backports.entry-points-selectable
     #   virtualenv
-platformdirs==2.2.0
+platformdirs==2.3.0
     # via virtualenv
 six==1.16.0
     # via
     #   delocate
     #   virtualenv
-typing-extensions==3.10.0.0
+typing-extensions==3.10.0.2
     # via
     #   delocate
     #   importlib-metadata

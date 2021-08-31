@@ -12,13 +12,13 @@ distlib==0.3.2
     # via virtualenv
 filelock==3.0.12
     # via virtualenv
-platformdirs==2.2.0
+platformdirs==2.3.0
     # via virtualenv
 six==1.16.0
     # via
     #   delocate
     #   virtualenv
-typing-extensions==3.10.0.0
+typing-extensions==3.10.0.2
     # via delocate
 virtualenv==20.7.2
     # via -r cibuildwheel/resources/constraints.in
