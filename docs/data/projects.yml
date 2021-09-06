@@ -102,7 +102,7 @@
 
 - name: pikepdf
   gh: pikepdf/pikepdf
-  ci: [azurepipelines]
+  ci: [github]
   os: [windows, apple, linux]
 
 - name: fathon
