@@ -9,6 +9,8 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
+from packaging.version import Version
+
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
@@ -176,6 +178,20 @@ def install_pypy(version: str, url: str) -> Path:
     return installation_bin_path
 
 
+def macos_max(*versions: str) -> str:
+    """
+    Return the current target, or the system minimum, whichever is higher.
+    Forces 11+ to always return 0 for the final digit, due to macOS
+    changes.
+    """
+
+    best_version = max(Version(s) for s in versions)
+    if best_version.major >= 11:
+        best_version = Version(f"{best_version.major}.0")
+
+    return f"{best_version.major}.{best_version.minor}"
+
+
 def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
@@ -270,13 +286,7 @@ def setup_python(
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
     env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
-
-    def macos_depl(sys_value: str) -> str:
-        "Return the current target, or the system minimum, whichever is higher"
-        cur_value = env["MACOSX_DEPLOYMENT_TARGET"]
-        cur_value_tup = tuple(int(v) for v in cur_value.split("."))
-        sys_value_tup = tuple(int(v) for v in sys_value.split("."))
-        return cur_value if cur_value_tup > sys_value_tup else sys_value
+    dep_target = env["MACOSX_DEPLOYMENT_TARGET"]
 
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
@@ -285,15 +295,19 @@ def setup_python(
         if config_is_arm64:
             # macOS 11 is the first OS with arm64 support, so the wheels
             # have that as a minimum.
-            env.setdefault("_PYTHON_HOST_PLATFORM", f"macosx-{macos_depl('11.0')}-arm64")
+            env.setdefault("_PYTHON_HOST_PLATFORM", f"macosx-{macos_max(dep_target, '11.0')}-arm64")
             env.setdefault("ARCHFLAGS", "-arch arm64")
         elif config_is_universal2:
-            env.setdefault("_PYTHON_HOST_PLATFORM", f"macosx-{macos_depl('10.9')}-universal2")
+            env.setdefault(
+                "_PYTHON_HOST_PLATFORM", f"macosx-{macos_max(dep_target, '10.9')}-universal2"
+            )
             env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
         elif python_configuration.identifier.endswith("x86_64"):
             # even on the macos11.0 Python installer, on the x86_64 side it's
             # compatible back to 10.9.
-            env.setdefault("_PYTHON_HOST_PLATFORM", f"macosx-{macos_depl('10.9')}-x86_64")
+            env.setdefault(
+                "_PYTHON_HOST_PLATFORM", f"macosx-{macos_max(dep_target, '10.9')}-x86_64"
+            )
             env.setdefault("ARCHFLAGS", "-arch x86_64")
 
     building_arm64 = config_is_arm64 or config_is_universal2
