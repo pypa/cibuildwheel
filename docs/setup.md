@@ -2,7 +2,79 @@
 title: 'Setup'
 ---
 
-# GitHub Actions [linux/mac/windows] {: #github-actions}
+# Run cibuildwheel locally (optional) {: #local}
+
+Before getting to CI setup, it can be convenient to test cibuildwheel
+locally to quickly iterate and track down issues. If you've got
+[Docker](https://www.docker.com/products/docker-desktop) installed on
+your development machine, you can run a Linux build without even
+touching CI.
+
+!!! tip
+    You can run the Linux build on any platform. Even Windows can run
+    Linux containers these days, but there are a few  hoops to jump
+    through. Check [this document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
+    for more info.
+
+This is convenient as it's quicker to iterate, and because the builds are
+happening in manylinux Docker containers, they're perfectly reproducible.
+
+Install cibuildwheel and run a build like this:
+
+```sh
+pip install cibuildwheel
+cibuildwheel --platform linux
+```
+
+Or, using [pipx](https://github.com/pypa/pipx):
+```sh
+pipx run cibuildwheel --platform linux
+```
+
+You should see the builds taking place. You can experiment with options using environment variables or pyproject.toml.
+
+!!! tab "Environment variables"
+
+    cibuildwheel will read config from the environment. Syntax varies, depending on your shell:
+
+    > POSIX shell (Linux/macOS)
+
+    ```sh
+    # run a command to set up the build system
+    export CIBW_BEFORE_ALL='apt install libpng-dev'
+
+    cibuildwheel --platform linux
+    ```
+
+    > CMD (Windows)
+
+    ```bat
+    set CIBW_BEFORE_ALL='apt install libpng-dev'
+
+    cibuildwheel --platform linux
+    ```
+
+!!! tab "pyproject.toml"
+
+    If you write your options into [`pyproject.toml`](options.md#configuration-file), you can work on your options locally, and they'll be automatically picked up when running in CI.
+
+    > pyproject.toml
+
+    ```
+    [tool.cibuildwheel]
+    before-all = "apt install libpng-dev"
+    ```
+
+    Then invoke cibuildwheel, like:
+
+    ```console
+    cibuildwheel --platform linux
+    ```
+
+
+# Configure a CI service
+
+## GitHub Actions [linux/mac/windows] {: #github-actions}
 
 To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
 
@@ -99,7 +171,7 @@ For more info on this file, check out the [docs](https://help.github.com/en/acti
 [`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
 
 
-# Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
+## Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
 
 To build Linux, Mac, and Windows wheels on Azure Pipelines, create a `azure-pipelines.yml` file in your repo.
 
@@ -113,7 +185,7 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-# Travis CI [linux/windows] {: #travis-ci}
+## Travis CI [linux/windows] {: #travis-ci}
 
 To build Linux and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
 
@@ -129,7 +201,7 @@ Then setup a deployment method by following the [Travis CI deployment docs](http
 
 [`examples/travis-ci-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/travis-ci-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
 
-# AppVeyor [linux/mac/windows] {: #appveyor}
+## AppVeyor [linux/mac/windows] {: #appveyor}
 
 To build Linux, Mac, and Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
 
@@ -145,7 +217,7 @@ AppVeyor will store the built wheels for you - you can access them from the proj
 
 For more info on this config file, check out the [docs](https://www.appveyor.com/docs/).
 
-# CircleCI [linux/mac] {: #circleci}
+## CircleCI [linux/mac] {: #circleci}
 
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
@@ -162,7 +234,7 @@ Commit this file, enable building of your repo on CircleCI, and push.
 
 CircleCI will store the built wheels for you - you can access them from the project console. Check out the CircleCI [docs](https://circleci.com/docs/2.0/configuration-reference/#section=configuration) for more info on this config file.
 
-# Gitlab CI [linux] {: #gitlab-ci}
+## Gitlab CI [linux] {: #gitlab-ci}
 
 To build Linux wheels on Gitlab CI, create a `.gitlab-ci.yml` file in your repo,
 
@@ -178,9 +250,13 @@ Gitlab will store the built wheels for you - you can access them from the Pipeli
 
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
+# Next steps
+
+Once you've got the wheel building successfully, you might want to set up [testing](options.md#test-command) or [automatic releases to PyPI](deliver-to-pypi.md#automatic-method).
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    $('.toctree-l2 a, .rst-content h1').each(function(i, el) {
+    $('a.toctree-l3, .rst-content h2').each(function(i, el) {
       var text = $(el).text()
       var match = text.match(/(.*) \[([a-z/]+)\]/);
 
