@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-<!-- 
+<!--
 Hi! If you're not sure whether your problem is a bug in cibuildwheel or something else, please consider asking a question in the Discussions tab first!
 -->
 
