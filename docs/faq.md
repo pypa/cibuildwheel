@@ -285,11 +285,23 @@ macOS has built-in [System Integrity protections](https://developer.apple.com/li
 
 To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`CIBW_REPAIR_WHEEL_COMMAND_MACOS`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command), like this:
 
-```yaml
-CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-  DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
-  DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
-```
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
+        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.macos]
+    repair_wheel_command = [
+        "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel}",
+        "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
+    ]
+    ```
 
 See [#816](https://github.com/pypa/cibuildwheel/issues/816), thanks to @phoerious for reporting.
 
