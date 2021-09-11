@@ -297,7 +297,7 @@ To work around this, use a different environment variable such as `REPAIR_LIBRAR
 
     ```toml
     [tool.cibuildwheel.macos]
-    repair_wheel_command = [
+    repair-wheel-command = [
         "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel}",
         "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
     ]
