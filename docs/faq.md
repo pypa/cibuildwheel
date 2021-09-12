@@ -251,11 +251,11 @@ To quickly test your config without doing a git push and waiting for your code t
 
 You might need to install something on the build machine. You can do this with apt/yum, brew or choco, using the [`CIBW_BEFORE_ALL`](options.md#before-all) option. Or, for a Python dependency, consider [adding it to pyproject.toml](#cibw-options-alternatives-deps).
 
-### ModuleNotFoundError on macOS
+### macOS: ModuleNotFoundError
 
 Calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/pypa/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
 
-### 'No module named XYZ' errors after running cibuildwheel on macOS
+### macOS: 'No module named XYZ' errors after running cibuildwheel
 
 `cibuildwheel` on Mac installs the distributions from Python.org system-wide during its operation. This is necessary, but it can cause some confusing errors after cibuildwheel has finished.
 
@@ -279,7 +279,33 @@ python3 -m pip install twine
 python3 -m twine upload wheelhouse/*.whl
 ```
 
-### 'ImportError: DLL load failed: The specific module could not be found' error on Windows
+### macOS: Passing DYLD_LIBRARY_PATH to delocate
+
+macOS has built-in [System Integrity protections](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) which limits the use of `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH` so that it does not automatically pass to children processes. This means if you set `DYLD_LIBRARY_PATH` before running cibuildwheel, or even set it in `CIBW_ENVIRONMENT`, it will be stripped out of the environment before delocate is called.
+
+To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`CIBW_REPAIR_WHEEL_COMMAND_MACOS`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command), like this:
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
+        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.macos]
+    repair-wheel-command = [
+        "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel}",
+        "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
+    ]
+    ```
+
+See [#816](https://github.com/pypa/cibuildwheel/issues/816), thanks to @phoerious for reporting.
+
+### Windows: 'ImportError: DLL load failed: The specific module could not be found'
 
 Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, these are included with Python, but when compiling with a newer version of Visual Studio, it is possible users will run into problems on systems that do not have these runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it. Since a Python installation normally includes these VC++ Redistributable files for [the version of the MSVC compiler used to compile Python](https://wiki.python.org/moin/WindowsCompilers), this is typically only a problem when compiling a Python C extension with a newer compiler.
 
