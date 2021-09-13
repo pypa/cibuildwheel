@@ -5,9 +5,10 @@ from . import test_projects, utils
 basic_project = test_projects.new_c_project()
 
 
-def test(tmp_path):
+def test_wheel_tag_is_correct_when_using_macosx_deployment_target(tmp_path):
     if utils.platform != "macos":
-        pytest.skip()
+        pytest.skip('This test is only relevant to MACOSX_DEPLOYMENT_TARGET')
+
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
