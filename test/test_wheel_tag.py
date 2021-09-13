@@ -5,7 +5,6 @@ from . import test_projects, utils
 basic_project = test_projects.new_c_project()
 
 
-@pytest.mark.xfail(strict=True)
 def test(tmp_path):
     if utils.platform != "macos":
         pytest.skip()
