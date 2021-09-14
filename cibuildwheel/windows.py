@@ -421,7 +421,7 @@ def build(options: BuildOptions) -> None:
                 shell(test_command_prepared, cwd="c:\\", env=virtualenv_env)
 
                 # clean up
-                shutil.rmtree(venv_dir)
+                shutil.rmtree(venv_dir, ignore_errors=True)
 
             # we're all done here; move it to output (remove if already exists)
             shutil.move(str(repaired_wheel), options.output_dir)
