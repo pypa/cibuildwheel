@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.1.1
+        uses: pypa/cibuildwheel@v2.1.2
         # to supply options, put them in 'env', like:
         # env:
         #   CIBW_SOME_OPTION: value

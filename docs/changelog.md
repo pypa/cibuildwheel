@@ -2,6 +2,14 @@
 title: Changelog
 ---
 
+### v2.1.2
+
+_14 September 2021_
+
+- 🛠 Updated CPython 3.10 to 3.10.0rc2
+- 📚 Multiple docs updates
+- 🐛 Improved warnings when built binaries are bundled into the container on Linux. (#807)
+
 ### v2.1.1
 
 _7 August 2021_

@@ -6,7 +6,7 @@ jobs:
     - bash: |
         set -o errexit
         python3 -m pip install --upgrade pip
-        pip3 install cibuildwheel==2.1.1
+        pip3 install cibuildwheel==2.1.2
       displayName: Install dependencies
     - bash: cibuildwheel --output-dir wheelhouse .
       displayName: Build wheels
@@ -20,7 +20,7 @@ jobs:
     - bash: |
         set -o errexit
         python3 -m pip install --upgrade pip
-        python3 -m pip install cibuildwheel==2.1.1
+        python3 -m pip install cibuildwheel==2.1.2
       displayName: Install dependencies
     - bash: cibuildwheel --output-dir wheelhouse .
       displayName: Build wheels
@@ -34,7 +34,7 @@ jobs:
     - bash: |
         set -o errexit
         python -m pip install --upgrade pip
-        pip install cibuildwheel==2.1.1
+        pip install cibuildwheel==2.1.2
       displayName: Install dependencies
     - bash: cibuildwheel --output-dir wheelhouse .
       displayName: Build wheels
