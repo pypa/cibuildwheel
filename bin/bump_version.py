@@ -136,6 +136,25 @@ def bump_version() -> None:
     while input('Type "done" to continue: ').strip().lower() != "done":
         pass
 
+    # run pre-commit to update the README changelog
+    subprocess.run(
+        [
+            "pre-commit",
+            "run",
+            "--files=docs/changelog.md",
+        ]
+    )
+
+    # run pre-commit to check that no errors occurred on the second run
+    subprocess.run(
+        [
+            "pre-commit",
+            "run",
+            "--files=docs/changelog.md",
+        ],
+        check=True,
+    )
+
     subprocess.run(
         [
             "git",
