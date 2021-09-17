@@ -1,6 +1,6 @@
 import pytest
 
-from cibuildwheel.options import ConfigOptionError, ConfigOptions
+from cibuildwheel.options import ConfigOptionError, ConfigOptions, _dig_first
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -181,10 +181,68 @@ def test_disallowed_a(tmp_path):
     tmp_path.joinpath("pyproject.toml").write_text(
         """
 [tool.cibuildwheel.windows]
-manylinux-x64_86-image = "manylinux1"
+manylinux-x86_64-image = "manylinux1"
 """
     )
-    disallow = {"windows": {"manylinux-x64_86-image"}}
+    disallow = {"windows": {"manylinux-x86_64-image"}}
     ConfigOptions(tmp_path, platform="linux", disallow=disallow)
     with pytest.raises(ConfigOptionError):
         ConfigOptions(tmp_path, platform="windows", disallow=disallow)
+
+
+def test_environment_override_empty(tmp_path, monkeypatch):
+    tmp_path.joinpath("pyproject.toml").write_text(
+        """
+[tool.cibuildwheel]
+manylinux-i686-image = "manylinux1"
+manylinux-x86_64-image = ""
+"""
+    )
+
+    monkeypatch.setenv("CIBW_MANYLINUX_I686_IMAGE", "")
+    monkeypatch.setenv("CIBW_MANYLINUX_AARCH64_IMAGE", "manylinux1")
+
+    options = ConfigOptions(tmp_path, platform="linux")
+
+    assert options("manylinux-x86_64-image") == ""
+    assert options("manylinux-i686-image") == ""
+    assert options("manylinux-aarch64-image") == "manylinux1"
+
+    assert options("manylinux-x86_64-image", ignore_empty=True) == "manylinux2010"
+    assert options("manylinux-i686-image", ignore_empty=True) == "manylinux1"
+    assert options("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
+
+
+@pytest.mark.parametrize("ignore_empty", (True, False))
+def test_dig_first(ignore_empty):
+    d1 = {"random": "thing"}
+    d2 = {"this": "that", "empty": ""}
+    d3 = {"other": "hi"}
+    d4 = {"this": "d4", "empty": "not"}
+
+    answer = _dig_first(
+        (d1, "empty"),
+        (d2, "empty"),
+        (d3, "empty"),
+        (d4, "empty"),
+        ignore_empty=ignore_empty,
+    )
+    assert answer == ("not" if ignore_empty else "")
+
+    answer = _dig_first(
+        (d1, "this"),
+        (d2, "this"),
+        (d3, "this"),
+        (d4, "this"),
+        ignore_empty=ignore_empty,
+    )
+    assert answer == "that"
+
+    with pytest.raises(KeyError):
+        _dig_first(
+            (d1, "this"),
+            (d2, "other"),
+            (d3, "this"),
+            (d4, "other"),
+            ignore_empty=ignore_empty,
+        )
