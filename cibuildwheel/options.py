@@ -19,26 +19,26 @@ class ConfigOptionError(KeyError):
     pass
 
 
-def _dig_first(*pairs: Tuple[Mapping[str, Any], str], ignore_empty: bool = False) -> Setting:
+def _dig_first(*pairs: Tuple[Mapping[str, Setting], str], ignore_empty: bool = False) -> Setting:
     """
     Return the first dict item that matches from pairs of dicts and keys.
-    Final result is will throw a KeyError if missing.
+    Will throw a KeyError if missing.
 
     _dig_first((dict1, "key1"), (dict2, "key2"), ...)
     """
-    (dict_like, key), *others = pairs
-    if ignore_empty:
-        return (
-            (dict_like.get(key, "") or _dig_first(*others, ignore_empty=ignore_empty))
-            if others
-            else dict_like[key]
-        )
-    else:
-        return (
-            dict_like.get(key, _dig_first(*others, ignore_empty=ignore_empty))
-            if others
-            else dict_like[key]
-        )
+    if not pairs:
+        raise ValueError("pairs cannot be empty")
+
+    for dict_like, key in pairs:
+        if key in dict_like:
+            value = dict_like[key]
+
+            if ignore_empty and value == "":
+                continue
+
+            return value
+
+    raise KeyError(key)
 
 
 class ConfigOptions:
@@ -148,7 +148,7 @@ class ConfigOptions:
         accept platform versions of the environment variable. If this is an
         array it will be merged with "sep" before returning. If it is a table,
         it will be formatted with "table['item']" using {k} and {v} and merged
-        with "table['sep']". Empty variables will not override if empty_invalid
+        with "table['sep']". Empty variables will not override if ignore_empty
         is True.
         """
 
