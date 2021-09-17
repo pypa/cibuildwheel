@@ -19,15 +19,26 @@ class ConfigOptionError(KeyError):
     pass
 
 
-def _dig_first(*pairs: Tuple[Mapping[str, Any], str]) -> Setting:
+def _dig_first(*pairs: Tuple[Mapping[str, Setting], str], ignore_empty: bool = False) -> Setting:
     """
     Return the first dict item that matches from pairs of dicts and keys.
-    Final result is will throw a KeyError if missing.
+    Will throw a KeyError if missing.
 
     _dig_first((dict1, "key1"), (dict2, "key2"), ...)
     """
-    (dict_like, key), *others = pairs
-    return dict_like.get(key, _dig_first(*others)) if others else dict_like[key]
+    if not pairs:
+        raise ValueError("pairs cannot be empty")
+
+    for dict_like, key in pairs:
+        if key in dict_like:
+            value = dict_like[key]
+
+            if ignore_empty and value == "":
+                continue
+
+            return value
+
+    raise KeyError(key)
 
 
 class ConfigOptions:
@@ -62,7 +73,7 @@ class ConfigOptions:
         defaults_path = resources_dir / "defaults.toml"
         self.default_options, self.default_platform_options = self._load_file(defaults_path)
 
-        # load the project config file
+        # Load the project config file
         config_options: Dict[str, Any] = {}
         config_platform_options: Dict[str, Any] = {}
 
@@ -75,7 +86,7 @@ class ConfigOptions:
             if pyproject_toml_path.exists():
                 config_options, config_platform_options = self._load_file(pyproject_toml_path)
 
-        # validate project config
+        # Validate project config
         for option_name in config_options:
             if not self._is_valid_global_option(option_name):
                 raise ConfigOptionError(f'Option "{option_name}" not supported in a config file')
@@ -129,6 +140,7 @@ class ConfigOptions:
         env_plat: bool = True,
         sep: Optional[str] = None,
         table: Optional[TableFmt] = None,
+        ignore_empty: bool = False,
     ) -> str:
         """
         Get and return the value for the named option from environment,
@@ -136,7 +148,8 @@ class ConfigOptions:
         accept platform versions of the environment variable. If this is an
         array it will be merged with "sep" before returning. If it is a table,
         it will be formatted with "table['item']" using {k} and {v} and merged
-        with "table['sep']".
+        with "table['sep']". Empty variables will not override if ignore_empty
+        is True.
         """
 
         if name not in self.default_options and name not in self.default_platform_options:
@@ -155,6 +168,7 @@ class ConfigOptions:
             (self.config_options, name),
             (self.default_platform_options, name),
             (self.default_options, name),
+            ignore_empty=ignore_empty,
         )
 
         if isinstance(result, dict):
