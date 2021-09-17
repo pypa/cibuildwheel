@@ -390,4 +390,3 @@
   ci: [github]
   os: [apple, linux]
   notes: Python CFFI binding to libheif library with third party dependencies like `libde265`, `x265`, `libaom` with test & publishing on PyPi.
-
