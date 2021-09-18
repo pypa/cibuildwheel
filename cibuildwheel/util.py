@@ -225,6 +225,10 @@ class BuildOptions(NamedTuple):
     build_verbosity: int
     build_frontend: BuildFrontend
 
+    def __str__(self) -> str:
+        res = (f"{option}: {value!r}" for option, value in sorted(self._asdict().items()))
+        return "\n".join(res)
+
 
 class NonPlatformWheelError(Exception):
     def __init__(self) -> None:

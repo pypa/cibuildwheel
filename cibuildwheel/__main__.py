@@ -406,8 +406,7 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
 
     print("Build options:")
     print(f"  platform: {platform!r}")
-    for option, value in sorted(build_options._asdict().items()):
-        print(f"  {option}: {value!r}")
+    print(textwrap.indent(str(build_options), "  "))
 
     warnings = detect_warnings(platform, build_options)
     if warnings:
