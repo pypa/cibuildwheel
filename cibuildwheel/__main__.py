@@ -14,7 +14,7 @@ from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.options import compute_options
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
-    BuildOptions,
+    AllBuildOptions,
     BuildSelector,
     Unbuffered,
     detect_ci_provider,
@@ -148,18 +148,20 @@ def main() -> None:
         else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
     )
 
-    build_options = compute_options(
+    all_build_options, build_options_by_selector = compute_options(
         platform, package_dir, output_dir, args.config_file, args.archs, args.prerelease_pythons
     )
 
     identifiers = get_build_identifiers(
-        platform, build_options.build_selector, build_options.architectures
+        platform, all_build_options.build_selector, all_build_options.architectures
     )
 
     if args.print_build_identifiers:
         for identifier in identifiers:
             print(identifier)
         sys.exit(0)
+
+    build_options = AllBuildOptions(all_build_options, build_options_by_selector, identifiers)
 
     # Add CIBUILDWHEEL environment variable
     # This needs to be passed on to the docker container in linux.py
@@ -200,7 +202,7 @@ def main() -> None:
             assert_never(platform)
 
 
-def print_preamble(platform: str, build_options: BuildOptions) -> None:
+def print_preamble(platform: str, build_options: AllBuildOptions) -> None:
     print(
         textwrap.dedent(
             """
@@ -254,20 +256,21 @@ def get_build_identifiers(
     return [config.identifier for config in python_configurations]
 
 
-def detect_warnings(platform: str, build_options: BuildOptions) -> List[str]:
+def detect_warnings(platform: str, all_options: AllBuildOptions) -> List[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}
-    for option_name in ["test_command", "before_build"]:
-        option_value = getattr(build_options, option_name)
+    for build_options in all_options.values():
+        for option_name in ["test_command", "before_build"]:
+            option_value = getattr(build_options, option_name)
 
-        if option_value and ("{python}" in option_value or "{pip}" in option_value):
-            # Reminder: in an f-string, double braces means literal single brace
-            msg = (
-                f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
-                "and will be removed in a future release. Simply use 'python' or 'pip' instead."
-            )
-            warnings.append(msg)
+            if option_value and ("{python}" in option_value or "{pip}" in option_value):
+                # Reminder: in an f-string, double braces means literal single brace
+                msg = (
+                    f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
+                    "and will be removed in a future release. Simply use 'python' or 'pip' instead."
+                )
+                warnings.append(msg)
 
     return warnings
 

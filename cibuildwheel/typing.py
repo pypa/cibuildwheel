@@ -12,14 +12,16 @@ else:
 __all__ = (
     "Final",
     "Literal",
-    "TypedDict",
-    "Set",
-    "Union",
-    "PopenBytes",
+    "PLATFORMS",
     "PathOrStr",
     "PlatformName",
     "Protocol",
     "PLATFORMS",
+    "PopenBytes",
+    "Protocol",
+    "Set",
+    "TypedDict",
+    "Union",
     "assert_never",
 )
 

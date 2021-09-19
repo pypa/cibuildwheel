@@ -9,7 +9,7 @@ from .docker_container import DockerContainer
 from .logger import log
 from .typing import PathOrStr, assert_never
 from .util import (
-    BuildOptions,
+    AllBuildOptions,
     BuildSelector,
     NonPlatformWheelError,
     get_build_verbosity_extra_flags,
@@ -54,7 +54,7 @@ def get_python_configurations(
 
 
 def get_build_steps(
-    options: BuildOptions, python_configurations: List[PythonConfiguration]
+    all_options: AllBuildOptions, python_configurations: List[PythonConfiguration]
 ) -> Iterator[BuildStep]:
     platforms = [
         ("cp", "manylinux_x86_64", "x86_64"),
@@ -73,15 +73,6 @@ def get_build_steps(
     ]
 
     for implementation, platform_tag, platform_arch in platforms:
-        assert options.manylinux_images is not None
-        assert options.musllinux_images is not None
-
-        docker_image = (
-            options.manylinux_images[platform_arch]
-            if platform_tag.startswith("manylinux")
-            else options.musllinux_images[platform_arch]
-        )
-
         platform_configs = [
             c
             for c in python_configurations
@@ -90,11 +81,15 @@ def get_build_steps(
         if not platform_configs:
             continue
 
-        yield BuildStep(platform_configs, platform_tag, docker_image)
+        for local_configs, docker_image in all_options.produce_image_batches(
+            platform_configs, platform_tag, platform_arch
+        ):
+            # TODO: Validate that the options are not invalid for these selectors
+            yield BuildStep(local_configs, platform_tag, docker_image)
 
 
 def build_on_docker(
-    options: BuildOptions,
+    all_options: AllBuildOptions,
     platform_configs: List[PythonConfiguration],
     docker: DockerContainer,
     container_project_path: PurePath,
@@ -105,16 +100,16 @@ def build_on_docker(
     log.step("Copying project into Docker...")
     docker.copy_into(Path.cwd(), container_project_path)
 
-    if options.before_all:
+    if all_options.before_all:
         log.step("Running before_all...")
 
         env = docker.get_environment()
         env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-        env = options.environment.as_dictionary(env, executor=docker.environment_executor)
+        env = all_options.environment.as_dictionary(env, executor=docker.environment_executor)
 
         before_all_prepared = prepare_command(
-            options.before_all,
+            all_options.before_all,
             project=container_project_path,
             package=container_package_dir,
         )
@@ -122,6 +117,7 @@ def build_on_docker(
 
     for config in platform_configs:
         log.build_start(config.identifier)
+        options = all_options[config.identifier]
 
         dependency_constraint_flags: List[PathOrStr] = []
 
@@ -284,11 +280,11 @@ def build_on_docker(
 
     log.step("Copying wheels back to host...")
     # copy the output back into the host
-    docker.copy_out(container_output_dir, options.output_dir)
+    docker.copy_out(container_output_dir, all_options.output_dir)
     log.step_end()
 
 
-def build(options: BuildOptions) -> None:
+def build(all_options: AllBuildOptions) -> None:
     try:
         # check docker is installed
         subprocess.run(["docker", "--version"], check=True, stdout=subprocess.DEVNULL)
@@ -301,19 +297,19 @@ def build(options: BuildOptions) -> None:
         )
         sys.exit(2)
 
-    assert options.manylinux_images is not None
-    assert options.musllinux_images is not None
-    python_configurations = get_python_configurations(options.build_selector, options.architectures)
+    python_configurations = get_python_configurations(
+        all_options.build_selector, all_options.architectures
+    )
 
     cwd = Path.cwd()
-    abs_package_dir = options.package_dir.resolve()
+    abs_package_dir = all_options.package_dir.resolve()
     if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         raise Exception("package_dir must be inside the working directory")
 
     container_project_path = PurePath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
 
-    for build_step in get_build_steps(options, python_configurations):
+    for build_step in get_build_steps(all_options, python_configurations):
         try:
             log.step(f"Starting Docker image {build_step.docker_image}...")
 
@@ -324,7 +320,7 @@ def build(options: BuildOptions) -> None:
             ) as docker:
 
                 build_on_docker(
-                    options,
+                    all_options,
                     build_step.platform_configs,
                     docker,
                     container_project_path,
@@ -335,7 +331,7 @@ def build(options: BuildOptions) -> None:
             log.step_end_with_error(
                 f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
             )
-            troubleshoot(options, error)
+            troubleshoot(all_options, error)
             sys.exit(1)
 
 
@@ -346,16 +342,18 @@ def _matches_prepared_command(error_cmd: List[str], command_template: str) -> bo
     return error_cmd[2].startswith(command_prefix)
 
 
-def troubleshoot(options: BuildOptions, error: Exception) -> None:
+def troubleshoot(all_options: AllBuildOptions, error: Exception) -> None:
 
     if isinstance(error, subprocess.CalledProcessError) and (
         error.cmd[0:4] == ["python", "-m", "pip", "wheel"]
         or error.cmd[0:3] == ["python", "-m", "build"]
-        or _matches_prepared_command(error.cmd, options.repair_command)
+        or _matches_prepared_command(
+            error.cmd, all_options.general_build_options.repair_command
+        )  # TODO
     ):
         # the wheel build step failed
         print("Checking for common errors...")
-        so_files = list(options.package_dir.glob("**/*.so"))
+        so_files = list(all_options.package_dir.glob("**/*.so"))
 
         if so_files:
             print(

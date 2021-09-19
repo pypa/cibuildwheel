@@ -246,3 +246,48 @@ def test_dig_first(ignore_empty):
             (d4, "other"),
             ignore_empty=ignore_empty,
         )
+
+
+PYPROJECT_2 = """
+[tool.cibuildwheel]
+build = ["cp38*", "cp37*"]
+environment = {FOO="BAR"}
+
+test-command = "pyproject"
+
+manylinux-x86_64-image = "manylinux1"
+
+[tool.cibuildwheel.macos]
+test-requires = "else"
+
+[[tool.cibuildwheel.overrides]]
+select = "cp37*"
+test-command = "pyproject-override"
+manylinux-x86_64-image = "manylinux2014"
+"""
+
+
+def test_pyproject_2(tmp_path, platform):
+    with tmp_path.joinpath("pyproject.toml").open("w") as f:
+        f.write(PYPROJECT_2)
+
+    options = ConfigOptions(tmp_path, platform=platform)
+    assert options("test-command") == "pyproject"
+    assert options.override("random")("test-command") == "pyproject"
+    assert options.override("cp37*")("test-command") == "pyproject-override"
+
+
+def test_overrides_not_a_list(tmp_path, platform):
+    with tmp_path.joinpath("pyproject.toml").open("w") as f:
+        f.write(
+            """\
+[tool.cibuildwheel]
+build = ["cp38*", "cp37*"]
+[tool.cibuildwheel.overrides]
+select = "cp37*"
+test-command = "pyproject-override"
+"""
+        )
+
+    with pytest.raises(ConfigOptionError):
+        ConfigOptions(tmp_path, platform=platform)

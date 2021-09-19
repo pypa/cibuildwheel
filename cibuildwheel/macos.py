@@ -14,8 +14,8 @@ from .environment import ParsedEnvironment
 from .logger import log
 from .typing import Literal, PathOrStr, assert_never
 from .util import (
+    AllBuildOptions,
     BuildFrontend,
-    BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
     download,
@@ -343,26 +343,29 @@ def setup_python(
     return env
 
 
-def build(options: BuildOptions) -> None:
+def build(all_options: AllBuildOptions) -> None:
     temp_dir = Path(tempfile.mkdtemp(prefix="cibuildwheel"))
     built_wheel_dir = temp_dir / "built_wheel"
     repaired_wheel_dir = temp_dir / "repaired_wheel"
 
+    all_options.check_build_selectors()
+
     try:
-        if options.before_all:
+        if all_options.before_all:
             log.step("Running before_all...")
-            env = options.environment.as_dictionary(prev_environment=os.environ)
+            env = all_options.environment.as_dictionary(prev_environment=os.environ)
             env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
             before_all_prepared = prepare_command(
-                options.before_all, project=".", package=options.package_dir
+                all_options.before_all, project=".", package=all_options.package_dir
             )
             call([before_all_prepared], shell=True, env=env)
 
         python_configurations = get_python_configurations(
-            options.build_selector, options.architectures
+            all_options.build_selector, all_options.architectures
         )
 
         for config in python_configurations:
+            options = all_options[config.identifier]
             log.build_start(config.identifier)
 
             config_is_arm64 = config.identifier.endswith("arm64")

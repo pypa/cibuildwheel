@@ -59,6 +59,7 @@ repos:
       - tomli
       - types-certifi
       - types-click
+      - types-dataclasses
       - types-jinja2
       - types-pyyaml
       - types-requests
