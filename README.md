@@ -22,15 +22,16 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|   | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | manylinux x86_64 | manylinux i686 | manylinux aarch64 | manylinux ppc64le | manylinux s390x | musllinux x86_64 | musllinux i686 | musllinux aarch64 | musllinux ppc64le | musllinux s390x |
-|---------------|----|-----|-----|-----|----|-----|----|-----|-----|----|-----|----|-----|-----|
-| CPython 3.6   | ✅ | N/A | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.7   | ✅ | N/A | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.8   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.9   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.10  | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
-| PyPy 3.7 v7.3 | ✅ | N/A | ✅  | N/A | ✅ | ✅  | ✅ | N/A | N/A | N/A | N/A | N/A | N/A | N/A |
+|   | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x |
+|---------------|----|-----|-----|-----|----|-----|----|-----|-----|
+| CPython 3.6   | ✅ | N/A | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.7   | ✅ | N/A | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.8   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.9   | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.10  | ✅ | ✅  | ✅  | ✅  | ✅ | ✅  | ✅ | ✅  | ✅  |
+| PyPy 3.7 v7.3 | ✅ | N/A | ✅  | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
 
+<sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
