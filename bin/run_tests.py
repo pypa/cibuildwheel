@@ -17,7 +17,20 @@ if __name__ == "__main__":
     subprocess.run(unit_test_args, check=True)
 
     # run the integration tests
+    xdist_test_args = []
+    if sys.platform.startswith("linux"):
+        xdist_test_args = ["-n", "2"]
     subprocess.run(
-        [sys.executable, "-m", "pytest", "-x", "--durations", "0", "--timeout=2400", "test"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            *xdist_test_args,
+            "-x",
+            "--durations",
+            "0",
+            "--timeout=2400",
+            "test",
+        ],
         check=True,
     )

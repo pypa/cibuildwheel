@@ -11,6 +11,7 @@ extras = {
         "jinja2",
         "pytest>=6",
         "pytest-timeout",
+        "pytest-xdist; sys_platform == 'linux'",
     ],
     "bin": [
         "click",
