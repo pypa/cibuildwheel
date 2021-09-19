@@ -780,7 +780,7 @@ Platform-specific environment variables are also available:<br/>
     In configuration mode, you can use an inline array, and the items will be joined with `&&`.
 
 
-### CIBW_MANYLINUX_*_IMAGE / CIBW_MUSLLINUX_*_IMAGE {: #linux-image}
+### `CIBW_MANYLINUX_*_IMAGE`, `CIBW_MUSLLINUX_*_IMAGE` {: #linux-image}
 > Specify alternative manylinux / musllinux Docker images
 
 The available options are (default value):
