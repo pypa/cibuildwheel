@@ -66,7 +66,7 @@ _1 May 2021_
 _22 Feb 2021_
 
 - ✨ Added `manylinux_2_24` support. To use these new Debian-based manylinux
-  images, set your [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)
+  images, set your [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image)
   options to `manylinux_2_24`.
 - 🛠 On macOS, we now set `MACOSX_DEPLOYMENT_TARGET` in before running
   `CIBW_BEFORE_ALL`. This is useful when using `CIBW_BEFORE_ALL` to build a
@@ -321,7 +321,7 @@ _2 May 2020_
   Studio can still effect things.
 
   This can be controlled using the [CIBW_DEPENDENCY_VERSIONS](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)
-  and [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image)
+  and [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image)
   options - if you always want to use the latest toolchain, you can still do
   that, or you can specify your own pip constraints file and manylinux image.
   (#256)
@@ -396,7 +396,7 @@ _10 November 2019_
   build using the manylinux2010 images by default. If your project is still
   manylinux1 compatible, you should get both manylinux1 and manylinux2010
   wheels - you can upload both to PyPI. If you always require manylinux1 wheels, you can
-  build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option.
+  build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image) option.
   (#155)
 - 📚 Documentation is now on its [own mini-site](https://cibuildwheel.readthedocs.io),
    rather than on the README (#169)
