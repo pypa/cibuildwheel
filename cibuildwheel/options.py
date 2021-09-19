@@ -1,11 +1,25 @@
 import os
+import sys
+import traceback
+from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Union
 
 import toml
 
-from .typing import PLATFORMS, TypedDict
-from .util import resources_dir
+from .architecture import Architecture
+from .environment import EnvironmentParseError, parse_environment
+from .typing import PLATFORMS, PlatformName, TypedDict
+from .util import (
+    MANYLINUX_ARCHS,
+    MUSLLINUX_ARCHS,
+    BuildFrontend,
+    BuildOptions,
+    BuildSelector,
+    DependencyConstraints,
+    TestSelector,
+    resources_dir,
+)
 
 Setting = Union[Dict[str, str], List[str], str]
 
@@ -183,3 +197,132 @@ class ConfigOptions:
             return str(result)
         else:
             return result
+
+
+def compute_options(
+    options: ConfigOptions,
+    args_archs: Optional[str],
+    build_selector: BuildSelector,
+    test_selector: TestSelector,
+    platform: PlatformName,
+    package_dir: Path,
+    output_dir: Path,
+) -> BuildOptions:
+    """
+    Gather options from the command line, environment, and configuration file.
+    """
+    # Can't be configured per selector
+    before_all = options("before-all", sep=" && ")
+
+    archs_config_str = args_archs or options("archs", sep=" ")
+
+    build_frontend_str = options("build-frontend", env_plat=False)
+    environment_config = options("environment", table={"item": '{k}="{v}"', "sep": " "})
+    before_build = options("before-build", sep=" && ")
+    repair_command = options("repair-wheel-command", sep=" && ")
+
+    dependency_versions = options("dependency-versions")
+    test_command = options("test-command", sep=" && ")
+    before_test = options("before-test", sep=" && ")
+    test_requires = options("test-requires", sep=" ").split()
+    test_extras = options("test-extras", sep=",")
+    build_verbosity_str = options("build-verbosity")
+
+    build_frontend: BuildFrontend
+    if build_frontend_str == "build":
+        build_frontend = "build"
+    elif build_frontend_str == "pip":
+        build_frontend = "pip"
+    else:
+        msg = f"cibuildwheel: Unrecognised build frontend '{build_frontend}', only 'pip' and 'build' are supported"
+        print(msg, file=sys.stderr)
+        sys.exit(2)
+
+    try:
+        environment = parse_environment(environment_config)
+    except (EnvironmentParseError, ValueError):
+        print(f'cibuildwheel: Malformed environment option "{environment_config}"', file=sys.stderr)
+        traceback.print_exc(None, sys.stderr)
+        sys.exit(2)
+
+    if dependency_versions == "pinned":
+        dependency_constraints: Optional[
+            DependencyConstraints
+        ] = DependencyConstraints.with_defaults()
+    elif dependency_versions == "latest":
+        dependency_constraints = None
+    else:
+        dependency_versions_path = Path(dependency_versions)
+        dependency_constraints = DependencyConstraints(dependency_versions_path)
+
+    if test_extras:
+        test_extras = f"[{test_extras}]"
+
+    try:
+        build_verbosity = min(3, max(-3, int(build_verbosity_str)))
+    except ValueError:
+        build_verbosity = 0
+
+    archs = Architecture.parse_config(archs_config_str, platform=platform)
+
+    manylinux_images: Dict[str, str] = {}
+    musllinux_images: Dict[str, str] = {}
+    if platform == "linux":
+        pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
+        all_pinned_docker_images = ConfigParser()
+        all_pinned_docker_images.read(pinned_docker_images_file)
+        # all_pinned_docker_images looks like a dict of dicts, e.g.
+        # { 'x86_64': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
+        #   'i686': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
+        #   'pypy_x86_64': {'manylinux2010': '...' }
+        #   ... }
+
+        for build_platform in MANYLINUX_ARCHS:
+            pinned_images = all_pinned_docker_images[build_platform]
+
+            config_value = options(f"manylinux-{build_platform}-image", ignore_empty=True)
+
+            if not config_value:
+                # default to manylinux2010 if it's available, otherwise manylinux2014
+                image = pinned_images.get("manylinux2010") or pinned_images.get("manylinux2014")
+            elif config_value in pinned_images:
+                image = pinned_images[config_value]
+            else:
+                image = config_value
+
+            manylinux_images[build_platform] = image
+
+        for build_platform in MUSLLINUX_ARCHS:
+            pinned_images = all_pinned_docker_images[build_platform]
+
+            config_value = options(f"musllinux-{build_platform}-image")
+
+            if config_value is None:
+                image = pinned_images.get("musllinux_1_1")
+            elif config_value in pinned_images:
+                image = pinned_images[config_value]
+            else:
+                image = config_value
+
+            musllinux_images[build_platform] = image
+
+    return BuildOptions(
+        architectures=archs,
+        package_dir=package_dir,
+        output_dir=output_dir,
+        test_command=test_command,
+        test_requires=test_requires,
+        test_extras=test_extras,
+        before_test=before_test,
+        before_build=before_build,
+        before_all=before_all,
+        build_verbosity=build_verbosity,
+        build_selector=build_selector,
+        test_selector=test_selector,
+        repair_command=repair_command,
+        environment=environment,
+        dependency_constraints=dependency_constraints,
+        manylinux_images=manylinux_images or None,
+        musllinux_images=musllinux_images or None,
+        build_frontend=build_frontend,
+    )
