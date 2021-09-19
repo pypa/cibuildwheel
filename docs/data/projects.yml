@@ -383,3 +383,10 @@
   ci: [github]
   os: [apple, windows]
   notes: Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc.
+
+- name: pillow-heif
+  gh: bigcat88/pillow_heif
+  pypi: pillow-heif
+  ci: [github]
+  os: [apple, linux]
+  notes: Python CFFI binding to libheif library with third party dependencies like `libde265`, `x265`, `libaom` with test & publishing on PyPi.
