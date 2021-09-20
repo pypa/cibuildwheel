@@ -2,7 +2,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import List, NamedTuple, Set
+from typing import Iterator, List, NamedTuple, Set, Tuple
 
 from .architecture import Architecture
 from .docker_container import DockerContainer
@@ -47,6 +47,46 @@ def get_python_configurations(
     ]
 
 
+def get_linux_platforms(
+    options: BuildOptions, python_configurations: List[PythonConfiguration]
+) -> Iterator[Tuple[List[PythonConfiguration], str, str]]:
+    platforms = [
+        ("cp", "manylinux_x86_64", "x86_64"),
+        ("cp", "manylinux_i686", "i686"),
+        ("cp", "manylinux_aarch64", "aarch64"),
+        ("cp", "manylinux_ppc64le", "ppc64le"),
+        ("cp", "manylinux_s390x", "s390x"),
+        ("pp", "manylinux_x86_64", "pypy_x86_64"),
+        ("pp", "manylinux_aarch64", "pypy_aarch64"),
+        ("pp", "manylinux_i686", "pypy_i686"),
+        ("cp", "musllinux_x86_64", "x86_64"),
+        ("cp", "musllinux_i686", "i686"),
+        ("cp", "musllinux_aarch64", "aarch64"),
+        ("cp", "musllinux_ppc64le", "ppc64le"),
+        ("cp", "musllinux_s390x", "s390x"),
+    ]
+
+    for implementation, platform_tag, platform_arch in platforms:
+        assert options.manylinux_images is not None
+        assert options.musllinux_images is not None
+
+        docker_image = (
+            options.manylinux_images[platform_arch]
+            if platform_tag.startswith("manylinux")
+            else options.musllinux_images[platform_arch]
+        )
+
+        platform_configs = [
+            c
+            for c in python_configurations
+            if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)
+        ]
+        if not platform_configs:
+            continue
+
+        yield platform_configs, platform_tag, docker_image
+
+
 def build(options: BuildOptions) -> None:
     try:
         # check docker is installed
@@ -63,21 +103,6 @@ def build(options: BuildOptions) -> None:
     assert options.manylinux_images is not None
     assert options.musllinux_images is not None
     python_configurations = get_python_configurations(options.build_selector, options.architectures)
-    platforms = [
-        ("cp", "manylinux_x86_64", options.manylinux_images["x86_64"]),
-        ("cp", "manylinux_i686", options.manylinux_images["i686"]),
-        ("cp", "manylinux_aarch64", options.manylinux_images["aarch64"]),
-        ("cp", "manylinux_ppc64le", options.manylinux_images["ppc64le"]),
-        ("cp", "manylinux_s390x", options.manylinux_images["s390x"]),
-        ("pp", "manylinux_x86_64", options.manylinux_images["pypy_x86_64"]),
-        ("pp", "manylinux_aarch64", options.manylinux_images["pypy_aarch64"]),
-        ("pp", "manylinux_i686", options.manylinux_images["pypy_i686"]),
-        ("cp", "musllinux_x86_64", options.musllinux_images["x86_64"]),
-        ("cp", "musllinux_i686", options.musllinux_images["i686"]),
-        ("cp", "musllinux_aarch64", options.musllinux_images["aarch64"]),
-        ("cp", "musllinux_ppc64le", options.musllinux_images["ppc64le"]),
-        ("cp", "musllinux_s390x", options.musllinux_images["s390x"]),
-    ]
 
     cwd = Path.cwd()
     abs_package_dir = options.package_dir.resolve()
@@ -88,15 +113,9 @@ def build(options: BuildOptions) -> None:
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
     container_output_dir = PurePath("/output")
 
-    for implementation, platform_tag, docker_image in platforms:
-        platform_configs = [
-            c
-            for c in python_configurations
-            if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)
-        ]
-        if not platform_configs:
-            continue
-
+    for platform_configs, platform_tag, docker_image in get_linux_platforms(
+        options, python_configurations
+    ):
         try:
             log.step(f"Starting Docker image {docker_image}...")
             with DockerContainer(
