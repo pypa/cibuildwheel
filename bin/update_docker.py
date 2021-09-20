@@ -19,14 +19,15 @@ class Image(NamedTuple):
 
 
 images = [
+    # manylinux1 images
     Image("manylinux1", "x86_64", "quay.io/pypa/manylinux1_x86_64", None),
     Image("manylinux1", "i686", "quay.io/pypa/manylinux1_i686", None),
-    # 2010 images
+    # manylinux2010 images
     Image("manylinux2010", "x86_64", "quay.io/pypa/manylinux2010_x86_64", None),
     Image("manylinux2010", "i686", "quay.io/pypa/manylinux2010_i686", None),
     Image("manylinux2010", "pypy_x86_64", "quay.io/pypa/manylinux2010_x86_64", None),
     Image("manylinux2010", "pypy_i686", "quay.io/pypa/manylinux2010_i686", None),
-    # 2014 images
+    # manylinux2014 images
     Image("manylinux2014", "x86_64", "quay.io/pypa/manylinux2014_x86_64", None),
     Image("manylinux2014", "i686", "quay.io/pypa/manylinux2014_i686", None),
     Image("manylinux2014", "aarch64", "quay.io/pypa/manylinux2014_aarch64", None),
@@ -35,7 +36,7 @@ images = [
     Image("manylinux2014", "pypy_x86_64", "quay.io/pypa/manylinux2014_x86_64", None),
     Image("manylinux2014", "pypy_i686", "quay.io/pypa/manylinux2014_i686", None),
     Image("manylinux2014", "pypy_aarch64", "quay.io/pypa/manylinux2014_aarch64", None),
-    # 2_24 images
+    # manylinux_2_24 images
     Image("manylinux_2_24", "x86_64", "quay.io/pypa/manylinux_2_24_x86_64", None),
     Image("manylinux_2_24", "i686", "quay.io/pypa/manylinux_2_24_i686", None),
     Image("manylinux_2_24", "aarch64", "quay.io/pypa/manylinux_2_24_aarch64", None),
@@ -44,6 +45,12 @@ images = [
     Image("manylinux_2_24", "pypy_x86_64", "quay.io/pypa/manylinux_2_24_x86_64", None),
     Image("manylinux_2_24", "pypy_i686", "quay.io/pypa/manylinux_2_24_i686", None),
     Image("manylinux_2_24", "pypy_aarch64", "quay.io/pypa/manylinux_2_24_aarch64", None),
+    # musllinux_1_1 images
+    Image("musllinux_1_1", "x86_64", "quay.io/pypa/musllinux_1_1_x86_64", None),
+    Image("musllinux_1_1", "i686", "quay.io/pypa/musllinux_1_1_i686", None),
+    Image("musllinux_1_1", "aarch64", "quay.io/pypa/musllinux_1_1_aarch64", None),
+    Image("musllinux_1_1", "ppc64le", "quay.io/pypa/musllinux_1_1_ppc64le", None),
+    Image("musllinux_1_1", "s390x", "quay.io/pypa/musllinux_1_1_s390x", None),
 ]
 
 config = configparser.ConfigParser()

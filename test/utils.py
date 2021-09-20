@@ -103,6 +103,7 @@ def expected_wheels(
     package_name,
     package_version,
     manylinux_versions=None,
+    musllinux_versions=None,
     macosx_deployment_target="10.9",
     machine_arch=None,
 ):
@@ -122,6 +123,9 @@ def expected_wheels(
             manylinux_versions = ["manylinux_2_5", "manylinux1", "manylinux_2_12", "manylinux2010"]
         else:
             manylinux_versions = ["manylinux_2_17", "manylinux2014"]
+
+    if musllinux_versions is None:
+        musllinux_versions = ["musllinux_1_1"]
 
     python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39", "cp310-cp310"]
 
@@ -155,6 +159,16 @@ def expected_wheels(
                 )
                 for architecture in architectures
             ]
+            if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
+                platform_tags.extend(
+                    [
+                        ".".join(
+                            f"{musllinux_version}_{architecture}"
+                            for musllinux_version in musllinux_versions
+                        )
+                        for architecture in architectures
+                    ]
+                )
 
         elif platform == "windows":
             if python_abi_tag.startswith("cp"):

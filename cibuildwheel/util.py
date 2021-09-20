@@ -215,6 +215,7 @@ class BuildOptions(NamedTuple):
     before_build: Optional[str]
     repair_command: str
     manylinux_images: Optional[Dict[str, str]]
+    musllinux_images: Optional[Dict[str, str]]
     dependency_constraints: Optional[DependencyConstraints]
     test_command: Optional[str]
     test_selector: TestSelector
