@@ -1,0 +1,31 @@
+name: General issue
+description: Open a general issue
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      Hi! If you're not sure whether your problem is a bug in cibuildwheel or something else, please consider asking a question in the Discussions tab first.
+
+- type: textarea
+  id: description
+  attributes:
+    label: Description
+
+- type: input
+  id: log
+  attributes:
+    label: Build log
+    description: If relevant, please provide a link to a build log that shows the problem
+    placeholder: https://...
+  validations:
+    required: false
+
+- type: input
+  id: ci-config
+  attributes:
+    label: CI config
+    description: Link to the CI config that produced the build log above. e.g. the Github Actions workflow file
+    placeholder: https://...
+  validations:
+    required: false
