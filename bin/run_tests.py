@@ -16,10 +16,9 @@ if __name__ == "__main__":
         unit_test_args += ["--run-docker"]
     subprocess.run(unit_test_args, check=True)
 
+    xdist_test_args = ["-n", "2"] if sys.platform.startswith("linux") else []
+
     # run the integration tests
-    xdist_test_args = []
-    if sys.platform.startswith("linux"):
-        xdist_test_args = ["-n", "2"]
     subprocess.run(
         [
             sys.executable,
