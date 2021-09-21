@@ -2,7 +2,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import Iterator, List, NamedTuple, Set, Tuple
+from typing import Iterator, List, NamedTuple, Set
 
 from .architecture import Architecture
 from .docker_container import DockerContainer
@@ -28,6 +28,12 @@ class PythonConfiguration(NamedTuple):
         return PurePath(self.path_str)
 
 
+class BuildConfig(NamedTuple):
+    platform_configs: List[PythonConfiguration]
+    platform_tag: str
+    docker_image: str
+
+
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
@@ -47,9 +53,9 @@ def get_python_configurations(
     ]
 
 
-def get_linux_platforms(
+def get_build_configs(
     options: BuildOptions, python_configurations: List[PythonConfiguration]
-) -> Iterator[Tuple[List[PythonConfiguration], str, str]]:
+) -> Iterator[BuildConfig]:
     platforms = [
         ("cp", "manylinux_x86_64", "x86_64"),
         ("cp", "manylinux_i686", "i686"),
@@ -84,7 +90,7 @@ def get_linux_platforms(
         if not platform_configs:
             continue
 
-        yield platform_configs, platform_tag, docker_image
+        yield BuildConfig(platform_configs, platform_tag, docker_image)
 
 
 def build_on_docker(
@@ -307,18 +313,22 @@ def build(options: BuildOptions) -> None:
     container_project_path = PurePath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
 
-    for platform_configs, platform_tag, docker_image in get_linux_platforms(
-        options, python_configurations
-    ):
+    for build_config in get_build_configs(options, python_configurations):
         try:
-            log.step(f"Starting Docker image {docker_image}...")
+            log.step(f"Starting Docker image {build_config.docker_image}...")
+
             with DockerContainer(
-                docker_image,
-                simulate_32_bit=platform_tag.endswith("i686"),
+                build_config.docker_image,
+                simulate_32_bit=build_config.platform_tag.endswith("i686"),
                 cwd=container_project_path,
             ) as docker:
+
                 build_on_docker(
-                    options, platform_configs, docker, container_project_path, container_package_dir
+                    options,
+                    build_config.platform_configs,
+                    docker,
+                    container_project_path,
+                    container_package_dir,
                 )
 
         except subprocess.CalledProcessError as error:
