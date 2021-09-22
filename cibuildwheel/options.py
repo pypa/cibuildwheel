@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Union
 
 import toml
+from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
 from .environment import EnvironmentParseError, parse_environment
+from .projectfiles import get_requires_python_str
 from .typing import PLATFORMS, PlatformName, TypedDict
 from .util import (
     MANYLINUX_ARCHS,
@@ -19,6 +21,7 @@ from .util import (
     DependencyConstraints,
     TestSelector,
     resources_dir,
+    strtobool,
 )
 
 Setting = Union[Dict[str, str], List[str], str]
@@ -200,6 +203,71 @@ class ConfigOptions:
 
 
 def compute_options(
+    platform: PlatformName,
+    package_dir: Path,
+    output_dir: Path,
+    config_file: Optional[str],
+    args_archs: Optional[str],
+    prerelease_pythons: bool,
+) -> BuildOptions:
+    """
+    Compute the options from the environment and configuration file.
+    """
+
+    manylinux_identifiers = {
+        f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS
+    }
+    musllinux_identifiers = {
+        f"musllinux-{build_platform}-image" for build_platform in MUSLLINUX_ARCHS
+    }
+    disallow = {
+        "linux": {"dependency-versions"},
+        "macos": manylinux_identifiers | musllinux_identifiers,
+        "windows": manylinux_identifiers | musllinux_identifiers,
+    }
+    options = ConfigOptions(package_dir, config_file, platform=platform, disallow=disallow)
+
+    build_config = options("build", env_plat=False, sep=" ") or "*"
+    skip_config = options("skip", env_plat=False, sep=" ")
+    test_skip = options("test-skip", env_plat=False, sep=" ")
+
+    prerelease_pythons = prerelease_pythons or strtobool(
+        os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
+    )
+
+    deprecated_selectors("CIBW_BUILD", build_config, error=True)
+    deprecated_selectors("CIBW_SKIP", skip_config)
+    deprecated_selectors("CIBW_TEST_SKIP", test_skip)
+
+    package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
+
+    if not any(package_dir.joinpath(name).exists() for name in package_files):
+        names = ", ".join(sorted(package_files, reverse=True))
+        msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
+        print(msg, file=sys.stderr)
+        sys.exit(2)
+
+    # This is not supported in tool.cibuildwheel, as it comes from a standard location.
+    # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
+    requires_python_str: Optional[str] = os.environ.get(
+        "CIBW_PROJECT_REQUIRES_PYTHON"
+    ) or get_requires_python_str(package_dir)
+    requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
+
+    build_selector = BuildSelector(
+        build_config=build_config,
+        skip_config=skip_config,
+        requires_python=requires_python,
+        prerelease_pythons=prerelease_pythons,
+    )
+    test_selector = TestSelector(skip_config=test_skip)
+
+    return _compute_single_options(
+        options, args_archs, build_selector, test_selector, platform, package_dir, output_dir
+    )
+
+
+def _compute_single_options(
     options: ConfigOptions,
     args_archs: Optional[str],
     build_selector: BuildSelector,
@@ -326,3 +394,11 @@ def compute_options(
         musllinux_images=musllinux_images or None,
         build_frontend=build_frontend,
     )
+
+
+def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
+    if "p2" in selector or "p35" in selector:
+        msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
+        print(msg, file=sys.stderr)
+        if error:
+            sys.exit(4)

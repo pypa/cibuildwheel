@@ -3,9 +3,7 @@ import os
 import sys
 import textwrap
 from pathlib import Path
-from typing import List, Optional, Set, Union
-
-from packaging.specifiers import SpecifierSet
+from typing import List, Set, Union
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -13,15 +11,11 @@ import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
-from cibuildwheel.options import ConfigOptions, compute_options
-from cibuildwheel.projectfiles import get_requires_python_str
+from cibuildwheel.options import compute_options
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
-    MANYLINUX_ARCHS,
-    MUSLLINUX_ARCHS,
     BuildOptions,
     BuildSelector,
-    TestSelector,
     Unbuffered,
     detect_ci_provider,
 )
@@ -154,59 +148,13 @@ def main() -> None:
         else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
     )
 
-    manylinux_identifiers = {
-        f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS
-    }
-    musllinux_identifiers = {
-        f"musllinux-{build_platform}-image" for build_platform in MUSLLINUX_ARCHS
-    }
-    disallow = {
-        "linux": {"dependency-versions"},
-        "macos": manylinux_identifiers | musllinux_identifiers,
-        "windows": manylinux_identifiers | musllinux_identifiers,
-    }
-    options = ConfigOptions(package_dir, args.config_file, platform=platform, disallow=disallow)
-
-    build_config = options("build", env_plat=False, sep=" ") or "*"
-    skip_config = options("skip", env_plat=False, sep=" ")
-    test_skip = options("test-skip", env_plat=False, sep=" ")
-
-    prerelease_pythons = args.prerelease_pythons or cibuildwheel.util.strtobool(
-        os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
-    )
-
-    deprecated_selectors("CIBW_BUILD", build_config, error=True)
-    deprecated_selectors("CIBW_SKIP", skip_config)
-    deprecated_selectors("CIBW_TEST_SKIP", test_skip)
-
-    package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
-
-    if not any(package_dir.joinpath(name).exists() for name in package_files):
-        names = ", ".join(sorted(package_files, reverse=True))
-        msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
-        print(msg, file=sys.stderr)
-        sys.exit(2)
-
-    # This is not supported in tool.cibuildwheel, as it comes from a standard location.
-    # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
-    requires_python_str: Optional[str] = os.environ.get(
-        "CIBW_PROJECT_REQUIRES_PYTHON"
-    ) or get_requires_python_str(package_dir)
-    requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
-
-    build_selector = BuildSelector(
-        build_config=build_config,
-        skip_config=skip_config,
-        requires_python=requires_python,
-        prerelease_pythons=prerelease_pythons,
-    )
-    test_selector = TestSelector(skip_config=test_skip)
-
     build_options = compute_options(
-        options, args.archs, build_selector, test_selector, platform, package_dir, output_dir
+        platform, package_dir, output_dir, args.config_file, args.archs, args.prerelease_pythons
     )
 
-    identifiers = get_build_identifiers(platform, build_selector, build_options.architectures)
+    identifiers = get_build_identifiers(
+        platform, build_options.build_selector, build_options.architectures
+    )
 
     if args.print_build_identifiers:
         for identifier in identifiers:
@@ -229,7 +177,10 @@ def main() -> None:
         sys.exit(4)
 
     if not identifiers:
-        print(f"cibuildwheel: No build identifiers selected: {build_selector}", file=sys.stderr)
+        print(
+            f"cibuildwheel: No build identifiers selected: {build_options.build_selector}",
+            file=sys.stderr,
+        )
         if not args.allow_empty:
             sys.exit(3)
 
@@ -247,14 +198,6 @@ def main() -> None:
             cibuildwheel.macos.build(build_options)
         else:
             assert_never(platform)
-
-
-def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
-    if "p2" in selector or "p35" in selector:
-        msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
-        print(msg, file=sys.stderr)
-        if error:
-            sys.exit(4)
 
 
 def print_preamble(platform: str, build_options: BuildOptions) -> None:
