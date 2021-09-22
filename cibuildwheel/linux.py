@@ -28,7 +28,7 @@ class PythonConfiguration(NamedTuple):
         return PurePath(self.path_str)
 
 
-class BuildConfig(NamedTuple):
+class BuildStep(NamedTuple):
     platform_configs: List[PythonConfiguration]
     platform_tag: str
     docker_image: str
@@ -53,9 +53,9 @@ def get_python_configurations(
     ]
 
 
-def get_build_configs(
+def get_build_step(
     options: BuildOptions, python_configurations: List[PythonConfiguration]
-) -> Iterator[BuildConfig]:
+) -> Iterator[BuildStep]:
     platforms = [
         ("cp", "manylinux_x86_64", "x86_64"),
         ("cp", "manylinux_i686", "i686"),
@@ -90,7 +90,7 @@ def get_build_configs(
         if not platform_configs:
             continue
 
-        yield BuildConfig(platform_configs, platform_tag, docker_image)
+        yield BuildStep(platform_configs, platform_tag, docker_image)
 
 
 def build_on_docker(
@@ -313,19 +313,19 @@ def build(options: BuildOptions) -> None:
     container_project_path = PurePath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
 
-    for build_config in get_build_configs(options, python_configurations):
+    for build_step in get_build_step(options, python_configurations):
         try:
-            log.step(f"Starting Docker image {build_config.docker_image}...")
+            log.step(f"Starting Docker image {build_step.docker_image}...")
 
             with DockerContainer(
-                build_config.docker_image,
-                simulate_32_bit=build_config.platform_tag.endswith("i686"),
+                build_step.docker_image,
+                simulate_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
             ) as docker:
 
                 build_on_docker(
                     options,
-                    build_config.platform_configs,
+                    build_step.platform_configs,
                     docker,
                     container_project_path,
                     container_package_dir,
