@@ -53,7 +53,7 @@ def get_python_configurations(
     ]
 
 
-def get_build_step(
+def get_build_steps(
     options: BuildOptions, python_configurations: List[PythonConfiguration]
 ) -> Iterator[BuildStep]:
     platforms = [
@@ -313,7 +313,7 @@ def build(options: BuildOptions) -> None:
     container_project_path = PurePath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
 
-    for build_step in get_build_step(options, python_configurations):
+    for build_step in get_build_steps(options, python_configurations):
         try:
             log.step(f"Starting Docker image {build_step.docker_image}...")
 

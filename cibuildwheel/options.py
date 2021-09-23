@@ -277,7 +277,7 @@ def _compute_single_options(
     output_dir: Path,
 ) -> BuildOptions:
     """
-    Gather options from the command line, environment, and configuration file.
+    Compute BuildOptions for a single run configuration.
     """
     # Can't be configured per selector
     before_all = options("before-all", sep=" && ")
