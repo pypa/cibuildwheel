@@ -65,3 +65,6 @@ module = [
     "github",
 ]
 ignore_missing_imports = true
+
+[tool.pycln]
+all = true

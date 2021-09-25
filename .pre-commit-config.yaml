@@ -25,6 +25,13 @@ repos:
     exclude: ^(cibuildwheel|unit_test|test)/
     args: ["--py37-plus"]
 
+# Autoremoves unused imports
+- repo: https://github.com/hadialqattan/pycln
+  rev: v1.0.3
+  hooks:
+  - id: pycln
+    args: [--config=pyproject.toml]
+
 - repo: https://github.com/PyCQA/isort
   rev: 5.9.3
   hooks:
