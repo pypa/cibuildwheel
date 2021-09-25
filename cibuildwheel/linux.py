@@ -2,7 +2,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import List, NamedTuple, Set
+from typing import Iterator, List, NamedTuple, Set
 
 from .architecture import Architecture
 from .docker_container import DockerContainer
@@ -28,6 +28,12 @@ class PythonConfiguration(NamedTuple):
         return PurePath(self.path_str)
 
 
+class BuildStep(NamedTuple):
+    platform_configs: List[PythonConfiguration]
+    platform_tag: str
+    docker_image: str
+
+
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
@@ -47,6 +53,241 @@ def get_python_configurations(
     ]
 
 
+def get_build_steps(
+    options: BuildOptions, python_configurations: List[PythonConfiguration]
+) -> Iterator[BuildStep]:
+    platforms = [
+        ("cp", "manylinux_x86_64", "x86_64"),
+        ("cp", "manylinux_i686", "i686"),
+        ("cp", "manylinux_aarch64", "aarch64"),
+        ("cp", "manylinux_ppc64le", "ppc64le"),
+        ("cp", "manylinux_s390x", "s390x"),
+        ("pp", "manylinux_x86_64", "pypy_x86_64"),
+        ("pp", "manylinux_aarch64", "pypy_aarch64"),
+        ("pp", "manylinux_i686", "pypy_i686"),
+        ("cp", "musllinux_x86_64", "x86_64"),
+        ("cp", "musllinux_i686", "i686"),
+        ("cp", "musllinux_aarch64", "aarch64"),
+        ("cp", "musllinux_ppc64le", "ppc64le"),
+        ("cp", "musllinux_s390x", "s390x"),
+    ]
+
+    for implementation, platform_tag, platform_arch in platforms:
+        assert options.manylinux_images is not None
+        assert options.musllinux_images is not None
+
+        docker_image = (
+            options.manylinux_images[platform_arch]
+            if platform_tag.startswith("manylinux")
+            else options.musllinux_images[platform_arch]
+        )
+
+        platform_configs = [
+            c
+            for c in python_configurations
+            if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)
+        ]
+        if not platform_configs:
+            continue
+
+        yield BuildStep(platform_configs, platform_tag, docker_image)
+
+
+def build_on_docker(
+    options: BuildOptions,
+    platform_configs: List[PythonConfiguration],
+    docker: DockerContainer,
+    container_project_path: PurePath,
+    container_package_dir: PurePath,
+) -> None:
+    container_output_dir = PurePath("/output")
+
+    log.step("Copying project into Docker...")
+    docker.copy_into(Path.cwd(), container_project_path)
+
+    if options.before_all:
+        log.step("Running before_all...")
+
+        env = docker.get_environment()
+        env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
+        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+        env = options.environment.as_dictionary(env, executor=docker.environment_executor)
+
+        before_all_prepared = prepare_command(
+            options.before_all,
+            project=container_project_path,
+            package=container_package_dir,
+        )
+        docker.call(["sh", "-c", before_all_prepared], env=env)
+
+    for config in platform_configs:
+        log.build_start(config.identifier)
+
+        dependency_constraint_flags: List[PathOrStr] = []
+
+        if options.dependency_constraints:
+            constraints_file = options.dependency_constraints.get_for_python_version(config.version)
+            container_constraints_file = PurePath("/constraints.txt")
+
+            docker.copy_into(constraints_file, container_constraints_file)
+            dependency_constraint_flags = ["-c", container_constraints_file]
+
+        log.step("Setting up build environment...")
+
+        env = docker.get_environment()
+
+        # put this config's python top of the list
+        python_bin = config.path / "bin"
+        env["PATH"] = f'{python_bin}:{env["PATH"]}'
+
+        env = options.environment.as_dictionary(env, executor=docker.environment_executor)
+
+        # check config python is still on PATH
+        which_python = docker.call(["which", "python"], env=env, capture_output=True).strip()
+        if PurePath(which_python) != python_bin / "python":
+            print(
+                "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        which_pip = docker.call(["which", "pip"], env=env, capture_output=True).strip()
+        if PurePath(which_pip) != python_bin / "pip":
+            print(
+                "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        if options.before_build:
+            log.step("Running before_build...")
+            before_build_prepared = prepare_command(
+                options.before_build,
+                project=container_project_path,
+                package=container_package_dir,
+            )
+            docker.call(["sh", "-c", before_build_prepared], env=env)
+
+        log.step("Building wheel...")
+
+        temp_dir = PurePath("/tmp/cibuildwheel")
+        built_wheel_dir = temp_dir / "built_wheel"
+        docker.call(["rm", "-rf", built_wheel_dir])
+        docker.call(["mkdir", "-p", built_wheel_dir])
+
+        verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
+
+        if options.build_frontend == "pip":
+            docker.call(
+                [
+                    "python",
+                    "-m",
+                    "pip",
+                    "wheel",
+                    container_package_dir,
+                    f"--wheel-dir={built_wheel_dir}",
+                    "--no-deps",
+                    *verbosity_flags,
+                ],
+                env=env,
+            )
+        elif options.build_frontend == "build":
+            config_setting = " ".join(verbosity_flags)
+            docker.call(
+                [
+                    "python",
+                    "-m",
+                    "build",
+                    container_package_dir,
+                    "--wheel",
+                    f"--outdir={built_wheel_dir}",
+                    f"--config-setting={config_setting}",
+                ],
+                env=env,
+            )
+        else:
+            assert_never(options.build_frontend)
+
+        built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
+
+        repaired_wheel_dir = temp_dir / "repaired_wheel"
+        docker.call(["rm", "-rf", repaired_wheel_dir])
+        docker.call(["mkdir", "-p", repaired_wheel_dir])
+
+        if built_wheel.name.endswith("none-any.whl"):
+            raise NonPlatformWheelError()
+
+        if options.repair_command:
+            log.step("Repairing wheel...")
+            repair_command_prepared = prepare_command(
+                options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+            )
+            docker.call(["sh", "-c", repair_command_prepared], env=env)
+        else:
+            docker.call(["mv", built_wheel, repaired_wheel_dir])
+
+        repaired_wheels = docker.glob(repaired_wheel_dir, "*.whl")
+
+        if options.test_command and options.test_selector(config.identifier):
+            log.step("Testing wheel...")
+
+            # set up a virtual environment to install and test from, to make sure
+            # there are no dependencies that were pulled in at build time.
+            docker.call(["pip", "install", "virtualenv", *dependency_constraint_flags], env=env)
+            venv_dir = PurePath(docker.call(["mktemp", "-d"], capture_output=True).strip()) / "venv"
+
+            docker.call(["python", "-m", "virtualenv", "--no-download", venv_dir], env=env)
+
+            virtualenv_env = env.copy()
+            virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
+
+            if options.before_test:
+                before_test_prepared = prepare_command(
+                    options.before_test,
+                    project=container_project_path,
+                    package=container_package_dir,
+                )
+                docker.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
+
+            # Install the wheel we just built
+            # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
+            # conforms to multiple manylinux standards. These multiple versions of the wheel are
+            # functionally the same, differing only in name, wheel metadata, and possibly include
+            # different external shared libraries. so it doesn't matter which one we run the tests on.
+            # Let's just pick the first one.
+            wheel_to_test = repaired_wheels[0]
+            docker.call(
+                ["pip", "install", str(wheel_to_test) + options.test_extras],
+                env=virtualenv_env,
+            )
+
+            # Install any requirements to run the tests
+            if options.test_requires:
+                docker.call(["pip", "install", *options.test_requires], env=virtualenv_env)
+
+            # Run the tests from a different directory
+            test_command_prepared = prepare_command(
+                options.test_command,
+                project=container_project_path,
+                package=container_package_dir,
+            )
+            docker.call(["sh", "-c", test_command_prepared], cwd="/root", env=virtualenv_env)
+
+            # clean up test environment
+            docker.call(["rm", "-rf", venv_dir])
+
+        # move repaired wheels to output
+        docker.call(["mkdir", "-p", container_output_dir])
+        docker.call(["mv", *repaired_wheels, container_output_dir])
+
+        log.build_end()
+
+    log.step("Copying wheels back to host...")
+    # copy the output back into the host
+    docker.copy_out(container_output_dir, options.output_dir)
+    log.step_end()
+
+
 def build(options: BuildOptions) -> None:
     try:
         # check docker is installed
@@ -63,21 +304,6 @@ def build(options: BuildOptions) -> None:
     assert options.manylinux_images is not None
     assert options.musllinux_images is not None
     python_configurations = get_python_configurations(options.build_selector, options.architectures)
-    platforms = [
-        ("cp", "manylinux_x86_64", options.manylinux_images["x86_64"]),
-        ("cp", "manylinux_i686", options.manylinux_images["i686"]),
-        ("cp", "manylinux_aarch64", options.manylinux_images["aarch64"]),
-        ("cp", "manylinux_ppc64le", options.manylinux_images["ppc64le"]),
-        ("cp", "manylinux_s390x", options.manylinux_images["s390x"]),
-        ("pp", "manylinux_x86_64", options.manylinux_images["pypy_x86_64"]),
-        ("pp", "manylinux_aarch64", options.manylinux_images["pypy_aarch64"]),
-        ("pp", "manylinux_i686", options.manylinux_images["pypy_i686"]),
-        ("cp", "musllinux_x86_64", options.musllinux_images["x86_64"]),
-        ("cp", "musllinux_i686", options.musllinux_images["i686"]),
-        ("cp", "musllinux_aarch64", options.musllinux_images["aarch64"]),
-        ("cp", "musllinux_ppc64le", options.musllinux_images["ppc64le"]),
-        ("cp", "musllinux_s390x", options.musllinux_images["s390x"]),
-    ]
 
     cwd = Path.cwd()
     abs_package_dir = options.package_dir.resolve()
@@ -86,228 +312,25 @@ def build(options: BuildOptions) -> None:
 
     container_project_path = PurePath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
-    container_output_dir = PurePath("/output")
 
-    for implementation, platform_tag, docker_image in platforms:
-        platform_configs = [
-            c
-            for c in python_configurations
-            if c.identifier.startswith(implementation) and c.identifier.endswith(platform_tag)
-        ]
-        if not platform_configs:
-            continue
-
+    for build_step in get_build_steps(options, python_configurations):
         try:
-            log.step(f"Starting Docker image {docker_image}...")
+            log.step(f"Starting Docker image {build_step.docker_image}...")
+
             with DockerContainer(
-                docker_image,
-                simulate_32_bit=platform_tag.endswith("i686"),
+                build_step.docker_image,
+                simulate_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
             ) as docker:
 
-                log.step("Copying project into Docker...")
-                docker.copy_into(Path.cwd(), container_project_path)
+                build_on_docker(
+                    options,
+                    build_step.platform_configs,
+                    docker,
+                    container_project_path,
+                    container_package_dir,
+                )
 
-                if options.before_all:
-                    log.step("Running before_all...")
-
-                    env = docker.get_environment()
-                    env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
-                    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-                    env = options.environment.as_dictionary(
-                        env, executor=docker.environment_executor
-                    )
-
-                    before_all_prepared = prepare_command(
-                        options.before_all,
-                        project=container_project_path,
-                        package=container_package_dir,
-                    )
-                    docker.call(["sh", "-c", before_all_prepared], env=env)
-
-                for config in platform_configs:
-                    log.build_start(config.identifier)
-
-                    dependency_constraint_flags: List[PathOrStr] = []
-
-                    if options.dependency_constraints:
-                        constraints_file = options.dependency_constraints.get_for_python_version(
-                            config.version
-                        )
-                        container_constraints_file = PurePath("/constraints.txt")
-
-                        docker.copy_into(constraints_file, container_constraints_file)
-                        dependency_constraint_flags = ["-c", container_constraints_file]
-
-                    log.step("Setting up build environment...")
-
-                    env = docker.get_environment()
-
-                    # put this config's python top of the list
-                    python_bin = config.path / "bin"
-                    env["PATH"] = f'{python_bin}:{env["PATH"]}'
-
-                    env = options.environment.as_dictionary(
-                        env, executor=docker.environment_executor
-                    )
-
-                    # check config python is still on PATH
-                    which_python = docker.call(
-                        ["which", "python"], env=env, capture_output=True
-                    ).strip()
-                    if PurePath(which_python) != python_bin / "python":
-                        print(
-                            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-                            file=sys.stderr,
-                        )
-                        sys.exit(1)
-
-                    which_pip = docker.call(["which", "pip"], env=env, capture_output=True).strip()
-                    if PurePath(which_pip) != python_bin / "pip":
-                        print(
-                            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-                            file=sys.stderr,
-                        )
-                        sys.exit(1)
-
-                    if options.before_build:
-                        log.step("Running before_build...")
-                        before_build_prepared = prepare_command(
-                            options.before_build,
-                            project=container_project_path,
-                            package=container_package_dir,
-                        )
-                        docker.call(["sh", "-c", before_build_prepared], env=env)
-
-                    log.step("Building wheel...")
-
-                    temp_dir = PurePath("/tmp/cibuildwheel")
-                    built_wheel_dir = temp_dir / "built_wheel"
-                    docker.call(["rm", "-rf", built_wheel_dir])
-                    docker.call(["mkdir", "-p", built_wheel_dir])
-
-                    verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
-
-                    if options.build_frontend == "pip":
-                        docker.call(
-                            [
-                                "python",
-                                "-m",
-                                "pip",
-                                "wheel",
-                                container_package_dir,
-                                f"--wheel-dir={built_wheel_dir}",
-                                "--no-deps",
-                                *verbosity_flags,
-                            ],
-                            env=env,
-                        )
-                    elif options.build_frontend == "build":
-                        config_setting = " ".join(verbosity_flags)
-                        docker.call(
-                            [
-                                "python",
-                                "-m",
-                                "build",
-                                container_package_dir,
-                                "--wheel",
-                                f"--outdir={built_wheel_dir}",
-                                f"--config-setting={config_setting}",
-                            ],
-                            env=env,
-                        )
-                    else:
-                        assert_never(options.build_frontend)
-
-                    built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
-
-                    repaired_wheel_dir = temp_dir / "repaired_wheel"
-                    docker.call(["rm", "-rf", repaired_wheel_dir])
-                    docker.call(["mkdir", "-p", repaired_wheel_dir])
-
-                    if built_wheel.name.endswith("none-any.whl"):
-                        raise NonPlatformWheelError()
-
-                    if options.repair_command:
-                        log.step("Repairing wheel...")
-                        repair_command_prepared = prepare_command(
-                            options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
-                        )
-                        docker.call(["sh", "-c", repair_command_prepared], env=env)
-                    else:
-                        docker.call(["mv", built_wheel, repaired_wheel_dir])
-
-                    repaired_wheels = docker.glob(repaired_wheel_dir, "*.whl")
-
-                    if options.test_command and options.test_selector(config.identifier):
-                        log.step("Testing wheel...")
-
-                        # set up a virtual environment to install and test from, to make sure
-                        # there are no dependencies that were pulled in at build time.
-                        docker.call(
-                            ["pip", "install", "virtualenv", *dependency_constraint_flags], env=env
-                        )
-                        venv_dir = (
-                            PurePath(docker.call(["mktemp", "-d"], capture_output=True).strip())
-                            / "venv"
-                        )
-
-                        docker.call(
-                            ["python", "-m", "virtualenv", "--no-download", venv_dir], env=env
-                        )
-
-                        virtualenv_env = env.copy()
-                        virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
-
-                        if options.before_test:
-                            before_test_prepared = prepare_command(
-                                options.before_test,
-                                project=container_project_path,
-                                package=container_package_dir,
-                            )
-                            docker.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
-
-                        # Install the wheel we just built
-                        # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
-                        # conforms to multiple manylinux standards. These multiple versions of the wheel are
-                        # functionally the same, differing only in name, wheel metadata, and possibly include
-                        # different external shared libraries. so it doesn't matter which one we run the tests on.
-                        # Let's just pick the first one.
-                        wheel_to_test = repaired_wheels[0]
-                        docker.call(
-                            ["pip", "install", str(wheel_to_test) + options.test_extras],
-                            env=virtualenv_env,
-                        )
-
-                        # Install any requirements to run the tests
-                        if options.test_requires:
-                            docker.call(
-                                ["pip", "install", *options.test_requires], env=virtualenv_env
-                            )
-
-                        # Run the tests from a different directory
-                        test_command_prepared = prepare_command(
-                            options.test_command,
-                            project=container_project_path,
-                            package=container_package_dir,
-                        )
-                        docker.call(
-                            ["sh", "-c", test_command_prepared], cwd="/root", env=virtualenv_env
-                        )
-
-                        # clean up test environment
-                        docker.call(["rm", "-rf", venv_dir])
-
-                    # move repaired wheels to output
-                    docker.call(["mkdir", "-p", container_output_dir])
-                    docker.call(["mv", *repaired_wheels, container_output_dir])
-
-                    log.build_end()
-
-                log.step("Copying wheels back to host...")
-                # copy the output back into the host
-                docker.copy_out(container_output_dir, options.output_dir)
-                log.step_end()
         except subprocess.CalledProcessError as error:
             log.step_end_with_error(
                 f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"

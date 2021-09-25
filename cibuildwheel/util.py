@@ -30,6 +30,25 @@ install_certifi_script = resources_dir / "install_certifi.py"
 
 BuildFrontend = Literal["pip", "build"]
 
+MANYLINUX_ARCHS = (
+    "x86_64",
+    "i686",
+    "pypy_x86_64",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+    "pypy_aarch64",
+    "pypy_i686",
+)
+
+MUSLLINUX_ARCHS = (
+    "x86_64",
+    "i686",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+)
+
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     """
@@ -224,6 +243,10 @@ class BuildOptions(NamedTuple):
     test_extras: str
     build_verbosity: int
     build_frontend: BuildFrontend
+
+    def __str__(self) -> str:
+        res = (f"{option}: {value!r}" for option, value in sorted(self._asdict().items()))
+        return "\n".join(res)
 
 
 class NonPlatformWheelError(Exception):

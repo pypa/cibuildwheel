@@ -2,12 +2,8 @@ import argparse
 import os
 import sys
 import textwrap
-import traceback
-from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
-
-from packaging.specifiers import SpecifierSet
+from typing import List, Set, Union
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -15,38 +11,13 @@ import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
-from cibuildwheel.environment import EnvironmentParseError, parse_environment
-from cibuildwheel.options import ConfigOptions
-from cibuildwheel.projectfiles import get_requires_python_str
+from cibuildwheel.options import compute_options
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
-    BuildFrontend,
     BuildOptions,
     BuildSelector,
-    DependencyConstraints,
-    TestSelector,
     Unbuffered,
     detect_ci_provider,
-    resources_dir,
-)
-
-MANYLINUX_ARCHS = (
-    "x86_64",
-    "i686",
-    "pypy_x86_64",
-    "aarch64",
-    "ppc64le",
-    "s390x",
-    "pypy_aarch64",
-    "pypy_i686",
-)
-
-MUSLLINUX_ARCHS = (
-    "x86_64",
-    "i686",
-    "aarch64",
-    "ppc64le",
-    "s390x",
 )
 
 
@@ -171,184 +142,28 @@ def main() -> None:
         sys.exit(2)
 
     package_dir = Path(args.package_dir)
-
-    manylinux_identifiers = {
-        f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS
-    }
-    musllinux_identifiers = {
-        f"musllinux-{build_platform}-image" for build_platform in MUSLLINUX_ARCHS
-    }
-    disallow = {
-        "linux": {"dependency-versions"},
-        "macos": manylinux_identifiers | musllinux_identifiers,
-        "windows": manylinux_identifiers | musllinux_identifiers,
-    }
-    options = ConfigOptions(package_dir, args.config_file, platform=platform, disallow=disallow)
     output_dir = Path(
         args.output_dir
         if args.output_dir is not None
         else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
     )
 
-    build_config = options("build", env_plat=False, sep=" ") or "*"
-    skip_config = options("skip", env_plat=False, sep=" ")
-    test_skip = options("test-skip", env_plat=False, sep=" ")
-
-    archs_config_str = args.archs or options("archs", sep=" ")
-
-    build_frontend_str = options("build-frontend", env_plat=False)
-    environment_config = options("environment", table={"item": '{k}="{v}"', "sep": " "})
-    before_all = options("before-all", sep=" && ")
-    before_build = options("before-build", sep=" && ")
-    repair_command = options("repair-wheel-command", sep=" && ")
-
-    dependency_versions = options("dependency-versions")
-    test_command = options("test-command", sep=" && ")
-    before_test = options("before-test", sep=" && ")
-    test_requires = options("test-requires", sep=" ").split()
-    test_extras = options("test-extras", sep=",")
-    build_verbosity_str = options("build-verbosity")
-
-    prerelease_pythons = args.prerelease_pythons or cibuildwheel.util.strtobool(
-        os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
+    build_options = compute_options(
+        platform, package_dir, output_dir, args.config_file, args.archs, args.prerelease_pythons
     )
 
-    build_frontend: BuildFrontend
-    if build_frontend_str == "build":
-        build_frontend = "build"
-    elif build_frontend_str == "pip":
-        build_frontend = "pip"
-    else:
-        msg = f"cibuildwheel: Unrecognised build frontend '{build_frontend}', only 'pip' and 'build' are supported"
-        print(msg, file=sys.stderr)
-        sys.exit(2)
-
-    package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
-
-    if not any(package_dir.joinpath(name).exists() for name in package_files):
-        names = ", ".join(sorted(package_files, reverse=True))
-        msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
-        print(msg, file=sys.stderr)
-        sys.exit(2)
-
-    # This is not supported in tool.cibuildwheel, as it comes from a standard location.
-    # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
-    requires_python_str: Optional[str] = os.environ.get(
-        "CIBW_PROJECT_REQUIRES_PYTHON"
-    ) or get_requires_python_str(package_dir)
-    requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
-
-    deprecated_selectors("CIBW_BUILD", build_config, error=True)
-    deprecated_selectors("CIBW_SKIP", skip_config)
-    deprecated_selectors("CIBW_TEST_SKIP", test_skip)
-
-    build_selector = BuildSelector(
-        build_config=build_config,
-        skip_config=skip_config,
-        requires_python=requires_python,
-        prerelease_pythons=prerelease_pythons,
+    identifiers = get_build_identifiers(
+        platform, build_options.build_selector, build_options.architectures
     )
-    test_selector = TestSelector(skip_config=test_skip)
-
-    try:
-        environment = parse_environment(environment_config)
-    except (EnvironmentParseError, ValueError):
-        print(f'cibuildwheel: Malformed environment option "{environment_config}"', file=sys.stderr)
-        traceback.print_exc(None, sys.stderr)
-        sys.exit(2)
-
-    if dependency_versions == "pinned":
-        dependency_constraints: Optional[
-            DependencyConstraints
-        ] = DependencyConstraints.with_defaults()
-    elif dependency_versions == "latest":
-        dependency_constraints = None
-    else:
-        dependency_versions_path = Path(dependency_versions)
-        dependency_constraints = DependencyConstraints(dependency_versions_path)
-
-    if test_extras:
-        test_extras = f"[{test_extras}]"
-
-    try:
-        build_verbosity = min(3, max(-3, int(build_verbosity_str)))
-    except ValueError:
-        build_verbosity = 0
-
-    # Add CIBUILDWHEEL environment variable
-    # This needs to be passed on to the docker container in linux.py
-    os.environ["CIBUILDWHEEL"] = "1"
-
-    archs = Architecture.parse_config(archs_config_str, platform=platform)
-
-    identifiers = get_build_identifiers(platform, build_selector, archs)
 
     if args.print_build_identifiers:
         for identifier in identifiers:
             print(identifier)
         sys.exit(0)
 
-    manylinux_images: Dict[str, str] = {}
-    musllinux_images: Dict[str, str] = {}
-    if platform == "linux":
-        pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
-        all_pinned_docker_images = ConfigParser()
-        all_pinned_docker_images.read(pinned_docker_images_file)
-        # all_pinned_docker_images looks like a dict of dicts, e.g.
-        # { 'x86_64': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
-        #   'i686': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
-        #   'pypy_x86_64': {'manylinux2010': '...' }
-        #   ... }
-
-        for build_platform in MANYLINUX_ARCHS:
-            pinned_images = all_pinned_docker_images[build_platform]
-
-            config_value = options(f"manylinux-{build_platform}-image", ignore_empty=True)
-
-            if not config_value:
-                # default to manylinux2010 if it's available, otherwise manylinux2014
-                image = pinned_images.get("manylinux2010") or pinned_images.get("manylinux2014")
-            elif config_value in pinned_images:
-                image = pinned_images[config_value]
-            else:
-                image = config_value
-
-            manylinux_images[build_platform] = image
-
-        for build_platform in MUSLLINUX_ARCHS:
-            pinned_images = all_pinned_docker_images[build_platform]
-
-            config_value = options(f"musllinux-{build_platform}-image")
-
-            if config_value is None:
-                image = pinned_images.get("musllinux_1_1")
-            elif config_value in pinned_images:
-                image = pinned_images[config_value]
-            else:
-                image = config_value
-
-            musllinux_images[build_platform] = image
-
-    build_options = BuildOptions(
-        architectures=archs,
-        package_dir=package_dir,
-        output_dir=output_dir,
-        test_command=test_command,
-        test_requires=test_requires,
-        test_extras=test_extras,
-        before_test=before_test,
-        before_build=before_build,
-        before_all=before_all,
-        build_verbosity=build_verbosity,
-        build_selector=build_selector,
-        test_selector=test_selector,
-        repair_command=repair_command,
-        environment=environment,
-        dependency_constraints=dependency_constraints,
-        manylinux_images=manylinux_images or None,
-        musllinux_images=musllinux_images or None,
-        build_frontend=build_frontend,
-    )
+    # Add CIBUILDWHEEL environment variable
+    # This needs to be passed on to the docker container in linux.py
+    os.environ["CIBUILDWHEEL"] = "1"
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore
@@ -362,7 +177,10 @@ def main() -> None:
         sys.exit(4)
 
     if not identifiers:
-        print(f"cibuildwheel: No build identifiers selected: {build_selector}", file=sys.stderr)
+        print(
+            f"cibuildwheel: No build identifiers selected: {build_options.build_selector}",
+            file=sys.stderr,
+        )
         if not args.allow_empty:
             sys.exit(3)
 
@@ -382,14 +200,6 @@ def main() -> None:
             assert_never(platform)
 
 
-def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
-    if "p2" in selector or "p35" in selector:
-        msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
-        print(msg, file=sys.stderr)
-        if error:
-            sys.exit(4)
-
-
 def print_preamble(platform: str, build_options: BuildOptions) -> None:
     print(
         textwrap.dedent(
@@ -406,8 +216,7 @@ def print_preamble(platform: str, build_options: BuildOptions) -> None:
 
     print("Build options:")
     print(f"  platform: {platform!r}")
-    for option, value in sorted(build_options._asdict().items()):
-        print(f"  {option}: {value!r}")
+    print(textwrap.indent(str(build_options), "  "))
 
     warnings = detect_warnings(platform, build_options)
     if warnings:
