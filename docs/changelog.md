@@ -2,6 +2,12 @@
 title: Changelog
 ---
 
+### v2.1.3
+
+_6 October 2021_
+
+- 🛠 Updated CPython 3.10 to the 3.10.0 final release
+
 ### v2.1.2
 
 _14 September 2021_
