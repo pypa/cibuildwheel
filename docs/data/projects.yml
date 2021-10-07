@@ -390,3 +390,116 @@
   ci: [github]
   os: [apple, linux]
   notes: Python CFFI binding to libheif library with third party dependencies like `libde265`, `x265`, `libaom` with test & publishing on PyPi.
+
+- name: clang-format
+  gh: ssciwr/clang-format-wheel
+  ci: [github]
+  os: [apple, linux, windows]
+  notes: Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels.
+
+- name: Tornado
+  gh: tornadoweb/tornado
+  ci: [travisci]
+  os: [apple, linux]
+
+- name: pytorch-fairseq
+  gh: pytorch/fairseq
+  ci: [github]
+  os: [apple, linux]
+
+- name: uvloop
+  gh: MagicStack/uvloop
+  ci: [github]
+  os: [apple, linux]
+
+- name: asyncpg
+  gh: MagicStack/asyncpg
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: pydantic
+  gh: samuelcolvin/pydantic
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: vaex
+  gh: vaexio/vaex
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: cvxpy
+  gh: cvxpy/cvxpy
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: duckdb
+  gh: duckdb/duckdb
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: Triton
+  gh: openai/triton
+  ci: [github]
+  os: [linux]
+  notes: Self hosted runners
+
+- name: vispy
+  gh: vispy/vispy
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: Confluent client for Kafka
+  gh: confluentinc/confluent-kafka-python
+  ci: [travisci]
+  os: [apple, linux, windows]
+  notes: setup in `tools/wheels/build-wheels.bat`
+
+- name: tinyobjloader
+  gh: tinyobjloader/tinyobjloader
+  ci: [azurepipelines]
+  os: [apple, linux, windows]
+
+- name: PyOxidizer
+  gh: indygreg/PyOxidizer
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: OpenSpiel
+  gh: deepmind/open_spiel
+  ci: [github]
+  os: [apple, linux]
+
+- name: Google Benchmark
+  gh: google/benchmark
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: Apache Beam
+  gh: apache/beam
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: PyCryptodome
+  gh: Legrandin/pycryptodome
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: PyYAML
+  gh: yaml/pyyaml
+  ci: [github]
+  os: [apple]
+
+- name: Line Profiler
+  gh: pyutils/line_profiler
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: Pixar OpenTimelineIO
+  gh: PixarAnimationStudios/OpenTimelineIO
+  ci: [github]
+  os: [apple, linux, windows]
+
+- name: OpenColorIO
+  gh: AcademySoftwareFoundation/OpenColorIO
+  ci: [github]
+  os: [apple, linux, windows]
