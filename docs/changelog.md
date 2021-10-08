@@ -14,6 +14,12 @@ _v2.2.0a1 (23 September 2021)_
  option. (#768)
 - 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matricies. (#829)
 
+### v2.1.3
+
+_6 October 2021_
+
+- 🛠 Updated CPython 3.10 to the 3.10.0 final release
+
 ### v2.1.2
 
 _14 September 2021_

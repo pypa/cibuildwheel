@@ -201,6 +201,12 @@ _v2.2.0a1 (23 September 2021)_
  option. (#768)
 - 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matricies. (#829)
 
+### v2.1.3
+
+_6 October 2021_
+
+- 🛠 Updated CPython 3.10 to the 3.10.0 final release
+
 ### v2.1.2
 
 _14 September 2021_
@@ -223,19 +229,6 @@ _25 July 2021_
 
 - 📚 Docs improvements (#767)
 - 🛠 Dependency updates, including delocate 0.9.0.
-
-### v2.0.0 🎉
-
-_16 July 2021_
-
-- 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.readthedocs.io/en/stable/options/#setting-options) for more info.
-- 🌟 Added support for building wheels with [build](https://github.com/pypa/build), as well as pip. This feature is controlled with the [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend) option.
-- 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons) to test. (#675) This version of cibuildwheel includes CPython 3.10.0b4.
-- ⚠️ **Removed support for building Python 2.7 and Python 3.5 wheels**, for both CPython and PyPy. If you still need to build on these versions, please use the latest v1.x version. (#596)
-- ✨ Added the ability to build CPython 3.8 wheels for Apple Silicon. (#704)
-- 🛠 Update to the latest build dependencies, including Auditwheel 4. (#633)
-- 🛠 Use the unified pypa/manylinux images to build PyPy (#671)
-- 🐛 Numerous bug fixes & docs improvements
 
 <!-- END bin/update_readme_changelog.py -->
 
