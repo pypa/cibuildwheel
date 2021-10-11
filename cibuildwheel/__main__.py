@@ -166,7 +166,7 @@ def main() -> None:
     os.environ["CIBUILDWHEEL"] = "1"
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
-    sys.stdout = Unbuffered(sys.stdout)  # type: ignore
+    sys.stdout = Unbuffered(sys.stdout)  # type: ignore[no-untyped-call,assignment]
 
     print_preamble(platform, build_options)
 

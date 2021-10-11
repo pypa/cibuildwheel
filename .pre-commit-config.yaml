@@ -52,32 +52,51 @@ repos:
   hooks:
   - id: mypy
     exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
-    args: ["--python-version=3.6", "--scripts-are-modules"]
-    additional_dependencies:
-      - packaging
-      - types-jinja2
-      - types-certifi
-      - types-toml
+    args: ["--python-version=3.6", "--scripts-are-modules", "--show-error-codes"]
+    additional_dependencies: &mypy-dependencies
+      - packaging>=21.0
+      - rich
       - tomli
+      - types-certifi
+      - types-click
+      - types-jinja2
+      - types-pyyaml
+      - types-requests
   - id: mypy
     name: mypy 3.7+ on bin/
     files: ^((bin|docs)/.*py|noxfile.py)$
-    args: ["--python-version=3.7", "--scripts-are-modules"]
-    additional_dependencies:
-      - packaging>=21.0
-      - rich
-      - types-jinja2
-      - types-pyyaml
-      - types-click
-      - types-requests
-      - tomli
+    args: ["--python-version=3.7", "--scripts-are-modules", "--show-error-codes"]
+    additional_dependencies: *mypy-dependencies
+
+- repo: https://github.com/asottile/yesqa
+  rev: v1.2.3
+  hooks:
+  - id: yesqa
+    additional_dependencies: &flake8-dependencies
+    - flake8-bugbear
 
 - repo: https://github.com/PyCQA/flake8
   rev: 4.0.1
   hooks:
   - id: flake8
     exclude: cibuildwheel/resources/
-    additional_dependencies: [flake8-bugbear]
+    additional_dependencies: *flake8-dependencies
+
+- repo: https://github.com/pre-commit/pygrep-hooks
+  rev: v1.9.0
+  hooks:
+  - id: python-check-blanket-noqa
+    stages: [manual]
+  - id: python-check-blanket-type-ignore
+    stages: [manual]
+  - id: python-no-log-warn
+  - id: python-no-eval
+  - id: python-use-type-annotations
+
+- repo: https://github.com/shellcheck-py/shellcheck-py
+  rev: v0.7.2.1
+  hooks:
+  - id: shellcheck
 
 - repo: local
   hooks:

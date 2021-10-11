@@ -27,7 +27,7 @@ class Analyzer(ast.NodeVisitor):
     def visit(self, content: ast.AST) -> None:
         for node in ast.walk(content):
             for child in ast.iter_child_nodes(node):
-                child.parent = node  # type: ignore
+                child.parent = node  # type: ignore[attr-defined]
         super().visit(content)
 
     def visit_keyword(self, node: ast.keyword) -> None:
@@ -35,7 +35,7 @@ class Analyzer(ast.NodeVisitor):
         if node.arg == "python_requires":
             # Must not be nested in an if or other structure
             # This will be Module -> Expr -> Call -> keyword
-            if not hasattr(node.parent.parent.parent, "parent") and isinstance(  # type: ignore
+            if not hasattr(node.parent.parent.parent, "parent") and isinstance(  # type: ignore[attr-defined]
                 node.value, Constant
             ):
                 self.requires_python = get_constant(node.value)

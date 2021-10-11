@@ -68,7 +68,7 @@ def bump_version() -> None:
         sys.exit(1)
 
     # fmt: off
-    print(              'Current version:', current_version)  # noqa
+    print(              'Current version:', current_version)  # noqa: E201 whitespace
     new_version = input('    New version: ').strip()
     # fmt: on
 
