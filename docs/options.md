@@ -1132,7 +1132,7 @@ Platform-specific environment variables are also available:<br/>
     ```toml
     [tool.cibuildwheel]
     # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
-    test-extras: ["test", "qt"]
+    test-extras = ["test", "qt"]
     ```
 
     In configuration files, you can use an inline array, and the items will be joined with a comma.
