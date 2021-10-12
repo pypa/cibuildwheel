@@ -2,8 +2,7 @@ import argparse
 import os
 import sys
 import textwrap
-from pathlib import Path
-from typing import List, Set, Union
+from typing import List, Optional, Set, Union
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -11,17 +10,12 @@ import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
-from cibuildwheel.options import compute_options
+from cibuildwheel.options import CommandLineArguments, Options, compute_options
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
-from cibuildwheel.util import (
-    AllBuildOptions,
-    BuildSelector,
-    Unbuffered,
-    detect_ci_provider,
-)
+from cibuildwheel.util import BuildSelector, Unbuffered, detect_ci_provider
 
 
-def main() -> None:
+def main(sys_args: Optional[List[str]] = None) -> None:
     platform: PlatformName
 
     parser = argparse.ArgumentParser(
@@ -104,7 +98,7 @@ def main() -> None:
         help="Enable pre-release Python versions if available.",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(args=sys_args, namespace=CommandLineArguments())
 
     if args.platform != "auto":
         platform = args.platform
@@ -141,27 +135,27 @@ def main() -> None:
         print(f"cibuildwheel: Unsupported platform: {platform}", file=sys.stderr)
         sys.exit(2)
 
-    package_dir = Path(args.package_dir)
-    output_dir = Path(
-        args.output_dir
-        if args.output_dir is not None
-        else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
-    )
+    options = compute_options(platform=platform, command_line_arguments=args)
 
-    all_build_options, build_options_by_selector = compute_options(
-        platform, package_dir, output_dir, args.config_file, args.archs, args.prerelease_pythons
-    )
+    package_dir = options.globals.package_dir
+    package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
+
+    if not any(package_dir.joinpath(name).exists() for name in package_files):
+        names = ", ".join(sorted(package_files, reverse=True))
+        msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
+        print(msg, file=sys.stderr)
+        sys.exit(2)
 
     identifiers = get_build_identifiers(
-        platform, all_build_options.build_selector, all_build_options.architectures
+        platform=platform,
+        build_selector=options.globals.build_selector,
+        architectures=options.globals.architectures,
     )
 
     if args.print_build_identifiers:
         for identifier in identifiers:
             print(identifier)
         sys.exit(0)
-
-    build_options = AllBuildOptions(all_build_options, build_options_by_selector, identifiers)
 
     # Add CIBUILDWHEEL environment variable
     # This needs to be passed on to the docker container in linux.py
@@ -170,21 +164,24 @@ def main() -> None:
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore[no-untyped-call,assignment]
 
-    print_preamble(platform, build_options)
+    print_preamble(platform=platform, options=options, identifiers=identifiers)
 
     try:
-        allowed_architectures_check(platform, build_options.architectures)
+        options.check_for_invalid_configuration(identifiers)
+        allowed_architectures_check(platform, options.globals.architectures)
     except ValueError as err:
         print("cibuildwheel:", *err.args, file=sys.stderr)
         sys.exit(4)
 
     if not identifiers:
         print(
-            f"cibuildwheel: No build identifiers selected: {build_options.build_selector}",
+            f"cibuildwheel: No build identifiers selected: {options.globals.build_selector}",
             file=sys.stderr,
         )
         if not args.allow_empty:
             sys.exit(3)
+
+    output_dir = options.globals.output_dir
 
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
@@ -193,16 +190,16 @@ def main() -> None:
         "\n{n} wheels produced in {m:.0f} minutes:", output_dir
     ):
         if platform == "linux":
-            cibuildwheel.linux.build(build_options)
+            cibuildwheel.linux.build(options)
         elif platform == "windows":
-            cibuildwheel.windows.build(build_options)
+            cibuildwheel.windows.build(options)
         elif platform == "macos":
-            cibuildwheel.macos.build(build_options)
+            cibuildwheel.macos.build(options)
         else:
             assert_never(platform)
 
 
-def print_preamble(platform: str, build_options: AllBuildOptions) -> None:
+def print_preamble(platform: str, options: Options, identifiers: List[str]) -> None:
     print(
         textwrap.dedent(
             """
@@ -218,9 +215,9 @@ def print_preamble(platform: str, build_options: AllBuildOptions) -> None:
 
     print("Build options:")
     print(f"  platform: {platform!r}")
-    print(textwrap.indent(str(build_options), "  "))
+    print(textwrap.indent(options.summary(identifiers), "  "))
 
-    warnings = detect_warnings(platform, build_options)
+    warnings = detect_warnings(platform=platform, options=options, identifiers=identifiers)
     if warnings:
         print("\nWarnings:")
         for warning in warnings:
@@ -256,21 +253,20 @@ def get_build_identifiers(
     return [config.identifier for config in python_configurations]
 
 
-def detect_warnings(platform: str, all_options: AllBuildOptions) -> List[str]:
+def detect_warnings(platform: str, options: Options, identifiers: List[str]) -> List[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}
-    for build_options in all_options.values():
-        for option_name in ["test_command", "before_build"]:
-            option_value = getattr(build_options, option_name)
+    for option_name in ["test_command", "before_build"]:
+        option_values = [getattr(options.build_options(i), option_name) for i in identifiers]
 
-            if option_value and ("{python}" in option_value or "{pip}" in option_value):
-                # Reminder: in an f-string, double braces means literal single brace
-                msg = (
-                    f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
-                    "and will be removed in a future release. Simply use 'python' or 'pip' instead."
-                )
-                warnings.append(msg)
+        if any(o and ("{python}" in o or "{pip}" in o) for o in option_values):
+            # Reminder: in an f-string, double braces means literal single brace
+            msg = (
+                f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
+                "and will be removed in a future release. Simply use 'python' or 'pip' instead."
+            )
+            warnings.append(msg)
 
     return warnings
 

@@ -5,7 +5,7 @@ import pytest
 from cibuildwheel.__main__ import main
 from cibuildwheel.architecture import Architecture
 
-from .conftest import MOCK_PACKAGE_DIR
+from ..conftest import MOCK_PACKAGE_DIR
 
 
 def test_unknown_platform_non_ci(monkeypatch, capsys):
@@ -58,26 +58,29 @@ def test_platform_argument(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    assert intercepted_build_args.args[0].package_dir == MOCK_PACKAGE_DIR
+    options = intercepted_build_args.args[0]
+
+    assert options.globals.package_dir == MOCK_PACKAGE_DIR
 
 
 def test_platform_environment(platform, intercepted_build_args, monkeypatch):
     main()
+    options = intercepted_build_args.args[0]
 
-    assert intercepted_build_args.args[0].package_dir == MOCK_PACKAGE_DIR
+    assert options.globals.package_dir == MOCK_PACKAGE_DIR
 
 
 def test_archs_default(platform, intercepted_build_args, monkeypatch):
 
     main()
-    build_options = intercepted_build_args.args[0]
+    options = intercepted_build_args.args[0]
 
     if platform == "linux":
-        assert build_options.architectures == {Architecture.x86_64, Architecture.i686}
+        assert options.globals.architectures == {Architecture.x86_64, Architecture.i686}
     elif platform == "windows":
-        assert build_options.architectures == {Architecture.AMD64, Architecture.x86}
+        assert options.globals.architectures == {Architecture.AMD64, Architecture.x86}
     else:
-        assert build_options.architectures == {Architecture.x86_64}
+        assert options.globals.architectures == {Architecture.x86_64}
 
 
 @pytest.mark.parametrize("use_env_var", [False, True])
@@ -96,8 +99,8 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
 
     else:
         main()
-        build_options = intercepted_build_args.args[0]
-        assert build_options.architectures == {Architecture.ppc64le}
+        options = intercepted_build_args.args[0]
+        assert options.globals.architectures == {Architecture.ppc64le}
 
 
 def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
@@ -107,38 +110,38 @@ def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
     monkeypatch.setenv("CIBW_ARCHS_MACOS", "x86_64")
 
     main()
-    build_options = intercepted_build_args.args[0]
+    options = intercepted_build_args.args[0]
 
     if platform == "linux":
-        assert build_options.architectures == {Architecture.ppc64le}
+        assert options.globals.architectures == {Architecture.ppc64le}
     elif platform == "windows":
-        assert build_options.architectures == {Architecture.x86}
+        assert options.globals.architectures == {Architecture.x86}
     elif platform == "macos":
-        assert build_options.architectures == {Architecture.x86_64}
+        assert options.globals.architectures == {Architecture.x86_64}
 
 
 def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
     monkeypatch.setenv("CIBW_ARCHS", "native")
 
     main()
-    build_options = intercepted_build_args.args[0]
+    options = intercepted_build_args.args[0]
 
     if platform in {"linux", "macos"}:
-        assert build_options.architectures == {Architecture.x86_64}
+        assert options.globals.architectures == {Architecture.x86_64}
     elif platform == "windows":
-        assert build_options.architectures == {Architecture.AMD64}
+        assert options.globals.architectures == {Architecture.AMD64}
 
 
 def test_archs_platform_auto64(platform, intercepted_build_args, monkeypatch):
     monkeypatch.setenv("CIBW_ARCHS", "auto64")
 
     main()
-    build_options = intercepted_build_args.args[0]
+    options = intercepted_build_args.args[0]
 
     if platform in {"linux", "macos"}:
-        assert build_options.architectures == {Architecture.x86_64}
+        assert options.globals.architectures == {Architecture.x86_64}
     elif platform == "windows":
-        assert build_options.architectures == {Architecture.AMD64}
+        assert options.globals.architectures == {Architecture.AMD64}
 
 
 def test_archs_platform_auto32(platform, intercepted_build_args, monkeypatch):
@@ -152,22 +155,22 @@ def test_archs_platform_auto32(platform, intercepted_build_args, monkeypatch):
     else:
         main()
 
-        build_options = intercepted_build_args.args[0]
+        options = intercepted_build_args.args[0]
 
         if platform == "linux":
-            assert build_options.architectures == {Architecture.i686}
+            assert options.globals.architectures == {Architecture.i686}
         elif platform == "windows":
-            assert build_options.architectures == {Architecture.x86}
+            assert options.globals.architectures == {Architecture.x86}
 
 
 def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
     monkeypatch.setenv("CIBW_ARCHS", "all")
 
     main()
-    build_options = intercepted_build_args.args[0]
+    options = intercepted_build_args.args[0]
 
     if platform == "linux":
-        assert build_options.architectures == {
+        assert options.globals.architectures == {
             Architecture.x86_64,
             Architecture.i686,
             Architecture.aarch64,
@@ -175,9 +178,9 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
             Architecture.s390x,
         }
     elif platform == "windows":
-        assert build_options.architectures == {Architecture.x86, Architecture.AMD64}
+        assert options.globals.architectures == {Architecture.x86, Architecture.AMD64}
     elif platform == "macos":
-        assert build_options.architectures == {
+        assert options.globals.architectures == {
             Architecture.x86_64,
             Architecture.arm64,
             Architecture.universal2,

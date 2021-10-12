@@ -4,9 +4,9 @@ import sys
 from typing import TYPE_CHECKING, NoReturn, Set, Union
 
 if sys.version_info < (3, 8):
-    from typing_extensions import Final, Literal, Protocol, TypedDict
+    from typing_extensions import Final, Literal, OrderedDict, Protocol, TypedDict
 else:
-    from typing import Final, Literal, Protocol, TypedDict
+    from typing import Final, Literal, OrderedDict, Protocol, TypedDict
 
 
 __all__ = (
@@ -21,6 +21,7 @@ __all__ = (
     "Protocol",
     "Set",
     "TypedDict",
+    "OrderedDict",
     "Union",
     "assert_never",
 )

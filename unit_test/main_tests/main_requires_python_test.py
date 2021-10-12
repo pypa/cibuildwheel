@@ -27,7 +27,8 @@ def test_no_override(platform, monkeypatch, intercepted_build_args):
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.args[0].build_selector
+    options = intercepted_build_args.args[0]
+    intercepted_build_selector = options.globals.build_selector
 
     assert intercepted_build_selector("cp39-win32")
     assert intercepted_build_selector("cp36-win32")
@@ -40,7 +41,8 @@ def test_override_env(platform, monkeypatch, intercepted_build_args):
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.args[0].build_selector
+    options = intercepted_build_args.args[0]
+    intercepted_build_selector = options.globals.build_selector
 
     assert intercepted_build_selector.requires_python == SpecifierSet(">=3.8")
 
@@ -61,7 +63,8 @@ def test_override_setup_cfg(platform, monkeypatch, intercepted_build_args, fake_
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.args[0].build_selector
+    options = intercepted_build_args.args[0]
+    intercepted_build_selector = options.globals.build_selector
 
     assert intercepted_build_selector.requires_python == SpecifierSet(">=3.8")
 
@@ -82,7 +85,8 @@ def test_override_pyproject_toml(platform, monkeypatch, intercepted_build_args, 
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.args[0].build_selector
+    options = intercepted_build_args.args[0]
+    intercepted_build_selector = options.globals.build_selector
 
     assert intercepted_build_selector.requires_python == SpecifierSet(">=3.8")
 
@@ -107,7 +111,8 @@ def test_override_setup_py_simple(platform, monkeypatch, intercepted_build_args,
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.args[0].build_selector
+    options = intercepted_build_args.args[0]
+    intercepted_build_selector = options.globals.build_selector
 
     assert intercepted_build_selector.requires_python == SpecifierSet(">=3.7")
 

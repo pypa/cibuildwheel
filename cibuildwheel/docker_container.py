@@ -17,7 +17,7 @@ class DockerContainer:
     An object that represents a running Docker container.
 
     Intended for use as a context manager e.g.
-    `with DockerContainer('ubuntu') as docker:`
+    `with DockerContainer(docker_image = 'ubuntu') as docker:`
 
     A bash shell is running in the remote container. When `call()` is invoked,
     the command is relayed to the remote shell, and the results are streamed
@@ -31,7 +31,7 @@ class DockerContainer:
     bash_stdout: IO[bytes]
 
     def __init__(
-        self, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None
+        self, *, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None
     ):
         if not docker_image:
             raise ValueError("Must have a non-empty docker image to run.")

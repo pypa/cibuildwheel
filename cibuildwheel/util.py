@@ -1,5 +1,4 @@
 import contextlib
-import dataclasses
 import fnmatch
 import itertools
 import os
@@ -10,23 +9,10 @@ import sys
 import textwrap
 import time
 import urllib.request
-from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import (
-    Counter,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-)
+from typing import Dict, Iterator, List, Optional
 
 import bracex
 import certifi
@@ -34,9 +20,7 @@ import tomli
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-from .architecture import Architecture
-from .environment import ParsedEnvironment
-from .typing import Literal, PathOrStr, PlatformName, Protocol
+from .typing import Literal, PathOrStr, PlatformName
 
 resources_dir = Path(__file__).parent / "resources"
 
@@ -91,6 +75,20 @@ def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
     return results
 
 
+def selector_matches(patterns: str, string: str) -> bool:
+    """
+    Returns True if `string` is matched by any of the wildcard patterns in
+    `patterns`.
+
+    Matching is according to fnmatch, but with shell-like curly brace
+    expansion. For example, 'cp{36,37}-*' would match either of 'cp36-*' or
+    'cp37-*'.
+    """
+    patterns_list: List[str] = patterns.split()
+    patterns_list = itertools.chain.from_iterable(bracex.expand(p) for p in patterns_list)  # type: ignore[assignment]
+    return any(fnmatch.fnmatch(string, pat) for pat in patterns_list)
+
+
 class IdentifierSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
@@ -111,8 +109,8 @@ class IdentifierSelector:
         requires_python: Optional[SpecifierSet] = None,
         prerelease_pythons: bool = False,
     ):
-        self.build_patterns = build_config.split()
-        self.skip_patterns = skip_config.split()
+        self.build_config = build_config
+        self.skip_config = skip_config
         self.requires_python = requires_python
         self.prerelease_pythons = prerelease_pythons
 
@@ -126,30 +124,22 @@ class IdentifierSelector:
             if not self.requires_python.contains(version):
                 return False
 
-        build_patterns = itertools.chain.from_iterable(
-            bracex.expand(p) for p in self.build_patterns
-        )
+        # filter out the prerelease pythons if self.prerelease_pythons is False
+        if not self.prerelease_pythons and selector_matches(
+            BuildSelector.PRERELEASE_SKIP, build_id
+        ):
+            return False
 
-        unexpanded_skip_patterns = self.skip_patterns.copy()
+        should_build = selector_matches(self.build_config, build_id)
+        should_skip = selector_matches(self.skip_config, build_id)
 
-        if not self.prerelease_pythons:
-            # filter out the prerelease pythons, alongside the user-defined
-            # skip patterns
-            unexpanded_skip_patterns += BuildSelector.PRERELEASE_SKIP.split()
-
-        skip_patterns = itertools.chain.from_iterable(
-            bracex.expand(p) for p in unexpanded_skip_patterns
-        )
-
-        build: bool = any(fnmatch.fnmatch(build_id, pat) for pat in build_patterns)
-        skip: bool = any(fnmatch.fnmatch(build_id, pat) for pat in skip_patterns)
-        return build and not skip
+        return should_build and not should_skip
 
     def __repr__(self) -> str:
-        result = f'{self.__class__.__name__}(build_config={" ".join(self.build_patterns)!r}'
+        result = f"{self.__class__.__name__}(build_config={self.build_config!r}"
 
-        if self.skip_patterns:
-            result += f', skip_config={" ".join(self.skip_patterns)!r}'
+        if self.skip_config:
+            result += f", skip_config={self.skip_config!r}"
         if self.prerelease_pythons:
             result += ", prerelease_pythons=True"
 
@@ -236,145 +226,13 @@ class DependencyConstraints:
             return self.base_file_path
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}{self.base_file_path!r})"
+        return f"{self.__class__.__name__}({self.base_file_path!r})"
 
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, DependencyConstraints):
+            return False
 
-class BuildOptions(NamedTuple):
-    package_dir: Path
-    output_dir: Path
-    build_selector: BuildSelector
-    architectures: Set[Architecture]
-    environment: ParsedEnvironment
-    before_all: str
-    before_build: Optional[str]
-    repair_command: str
-    manylinux_images: Optional[Dict[str, str]]
-    musllinux_images: Optional[Dict[str, str]]
-    dependency_constraints: Optional[DependencyConstraints]
-    test_command: Optional[str]
-    test_selector: TestSelector
-    before_test: Optional[str]
-    test_requires: List[str]
-    test_extras: str
-    build_verbosity: int
-    build_frontend: BuildFrontend
-
-    def __str__(self) -> str:
-        res = (f"{option}: {value!r}" for option, value in sorted(self._asdict().items()))
-        return "\n".join(res)
-
-
-class SimpleConfig(Protocol):
-    @property
-    def identifier(self) -> str:
-        ...
-
-
-SC = TypeVar("SC", bound=SimpleConfig)
-T = TypeVar("T", bound="AllBuildOptions")
-
-
-@dataclasses.dataclass
-class AllBuildOptions:
-    general_build_options: BuildOptions
-    build_options_by_selector: Dict[str, BuildOptions]
-    identifiers: List[str]
-
-    def __getitem__(self, identifier: str) -> BuildOptions:
-        for sel in self.build_options_by_selector:
-            bs = BuildSelector(build_config=sel, skip_config="")
-            if bs(identifier):
-                return self.build_options_by_selector[sel]
-
-        return self.general_build_options
-
-    def values(self) -> Iterable[BuildOptions]:
-        return itertools.chain(
-            [self.general_build_options], self.build_options_by_selector.values()
-        )
-
-    # These values are not overridable in some cases
-    @property
-    def package_dir(self) -> Path:
-        return self.general_build_options.package_dir
-
-    @property
-    def build_selector(self) -> BuildSelector:
-        return self.general_build_options.build_selector
-
-    @property
-    def output_dir(self) -> Path:
-        return self.general_build_options.output_dir
-
-    @property
-    def architectures(self) -> Set[Architecture]:
-        return self.general_build_options.architectures
-
-    @property
-    def environment(self) -> ParsedEnvironment:
-        return self.general_build_options.environment
-
-    @property
-    def before_all(self) -> str:
-        return self.general_build_options.before_all
-
-    def produce_image_batches(
-        self,
-        configurations: List[SC],
-        platform_tag: str,
-        platform_arch: str,
-    ) -> Iterator[Tuple[List[SC], str]]:
-
-        docker_images: Mapping[str, List[SC]] = defaultdict(list)
-
-        for config in configurations:
-            build_options = self[config.identifier]
-            images = (
-                build_options.manylinux_images
-                if platform_tag.startswith("manylinux")
-                else build_options.musllinux_images
-            )
-            assert images is not None
-            docker_images[images[platform_arch]].append(config)
-
-        for image, configs in docker_images.items():
-            # TODO: check for colisions for identifiers in configs
-            # Some settings (before-all) are not overridable in the same image
-            yield configs, image
-
-    def check_build_selectors(self) -> None:
-        hits = Counter[str]()
-        for sel in self.build_options_by_selector:
-            bs = BuildSelector(build_config=sel, skip_config="")
-            hits += Counter(i for i in self.identifiers if bs(i))
-
-        non_unique_identifers = {idnt for idnt, count in hits.items() if count > 1}
-        if non_unique_identifers:
-            msg = "cibuildwheel: error, the windows/macOS selectors must match uniquely"
-            print(msg, file=sys.stderr)
-            for sel in self.build_options_by_selector:
-                bs = BuildSelector(build_config=sel, skip_config="")
-                for i in non_unique_identifers:
-                    if bs(i):
-                        print(f"  {sel}: {i} (nonunique match)")
-            sys.exit(1)
-
-    def __str__(self) -> str:
-        results = []
-        for option in sorted(self.general_build_options._asdict().keys()):
-            variations = {
-                key: value._asdict()[option]
-                for key, value in self.build_options_by_selector.items()
-            }
-            variations["*"] = self.general_build_options._asdict()[option]
-            if len({repr(v) for v in variations.values()}) == 1:
-                results.append(f"{option}: {variations['*']!r}")
-            else:
-                results.append(f"{option}:")
-                for key, value in sorted(variations.items()):
-                    results.append(f"  {key}: {value!r}")
-
-        return "\n".join(results)
+        return self.base_file_path == o.base_file_path
 
 
 class NonPlatformWheelError(Exception):

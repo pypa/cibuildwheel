@@ -3,10 +3,12 @@ from fnmatch import fnmatch
 from pathlib import Path
 
 import pytest
+import tomli
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.util import BuildSelector
+from cibuildwheel.options import BuildOptions, _get_pinned_docker_images
+from cibuildwheel.util import BuildSelector, resources_dir
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -18,13 +20,13 @@ def test_output_dir(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    assert intercepted_build_args.args[0].general_build_options.output_dir == OUTPUT_DIR
+    assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR
 
 
 def test_output_dir_default(platform, intercepted_build_args, monkeypatch):
     main()
 
-    assert intercepted_build_args.args[0].general_build_options.output_dir == Path("wheelhouse")
+    assert intercepted_build_args.args[0].globals.output_dir == Path("wheelhouse")
 
 
 @pytest.mark.parametrize("also_set_environment", [False, True])
@@ -37,7 +39,7 @@ def test_output_dir_argument(also_set_environment, platform, intercepted_build_a
 
     main()
 
-    assert intercepted_build_args.args[0].general_build_options.output_dir == OUTPUT_DIR
+    assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR
 
 
 def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_empty):
@@ -49,7 +51,7 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_emp
 
     main()
 
-    intercepted_build_selector = intercepted_build_args.args[0].general_build_options.build_selector
+    intercepted_build_selector = intercepted_build_args.args[0].globals.build_selector
     assert isinstance(intercepted_build_selector, BuildSelector)
     assert intercepted_build_selector("build24-this")
     assert not intercepted_build_selector("skip65-that")
@@ -97,13 +99,15 @@ def test_manylinux_images(
 
     main()
 
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
     if platform == "linux":
         assert fnmatch(
-            intercepted_build_args.args[0].general_build_options.manylinux_images[architecture],
+            build_options.manylinux_images[architecture],
             full_image,
         )
     else:
-        assert intercepted_build_args.args[0].general_build_options.manylinux_images is None
+        assert build_options.manylinux_images is None
 
 
 def get_default_repair_command(platform):
@@ -131,8 +135,10 @@ def test_repair_command(
 
     main()
 
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
     expected_repair = repair_command or get_default_repair_command(platform)
-    assert intercepted_build_args.args[0].general_build_options.repair_command == expected_repair
+    assert build_options.repair_command == expected_repair
 
 
 @pytest.mark.parametrize(
@@ -150,7 +156,9 @@ def test_environment(environment, platform_specific, platform, intercepted_build
 
     main()
 
-    intercepted_environment = intercepted_build_args.args[0].general_build_options.environment
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+    intercepted_environment = build_options.environment
+
     assert isinstance(intercepted_environment, ParsedEnvironment)
     assert intercepted_environment.as_dictionary(prev_environment={}) == environment
 
@@ -169,10 +177,9 @@ def test_test_requires(
 
     main()
 
-    assert (
-        intercepted_build_args.args[0].general_build_options.test_requires
-        == (test_requires or "").split()
-    )
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
+    assert build_options.test_requires == (test_requires or "").split()
 
 
 @pytest.mark.parametrize("test_extras", [None, "extras"])
@@ -187,9 +194,9 @@ def test_test_extras(test_extras, platform_specific, platform, intercepted_build
 
     main()
 
-    assert intercepted_build_args.args[0].general_build_options.test_extras == (
-        "[" + test_extras + "]" if test_extras else ""
-    )
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
+    assert build_options.test_extras == ("[" + test_extras + "]" if test_extras else "")
 
 
 @pytest.mark.parametrize("test_command", [None, "test --command"])
@@ -206,7 +213,9 @@ def test_test_command(
 
     main()
 
-    assert intercepted_build_args.args[0].general_build_options.test_command == (test_command or "")
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
+    assert build_options.test_command == (test_command or "")
 
 
 @pytest.mark.parametrize("before_build", [None, "before --build"])
@@ -223,7 +232,8 @@ def test_before_build(
 
     main()
 
-    assert intercepted_build_args.args[0].general_build_options.before_build == (before_build or "")
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+    assert build_options.before_build == (before_build or "")
 
 
 @pytest.mark.parametrize("build_verbosity", [None, 0, 2, -2, 4, -4])
@@ -239,11 +249,10 @@ def test_build_verbosity(
             monkeypatch.setenv("CIBW_BUILD_VERBOSITY", str(build_verbosity))
 
     main()
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
     expected_verbosity = max(-3, min(3, int(build_verbosity or 0)))
-    assert (
-        intercepted_build_args.args[0].general_build_options.build_verbosity == expected_verbosity
-    )
+    assert build_options.build_verbosity == expected_verbosity
 
 
 @pytest.mark.parametrize(
@@ -294,4 +303,36 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
 
     main()
 
-    assert intercepted_build_args.args[0].general_build_options.before_all == (before_all or "")
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
+    assert build_options.before_all == (before_all or "")
+
+
+def test_defaults(platform, intercepted_build_args):
+    main()
+
+    build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
+    defaults_config_path = resources_dir / "defaults.toml"
+    with defaults_config_path.open("rb") as f:
+        defaults_toml = tomli.load(f)
+
+    root_defaults = defaults_toml["tool"]["cibuildwheel"]
+    platform_defaults = defaults_toml["tool"]["cibuildwheel"][platform]
+
+    defaults = {}
+    defaults.update(root_defaults)
+    defaults.update(platform_defaults)
+
+    # test a few options
+    assert build_options.before_all == defaults["before-all"]
+    repair_wheel_default = defaults["repair-wheel-command"]
+    if isinstance(repair_wheel_default, list):
+        repair_wheel_default = " && ".join(repair_wheel_default)
+    assert build_options.repair_command == repair_wheel_default
+    assert build_options.build_frontend == defaults["build-frontend"]
+
+    if platform == "linux":
+        assert build_options.manylinux_images
+        pinned_images = _get_pinned_docker_images()
+        default_x86_64_image = pinned_images["x86_64"][defaults["manylinux-x86_64-image"]]
+        assert build_options.manylinux_images["x86_64"] == default_x86_64_image
