@@ -90,28 +90,7 @@ def get_python_configurations(
     ]
 
     # skip builds as required by BUILD/SKIP
-    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
-
-    # When running on macOS 11 and x86_64, the reported OS is '10.16', but
-    # there is no such OS - it really means macOS 11.
-    if get_macos_version() >= (10, 16):
-        if any(c.identifier.startswith("pp") for c in python_configurations):
-            # pypy doesn't work on macOS 11 yet
-            # See https://foss.heptapod.net/pypy/pypy/-/issues/3314
-            log.warning(
-                unwrap(
-                    """
-                    PyPy is currently unsupported when building on macOS 11. To build macOS PyPy
-                    wheels, build on an older OS, such as macOS 10.15. To silence this warning,
-                    deselect PyPy by adding "pp*-macosx*" to your CIBW_SKIP option.
-                    """
-                )
-            )
-            python_configurations = [
-                c for c in python_configurations if not c.identifier.startswith("pp")
-            ]
-
-    return python_configurations
+    return [c for c in python_configurations if build_selector(c.identifier)]
 
 
 SYMLINKS_DIR = Path("/tmp/cibw_bin")

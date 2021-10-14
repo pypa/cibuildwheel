@@ -132,11 +132,6 @@ def expected_wheels(
     if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
         python_abi_tags += ["pp37-pypy37_pp73"]
 
-    if platform == "macos" and get_macos_version() >= (10, 16):
-        # 10.16 is sometimes reported as the macOS version on macOS 11.
-        # pypy not supported on macOS 11.
-        python_abi_tags = [t for t in python_abi_tags if not t.startswith("pp")]
-
     if platform == "macos" and machine_arch == "arm64":
         # currently, arm64 macs are only supported by cp39 & cp310
         python_abi_tags = ["cp39-cp39", "cp310-cp310"]
