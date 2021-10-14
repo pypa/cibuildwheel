@@ -11,13 +11,13 @@ from typing import Any, Union
 import click
 import requests
 import rich
-import toml
+import tomli
 from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel.extra import InlineArrayDictEncoder
+from cibuildwheel.extra import dump_python_configurations
 from cibuildwheel.typing import Final, Literal, TypedDict
 
 log = logging.getLogger("cibw")
@@ -291,7 +291,8 @@ def update_pythons(force: bool, level: str) -> None:
     toml_file_path = RESOURCES_DIR / "build-platforms.toml"
 
     original_toml = toml_file_path.read_text()
-    configs = toml.loads(original_toml)
+    with toml_file_path.open("rb") as f:
+        configs = tomli.load(f)
 
     for config in configs["windows"]["python_configurations"]:
         all_versions.update_config(config)
@@ -299,7 +300,7 @@ def update_pythons(force: bool, level: str) -> None:
     for config in configs["macos"]["python_configurations"]:
         all_versions.update_config(config)
 
-    result_toml = toml.dumps(configs, encoder=InlineArrayDictEncoder())  # type: ignore
+    result_toml = dump_python_configurations(configs)
 
     rich.print()  # spacer
 

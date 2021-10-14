@@ -58,7 +58,6 @@ module = [
     "setuptools",
     "pytest", # ignored in pre-commit to speed up check
     "bashlex",
-    "toml.encoder", # encoder missing from stub package
     "bracex",
     "importlib_resources",
     "nox",
