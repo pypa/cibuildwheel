@@ -22,6 +22,7 @@ runs:
         pipx run
         --spec '${{ github.action_path }}'
         cibuildwheel
+        --print-build-identifiers
         ${{ inputs.package-dir }}
         --output-dir ${{ inputs.output-dir }}
         2>&1
