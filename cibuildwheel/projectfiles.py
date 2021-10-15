@@ -4,7 +4,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Optional
 
-import toml
+import tomli
 
 if sys.version_info < (3, 8):
     Constant = ast.Str
@@ -56,7 +56,8 @@ def get_requires_python_str(package_dir: Path) -> Optional[str]:
 
     # Read in from pyproject.toml:project.requires-python
     try:
-        info = toml.load(package_dir / "pyproject.toml")
+        with (package_dir / "pyproject.toml").open("rb") as f1:
+            info = tomli.load(f1)
         return str(info["project"]["requires-python"])
     except (FileNotFoundError, KeyError, IndexError, TypeError):
         pass
@@ -70,8 +71,8 @@ def get_requires_python_str(package_dir: Path) -> Optional[str]:
         pass
 
     try:
-        with open(package_dir / "setup.py") as f:
-            return setup_py_python_requires(f.read())
+        with (package_dir / "setup.py").open() as f2:
+            return setup_py_python_requires(f2.read())
     except FileNotFoundError:
         pass
 

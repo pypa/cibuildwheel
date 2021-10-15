@@ -4,9 +4,9 @@ import sys
 from typing import TYPE_CHECKING, NoReturn, Set, Union
 
 if sys.version_info < (3, 8):
-    from typing_extensions import Final, Literal, TypedDict
+    from typing_extensions import Final, Literal, Protocol, TypedDict
 else:
-    from typing import Final, Literal, TypedDict
+    from typing import Final, Literal, Protocol, TypedDict
 
 
 __all__ = (
@@ -18,6 +18,7 @@ __all__ = (
     "PopenBytes",
     "PathOrStr",
     "PlatformName",
+    "Protocol",
     "PLATFORMS",
     "assert_never",
 )

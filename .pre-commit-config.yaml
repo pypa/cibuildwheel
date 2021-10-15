@@ -58,6 +58,7 @@ repos:
       - types-jinja2
       - types-certifi
       - types-toml
+      - tomli
   - id: mypy
     name: mypy 3.7+ on bin/
     files: ^((bin|docs)/.*py|noxfile.py)$
@@ -69,7 +70,7 @@ repos:
       - types-pyyaml
       - types-click
       - types-requests
-      - types-toml
+      - tomli
 
 - repo: https://github.com/PyCQA/flake8
   rev: 4.0.1

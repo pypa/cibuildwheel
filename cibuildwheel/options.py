@@ -5,7 +5,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Set, Tuple, Union
 
-import toml
+import tomli
 from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
@@ -143,7 +143,8 @@ class ConfigOptions:
         """
         Load a toml file, returns global and platform as separate dicts.
         """
-        config = toml.load(filename)
+        with filename.open("rb") as f:
+            config = tomli.load(f)
 
         global_options = config.get("tool", {}).get("cibuildwheel", {})
         platform_options = global_options.get(self.platform, {})

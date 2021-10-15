@@ -16,7 +16,7 @@ from typing import Dict, Iterator, List, NamedTuple, Optional, Set
 
 import bracex
 import certifi
-import toml
+import tomli
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
@@ -71,7 +71,8 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
 
 def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
     input_file = resources_dir / "build-platforms.toml"
-    loaded_file = toml.load(input_file)
+    with input_file.open("rb") as f:
+        loaded_file = tomli.load(f)
     results: List[Dict[str, str]] = list(loaded_file[config]["python_configurations"])
     return results
 
