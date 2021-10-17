@@ -157,18 +157,18 @@ class TestSelector(IdentifierSelector):
 
 # Taken from https://stackoverflow.com/a/107717
 class Unbuffered:
-    def __init__(self, stream):  # type: ignore
+    def __init__(self, stream):  # type: ignore[no-untyped-def]
         self.stream = stream
 
-    def write(self, data):  # type: ignore
+    def write(self, data):  # type: ignore[no-untyped-def]
         self.stream.write(data)
         self.stream.flush()
 
-    def writelines(self, data):  # type: ignore
+    def writelines(self, data):  # type: ignore[no-untyped-def]
         self.stream.writelines(data)
         self.stream.flush()
 
-    def __getattr__(self, attr):  # type: ignore
+    def __getattr__(self, attr):  # type: ignore[no-untyped-def]
         return getattr(self.stream, attr)
 
 

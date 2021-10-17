@@ -180,7 +180,7 @@ class ConfigOptions:
         # get the option from the environment, then the config file, then finally the default.
         # platform-specific options are preferred, if they're allowed.
         result = _dig_first(
-            (os.environ if env_plat else {}, plat_envvar),  # type: ignore
+            (os.environ if env_plat else {}, plat_envvar),  # type: ignore[arg-type]
             (os.environ, envvar),
             (self.config_platform_options, name),
             (self.config_options, name),
