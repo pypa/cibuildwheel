@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 import textwrap
-from typing import List, Optional, Set, Union
+from typing import List, Set, Union
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -15,7 +15,7 @@ from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import BuildSelector, Unbuffered, detect_ci_provider
 
 
-def main(sys_args: Optional[List[str]] = None) -> None:
+def main() -> None:
     platform: PlatformName
 
     parser = argparse.ArgumentParser(
@@ -98,7 +98,7 @@ def main(sys_args: Optional[List[str]] = None) -> None:
         help="Enable pre-release Python versions if available.",
     )
 
-    args = parser.parse_args(args=sys_args, namespace=CommandLineArguments())
+    args = parser.parse_args(namespace=CommandLineArguments())
 
     if args.platform != "auto":
         platform = args.platform

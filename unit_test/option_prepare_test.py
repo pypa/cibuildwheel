@@ -1,5 +1,6 @@
 import platform as platform_module
 import subprocess
+import sys
 from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
@@ -40,9 +41,11 @@ def mock_build_docker(monkeypatch):
     monkeypatch.setattr("cibuildwheel.util.print_new_wheels", ignore_context_call)
 
 
-def test_build_default_launches(mock_build_docker, fake_package_dir):
+def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--platform=linux"])
 
-    main(["--platform=linux"])
+    main()
+
     build_on_docker = cast(mock.Mock, linux.build_on_docker)
 
     assert build_on_docker.call_count == 4
@@ -106,7 +109,10 @@ before-all = "true"
     )
 
     monkeypatch.chdir(pkg_dir)
-    main(["--platform=linux"])
+    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--platform=linux"])
+
+    main()
+
     build_on_docker = cast(mock.Mock, linux.build_on_docker)
 
     assert build_on_docker.call_count == 6
