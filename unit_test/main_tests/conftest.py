@@ -15,9 +15,6 @@ class ArgsInterceptor:
         self.kwargs = kwargs
 
 
-MOCK_PACKAGE_DIR = Path("some_package_dir")
-
-
 @pytest.fixture(autouse=True)
 def mock_protection(monkeypatch):
     """
@@ -41,22 +38,8 @@ def mock_protection(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def fake_package_dir(monkeypatch):
-    """
-    Monkey-patch enough for the main() function to run
-    """
-    real_path_exists = Path.exists
-
-    def mock_path_exists(path):
-        if path == MOCK_PACKAGE_DIR / "setup.py":
-            return True
-        else:
-            return real_path_exists(path)
-
-    args = ["cibuildwheel", str(MOCK_PACKAGE_DIR)]
-    monkeypatch.setattr(Path, "exists", mock_path_exists)
-    monkeypatch.setattr(sys, "argv", args)
-    return args
+def fake_package_dir_autouse(fake_package_dir):
+    pass
 
 
 @pytest.fixture(autouse=True)

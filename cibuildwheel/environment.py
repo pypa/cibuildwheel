@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Dict, List, Mapping, Optional
 
 import bashlex
@@ -60,10 +61,15 @@ class EnvironmentAssignment:
     def __repr__(self) -> str:
         return f"{self.name}={self.value}"
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, EnvironmentAssignment):
+            return self.name == other.name and self.value == other.value
+        return False
 
+
+@dataclasses.dataclass
 class ParsedEnvironment:
-    def __init__(self, assignments: List[EnvironmentAssignment]):
-        self.assignments = assignments
+    assignments: List[EnvironmentAssignment]
 
     def as_dictionary(
         self,
@@ -82,7 +88,7 @@ class ParsedEnvironment:
         return [a.as_shell_assignment() for a in self.assignments]
 
     def __repr__(self) -> str:
-        return f"ParsedEnvironment({[repr(a) for a in self.assignments]!r})"
+        return f"{self.__class__.__name__}({[repr(a) for a in self.assignments]!r})"
 
 
 def parse_environment(env_string: str) -> ParsedEnvironment:

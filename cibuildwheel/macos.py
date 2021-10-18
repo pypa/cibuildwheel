@@ -12,10 +12,10 @@ from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
+from .options import Options
 from .typing import Literal, PathOrStr, assert_never
 from .util import (
     BuildFrontend,
-    BuildOptions,
     BuildSelector,
     NonPlatformWheelError,
     download,
@@ -322,49 +322,53 @@ def setup_python(
     return env
 
 
-def build(options: BuildOptions) -> None:
+def build(options: Options) -> None:
     temp_dir = Path(tempfile.mkdtemp(prefix="cibuildwheel"))
     built_wheel_dir = temp_dir / "built_wheel"
     repaired_wheel_dir = temp_dir / "repaired_wheel"
 
+    python_configurations = get_python_configurations(
+        options.globals.build_selector, options.globals.architectures
+    )
+
     try:
-        if options.before_all:
+        before_all_options_identifier = python_configurations[0].identifier
+        before_all_options = options.build_options(before_all_options_identifier)
+
+        if before_all_options.before_all:
             log.step("Running before_all...")
-            env = options.environment.as_dictionary(prev_environment=os.environ)
+            env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
             env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
             before_all_prepared = prepare_command(
-                options.before_all, project=".", package=options.package_dir
+                before_all_options.before_all, project=".", package=before_all_options.package_dir
             )
             call([before_all_prepared], shell=True, env=env)
 
-        python_configurations = get_python_configurations(
-            options.build_selector, options.architectures
-        )
-
         for config in python_configurations:
+            build_options = options.build_options(config.identifier)
             log.build_start(config.identifier)
 
             config_is_arm64 = config.identifier.endswith("arm64")
             config_is_universal2 = config.identifier.endswith("universal2")
 
             dependency_constraint_flags: Sequence[PathOrStr] = []
-            if options.dependency_constraints:
+            if build_options.dependency_constraints:
                 dependency_constraint_flags = [
                     "-c",
-                    options.dependency_constraints.get_for_python_version(config.version),
+                    build_options.dependency_constraints.get_for_python_version(config.version),
                 ]
 
             env = setup_python(
                 config,
                 dependency_constraint_flags,
-                options.environment,
-                options.build_frontend,
+                build_options.environment,
+                build_options.build_frontend,
             )
 
-            if options.before_build:
+            if build_options.before_build:
                 log.step("Running before_build...")
                 before_build_prepared = prepare_command(
-                    options.before_build, project=".", package=options.package_dir
+                    build_options.before_build, project=".", package=build_options.package_dir
                 )
                 call(before_build_prepared, env=env, shell=True)
 
@@ -373,9 +377,9 @@ def build(options: BuildOptions) -> None:
                 shutil.rmtree(built_wheel_dir)
             built_wheel_dir.mkdir(parents=True)
 
-            verbosity_flags = get_build_verbosity_extra_flags(options.build_verbosity)
+            verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
 
-            if options.build_frontend == "pip":
+            if build_options.build_frontend == "pip":
                 # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                 # see https://github.com/pypa/cibuildwheel/pull/369
                 call(
@@ -384,18 +388,20 @@ def build(options: BuildOptions) -> None:
                         "-m",
                         "pip",
                         "wheel",
-                        options.package_dir.resolve(),
+                        build_options.package_dir.resolve(),
                         f"--wheel-dir={built_wheel_dir}",
                         "--no-deps",
                         *verbosity_flags,
                     ],
                     env=env,
                 )
-            elif options.build_frontend == "build":
+            elif build_options.build_frontend == "build":
                 config_setting = " ".join(verbosity_flags)
                 build_env = env.copy()
-                if options.dependency_constraints:
-                    constr = options.dependency_constraints.get_for_python_version(config.version)
+                if build_options.dependency_constraints:
+                    constr = build_options.dependency_constraints.get_for_python_version(
+                        config.version
+                    )
                     build_env["PIP_CONSTRAINT"] = constr.as_uri()
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 call(
@@ -403,7 +409,7 @@ def build(options: BuildOptions) -> None:
                         "python",
                         "-m",
                         "build",
-                        options.package_dir,
+                        build_options.package_dir,
                         "--wheel",
                         f"--outdir={built_wheel_dir}",
                         f"--config-setting={config_setting}",
@@ -411,7 +417,7 @@ def build(options: BuildOptions) -> None:
                     env=build_env,
                 )
             else:
-                assert_never(options.build_frontend)
+                assert_never(build_options.build_frontend)
 
             built_wheel = next(built_wheel_dir.glob("*.whl"))
 
@@ -422,7 +428,7 @@ def build(options: BuildOptions) -> None:
             if built_wheel.name.endswith("none-any.whl"):
                 raise NonPlatformWheelError()
 
-            if options.repair_command:
+            if build_options.repair_command:
                 log.step("Repairing wheel...")
 
                 if config_is_universal2:
@@ -433,7 +439,7 @@ def build(options: BuildOptions) -> None:
                     delocate_archs = "x86_64"
 
                 repair_command_prepared = prepare_command(
-                    options.repair_command,
+                    build_options.repair_command,
                     wheel=built_wheel,
                     dest_dir=repaired_wheel_dir,
                     delocate_archs=delocate_archs,
@@ -446,7 +452,7 @@ def build(options: BuildOptions) -> None:
 
             log.step_end()
 
-            if options.test_command and options.test_selector(config.identifier):
+            if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()
                 testing_archs: List[Literal["x86_64", "arm64"]] = []
 
@@ -460,7 +466,7 @@ def build(options: BuildOptions) -> None:
                 for testing_arch in testing_archs:
                     if config_is_universal2:
                         arch_specific_identifier = f"{config.identifier}:{testing_arch}"
-                        if not options.test_selector(arch_specific_identifier):
+                        if not build_options.test_selector(arch_specific_identifier):
                             continue
 
                     if machine_arch == "x86_64" and testing_arch == "arm64":
@@ -541,31 +547,33 @@ def build(options: BuildOptions) -> None:
                     # check that we are using the Python from the virtual environment
                     call_with_arch(["which", "python"], env=virtualenv_env)
 
-                    if options.before_test:
+                    if build_options.before_test:
                         before_test_prepared = prepare_command(
-                            options.before_test, project=".", package=options.package_dir
+                            build_options.before_test,
+                            project=".",
+                            package=build_options.package_dir,
                         )
                         call_with_arch(before_test_prepared, env=virtualenv_env, shell=True)
 
                     # install the wheel
                     call_with_arch(
-                        ["pip", "install", f"{repaired_wheel}{options.test_extras}"],
+                        ["pip", "install", f"{repaired_wheel}{build_options.test_extras}"],
                         env=virtualenv_env,
                     )
 
                     # test the wheel
-                    if options.test_requires:
+                    if build_options.test_requires:
                         call_with_arch(
-                            ["pip", "install"] + options.test_requires, env=virtualenv_env
+                            ["pip", "install"] + build_options.test_requires, env=virtualenv_env
                         )
 
                     # run the tests from $HOME, with an absolute path in the command
                     # (this ensures that Python runs the tests against the installed wheel
                     # and not the repo code)
                     test_command_prepared = prepare_command(
-                        options.test_command,
+                        build_options.test_command,
                         project=Path(".").resolve(),
-                        package=options.package_dir.resolve(),
+                        package=build_options.package_dir.resolve(),
                     )
                     call_with_arch(
                         test_command_prepared,
@@ -578,7 +586,7 @@ def build(options: BuildOptions) -> None:
                     shutil.rmtree(venv_dir)
 
             # we're all done here; move it to output (overwrite existing)
-            shutil.move(str(repaired_wheel), options.output_dir)
+            shutil.move(str(repaired_wheel), build_options.output_dir)
             log.build_end()
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(

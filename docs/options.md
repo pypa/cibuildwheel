@@ -107,6 +107,56 @@ The complete set of defaults for the current version of cibuildwheel are shown b
     not want to change a `pyproject.toml` file. You can specify a different file to
     use with `--config-file` on the command line, as well.
 
+### Configuration overrides {: #overrides }
+
+One feature specific to the configuration files is the ability to override
+settings based on selectors. To use, add a ``tool.cibuildwheel.overrides``
+array, and specify a ``select`` string. Then any options you set will only
+apply to items that match that selector. These are applied in order, with later
+matches overriding earlier ones if multiple selectors match. Environment
+variables always override static configuration.
+
+A few of the options below have special handling in overrides. A different
+`before-all` will trigger a new docker launch on Linux, and cannot be
+overridden on macOS or Windows.  Overriding the image on linux will also
+generate new docker launches, one per image.  Some commands are not supported;
+`output-dir`, build/skip/test_skip selectors, and architectures cannot be
+overridden.
+
+##### Examples:
+
+```toml
+[tool.cibuildwheel.linux]
+before-all = "yum install mylib"
+test-command = "echo 'installed'"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+before-all = "apk add mylib"
+```
+
+This example will override the before-all command on musllinux only, but will
+still run the test-command. Note the double brackets, this is an array in TOML,
+which means it can be given multiple times.
+
+```toml
+[tool.cibuildwheel]
+# Normal options, etc.
+manylinux-x86_64-image = "manylinux2010"
+
+[[tool.cibuildwheel.overrides]]
+select = "cp36-*"
+manylinux-x86_64-image = "manylinux1"
+
+[[tool.cibuildwheel.overrides]]
+select = "cp310-*"
+manylinux-x86_64-image = "manylinux2014"
+```
+
+This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
+images on manylinux2010, and CPython 3.10 wheels on manylinux2014.
+
+
 ## Options summary
 
 <div class="options-toc"></div>
@@ -305,7 +355,8 @@ If not listed above, `auto` is the same as `native`.
 Platform-specific environment variables are also available:<br/>
  `CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX`
 
-This option can also be set using the [command-line option](#command-line) `--archs`.
+This option can also be set using the [command-line option](#command-line)
+`--archs`. This option cannot be set in an `overrides` section in `pyproject.toml`.
 
 #### Examples
 
@@ -563,6 +614,10 @@ This option is very useful for the Linux build, where builds take place in isola
 The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by cibuildwheel.
 
 On Windows and macOS, the version of Python available inside `CIBW_BEFORE_ALL` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
+
+This option has special behavior in the overrides section in `pyproject.toml`.
+On linux, overriding it triggers a new docker launch. It cannot be overridden
+on macOS and Windows.
 
 Platform-specific environment variables also available:<br/>
 `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
@@ -1143,6 +1198,8 @@ Platform-specific environment variables are also available:<br/>
 This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to skip slow tests on emulated architectures.
 
 With macOS `universal2` wheels, you can also skip the individual archs inside the wheel using an `:arch` suffix. For example, `cp39-macosx_universal2:x86_64` or `cp39-macosx_universal2:arm64`.
+
+This option is not supported in the overrides section in `pyproject.toml`.
 
 #### Examples
 

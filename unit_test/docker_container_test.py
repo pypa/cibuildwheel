@@ -25,19 +25,19 @@ elif pm == "s390x":
 
 @pytest.mark.docker
 def test_simple():
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
 
 @pytest.mark.docker
 def test_no_lf():
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
 @pytest.mark.docker
 def test_environment():
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         assert (
             container.call(
                 ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
@@ -48,14 +48,16 @@ def test_environment():
 
 @pytest.mark.docker
 def test_cwd():
-    with DockerContainer(DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory") as container:
+    with DockerContainer(
+        docker_image=DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory"
+    ) as container:
         assert container.call(["pwd"], capture_output=True) == "/cibuildwheel/working_directory\n"
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
 @pytest.mark.docker
 def test_container_removed():
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         docker_containers_listing = subprocess.run(
             "docker container ls",
             shell=True,
@@ -88,7 +90,7 @@ def test_large_environment():
         "d": "0" * long_env_var_length,
     }
 
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         # check the length of d
         assert (
             container.call(["sh", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
@@ -98,7 +100,7 @@ def test_large_environment():
 
 @pytest.mark.docker
 def test_binary_output():
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         # note: the below embedded snippets are in python2
 
         # check that we can pass though arbitrary binary data without erroring
@@ -149,7 +151,7 @@ def test_binary_output():
 
 @pytest.mark.docker
 def test_file_operations(tmp_path: Path):
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         # test copying a file in
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
@@ -165,7 +167,7 @@ def test_file_operations(tmp_path: Path):
 
 @pytest.mark.docker
 def test_dir_operations(tmp_path: Path):
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
         original_test_file.write_bytes(test_binary_data)
@@ -195,6 +197,6 @@ def test_dir_operations(tmp_path: Path):
 
 @pytest.mark.docker
 def test_environment_executor():
-    with DockerContainer(DEFAULT_IMAGE) as container:
+    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         assignment = EnvironmentAssignment("TEST=$(echo 42)")
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
