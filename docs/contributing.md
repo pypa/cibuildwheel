@@ -131,9 +131,8 @@ Finally, cut the release and upload to PyPI/GitHub.
 
 ```bash
 rm -rf dist
-python setup.py sdist bdist_wheel
-twine upload dist/*
-git push && git push --tags
+python -m build
+git push && git push --tags && twine upload dist/*
 ```
 
 Then head to https://github.com/pypa/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry.
