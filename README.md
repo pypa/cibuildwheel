@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.2.0a1
+        run: python -m pip install cibuildwheel==2.2.0b1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -192,6 +192,12 @@ Changelog
 ### v2.2.0 (prerelease)
 
 _Currently in prerelease. The below release notes will be condensed into a single entry on final release._
+
+_v2.2.0b1 (19 October 2021)_
+
+- 🌟 TOML option overrides. This provides much greater flexibility in configuration via pyproject.toml.
+
+  You can now set build options for any subset of your builds using a match pattern. So, for example, you can customise CPython 3.8 builds with an override on `cp38-*` or musllinux builds by selecting `*musllinux*`. Check out [the docs](https://cibuildwheel.readthedocs.io/en/latest/options/#overrides) for more info on the specifics.
 
 _v2.2.0a1 (23 September 2021)_
 

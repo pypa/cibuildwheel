@@ -6,6 +6,12 @@ title: Changelog
 
 _Currently in prerelease. The below release notes will be condensed into a single entry on final release._
 
+_v2.2.0b1 (19 October 2021)_
+
+- 🌟 TOML option overrides. This provides much greater flexibility in configuration via pyproject.toml.
+
+  You can now set build options for any subset of your builds using a match pattern. So, for example, you can customise CPython 3.8 builds with an override on `cp38-*` or musllinux builds by selecting `*musllinux*`. Check out [the docs](https://cibuildwheel.readthedocs.io/en/latest/options/#overrides) for more info on the specifics.
+
 _v2.2.0a1 (23 September 2021)_
 
 - 🌟 Added support for [musllinux](https://www.python.org/dev/peps/pep-0656/). Support for this new wheel format lets projects build wheels for Linux distributions that use [musl libc](https://musl.libc.org/), notably, [Alpine](https://alpinelinux.org/) Docker containers.
