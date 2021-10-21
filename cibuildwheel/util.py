@@ -12,7 +12,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 
 import bracex
 import certifi
@@ -48,14 +48,50 @@ MUSLLINUX_ARCHS = (
 )
 
 
+def format_safe(template: str, **kwargs: Any) -> str:
+    """
+    Works similarly to `template.format(**kwargs)`, except that unmatched
+    fields in `template` are passed through untouched.
+
+    >>> format_safe('{a} {b}', a='123')
+    '123 {b}'
+    >>> format_safe('{a} {b[4]:3f}', a='123')
+    '123 {b[4]:3f}'
+
+    To avoid variable expansion, precede with a single backslash e.g.
+    >>> format_safe('\\{a} {b}', a='123')
+    '{a} {b}'
+    """
+
+    result = template
+
+    for key, value in kwargs.items():
+        find_pattern = re.compile(
+            fr"""
+                (?<!\\)  # don't match if preceded by a backslash
+                {{  # literal open curly bracket
+                {re.escape(key)}  # the field name
+                }}  # literal close curly bracket
+            """,
+            re.VERBOSE,
+        )
+
+        result = re.sub(find_pattern, str(value), result)
+
+        # transform escaped sequences into their literal equivalents
+        result = result.replace(f"\\{{{key}}}", f"{{{key}}}")
+
+    return result
+
+
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     """
     Preprocesses a command by expanding variables like {python}.
 
     For example, used in the test_command option to specify the path to the
-    project's root.
+    project's root. Unmatched syntax will mostly be allowed through.
     """
-    return command.format(python="python", pip="pip", **kwargs)
+    return format_safe(command, python="python", pip="pip", **kwargs)
 
 
 def get_build_verbosity_extra_flags(level: int) -> List[str]:
