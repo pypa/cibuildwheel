@@ -12,7 +12,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, Iterator, List, Optional, TypeVar
 
 import bracex
 import certifi
@@ -48,14 +48,36 @@ MUSLLINUX_ARCHS = (
 )
 
 
+T = TypeVar("T", bound="LimitedExpandStr")
+
+
+class LimitedExpandStr:
+    def __init__(self, inner: PathOrStr) -> None:
+        self.inner = str(inner)
+
+    def __format__(self, fmt: str) -> str:
+        return str(self.__class__(self.inner + (f":{fmt}" if fmt else "")))
+
+    def __getitem__(self: T, item: int) -> T:
+        return self.__class__(f"{self.inner}[{item}]")
+
+    def __str__(self) -> str:
+        return f"{{{self.inner}}}"
+
+
+class SafeDict(Dict[str, PathOrStr]):
+    def __missing__(self, key: str) -> LimitedExpandStr:
+        return LimitedExpandStr(key)
+
+
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     """
     Preprocesses a command by expanding variables like {python}.
 
     For example, used in the test_command option to specify the path to the
-    project's root.
+    project's root. Unmatched syntax will mostly be allowed through.
     """
-    return command.format(python="python", pip="pip", **kwargs)
+    return command.format_map(SafeDict(python="python", pip="pip", **kwargs))
 
 
 def get_build_verbosity_extra_flags(level: int) -> List[str]:
