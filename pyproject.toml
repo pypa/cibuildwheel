@@ -61,6 +61,7 @@ module = [
     "importlib_resources",
     "nox",
     "github",
+    "ghapi.*",
 ]
 ignore_missing_imports = true
 
