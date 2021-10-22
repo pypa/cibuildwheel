@@ -64,6 +64,7 @@ repos:
       - types-jinja2
       - types-pyyaml
       - types-requests
+      - bracex
   - id: mypy
     name: mypy 3.7+ on bin/
     files: ^((bin|docs)/.*py|noxfile.py)$

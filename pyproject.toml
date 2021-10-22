@@ -58,7 +58,6 @@ module = [
     "setuptools",
     "pytest", # ignored in pre-commit to speed up check
     "bashlex",
-    "bracex",
     "importlib_resources",
     "nox",
     "github",

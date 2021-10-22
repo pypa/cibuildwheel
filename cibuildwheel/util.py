@@ -84,9 +84,9 @@ def selector_matches(patterns: str, string: str) -> bool:
     expansion. For example, 'cp{36,37}-*' would match either of 'cp36-*' or
     'cp37-*'.
     """
-    patterns_list: List[str] = patterns.split()
-    patterns_list = itertools.chain.from_iterable(bracex.expand(p) for p in patterns_list)  # type: ignore[assignment]
-    return any(fnmatch.fnmatch(string, pat) for pat in patterns_list)
+    patterns_list = patterns.split()
+    expanded_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in patterns_list)
+    return any(fnmatch.fnmatch(string, pat) for pat in expanded_patterns)
 
 
 class IdentifierSelector:
