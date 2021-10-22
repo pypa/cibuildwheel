@@ -64,8 +64,8 @@ def main() -> None:
         "--config-file",
         default="",
         help="""
-            TOML config file for cibuildwheel. If empty, this will use
-            {package}/pyproject.toml, but will not error if it is missing.
+            TOML config file. Default: "", meaning {package}/pyproject.toml,
+            if it exists.
         """,
     )
 
