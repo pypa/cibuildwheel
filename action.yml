@@ -12,7 +12,7 @@ inputs:
   config-file:
     description: 'File containing the config, defaults to {package}/pyproject.toml'
     required: false
-    default: '{package}/pyproject.toml'
+    default: ''
 branding:
   icon: package
   color: yellow
