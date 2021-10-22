@@ -2,23 +2,23 @@
 title: Changelog
 ---
 
-### v2.2.0 (prerelease)
+### v2.2.0
 
-_Currently in prerelease. The below release notes will be condensed into a single entry on final release._
+_22 October 2021_
 
-_v2.2.0b1 (19 October 2021)_
+- 🌟 Added support for [musllinux](https://www.python.org/dev/peps/pep-0656/). Support for this new wheel format lets projects build wheels for Linux distributions that use [musl libc](https://musl.libc.org/), notably, [Alpine](https://alpinelinux.org/) Docker containers. (#768)
 
-- 🌟 TOML option overrides. This provides much greater flexibility in configuration via pyproject.toml.
+  Musllinux builds are enabled by default. If you're not ready to build musllinux, add `*-musllinux_*` to your [`CIBW_SKIP`/`skip`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip) option. Or, you might have to make some changes to your options - to simplify that process, you can use...
+
+- 🌟 TOML option overrides! This provides much greater flexibility in configuration via pyproject.toml. (#854)
 
   You can now set build options for any subset of your builds using a match pattern. So, for example, you can customise CPython 3.8 builds with an override on `cp38-*` or musllinux builds by selecting `*musllinux*`. Check out [the docs](https://cibuildwheel.readthedocs.io/en/latest/options/#overrides) for more info on the specifics.
 
-_v2.2.0a1 (23 September 2021)_
+- 🛠 Added support for building PyPy wheels on macOS 11 CI runners. (#875)
 
-- 🌟 Added support for [musllinux](https://www.python.org/dev/peps/pep-0656/). Support for this new wheel format lets projects build wheels for Linux distributions that use [musl libc](https://musl.libc.org/), notably, [Alpine](https://alpinelinux.org/) Docker containers.
-
-  Musllinux builds are enabled by default. To disable them on your project, add `*-musllinux_*` to your [`CIBW_SKIP`/`skip`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)
- option. (#768)
 - 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matricies. (#829)
+
+- 🛠 Support for TOML 1.0 when reading config files, via the `tomli` package. (#876)
 
 ### v2.1.3
 
