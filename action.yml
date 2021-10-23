@@ -9,6 +9,10 @@ inputs:
     description: 'Folder to place the outputs in, defaults to "wheelhouse"'
     required: false
     default: wheelhouse
+  config-file:
+    description: 'File containing the config, defaults to {package}/pyproject.toml'
+    required: false
+    default: ''
 branding:
   icon: package
   color: yellow
@@ -24,5 +28,6 @@ runs:
         cibuildwheel
         ${{ inputs.package-dir }}
         --output-dir ${{ inputs.output-dir }}
+        --config-file "${{ input.config-file }}"
         2>&1
       shell: bash

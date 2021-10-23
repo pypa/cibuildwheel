@@ -57,14 +57,15 @@ def main() -> None:
 
     parser.add_argument(
         "--output-dir",
-        help="Destination folder for the wheels.",
+        help="Destination folder for the wheels. Default: wheelhouse.",
     )
 
     parser.add_argument(
         "--config-file",
+        default="",
         help="""
-            TOML config file for cibuildwheel. Defaults to pyproject.toml, but
-            can be overridden with this option.
+            TOML config file. Default: "", meaning {package}/pyproject.toml,
+            if it exists.
         """,
     )
 
