@@ -12,7 +12,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Dict, Iterator, List, Optional, TypeVar
+from typing import Any, Dict, Iterator, List, Optional
 
 import bracex
 import certifi
@@ -48,26 +48,56 @@ MUSLLINUX_ARCHS = (
 )
 
 
-T = TypeVar("T", bound="LimitedExpandStr")
+class FormatSafeElement:
+    """
+    An object, that when used in a format string, returns the format string
+    used to print itself.
 
+    >>> '{a}'.format(a=FormatSafeElement('a'))
+    '{a}'
+    >>> '{a[3]}'.format(a=FormatSafeElement('a'))
+    '{a[3]}'
+    >>> '{a:3f}'.format(a=FormatSafeElement('a'))
+    '{a:3f}'
+    """
 
-class LimitedExpandStr:
-    def __init__(self, inner: PathOrStr) -> None:
+    def __init__(self, inner: Any) -> None:
         self.inner = str(inner)
 
     def __format__(self, fmt: str) -> str:
-        return str(self.__class__(self.inner + (f":{fmt}" if fmt else "")))
+        return str(FormatSafeElement(self.inner + (f":{fmt}" if fmt else "")))
 
-    def __getitem__(self: T, item: int) -> T:
-        return self.__class__(f"{self.inner}[{item}]")
+    def __getitem__(self, item: Any) -> "FormatSafeElement":
+        return FormatSafeElement(f"{self.inner}[{item}]")
+
+    def __getattr__(self, key: str) -> "FormatSafeElement":
+        return FormatSafeElement(f"{self.inner}.{key}")
 
     def __str__(self) -> str:
         return f"{{{self.inner}}}"
 
 
-class SafeDict(Dict[str, PathOrStr]):
-    def __missing__(self, key: str) -> LimitedExpandStr:
-        return LimitedExpandStr(key)
+class FormatSafeDict(Dict[str, Any]):
+    def __missing__(self, key: str) -> FormatSafeElement:
+        return FormatSafeElement(key)
+
+
+def format_safe(template: str, **kwargs: Any) -> str:
+    """
+    Works similarly to `template.format(**kwargs)`, except that unmatched
+    fields in `template` are passed through untouched.
+
+    >>> format_safe('{a} {b}', a='123')
+    '123 {b}'
+    >>> format_safe('{a} {}', a='123')
+    '123 {}'
+
+    To avoid variable expansion, use double curly brackets e.g.
+    >>> format_safe('{{a}} {b}', a='123')
+    '{a} {b}'
+    """
+
+    return template.format_map(FormatSafeDict(**kwargs))
 
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
@@ -77,7 +107,19 @@ def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     For example, used in the test_command option to specify the path to the
     project's root. Unmatched syntax will mostly be allowed through.
     """
-    return command.format_map(SafeDict(python="python", pip="pip", **kwargs))
+    try:
+        return format_safe(command, python="python", pip="pip", **kwargs)
+    except ValueError as exc:
+        msg = unwrap(
+            f"""
+                Failed to format command {command!r}. Commands are expanded
+                using a custom str.format that ignores unknown substitutions.
+                However, some constructs involving curly brackets can still
+                cause issues. To workaround this, escape curly brackets by
+                doubling them - {{ and }}.
+            """
+        )
+        raise ValueError(msg) from exc
 
 
 def get_build_verbosity_extra_flags(level: int) -> List[str]:
