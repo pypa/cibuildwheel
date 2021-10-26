@@ -22,6 +22,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
     - uses: pre-commit/action@v2.0.3
+    - run: pipx run nox -s check_manifest
 
   test:
     name: Test cibuildwheel on ${{ matrix.os }}

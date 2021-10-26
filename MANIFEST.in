@@ -1,0 +1,6 @@
+recursive-include cibuildwheel *.cfg
+recursive-include cibuildwheel *.in
+recursive-include cibuildwheel *.py
+recursive-include cibuildwheel *.toml
+recursive-include cibuildwheel *.txt
+recursive-include cibuildwheel *.typed
