@@ -32,7 +32,8 @@ files = [
     "cibuildwheel/*.py",
     "test/**/*.py",
     "unit_test/**/*.py",
-    "bin/*.py"
+    "bin/*.py",
+    "noxfile.py",
 ]
 warn_unused_configs = true
 warn_redundant_casts = true
@@ -58,10 +59,8 @@ module = [
     "setuptools",
     "pytest", # ignored in pre-commit to speed up check
     "bashlex",
-    "bracex",
     "importlib_resources",
-    "nox",
-    "github",
+    "ghapi.*",
 ]
 ignore_missing_imports = true
 

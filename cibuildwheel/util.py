@@ -12,7 +12,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Optional, TextIO
 
 import bracex
 import certifi
@@ -84,9 +84,9 @@ def selector_matches(patterns: str, string: str) -> bool:
     expansion. For example, 'cp{36,37}-*' would match either of 'cp36-*' or
     'cp37-*'.
     """
-    patterns_list: List[str] = patterns.split()
-    patterns_list = itertools.chain.from_iterable(bracex.expand(p) for p in patterns_list)  # type: ignore[assignment]
-    return any(fnmatch.fnmatch(string, pat) for pat in patterns_list)
+    patterns_list = patterns.split()
+    expanded_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in patterns_list)
+    return any(fnmatch.fnmatch(string, pat) for pat in expanded_patterns)
 
 
 class IdentifierSelector:
@@ -161,18 +161,18 @@ class TestSelector(IdentifierSelector):
 
 # Taken from https://stackoverflow.com/a/107717
 class Unbuffered:
-    def __init__(self, stream):  # type: ignore[no-untyped-def]
+    def __init__(self, stream: TextIO) -> None:
         self.stream = stream
 
-    def write(self, data):  # type: ignore[no-untyped-def]
+    def write(self, data: str) -> None:
         self.stream.write(data)
         self.stream.flush()
 
-    def writelines(self, data):  # type: ignore[no-untyped-def]
+    def writelines(self, data: Iterable[str]) -> None:
         self.stream.writelines(data)
         self.stream.flush()
 
-    def __getattr__(self, attr):  # type: ignore[no-untyped-def]
+    def __getattr__(self, attr: str) -> Any:
         return getattr(self.stream, attr)
 
 

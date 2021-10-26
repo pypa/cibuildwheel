@@ -55,7 +55,9 @@ repos:
     exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
     args: ["--python-version=3.6", "--scripts-are-modules", "--show-error-codes"]
     additional_dependencies: &mypy-dependencies
+      - nox
       - packaging>=21.0
+      - pygithub
       - rich
       - tomli
       - types-certifi
@@ -64,9 +66,10 @@ repos:
       - types-jinja2
       - types-pyyaml
       - types-requests
+      - bracex
   - id: mypy
     name: mypy 3.7+ on bin/
-    files: ^((bin|docs)/.*py|noxfile.py)$
+    files: ^((bin|docs)/.*py)$
     args: ["--python-version=3.7", "--scripts-are-modules", "--show-error-codes"]
     additional_dependencies: *mypy-dependencies
 
