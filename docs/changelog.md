@@ -6,11 +6,8 @@ title: Changelog
 
 _26 October 2021_
 
-- 🛠 Added a `config-file` option on the GitHub Action to specify something
-  other than pyproject.toml in your GitHub Workflow file. (#883)
-- 🐛 Fix missing resources in sdist and released wheel on PyPI. We've made
-  some internal change to our release processes to make them more reliable.
-  (#893, #894)
+- 🛠 Added a `config-file` option on the GitHub Action to specify something other than pyproject.toml in your GitHub Workflow file. (#883)
+- 🐛 Fix missing resources in sdist and released wheel on PyPI. We've also made some internal changes to our release processes to make them more reliable. (#893, #894)
 
 ### v2.2.0
 
