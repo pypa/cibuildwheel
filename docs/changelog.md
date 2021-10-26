@@ -2,6 +2,16 @@
 title: Changelog
 ---
 
+### v2.2.1
+
+_26 October 2021_
+
+- 🛠 Added a `config-file` option on the GitHub Action to specify something
+  other than pyproject.toml in your GitHub Workflow file. (#883)
+- 🐛 Fix missing resources in sdist and released wheel on PyPI. We've made
+  some internal change to our release processes to make them more reliable.
+  (#893, #894)
+
 ### v2.2.0
 
 _22 October 2021_
@@ -19,6 +29,8 @@ _22 October 2021_
 - 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matricies. (#829)
 
 - 🛠 Support for TOML 1.0 when reading config files, via the `tomli` package. (#876)
+
+<sup>Note: This version is not available on PyPI due to some missing resources in the release files. Please use v2.2.1 instead.</sup>
 
 ### v2.1.3
 
