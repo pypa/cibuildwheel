@@ -28,6 +28,6 @@ runs:
         cibuildwheel
         ${{ inputs.package-dir }}
         --output-dir ${{ inputs.output-dir }}
-        --config-file "${{ input.config-file }}"
+        --config-file "${{ inputs.config-file }}"
         2>&1
       shell: bash
