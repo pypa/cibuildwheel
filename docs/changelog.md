@@ -2,6 +2,12 @@
 title: Changelog
 ---
 
+### v2.2.2
+
+_26 October 2021_
+
+- 🐛 Fix bug in the GitHub Action step causing a syntax error (#895)
+
 ### v2.2.1
 
 _26 October 2021_
@@ -27,7 +33,7 @@ _22 October 2021_
 
 - 🛠 Support for TOML 1.0 when reading config files, via the `tomli` package. (#876)
 
-<sup>Note: This version is not available on PyPI due to some missing resources in the release files. Please use v2.2.1 instead.</sup>
+<sup>Note: This version is not available on PyPI due to some missing resources in the release files. Please use a later version instead.</sup>
 
 ### v2.1.3
 
