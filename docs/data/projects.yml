@@ -256,8 +256,8 @@
 
 - name: Tokenizer
   gh: OpenNMT/Tokenizer
-  ci: [github, travisci]
-  os: [apple, linux]
+  ci: [github]
+  os: [windows, apple, linux]
 
 - name: matrixprofile
   gh: matrix-profile-foundation/matrixprofile
