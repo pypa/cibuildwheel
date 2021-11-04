@@ -338,6 +338,7 @@ def build(options: Options) -> None:
             with DockerContainer(
                 docker_image=build_step.docker_image,
                 simulate_32_bit=build_step.platform_tag.endswith("i686"),
+                network_host=build_step.platform_tag.endswith("ppc64le"),
                 cwd=container_project_path,
             ) as docker:
 

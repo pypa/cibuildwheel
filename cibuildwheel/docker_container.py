@@ -31,19 +31,21 @@ class DockerContainer:
     bash_stdout: IO[bytes]
 
     def __init__(
-        self, *, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None
+        self, *, docker_image: str, simulate_32_bit: bool = False, network_host: bool = False, cwd: Optional[PathOrStr] = None
     ):
         if not docker_image:
             raise ValueError("Must have a non-empty docker image to run.")
 
         self.docker_image = docker_image
         self.simulate_32_bit = simulate_32_bit
+        self.network_host = network_host
         self.cwd = cwd
         self.name: Optional[str] = None
 
     def __enter__(self) -> "DockerContainer":
         self.name = f"cibuildwheel-{uuid.uuid4()}"
         cwd_args = ["-w", str(self.cwd)] if self.cwd else []
+        network_args = ["--network=host"] if self.network_host else []
         shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
         subprocess.run(
             [
@@ -53,6 +55,7 @@ class DockerContainer:
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
+                *network_args,        # mainly for TravisCI PPC64le
                 *cwd_args,
                 self.docker_image,
                 *shell_args,
