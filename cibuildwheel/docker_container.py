@@ -31,7 +31,12 @@ class DockerContainer:
     bash_stdout: IO[bytes]
 
     def __init__(
-        self, *, docker_image: str, simulate_32_bit: bool = False, network_host: bool = False, cwd: Optional[PathOrStr] = None
+        self,
+        *,
+        docker_image: str,
+        simulate_32_bit: bool = False,
+        network_host: bool = False,
+        cwd: Optional[PathOrStr] = None,
     ):
         if not docker_image:
             raise ValueError("Must have a non-empty docker image to run.")
@@ -55,7 +60,7 @@ class DockerContainer:
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
-                *network_args,        # mainly for TravisCI PPC64le
+                *network_args,  # mainly for TravisCI PPC64le
                 *cwd_args,
                 self.docker_image,
                 *shell_args,
