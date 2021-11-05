@@ -494,7 +494,7 @@
   ci: [github]
   os: [apple, linux, windows]
 
-- name: Pixar OpenTimelineIO
+- name: OpenTimelineIO
   gh: PixarAnimationStudios/OpenTimelineIO
   ci: [github]
   os: [apple, linux, windows]
