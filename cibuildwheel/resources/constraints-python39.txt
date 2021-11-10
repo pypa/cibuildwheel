@@ -4,13 +4,13 @@
 #
 #    bin/update_dependencies.py
 #
-backports.entry-points-selectable==1.1.0
+backports.entry-points-selectable==1.1.1
     # via virtualenv
 delocate==0.10.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.3
     # via virtualenv
-filelock==3.3.0
+filelock==3.3.2
     # via virtualenv
 platformdirs==2.4.0
     # via virtualenv
@@ -18,7 +18,7 @@ six==1.16.0
     # via virtualenv
 typing-extensions==3.10.0.2
     # via delocate
-virtualenv==20.8.1
+virtualenv==20.10.0
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.37.0
     # via
@@ -26,7 +26,7 @@ wheel==0.37.0
     #   delocate
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==21.2.4
+pip==21.3.1
     # via -r cibuildwheel/resources/constraints.in
-setuptools==58.2.0
+setuptools==58.5.3
     # via -r cibuildwheel/resources/constraints.in
