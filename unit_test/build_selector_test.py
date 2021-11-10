@@ -53,6 +53,9 @@ def test_skip():
 
     assert not build_selector("pp36-manylinux_x86_64")
     assert build_selector("pp37-manylinux_x86_64")
+    assert build_selector("pp38-manylinux_x86_64")
+    assert build_selector("pp37-manylinux_i686")
+    assert build_selector("pp38-manylinux_i686")
     assert build_selector("cp36-manylinux_x86_64")
     assert build_selector("cp37-manylinux_x86_64")
     assert not build_selector("cp36-manylinux_i686")
