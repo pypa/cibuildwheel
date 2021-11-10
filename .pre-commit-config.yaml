@@ -34,17 +34,17 @@ repos:
     stages: [manual]  # disabled due to artificial limit on Python 3.10
 
 - repo: https://github.com/PyCQA/isort
-  rev: 5.9.3
+  rev: 5.10.0
   hooks:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 21.9b0
+  rev: 21.10b0
   hooks:
   - id: black
 
 - repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v1.18.0
+  rev: v1.19.0
   hooks:
   - id: setup-cfg-fmt
 
