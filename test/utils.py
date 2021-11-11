@@ -130,7 +130,7 @@ def expected_wheels(
     python_abi_tags = ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39", "cp310-cp310"]
 
     if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
-        python_abi_tags += ["pp37-pypy37_pp73"]
+        python_abi_tags += ["pp37-pypy37_pp73", "pp38-pypy38_pp73"]
 
     if platform == "macos" and machine_arch == "arm64":
         # currently, arm64 macs are only supported by cp39 & cp310
