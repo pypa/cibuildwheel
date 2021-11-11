@@ -408,6 +408,7 @@ class Options:
             environment_config = self.reader.get(
                 "environment", table={"item": '{k}="{v}"', "sep": " "}
             )
+            passenv = self.reader.get("passenv", sep=",").split(",")
             before_build = self.reader.get("before-build", sep=" && ")
             repair_command = self.reader.get("repair-wheel-command", sep=" && ")
 
@@ -437,6 +438,14 @@ class Options:
                 )
                 traceback.print_exc(None, sys.stderr)
                 sys.exit(2)
+
+            # Pass through environment variables
+            if self.platform == "linux":
+                for passedenv in passenv:
+                    try:
+                        environment.add(passedenv, os.environ[passedenv])
+                    except KeyError:
+                        pass
 
             if dependency_versions == "pinned":
                 dependency_constraints: Optional[

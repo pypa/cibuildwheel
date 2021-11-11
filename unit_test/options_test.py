@@ -15,6 +15,8 @@ test-command = "pyproject"
 
 manylinux-x86_64-image = "manylinux1"
 
+passenv = ["EXAMPLE_ENV"]
+
 [tool.cibuildwheel.macos]
 test-requires = "else"
 
@@ -66,3 +68,21 @@ test_command: 'pyproject'
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
     assert local.manylinux_images["x86_64"] == pinned_x86_64_docker_image["manylinux2014"]
+
+
+def test_passthrough(tmp_path, monkeypatch):
+
+    with tmp_path.joinpath("pyproject.toml").open("w") as f:
+        f.write(PYPROJECT_1)
+
+    args = get_default_command_line_arguments()
+    args.package_dir = str(tmp_path)
+
+    monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
+    monkeypatch.setenv("EXAMPLE_ENV", "ONE")
+
+    options = Options(platform="linux", command_line_arguments=args)
+
+    default_build_options = options.build_options(identifier=None)
+
+    assert default_build_options.environment == parse_environment('FOO="BAR" EXAMPLE_ENV="ONE"')

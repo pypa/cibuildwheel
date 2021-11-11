@@ -84,6 +84,9 @@ class ParsedEnvironment:
 
         return environment
 
+    def add(self, name: str, value: str) -> None:
+        self.assignments.append(EnvironmentAssignment(f'{name}="{value}"'))
+
     def as_shell_commands(self) -> List[str]:
         return [a.as_shell_assignment() for a in self.assignments]
 
