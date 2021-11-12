@@ -32,14 +32,14 @@ version and tag it.
 
 ### Generic instructions
 
-You'll want to build your SDist with [build](https://github.com/pypa/build) and your wheels with cibuildwheel. If you can make the files available as
+Make your SDist with the [build](https://github.com/pypa/build) tool, and your wheels with cibuildwheel. If you can make the files available as
 downloadable artifacts, this make testing before releases easier (depending on your CI provider's options). The "publish" job/step should collect the
 files, and then run `twine upload <paths>` (possibly via [pipx](https://github.com/pypa/pipx)); this should only happen on tags or "releases".
 
 ### GitHub Actions
 
 GitHub actions has pipx in all the runners as a supported package manager, as
-well as several useful actions. You will probably want to build an SDist:
+well as several useful actions. Alongside your existing job(s) that runs cibuildwheel to make wheels, you will probably want to build an SDist:
 
 ```yaml
   make_sdist:
@@ -59,8 +59,9 @@ well as several useful actions. You will probably want to build an SDist:
         path: dist/*.tar.gz
 ```
 
-You'll want to download the artifacts in a final job that only runs on release
-or tag (depending on your preference):
+Then, you need to publish the artifacts that the previous jobs have built. This final job should run only on release or tag, depending on your preference. It gathers the artifacts from the sdist and wheel jobs and uploads them to PyPI.
+
+This requires a [PyPI upload token](https://pypi.org/manage/account/token/), stored in your [GitHub repo's secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) as `pypi_password`. 
 
 ```yaml
   upload_all:
