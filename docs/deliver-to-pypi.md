@@ -61,7 +61,7 @@ well as several useful actions. Alongside your existing job(s) that runs cibuild
 
 Then, you need to publish the artifacts that the previous jobs have built. This final job should run only on release or tag, depending on your preference. It gathers the artifacts from the sdist and wheel jobs and uploads them to PyPI.
 
-This requires a [PyPI upload token](https://pypi.org/manage/account/token/), stored in your [GitHub repo's secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) as `pypi_password`. 
+This requires a [PyPI upload token](https://pypi.org/manage/account/token/), stored in your [GitHub repo's secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) as `pypi_password`.
 
 ```yaml
   upload_all:
