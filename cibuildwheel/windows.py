@@ -100,16 +100,6 @@ def install_cpython(version: str, arch: str, nuget: Path) -> Path:
     if not (installation_path / "python3.exe").exists():
         # create python3.exe symlink, if not exists
         (installation_path / "python3.exe").symlink_to(installation_path / "python.exe")
-    else:
-        print(f'{(installation_path / "python3.exe")} already exists:')
-        print(
-            [
-                f
-                for f in os.listdir(installation_path)
-                if os.path.isfile(os.path.join(installation_path, f))
-            ]
-        )
-        raise RuntimeError(f"{(installation_path / 'python3.exe')} already exists!")
     return installation_path
 
 
