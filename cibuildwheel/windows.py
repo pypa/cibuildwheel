@@ -109,6 +109,7 @@ def install_cpython(version: str, arch: str, nuget: Path) -> Path:
                 if os.path.isfile(os.path.join(installation_path, f))
             ]
         )
+        raise RuntimeError(f"{(installation_path / 'python3.exe')} already exists!")
     return installation_path
 
 
