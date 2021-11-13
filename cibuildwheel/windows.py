@@ -97,7 +97,12 @@ def install_cpython(version: str, arch: str, nuget: Path) -> Path:
     nuget_args = get_nuget_args(version, arch)
     installation_path = Path(nuget_args[-1]) / (nuget_args[0] + "." + version) / "tools"
     call([nuget, "install", *nuget_args])
-    (installation_path / "python3.exe").symlink_to(installation_path / "python.exe")
+    if not (installation_path / "python3.exe").exists():
+        # create python3.exe symlink, if not exists
+        (installation_path / "python3.exe").symlink_to(installation_path / "python.exe")
+    else:
+        print(f'{(installation_path / "python3.exe")} already exists:')
+        print([f for f in os.listdir(installation_path) if os.path.isfile(os.path.join(installation_path, f))])
     return installation_path
 
 
