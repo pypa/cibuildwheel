@@ -29,6 +29,14 @@ def test_prepare_command():
         == "python -m {something.abc[4]:3f}"
     )
 
+    # test backslashes in the replacement
+    assert (
+        prepare_command(
+            "command {wheel} \\Users\\Temp\\output_dir", wheel="\\Temporary Files\\cibw"
+        )
+        == "command \\Temporary Files\\cibw \\Users\\Temp\\output_dir"
+    )
+
     # test some unusual syntax that used to trip up the str.format approach
     assert (
         prepare_command("{a}{a,b}{b:.2e}{c}{d%s}{e:3}{f[0]}", a="42", b="3.14159")

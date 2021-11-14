@@ -76,7 +76,13 @@ def format_safe(template: str, **kwargs: Any) -> str:
             re.VERBOSE,
         )
 
-        result = re.sub(find_pattern, str(value), result)
+        # we use a lambda for repl to prevent re.sub interpreting backslashes
+        # in repl as escape sequences
+        result = re.sub(
+            pattern=find_pattern,
+            repl=lambda _: str(value),
+            string=result,
+        )
 
         # transform escaped sequences into their literal equivalents
         result = result.replace(f"\\{{{key}}}", f"{{{key}}}")
