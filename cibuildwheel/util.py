@@ -68,7 +68,7 @@ def format_safe(template: str, **kwargs: Any) -> str:
     for key, value in kwargs.items():
         find_pattern = re.compile(
             fr"""
-                (?<!\\)  # don't match if preceded by a backslash
+                (?<!\#)  # don't match if preceded by a hash
                 {{  # literal open curly bracket
                 {re.escape(key)}  # the field name
                 }}  # literal close curly bracket
@@ -85,7 +85,7 @@ def format_safe(template: str, **kwargs: Any) -> str:
         )
 
         # transform escaped sequences into their literal equivalents
-        result = result.replace(f"\\{{{key}}}", f"{{{key}}}")
+        result = result.replace(f"#{{{key}}}", f"{{{key}}}")
 
     return result
 

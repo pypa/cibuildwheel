@@ -3,8 +3,8 @@ from cibuildwheel.util import format_safe, prepare_command
 
 def test_format_safe():
     assert format_safe("{wheel}", wheel="filename.whl") == "filename.whl"
-    assert format_safe("command \\{wheel}", wheel="filename.whl") == "command {wheel}"
-    assert format_safe("{command \\{wheel}}", wheel="filename.whl") == "{command {wheel}}"
+    assert format_safe("command #{wheel}", wheel="filename.whl") == "command {wheel}"
+    assert format_safe("{command #{wheel}}", wheel="filename.whl") == "{command {wheel}}"
 
     # check unmatched brackets
     assert format_safe("{command {wheel}", wheel="filename.whl") == "{command filename.whl"
@@ -14,6 +14,10 @@ def test_format_safe():
         format_safe("find . -name  * -exec ls -a {} \\;", project="/project")
         == "find . -name  * -exec ls -a {} \\;"
     )
+
+    assert format_safe("{param} {param}", param="1") == "1 1"
+    assert format_safe("# {param} {param}", param="1") == "# 1 1"
+    assert format_safe("#{not_a_param} {param}", param="1") == "#{not_a_param} 1"
 
 
 def test_prepare_command():
