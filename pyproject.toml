@@ -32,7 +32,8 @@ files = [
     "cibuildwheel/*.py",
     "test/**/*.py",
     "unit_test/**/*.py",
-    "bin/*.py"
+    "bin/*.py",
+    "noxfile.py",
 ]
 warn_unused_configs = true
 warn_redundant_casts = true
@@ -58,12 +59,25 @@ module = [
     "setuptools",
     "pytest", # ignored in pre-commit to speed up check
     "bashlex",
-    "bracex",
     "importlib_resources",
-    "nox",
-    "github",
+    "ghapi.*",
 ]
 ignore_missing_imports = true
 
 [tool.pycln]
 all = true
+
+[tool.check-manifest]
+ignore = [
+    ".*",
+    ".circleci/**",
+    "test/**",
+    "unit_test/**",
+    "docs/**",
+    "examples/**",
+    "bin/**",
+    "*.yml",
+    "CI.md",  # TODO: can change test/test_ssl and remove this
+    "requirements-dev.txt",
+    "noxfile.py",
+]

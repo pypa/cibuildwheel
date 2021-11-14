@@ -26,7 +26,7 @@ install:
   - python3 -m pip install pytest
 
 script:
-  - python3 setup.py install
+  - python3 -m pip install .
   - pytest
 
 stages:
@@ -48,30 +48,24 @@ jobs:
     # Deploy source distribution
     - stage: deploy
       name: Deploy source distribution
-      install: skip
-      script: python3 setup.py sdist --formats=gztar
-      after_success: |
-        python3 -m pip install twine
-        python3 -m twine upload --skip-existing dist/*.tar.gz
+      install: python3 -m pip install build twine
+      script: python3 -m build --sdist --formats=gztar
+      after_success: python3 -m twine upload --skip-existing dist/*.tar.gz
     # Deploy on linux
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker
-      install: python3 -m pip install cibuildwheel==2.2.0b1
+      install: python3 -m pip install cibuildwheel==2.2.2 twine
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: |
-        python3 -m pip install twine
-        python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
     # Deploy on windows
     - stage: deploy
       name: Build and deploy Windows wheels
       os: windows
       language: shell
-      install: python3 -m pip install cibuildwheel==2.2.0b1
+      install: python3 -m pip install cibuildwheel==2.2.2 twine
       script: python3 -m cibuildwheel --output-dir wheelhouse
-      after_success: |
-        python3 -m pip install twine
-        python3 -m twine upload --skip-existing wheelhouse/*.whl
+      after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
 
 env:
   global:

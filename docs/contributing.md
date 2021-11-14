@@ -127,12 +127,10 @@ bin/bump_version.py
 
 You'll be prompted to enter the new version number. Update the changelog when prompted. The script will create a 'bump version' commit and version tag.
 
-Finally, cut the release and upload to PyPI/GitHub.
+Finally, cut the release and push to GitHub.
 
 ```bash
-rm -rf dist
-python -m build
-git push && git push --tags && twine upload dist/*
+git push && git push --tags
 ```
 
-Then head to https://github.com/pypa/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry.
+Then head to https://github.com/pypa/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry. Once the release is created inside GitHub, a CI job will create the assets and upload them to PyPI.

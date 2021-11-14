@@ -7,7 +7,7 @@ from typing import Iterator
 
 import click
 import yaml
-from ghapi.core import GhApi, HTTP404NotFoundError  # type: ignore[import]
+from ghapi.core import GhApi, HTTP404NotFoundError
 from rich import print
 
 from cibuildwheel.projectfiles import Analyzer

@@ -1,15 +1,14 @@
 import subprocess
 import sys
 import textwrap
-from collections import OrderedDict
 from pathlib import Path, PurePath
-from typing import Iterator, List, NamedTuple, Set
+from typing import Iterator, List, NamedTuple, Set, Tuple
 
 from .architecture import Architecture
 from .docker_container import DockerContainer
 from .logger import log
 from .options import Options
-from .typing import PathOrStr, assert_never
+from .typing import OrderedDict, PathOrStr, assert_never
 from .util import (
     BuildSelector,
     NonPlatformWheelError,
@@ -80,7 +79,7 @@ def get_build_steps(
     Groups PythonConfigurations into BuildSteps. Each BuildStep represents a
     separate Docker container.
     """
-    steps: OrderedDict[tuple, BuildStep] = OrderedDict()  # type: ignore[type-arg]
+    steps = OrderedDict[Tuple[str, str, str], BuildStep]()
 
     for config in python_configurations:
         _, platform_tag = config.identifier.split("-", 1)

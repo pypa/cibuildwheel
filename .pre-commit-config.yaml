@@ -27,23 +27,23 @@ repos:
 
 # Autoremoves unused imports
 - repo: https://github.com/hadialqattan/pycln
-  rev: v1.0.3
+  rev: v1.1.0
   hooks:
   - id: pycln
     args: [--config=pyproject.toml]
 
 - repo: https://github.com/PyCQA/isort
-  rev: 5.9.3
+  rev: 5.10.0
   hooks:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 21.9b0
+  rev: 21.10b0
   hooks:
   - id: black
 
 - repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v1.18.0
+  rev: v1.19.0
   hooks:
   - id: setup-cfg-fmt
 
@@ -54,7 +54,9 @@ repos:
     exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
     args: ["--python-version=3.6", "--scripts-are-modules", "--show-error-codes"]
     additional_dependencies: &mypy-dependencies
+      - nox
       - packaging>=21.0
+      - pygithub
       - rich
       - tomli
       - types-certifi
@@ -63,14 +65,15 @@ repos:
       - types-jinja2
       - types-pyyaml
       - types-requests
+      - bracex
   - id: mypy
     name: mypy 3.7+ on bin/
-    files: ^((bin|docs)/.*py|noxfile.py)$
+    files: ^((bin|docs)/.*py)$
     args: ["--python-version=3.7", "--scripts-are-modules", "--show-error-codes"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/asottile/yesqa
-  rev: v1.2.3
+  rev: v1.3.0
   hooks:
   - id: yesqa
     additional_dependencies: &flake8-dependencies

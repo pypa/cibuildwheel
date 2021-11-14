@@ -42,7 +42,7 @@ class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
     archs: Optional[str]
     output_dir: Optional[str]
-    config_file: Optional[str]
+    config_file: str
     package_dir: str
     print_build_identifiers: bool
     allow_empty: bool
@@ -335,8 +335,9 @@ class Options:
     def config_file_path(self) -> Optional[Path]:
         args = self.command_line_arguments
 
-        if args.config_file is not None:
+        if args.config_file:
             return Path(args.config_file.format(package=args.package_dir))
+
         # return pyproject.toml, if it's available
         pyproject_toml_path = Path(args.package_dir) / "pyproject.toml"
         if pyproject_toml_path.exists():

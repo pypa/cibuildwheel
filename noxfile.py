@@ -4,7 +4,7 @@ from pathlib import Path
 
 import nox
 
-nox.options.sessions = ["lint", "tests"]
+nox.options.sessions = ["lint", "check_manifest", "tests"]
 
 PYTHON_ALL_VERSIONS = ["3.6", "3.7", "3.8", "3.9"]
 
@@ -32,6 +32,16 @@ def lint(session: nox.Session) -> None:
     """
     session.install("pre-commit")
     session.run("pre-commit", "run", "--all-files", *session.posargs)
+
+
+@nox.session
+def check_manifest(session: nox.Session) -> None:
+    """
+    Ensure all needed files are included in the manifest.
+    """
+
+    session.install("check-manifest")
+    session.run("check-manifest", *session.posargs)
 
 
 @nox.session(python=PYTHON_ALL_VERSIONS)

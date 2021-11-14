@@ -57,14 +57,15 @@ def main() -> None:
 
     parser.add_argument(
         "--output-dir",
-        help="Destination folder for the wheels.",
+        help="Destination folder for the wheels. Default: wheelhouse.",
     )
 
     parser.add_argument(
         "--config-file",
+        default="",
         help="""
-            TOML config file for cibuildwheel. Defaults to pyproject.toml, but
-            can be overridden with this option.
+            TOML config file. Default: "", meaning {package}/pyproject.toml,
+            if it exists.
         """,
     )
 
@@ -162,7 +163,7 @@ def main() -> None:
     os.environ["CIBUILDWHEEL"] = "1"
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
-    sys.stdout = Unbuffered(sys.stdout)  # type: ignore[no-untyped-call,assignment]
+    sys.stdout = Unbuffered(sys.stdout)  # type: ignore[assignment]
 
     print_preamble(platform=platform, options=options, identifiers=identifiers)
 
