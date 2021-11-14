@@ -1259,6 +1259,10 @@ Platform-specific environment variables are also available:<br/>
 « subprocess_run("cibuildwheel", "--help") »
 ```
 
+## Placeholders
+
+Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, that are substituted by cibuildwheel before they are used. If, for some reason, you need to write the literal name of a placeholder, e.g. literally `{project}` in a command that would ordinarily substitute `{project}`, prefix it with a hash character - `#{project}`. This is only necessary in commands where the specific string between the curly brackets would be substituted - otherwise, strings not modified.
+
 <style>
   .options-toc {
     display: grid;
