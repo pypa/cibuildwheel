@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
+from packaging.version import Version
 
 from .architecture import Architecture
 from .environment import ParsedEnvironment
@@ -43,13 +44,14 @@ def shell(
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
-    python_name = "python"
-    if arch == "32":
-        python_name += "x86"
+    platform_suffix = {'32': 'x86', '64':'', 'ARM64': 'arm64'}
+    python_name = "python" + platform_suffix[arch]
     return [
         python_name,
         "-Version",
         version,
+        "-Source",
+        "nuget.org",
         "-FallbackSource",
         "https://api.nuget.org/v3/index.json",
         "-OutputDirectory",
@@ -76,6 +78,7 @@ def get_python_configurations(
     map_arch = {
         "32": Architecture.x86,
         "64": Architecture.AMD64,
+        "ARM64": Architecture.ARM64
     }
 
     # skip builds as required
@@ -189,9 +192,27 @@ def setup_python(
     # Install pip
 
     requires_reinstall = not (installation_path / "Scripts" / "pip.exe").exists()
+
     if requires_reinstall:
         # maybe pip isn't installed at all. ensurepip resolves that.
         call(["python", "-m", "ensurepip"], env=env, cwd=CIBW_INSTALL_PATH)
+
+    # pip bundled with python 3.10 for arm64 lacks windows launcher and requires an extra pip force-reinstall to get pip executable
+    if python_configuration.arch == 'ARM64' and Version(get_pip_version(env)) <  Version("21.3"):
+        call(
+        [
+            "python",
+            "-m",
+            "pip",
+            "install",
+            "--force-reinstall",
+            "--upgrade",
+            "pip",
+            *dependency_constraint_flags,
+        ],
+        env=env,
+        cwd=CIBW_INSTALL_PATH,
+    )
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'

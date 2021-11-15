@@ -27,6 +27,7 @@ PLATFORM_IDENTIFIER_DESCIPTIONS = {
     "musllinux_s390x": "manylinux s390x",
     "win32": "Windows 32bit",
     "win_amd64": "Windows 64bit",
+    "win_arm64": "Windows on ARM 64bit",
     "macosx_x86_64": "macOS x86_64",
     "macosx_universal2": "macOS Universal 2 - x86_64 and arm64",
     "macosx_arm64": "macOS arm64 - Apple Silicon",
