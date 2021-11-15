@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
+
 from packaging.version import Version
 
 from .architecture import Architecture
@@ -44,7 +45,7 @@ def shell(
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
-    platform_suffix = {'32': 'x86', '64':'', 'ARM64': 'arm64'}
+    platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
     python_name = "python" + platform_suffix[arch]
     return [
         python_name,
@@ -75,11 +76,7 @@ def get_python_configurations(
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
-    map_arch = {
-        "32": Architecture.x86,
-        "64": Architecture.AMD64,
-        "ARM64": Architecture.ARM64
-    }
+    map_arch = {"32": Architecture.x86, "64": Architecture.AMD64, "ARM64": Architecture.ARM64}
 
     # skip builds as required
     python_configurations = [
@@ -198,21 +195,21 @@ def setup_python(
         call(["python", "-m", "ensurepip"], env=env, cwd=CIBW_INSTALL_PATH)
 
     # pip bundled with python 3.10 for arm64 lacks windows launcher and requires an extra pip force-reinstall to get pip executable
-    if python_configuration.arch == 'ARM64' and Version(get_pip_version(env)) <  Version("21.3"):
+    if python_configuration.arch == "ARM64" and Version(get_pip_version(env)) < Version("21.3"):
         call(
-        [
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--force-reinstall",
-            "--upgrade",
-            "pip",
-            *dependency_constraint_flags,
-        ],
-        env=env,
-        cwd=CIBW_INSTALL_PATH,
-    )
+            [
+                "python",
+                "-m",
+                "pip",
+                "install",
+                "--force-reinstall",
+                "--upgrade",
+                "pip",
+                *dependency_constraint_flags,
+            ],
+            env=env,
+            cwd=CIBW_INSTALL_PATH,
+        )
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
