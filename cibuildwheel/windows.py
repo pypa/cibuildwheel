@@ -51,8 +51,6 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
         python_name,
         "-Version",
         version,
-        "-Source",
-        "nuget.org",
         "-FallbackSource",
         "https://api.nuget.org/v3/index.json",
         "-OutputDirectory",
