@@ -408,7 +408,7 @@ class Options:
             environment_config = self.reader.get(
                 "environment", table={"item": '{k}="{v}"', "sep": " "}
             )
-            passenv = self.reader.get("passenv", sep=",").split(",")
+            environment_pass = self.reader.get("environment-pass", sep=" ").split()
             before_build = self.reader.get("before-build", sep=" && ")
             repair_command = self.reader.get("repair-wheel-command", sep=" && ")
 
@@ -441,7 +441,7 @@ class Options:
 
             # Pass through environment variables
             if self.platform == "linux":
-                for passedenv in passenv:
+                for passedenv in environment_pass:
                     try:
                         environment.add(passedenv, os.environ[passedenv])
                     except KeyError:

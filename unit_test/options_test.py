@@ -15,7 +15,7 @@ test-command = "pyproject"
 
 manylinux-x86_64-image = "manylinux1"
 
-passenv = ["EXAMPLE_ENV"]
+environment-pass = ["EXAMPLE_ENV"]
 
 [tool.cibuildwheel.macos]
 test-requires = "else"
@@ -85,4 +85,4 @@ def test_passthrough(tmp_path, monkeypatch):
 
     default_build_options = options.build_options(identifier=None)
 
-    assert default_build_options.environment == parse_environment('FOO="BAR" EXAMPLE_ENV="ONE"')
+    assert default_build_options.environment == parse_environment('FOO="BAR" EXAMPLE_ENV=ONE')

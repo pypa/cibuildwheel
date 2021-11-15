@@ -1,4 +1,5 @@
 import dataclasses
+import shlex
 from typing import Dict, List, Mapping, Optional
 
 import bashlex
@@ -85,7 +86,7 @@ class ParsedEnvironment:
         return environment
 
     def add(self, name: str, value: str) -> None:
-        self.assignments.append(EnvironmentAssignment(f'{name}="{value}"'))
+        self.assignments.append(EnvironmentAssignment(f"{name}={shlex.quote(value)}"))
 
     def as_shell_commands(self) -> List[str]:
         return [a.as_shell_assignment() for a in self.assignments]

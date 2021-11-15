@@ -7,7 +7,7 @@ archs = ["auto"]
 build-frontend = "pip"
 dependency-versions = "pinned"
 environment = {}
-passenv = []
+environment-pass = []
 build-verbosity = ""
 
 before-all = ""
