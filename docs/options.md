@@ -142,19 +142,15 @@ which means it can be given multiple times.
 ```toml
 [tool.cibuildwheel]
 # Normal options, etc.
-manylinux-x86_64-image = "manylinux2010"
+manylinux-x86_64-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp36-*"
 manylinux-x86_64-image = "manylinux1"
-
-[[tool.cibuildwheel.overrides]]
-select = "cp310-*"
-manylinux-x86_64-image = "manylinux2014"
 ```
 
-This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
-images on manylinux2010, and CPython 3.10 wheels on manylinux2014.
+This example will build CPython 3.6 wheels on manylinux1, and manylinux2014
+wheels everywhere else.
 
 
 ## Options summary
@@ -843,14 +839,14 @@ Platform-specific environment variables are also available:<br/>
 
 The available options are (default value):
 
-- `CIBW_MANYLINUX_X86_64_IMAGE` ([`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64))
-- `CIBW_MANYLINUX_I686_IMAGE` ([`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686))
-- `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` ([`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64))
+- `CIBW_MANYLINUX_X86_64_IMAGE` ([`quay.io/pypa/manylinux2014_x86_64`](https://quay.io/pypa/manylinux2014_x86_64))
+- `CIBW_MANYLINUX_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
+- `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` ([`quay.io/pypa/manylinux2014_x86_64`](https://quay.io/pypa/manylinux2014_x86_64))
 - `CIBW_MANYLINUX_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
 - `CIBW_MANYLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le))
-- `CIBW_MANYLINUX_S390X_IMAGE` ([`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x))
+- `CIBW_MANYLINUX_S390X_IMAGE` ([`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2014_s390x))
 - `CIBW_MANYLINUX_PYPY_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
-- `CIBW_MANYLINUX_PYPY_I686_IMAGE` ([`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686))
+- `CIBW_MANYLINUX_PYPY_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
 - `CIBW_MUSLLINUX_X86_64_IMAGE` ([`quay.io/pypa/musllinux_1_1_x86_64`](https://quay.io/pypa/musllinux_1_1_x86_64))
 - `CIBW_MUSLLINUX_I686_IMAGE` ([`quay.io/pypa/musllinux_1_1_i686`](https://quay.io/pypa/musllinux_1_1_i686))
 - `CIBW_MUSLLINUX_AARCH64_IMAGE` ([`quay.io/pypa/musllinux_1_1_aarch64`](https://quay.io/pypa/musllinux_1_1_aarch64))
