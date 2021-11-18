@@ -469,10 +469,8 @@ class Options:
                     )
 
                     if not config_value:
-                        # default to manylinux2010 if it's available, otherwise manylinux2014
-                        image = pinned_images.get("manylinux2010") or pinned_images.get(
-                            "manylinux2014"
-                        )
+                        # default to manylinux2014
+                        image = pinned_images.get("manylinux2014")
                     elif config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
