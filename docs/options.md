@@ -149,12 +149,13 @@ select = "cp36-*"
 manylinux-x86_64-image = "manylinux1"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp3?-*"
-manylinux-x86_64-image = "manylinux2014"
+select = "cp3{7,8,9}-*"
+manylinux-x86_64-image = "manylinux2010"
 ```
 
-This example will build CPython 3.6 wheels on manylinux1, and manylinux2014
-wheels everywhere else.
+This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
+wheels on manylinux2010, and manylinux2014 wheels for any newer Python
+(like 3.10).
 
 
 ## Options summary
