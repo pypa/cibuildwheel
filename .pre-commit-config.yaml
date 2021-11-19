@@ -27,11 +27,10 @@ repos:
 
 # Autoremoves unused imports
 - repo: https://github.com/hadialqattan/pycln
-  rev: v1.0.3
+  rev: v1.1.0
   hooks:
   - id: pycln
     args: [--config=pyproject.toml]
-    stages: [manual]  # disabled due to artificial limit on Python 3.10
 
 - repo: https://github.com/PyCQA/isort
   rev: 5.10.0
