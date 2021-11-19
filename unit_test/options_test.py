@@ -86,7 +86,10 @@ def test_passthrough(tmp_path, monkeypatch):
 
     default_build_options = options.build_options(identifier=None)
 
-    assert default_build_options.environment == parse_environment('FOO="BAR" EXAMPLE_ENV=ONE')
+    assert default_build_options.environment.as_dictionary(prev_environment={}) == {
+        "FOO": "BAR",
+        "EXAMPLE_ENV": "ONE",
+    }
 
 
 @pytest.mark.parametrize(
