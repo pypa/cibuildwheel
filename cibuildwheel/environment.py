@@ -56,9 +56,6 @@ class EnvironmentAssignment:
         """Returns the value of this assignment, as evaluated in the environment"""
         return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
 
-    def as_shell_assignment(self) -> str:
-        return f"export {self.name}={self.value}"
-
     def __repr__(self) -> str:
         return f"{self.name}={self.value}"
 
@@ -87,9 +84,6 @@ class ParsedEnvironment:
 
     def add(self, name: str, value: str) -> None:
         self.assignments.append(EnvironmentAssignment(f"{name}={shlex.quote(value)}"))
-
-    def as_shell_commands(self) -> List[str]:
-        return [a.as_shell_assignment() for a in self.assignments]
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({[repr(a) for a in self.assignments]!r})"
