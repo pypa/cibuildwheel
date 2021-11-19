@@ -888,12 +888,12 @@ Auditwheel detects the version of the manylinux / musllinux standard in the Dock
     CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
     CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux2014
 
-    # Build using the latest manylinux2010 release, instead of the cibuildwheel
+    # Build using the latest manylinux2014 release, instead of the cibuildwheel
     # pinned version
-    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
-    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
-    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
-    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
+    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64:latest
+    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2014_i686:latest
+    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64:latest
+    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2014_i686:latest
 
     # Build using a different image from the docker registry
     CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64

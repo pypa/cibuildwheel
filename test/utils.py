@@ -120,7 +120,14 @@ def expected_wheels(
 
     if manylinux_versions is None:
         if machine_arch == "x86_64":
-            manylinux_versions = ["manylinux_2_5", "manylinux1", "manylinux_2_12", "manylinux2010"]
+            manylinux_versions = [
+                "manylinux_2_5",
+                "manylinux1",
+                "manylinux_2_12",
+                "manylinux2010",
+                "manylinux_2_17",
+                "manylinux2014",
+            ]
         else:
             manylinux_versions = ["manylinux_2_17", "manylinux2014"]
 

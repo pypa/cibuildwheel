@@ -60,7 +60,7 @@ def test_simple_settings(tmp_path, platform, fname):
     )
 
     assert options_reader.get("manylinux-x86_64-image") == "manylinux1"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2010"
+    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
     with pytest.raises(ConfigOptionError):
         options_reader.get("environment", sep=" ")
@@ -71,7 +71,7 @@ def test_simple_settings(tmp_path, platform, fname):
 
 def test_envvar_override(tmp_path, platform, monkeypatch):
     monkeypatch.setenv("CIBW_BUILD", "cp38*")
-    monkeypatch.setenv("CIBW_MANYLINUX_X86_64_IMAGE", "manylinux2014")
+    monkeypatch.setenv("CIBW_MANYLINUX_X86_64_IMAGE", "manylinux_2_24")
     monkeypatch.setenv("CIBW_TEST_COMMAND", "mytest")
     monkeypatch.setenv("CIBW_TEST_REQUIRES", "docs")
     monkeypatch.setenv("CIBW_TEST_REQUIRES_LINUX", "scod")
@@ -84,8 +84,8 @@ def test_envvar_override(tmp_path, platform, monkeypatch):
     assert options_reader.get("archs", sep=" ") == "auto"
 
     assert options_reader.get("build", sep=" ") == "cp38*"
-    assert options_reader.get("manylinux-x86_64-image") == "manylinux2014"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2010"
+    assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_24"
+    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
     assert (
         options_reader.get("test-requires", sep=" ")
@@ -222,7 +222,7 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-i686-image") == ""
     assert options_reader.get("manylinux-aarch64-image") == "manylinux1"
 
-    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux2010"
+    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux2014"
     assert options_reader.get("manylinux-i686-image", ignore_empty=True) == "manylinux1"
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
 
