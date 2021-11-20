@@ -123,8 +123,6 @@ def expected_wheels(
             manylinux_versions = [
                 "manylinux_2_5",
                 "manylinux1",
-                "manylinux_2_12",
-                "manylinux2010",
                 "manylinux_2_17",
                 "manylinux2014",
             ]
