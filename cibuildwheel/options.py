@@ -441,9 +441,9 @@ class Options:
 
             # Pass through environment variables
             if self.platform == "linux":
-                for passedenv in environment_pass:
+                for env_var_name in environment_pass:
                     try:
-                        environment.add(passedenv, os.environ[passedenv])
+                        environment.add(env_var_name, os.environ[env_var_name])
                     except KeyError:
                         pass
 

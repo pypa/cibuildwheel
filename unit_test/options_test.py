@@ -99,7 +99,8 @@ def test_passthrough(tmp_path, monkeypatch):
         '"value wrapped in quotes"',
         "an unclosed single-quote: '",
         'an unclosed double-quote: "',
-        "string\nwith\ncarriage\nreturns\n" "a trailing backslash \\",
+        "string\nwith\ncarriage\nreturns\n",
+        "a trailing backslash \\",
     ],
 )
 def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):

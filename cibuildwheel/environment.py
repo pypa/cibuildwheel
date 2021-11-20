@@ -53,9 +53,6 @@ class EnvironmentAssignment(Protocol):
         """Returns the value of this assignment, as evaluated in the environment"""
         ...
 
-    def __eq__(self, other: object) -> bool:
-        ...
-
 
 class EnvironmentAssignmentRaw:
     """
