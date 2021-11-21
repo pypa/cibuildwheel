@@ -22,6 +22,9 @@ jobs:
       - image: circleci/python:3.6
     environment:
       PYTHON: python3
+      # Temporarily restrict the tests that are run on CircleCI to prevent
+      # test timeouts.
+      PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
     steps:
       - checkout
       - setup_remote_docker
