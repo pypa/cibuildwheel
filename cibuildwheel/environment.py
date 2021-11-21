@@ -1,7 +1,9 @@
 import dataclasses
-from typing import Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 import bashlex
+
+from cibuildwheel.typing import Protocol
 
 from . import bashlex_eval
 
@@ -39,7 +41,41 @@ def split_env_items(env_string: str) -> List[str]:
     return result
 
 
-class EnvironmentAssignment:
+class EnvironmentAssignment(Protocol):
+    name: str
+
+    def evaluated_value(
+        self,
+        *,
+        environment: Dict[str, str],
+        executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
+    ) -> str:
+        """Returns the value of this assignment, as evaluated in the environment"""
+        ...
+
+
+class EnvironmentAssignmentRaw:
+    """
+    An environment variable - a simple name/value pair
+    """
+
+    def __init__(self, name: str, value: str):
+        self.name = name
+        self.value = value
+
+    def __repr__(self) -> str:
+        return f"{self.name}: {self.value}"
+
+    def evaluated_value(self, **kwargs: Any) -> str:
+        return self.value
+
+
+class EnvironmentAssignmentBash:
+    """
+    An environment variable, in bash syntax. The value can use bash constructs
+    like "$OTHER_VAR" and "$(command arg1 arg2)".
+    """
+
     def __init__(self, assignment: str):
         name, equals, value = assignment.partition("=")
         if not equals:
@@ -52,17 +88,13 @@ class EnvironmentAssignment:
         environment: Dict[str, str],
         executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
     ) -> str:
-        """Returns the value of this assignment, as evaluated in the environment"""
         return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
-
-    def as_shell_assignment(self) -> str:
-        return f"export {self.name}={self.value}"
 
     def __repr__(self) -> str:
         return f"{self.name}={self.value}"
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, EnvironmentAssignment):
+        if isinstance(other, EnvironmentAssignmentBash):
             return self.name == other.name and self.value == other.value
         return False
 
@@ -70,6 +102,9 @@ class EnvironmentAssignment:
 @dataclasses.dataclass
 class ParsedEnvironment:
     assignments: List[EnvironmentAssignment]
+
+    def __init__(self, assignments: Sequence[EnvironmentAssignment]) -> None:
+        self.assignments = list(assignments)
 
     def as_dictionary(
         self,
@@ -84,8 +119,8 @@ class ParsedEnvironment:
 
         return environment
 
-    def as_shell_commands(self) -> List[str]:
-        return [a.as_shell_assignment() for a in self.assignments]
+    def add(self, name: str, value: str) -> None:
+        self.assignments.append(EnvironmentAssignmentRaw(name=name, value=value))
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({[repr(a) for a in self.assignments]!r})"
@@ -93,5 +128,5 @@ class ParsedEnvironment:
 
 def parse_environment(env_string: str) -> ParsedEnvironment:
     env_items = split_env_items(env_string)
-    assignments = [EnvironmentAssignment(item) for item in env_items]
+    assignments = [EnvironmentAssignmentBash(item) for item in env_items]
     return ParsedEnvironment(assignments=assignments)

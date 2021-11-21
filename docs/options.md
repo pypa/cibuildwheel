@@ -605,6 +605,41 @@ Platform-specific environment variables are also available:<br/>
 !!! note
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
+### `CIBW_ENVIRONMENT_PASS_LINUX` {: #environment-pass}
+> Set environment variables on the host to pass-through to the container during the build.
+
+A list of environment variables to pass into the linux container during the build. It has no affect on the other platforms, which can already access all environment variables directly.
+
+To specify more than one environment variable, separate the variable names by spaces.
+
+#### Examples
+
+!!! tab examples "Environment passthrough"
+
+    ```yaml
+    # Export a variable
+    CIBW_ENVIRONMENT_PASS_LINUX: CFLAGS
+
+    # Set two flags variables
+    CIBW_ENVIRONMENT_PASS_LINUX: BUILD_TIME SAMPLE_TEXT
+    ```
+
+    Separate multiple values with a space.
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.linux]
+
+    # Export a variable
+    environment-pass = ["CFLAGS"]
+
+    # Set two flags variables
+    environment-pass = ["BUILD_TIME", "SAMPLE_TEXT"]
+    ```
+
+    In configuration mode, you can use a [TOML][] list instead of a raw string as shown above.
+
 ### `CIBW_BEFORE_ALL` {: #before-all}
 > Execute a shell command on the build system before any wheels are built.
 
