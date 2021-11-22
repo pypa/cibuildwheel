@@ -28,7 +28,7 @@ DIR: Final[Path] = Path(__file__).parent.parent.resolve()
 RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
 
 
-ArchStr = Literal["32", "64"]
+ArchStr = Literal["32", "64", "ARM64"]
 
 
 class ConfigWinCP(TypedDict):
