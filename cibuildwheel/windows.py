@@ -192,7 +192,12 @@ def setup_python(
         # maybe pip isn't installed at all. ensurepip resolves that.
         call(["python", "-m", "ensurepip"], env=env, cwd=CIBW_INSTALL_PATH)
 
-    # pip bundled with python 3.10 for arm64 lacks windows launcher and requires an extra pip force-reinstall to get pip executable
+    # pip older than 21.3 builds executables such as pip.exe for x64 platform.
+    # The first re-install of pip updates pip module but builds pip.exe using
+    # the old pip which still generates x64 executable. But the second
+    # re-install uses updated pip and correctly builds pip.exe for the target.
+    # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
+    # pip versions newer than 21.3.
     if python_configuration.arch == "ARM64" and Version(get_pip_version(env)) < Version("21.3"):
         call(
             [
