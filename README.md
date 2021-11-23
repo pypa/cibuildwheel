@@ -267,7 +267,7 @@ Credits
 
 `cibuildwheel` stands on the shoulders of giants.
 
-- ⭐️ @matthew-brett for [matthew-brett/multibuild](http://github.com/matthew-brett/multibuild) and [matthew-brett/delocate](http://github.com/matthew-brett/delocate)
+- ⭐️ @matthew-brett for [multibuild](https://github.com/multi-build/multibuild) and [matthew-brett/delocate](http://github.com/matthew-brett/delocate)
 - @PyPA for the manylinux Docker images [pypa/manylinux](https://github.com/pypa/manylinux)
 - @ogrisel for [wheelhouse-uploader](https://github.com/ogrisel/wheelhouse-uploader) and `run_with_env.cmd`
 
