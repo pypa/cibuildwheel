@@ -503,3 +503,10 @@
   gh: AcademySoftwareFoundation/OpenColorIO
   ci: [github]
   os: [apple, linux, windows]
+
+- name: Psycopg 3
+  gh: psycopg/psycopg
+  pypi: psycopg_binary
+  notes: A modern implementation of a PostgreSQL adapter for Python
+  ci: [github]
+  os: [windows, apple, linux]
