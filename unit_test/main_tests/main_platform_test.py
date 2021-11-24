@@ -178,7 +178,11 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
             Architecture.s390x,
         }
     elif platform == "windows":
-        assert options.globals.architectures == {Architecture.x86, Architecture.AMD64}
+        assert options.globals.architectures == {
+            Architecture.x86,
+            Architecture.AMD64,
+            Architecture.ARM64,
+        }
     elif platform == "macos":
         assert options.globals.architectures == {
             Architecture.x86_64,

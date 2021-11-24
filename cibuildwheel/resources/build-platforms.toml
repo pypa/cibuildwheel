@@ -87,6 +87,8 @@ python_configurations = [
   { identifier = "cp39-win_amd64", version = "3.9.8", arch = "64" },
   { identifier = "cp310-win32", version = "3.10.0", arch = "32" },
   { identifier = "cp310-win_amd64", version = "3.10.0", arch = "64" },
+  { identifier = "cp39-win_arm64", version = "3.9.9", arch = "ARM64" },
+  { identifier = "cp310-win_arm64", version = "3.10.0", arch = "ARM64" },
   { identifier = "pp37-win_amd64", version = "3.7", arch = "64", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.7-win64.zip" },
   { identifier = "pp38-win_amd64", version = "3.8", arch = "64", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.7-win64.zip" },
 ]

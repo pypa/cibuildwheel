@@ -29,6 +29,7 @@ class Architecture(Enum):
     # windows archs
     x86 = "x86"
     AMD64 = "AMD64"
+    ARM64 = "ARM64"
 
     # Allow this to be sorted
     def __lt__(self, other: "Architecture") -> bool:
@@ -83,7 +84,7 @@ class Architecture(Enum):
         elif platform == "macos":
             return {Architecture.x86_64, Architecture.arm64, Architecture.universal2}
         elif platform == "windows":
-            return {Architecture.x86, Architecture.AMD64}
+            return {Architecture.x86, Architecture.AMD64, Architecture.ARM64}
         else:
             assert_never(platform)
 

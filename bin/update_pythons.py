@@ -28,7 +28,7 @@ DIR: Final[Path] = Path(__file__).parent.parent.resolve()
 RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
 
 
-ArchStr = Literal["32", "64"]
+ArchStr = Literal["32", "64", "ARM64"]
 
 
 class ConfigWinCP(TypedDict):
@@ -68,8 +68,8 @@ class WindowsVersions:
             if resource["@type"] == "PackageBaseAddress/3.0.0":
                 endpoint = resource["@id"]
 
-        ARCH_DICT = {"32": "win32", "64": "win_amd64"}
-        PACKAGE_DICT = {"32": "pythonx86", "64": "python"}
+        ARCH_DICT = {"32": "win32", "64": "win_amd64", "ARM64": "win_arm64"}
+        PACKAGE_DICT = {"32": "pythonx86", "64": "python", "ARM64": "pythonarm64"}
 
         self.arch_str = arch_str
         self.arch = ARCH_DICT[arch_str]
@@ -237,6 +237,7 @@ class AllVersions:
     def __init__(self) -> None:
         self.windows_32 = WindowsVersions("32")
         self.windows_64 = WindowsVersions("64")
+        self.windows_arm64 = WindowsVersions("ARM64")
         self.windows_pypy_64 = PyPyVersions("64")
 
         self.macos_cpython = CPythonVersions()
@@ -264,6 +265,9 @@ class AllVersions:
                 config_update = self.windows_64.update_version_windows(spec)
             elif identifier.startswith("pp"):
                 config_update = self.windows_pypy_64.update_version_windows(spec)
+        elif "win_arm64" in identifier:
+            if identifier.startswith("cp"):
+                config_update = self.windows_arm64.update_version_windows(spec)
 
         assert config_update is not None, f"{identifier} not found!"
         config.update(**config_update)

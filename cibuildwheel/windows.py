@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
 
+from packaging.version import Version
+
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
@@ -43,9 +45,8 @@ def shell(
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
-    python_name = "python"
-    if arch == "32":
-        python_name += "x86"
+    platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
+    python_name = "python" + platform_suffix[arch]
     return [
         python_name,
         "-Version",
@@ -73,10 +74,7 @@ def get_python_configurations(
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
-    map_arch = {
-        "32": Architecture.x86,
-        "64": Architecture.AMD64,
-    }
+    map_arch = {"32": Architecture.x86, "64": Architecture.AMD64, "ARM64": Architecture.ARM64}
 
     # skip builds as required
     python_configurations = [
@@ -189,9 +187,32 @@ def setup_python(
     # Install pip
 
     requires_reinstall = not (installation_path / "Scripts" / "pip.exe").exists()
+
     if requires_reinstall:
         # maybe pip isn't installed at all. ensurepip resolves that.
         call(["python", "-m", "ensurepip"], env=env, cwd=CIBW_INSTALL_PATH)
+
+    # pip older than 21.3 builds executables such as pip.exe for x64 platform.
+    # The first re-install of pip updates pip module but builds pip.exe using
+    # the old pip which still generates x64 executable. But the second
+    # re-install uses updated pip and correctly builds pip.exe for the target.
+    # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
+    # pip versions newer than 21.3.
+    if python_configuration.arch == "ARM64" and Version(get_pip_version(env)) < Version("21.3"):
+        call(
+            [
+                "python",
+                "-m",
+                "pip",
+                "install",
+                "--force-reinstall",
+                "--upgrade",
+                "pip",
+                *dependency_constraint_flags,
+            ],
+            env=env,
+            cwd=CIBW_INSTALL_PATH,
+        )
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
