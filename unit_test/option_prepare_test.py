@@ -52,7 +52,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
 
     # In Python 3.8+, this can be simplified to [0].kwargs
     kwargs = build_on_docker.call_args_list[0][1]
-    assert "quay.io/pypa/manylinux2010_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
     assert kwargs["docker"]["cwd"] == Path("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -60,7 +60,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
     assert identifiers == {f"{x}-manylinux_x86_64" for x in ALL_IDS}
 
     kwargs = build_on_docker.call_args_list[1][1]
-    assert "quay.io/pypa/manylinux2010_i686" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["docker_image"]
     assert kwargs["docker"]["cwd"] == Path("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
@@ -94,13 +94,13 @@ def test_build_with_override_launches(mock_build_docker, monkeypatch, tmp_path):
     cibw_toml.write_text(
         """
 [tool.cibuildwheel]
-manylinux-x86_64-image = "manylinux2014"
+manylinux-x86_64-image = "manylinux_2_24"
 
-# Before Python 3.10, manylinux2010 is the most compatible
+# Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]
 select = "cp3?-*"
-manylinux-x86_64-image = "manylinux2010"
-manylinux-i686-image = "manylinux2010"
+manylinux-x86_64-image = "manylinux2014"
+manylinux-i686-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp36-manylinux_x86_64"
@@ -118,7 +118,7 @@ before-all = "true"
     assert build_on_docker.call_count == 6
 
     kwargs = build_on_docker.call_args_list[0][1]
-    assert "quay.io/pypa/manylinux2010_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
     assert kwargs["docker"]["cwd"] == Path("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -127,7 +127,7 @@ before-all = "true"
     assert kwargs["options"].build_options("cp36-manylinux_x86_64").before_all == "true"
 
     kwargs = build_on_docker.call_args_list[1][1]
-    assert "quay.io/pypa/manylinux2010_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
     assert kwargs["docker"]["cwd"] == Path("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -138,7 +138,7 @@ before-all = "true"
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
     kwargs = build_on_docker.call_args_list[2][1]
-    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux_2_24_x86_64" in kwargs["docker"]["docker_image"]
     assert kwargs["docker"]["cwd"] == Path("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -149,7 +149,7 @@ before-all = "true"
     }
 
     kwargs = build_on_docker.call_args_list[3][1]
-    assert "quay.io/pypa/manylinux2010_i686" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["docker_image"]
     assert kwargs["docker"]["cwd"] == Path("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 

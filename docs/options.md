@@ -142,19 +142,20 @@ which means it can be given multiple times.
 ```toml
 [tool.cibuildwheel]
 # Normal options, etc.
-manylinux-x86_64-image = "manylinux2010"
+manylinux-x86_64-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp36-*"
 manylinux-x86_64-image = "manylinux1"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp310-*"
-manylinux-x86_64-image = "manylinux2014"
+select = "cp3{7,8,9}-*"
+manylinux-x86_64-image = "manylinux2010"
 ```
 
 This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
-images on manylinux2010, and CPython 3.10 wheels on manylinux2014.
+wheels on manylinux2010, and manylinux2014 wheels for any newer Python
+(like 3.10).
 
 
 ## Options summary
@@ -878,14 +879,14 @@ Platform-specific environment variables are also available:<br/>
 
 The available options are (default value):
 
-- `CIBW_MANYLINUX_X86_64_IMAGE` ([`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64))
-- `CIBW_MANYLINUX_I686_IMAGE` ([`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686))
-- `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` ([`quay.io/pypa/manylinux2010_x86_64`](https://quay.io/pypa/manylinux2010_x86_64))
+- `CIBW_MANYLINUX_X86_64_IMAGE` ([`quay.io/pypa/manylinux2014_x86_64`](https://quay.io/pypa/manylinux2014_x86_64))
+- `CIBW_MANYLINUX_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
+- `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` ([`quay.io/pypa/manylinux2014_x86_64`](https://quay.io/pypa/manylinux2014_x86_64))
 - `CIBW_MANYLINUX_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
 - `CIBW_MANYLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le))
-- `CIBW_MANYLINUX_S390X_IMAGE` ([`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2010_s390x))
+- `CIBW_MANYLINUX_S390X_IMAGE` ([`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2014_s390x))
 - `CIBW_MANYLINUX_PYPY_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
-- `CIBW_MANYLINUX_PYPY_I686_IMAGE` ([`quay.io/pypa/manylinux2010_i686`](https://quay.io/pypa/manylinux2010_i686))
+- `CIBW_MANYLINUX_PYPY_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
 - `CIBW_MUSLLINUX_X86_64_IMAGE` ([`quay.io/pypa/musllinux_1_1_x86_64`](https://quay.io/pypa/musllinux_1_1_x86_64))
 - `CIBW_MUSLLINUX_I686_IMAGE` ([`quay.io/pypa/musllinux_1_1_i686`](https://quay.io/pypa/musllinux_1_1_i686))
 - `CIBW_MUSLLINUX_AARCH64_IMAGE` ([`quay.io/pypa/musllinux_1_1_aarch64`](https://quay.io/pypa/musllinux_1_1_aarch64))
@@ -922,12 +923,12 @@ Auditwheel detects the version of the manylinux / musllinux standard in the Dock
     CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
     CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux2014
 
-    # Build using the latest manylinux2010 release, instead of the cibuildwheel
+    # Build using the latest manylinux2014 release, instead of the cibuildwheel
     # pinned version
-    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
-    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
-    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
-    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
+    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64:latest
+    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2014_i686:latest
+    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64:latest
+    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2014_i686:latest
 
     # Build using a different image from the docker registry
     CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
