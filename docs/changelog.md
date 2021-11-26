@@ -2,6 +2,19 @@
 title: Changelog
 ---
 
+### v2.3.0
+
+_26 November 2021_
+
+- 📈 cibuildwheel now defaults to manylinux2014 image for linux builds, rather than manylinux2010. If you want to stick with manylinux2010, it's simple to set this using [the image options](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image). (#926)
+- ✨ You can now pass environment variables from the host machine into the Docker container during a Linux build. Check out [the docs for `CIBW_ENVIRONMENT_PASS_LINUX `](https://cibuildwheel.readthedocs.io/en/latest/options/#environment-pass) for the details. (#914)
+- ✨ Added support for building PyPy 3.8 wheels. (#881)
+- ✨ Added support for building Windows arm64 CPython wheels on a Windows arm64 runner. We can't test this in CI yet, so for now, this is experimental. (#920)
+- 📚 Improved the deployment documentation (#911)
+- 🛠 Changed the escaping behaviour inside cibuildwheel's  option placeholders e.g. `{project}` in `before_build` or `{dest_dir}` in `repair_wheel_command`. This allows bash syntax like `${SOME_VAR}` to passthrough without being interpreted as a placeholder by cibuildwheel. See [this section](https://cibuildwheel.readthedocs.io/en/stable/options/#placeholders) in the docs for more info. (#889)
+- 🛠 Pip updated to 21.3, meaning it now defaults to in-tree builds again. If this causes an issue with your project, setting environment variable `PIP_USE_DEPRECATED=out-of-tree-build` is available as a temporary flag to restore the old behaviour. However, be aware that this flag will probably be removed soon. (#881)
+- 🐛 You can now access the current Python interpreter using `python3` within a build on Windows (#917)
+
 ### v2.2.2
 
 _26 October 2021_
