@@ -22,8 +22,8 @@ install:
   - python3 -m pip install cibuildwheel==2.3.0
 
 script:
-  # build the wheels, put them into './wheelhouse'
-  - python3 -m cibuildwheel --output-dir wheelhouse
+  # build the wheels, put them into './dist'
+  - python3 -m cibuildwheel --output-dir dist
 
 deploy:
   provider: pypi
