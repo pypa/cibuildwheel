@@ -20,7 +20,7 @@ platformdirs==2.4.0
     # via virtualenv
 six==1.16.0
     # via virtualenv
-typing-extensions==4.0.0
+typing-extensions==4.0.1
     # via
     #   delocate
     #   importlib-metadata
@@ -36,5 +36,5 @@ zipp==3.6.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==21.3.1
     # via -r cibuildwheel/resources/constraints.in
-setuptools==59.4.0
+setuptools==59.5.0
     # via -r cibuildwheel/resources/constraints.in
