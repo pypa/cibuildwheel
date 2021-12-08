@@ -947,7 +947,7 @@ Auditwheel detects the version of the manylinux / musllinux standard in the Dock
     manylinux-i686-image = "manylinux1"
 
     # Build using the manylinux2014 image
-    manylinux-x86_64_image = "manylinux2014"
+    manylinux-x86_64-image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
     manylinux-pypy_x86_64-image = "manylinux2014"
     manylinux-pypy_i686-image = "manylinux2014"
