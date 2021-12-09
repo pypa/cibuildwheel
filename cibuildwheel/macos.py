@@ -192,7 +192,6 @@ def setup_python(
     # https://github.com/pypa/virtualenv/issues/620
     # Also see https://github.com/python/cpython/pull/9516
     env.pop("__PYVENV_LAUNCHER__", None)
-    env = environment.as_dictionary(prev_environment=env)
 
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -245,6 +244,9 @@ def setup_python(
             file=sys.stderr,
         )
         sys.exit(1)
+
+    # Apply our environment after pip is ready
+    env = environment.as_dictionary(prev_environment=env)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # PyPy defaults to 10.7, causing inconsistencies if it's left unset.

@@ -157,9 +157,6 @@ def setup_python(
     )
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
-    # update env with results from CIBW_ENVIRONMENT
-    env = environment.as_dictionary(prev_environment=env)
-
     # for the logs - check we're running the right version of python
     call(["where", "python"], env=env)
     call(["python", "--version"], env=env)
@@ -246,6 +243,9 @@ def setup_python(
         sys.exit(1)
 
     call(["pip", "--version"], env=env)
+
+    # update env with results from CIBW_ENVIRONMENT
+    env = environment.as_dictionary(prev_environment=env)
 
     if build_frontend == "pip":
         call(
