@@ -192,23 +192,9 @@ def setup_python(
     # https://github.com/pypa/virtualenv/issues/620
     # Also see https://github.com/python/cpython/pull/9516
     env.pop("__PYVENV_LAUNCHER__", None)
-    env = environment.as_dictionary(prev_environment=env)
 
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-
-    # check what version we're on
-    call(["which", "python"], env=env)
-    call(["python", "--version"], env=env)
-    which_python = subprocess.run(
-        ["which", "python"], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE
-    ).stdout.strip()
-    if which_python != "/tmp/cibw_bin/python":
-        print(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
     # Install pip
 
@@ -233,6 +219,10 @@ def setup_python(
         cwd="/tmp",
     )
 
+    # Apply our environment after pip is ready
+    env = environment.as_dictionary(prev_environment=env)
+
+    # check what pip version we're on
     assert (installation_bin_path / "pip").exists()
     call(["which", "pip"], env=env)
     call(["pip", "--version"], env=env)
@@ -242,6 +232,19 @@ def setup_python(
     if which_pip != "/tmp/cibw_bin/pip":
         print(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # check what Python version we're on
+    call(["which", "python"], env=env)
+    call(["python", "--version"], env=env)
+    which_python = subprocess.run(
+        ["which", "python"], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE
+    ).stdout.strip()
+    if which_python != "/tmp/cibw_bin/python":
+        print(
+            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
             file=sys.stderr,
         )
         sys.exit(1)
