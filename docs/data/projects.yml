@@ -272,8 +272,8 @@
 - name: CTranslate2
   gh: OpenNMT/CTranslate2
   ci: [github]
-  os: [apple, linux]
-  notes: Includes libraries from the [Intel oneAPI toolkit](https://software.intel.com/content/www/us/en/develop/tools/oneapi/base-toolkit.html). The Linux wheels also include CUDA libraries for GPU execution.
+  os: [windows, apple, linux]
+  notes: Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures.
 
 - name: MyPy
   gh: mypyc/mypy_mypyc-wheels
