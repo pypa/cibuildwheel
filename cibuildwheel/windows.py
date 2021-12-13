@@ -449,7 +449,9 @@ def build(options: Options) -> None:
                 shell(test_command_prepared, cwd="c:\\", env=virtualenv_env)
 
                 # clean up
-                shutil.rmtree(venv_dir)
+                # (we ignore errors because occasionally Windows fails to unlink a file and we
+                # don't want to abort a build because of that)
+                shutil.rmtree(venv_dir, ignore_errors=True)
 
             # we're all done here; move it to output (remove if already exists)
             shutil.move(str(repaired_wheel), build_options.output_dir)
