@@ -2,6 +2,13 @@
 title: Changelog
 ---
 
+### v2.3.1
+
+_14 December 2021_
+
+- 🐛 Setting pip options like `PIP_USE_DEPRECATED` in `CIBW_ENVIRONMENT` no longer adversely affects cibuildwheel's ability to set up a Python environment (#956)
+- 📚 Docs fixes and improvements
+
 ### v2.3.0
 
 _26 November 2021_
