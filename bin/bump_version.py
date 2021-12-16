@@ -177,6 +177,17 @@ def bump_version() -> None:
     )
 
     print("Done.")
+    print()
+
+    print("Push the new version to GitHub with:")
+    print("    git push && git push --tags")
+    print()
+
+    release_url = "https://github.com/pypa/cibuildwheel/releases/new?" + urllib.parse.urlencode(
+        {"tag": new_version}
+    )
+    print("Then create a release at the URL:")
+    print(f"    {release_url}")
 
 
 if __name__ == "__main__":
