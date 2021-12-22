@@ -1,11 +1,11 @@
 import subprocess
 import sys
+import os
 import textwrap
 from pathlib import Path, PurePath
 from typing import Iterator, List, NamedTuple, Set, Tuple
 
 from .architecture import Architecture
-from .docker_container import DockerContainer
 from .logger import log
 from .options import Options
 from .typing import OrderedDict, PathOrStr, assert_never
@@ -17,6 +17,10 @@ from .util import (
     read_python_configs,
 )
 
+if os.environ.get('CIBW_REMOTE') is not None:
+    from .docker_container_remote import RemoteContainer as DockerContainer
+else:
+    from .docker_container import DockerContainer
 
 class PythonConfiguration(NamedTuple):
     version: str
