@@ -12,6 +12,7 @@ extras = {
         "pytest>=6",
         "pytest-timeout",
         "pytest-xdist; sys_platform == 'linux'",
+        "docker",
     ],
     "bin": [
         "click",

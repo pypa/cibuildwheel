@@ -7,12 +7,12 @@ import sys
 import uuid
 from pathlib import Path, PurePath
 from types import TracebackType
-from typing import IO, Dict, List, Optional, Sequence, Type, cast
-
+from typing import IO, Dict, Optional, Sequence, Type, Union
 from .typing import PathOrStr, PopenBytes
 
+from .container import Container
 
-class DockerContainer:
+class DockerContainer(Container):
     """
     An object that represents a running Docker container.
 
@@ -24,8 +24,6 @@ class DockerContainer:
     back to cibuildwheel.
     """
 
-    UTILITY_PYTHON = "/opt/python/cp38-cp38/bin/python"
-
     process: PopenBytes
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
@@ -33,17 +31,10 @@ class DockerContainer:
     def __init__(
         self, *, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None
     ):
-        if not docker_image:
-            raise ValueError("Must have a non-empty docker image to run.")
-
-        self.docker_image = docker_image
-        self.simulate_32_bit = simulate_32_bit
-        self.cwd = cwd
-        self.name: Optional[str] = None
+        super().__init__(docker_image=docker_image, simulate_32_bit=simulate_32_bit, cwd=cwd)
 
     def __enter__(self) -> "DockerContainer":
-        self.name = f"cibuildwheel-{uuid.uuid4()}"
-        cwd_args = ["-w", str(self.cwd)] if self.cwd else []
+        super().__enter__()
         shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
         subprocess.run(
             [
@@ -53,7 +44,6 @@ class DockerContainer:
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
-                *cwd_args,
                 self.docker_image,
                 *shell_args,
             ],
@@ -76,7 +66,10 @@ class DockerContainer:
         self.bash_stdout = self.process.stdout
 
         # run a noop command to block until the container is responding
-        self.call(["/bin/true"])
+        self.call(["/bin/true"], cwd="")
+
+        if self.cwd:
+            self.call(["mkdir", "-p", str(self.cwd)], cwd="")
 
         return self
 
@@ -88,13 +81,12 @@ class DockerContainer:
     ) -> None:
 
         self.bash_stdin.close()
-        self.process.terminate()
         self.process.wait()
 
         assert isinstance(self.name, str)
 
         subprocess.run(["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL)
-        self.name = None
+        super().__exit__()
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         # `docker cp` causes 'no space left on device' error when
@@ -128,29 +120,16 @@ class DockerContainer:
             cwd=to_path,
         )
 
-    def glob(self, path: PurePath, pattern: str) -> List[PurePath]:
-        glob_pattern = os.path.join(str(path), pattern)
-
-        path_strs = json.loads(
-            self.call(
-                [
-                    self.UTILITY_PYTHON,
-                    "-c",
-                    f"import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)",
-                ],
-                capture_output=True,
-            )
-        )
-
-        return [PurePath(p) for p in path_strs]
-
     def call(
         self,
         args: Sequence[PathOrStr],
         env: Optional[Dict[str, str]] = None,
         capture_output: bool = False,
         cwd: Optional[PathOrStr] = None,
-    ) -> str:
+    ) -> Union[str, bytes]:
+
+        if cwd is None:
+            cwd = self.cwd
 
         chdir = f"cd {cwd}" if cwd else ""
         env_assignments = (
@@ -219,24 +198,6 @@ class DockerContainer:
             raise subprocess.CalledProcessError(returncode, args, output)
 
         return output
-
-    def get_environment(self) -> Dict[str, str]:
-        env = json.loads(
-            self.call(
-                [
-                    self.UTILITY_PYTHON,
-                    "-c",
-                    "import sys, json, os; json.dump(os.environ.copy(), sys.stdout)",
-                ],
-                capture_output=True,
-            )
-        )
-        return cast(Dict[str, str], env)
-
-    def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
-        # used as an EnvironmentExecutor to evaluate commands and capture output
-        return self.call(command, env=environment, capture_output=True)
-
 
 def shell_quote(path: PurePath) -> str:
     return shlex.quote(str(path))

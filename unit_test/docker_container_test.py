@@ -3,25 +3,21 @@ import random
 import shutil
 import subprocess
 import textwrap
+import os
+
 from pathlib import Path, PurePath
 
 import pytest
 
-from cibuildwheel.docker_container import DockerContainer
 from cibuildwheel.environment import EnvironmentAssignmentBash
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
-pm = platform.machine()
-if pm == "x86_64":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
-elif pm == "aarch64":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
-elif pm == "ppc64le":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
-elif pm == "s390x":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_s390x:2020-05-17-2f8ac3b"
-
+DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_%s:2020-05-17-2f8ac3b" % platform.machine()
+if os.environ.get('CIBW_REMOTE') is not None:
+    from cibuildwheel.docker_container_remote import RemoteContainer as DockerContainer
+else:
+    from cibuildwheel.docker_container import DockerContainer
 
 @pytest.mark.docker
 def test_simple():
