@@ -131,7 +131,7 @@ class DockerContainer:
     def glob(self, path: PurePath, pattern: str) -> List[PurePath]:
         glob_pattern = os.path.join(str(path), pattern)
 
-        path_strs = json.loads(
+        path_strings = json.loads(
             self.call(
                 [
                     self.UTILITY_PYTHON,
@@ -142,7 +142,7 @@ class DockerContainer:
             )
         )
 
-        return [PurePath(p) for p in path_strs]
+        return [PurePath(p) for p in path_strings]
 
     def call(
         self,
@@ -170,7 +170,7 @@ class DockerContainer:
         # can cope with spaces and strange characters in the name or value.
         # Finally, the remote shell is told to write a footer - this will show
         # up in the output so we know when to stop reading, and will include
-        # the returncode of `command`.
+        # the return code of `command`.
         self.bash_stdin.write(
             bytes(
                 f"""(
@@ -199,11 +199,11 @@ class DockerContainer:
                     len(line)
                     - 1  # newline character
                     - len(end_of_message)  # delimiter
-                    - 4  # 4 returncode decimals
+                    - 4  # 4 return code decimals
                 )
                 # fmt: on
-                returncode_str = line[footer_offset : footer_offset + 4]
-                returncode = int(returncode_str)
+                return_code_str = line[footer_offset : footer_offset + 4]
+                return_code = int(return_code_str)
                 # add the last line to output, without the footer
                 output_io.write(line[0:footer_offset])
                 break
@@ -215,8 +215,8 @@ class DockerContainer:
         else:
             output = ""
 
-        if returncode != 0:
-            raise subprocess.CalledProcessError(returncode, args, output)
+        if return_code != 0:
+            raise subprocess.CalledProcessError(return_code, args, output)
 
         return output
 

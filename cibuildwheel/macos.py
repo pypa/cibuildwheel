@@ -402,10 +402,10 @@ def build(options: Options) -> None:
                 config_setting = " ".join(verbosity_flags)
                 build_env = env.copy()
                 if build_options.dependency_constraints:
-                    constr = build_options.dependency_constraints.get_for_python_version(
+                    constraint_path = build_options.dependency_constraints.get_for_python_version(
                         config.version
                     )
-                    build_env["PIP_CONSTRAINT"] = constr.as_uri()
+                    build_env["PIP_CONSTRAINT"] = constraint_path.as_uri()
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 call(
                     [
@@ -457,7 +457,7 @@ def build(options: Options) -> None:
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()
-                testing_archs: List[Literal["x86_64", "arm64"]] = []
+                testing_archs: List[Literal["x86_64", "arm64"]]
 
                 if config_is_arm64:
                     testing_archs = ["arm64"]

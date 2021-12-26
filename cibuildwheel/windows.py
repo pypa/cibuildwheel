@@ -87,8 +87,8 @@ def get_python_configurations(
 
 
 def extract_zip(zip_src: Path, dest: Path) -> None:
-    with ZipFile(zip_src) as zip:
-        zip.extractall(dest)
+    with ZipFile(zip_src) as zip_:
+        zip_.extractall(dest)
 
 
 def install_cpython(version: str, arch: str, nuget: Path) -> Path:
