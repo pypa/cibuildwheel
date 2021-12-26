@@ -303,7 +303,7 @@ def build_on_docker(
     log.step_end()
 
 
-def build(options: Options) -> None:
+def build(options: Options, tmp_path: Path) -> None:
     try:
         # check docker is installed
         subprocess.run(["docker", "--version"], check=True, stdout=subprocess.DEVNULL)

@@ -56,11 +56,12 @@ def update_constraints(session: nox.Session) -> None:
 @nox.session
 def update_pins(session: nox.Session) -> None:
     """
-    Update the python and docker pins version inplace.
+    Update the python, docker and virtualenv pins version inplace.
     """
     session.install("-e", ".[bin]")
     session.run("python", "bin/update_pythons.py", "--force")
     session.run("python", "bin/update_docker.py")
+    session.run("python", "bin/update_virtualenv.py", "--force")
 
 
 @nox.session

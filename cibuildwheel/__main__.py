@@ -1,7 +1,10 @@
 import argparse
 import os
+import shutil
 import sys
 import textwrap
+from pathlib import Path
+from tempfile import mkdtemp
 from typing import List, Set, Union
 
 import cibuildwheel
@@ -10,9 +13,15 @@ import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
+from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
-from cibuildwheel.util import BuildSelector, Unbuffered, detect_ci_provider
+from cibuildwheel.util import (
+    CIBW_CACHE_PATH,
+    BuildSelector,
+    Unbuffered,
+    detect_ci_provider,
+)
 
 
 def main() -> None:
@@ -187,17 +196,23 @@ def main() -> None:
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
-    with cibuildwheel.util.print_new_wheels(
-        "\n{n} wheels produced in {m:.0f} minutes:", output_dir
-    ):
-        if platform == "linux":
-            cibuildwheel.linux.build(options)
-        elif platform == "windows":
-            cibuildwheel.windows.build(options)
-        elif platform == "macos":
-            cibuildwheel.macos.build(options)
-        else:
-            assert_never(platform)
+    tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
+    try:
+        with cibuildwheel.util.print_new_wheels(
+            "\n{n} wheels produced in {m:.0f} minutes:", output_dir
+        ):
+            if platform == "linux":
+                cibuildwheel.linux.build(options, tmp_path)
+            elif platform == "windows":
+                cibuildwheel.windows.build(options, tmp_path)
+            elif platform == "macos":
+                cibuildwheel.macos.build(options, tmp_path)
+            else:
+                assert_never(platform)
+    finally:
+        shutil.rmtree(tmp_path, ignore_errors=sys.platform.startswith("win"))
+        if tmp_path.exists():
+            log.warning(f"Can't delete temporary folder '{str(tmp_path)}'")
 
 
 def print_preamble(platform: str, options: Options, identifiers: List[str]) -> None:
@@ -217,6 +232,8 @@ def print_preamble(platform: str, options: Options, identifiers: List[str]) -> N
     print("Build options:")
     print(f"  platform: {platform!r}")
     print(textwrap.indent(options.summary(identifiers), "  "))
+
+    print(f"Cache folder: {CIBW_CACHE_PATH}")
 
     warnings = detect_warnings(platform=platform, options=options, identifiers=identifiers)
     if warnings:

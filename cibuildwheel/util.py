@@ -1,5 +1,6 @@
 import contextlib
 import fnmatch
+import functools
 import itertools
 import os
 import re
@@ -21,6 +22,7 @@ from typing import (
     List,
     NamedTuple,
     Optional,
+    Sequence,
     TextIO,
     cast,
     overload,
@@ -29,10 +31,13 @@ from typing import (
 import bracex
 import certifi
 import tomli
+from filelock import FileLock
+from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+from platformdirs import user_cache_path
 
-from .typing import Literal, PathOrStr, PlatformName
+from cibuildwheel.typing import Literal, PathOrStr, PlatformName
 
 resources_dir = Path(__file__).parent / "resources"
 
@@ -58,6 +63,9 @@ MUSLLINUX_ARCHS = (
     "ppc64le",
     "s390x",
 )
+
+DEFAULT_CIBW_CACHE_PATH = user_cache_path(appname="cibuildwheel", appauthor="pypa")
+CIBW_CACHE_PATH = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
 
 IS_WIN = sys.platform.startswith("win")
 
@@ -451,3 +459,96 @@ def get_pip_version(env: Dict[str, str]) -> str:
         if version.startswith("pip==")
     )
     return pip_version
+
+
+@functools.lru_cache(maxsize=None)
+def _ensure_virtualenv() -> Path:
+    input_file = resources_dir / "virtualenv.toml"
+    with input_file.open("rb") as f:
+        loaded_file = tomli.load(f)
+    version = str(loaded_file["version"])
+    url = str(loaded_file["url"])
+    path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
+    with FileLock(str(path) + ".lock"):
+        if not path.exists():
+            download(url, path)
+    return path
+
+
+def _parse_constraints_for_virtualenv(
+    dependency_constraint_flags: Sequence[PathOrStr],
+) -> Dict[str, str]:
+    assert len(dependency_constraint_flags) in {0, 2}
+    packages = ["pip", "setuptools", "wheel"]
+    constraints_dict = {package: "embed" for package in packages}
+    if len(dependency_constraint_flags) == 2:
+        assert dependency_constraint_flags[0] == "-c"
+        constraint_path = Path(dependency_constraint_flags[1])
+        assert constraint_path.exists()
+        # don't try to be too smart, just handle basic constraints
+        # if we can't get an exact version, just keep the default, the constraint will be
+        # handled by the {macos|windows}.setup_python function
+        with constraint_path.open() as constraint_file:
+            for line in constraint_file:
+                line = line.strip()
+                if len(line) == 0:
+                    continue
+                if line.startswith("#"):
+                    continue
+                try:
+                    requirement = Requirement(line)
+                    package = requirement.name
+                    if (
+                        package not in packages
+                        or requirement.url is not None
+                        or requirement.marker is not None
+                        or len(requirement.extras) != 0
+                        or len(requirement.specifier) != 1
+                    ):
+                        continue
+                    specifier = next(iter(requirement.specifier))
+                    if specifier.operator != "==":
+                        continue
+                    constraints_dict[package] = specifier.version
+                except InvalidRequirement:
+                    continue
+    return constraints_dict
+
+
+def virtualenv(
+    install_path: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
+) -> Dict[str, str]:
+    if IS_WIN:
+        paths = [str(venv_path), str(venv_path / "Scripts")]
+        python = install_path / "python.exe"
+    else:
+        paths = [str(venv_path / "bin")]
+        for python_name in ["pypy3", "python3"]:
+            python = install_path / "bin" / python_name
+            if python.exists():
+                break
+    assert python.exists()
+    virtualenv_app = _ensure_virtualenv()
+    constraints = _parse_constraints_for_virtualenv(dependency_constraint_flags)
+    additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
+    if (
+        not IS_WIN
+        and constraints["pip"] != "embed"
+        and Version(constraints["pip"]) > Version("19.3")
+    ):
+        additional_flags.append("--symlink-app-data")
+
+    call(
+        sys.executable,
+        "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
+        virtualenv_app,
+        "--activators=",
+        "--no-periodic-update",
+        *additional_flags,
+        "--python",
+        python,
+        venv_path,
+    )
+    env = os.environ.copy()
+    env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
+    return env
