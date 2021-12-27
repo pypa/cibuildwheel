@@ -14,7 +14,7 @@ FOLD_PATTERNS = {
     "github": ("::group::{name}", "::endgroup::{name}"),
 }
 
-PLATFORM_IDENTIFIER_DESCIPTIONS = {
+PLATFORM_IDENTIFIER_DESCRIPTIONS = {
     "manylinux_x86_64": "manylinux x86_64",
     "manylinux_i686": "manylinux i686",
     "manylinux_aarch64": "manylinux aarch64",
@@ -204,7 +204,7 @@ def build_description_from_identifier(identifier: str) -> str:
     build_description += f" {python_version[0]}.{python_version[1:]} "
 
     try:
-        build_description += PLATFORM_IDENTIFIER_DESCIPTIONS[platform_identifier]
+        build_description += PLATFORM_IDENTIFIER_DESCRIPTIONS[platform_identifier]
     except KeyError as e:
         raise Exception("unknown platform") from e
 

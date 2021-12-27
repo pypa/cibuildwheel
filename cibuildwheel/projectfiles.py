@@ -51,7 +51,7 @@ def setup_py_python_requires(content: str) -> Optional[str]:
 
 
 def get_requires_python_str(package_dir: Path) -> Optional[str]:
-    "Return the python requires string from the most canonical source available, or None"
+    """Return the python requires string from the most canonical source available, or None"""
 
     # Read in from pyproject.toml:project.requires-python
     try:
