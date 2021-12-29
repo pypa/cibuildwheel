@@ -25,7 +25,7 @@ def test_read_setup_py_simple(tmp_path):
 
 
 def test_read_setup_py_full(tmp_path):
-    with open(tmp_path / "setup.py", "w") as f:
+    with open(tmp_path / "setup.py", "w", encoding="utf8") as f:
         f.write(
             dedent(
                 """
