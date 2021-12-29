@@ -1,10 +1,9 @@
+import os
 import platform
 import random
 import shutil
 import subprocess
 import textwrap
-import os
-
 from pathlib import Path, PurePath
 
 import pytest
@@ -14,10 +13,11 @@ from cibuildwheel.environment import EnvironmentAssignmentBash
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
 DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_%s:2020-05-17-2f8ac3b" % platform.machine()
-if os.environ.get('CIBW_REMOTE') is not None:
+if os.environ.get("CIBW_REMOTE") is not None:
     from cibuildwheel.docker_container_remote import RemoteContainer as DockerContainer
 else:
     from cibuildwheel.docker_container import DockerContainer
+
 
 @pytest.mark.docker
 def test_simple():
@@ -36,7 +36,7 @@ def test_environment():
     with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         assert (
             container.call(
-                ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
+                ["printenv", "TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
             )
             == "1\n"
         )
@@ -114,7 +114,7 @@ def test_binary_output():
         )
 
         # check that we can capture arbitrary binary data
-        output = container.call(
+        data = container.call(
             [
                 "/usr/bin/python2",
                 "-c",
@@ -125,10 +125,8 @@ def test_binary_output():
                     """
                 ),
             ],
-            capture_output=True,
+            binary_output=True,
         )
-
-        data = bytes(output, encoding="utf8", errors="surrogateescape")
 
         for i in range(512):
             assert data[i] == i % 256
@@ -136,13 +134,12 @@ def test_binary_output():
         # check that environment variables can carry binary data, except null characters
         # (https://www.gnu.org/software/libc/manual/html_node/Environment-Variables.html)
         binary_data = bytes(n for n in range(1, 256))
-        binary_data_string = str(binary_data, encoding="utf8", errors="surrogateescape")
         output = container.call(
-            ["python2", "-c", 'import os, sys; sys.stdout.write(os.environ["TEST_VAR"])'],
-            env={"TEST_VAR": binary_data_string},
+            ["printenv", "TEST_VAR"],
+            env={"TEST_VAR": binary_data},
             capture_output=True,
         )
-        assert output == binary_data_string
+        assert output.rstrip("\n") == container.unicode_decode(binary_data)
 
 
 @pytest.mark.docker
@@ -157,8 +154,8 @@ def test_file_operations(tmp_path: Path):
 
         container.copy_into(original_test_file, dst_file)
 
-        output = container.call(["cat", dst_file], capture_output=True)
-        assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
+        output = container.call(["cat", dst_file], binary_output=True)
+        assert test_binary_data == output
 
 
 @pytest.mark.docker
@@ -178,8 +175,8 @@ def test_dir_operations(tmp_path: Path):
         dst_file = dst_dir / "test.dat"
         container.copy_into(test_dir, dst_dir)
 
-        output = container.call(["cat", dst_file], capture_output=True)
-        assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
+        output = container.call(["cat", dst_file], binary_output=True)
+        assert test_binary_data == output
 
         # test glob
         assert container.glob(dst_dir, "*.dat") == [dst_file]

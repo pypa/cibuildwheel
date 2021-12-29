@@ -1,16 +1,16 @@
 import io
-import json
-import os
 import shlex
 import subprocess
 import sys
 import uuid
+from os import fsdecode, fspath
 from pathlib import Path, PurePath
 from types import TracebackType
 from typing import IO, Dict, Optional, Sequence, Type, Union
-from .typing import PathOrStr, PopenBytes
 
 from .container import Container
+from .typing import PathOrStr, PopenBytes
+
 
 class DockerContainer(Container):
     """
@@ -86,7 +86,7 @@ class DockerContainer(Container):
         assert isinstance(self.name, str)
 
         subprocess.run(["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL)
-        super().__exit__()
+        super().__exit__(exc_type, exc_val, exc_tb)
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         # `docker cp` causes 'no space left on device' error when
@@ -123,8 +123,9 @@ class DockerContainer(Container):
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: Optional[Dict[str, str]] = None,
+        env: Optional[Dict[str, Union[bytes, str]]] = None,
         capture_output: bool = False,
+        binary_output: bool = False,
         cwd: Optional[PathOrStr] = None,
     ) -> Union[str, bytes]:
 
@@ -133,11 +134,11 @@ class DockerContainer(Container):
 
         chdir = f"cd {cwd}" if cwd else ""
         env_assignments = (
-            " ".join(f"{shlex.quote(k)}={shlex.quote(v)}" for k, v in env.items())
+            " ".join(f"{shlex.quote(k)}={shlex.quote(self.unicode_decode(v) if isinstance(v, bytes) else v)}" for k, v in env.items())
             if env is not None
             else ""
         )
-        command = " ".join(shlex.quote(str(a)) for a in args)
+        command = shlex.join([(fspath(p)) for p in args])
         end_of_message = str(uuid.uuid4())
 
         # log the command we're executing
@@ -164,7 +165,7 @@ class DockerContainer(Container):
         )
         self.bash_stdin.flush()
 
-        if capture_output:
+        if capture_output or binary_output:
             output_io: IO[bytes] = io.BytesIO()
         else:
             output_io = sys.stdout.buffer
@@ -190,7 +191,7 @@ class DockerContainer(Container):
                 output_io.write(line)
 
         if isinstance(output_io, io.BytesIO):
-            output = str(output_io.getvalue(), encoding="utf8", errors="surrogateescape")
+            output = output_io.getvalue() if binary_output else fsdecode(output_io.getvalue())
         else:
             output = ""
 
