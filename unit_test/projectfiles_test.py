@@ -34,7 +34,8 @@ def test_read_setup_py_full(tmp_path):
                 setuptools.randomfunc()
 
                 setuptools.setup(
-                    name = "hello©",
+                    name = "hello",
+                    description = "≥“”ü",
                     other = 23,
                     example = ["item", "other"],
                     python_requires = "1.24",
