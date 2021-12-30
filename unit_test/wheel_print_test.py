@@ -13,8 +13,8 @@ def test_printout_wheels(tmp_path, capsys):
     assert captured.err == ""
 
     assert "example.0" not in captured.out
-    assert "example.1 1 kB\n" in captured.out
-    assert "example.2 2 kB\n" in captured.out
+    assert "example.1   1 kB\n" in captured.out
+    assert "example.2   2 kB\n" in captured.out
     assert "TEST_MSG:" in captured.out
     assert "TEST_MSG: 2\n" in captured.out
 
