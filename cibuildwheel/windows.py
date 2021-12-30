@@ -18,30 +18,16 @@ from .util import (
     BuildFrontend,
     BuildSelector,
     NonPlatformWheelError,
+    call,
     download,
     get_build_verbosity_extra_flags,
     get_pip_version,
     prepare_command,
     read_python_configs,
+    shell,
 )
 
 CIBW_INSTALL_PATH = Path("C:\\cibw")
-
-
-def call(
-    args: Sequence[PathOrStr], env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
-) -> None:
-    print("+ " + " ".join(str(a) for a in args))
-    # we use shell=True here, even though we don't need a shell due to a bug
-    # https://bugs.python.org/issue8557
-    subprocess.run([str(a) for a in args], env=env, cwd=cwd, shell=True, check=True)
-
-
-def shell(
-    command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
-) -> None:
-    print(f"+ {command}")
-    subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
 
 
 def get_nuget_args(version: str, arch: str) -> List[str]:
@@ -94,7 +80,7 @@ def extract_zip(zip_src: Path, dest: Path) -> None:
 def install_cpython(version: str, arch: str, nuget: Path) -> Path:
     nuget_args = get_nuget_args(version, arch)
     installation_path = Path(nuget_args[-1]) / (nuget_args[0] + "." + version) / "tools"
-    call([nuget, "install", *nuget_args])
+    call(nuget, "install", *nuget_args)
     # "python3" is not included in the vanilla nuget package,
     # though it can be present if modified (like on Azure).
     if not (installation_path / "python3.exe").exists():
@@ -165,7 +151,7 @@ def setup_python(
 
     if requires_reinstall:
         # maybe pip isn't installed at all. ensurepip resolves that.
-        call(["python", "-m", "ensurepip"], env=env, cwd=CIBW_INSTALL_PATH)
+        call("python", "-m", "ensurepip", env=env, cwd=CIBW_INSTALL_PATH)
 
     # pip older than 21.3 builds executables such as pip.exe for x64 platform.
     # The first re-install of pip updates pip module but builds pip.exe using
@@ -175,16 +161,14 @@ def setup_python(
     # pip versions newer than 21.3.
     if python_configuration.arch == "ARM64" and Version(get_pip_version(env)) < Version("21.3"):
         call(
-            [
-                "python",
-                "-m",
-                "pip",
-                "install",
-                "--force-reinstall",
-                "--upgrade",
-                "pip",
-                *dependency_constraint_flags,
-            ],
+            "python",
+            "-m",
+            "pip",
+            "install",
+            "--force-reinstall",
+            "--upgrade",
+            "pip",
+            *dependency_constraint_flags,
             env=env,
             cwd=CIBW_INSTALL_PATH,
         )
@@ -192,15 +176,13 @@ def setup_python(
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
     call(
-        [
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--force-reinstall" if requires_reinstall else "--upgrade",
-            "pip",
-            *dependency_constraint_flags,
-        ],
+        "python",
+        "-m",
+        "pip",
+        "install",
+        "--force-reinstall" if requires_reinstall else "--upgrade",
+        "pip",
+        *dependency_constraint_flags,
         env=env,
         cwd=CIBW_INSTALL_PATH,
     )
@@ -209,20 +191,10 @@ def setup_python(
     env = environment.as_dictionary(prev_environment=env)
 
     # check what Python version we're on
-    call(["where", "python"], env=env)
-    call(["python", "--version"], env=env)
-    call(["python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\""], env=env)
-    where_python = (
-        subprocess.run(
-            ["where", "python"],
-            env=env,
-            universal_newlines=True,
-            check=True,
-            stdout=subprocess.PIPE,
-        )
-        .stdout.splitlines()[0]
-        .strip()
-    )
+    call("where", "python", env=env)
+    call("python", "--version", env=env)
+    call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
+    where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()
     if where_python != str(installation_path / "python.exe"):
         print(
             "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
@@ -232,13 +204,7 @@ def setup_python(
 
     # check what pip version we're on
     assert (installation_path / "Scripts" / "pip.exe").exists()
-    where_pip = (
-        subprocess.run(
-            ["where", "pip"], env=env, universal_newlines=True, check=True, stdout=subprocess.PIPE
-        )
-        .stdout.splitlines()[0]
-        .strip()
-    )
+    where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
     if where_pip.strip() != str(installation_path / "Scripts" / "pip.exe"):
         print(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
@@ -246,23 +212,25 @@ def setup_python(
         )
         sys.exit(1)
 
-    call(["pip", "--version"], env=env)
+    call("pip", "--version", env=env)
 
     if build_frontend == "pip":
         call(
-            [
-                "pip",
-                "install",
-                "--upgrade",
-                "setuptools",
-                "wheel",
-                *dependency_constraint_flags,
-            ],
+            "pip",
+            "install",
+            "--upgrade",
+            "setuptools",
+            "wheel",
+            *dependency_constraint_flags,
             env=env,
         )
     elif build_frontend == "build":
         call(
-            ["pip", "install", "--upgrade", "build[virtualenv]", *dependency_constraint_flags],
+            "pip",
+            "install",
+            "--upgrade",
+            "build[virtualenv]",
+            *dependency_constraint_flags,
             env=env,
         )
     else:
@@ -330,16 +298,14 @@ def build(options: Options) -> None:
                 # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                 # see https://github.com/pypa/cibuildwheel/pull/369
                 call(
-                    [
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        options.globals.package_dir.resolve(),
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *get_build_verbosity_extra_flags(build_options.build_verbosity),
-                    ],
+                    "python",
+                    "-m",
+                    "pip",
+                    "wheel",
+                    options.globals.package_dir.resolve(),
+                    f"--wheel-dir={built_wheel_dir}",
+                    "--no-deps",
+                    *get_build_verbosity_extra_flags(build_options.build_verbosity),
                     env=env,
                 )
             elif build_options.build_frontend == "build":
@@ -364,15 +330,13 @@ def build(options: Options) -> None:
                     build_env["PIP_CONSTRAINT"] = str(constraints_path)
                     build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                     call(
-                        [
-                            "python",
-                            "-m",
-                            "build",
-                            build_options.package_dir,
-                            "--wheel",
-                            f"--outdir={built_wheel_dir}",
-                            f"--config-setting={config_setting}",
-                        ],
+                        "python",
+                        "-m",
+                        "build",
+                        build_options.package_dir,
+                        "--wheel",
+                        f"--outdir={built_wheel_dir}",
+                        f"--config-setting={config_setting}",
                         env=build_env,
                     )
             else:
@@ -403,12 +367,12 @@ def build(options: Options) -> None:
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
-                call(["pip", "install", "virtualenv", *dependency_constraint_flags], env=env)
+                call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
                 venv_dir = Path(tempfile.mkdtemp())
 
                 # Use --no-download to ensure determinism by using seed libraries
                 # built into virtualenv
-                call(["python", "-m", "virtualenv", "--no-download", venv_dir], env=env)
+                call("python", "-m", "virtualenv", "--no-download", venv_dir, env=env)
 
                 virtualenv_env = env.copy()
                 virtualenv_env["PATH"] = os.pathsep.join(
@@ -419,7 +383,7 @@ def build(options: Options) -> None:
                 )
 
                 # check that we are using the Python from the virtual environment
-                call(["where", "python"], env=virtualenv_env)
+                call("where", "python", env=virtualenv_env)
 
                 if build_options.before_test:
                     before_test_prepared = prepare_command(
@@ -431,13 +395,15 @@ def build(options: Options) -> None:
 
                 # install the wheel
                 call(
-                    ["pip", "install", str(repaired_wheel) + build_options.test_extras],
+                    "pip",
+                    "install",
+                    str(repaired_wheel) + build_options.test_extras,
                     env=virtualenv_env,
                 )
 
                 # test the wheel
                 if build_options.test_requires:
-                    call(["pip", "install"] + build_options.test_requires, env=virtualenv_env)
+                    call("pip", "install", *build_options.test_requires, env=virtualenv_env)
 
                 # run the tests from c:\, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel
