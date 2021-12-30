@@ -25,7 +25,7 @@ def test_read_setup_py_simple(tmp_path):
 
 
 def test_read_setup_py_full(tmp_path):
-    with open(tmp_path / "setup.py", "w") as f:
+    with open(tmp_path / "setup.py", "w", encoding="utf8") as f:
         f.write(
             dedent(
                 """
@@ -35,6 +35,7 @@ def test_read_setup_py_full(tmp_path):
 
                 setuptools.setup(
                     name = "hello",
+                    description = "≥“”ü",
                     other = 23,
                     example = ["item", "other"],
                     python_requires = "1.24",
@@ -43,7 +44,9 @@ def test_read_setup_py_full(tmp_path):
             )
         )
 
-    assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "1.24"
+    assert (
+        setup_py_python_requires(tmp_path.joinpath("setup.py").read_text(encoding="utf8")) == "1.24"
+    )
     assert get_requires_python_str(tmp_path) == "1.24"
 
 

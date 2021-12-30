@@ -70,7 +70,7 @@ def get_requires_python_str(package_dir: Path) -> Optional[str]:
         pass
 
     try:
-        with (package_dir / "setup.py").open() as f2:
+        with (package_dir / "setup.py").open(encoding="utf8") as f2:
             return setup_py_python_requires(f2.read())
     except FileNotFoundError:
         pass
