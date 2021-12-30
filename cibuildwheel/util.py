@@ -368,7 +368,7 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
     m = s / 60
     print(
         msg.format(n=n, s=s, m=m),
-        *sorted(f"  {f.name:<{max_name_len}s} {f.size:>{max_size_len}s} kB" for f in new_contents),
+        *sorted(f"  {f.name:<{max_name_len}s}   {f.size:>{max_size_len}s} kB" for f in new_contents),
         sep="\n",
     )
 
