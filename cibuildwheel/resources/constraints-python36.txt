@@ -4,18 +4,14 @@
 #
 #    bin/update_dependencies.py
 #
-backports.entry-points-selectable==1.1.1
-    # via virtualenv
-delocate==0.10.1
+delocate==0.10.2
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.4
     # via virtualenv
-filelock==3.4.0
+filelock==3.4.1
     # via virtualenv
-importlib-metadata==4.8.2
-    # via
-    #   backports.entry-points-selectable
-    #   virtualenv
+importlib-metadata==4.8.3
+    # via virtualenv
 importlib-resources==5.4.0
     # via virtualenv
 platformdirs==2.4.0
@@ -26,9 +22,9 @@ typing-extensions==4.0.1
     # via
     #   delocate
     #   importlib-metadata
-virtualenv==20.10.0
+virtualenv==20.13.0
     # via -r cibuildwheel/resources/constraints.in
-wheel==0.37.0
+wheel==0.37.1
     # via
     #   -r cibuildwheel/resources/constraints.in
     #   delocate
