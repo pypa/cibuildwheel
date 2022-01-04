@@ -12,7 +12,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Any, Dict, Iterable, Iterator, List, Optional, TextIO
+from typing import Any, Dict, Iterable, Iterator, List, NamedTuple, Optional, TextIO
 
 import bracex
 import certifi
@@ -352,11 +352,27 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
     existing_contents = set(output_dir.iterdir())
     yield
     final_contents = set(output_dir.iterdir())
-    new_contents = final_contents - existing_contents
+
+    class FileReport(NamedTuple):
+        name: str
+        size: str
+
+    new_contents = [
+        FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
+        for wheel in final_contents - existing_contents
+    ]
+    max_name_len = max(len(f.name) for f in new_contents)
+    max_size_len = max(len(f.size) for f in new_contents)
     n = len(new_contents)
     s = time.time() - start_time
     m = s / 60
-    print(msg.format(n=n, s=s, m=m), *sorted(f"  {f.name}" for f in new_contents), sep="\n")
+    print(
+        msg.format(n=n, s=s, m=m),
+        *sorted(
+            f"  {f.name:<{max_name_len}s}   {f.size:>{max_size_len}s} kB" for f in new_contents
+        ),
+        sep="\n",
+    )
 
 
 def get_pip_version(env: Dict[str, str]) -> str:

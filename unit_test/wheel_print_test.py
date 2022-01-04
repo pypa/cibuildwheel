@@ -6,15 +6,15 @@ from cibuildwheel.util import print_new_wheels
 def test_printout_wheels(tmp_path, capsys):
     tmp_path.joinpath("example.0").touch()
     with print_new_wheels("TEST_MSG: {n}", tmp_path):
-        tmp_path.joinpath("example.1").touch()
-        tmp_path.joinpath("example.2").touch()
+        tmp_path.joinpath("example.1").write_bytes(b"0" * 1023)
+        tmp_path.joinpath("example.2").write_bytes(b"0" * 1025)
 
     captured = capsys.readouterr()
     assert captured.err == ""
 
     assert "example.0" not in captured.out
-    assert "example.1\n" in captured.out
-    assert "example.2\n" in captured.out
+    assert "example.1   1 kB\n" in captured.out
+    assert "example.2   2 kB\n" in captured.out
     assert "TEST_MSG:" in captured.out
     assert "TEST_MSG: 2\n" in captured.out
 
