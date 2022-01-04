@@ -128,7 +128,9 @@ def install_cpython(version: str, url: str) -> Path:
         download(url, Path("/tmp/Python.pkg"))
         # install
         call(["sudo", "installer", "-pkg", "/tmp/Python.pkg", "-target", "/"])
-        call(["sudo", str(installation_bin_path / python_executable), str(install_certifi_script)])
+        env = os.environ.copy()
+        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+        call([str(installation_bin_path / python_executable), str(install_certifi_script)], env=env)
 
     pip_executable = "pip3"
     make_symlinks(installation_bin_path, python_executable, pip_executable)
