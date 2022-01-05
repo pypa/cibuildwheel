@@ -1,6 +1,5 @@
 import contextlib
 import fnmatch
-import functools
 import itertools
 import os
 import re
@@ -12,6 +11,7 @@ import textwrap
 import time
 import urllib.request
 from enum import Enum
+from functools import lru_cache
 from pathlib import Path
 from time import sleep
 from typing import (
@@ -461,7 +461,7 @@ def get_pip_version(env: Dict[str, str]) -> str:
     return pip_version
 
 
-@functools.lru_cache(maxsize=None)
+@lru_cache(maxsize=None)
 def _ensure_virtualenv() -> Path:
     input_file = resources_dir / "virtualenv.toml"
     with input_file.open("rb") as f:
@@ -478,6 +478,15 @@ def _ensure_virtualenv() -> Path:
 def _parse_constraints_for_virtualenv(
     dependency_constraint_flags: Sequence[PathOrStr],
 ) -> Dict[str, str]:
+    """
+    Parses the constraints file referenced by `dependency_constraint_flags` and returns a dict where
+    the key is the package name, and the value is the constraint version.
+    If a package version cannot be found, its value is "embed" meaning that virtualenv will install
+    its bundled version, already available locally.
+    The function does not try to be too smart and just handles basic constraints.
+    If it can't get an exact version, the real constraint will be handled by the
+    {macos|windows}.setup_python function.
+    """
     assert len(dependency_constraint_flags) in {0, 2}
     packages = ["pip", "setuptools", "wheel"]
     constraints_dict = {package: "embed" for package in packages}
@@ -485,9 +494,6 @@ def _parse_constraints_for_virtualenv(
         assert dependency_constraint_flags[0] == "-c"
         constraint_path = Path(dependency_constraint_flags[1])
         assert constraint_path.exists()
-        # don't try to be too smart, just handle basic constraints
-        # if we can't get an exact version, just keep the default, the constraint will be
-        # handled by the {macos|windows}.setup_python function
         with constraint_path.open() as constraint_file:
             for line in constraint_file:
                 line = line.strip()
@@ -516,25 +522,23 @@ def _parse_constraints_for_virtualenv(
 
 
 def virtualenv(
-    install_path: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
+    python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
 ) -> Dict[str, str]:
-    if IS_WIN:
-        paths = [str(venv_path), str(venv_path / "Scripts")]
-        python = install_path / "python.exe"
-    else:
-        paths = [str(venv_path / "bin")]
-        for python_name in ["pypy3", "python3"]:
-            python = install_path / "bin" / python_name
-            if python.exists():
-                break
     assert python.exists()
     virtualenv_app = _ensure_virtualenv()
     constraints = _parse_constraints_for_virtualenv(dependency_constraint_flags)
     additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
+
+    # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
+    # environment. The initial cost is a bit higher but reusing is much faster.
+    # Windows does not always allow symlinks so just disabling for now.
+    # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
+    # version of pip that will end-up installed.
+    # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
     if (
         not IS_WIN
         and constraints["pip"] != "embed"
-        and Version(constraints["pip"]) > Version("19.3")
+        and Version(constraints["pip"]) >= Version("19.3")
     ):
         additional_flags.append("--symlink-app-data")
 
@@ -549,6 +553,10 @@ def virtualenv(
         python,
         venv_path,
     )
+    if IS_WIN:
+        paths = [str(venv_path), str(venv_path / "Scripts")]
+    else:
+        paths = [str(venv_path / "bin")]
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
     return env

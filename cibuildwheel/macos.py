@@ -78,51 +78,49 @@ def get_python_configurations(
 
 
 def install_cpython(tmp: Path, version: str, url: str) -> Path:
-    installed_system_packages = call("pkgutil", "--pkgs", capture_stdout=True).splitlines()
-
-    # if this version of python isn't installed, get it from python.org and install
-    python_package_identifier = f"org.python.Python.PythonFramework-{version}"
     installation_path = Path(f"/Library/Frameworks/Python.framework/Versions/{version}")
+    with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
+        installed_system_packages = call("pkgutil", "--pkgs", capture_stdout=True).splitlines()
+        # if this version of python isn't installed, get it from python.org and install
+        python_package_identifier = f"org.python.Python.PythonFramework-{version}"
+        if python_package_identifier not in installed_system_packages:
+            if detect_ci_provider() is None:
+                # if running locally, we don't want to install CPython with sudo
+                # let the user know & provide a link to the installer
+                print(
+                    f"Error: CPython {version} is not installed.\n"
+                    "cibuildwheel will not perform system-wide installs when running outside of CI.\n"
+                    f"To build locally, install CPython {version} on this machine, or, disable this version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*\n"
+                    f"\nDownload link: {url}",
+                    file=sys.stderr,
+                )
+                raise SystemExit(1)
+            pkg_path = tmp / "Python.pkg"
+            # download the pkg
+            download(url, pkg_path)
+            # install
+            call("sudo", "installer", "-pkg", pkg_path, "-target", "/")
+            pkg_path.unlink()
+            env = os.environ.copy()
+            env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+            call(installation_path / "bin" / "python3", install_certifi_script, env=env)
 
-    if python_package_identifier not in installed_system_packages:
-        if detect_ci_provider() is None:
-            # if running locally, we don't want to install CPython with sudo
-            # let the user know & provide a link to the installer
-            print(
-                f"Error: CPython {version} is not installed.\n"
-                "cibuildwheel will not perform system-wide installs when running outside of CI.\n"
-                f"To build locally, install CPython {version} on this machine, or, disable this version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*\n"
-                f"\nDownload link: {url}",
-                file=sys.stderr,
-            )
-            raise SystemExit(1)
-        pkg_path = tmp / "Python.pkg"
-        # download the pkg
-        download(url, pkg_path)
-        # install
-        call("sudo", "installer", "-pkg", pkg_path, "-target", "/")
-        pkg_path.unlink()
-        env = os.environ.copy()
-        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-        call(installation_path / "bin" / "python3", install_certifi_script, env=env)
-
-    return installation_path
+    return installation_path / "bin" / "python3"
 
 
 def install_pypy(tmp: Path, version: str, url: str) -> Path:
     pypy_tar_bz2 = url.rsplit("/", 1)[-1]
     extension = ".tar.bz2"
     assert pypy_tar_bz2.endswith(extension)
-    pypy_base_filename = pypy_tar_bz2[: -len(extension)]
-    installation_path = CIBW_CACHE_PATH / pypy_base_filename
-    if not installation_path.exists():
-        downloaded_tar_bz2 = tmp / pypy_tar_bz2
-        download(url, downloaded_tar_bz2)
-        installation_path.parent.mkdir(parents=True, exist_ok=True)
-        call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
-        downloaded_tar_bz2.unlink()
-
-    return installation_path
+    installation_path = CIBW_CACHE_PATH / pypy_tar_bz2[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            downloaded_tar_bz2 = tmp / pypy_tar_bz2
+            download(url, downloaded_tar_bz2)
+            installation_path.parent.mkdir(parents=True, exist_ok=True)
+            call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
+            downloaded_tar_bz2.unlink()
+    return installation_path / "bin" / "pypy3"
 
 
 def setup_python(
@@ -135,22 +133,17 @@ def setup_python(
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
-    CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
-    with FileLock(CIBW_CACHE_PATH / "install.lock"):
-        if implementation_id.startswith("cp"):
-            installation_path = install_cpython(
-                tmp, python_configuration.version, python_configuration.url
-            )
-        elif implementation_id.startswith("pp"):
-            installation_path = install_pypy(
-                tmp, python_configuration.version, python_configuration.url
-            )
-        else:
-            raise ValueError("Unknown Python implementation")
+    if implementation_id.startswith("cp"):
+        base_python = install_cpython(tmp, python_configuration.version, python_configuration.url)
+    elif implementation_id.startswith("pp"):
+        base_python = install_pypy(tmp, python_configuration.version, python_configuration.url)
+    else:
+        raise ValueError("Unknown Python implementation")
+    assert base_python.exists()
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(installation_path, venv_path, dependency_constraint_flags)
+    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
@@ -298,10 +291,10 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             log.build_start(config.identifier)
 
-            tmp_config_dir = tmp_path / config.identifier
-            tmp_config_dir.mkdir()
-            built_wheel_dir = tmp_config_dir / "built_wheel"
-            repaired_wheel_dir = tmp_config_dir / "repaired_wheel"
+            identifier_tmp_dir = tmp_path / config.identifier
+            identifier_tmp_dir.mkdir()
+            built_wheel_dir = identifier_tmp_dir / "built_wheel"
+            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
 
             config_is_arm64 = config.identifier.endswith("arm64")
             config_is_universal2 = config.identifier.endswith("universal2")
@@ -314,7 +307,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 ]
 
             env = setup_python(
-                tmp_config_dir / "build",
+                identifier_tmp_dir / "build",
                 config,
                 dependency_constraint_flags,
                 build_options.environment,
@@ -459,7 +452,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     # there are no dependencies that were pulled in at build time.
                     call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
 
-                    venv_dir = tmp_config_dir / "venv-test"
+                    venv_dir = identifier_tmp_dir / "venv-test"
 
                     arch_prefix = []
                     if testing_arch != machine_arch:
@@ -532,7 +525,7 @@ def build(options: Options, tmp_path: Path) -> None:
             shutil.move(str(repaired_wheel), build_options.output_dir)
 
             # clean up
-            shutil.rmtree(tmp_config_dir)
+            shutil.rmtree(identifier_tmp_dir)
 
             log.build_end()
     except subprocess.CalledProcessError as error:
