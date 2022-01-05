@@ -3,6 +3,7 @@ import fnmatch
 import itertools
 import os
 import re
+import shlex
 import ssl
 import subprocess
 import sys
@@ -12,7 +13,18 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from time import sleep
-from typing import Any, Dict, Iterable, Iterator, List, NamedTuple, Optional, TextIO
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    NamedTuple,
+    Optional,
+    TextIO,
+    cast,
+    overload,
+)
 
 import bracex
 import certifi
@@ -46,6 +58,60 @@ MUSLLINUX_ARCHS = (
     "ppc64le",
     "s390x",
 )
+
+IS_WIN = sys.platform.startswith("win")
+
+
+@overload
+def call(
+    *args: PathOrStr,
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[PathOrStr] = None,
+    capture_stdout: Literal[False] = ...,
+) -> None:
+    ...
+
+
+@overload
+def call(
+    *args: PathOrStr,
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[PathOrStr] = None,
+    capture_stdout: Literal[True],
+) -> str:
+    ...
+
+
+def call(
+    *args: PathOrStr,
+    env: Optional[Dict[str, str]] = None,
+    cwd: Optional[PathOrStr] = None,
+    capture_stdout: bool = False,
+) -> Optional[str]:
+    """
+    Run subprocess.run, but print the commands first. Takes the commands as
+    *args. Uses shell=True on Windows due to a bug. Also converts to
+    Paths to strings, due to Windows behavior at least on older Pythons.
+    https://bugs.python.org/issue8557
+    """
+    args_ = [str(arg) for arg in args]
+    # print the command executing for the logs
+    print("+ " + " ".join(shlex.quote(a) for a in args_))
+    kwargs: Dict[str, Any] = {}
+    if capture_stdout:
+        kwargs["universal_newlines"] = True
+        kwargs["stdout"] = subprocess.PIPE
+    result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
+    if not capture_stdout:
+        return None
+    return cast(str, result.stdout)
+
+
+def shell(
+    command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
+) -> None:
+    print(f"+ {command}")
+    subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
 
 
 def format_safe(template: str, **kwargs: Any) -> str:
@@ -376,11 +442,8 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
 
 
 def get_pip_version(env: Dict[str, str]) -> str:
-    # we use shell=True here for windows, even though we don't need a shell due to a bug
-    # https://bugs.python.org/issue8557
-    shell = sys.platform.startswith("win")
-    versions_output_text = subprocess.check_output(
-        ["python", "-m", "pip", "freeze", "--all"], universal_newlines=True, shell=shell, env=env
+    versions_output_text = call(
+        "python", "-m", "pip", "freeze", "--all", capture_stdout=True, env=env
     )
     (pip_version,) = (
         version[5:]
