@@ -34,11 +34,7 @@ class DockerContainer:
     bash_stdout: IO[bytes]
 
     def __init__(
-        self,
-        *,
-        docker_image: str,
-        simulate_32_bit: bool = False,
-        cwd: Optional[PathOrStr] = None,
+        self, *, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None
     ):
         if not docker_image:
             raise ValueError("Must have a non-empty docker image to run.")
