@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import platform
 import shlex
 import subprocess
 import sys
@@ -8,6 +9,8 @@ import uuid
 from pathlib import Path, PurePath
 from types import TracebackType
 from typing import IO, Dict, List, Optional, Sequence, Type, cast
+
+from cibuildwheel.util import CIProvider, detect_ci_provider
 
 from .typing import PathOrStr, PopenBytes
 
@@ -44,6 +47,15 @@ class DockerContainer:
     def __enter__(self) -> "DockerContainer":
         self.name = f"cibuildwheel-{uuid.uuid4()}"
         cwd_args = ["-w", str(self.cwd)] if self.cwd else []
+
+        # work-around for Travis-CI PPC64le Docker runs since 2021:
+        # this avoids network splits
+        # https://github.com/pypa/cibuildwheel/issues/904
+        # https://github.com/conda-forge/conda-smithy/pull/1520
+        network_args = []
+        if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
+            network_args = ["--network=host"]
+
         shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
         subprocess.run(
             [
@@ -53,6 +65,7 @@ class DockerContainer:
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
+                *network_args,
                 *cwd_args,
                 self.docker_image,
                 *shell_args,
