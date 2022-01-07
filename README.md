@@ -59,8 +59,6 @@ Usage
 
 <sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 
-`cibuildwheel` is not intended to run on your development machine. Because it uses system Python from Python.org on macOS and Windows, it will try to install packages globally - not what you expect from a build tool! Instead, isolated CI services like those mentioned above are ideal. For Linux builds, it uses manylinux docker images, so those can be done locally for testing in a pinch.
-
 <!--intro-end-->
 
 Example setup

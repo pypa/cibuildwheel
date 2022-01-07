@@ -41,12 +41,11 @@ def main() -> None:
         choices=["auto", "linux", "macos", "windows"],
         default=os.environ.get("CIBW_PLATFORM", "auto"),
         help="""
-            Platform to build for. For "linux" you need docker running, on Mac
-            or Linux. For "macos", you need a Mac machine, and note that this
-            script is going to automatically install MacPython on your system,
-            so don't run on your development machine. For "windows", you need to
-            run in Windows, and it will build and test for all versions of
-            Python. Default: auto.
+            Platform to build for. Use this option to override the
+            auto-detected platform or to run cibuildwheel on your development
+            machine. Specifying "macos" or "windows" only works on that
+            operating system, but "linux" works on all three, as long as
+            Docker is installed. Default: auto.
         """,
     )
 
