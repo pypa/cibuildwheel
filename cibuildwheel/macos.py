@@ -12,7 +12,7 @@ from filelock import FileLock
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
-from .options import Options
+from .options import BuildOptions, Options
 from .typing import Literal, PathOrStr, assert_never
 from .util import (
     CIBW_CACHE_PATH,
@@ -137,7 +137,7 @@ def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path
     return base_python
 
 
-def setup_python(
+def setup_build_venv(
     tmp: Path,
     base_python: Path,
     python_configuration: PythonConfiguration,
@@ -275,18 +275,14 @@ def setup_python(
     return env
 
 
-def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
-    build_options = options.build_options(config.identifier)
-    log.build_start(config.identifier)
-
-    with new_tmp_dir(tmp_dir / "install") as install_tmp_dir:
-        base_python = install_python(install_tmp_dir, config)
-
+def build_one_build(
+    tmp_dir: Path,
+    repaired_wheel_dir: Path,
+    base_python: Path,
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+) -> Path:
     built_wheel_dir = tmp_dir / "built_wheel"
-    repaired_wheel_dir = tmp_dir / "repaired_wheel"
-
-    config_is_arm64 = config.identifier.endswith("arm64")
-    config_is_universal2 = config.identifier.endswith("universal2")
 
     dependency_constraint_flags: Sequence[PathOrStr] = []
     if build_options.dependency_constraints:
@@ -295,7 +291,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
             build_options.dependency_constraints.get_for_python_version(config.version),
         ]
 
-    env = setup_python(
+    env = setup_build_venv(
         tmp_dir / "build",
         base_python,
         config,
@@ -362,6 +358,9 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
     if build_options.repair_command:
         log.step("Repairing wheel...")
 
+        config_is_arm64 = config.identifier.endswith("arm64")
+        config_is_universal2 = config.identifier.endswith("universal2")
+
         if config_is_universal2:
             delocate_archs = "x86_64,arm64"
         elif config_is_arm64:
@@ -379,13 +378,98 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
     else:
         shutil.move(str(built_wheel), repaired_wheel_dir)
 
-    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+    return next(repaired_wheel_dir.glob("*.whl"))
 
-    log.step_end()
+
+def build_one_test(
+    tmp_dir: Path,
+    base_python: Path,
+    build_options: BuildOptions,
+    repaired_wheel: Path,
+    testing_arch: str,
+) -> None:
+    machine_arch = platform.machine()
+    log.step(
+        "Testing wheel..."
+        if testing_arch == machine_arch
+        else f"Testing wheel on {testing_arch}..."
+    )
+
+    arch_prefix = []
+    if testing_arch != machine_arch:
+        if machine_arch == "arm64" and testing_arch == "x86_64":
+            # rosetta2 will provide the emulation with just the arch prefix.
+            arch_prefix = ["arch", "-x86_64"]
+        else:
+            raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
+
+    # define a custom 'call' function that adds the arch prefix each time
+    def call_with_arch(*args: PathOrStr, **kwargs: Any) -> None:
+        call(*arch_prefix, *args, **kwargs)
+
+    def shell_with_arch(command: str, **kwargs: Any) -> None:
+        command = " ".join(arch_prefix) + " " + command
+        shell(command, **kwargs)
+
+    # todo arch ?
+    venv_dir = tmp_dir / "venv"
+    env = virtualenv(base_python, venv_dir, [])
+    # update env with results from CIBW_ENVIRONMENT
+    env = build_options.environment.as_dictionary(prev_environment=env)
+
+    # check that we are using the Python from the virtual environment
+    call_with_arch("which", "python", env=env)
+
+    if build_options.before_test:
+        before_test_prepared = prepare_command(
+            build_options.before_test,
+            project=".",
+            package=build_options.package_dir,
+        )
+        shell_with_arch(before_test_prepared, env=env)
+
+    # install the wheel
+    call_with_arch("pip", "install", f"{repaired_wheel}{build_options.test_extras}", env=env)
+
+    # test the wheel
+    if build_options.test_requires:
+        call_with_arch("pip", "install", *build_options.test_requires, env=env)
+
+    # run the tests from $HOME, with an absolute path in the command
+    # (this ensures that Python runs the tests against the installed wheel
+    # and not the repo code)
+    assert build_options.test_command is not None
+    test_command_prepared = prepare_command(
+        build_options.test_command,
+        project=Path(".").resolve(),
+        package=build_options.package_dir.resolve(),
+    )
+    shell_with_arch(test_command_prepared, cwd=os.environ["HOME"], env=env)
+
+
+def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
+    build_options = options.build_options(config.identifier)
+    log.build_start(config.identifier)
+
+    with new_tmp_dir(tmp_dir / "install") as install_tmp_dir:
+        base_python = install_python(install_tmp_dir, config)
+
+    repaired_wheel_dir = tmp_dir / "repaired_wheel"
+    with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
+        repaired_wheel = build_one_build(
+            build_tmp_dir,
+            repaired_wheel_dir,
+            base_python,
+            config,
+            build_options,
+        )
 
     if build_options.test_command and build_options.test_selector(config.identifier):
         machine_arch = platform.machine()
         testing_archs: List[Literal["x86_64", "arm64"]]
+
+        config_is_arm64 = config.identifier.endswith("arm64")
+        config_is_universal2 = config.identifier.endswith("universal2")
 
         if config_is_arm64:
             testing_archs = ["arm64"]
@@ -431,76 +515,10 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
                 # skip this test
                 continue
-
-            log.step(
-                "Testing wheel..."
-                if testing_arch == machine_arch
-                else f"Testing wheel on {testing_arch}..."
-            )
-
-            # set up a virtual environment to install and test from, to make sure
-            # there are no dependencies that were pulled in at build time.
-            call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
-
-            venv_dir = tmp_dir / "venv-test"
-
-            arch_prefix = []
-            if testing_arch != machine_arch:
-                if machine_arch == "arm64" and testing_arch == "x86_64":
-                    # rosetta2 will provide the emulation with just the arch prefix.
-                    arch_prefix = ["arch", "-x86_64"]
-                else:
-                    raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
-
-            # define a custom 'call' function that adds the arch prefix each time
-            def call_with_arch(*args: PathOrStr, **kwargs: Any) -> None:
-                call(*arch_prefix, *args, **kwargs)
-
-            def shell_with_arch(command: str, **kwargs: Any) -> None:
-                command = " ".join(arch_prefix) + " " + command
-                shell(command, **kwargs)
-
-            # Use --no-download to ensure determinism by using seed libraries
-            # built into virtualenv
-            call_with_arch("python", "-m", "virtualenv", "--no-download", venv_dir, env=env)
-
-            virtualenv_env = env.copy()
-            virtualenv_env["PATH"] = os.pathsep.join(
-                [str(venv_dir / "bin"), virtualenv_env["PATH"]]
-            )
-
-            # check that we are using the Python from the virtual environment
-            call_with_arch("which", "python", env=virtualenv_env)
-
-            if build_options.before_test:
-                before_test_prepared = prepare_command(
-                    build_options.before_test,
-                    project=".",
-                    package=build_options.package_dir,
+            with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
+                build_one_test(
+                    test_tmp_dir, base_python, build_options, repaired_wheel, testing_arch
                 )
-                shell_with_arch(before_test_prepared, env=virtualenv_env)
-
-            # install the wheel
-            call_with_arch(
-                "pip",
-                "install",
-                f"{repaired_wheel}{build_options.test_extras}",
-                env=virtualenv_env,
-            )
-
-            # test the wheel
-            if build_options.test_requires:
-                call_with_arch("pip", "install", *build_options.test_requires, env=virtualenv_env)
-
-            # run the tests from $HOME, with an absolute path in the command
-            # (this ensures that Python runs the tests against the installed wheel
-            # and not the repo code)
-            test_command_prepared = prepare_command(
-                build_options.test_command,
-                project=Path(".").resolve(),
-                package=build_options.package_dir.resolve(),
-            )
-            shell_with_arch(test_command_prepared, cwd=os.environ["HOME"], env=virtualenv_env)
 
     # we're all done here; move it to output (overwrite existing)
     shutil.move(str(repaired_wheel), build_options.output_dir)

@@ -13,7 +13,7 @@ from packaging.version import Version
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
-from .options import Options
+from .options import BuildOptions, Options
 from .typing import PathOrStr, assert_never
 from .util import (
     CIBW_CACHE_PATH,
@@ -129,17 +129,15 @@ def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path
     return base_python
 
 
-def setup_python(
-    tmp: Path,
+def setup_build_venv(
+    venv_path: Path,
     base_python: Path,
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
-    tmp.mkdir()
     log.step("Setting up build environment...")
-    venv_path = tmp / "venv"
     env = virtualenv(base_python, venv_path, dependency_constraint_flags)
 
     # set up environment variables for run_with_env
@@ -234,15 +232,14 @@ def setup_python(
     return env
 
 
-def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
-    build_options = options.build_options(config.identifier)
-    log.build_start(config.identifier)
-
-    with new_tmp_dir(tmp_dir / "install") as install_tmp_dir:
-        base_python = install_python(install_tmp_dir, config)
-
+def build_one_build(
+    tmp_dir: Path,
+    repaired_wheel_dir: Path,
+    base_python: Path,
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+) -> Path:
     built_wheel_dir = tmp_dir / "built_wheel"
-    repaired_wheel_dir = tmp_dir / "repaired_wheel"
 
     dependency_constraint_flags: Sequence[PathOrStr] = []
     if build_options.dependency_constraints:
@@ -251,9 +248,9 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
             build_options.dependency_constraints.get_for_python_version(config.version),
         ]
 
-    # install Python
-    env = setup_python(
-        tmp_dir / "build",
+    # setup build venv
+    env = setup_build_venv(
+        tmp_dir / "venv",
         base_python,
         config,
         dependency_constraint_flags,
@@ -265,7 +262,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
     if build_options.before_build:
         log.step("Running before_build...")
         before_build_prepared = prepare_command(
-            build_options.before_build, project=".", package=options.globals.package_dir
+            build_options.before_build, project=".", package=build_options.package_dir
         )
         shell(before_build_prepared, env=env)
 
@@ -282,7 +279,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
             "-m",
             "pip",
             "wheel",
-            options.globals.package_dir.resolve(),
+            build_options.package_dir.resolve(),
             f"--wheel-dir={built_wheel_dir}",
             "--no-deps",
             *get_build_verbosity_extra_flags(build_options.build_verbosity),
@@ -321,13 +318,11 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
         assert_never(build_options.build_frontend)
 
     built_wheel = next(built_wheel_dir.glob("*.whl"))
-
-    # repair the wheel
-    repaired_wheel_dir.mkdir()
-
     if built_wheel.name.endswith("none-any.whl"):
         raise NonPlatformWheelError()
 
+    # repair the wheel
+    repaired_wheel_dir.mkdir()
     if build_options.repair_command:
         log.step("Repairing wheel...")
         repair_command_prepared = prepare_command(
@@ -337,51 +332,69 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
     else:
         shutil.move(str(built_wheel), repaired_wheel_dir)
 
-    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+    return next(repaired_wheel_dir.glob("*.whl"))
+
+
+def build_one_test(
+    tmp_dir: Path, base_python: Path, build_options: BuildOptions, repaired_wheel: Path
+) -> None:
+    log.step("Testing wheel...")
+    venv_dir = tmp_dir / "venv"
+
+    env = virtualenv(base_python, venv_dir, [])
+    # update env with results from CIBW_ENVIRONMENT
+    env = build_options.environment.as_dictionary(prev_environment=env)
+
+    # check that we are using the Python from the virtual environment
+    call("where", "python", env=env)
+
+    if build_options.before_test:
+        before_test_prepared = prepare_command(
+            build_options.before_test,
+            project=".",
+            package=build_options.package_dir,
+        )
+        shell(before_test_prepared, env=env)
+
+    # install the wheel
+    call("pip", "install", str(repaired_wheel) + build_options.test_extras, env=env)
+
+    # test the wheel
+    if build_options.test_requires:
+        call("pip", "install", *build_options.test_requires, env=env)
+
+    # run the tests from c:\, with an absolute path in the command
+    # (this ensures that Python runs the tests against the installed wheel
+    # and not the repo code)
+    assert build_options.test_command is not None
+    test_command_prepared = prepare_command(
+        build_options.test_command,
+        project=Path(".").resolve(),
+        package=build_options.package_dir.resolve(),
+    )
+    shell(test_command_prepared, cwd="c:\\", env=env)
+
+
+def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
+    build_options = options.build_options(config.identifier)
+    log.build_start(config.identifier)
+
+    with new_tmp_dir(tmp_dir / "install") as install_tmp_dir:
+        base_python = install_python(install_tmp_dir, config)
+
+    repaired_wheel_dir = tmp_dir / "repaired_wheel"
+    with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
+        repaired_wheel = build_one_build(
+            build_tmp_dir,
+            repaired_wheel_dir,
+            base_python,
+            config,
+            build_options,
+        )
 
     if build_options.test_command and options.globals.test_selector(config.identifier):
-        log.step("Testing wheel...")
-        # set up a virtual environment to install and test from, to make sure
-        # there are no dependencies that were pulled in at build time.
-        call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
-        venv_dir = tmp_dir / "venv-test"
-
-        # Use --no-download to ensure determinism by using seed libraries
-        # built into virtualenv
-        call("python", "-m", "virtualenv", "--no-download", venv_dir, env=env)
-
-        virtualenv_env = env.copy()
-        virtualenv_env["PATH"] = os.pathsep.join(
-            [str(venv_dir / "Scripts"), virtualenv_env["PATH"]]
-        )
-
-        # check that we are using the Python from the virtual environment
-        call("where", "python", env=virtualenv_env)
-
-        if build_options.before_test:
-            before_test_prepared = prepare_command(
-                build_options.before_test,
-                project=".",
-                package=build_options.package_dir,
-            )
-            shell(before_test_prepared, env=virtualenv_env)
-
-        # install the wheel
-        call("pip", "install", str(repaired_wheel) + build_options.test_extras, env=virtualenv_env)
-
-        # test the wheel
-        if build_options.test_requires:
-            call("pip", "install", *build_options.test_requires, env=virtualenv_env)
-
-        # run the tests from c:\, with an absolute path in the command
-        # (this ensures that Python runs the tests against the installed wheel
-        # and not the repo code)
-        test_command_prepared = prepare_command(
-            build_options.test_command,
-            project=Path(".").resolve(),
-            package=options.globals.package_dir.resolve(),
-        )
-        shell(test_command_prepared, cwd="c:\\", env=virtualenv_env)
+        with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
+            build_one_test(test_tmp_dir, base_python, build_options, repaired_wheel)
 
     # we're all done here; move it to output (remove if already exists)
     shutil.move(str(repaired_wheel), build_options.output_dir)
