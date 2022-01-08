@@ -11,14 +11,13 @@ from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .common import build_one_base, install_build_tools, test_one_base
+from .backend import BuilderBackend, test_one_base
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
 from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
-    BuildFrontend,
     BuildSelector,
     DependencyConstraints,
     call,
@@ -133,21 +132,18 @@ def setup_build_venv(
     venv_path: Path,
     base_python: Path,
     identifier: str,
-    python_version: str,
     dependency_constraints: Optional[DependencyConstraints],
     environment: ParsedEnvironment,
-    build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
     log.step("Setting up build environment...")
 
     dependency_constraint_flags: Sequence[PathOrStr] = []
+    constraints_path: Optional[Path] = None
     if dependency_constraints:
-        dependency_constraint_flags = [
-            "-c",
-            dependency_constraints.get_for_python_version(python_version),
-        ]
+        constraints_path = dependency_constraints.get_for_identifier(identifier)
+        dependency_constraint_flags = ["-c", constraints_path]
 
-    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
+    env = virtualenv(base_python, venv_path, constraints_path)
 
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -212,9 +208,6 @@ def setup_build_venv(
         sys.exit(1)
 
     call("pip", "--version", env=env)
-
-    install_build_tools(build_frontend, [], env, dependency_constraint_flags)
-
     return env
 
 
@@ -222,7 +215,7 @@ def test_one(
     tmp_dir: Path, base_python: Path, build_options: BuildOptions, repaired_wheel: Path
 ) -> None:
     venv_dir = tmp_dir / "venv"
-    env = virtualenv(base_python, venv_dir, [])
+    env = virtualenv(base_python, venv_dir, None)
     # update env with results from CIBW_ENVIRONMENT
     env = build_options.environment.as_dictionary(prev_environment=env)
     # check that we are using the Python from the virtual environment
@@ -243,14 +236,12 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
             build_tmp_dir / "venv",
             base_python,
             config.identifier,
-            config.version,
             build_options.dependency_constraints,
             build_options.environment,
-            build_options.build_frontend,
         )
-        repaired_wheel = build_one_base(
-            tmp_dir, repaired_wheel_dir, env, config.identifier, config.version, build_options
-        )
+        builder = BuilderBackend(build_tmp_dir, build_options, env, config.identifier)
+        builder.install_build_tools([])
+        repaired_wheel = builder.build(repaired_wheel_dir)
 
     if build_options.test_command and options.globals.test_selector(config.identifier):
         with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:

@@ -10,7 +10,7 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 from filelock import FileLock
 
 from .architecture import Architecture
-from .common import build_one_base, install_build_tools, test_one_base
+from .backend import BuilderBackend, test_one_base
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
@@ -150,14 +150,13 @@ def setup_build_venv(
     log.step("Setting up build environment...")
 
     dependency_constraint_flags: Sequence[PathOrStr] = []
+    constraints_path: Optional[Path] = None
     if dependency_constraints:
-        dependency_constraint_flags = [
-            "-c",
-            dependency_constraints.get_for_python_version(python_version),
-        ]
+        constraints_path = dependency_constraints.get_for_identifier(identifier)
+        dependency_constraint_flags = ["-c", constraints_path]
 
     venv_path = tmp / "venv"
-    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
+    env = virtualenv(base_python, venv_path, constraints_path)
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
@@ -255,8 +254,6 @@ def setup_build_venv(
         else:
             env.setdefault("SDKROOT", arm64_compatible_sdks[0])
 
-    install_build_tools(build_frontend, ["delocate"], env, dependency_constraint_flags)
-
     return env
 
 
@@ -278,12 +275,22 @@ def test_one(
 
     # todo arch ?
     venv_dir = tmp_dir / "venv"
-    env = virtualenv(base_python, venv_dir, [])
+    env = virtualenv(base_python, venv_dir, None)
     # update env with results from CIBW_ENVIRONMENT
     env = build_options.environment.as_dictionary(prev_environment=env)
     # check that we are using the Python from the virtual environment
     call("which", "python", env=env)
     test_one_base(env, build_options, repaired_wheel, testing_arch, arch_prefix)
+
+
+class _BuilderBackend(BuilderBackend):
+    def update_repair_kwargs(self, repair_kwargs: Dict[str, PathOrStr]) -> None:
+        if self.identifier.endswith("universal2"):
+            repair_kwargs["delocate_archs"] = "x86_64,arm64"
+        elif self.identifier.endswith("arm64"):
+            repair_kwargs["delocate_archs"] = "arm64"
+        else:
+            repair_kwargs["delocate_archs"] = "x86_64"
 
 
 def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
@@ -304,9 +311,9 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
             build_options.environment,
             build_options.build_frontend,
         )
-        repaired_wheel = build_one_base(
-            tmp_dir, repaired_wheel_dir, env, config.identifier, config.version, build_options
-        )
+        builder = _BuilderBackend(build_tmp_dir, build_options, env, config.identifier)
+        builder.install_build_tools(["delocate"])
+        repaired_wheel = builder.build(repaired_wheel_dir)
 
     if build_options.test_command and build_options.test_selector(config.identifier):
         machine_arch = platform.machine()

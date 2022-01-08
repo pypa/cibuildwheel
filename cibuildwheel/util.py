@@ -23,7 +23,6 @@ from typing import (
     List,
     NamedTuple,
     Optional,
-    Sequence,
     TextIO,
     cast,
     overload,
@@ -329,18 +328,24 @@ class DependencyConstraints:
     def with_defaults() -> "DependencyConstraints":
         return DependencyConstraints(base_file_path=resources_dir / "constraints.txt")
 
-    def get_for_python_version(self, version: str) -> Path:
-        version_parts = version.split(".")
-
+    def _get_for_python_version_no_dot(self, version: str) -> Path:
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python36.txt
-        specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
+        specific_stem = self.base_file_path.stem + f"-python{version}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)
         if specific_file_path.exists():
             return specific_file_path
         else:
             return self.base_file_path
+
+    def get_for_python_version(self, version: str) -> Path:
+        version_parts = version.split(".")
+        return self._get_for_python_version_no_dot(f"{version_parts[0]}{version_parts[1]}")
+
+    def get_for_identifier(self, identifier: str) -> Path:
+        python_version = identifier.split("-", 1)[0][2:]
+        return self._get_for_python_version_no_dot(f"{python_version}")
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.base_file_path!r})"
@@ -476,11 +481,9 @@ def _ensure_virtualenv() -> Path:
     return path
 
 
-def _parse_constraints_for_virtualenv(
-    dependency_constraint_flags: Sequence[PathOrStr],
-) -> Dict[str, str]:
+def _parse_constraints_for_virtualenv(constraints_path: Optional[Path]) -> Dict[str, str]:
     """
-    Parses the constraints file referenced by `dependency_constraint_flags` and returns a dict where
+    Parses the constraints file referenced by `constraints_path` and returns a dict where
     the key is the package name, and the value is the constraint version.
     If a package version cannot be found, its value is "embed" meaning that virtualenv will install
     its bundled version, already available locally.
@@ -488,15 +491,12 @@ def _parse_constraints_for_virtualenv(
     If it can't get an exact version, the real constraint will be handled by the
     {macos|windows}.setup_python function.
     """
-    assert len(dependency_constraint_flags) in {0, 2}
     packages = ["pip", "setuptools", "wheel"]
     constraints_dict = {package: "embed" for package in packages}
-    if len(dependency_constraint_flags) == 2:
-        assert dependency_constraint_flags[0] == "-c"
-        constraint_path = Path(dependency_constraint_flags[1])
-        assert constraint_path.exists()
-        with constraint_path.open() as constraint_file:
-            for line in constraint_file:
+    if constraints_path:
+        assert constraints_path.exists()
+        with constraints_path.open() as constraints_file:
+            for line in constraints_file:
                 line = line.strip()
                 if len(line) == 0:
                     continue
@@ -522,12 +522,10 @@ def _parse_constraints_for_virtualenv(
     return constraints_dict
 
 
-def virtualenv(
-    python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
-) -> Dict[str, str]:
+def virtualenv(python: Path, venv_path: Path, constraints_path: Optional[Path]) -> Dict[str, str]:
     assert python.exists()
     virtualenv_app = _ensure_virtualenv()
-    constraints = _parse_constraints_for_virtualenv(dependency_constraint_flags)
+    constraints = _parse_constraints_for_virtualenv(constraints_path)
     additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
 
     # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
