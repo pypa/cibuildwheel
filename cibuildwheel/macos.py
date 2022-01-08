@@ -10,11 +10,11 @@ from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, 
 from filelock import FileLock
 
 from .architecture import Architecture
-from .common import build_one_base
+from .common import build_one_base, install_build_tools
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
-from .typing import Literal, PathOrStr, assert_never
+from .typing import Literal, PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     BuildFrontend,
@@ -255,30 +255,7 @@ def setup_build_venv(
         else:
             env.setdefault("SDKROOT", arm64_compatible_sdks[0])
 
-    log.step("Installing build tools...")
-    if build_frontend == "pip":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "setuptools",
-            "wheel",
-            "delocate",
-            *dependency_constraint_flags,
-            env=env,
-        )
-    elif build_frontend == "build":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "delocate",
-            "build[virtualenv]",
-            *dependency_constraint_flags,
-            env=env,
-        )
-    else:
-        assert_never(build_frontend)
+    install_build_tools(build_frontend, ["delocate"], env, dependency_constraint_flags)
 
     return env
 

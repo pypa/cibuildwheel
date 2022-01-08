@@ -11,11 +11,11 @@ from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .common import build_one_base
+from .common import build_one_base, install_build_tools
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
-from .typing import PathOrStr, assert_never
+from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     BuildFrontend,
@@ -213,28 +213,7 @@ def setup_build_venv(
 
     call("pip", "--version", env=env)
 
-    log.step("Installing build tools...")
-    if build_frontend == "pip":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "setuptools",
-            "wheel",
-            *dependency_constraint_flags,
-            env=env,
-        )
-    elif build_frontend == "build":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "build[virtualenv]",
-            *dependency_constraint_flags,
-            env=env,
-        )
-    else:
-        assert_never(build_frontend)
+    install_build_tools(build_frontend, [], env, dependency_constraint_flags)
 
     return env
 

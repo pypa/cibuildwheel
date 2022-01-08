@@ -1,11 +1,12 @@
 import shutil
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Iterable, Sequence
 
 from .logger import log
 from .options import BuildOptions
 from .typing import PathOrStr, assert_never
 from .util import (
+    BuildFrontend,
     NonPlatformWheelError,
     call,
     get_build_verbosity_extra_flags,
@@ -13,6 +14,23 @@ from .util import (
     prepare_command,
     shell,
 )
+
+
+def install_build_tools(
+    build_frontend: BuildFrontend,
+    extras: Iterable[str],
+    env: Dict[str, str],
+    dependency_constraint_flags: Sequence[PathOrStr],
+) -> None:
+    log.step("Installing build tools...")
+    if build_frontend == "pip":
+        tools = ["setuptools", "wheel"]
+    elif build_frontend == "build":
+        tools = ["build[virtualenv]"]
+    else:
+        assert_never(build_frontend)
+
+    call("pip", "install", "--upgrade", *tools, *extras, *dependency_constraint_flags, env=env)
 
 
 def build_one_base(
