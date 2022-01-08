@@ -1,7 +1,10 @@
 import argparse
 import os
+import shutil
 import sys
 import textwrap
+from pathlib import Path
+from tempfile import mkdtemp
 from typing import List, Set, Union
 
 import cibuildwheel
@@ -10,9 +13,15 @@ import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
+from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
 from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
-from cibuildwheel.util import BuildSelector, Unbuffered, detect_ci_provider
+from cibuildwheel.util import (
+    CIBW_CACHE_PATH,
+    BuildSelector,
+    Unbuffered,
+    detect_ci_provider,
+)
 
 
 def main() -> None:
@@ -32,12 +41,11 @@ def main() -> None:
         choices=["auto", "linux", "macos", "windows"],
         default=os.environ.get("CIBW_PLATFORM", "auto"),
         help="""
-            Platform to build for. For "linux" you need docker running, on Mac
-            or Linux. For "macos", you need a Mac machine, and note that this
-            script is going to automatically install MacPython on your system,
-            so don't run on your development machine. For "windows", you need to
-            run in Windows, and it will build and test for all versions of
-            Python. Default: auto.
+            Platform to build for. Use this option to override the
+            auto-detected platform or to run cibuildwheel on your development
+            machine. Specifying "macos" or "windows" only works on that
+            operating system, but "linux" works on all three, as long as
+            Docker is installed. Default: auto.
         """,
     )
 
@@ -165,6 +173,9 @@ def main() -> None:
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore[assignment]
 
+    # create the cache dir before it gets printed & builds performed
+    CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
+
     print_preamble(platform=platform, options=options, identifiers=identifiers)
 
     try:
@@ -187,17 +198,23 @@ def main() -> None:
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
-    with cibuildwheel.util.print_new_wheels(
-        "\n{n} wheels produced in {m:.0f} minutes:", output_dir
-    ):
-        if platform == "linux":
-            cibuildwheel.linux.build(options)
-        elif platform == "windows":
-            cibuildwheel.windows.build(options)
-        elif platform == "macos":
-            cibuildwheel.macos.build(options)
-        else:
-            assert_never(platform)
+    tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
+    try:
+        with cibuildwheel.util.print_new_wheels(
+            "\n{n} wheels produced in {m:.0f} minutes:", output_dir
+        ):
+            if platform == "linux":
+                cibuildwheel.linux.build(options, tmp_path)
+            elif platform == "windows":
+                cibuildwheel.windows.build(options, tmp_path)
+            elif platform == "macos":
+                cibuildwheel.macos.build(options, tmp_path)
+            else:
+                assert_never(platform)
+    finally:
+        shutil.rmtree(tmp_path, ignore_errors=sys.platform.startswith("win"))
+        if tmp_path.exists():
+            log.warning(f"Can't delete temporary folder '{str(tmp_path)}'")
 
 
 def print_preamble(platform: str, options: Options, identifiers: List[str]) -> None:
@@ -217,6 +234,8 @@ def print_preamble(platform: str, options: Options, identifiers: List[str]) -> N
     print("Build options:")
     print(f"  platform: {platform!r}")
     print(textwrap.indent(options.summary(identifiers), "  "))
+
+    print(f"Cache folder: {CIBW_CACHE_PATH}")
 
     warnings = detect_warnings(platform=platform, options=options, identifiers=identifiers)
     if warnings:

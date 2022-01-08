@@ -174,14 +174,13 @@ Default: `auto`
 
 `auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
 
-- For `linux`, you need Docker running, on macOS or Linux.
-- For `macos`, you need a Mac machine. Note that cibuildwheel is going to install MacPython on your system, so you probably don't want to run this on your development machine.
-- For `windows`, you need to run in Windows. cibuildwheel will install required versions of Python to `C:\cibw\python` using NuGet.
+- For `linux`, you need Docker running, on Linux, macOS, or Windows.
+- For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
 !!! tip
-    If you have Docker installed, you can locally debug your cibuildwheel Linux config, instead of pushing to CI to test every change. For example:
+    You can use this option to locally debug your cibuildwheel config, instead of pushing to CI to test every change. For example:
 
     ```bash
     export CIBW_BUILD='cp37-*'
@@ -189,6 +188,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
     cibuildwheel --platform linux .
     ```
 
+    This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](#configuration-file).
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
 

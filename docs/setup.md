@@ -5,31 +5,49 @@ title: 'Setup'
 # Run cibuildwheel locally (optional) {: #local}
 
 Before getting to CI setup, it can be convenient to test cibuildwheel
-locally to quickly iterate and track down issues. If you've got
-[Docker](https://www.docker.com/products/docker-desktop) installed on
-your development machine, you can run a Linux build without even
-touching CI.
-
-!!! tip
-    You can run the Linux build on any platform. Even Windows can run
-    Linux containers these days, but there are a few  hoops to jump
-    through. Check [this document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
-    for more info.
-
-This is convenient as it's quicker to iterate, and because the builds are
-happening in manylinux Docker containers, they're perfectly reproducible.
+locally to quickly iterate and track down issues without even touching CI.
 
 Install cibuildwheel and run a build like this:
 
-```sh
-pip install cibuildwheel
-cibuildwheel --platform linux
-```
+!!! tab "Linux"
 
-Or, using [pipx](https://github.com/pypa/pipx):
-```sh
-pipx run cibuildwheel --platform linux
-```
+    Using [pipx](https://github.com/pypa/pipx):
+    ```sh
+    pipx run cibuildwheel --platform linux
+    ```
+
+    Or,
+    ```sh
+    pip install cibuildwheel
+    cibuildwheel --platform linux
+    ```
+
+!!! tab "macOS"
+
+    Using [pipx](https://github.com/pypa/pipx):
+    ```sh
+    pipx run cibuildwheel --platform macos
+    ```
+
+    Or,
+    ```sh
+    pip install cibuildwheel
+    cibuildwheel --platform macos
+    ```
+
+
+!!! tab "Windows"
+
+    Using [pipx](https://github.com/pypa/pipx):
+    ```bat
+    pipx run cibuildwheel --platform windows
+    ```
+
+    Or,
+    ```bat
+    pip install cibuildwheel
+    cibuildwheel --platform windows
+    ```
 
 You should see the builds taking place. You can experiment with options using environment variables or pyproject.toml.
 
@@ -69,6 +87,53 @@ You should see the builds taking place. You can experiment with options using en
 
     ```console
     cibuildwheel --platform linux
+    ```
+
+## Linux builds
+
+If you've got [Docker](https://www.docker.com/products/docker-desktop) installed on
+your development machine, you can run a Linux build.
+
+!!! tip
+    You can run the Linux build on any platform. Even Windows can run
+    Linux containers these days, but there are a few  hoops to jump
+    through. Check [this document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
+    for more info.
+
+Because the builds are happening in manylinux Docker containers,
+they're perfectly reproducible.
+
+The only side effect to your system will be docker images being pulled.
+
+## macOS / Windows builds
+
+Pre-requisite: you need to have native build tools installed.
+
+Because the builds are happening without full isolation, there might be some
+differences compared to CI builds (Xcode version, Visual Studio version,
+OS version, local files, ...) that might prevent you from finding an issue only
+seen in CI.
+
+In order to speed-up builds, cibuildwheel will cache the tools it needs to be
+reused for future builds. The folder used for caching is system/user dependent and is
+reported in the printed preamble of each run (e.g. "Cache folder: /Users/Matt/Library/Caches/cibuildwheel").
+
+You can override the cache folder using the ``CIBW_CACHE_PATH`` environment variable.
+
+!!! warning
+    cibuildwheel uses official python.org macOS installers for CPython but
+    those can only be installed globally.
+
+    In order not to mess with your system, cibuildwheel won't install those if they are
+    missing. Instead, it will error out with a message to let you install the missing
+    CPython:
+
+    ```console
+    Error: CPython 3.6 is not installed.
+    cibuildwheel will not perform system-wide installs when running outside of CI.
+    To build locally, install CPython 3.6 on this machine, or, disable this version of Python using CIBW_SKIP=cp36-macosx_*
+
+    Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
     ```
 
 

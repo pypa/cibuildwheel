@@ -2,11 +2,12 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
 
+from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
@@ -15,6 +16,7 @@ from .logger import log
 from .options import Options
 from .typing import PathOrStr, assert_never
 from .util import (
+    CIBW_CACHE_PATH,
     BuildFrontend,
     BuildSelector,
     NonPlatformWheelError,
@@ -25,12 +27,11 @@ from .util import (
     prepare_command,
     read_python_configs,
     shell,
+    virtualenv,
 )
 
-CIBW_INSTALL_PATH = Path("C:\\cibw")
 
-
-def get_nuget_args(version: str, arch: str) -> List[str]:
+def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
     platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
     python_name = "python" + platform_suffix[arch]
     return [
@@ -40,7 +41,7 @@ def get_nuget_args(version: str, arch: str) -> List[str]:
         "-FallbackSource",
         "https://api.nuget.org/v3/index.json",
         "-OutputDirectory",
-        str(CIBW_INSTALL_PATH / "python"),
+        str(output_directory),
     ]
 
 
@@ -77,81 +78,69 @@ def extract_zip(zip_src: Path, dest: Path) -> None:
         zip_.extractall(dest)
 
 
-def install_cpython(version: str, arch: str, nuget: Path) -> Path:
-    nuget_args = get_nuget_args(version, arch)
-    installation_path = Path(nuget_args[-1]) / (nuget_args[0] + "." + version) / "tools"
-    call(nuget, "install", *nuget_args)
-    # "python3" is not included in the vanilla nuget package,
-    # though it can be present if modified (like on Azure).
-    if not (installation_path / "python3.exe").exists():
-        (installation_path / "python3.exe").symlink_to(installation_path / "python.exe")
-    return installation_path
+@lru_cache(maxsize=None)
+def _ensure_nuget() -> Path:
+    nuget = CIBW_CACHE_PATH / "nuget.exe"
+    with FileLock(str(nuget) + ".lock"):
+        if not nuget.exists():
+            download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
+    return nuget
 
 
-def install_pypy(version: str, arch: str, url: str) -> Path:
+def install_cpython(version: str, arch: str) -> Path:
+    base_output_dir = CIBW_CACHE_PATH / "nuget-cpython"
+    nuget_args = get_nuget_args(version, arch, base_output_dir)
+    installation_path = base_output_dir / (nuget_args[0] + "." + version) / "tools"
+    with FileLock(str(base_output_dir) + f"-{version}-{arch}.lock"):
+        if not installation_path.exists():
+            nuget = _ensure_nuget()
+            call(nuget, "install", *nuget_args)
+    return installation_path / "python.exe"
+
+
+def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     assert arch == "64" and "win64" in url
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
     assert zip_filename.endswith(extension)
-    installation_path = CIBW_INSTALL_PATH / zip_filename[: -len(extension)]
-    if not installation_path.exists():
-        pypy_zip = CIBW_INSTALL_PATH / zip_filename
-        download(url, pypy_zip)
-        # Extract to the parent directory because the zip file still contains a directory
-        extract_zip(pypy_zip, installation_path.parent)
-    return installation_path
+    installation_path = CIBW_CACHE_PATH / zip_filename[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            pypy_zip = tmp / zip_filename
+            download(url, pypy_zip)
+            # Extract to the parent directory because the zip file still contains a directory
+            extract_zip(pypy_zip, installation_path.parent)
+    return installation_path / "python.exe"
 
 
 def setup_python(
+    tmp: Path,
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
-
-    nuget = CIBW_INSTALL_PATH / "nuget.exe"
-    if not nuget.exists():
-        log.step("Downloading nuget...")
-        download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
-
+    tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
-
     if implementation_id.startswith("cp"):
-        installation_path = install_cpython(
-            python_configuration.version, python_configuration.arch, nuget
-        )
+        base_python = install_cpython(python_configuration.version, python_configuration.arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
-        installation_path = install_pypy(
-            python_configuration.version, python_configuration.arch, python_configuration.url
-        )
+        base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
-
-    assert (installation_path / "python.exe").exists()
+    assert base_python.exists()
 
     log.step("Setting up build environment...")
+    venv_path = tmp / "venv"
+    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
 
-    # set up PATH and environment variables for run_with_env
-    env = os.environ.copy()
+    # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
-    env["PATH"] = os.pathsep.join(
-        [str(installation_path), str(installation_path / "Scripts"), env["PATH"]]
-    )
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-
-    log.step("Installing build tools...")
-
-    # Install pip
-
-    requires_reinstall = not (installation_path / "Scripts" / "pip.exe").exists()
-
-    if requires_reinstall:
-        # maybe pip isn't installed at all. ensurepip resolves that.
-        call("python", "-m", "ensurepip", env=env, cwd=CIBW_INSTALL_PATH)
 
     # pip older than 21.3 builds executables such as pip.exe for x64 platform.
     # The first re-install of pip updates pip module but builds pip.exe using
@@ -170,7 +159,7 @@ def setup_python(
             "pip",
             *dependency_constraint_flags,
             env=env,
-            cwd=CIBW_INSTALL_PATH,
+            cwd=venv_path,
         )
 
     # upgrade pip to the version matching our constraints
@@ -180,11 +169,11 @@ def setup_python(
         "-m",
         "pip",
         "install",
-        "--force-reinstall" if requires_reinstall else "--upgrade",
+        "--upgrade",
         "pip",
         *dependency_constraint_flags,
         env=env,
-        cwd=CIBW_INSTALL_PATH,
+        cwd=venv_path,
     )
 
     # update env with results from CIBW_ENVIRONMENT
@@ -195,7 +184,7 @@ def setup_python(
     call("python", "--version", env=env)
     call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
     where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()
-    if where_python != str(installation_path / "python.exe"):
+    if where_python != str(venv_path / "Scripts" / "python.exe"):
         print(
             "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
             file=sys.stderr,
@@ -203,9 +192,9 @@ def setup_python(
         sys.exit(1)
 
     # check what pip version we're on
-    assert (installation_path / "Scripts" / "pip.exe").exists()
+    assert (venv_path / "Scripts" / "pip.exe").exists()
     where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
-    if where_pip.strip() != str(installation_path / "Scripts" / "pip.exe"):
+    if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
         print(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
             file=sys.stderr,
@@ -214,6 +203,7 @@ def setup_python(
 
     call("pip", "--version", env=env)
 
+    log.step("Installing build tools...")
     if build_frontend == "pip":
         call(
             "pip",
@@ -239,11 +229,7 @@ def setup_python(
     return env
 
 
-def build(options: Options) -> None:
-    temp_dir = Path(tempfile.mkdtemp(prefix="cibuildwheel"))
-    built_wheel_dir = temp_dir / "built_wheel"
-    repaired_wheel_dir = temp_dir / "repaired_wheel"
-
+def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
@@ -264,6 +250,11 @@ def build(options: Options) -> None:
             build_options = options.build_options(config.identifier)
             log.build_start(config.identifier)
 
+            identifier_tmp_dir = tmp_path / config.identifier
+            identifier_tmp_dir.mkdir()
+            built_wheel_dir = identifier_tmp_dir / "built_wheel"
+            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
+
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
                 dependency_constraint_flags = [
@@ -273,6 +264,7 @@ def build(options: Options) -> None:
 
             # install Python
             env = setup_python(
+                identifier_tmp_dir / "build",
                 config,
                 dependency_constraint_flags,
                 build_options.environment,
@@ -288,9 +280,7 @@ def build(options: Options) -> None:
                 shell(before_build_prepared, env=env)
 
             log.step("Building wheel...")
-            if built_wheel_dir.exists():
-                shutil.rmtree(built_wheel_dir)
-            built_wheel_dir.mkdir(parents=True)
+            built_wheel_dir.mkdir()
 
             verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
 
@@ -320,12 +310,10 @@ def build(options: Options) -> None:
                     # in uhi.  After probably pip 21.2, we can use uri. For
                     # now, use a temporary file.
                     if " " in str(constraints_path):
-                        tmp_file = tempfile.NamedTemporaryFile(
-                            "w", suffix="constraints.txt", delete=False, dir=CIBW_INSTALL_PATH
-                        )
-                        with tmp_file as new_constraints_file, open(constraints_path) as f:
-                            new_constraints_file.write(f.read())
-                            constraints_path = Path(new_constraints_file.name)
+                        assert " " not in str(identifier_tmp_dir)
+                        tmp_file = identifier_tmp_dir / "constraints.txt"
+                        tmp_file.write_bytes(constraints_path.read_bytes())
+                        constraints_path = tmp_file
 
                     build_env["PIP_CONSTRAINT"] = str(constraints_path)
                     build_env["VIRTUALENV_PIP"] = get_pip_version(env)
@@ -345,9 +333,7 @@ def build(options: Options) -> None:
             built_wheel = next(built_wheel_dir.glob("*.whl"))
 
             # repair the wheel
-            if repaired_wheel_dir.exists():
-                shutil.rmtree(repaired_wheel_dir)
-            repaired_wheel_dir.mkdir(parents=True)
+            repaired_wheel_dir.mkdir()
 
             if built_wheel.name.endswith("none-any.whl"):
                 raise NonPlatformWheelError()
@@ -368,7 +354,7 @@ def build(options: Options) -> None:
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
                 call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
-                venv_dir = Path(tempfile.mkdtemp())
+                venv_dir = identifier_tmp_dir / "venv-test"
 
                 # Use --no-download to ensure determinism by using seed libraries
                 # built into virtualenv
@@ -415,13 +401,14 @@ def build(options: Options) -> None:
                 )
                 shell(test_command_prepared, cwd="c:\\", env=virtualenv_env)
 
-                # clean up
-                # (we ignore errors because occasionally Windows fails to unlink a file and we
-                # don't want to abort a build because of that)
-                shutil.rmtree(venv_dir, ignore_errors=True)
-
             # we're all done here; move it to output (remove if already exists)
             shutil.move(str(repaired_wheel), build_options.output_dir)
+
+            # clean up
+            # (we ignore errors because occasionally Windows fails to unlink a file and we
+            # don't want to abort a build because of that)
+            shutil.rmtree(identifier_tmp_dir, ignore_errors=True)
+
             log.build_end()
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(
