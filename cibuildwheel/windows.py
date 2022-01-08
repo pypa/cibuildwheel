@@ -11,6 +11,7 @@ from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
+from .common import build_one_base
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
@@ -19,10 +20,9 @@ from .util import (
     CIBW_CACHE_PATH,
     BuildFrontend,
     BuildSelector,
-    NonPlatformWheelError,
+    DependencyConstraints,
     call,
     download,
-    get_build_verbosity_extra_flags,
     get_pip_version,
     new_tmp_dir,
     prepare_command,
@@ -132,17 +132,24 @@ def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path
 def setup_build_venv(
     venv_path: Path,
     base_python: Path,
-    python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    identifier: str,
+    python_version: str,
+    dependency_constraints: Optional[DependencyConstraints],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
     log.step("Setting up build environment...")
+
+    dependency_constraint_flags: Sequence[PathOrStr] = []
+    if dependency_constraints:
+        dependency_constraint_flags = [
+            "-c",
+            dependency_constraints.get_for_python_version(python_version),
+        ]
+
     env = virtualenv(base_python, venv_path, dependency_constraint_flags)
 
-    # set up environment variables for run_with_env
-    env["PYTHON_VERSION"] = python_configuration.version
-    env["PYTHON_ARCH"] = python_configuration.arch
+    # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
     # pip older than 21.3 builds executables such as pip.exe for x64 platform.
@@ -151,7 +158,7 @@ def setup_build_venv(
     # re-install uses updated pip and correctly builds pip.exe for the target.
     # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
     # pip versions newer than 21.3.
-    if python_configuration.arch == "ARM64" and Version(get_pip_version(env)) < Version("21.3"):
+    if identifier.endswith("arm64") and Version(get_pip_version(env)) < Version("21.3"):
         call(
             "python",
             "-m",
@@ -232,109 +239,6 @@ def setup_build_venv(
     return env
 
 
-def build_one_build(
-    tmp_dir: Path,
-    repaired_wheel_dir: Path,
-    base_python: Path,
-    config: PythonConfiguration,
-    build_options: BuildOptions,
-) -> Path:
-    built_wheel_dir = tmp_dir / "built_wheel"
-
-    dependency_constraint_flags: Sequence[PathOrStr] = []
-    if build_options.dependency_constraints:
-        dependency_constraint_flags = [
-            "-c",
-            build_options.dependency_constraints.get_for_python_version(config.version),
-        ]
-
-    # setup build venv
-    env = setup_build_venv(
-        tmp_dir / "venv",
-        base_python,
-        config,
-        dependency_constraint_flags,
-        build_options.environment,
-        build_options.build_frontend,
-    )
-
-    # run the before_build command
-    if build_options.before_build:
-        log.step("Running before_build...")
-        before_build_prepared = prepare_command(
-            build_options.before_build, project=".", package=build_options.package_dir
-        )
-        shell(before_build_prepared, env=env)
-
-    log.step("Building wheel...")
-    built_wheel_dir.mkdir()
-
-    verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-
-    if build_options.build_frontend == "pip":
-        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-        # see https://github.com/pypa/cibuildwheel/pull/369
-        call(
-            "python",
-            "-m",
-            "pip",
-            "wheel",
-            build_options.package_dir.resolve(),
-            f"--wheel-dir={built_wheel_dir}",
-            "--no-deps",
-            *get_build_verbosity_extra_flags(build_options.build_verbosity),
-            env=env,
-        )
-    elif build_options.build_frontend == "build":
-        config_setting = " ".join(verbosity_flags)
-        build_env = env.copy()
-        if build_options.dependency_constraints:
-            constraints_path = build_options.dependency_constraints.get_for_python_version(
-                config.version
-            )
-            # Bug in pip <= 21.1.3 - we can't have a space in the
-            # constraints file, and pip doesn't support drive letters
-            # in uhi.  After probably pip 21.2, we can use uri. For
-            # now, use a temporary file.
-            if " " in str(constraints_path):
-                assert " " not in str(tmp_dir)
-                tmp_file = tmp_dir / "constraints.txt"
-                tmp_file.write_bytes(constraints_path.read_bytes())
-                constraints_path = tmp_file
-
-            build_env["PIP_CONSTRAINT"] = str(constraints_path)
-            build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-            call(
-                "python",
-                "-m",
-                "build",
-                build_options.package_dir,
-                "--wheel",
-                f"--outdir={built_wheel_dir}",
-                f"--config-setting={config_setting}",
-                env=build_env,
-            )
-    else:
-        assert_never(build_options.build_frontend)
-
-    built_wheel = next(built_wheel_dir.glob("*.whl"))
-    if built_wheel.name.endswith("none-any.whl"):
-        raise NonPlatformWheelError()
-
-    # repair the wheel
-    repaired_wheel_dir.mkdir()
-    if build_options.repair_command:
-        log.step("Repairing wheel...")
-        repair_command_prepared = prepare_command(
-            build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
-        )
-        shell(repair_command_prepared, env=env)
-    else:
-        shutil.move(str(built_wheel), repaired_wheel_dir)
-
-    return next(repaired_wheel_dir.glob("*.whl"))
-
-
 def build_one_test(
     tmp_dir: Path, base_python: Path, build_options: BuildOptions, repaired_wheel: Path
 ) -> None:
@@ -384,12 +288,17 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
     repaired_wheel_dir = tmp_dir / "repaired_wheel"
     with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
-        repaired_wheel = build_one_build(
-            build_tmp_dir,
-            repaired_wheel_dir,
+        env = setup_build_venv(
+            build_tmp_dir / "venv",
             base_python,
-            config,
-            build_options,
+            config.identifier,
+            config.version,
+            build_options.dependency_constraints,
+            build_options.environment,
+            build_options.build_frontend,
+        )
+        repaired_wheel = build_one_base(
+            tmp_dir, repaired_wheel_dir, env, config.identifier, config.version, build_options
         )
 
     if build_options.test_command and options.globals.test_selector(config.identifier):

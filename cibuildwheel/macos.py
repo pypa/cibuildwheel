@@ -5,11 +5,12 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Sequence, Set, Tuple, cast
+from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 from filelock import FileLock
 
 from .architecture import Architecture
+from .common import build_one_base
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
@@ -18,12 +19,10 @@ from .util import (
     CIBW_CACHE_PATH,
     BuildFrontend,
     BuildSelector,
-    NonPlatformWheelError,
+    DependencyConstraints,
     call,
     detect_ci_provider,
     download,
-    get_build_verbosity_extra_flags,
-    get_pip_version,
     install_certifi_script,
     new_tmp_dir,
     prepare_command,
@@ -140,14 +139,23 @@ def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path
 def setup_build_venv(
     tmp: Path,
     base_python: Path,
-    python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    identifier: str,
+    python_version: str,
+    dependency_constraints: Optional[DependencyConstraints],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
 ) -> Dict[str, str]:
     tmp.mkdir()
 
     log.step("Setting up build environment...")
+
+    dependency_constraint_flags: Sequence[PathOrStr] = []
+    if dependency_constraints:
+        dependency_constraint_flags = [
+            "-c",
+            dependency_constraints.get_for_python_version(python_version),
+        ]
+
     venv_path = tmp / "venv"
     env = virtualenv(base_python, venv_path, dependency_constraint_flags)
     venv_bin_path = venv_path / "bin"
@@ -207,10 +215,10 @@ def setup_build_venv(
     # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
     env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
 
-    config_is_arm64 = python_configuration.identifier.endswith("arm64")
-    config_is_universal2 = python_configuration.identifier.endswith("universal2")
+    config_is_arm64 = identifier.endswith("arm64")
+    config_is_universal2 = identifier.endswith("universal2")
 
-    if python_configuration.version not in {"3.6", "3.7"}:
+    if python_version not in {"3.6", "3.7"}:
         if config_is_arm64:
             # macOS 11 is the first OS with arm64 support, so the wheels
             # have that as a minimum.
@@ -219,7 +227,7 @@ def setup_build_venv(
         elif config_is_universal2:
             env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
             env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
-        elif python_configuration.identifier.endswith("x86_64"):
+        elif identifier.endswith("x86_64"):
             # even on the macos11.0 Python installer, on the x86_64 side it's
             # compatible back to 10.9.
             env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
@@ -273,112 +281,6 @@ def setup_build_venv(
         assert_never(build_frontend)
 
     return env
-
-
-def build_one_build(
-    tmp_dir: Path,
-    repaired_wheel_dir: Path,
-    base_python: Path,
-    config: PythonConfiguration,
-    build_options: BuildOptions,
-) -> Path:
-    built_wheel_dir = tmp_dir / "built_wheel"
-
-    dependency_constraint_flags: Sequence[PathOrStr] = []
-    if build_options.dependency_constraints:
-        dependency_constraint_flags = [
-            "-c",
-            build_options.dependency_constraints.get_for_python_version(config.version),
-        ]
-
-    env = setup_build_venv(
-        tmp_dir / "build",
-        base_python,
-        config,
-        dependency_constraint_flags,
-        build_options.environment,
-        build_options.build_frontend,
-    )
-
-    if build_options.before_build:
-        log.step("Running before_build...")
-        before_build_prepared = prepare_command(
-            build_options.before_build, project=".", package=build_options.package_dir
-        )
-        shell(before_build_prepared, env=env)
-
-    log.step("Building wheel...")
-    built_wheel_dir.mkdir()
-
-    verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-
-    if build_options.build_frontend == "pip":
-        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-        # see https://github.com/pypa/cibuildwheel/pull/369
-        call(
-            "python",
-            "-m",
-            "pip",
-            "wheel",
-            build_options.package_dir.resolve(),
-            f"--wheel-dir={built_wheel_dir}",
-            "--no-deps",
-            *verbosity_flags,
-            env=env,
-        )
-    elif build_options.build_frontend == "build":
-        config_setting = " ".join(verbosity_flags)
-        build_env = env.copy()
-        if build_options.dependency_constraints:
-            constraint_path = build_options.dependency_constraints.get_for_python_version(
-                config.version
-            )
-            build_env["PIP_CONSTRAINT"] = constraint_path.as_uri()
-        build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-        call(
-            "python",
-            "-m",
-            "build",
-            build_options.package_dir,
-            "--wheel",
-            f"--outdir={built_wheel_dir}",
-            f"--config-setting={config_setting}",
-            env=build_env,
-        )
-    else:
-        assert_never(build_options.build_frontend)
-
-    built_wheel = next(built_wheel_dir.glob("*.whl"))
-
-    repaired_wheel_dir.mkdir()
-
-    if built_wheel.name.endswith("none-any.whl"):
-        raise NonPlatformWheelError()
-
-    if build_options.repair_command:
-        log.step("Repairing wheel...")
-
-        config_is_arm64 = config.identifier.endswith("arm64")
-        config_is_universal2 = config.identifier.endswith("universal2")
-
-        if config_is_universal2:
-            delocate_archs = "x86_64,arm64"
-        elif config_is_arm64:
-            delocate_archs = "arm64"
-        else:
-            delocate_archs = "x86_64"
-
-        repair_command_prepared = prepare_command(
-            build_options.repair_command,
-            wheel=built_wheel,
-            dest_dir=repaired_wheel_dir,
-            delocate_archs=delocate_archs,
-        )
-        shell(repair_command_prepared, env=env)
-    else:
-        shutil.move(str(built_wheel), repaired_wheel_dir)
-
-    return next(repaired_wheel_dir.glob("*.whl"))
 
 
 def build_one_test(
@@ -456,12 +358,17 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
     repaired_wheel_dir = tmp_dir / "repaired_wheel"
     with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
-        repaired_wheel = build_one_build(
-            build_tmp_dir,
-            repaired_wheel_dir,
+        env = setup_build_venv(
+            build_tmp_dir / "venv",
             base_python,
-            config,
-            build_options,
+            config.identifier,
+            config.version,
+            build_options.dependency_constraints,
+            build_options.environment,
+            build_options.build_frontend,
+        )
+        repaired_wheel = build_one_base(
+            tmp_dir, repaired_wheel_dir, env, config.identifier, config.version, build_options
         )
 
     if build_options.test_command and build_options.test_selector(config.identifier):
