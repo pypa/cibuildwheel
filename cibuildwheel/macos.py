@@ -25,6 +25,7 @@ from .util import (
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
+    new_tmp_dir,
     prepare_command,
     read_python_configs,
     shell,
@@ -516,11 +517,8 @@ def build(options: Options, tmp_dir: Path) -> None:
             shell(before_all_prepared, env=env)
 
         for config in python_configurations:
-            identifier_tmp_dir = tmp_dir / config.identifier
-            identifier_tmp_dir.mkdir()
-            build_one(config, options, identifier_tmp_dir)
-            # clean up
-            shutil.rmtree(identifier_tmp_dir)
+            with new_tmp_dir(tmp_dir / config.identifier) as identifier_tmp_dir:
+                build_one(config, options, identifier_tmp_dir)
 
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(

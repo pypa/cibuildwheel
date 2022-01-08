@@ -24,6 +24,7 @@ from .util import (
     download,
     get_build_verbosity_extra_flags,
     get_pip_version,
+    new_tmp_dir,
     prepare_command,
     read_python_configs,
     shell,
@@ -398,13 +399,8 @@ def build(options: Options, tmp_dir: Path) -> None:
             shell(before_all_prepared, env=env)
 
         for config in python_configurations:
-            identifier_tmp_dir = tmp_dir / config.identifier
-            identifier_tmp_dir.mkdir()
-            build_one(config, options, identifier_tmp_dir)
-            # clean up
-            # (we ignore errors because occasionally Windows fails to unlink a file and we
-            # don't want to abort a build because of that)
-            shutil.rmtree(identifier_tmp_dir, ignore_errors=True)
+            with new_tmp_dir(tmp_dir / config.identifier) as identifier_tmp_dir:
+                build_one(config, options, identifier_tmp_dir)
 
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(
