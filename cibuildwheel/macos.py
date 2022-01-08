@@ -124,14 +124,7 @@ def install_pypy(tmp: Path, version: str, url: str) -> Path:
     return installation_path / "bin" / "pypy3"
 
 
-def setup_python(
-    tmp: Path,
-    python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
-    environment: ParsedEnvironment,
-    build_frontend: BuildFrontend,
-) -> Dict[str, str]:
-    tmp.mkdir()
+def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path:
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
@@ -141,6 +134,18 @@ def setup_python(
     else:
         raise ValueError("Unknown Python implementation")
     assert base_python.exists()
+    return base_python
+
+
+def setup_python(
+    tmp: Path,
+    base_python: Path,
+    python_configuration: PythonConfiguration,
+    dependency_constraint_flags: Sequence[PathOrStr],
+    environment: ParsedEnvironment,
+    build_frontend: BuildFrontend,
+) -> Dict[str, str]:
+    tmp.mkdir()
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -274,6 +279,9 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
     build_options = options.build_options(config.identifier)
     log.build_start(config.identifier)
 
+    with new_tmp_dir(tmp_dir / "install") as install_tmp_dir:
+        base_python = install_python(install_tmp_dir, config)
+
     built_wheel_dir = tmp_dir / "built_wheel"
     repaired_wheel_dir = tmp_dir / "repaired_wheel"
 
@@ -289,6 +297,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
     env = setup_python(
         tmp_dir / "build",
+        base_python,
         config,
         dependency_constraint_flags,
         build_options.environment,
