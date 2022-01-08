@@ -11,7 +11,6 @@ import textwrap
 import time
 import urllib.request
 from enum import Enum
-from functools import lru_cache
 from pathlib import Path
 from shutil import rmtree
 from time import sleep
@@ -31,21 +30,19 @@ from typing import (
 import bracex
 import certifi
 import tomli
-from filelock import FileLock
-from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from cibuildwheel.typing import Literal, PathOrStr, PlatformName
+from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
 
-resources_dir = Path(__file__).parent / "resources"
+resources_dir: Final = Path(__file__).parent / "resources"
 
-install_certifi_script = resources_dir / "install_certifi.py"
+install_certifi_script: Final = resources_dir / "install_certifi.py"
 
 BuildFrontend = Literal["pip", "build"]
 
-MANYLINUX_ARCHS = (
+MANYLINUX_ARCHS: Final = (
     "x86_64",
     "i686",
     "pypy_x86_64",
@@ -56,7 +53,7 @@ MANYLINUX_ARCHS = (
     "pypy_i686",
 )
 
-MUSLLINUX_ARCHS = (
+MUSLLINUX_ARCHS: Final = (
     "x86_64",
     "i686",
     "aarch64",
@@ -64,10 +61,10 @@ MUSLLINUX_ARCHS = (
     "s390x",
 )
 
-DEFAULT_CIBW_CACHE_PATH = user_cache_path(appname="cibuildwheel", appauthor="pypa")
-CIBW_CACHE_PATH = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
+DEFAULT_CIBW_CACHE_PATH: Final = user_cache_path(appname="cibuildwheel", appauthor="pypa")
+CIBW_CACHE_PATH: Final = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
 
-IS_WIN = sys.platform.startswith("win")
+IS_WIN: Final = sys.platform.startswith("win")
 
 
 @overload
@@ -94,7 +91,7 @@ def call(
     *args: PathOrStr,
     env: Optional[Dict[str, str]] = None,
     cwd: Optional[PathOrStr] = None,
-    capture_stdout: bool = False,
+    capture_stdout: Literal[False, True] = False,
 ) -> Optional[str]:
     """
     Run subprocess.run, but print the commands first. Takes the commands as
@@ -453,112 +450,6 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
         ),
         sep="\n",
     )
-
-
-def get_pip_version(env: Dict[str, str]) -> str:
-    versions_output_text = call(
-        "python", "-m", "pip", "freeze", "--all", capture_stdout=True, env=env
-    )
-    (pip_version,) = (
-        version[5:]
-        for version in versions_output_text.strip().splitlines()
-        if version.startswith("pip==")
-    )
-    return pip_version
-
-
-@lru_cache(maxsize=None)
-def _ensure_virtualenv() -> Path:
-    input_file = resources_dir / "virtualenv.toml"
-    with input_file.open("rb") as f:
-        loaded_file = tomli.load(f)
-    version = str(loaded_file["version"])
-    url = str(loaded_file["url"])
-    path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
-    with FileLock(str(path) + ".lock"):
-        if not path.exists():
-            download(url, path)
-    return path
-
-
-def _parse_constraints_for_virtualenv(constraints_path: Optional[Path]) -> Dict[str, str]:
-    """
-    Parses the constraints file referenced by `constraints_path` and returns a dict where
-    the key is the package name, and the value is the constraint version.
-    If a package version cannot be found, its value is "embed" meaning that virtualenv will install
-    its bundled version, already available locally.
-    The function does not try to be too smart and just handles basic constraints.
-    If it can't get an exact version, the real constraint will be handled by the
-    {macos|windows}.setup_python function.
-    """
-    packages = ["pip", "setuptools", "wheel"]
-    constraints_dict = {package: "embed" for package in packages}
-    if constraints_path:
-        assert constraints_path.exists()
-        with constraints_path.open() as constraints_file:
-            for line in constraints_file:
-                line = line.strip()
-                if len(line) == 0:
-                    continue
-                if line.startswith("#"):
-                    continue
-                try:
-                    requirement = Requirement(line)
-                    package = requirement.name
-                    if (
-                        package not in packages
-                        or requirement.url is not None
-                        or requirement.marker is not None
-                        or len(requirement.extras) != 0
-                        or len(requirement.specifier) != 1
-                    ):
-                        continue
-                    specifier = next(iter(requirement.specifier))
-                    if specifier.operator != "==":
-                        continue
-                    constraints_dict[package] = specifier.version
-                except InvalidRequirement:
-                    continue
-    return constraints_dict
-
-
-def virtualenv(python: Path, venv_path: Path, constraints_path: Optional[Path]) -> Dict[str, str]:
-    assert python.exists()
-    virtualenv_app = _ensure_virtualenv()
-    constraints = _parse_constraints_for_virtualenv(constraints_path)
-    additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
-
-    # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
-    # environment. The initial cost is a bit higher but reusing is much faster.
-    # Windows does not always allow symlinks so just disabling for now.
-    # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
-    # version of pip that will end-up installed.
-    # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
-    if (
-        not IS_WIN
-        and constraints["pip"] != "embed"
-        and Version(constraints["pip"]) >= Version("19.3")
-    ):
-        additional_flags.append("--symlink-app-data")
-
-    call(
-        sys.executable,
-        "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
-        virtualenv_app,
-        "--activators=",
-        "--no-periodic-update",
-        *additional_flags,
-        "--python",
-        python,
-        venv_path,
-    )
-    if IS_WIN:
-        paths = [str(venv_path), str(venv_path / "Scripts")]
-    else:
-        paths = [str(venv_path / "bin")]
-    env = os.environ.copy()
-    env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
-    return env
 
 
 @contextlib.contextmanager

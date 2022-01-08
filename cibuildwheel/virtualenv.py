@@ -1,0 +1,165 @@
+import os
+from functools import lru_cache
+from pathlib import Path
+from typing import Dict, Optional, Sequence, overload
+
+import tomli
+from filelock import FileLock
+from packaging.requirements import InvalidRequirement, Requirement
+from packaging.version import Version
+
+from cibuildwheel.typing import Final, Literal, PathOrStr
+from cibuildwheel.util import (
+    CIBW_CACHE_PATH,
+    IS_WIN,
+    call,
+    download,
+    resources_dir,
+    shell,
+)
+
+_SEED_PACKAGES: Final = ["pip", "setuptools", "wheel"]
+
+
+def _parse_constraints_for_virtualenv(constraints_path: Optional[Path]) -> Dict[str, str]:
+    """
+    Parses the constraints file referenced by `constraints_path` and returns a dict where
+    the key is the package name, and the value is the constraint version.
+    If a package version cannot be found, its value is "embed" meaning that virtualenv will install
+    its bundled version, already available locally.
+    The function does not try to be too smart and just handles basic constraints.
+    If it can't get an exact version, the real constraint will be handled by the
+    {macos|windows}.setup_python function.
+    """
+    constraints_dict = {package: "embed" for package in _SEED_PACKAGES}
+    if constraints_path:
+        assert constraints_path.exists()
+        with constraints_path.open() as constraints_file:
+            for line in constraints_file:
+                line = line.strip()
+                if len(line) == 0:
+                    continue
+                if line.startswith("#"):
+                    continue
+                try:
+                    requirement = Requirement(line)
+                    package = requirement.name
+                    if (
+                        package not in _SEED_PACKAGES
+                        or requirement.url is not None
+                        or requirement.marker is not None
+                        or len(requirement.extras) != 0
+                        or len(requirement.specifier) != 1
+                    ):
+                        continue
+                    specifier = next(iter(requirement.specifier))
+                    if specifier.operator != "==":
+                        continue
+                    constraints_dict[package] = specifier.version
+                except InvalidRequirement:
+                    continue
+    return constraints_dict
+
+
+@lru_cache(maxsize=None)
+def _ensure_virtualenv() -> Path:
+    input_file = resources_dir / "virtualenv.toml"
+    with input_file.open("rb") as f:
+        loaded_file = tomli.load(f)
+    version = str(loaded_file["version"])
+    url = str(loaded_file["url"])
+    path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
+    with FileLock(str(path) + ".lock"):
+        if not path.exists():
+            download(url, path)
+    return path
+
+
+def _virtualenv(
+    arch_prefix: Sequence[str], python: Path, venv_path: Path, constraints: Dict[str, str]
+) -> Dict[str, str]:
+    assert python.exists()
+    virtualenv_app = _ensure_virtualenv()
+
+    additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
+
+    # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
+    # environment. The initial cost is a bit higher but reusing is much faster.
+    # Windows does not always allow symlinks so just disabling for now.
+    # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
+    # version of pip that will end-up installed.
+    # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
+    if (
+        not IS_WIN
+        and constraints["pip"] != "embed"
+        and Version(constraints["pip"]) >= Version("19.3")
+    ):
+        additional_flags.append("--symlink-app-data")
+
+    call(
+        *arch_prefix,
+        python,
+        "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
+        virtualenv_app,
+        "--activators=",
+        "--no-periodic-update",
+        *additional_flags,
+        venv_path,
+    )
+    if IS_WIN:
+        paths = [str(venv_path), str(venv_path / "Scripts")]
+    else:
+        paths = [str(venv_path / "bin")]
+    env = os.environ.copy()
+    env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
+    # we version pip ourselves, so we don't care about pip version checking
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    return env
+
+
+class VirtualEnv:
+    def __init__(
+        self,
+        python: Path,
+        venv_path: Path,
+        constraints_path: Optional[Path] = None,
+        constraints_dict: Optional[Dict[str, str]] = None,
+        arch: Optional[str] = None,
+    ):
+        if constraints_dict is None:
+            constraints = _parse_constraints_for_virtualenv(constraints_path)
+        else:
+            assert set(constraints_dict.keys()) == set(_SEED_PACKAGES)
+            constraints = constraints_dict
+        self.venv_path = venv_path
+        self.arch = arch
+        self.arch_prefix = ("arch", f"-{arch}") if arch else tuple()
+        self.arch_prefix_shell = (" ".join(self.arch_prefix) + " ").strip()
+        self.env = _virtualenv(self.arch_prefix, python, venv_path, constraints)
+
+    @overload
+    def call(self, *args: PathOrStr, capture_stdout: Literal[False] = ...) -> None:
+        ...
+
+    @overload
+    def call(self, *args: PathOrStr, capture_stdout: Literal[True]) -> str:
+        ...
+
+    def call(self, *args: PathOrStr, capture_stdout: Literal[False, True] = False) -> Optional[str]:
+        return call(*self.arch_prefix, *args, env=self.env, capture_stdout=capture_stdout)
+
+    def shell(self, command: str, cwd: Optional[PathOrStr] = None) -> None:
+        shell(self.arch_prefix_shell + command, cwd=cwd, env=self.env)
+
+    def install(self, *args: PathOrStr) -> None:
+        self.call("python", "-m", "pip", "install", *args)
+
+    @property
+    def constraints_dict(self) -> Dict[str, str]:
+        pip_freeze = self.call("python", "-m", "pip", "freeze", "--all", capture_stdout=True)
+        all_packages = (line.split("==") for line in pip_freeze.strip().splitlines())
+        return {package: version for package, version in all_packages if package in _SEED_PACKAGES}
+
+    @property
+    def pip_version(self) -> Version:
+        return Version(self.constraints_dict["pip"])

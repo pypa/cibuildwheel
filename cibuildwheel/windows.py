@@ -22,13 +22,12 @@ from .util import (
     DependencyConstraints,
     call,
     download,
-    get_pip_version,
     new_tmp_dir,
     prepare_command,
     read_python_configs,
     shell,
-    virtualenv,
 )
+from .virtualenv import VirtualEnv
 
 
 def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
@@ -134,7 +133,7 @@ def setup_build_venv(
     identifier: str,
     dependency_constraints: Optional[DependencyConstraints],
     environment: ParsedEnvironment,
-) -> Dict[str, str]:
+) -> VirtualEnv:
     log.step("Setting up build environment...")
 
     dependency_constraint_flags: Sequence[PathOrStr] = []
@@ -143,10 +142,7 @@ def setup_build_venv(
         constraints_path = dependency_constraints.get_for_identifier(identifier)
         dependency_constraint_flags = ["-c", constraints_path]
 
-    env = virtualenv(base_python, venv_path, constraints_path)
-
-    # we version pip ourselves, so we don't care about pip version checking
-    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    venv = VirtualEnv(base_python, venv_path, constraints_path=constraints_path)
 
     # pip older than 21.3 builds executables such as pip.exe for x64 platform.
     # The first re-install of pip updates pip module but builds pip.exe using
@@ -154,42 +150,21 @@ def setup_build_venv(
     # re-install uses updated pip and correctly builds pip.exe for the target.
     # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
     # pip versions newer than 21.3.
-    if identifier.endswith("arm64") and Version(get_pip_version(env)) < Version("21.3"):
-        call(
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--force-reinstall",
-            "--upgrade",
-            "pip",
-            *dependency_constraint_flags,
-            env=env,
-            cwd=venv_path,
-        )
+    if identifier.endswith("arm64") and venv.pip_version < Version("21.3"):
+        venv.install("--force-reinstall", "pip", *dependency_constraint_flags)
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
-    call(
-        "python",
-        "-m",
-        "pip",
-        "install",
-        "--upgrade",
-        "pip",
-        *dependency_constraint_flags,
-        env=env,
-        cwd=venv_path,
-    )
+    venv.install("--upgrade", "pip", *dependency_constraint_flags)
 
     # update env with results from CIBW_ENVIRONMENT
-    env = environment.as_dictionary(prev_environment=env)
+    venv.env = environment.as_dictionary(prev_environment=venv.env)
 
     # check what Python version we're on
-    call("where", "python", env=env)
-    call("python", "--version", env=env)
-    call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
-    where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()
+    venv.call("where", "python")
+    venv.call("python", "--version")
+    venv.call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"")
+    where_python = venv.call("where", "python", capture_stdout=True).splitlines()[0].strip()
     if where_python != str(venv_path / "Scripts" / "python.exe"):
         print(
             "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
@@ -199,7 +174,7 @@ def setup_build_venv(
 
     # check what pip version we're on
     assert (venv_path / "Scripts" / "pip.exe").exists()
-    where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
+    where_pip = venv.call("where", "pip", capture_stdout=True).splitlines()[0].strip()
     if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
         print(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
@@ -207,20 +182,24 @@ def setup_build_venv(
         )
         sys.exit(1)
 
-    call("pip", "--version", env=env)
-    return env
+    venv.call("pip", "--version")
+    return venv
 
 
 def test_one(
-    tmp_dir: Path, base_python: Path, build_options: BuildOptions, repaired_wheel: Path
+    tmp_dir: Path,
+    base_python: Path,
+    constraints_dict: Dict[str, str],
+    build_options: BuildOptions,
+    repaired_wheel: Path,
 ) -> None:
     venv_dir = tmp_dir / "venv"
-    env = virtualenv(base_python, venv_dir, None)
+    venv = VirtualEnv(base_python, venv_dir, constraints_dict=constraints_dict)
     # update env with results from CIBW_ENVIRONMENT
-    env = build_options.environment.as_dictionary(prev_environment=env)
+    venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
     # check that we are using the Python from the virtual environment
-    call("where", "python", env=env)
-    test_one_base(env, build_options, repaired_wheel)
+    venv.call("where", "python")
+    test_one_base(venv, build_options, repaired_wheel)
 
 
 def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
@@ -232,20 +211,21 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
     repaired_wheel_dir = tmp_dir / "repaired_wheel"
     with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
-        env = setup_build_venv(
+        venv = setup_build_venv(
             build_tmp_dir / "venv",
             base_python,
             config.identifier,
             build_options.dependency_constraints,
             build_options.environment,
         )
-        builder = BuilderBackend(build_tmp_dir, build_options, env, config.identifier)
+        builder = BuilderBackend(build_tmp_dir, build_options, venv, config.identifier)
         builder.install_build_tools([])
         repaired_wheel = builder.build(repaired_wheel_dir)
+        constraints_dict = venv.constraints_dict
 
     if build_options.test_command and options.globals.test_selector(config.identifier):
         with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
-            test_one(test_tmp_dir, base_python, build_options, repaired_wheel)
+            test_one(test_tmp_dir, base_python, constraints_dict, build_options, repaired_wheel)
 
     # we're all done here; move it to output (remove if already exists)
     shutil.move(str(repaired_wheel), build_options.output_dir)

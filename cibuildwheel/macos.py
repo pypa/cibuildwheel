@@ -17,7 +17,6 @@ from .options import BuildOptions, Options
 from .typing import Literal, PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
-    BuildFrontend,
     BuildSelector,
     DependencyConstraints,
     call,
@@ -29,8 +28,8 @@ from .util import (
     read_python_configs,
     shell,
     unwrap,
-    virtualenv,
 )
+from .virtualenv import VirtualEnv
 
 
 def get_macos_version() -> Tuple[int, int]:
@@ -143,8 +142,7 @@ def setup_build_venv(
     python_version: str,
     dependency_constraints: Optional[DependencyConstraints],
     environment: ParsedEnvironment,
-    build_frontend: BuildFrontend,
-) -> Dict[str, str]:
+) -> VirtualEnv:
     tmp.mkdir()
 
     log.step("Setting up build environment...")
@@ -156,7 +154,7 @@ def setup_build_venv(
         dependency_constraint_flags = ["-c", constraints_path]
 
     venv_path = tmp / "venv"
-    env = virtualenv(base_python, venv_path, constraints_path)
+    venv = VirtualEnv(base_python, venv_path, constraints_path=constraints_path)
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
@@ -165,33 +163,20 @@ def setup_build_venv(
     # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
     # https://github.com/pypa/virtualenv/issues/620
     # Also see https://github.com/python/cpython/pull/9516
-    env.pop("__PYVENV_LAUNCHER__", None)
-
-    # we version pip ourselves, so we don't care about pip version checking
-    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    venv.env.pop("__PYVENV_LAUNCHER__", None)
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip'
-    call(
-        "python",
-        "-m",
-        "pip",
-        "install",
-        "--upgrade",
-        "pip",
-        *dependency_constraint_flags,
-        env=env,
-        cwd=venv_path,
-    )
+    venv.install("--upgrade", "pip", *dependency_constraint_flags)
 
     # Apply our environment after pip is ready
-    env = environment.as_dictionary(prev_environment=env)
+    venv.env = environment.as_dictionary(prev_environment=venv.env)
 
     # check what pip version we're on
     assert (venv_bin_path / "pip").exists()
-    call("which", "pip", env=env)
-    call("pip", "--version", env=env)
-    which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
+    venv.call("which", "pip")
+    venv.call("pip", "--version")
+    which_pip = venv.call("which", "pip", capture_stdout=True).strip()
     if which_pip != str(venv_bin_path / "pip"):
         print(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
@@ -200,9 +185,9 @@ def setup_build_venv(
         sys.exit(1)
 
     # check what Python version we're on
-    call("which", "python", env=env)
-    call("python", "--version", env=env)
-    which_python = call("which", "python", env=env, capture_stdout=True).strip()
+    venv.call("which", "python")
+    venv.call("python", "--version")
+    which_python = venv.call("which", "python", capture_stdout=True).strip()
     if which_python != str(venv_bin_path / "python"):
         print(
             "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
@@ -212,7 +197,7 @@ def setup_build_venv(
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
-    env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
+    venv.env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
 
     config_is_arm64 = identifier.endswith("arm64")
     config_is_universal2 = identifier.endswith("universal2")
@@ -221,19 +206,19 @@ def setup_build_venv(
         if config_is_arm64:
             # macOS 11 is the first OS with arm64 support, so the wheels
             # have that as a minimum.
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
-            env.setdefault("ARCHFLAGS", "-arch arm64")
+            venv.env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
+            venv.env.setdefault("ARCHFLAGS", "-arch arm64")
         elif config_is_universal2:
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
-            env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+            venv.env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
+            venv.env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
         elif identifier.endswith("x86_64"):
             # even on the macos11.0 Python installer, on the x86_64 side it's
             # compatible back to 10.9.
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
-            env.setdefault("ARCHFLAGS", "-arch x86_64")
+            venv.env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
+            venv.env.setdefault("ARCHFLAGS", "-arch x86_64")
 
     building_arm64 = config_is_arm64 or config_is_universal2
-    if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in env:
+    if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in venv.env:
         # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
         # needs the correct SDK selected.
         sdks = get_macos_sdks()
@@ -252,35 +237,36 @@ def setup_build_venv(
                 )
             )
         else:
-            env.setdefault("SDKROOT", arm64_compatible_sdks[0])
+            venv.env.setdefault("SDKROOT", arm64_compatible_sdks[0])
 
-    return env
+    return venv
 
 
 def test_one(
     tmp_dir: Path,
     base_python: Path,
+    constraints_dict: Dict[str, str],
     build_options: BuildOptions,
     repaired_wheel: Path,
     testing_arch: str,
 ) -> None:
     machine_arch = platform.machine()
-    arch_prefix = []
+    venv_arch = None
     if testing_arch != machine_arch:
         if machine_arch == "arm64" and testing_arch == "x86_64":
             # rosetta2 will provide the emulation with just the arch prefix.
-            arch_prefix = ["arch", "-x86_64"]
+            venv_arch = testing_arch
         else:
             raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
 
     # todo arch ?
     venv_dir = tmp_dir / "venv"
-    env = virtualenv(base_python, venv_dir, None)
+    venv = VirtualEnv(base_python, venv_dir, constraints_dict=constraints_dict, arch=venv_arch)
     # update env with results from CIBW_ENVIRONMENT
-    env = build_options.environment.as_dictionary(prev_environment=env)
+    venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
     # check that we are using the Python from the virtual environment
-    call("which", "python", env=env)
-    test_one_base(env, build_options, repaired_wheel, testing_arch, arch_prefix)
+    venv.call("which", "python")
+    test_one_base(venv, build_options, repaired_wheel)
 
 
 class _BuilderBackend(BuilderBackend):
@@ -302,18 +288,18 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
     repaired_wheel_dir = tmp_dir / "repaired_wheel"
     with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
-        env = setup_build_venv(
+        venv = setup_build_venv(
             build_tmp_dir / "venv",
             base_python,
             config.identifier,
             config.version,
             build_options.dependency_constraints,
             build_options.environment,
-            build_options.build_frontend,
         )
-        builder = _BuilderBackend(build_tmp_dir, build_options, env, config.identifier)
+        builder = _BuilderBackend(build_tmp_dir, build_options, venv, config.identifier)
         builder.install_build_tools(["delocate"])
         repaired_wheel = builder.build(repaired_wheel_dir)
+        constraints_dict = venv.constraints_dict
 
     if build_options.test_command and build_options.test_selector(config.identifier):
         machine_arch = platform.machine()
@@ -367,7 +353,14 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
                 # skip this test
                 continue
             with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
-                test_one(test_tmp_dir, base_python, build_options, repaired_wheel, testing_arch)
+                test_one(
+                    test_tmp_dir,
+                    base_python,
+                    constraints_dict,
+                    build_options,
+                    repaired_wheel,
+                    testing_arch,
+                )
 
     # we're all done here; move it to output (overwrite existing)
     shutil.move(str(repaired_wheel), build_options.output_dir)

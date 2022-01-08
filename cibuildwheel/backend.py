@@ -1,7 +1,6 @@
-import platform
 import shutil
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Sequence
+from typing import Dict, Iterable, Sequence
 
 from .logger import log
 from .options import BuildOptions
@@ -10,10 +9,9 @@ from .util import (
     NonPlatformWheelError,
     call,
     get_build_verbosity_extra_flags,
-    get_pip_version,
     prepare_command,
-    shell,
 )
+from .virtualenv import VirtualEnv
 
 
 class BuilderBackend:
@@ -23,18 +21,18 @@ class BuilderBackend:
     }
 
     def __init__(
-        self, tmp_dir: Path, build_options: BuildOptions, env: Dict[str, str], identifier: str
+        self, tmp_dir: Path, build_options: BuildOptions, venv: VirtualEnv, identifier: str
     ):
         self.tmp_dir = tmp_dir
         self.build_options = build_options
-        self.env = env
+        self.venv = venv
         self.identifier = identifier
 
     def call(self, *args: PathOrStr) -> None:
-        call(*args, env=self.env)
+        self.venv.call(*args)
 
     def shell(self, command: str) -> None:
-        shell(command, env=self.env)
+        self.venv.shell(command)
 
     def install_build_tools(self, extras: Iterable[str]) -> None:
         log.step("Installing build tools...")
@@ -44,7 +42,7 @@ class BuilderBackend:
         if dependency_constraints:
             constraints_path = dependency_constraints.get_for_identifier(self.identifier)
             dependency_constraints_flags = ["-c", constraints_path]
-        self.call("pip", "install", "--upgrade", *tools, *extras, *dependency_constraints_flags)
+        self.venv.install("--upgrade", *tools, *extras, *dependency_constraints_flags)
 
     def build(self, repaired_wheel_dir: Path) -> Path:
         build_options = self.build_options
@@ -76,7 +74,7 @@ class BuilderBackend:
             )
         elif build_options.build_frontend == "build":
             config_setting = " ".join(verbosity_flags)
-            build_env = self.env.copy()
+            build_env = self.venv.env.copy()
             if build_options.dependency_constraints:
                 constraints_path = build_options.dependency_constraints.get_for_identifier(
                     self.identifier
@@ -92,7 +90,7 @@ class BuilderBackend:
                     constraints_path = tmp_file
 
                 build_env["PIP_CONSTRAINT"] = str(constraints_path)
-                build_env["VIRTUALENV_PIP"] = get_pip_version(self.env)
+                build_env["VIRTUALENV_PIP"] = str(self.venv.pip_version)
             call(
                 "python",
                 "-m",
@@ -130,29 +128,8 @@ class BuilderBackend:
         pass
 
 
-def test_one_base(
-    env: Dict[str, str],
-    build_options: BuildOptions,
-    repaired_wheel: Path,
-    testing_arch: Optional[str] = None,
-    arch_prefix: Sequence[str] = tuple(),
-) -> None:
-    machine_arch = platform.machine()
-    if testing_arch is None:
-        testing_arch = machine_arch
-    log.step(
-        "Testing wheel..."
-        if testing_arch == machine_arch
-        else f"Testing wheel on {testing_arch}..."
-    )
-
-    # define a custom 'call' function that adds the arch prefix each time
-    def call_with_arch(*args: PathOrStr, **kwargs: Any) -> None:
-        call(*arch_prefix, *args, **kwargs)
-
-    def shell_with_arch(command: str, **kwargs: Any) -> None:
-        command = " ".join(arch_prefix) + " " + command
-        shell(command, **kwargs)
+def test_one_base(venv: VirtualEnv, build_options: BuildOptions, repaired_wheel: Path) -> None:
+    log.step("Testing wheel..." if venv.arch is None else f"Testing wheel on {venv.arch}...")
 
     if build_options.before_test:
         before_test_prepared = prepare_command(
@@ -160,14 +137,14 @@ def test_one_base(
             project=".",
             package=build_options.package_dir,
         )
-        shell_with_arch(before_test_prepared, env=env)
+        venv.shell(before_test_prepared)
 
     # install the wheel
-    call_with_arch("pip", "install", f"{repaired_wheel}{build_options.test_extras}", env=env)
+    venv.install(f"{repaired_wheel}{build_options.test_extras}")
 
     # test the wheel
     if build_options.test_requires:
-        call_with_arch("pip", "install", *build_options.test_requires, env=env)
+        venv.install(*build_options.test_requires)
 
     # run the tests from $HOME, with an absolute path in the command
     # (this ensures that Python runs the tests against the installed wheel
@@ -178,4 +155,4 @@ def test_one_base(
         project=Path(".").resolve(),
         package=build_options.package_dir.resolve(),
     )
-    shell_with_arch(test_command_prepared, cwd=Path.home(), env=env)
+    venv.shell(test_command_prepared, cwd=Path.home())
