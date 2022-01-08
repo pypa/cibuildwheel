@@ -11,7 +11,7 @@ from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .common import build_one_base, install_build_tools
+from .common import build_one_base, install_build_tools, test_one_base
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
@@ -218,44 +218,16 @@ def setup_build_venv(
     return env
 
 
-def build_one_test(
+def test_one(
     tmp_dir: Path, base_python: Path, build_options: BuildOptions, repaired_wheel: Path
 ) -> None:
-    log.step("Testing wheel...")
     venv_dir = tmp_dir / "venv"
-
     env = virtualenv(base_python, venv_dir, [])
     # update env with results from CIBW_ENVIRONMENT
     env = build_options.environment.as_dictionary(prev_environment=env)
-
     # check that we are using the Python from the virtual environment
     call("where", "python", env=env)
-
-    if build_options.before_test:
-        before_test_prepared = prepare_command(
-            build_options.before_test,
-            project=".",
-            package=build_options.package_dir,
-        )
-        shell(before_test_prepared, env=env)
-
-    # install the wheel
-    call("pip", "install", str(repaired_wheel) + build_options.test_extras, env=env)
-
-    # test the wheel
-    if build_options.test_requires:
-        call("pip", "install", *build_options.test_requires, env=env)
-
-    # run the tests from c:\, with an absolute path in the command
-    # (this ensures that Python runs the tests against the installed wheel
-    # and not the repo code)
-    assert build_options.test_command is not None
-    test_command_prepared = prepare_command(
-        build_options.test_command,
-        project=Path(".").resolve(),
-        package=build_options.package_dir.resolve(),
-    )
-    shell(test_command_prepared, cwd="c:\\", env=env)
+    test_one_base(env, build_options, repaired_wheel)
 
 
 def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
@@ -282,7 +254,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
     if build_options.test_command and options.globals.test_selector(config.identifier):
         with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
-            build_one_test(test_tmp_dir, base_python, build_options, repaired_wheel)
+            test_one(test_tmp_dir, base_python, build_options, repaired_wheel)
 
     # we're all done here; move it to output (remove if already exists)
     shutil.move(str(repaired_wheel), build_options.output_dir)

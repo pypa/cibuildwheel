@@ -1,6 +1,7 @@
+import platform
 import shutil
 from pathlib import Path
-from typing import Dict, Iterable, Sequence
+from typing import Any, Dict, Iterable, Optional, Sequence
 
 from .logger import log
 from .options import BuildOptions
@@ -127,3 +128,54 @@ def build_one_base(
         shutil.move(str(built_wheel), repaired_wheel_dir)
 
     return next(repaired_wheel_dir.glob("*.whl"))
+
+
+def test_one_base(
+    env: Dict[str, str],
+    build_options: BuildOptions,
+    repaired_wheel: Path,
+    testing_arch: Optional[str] = None,
+    arch_prefix: Sequence[str] = tuple(),
+) -> None:
+    machine_arch = platform.machine()
+    if testing_arch is None:
+        testing_arch = machine_arch
+    log.step(
+        "Testing wheel..."
+        if testing_arch == machine_arch
+        else f"Testing wheel on {testing_arch}..."
+    )
+
+    # define a custom 'call' function that adds the arch prefix each time
+    def call_with_arch(*args: PathOrStr, **kwargs: Any) -> None:
+        call(*arch_prefix, *args, **kwargs)
+
+    def shell_with_arch(command: str, **kwargs: Any) -> None:
+        command = " ".join(arch_prefix) + " " + command
+        shell(command, **kwargs)
+
+    if build_options.before_test:
+        before_test_prepared = prepare_command(
+            build_options.before_test,
+            project=".",
+            package=build_options.package_dir,
+        )
+        shell_with_arch(before_test_prepared, env=env)
+
+    # install the wheel
+    call_with_arch("pip", "install", f"{repaired_wheel}{build_options.test_extras}", env=env)
+
+    # test the wheel
+    if build_options.test_requires:
+        call_with_arch("pip", "install", *build_options.test_requires, env=env)
+
+    # run the tests from $HOME, with an absolute path in the command
+    # (this ensures that Python runs the tests against the installed wheel
+    # and not the repo code)
+    assert build_options.test_command is not None
+    test_command_prepared = prepare_command(
+        build_options.test_command,
+        project=Path(".").resolve(),
+        package=build_options.package_dir.resolve(),
+    )
+    shell_with_arch(test_command_prepared, cwd=Path.home(), env=env)

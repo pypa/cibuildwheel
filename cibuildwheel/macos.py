@@ -5,12 +5,12 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
+from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 from filelock import FileLock
 
 from .architecture import Architecture
-from .common import build_one_base, install_build_tools
+from .common import build_one_base, install_build_tools, test_one_base
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
@@ -260,7 +260,7 @@ def setup_build_venv(
     return env
 
 
-def build_one_test(
+def test_one(
     tmp_dir: Path,
     base_python: Path,
     build_options: BuildOptions,
@@ -268,12 +268,6 @@ def build_one_test(
     testing_arch: str,
 ) -> None:
     machine_arch = platform.machine()
-    log.step(
-        "Testing wheel..."
-        if testing_arch == machine_arch
-        else f"Testing wheel on {testing_arch}..."
-    )
-
     arch_prefix = []
     if testing_arch != machine_arch:
         if machine_arch == "arm64" and testing_arch == "x86_64":
@@ -282,48 +276,14 @@ def build_one_test(
         else:
             raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
 
-    # define a custom 'call' function that adds the arch prefix each time
-    def call_with_arch(*args: PathOrStr, **kwargs: Any) -> None:
-        call(*arch_prefix, *args, **kwargs)
-
-    def shell_with_arch(command: str, **kwargs: Any) -> None:
-        command = " ".join(arch_prefix) + " " + command
-        shell(command, **kwargs)
-
     # todo arch ?
     venv_dir = tmp_dir / "venv"
     env = virtualenv(base_python, venv_dir, [])
     # update env with results from CIBW_ENVIRONMENT
     env = build_options.environment.as_dictionary(prev_environment=env)
-
     # check that we are using the Python from the virtual environment
-    call_with_arch("which", "python", env=env)
-
-    if build_options.before_test:
-        before_test_prepared = prepare_command(
-            build_options.before_test,
-            project=".",
-            package=build_options.package_dir,
-        )
-        shell_with_arch(before_test_prepared, env=env)
-
-    # install the wheel
-    call_with_arch("pip", "install", f"{repaired_wheel}{build_options.test_extras}", env=env)
-
-    # test the wheel
-    if build_options.test_requires:
-        call_with_arch("pip", "install", *build_options.test_requires, env=env)
-
-    # run the tests from $HOME, with an absolute path in the command
-    # (this ensures that Python runs the tests against the installed wheel
-    # and not the repo code)
-    assert build_options.test_command is not None
-    test_command_prepared = prepare_command(
-        build_options.test_command,
-        project=Path(".").resolve(),
-        package=build_options.package_dir.resolve(),
-    )
-    shell_with_arch(test_command_prepared, cwd=os.environ["HOME"], env=env)
+    call("which", "python", env=env)
+    test_one_base(env, build_options, repaired_wheel, testing_arch, arch_prefix)
 
 
 def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
@@ -400,9 +360,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
                 # skip this test
                 continue
             with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
-                build_one_test(
-                    test_tmp_dir, base_python, build_options, repaired_wheel, testing_arch
-                )
+                test_one(test_tmp_dir, base_python, build_options, repaired_wheel, testing_arch)
 
     # we're all done here; move it to output (overwrite existing)
     shutil.move(str(repaired_wheel), build_options.output_dir)
