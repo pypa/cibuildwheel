@@ -4,7 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 from filelock import FileLock
@@ -24,7 +24,6 @@ from .util import (
     detect_ci_provider,
     download,
     install_certifi_script,
-    new_tmp_dir,
     prepare_command,
     read_python_configs,
     shell,
@@ -246,11 +245,10 @@ def setup_build_venv(
 
 def test_one(
     platform_backend: NativePlatformBackend,
-    tmp_dir: Path,
     base_python: Path,
     constraints_dict: Dict[str, str],
     build_options: BuildOptions,
-    repaired_wheel: Path,
+    repaired_wheel: PurePath,
     testing_arch: str,
 ) -> None:
     machine_arch = platform.machine()
@@ -262,16 +260,19 @@ def test_one(
         else:
             raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
 
-    # todo arch ?
-    venv_dir = tmp_dir / "venv"
-    venv = VirtualEnv(
-        platform_backend, base_python, venv_dir, constraints_dict=constraints_dict, arch=venv_arch
-    )
-    # update env with results from CIBW_ENVIRONMENT
-    venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
-    # check that we are using the Python from the virtual environment
-    venv.call("which", "python")
-    test_one_base(venv, build_options, repaired_wheel)
+    with platform_backend.tmp_dir("test-venv") as venv_dir:
+        venv = VirtualEnv(
+            platform_backend,
+            base_python,
+            venv_dir,
+            constraints_dict=constraints_dict,
+            arch=venv_arch,
+        )
+        # update env with results from CIBW_ENVIRONMENT
+        venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
+        # check that we are using the Python from the virtual environment
+        venv.call("which", "python")
+        test_one_base(venv, build_options, repaired_wheel)
 
 
 class _BuilderBackend(BuilderBackend):
@@ -288,85 +289,82 @@ def build_one(
     platform_backend: NativePlatformBackend,
     config: PythonConfiguration,
     options: Options,
-    tmp_dir: Path,
 ) -> None:
     build_options = options.build_options(config.identifier)
     log.build_start(config.identifier)
 
-    with new_tmp_dir(tmp_dir / "install") as install_tmp_dir:
-        base_python = install_python(install_tmp_dir, config)
+    with platform_backend.tmp_dir("install") as install_tmp_dir:
+        base_python = install_python(Path(install_tmp_dir), config)
 
-    repaired_wheel_dir = tmp_dir / "repaired_wheel"
-    with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
-        venv = setup_build_venv(
-            platform_backend,
-            build_tmp_dir / "venv",
-            base_python,
-            config.identifier,
-            config.version,
-            build_options.dependency_constraints,
-            build_options.environment,
-        )
-        builder = _BuilderBackend(build_tmp_dir, build_options, venv, config.identifier)
-        builder.install_build_tools(["delocate"])
-        repaired_wheel = builder.build(repaired_wheel_dir)
-        constraints_dict = venv.constraints_dict
+    with platform_backend.tmp_dir("repaired_wheel") as repaired_wheel_dir:
+        with platform_backend.tmp_dir("build") as build_tmp_dir:
+            venv = setup_build_venv(
+                platform_backend,
+                Path(build_tmp_dir / "venv"),
+                base_python,
+                config.identifier,
+                config.version,
+                build_options.dependency_constraints,
+                build_options.environment,
+            )
+            builder = _BuilderBackend(build_options, venv, config.identifier)
+            builder.install_build_tools(["delocate"])
+            repaired_wheel = builder.build(repaired_wheel_dir)
+            constraints_dict = venv.constraints_dict
 
-    if build_options.test_command and build_options.test_selector(config.identifier):
-        machine_arch = platform.machine()
-        testing_archs: List[Literal["x86_64", "arm64"]]
+        if build_options.test_command and build_options.test_selector(config.identifier):
+            machine_arch = platform.machine()
+            testing_archs: List[Literal["x86_64", "arm64"]]
 
-        config_is_arm64 = config.identifier.endswith("arm64")
-        config_is_universal2 = config.identifier.endswith("universal2")
+            config_is_arm64 = config.identifier.endswith("arm64")
+            config_is_universal2 = config.identifier.endswith("universal2")
 
-        if config_is_arm64:
-            testing_archs = ["arm64"]
-        elif config_is_universal2:
-            testing_archs = ["x86_64", "arm64"]
-        else:
-            testing_archs = ["x86_64"]
+            if config_is_arm64:
+                testing_archs = ["arm64"]
+            elif config_is_universal2:
+                testing_archs = ["x86_64", "arm64"]
+            else:
+                testing_archs = ["x86_64"]
 
-        for testing_arch in testing_archs:
-            if config_is_universal2:
-                arch_specific_identifier = f"{config.identifier}:{testing_arch}"
-                if not build_options.test_selector(arch_specific_identifier):
+            for testing_arch in testing_archs:
+                if config_is_universal2:
+                    arch_specific_identifier = f"{config.identifier}:{testing_arch}"
+                    if not build_options.test_selector(arch_specific_identifier):
+                        continue
+
+                if machine_arch == "x86_64" and testing_arch == "arm64":
+                    if config_is_arm64:
+                        log.warning(
+                            unwrap(
+                                """
+                                While arm64 wheels can be built on x86_64, they cannot be
+                                tested. The ability to test the arm64 wheels will be added in a
+                                future release of cibuildwheel, once Apple Silicon CI runners
+                                are widely available. To silence this warning, set
+                                `CIBW_TEST_SKIP: *-macosx_arm64`.
+                                """
+                            )
+                        )
+                    elif config_is_universal2:
+                        log.warning(
+                            unwrap(
+                                """
+                                While universal2 wheels can be built on x86_64, the arm64 part
+                                of them cannot currently be tested. The ability to test the
+                                arm64 part of a universal2 wheel will be added in a future
+                                release of cibuildwheel, once Apple Silicon CI runners are
+                                widely available. To silence this warning, set
+                                `CIBW_TEST_SKIP: *-macosx_universal2:arm64`.
+                                """
+                            )
+                        )
+                    else:
+                        raise RuntimeError("unreachable")
+
+                    # skip this test
                     continue
-
-            if machine_arch == "x86_64" and testing_arch == "arm64":
-                if config_is_arm64:
-                    log.warning(
-                        unwrap(
-                            """
-                            While arm64 wheels can be built on x86_64, they cannot be
-                            tested. The ability to test the arm64 wheels will be added in a
-                            future release of cibuildwheel, once Apple Silicon CI runners
-                            are widely available. To silence this warning, set
-                            `CIBW_TEST_SKIP: *-macosx_arm64`.
-                            """
-                        )
-                    )
-                elif config_is_universal2:
-                    log.warning(
-                        unwrap(
-                            """
-                            While universal2 wheels can be built on x86_64, the arm64 part
-                            of them cannot currently be tested. The ability to test the
-                            arm64 part of a universal2 wheel will be added in a future
-                            release of cibuildwheel, once Apple Silicon CI runners are
-                            widely available. To silence this warning, set
-                            `CIBW_TEST_SKIP: *-macosx_universal2:arm64`.
-                            """
-                        )
-                    )
-                else:
-                    raise RuntimeError("unreachable")
-
-                # skip this test
-                continue
-            with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
                 test_one(
                     platform_backend,
-                    test_tmp_dir,
                     base_python,
                     constraints_dict,
                     build_options,
@@ -374,13 +372,13 @@ def build_one(
                     testing_arch,
                 )
 
-    # we're all done here; move it to output (overwrite existing)
-    shutil.move(str(repaired_wheel), build_options.output_dir)
+        # we're all done here; move it to output (overwrite existing)
+        shutil.move(str(repaired_wheel), build_options.output_dir)
     log.build_end()
 
 
 def build(options: Options, tmp_dir: Path) -> None:
-    platform_backend = NativePlatformBackend()
+    platform_backend = NativePlatformBackend(tmp_dir)
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
@@ -399,8 +397,7 @@ def build(options: Options, tmp_dir: Path) -> None:
             shell(before_all_prepared, env=env)
 
         for config in python_configurations:
-            with new_tmp_dir(tmp_dir / config.identifier) as identifier_tmp_dir:
-                build_one(platform_backend, config, options, identifier_tmp_dir)
+            build_one(platform_backend, config, options)
 
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(

@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Dict, Optional, Sequence
 
 from packaging.requirements import InvalidRequirement, Requirement
@@ -53,8 +53,8 @@ def _parse_constraints_for_virtualenv(constraints_path: Optional[Path]) -> Dict[
 def _virtualenv(
     platform: PlatformBackend,
     arch_prefix: Sequence[str],
-    python: Path,
-    venv_path: Path,
+    python: PurePath,
+    venv_path: PurePath,
     constraints: Dict[str, str],
 ) -> Dict[str, str]:
 
@@ -98,8 +98,8 @@ class VirtualEnv:
     def __init__(
         self,
         platform: PlatformBackend,
-        python: Path,
-        venv_path: Path,
+        python: PurePath,
+        venv_path: PurePath,
         constraints_path: Optional[Path] = None,
         constraints_dict: Optional[Dict[str, str]] = None,
         arch: Optional[str] = None,

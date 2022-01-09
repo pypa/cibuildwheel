@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import sys
 from functools import lru_cache
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
 
@@ -23,7 +23,6 @@ from .util import (
     DependencyConstraints,
     call,
     download,
-    new_tmp_dir,
     prepare_command,
     read_python_configs,
     shell,
@@ -190,67 +189,58 @@ def setup_build_venv(
 
 def test_one(
     platform_backend: NativePlatformBackend,
-    tmp_dir: Path,
     base_python: Path,
     constraints_dict: Dict[str, str],
     build_options: BuildOptions,
-    repaired_wheel: Path,
+    repaired_wheel: PurePath,
 ) -> None:
-    venv_dir = tmp_dir / "venv"
-    venv = VirtualEnv(platform_backend, base_python, venv_dir, constraints_dict=constraints_dict)
-    # update env with results from CIBW_ENVIRONMENT
-    venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
-    # check that we are using the Python from the virtual environment
-    venv.call("where", "python")
-    test_one_base(venv, build_options, repaired_wheel)
+    with platform_backend.tmp_dir("test-venv") as venv_dir:
+        venv = VirtualEnv(
+            platform_backend, base_python, venv_dir, constraints_dict=constraints_dict
+        )
+        # update env with results from CIBW_ENVIRONMENT
+        venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
+        # check that we are using the Python from the virtual environment
+        venv.call("where", "python")
+        test_one_base(venv, build_options, repaired_wheel)
 
 
 def build_one(
-    platform_backend: NativePlatformBackend,
-    config: PythonConfiguration,
-    options: Options,
-    tmp_dir: Path,
+    platform_backend: NativePlatformBackend, config: PythonConfiguration, options: Options
 ) -> None:
     build_options = options.build_options(config.identifier)
     log.build_start(config.identifier)
 
-    with new_tmp_dir(tmp_dir / "install") as install_tmp_dir:
-        base_python = install_python(install_tmp_dir, config)
+    with platform_backend.tmp_dir("install") as install_tmp_dir:
+        base_python = install_python(Path(install_tmp_dir), config)
 
-    repaired_wheel_dir = tmp_dir / "repaired_wheel"
-    with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
-        venv = setup_build_venv(
-            platform_backend,
-            build_tmp_dir / "venv",
-            base_python,
-            config.identifier,
-            build_options.dependency_constraints,
-            build_options.environment,
-        )
-        builder = BuilderBackend(build_tmp_dir, build_options, venv, config.identifier)
-        builder.install_build_tools([])
-        repaired_wheel = builder.build(repaired_wheel_dir)
-        constraints_dict = venv.constraints_dict
+    with platform_backend.tmp_dir("repaired_wheel") as repaired_wheel_dir:
 
-    if build_options.test_command and options.globals.test_selector(config.identifier):
-        with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
-            test_one(
+        with platform_backend.tmp_dir("build") as build_tmp_dir:
+            venv = setup_build_venv(
                 platform_backend,
-                test_tmp_dir,
+                Path(build_tmp_dir / "venv"),
                 base_python,
-                constraints_dict,
-                build_options,
-                repaired_wheel,
+                config.identifier,
+                build_options.dependency_constraints,
+                build_options.environment,
             )
+            builder = BuilderBackend(build_options, venv, config.identifier)
+            builder.install_build_tools([])
+            repaired_wheel = builder.build(repaired_wheel_dir)
+            constraints_dict = venv.constraints_dict
 
-    # we're all done here; move it to output (remove if already exists)
-    shutil.move(str(repaired_wheel), build_options.output_dir)
+        if build_options.test_command and options.globals.test_selector(config.identifier):
+            test_one(platform_backend, base_python, constraints_dict, build_options, repaired_wheel)
+
+        # we're all done here; move it to output (remove if already exists)
+        shutil.move(str(repaired_wheel), build_options.output_dir)
 
     log.build_end()
 
 
 def build(options: Options, tmp_dir: Path) -> None:
-    platform_backend = NativePlatformBackend()
+    platform_backend = NativePlatformBackend(tmp_dir)
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
@@ -268,8 +258,7 @@ def build(options: Options, tmp_dir: Path) -> None:
             shell(before_all_prepared, env=env)
 
         for config in python_configurations:
-            with new_tmp_dir(tmp_dir / config.identifier) as identifier_tmp_dir:
-                build_one(platform_backend, config, options, identifier_tmp_dir)
+            build_one(platform_backend, config, options)
 
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(

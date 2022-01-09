@@ -8,7 +8,7 @@ import sys
 import uuid
 from pathlib import Path, PurePath
 from types import TracebackType
-from typing import IO, Dict, List, Optional, Type, cast
+from typing import IO, Dict, Iterator, List, Optional, Type, cast
 
 from cibuildwheel.platform_backend import PlatformBackend
 from cibuildwheel.typing import PathOrStr, PopenBytes
@@ -43,7 +43,7 @@ class DockerContainer(PlatformBackend):
         self.simulate_32_bit = simulate_32_bit
         self.cwd = cwd
         self.container_name: Optional[str] = None
-        super().__init__("linux")
+        super().__init__("linux", PurePath("/tmp/cibw-container"))
 
     def __enter__(self) -> "DockerContainer":
         self.container_name = f"cibuildwheel-{uuid.uuid4()}"
@@ -144,7 +144,7 @@ class DockerContainer(PlatformBackend):
             cwd=to_path,
         )
 
-    def glob(self, path: PurePath, pattern: str) -> List[PurePath]:
+    def glob(self, path: PurePath, pattern: str) -> Iterator[PurePath]:
         glob_pattern = os.path.join(str(path), pattern)
 
         path_strings = json.loads(
@@ -156,7 +156,7 @@ class DockerContainer(PlatformBackend):
             )
         )
 
-        return [PurePath(p) for p in path_strings]
+        return (PurePath(p) for p in path_strings)
 
     def call(
         self,

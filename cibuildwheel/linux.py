@@ -193,7 +193,7 @@ def build_one(
     else:
         assert_never(build_options.build_frontend)
 
-    built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
+    built_wheel = next(docker.glob(built_wheel_dir, "*.whl"))
 
     repaired_wheel_dir = temp_dir / "repaired_wheel"
     docker.call("rm", "-rf", repaired_wheel_dir)
@@ -211,7 +211,7 @@ def build_one(
     else:
         docker.call("mv", built_wheel, repaired_wheel_dir)
 
-    repaired_wheels = docker.glob(repaired_wheel_dir, "*.whl")
+    repaired_wheels = list(docker.glob(repaired_wheel_dir, "*.whl"))
 
     if build_options.test_command and build_options.test_selector(config.identifier):
         log.step("Testing wheel...")
