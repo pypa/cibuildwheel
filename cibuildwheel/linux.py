@@ -107,29 +107,13 @@ def build_one(
     log.step("Setting up build environment...")
 
     # put this config's python top of the list
-    python_bin = config.path / "bin"
-    base_python = python_bin / "python"
+    base_python = config.path / "bin" / "python"
     venv = FakeVirtualEnv(docker, base_python, config.path)
     venv.env = build_options.environment.as_dictionary(
         venv.env, executor=docker.environment_executor
     )
-
     # check config python is still on PATH
-    which_python = venv.call("which", "python", capture_stdout=True).strip()
-    if PurePath(which_python) != base_python:
-        print(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    which_pip = venv.call("which", "pip", capture_stdout=True).strip()
-    if PurePath(which_pip) != python_bin / "pip":
-        print(
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    venv.sanity_check()
 
     with docker.tmp_dir("repaired_wheel_dir") as repaired_wheel_dir:
         builder = BuilderBackend(build_options, venv, config.identifier)

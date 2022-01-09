@@ -77,6 +77,16 @@ class PlatformBackend:
         message = f"path '{resolved_path}' not found in:\n{self._fsmap_file}\n{self._fsmap_dir}"
         raise FileNotFoundError(message)
 
+    def which(self, cmd: str, env: Optional[Dict[str, str]] = None) -> PurePath:
+        if self.name == "windows":
+            tool = "where"
+        else:
+            tool = "which"
+        results = self.call(tool, cmd, env=env, capture_stdout=True).splitlines()
+        for result in results:
+            print(result.strip())
+        return PurePath(results[0].strip())
+
     @property
     def name(self) -> PlatformName:
         return self._platform

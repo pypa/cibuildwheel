@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path, PurePath
 from typing import Dict, Optional, Sequence
 
@@ -95,9 +96,14 @@ def _virtualenv(
 
 
 class VirtualEnvBase:
-    def __init__(self, platform: PlatformBackend, arch: Optional[str] = None):
+    def __init__(self, platform: PlatformBackend, venv_path: PurePath, arch: Optional[str] = None):
         self.base = platform
         self.env = platform.env.copy()
+        self.venv_path = venv_path
+        if platform.name == "windows":
+            self.script_dir = self.venv_path / "Scripts"
+        else:
+            self.script_dir = self.venv_path / "bin"
         self.arch = arch
         self.arch_prefix = ("arch", f"-{arch}") if arch else tuple()
         self.arch_prefix_shell = (" ".join(self.arch_prefix) + " ").strip()
@@ -118,6 +124,33 @@ class VirtualEnvBase:
 
     def install(self, *args: PathOrStr) -> None:
         self.call("python", "-m", "pip", "install", *args)
+
+    def which(self, cmd: str) -> PurePath:
+        return self.base.which(cmd, env=self.env)
+
+    def sanity_check(self) -> None:
+        ext = ".exe" if self.base.name == "windows" else ""
+        # check what Python version we're on
+        which_python = self.which("python")
+        if which_python != self.script_dir / f"python{ext}":
+            print(
+                "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        self.call("python", "--version")
+        self.call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"")
+
+        # check what pip version we're on
+        # assert (self.script_dir / f"pip{ext}").exists()
+        which_pip = self.which("pip")
+        if which_pip != self.script_dir / f"pip{ext}":
+            print(
+                "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        self.call("pip", "--version")
 
     @property
     def constraints_dict(self) -> Dict[str, str]:
@@ -146,7 +179,7 @@ class VirtualEnv(VirtualEnvBase):
             assert set(constraints_dict.keys()) == set(_SEED_PACKAGES)
             constraints = constraints_dict
         self.base = platform
-        super().__init__(platform, arch)
+        super().__init__(platform, venv_path, arch)
         self.env = _virtualenv(platform, self.arch_prefix, python, venv_path, constraints)
         self.constraints_path = None
         if constraints_path is not None:
@@ -171,5 +204,5 @@ class FakeVirtualEnv(VirtualEnvBase):
         if constraints_dict is not None:
             pass  # should we warn ? might be too verbose.
         self.base = platform
-        super().__init__(platform, arch)
+        super().__init__(platform, venv_path, arch)
         self.env["PATH"] = f'{venv_path / "bin"}:{self.env["PATH"]}'

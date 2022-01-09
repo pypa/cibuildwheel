@@ -159,30 +159,7 @@ def setup_build_venv(
 
     # update env with results from CIBW_ENVIRONMENT
     venv.env = environment.as_dictionary(venv.env, venv.base.environment_executor)
-
-    # check what Python version we're on
-    venv.call("where", "python")
-    venv.call("python", "--version")
-    venv.call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"")
-    where_python = venv.call("where", "python", capture_stdout=True).splitlines()[0].strip()
-    if where_python != str(venv_path / "Scripts" / "python.exe"):
-        print(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    # check what pip version we're on
-    assert (venv_path / "Scripts" / "pip.exe").exists()
-    where_pip = venv.call("where", "pip", capture_stdout=True).splitlines()[0].strip()
-    if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
-        print(
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    venv.call("pip", "--version")
+    venv.sanity_check()
     return venv
 
 

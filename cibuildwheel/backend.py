@@ -138,7 +138,7 @@ def test_one(
             prev_environment=venv.env, executor=platform_backend.environment_executor
         )
         # check that we are using the Python from the virtual environment
-        # TODO venv.call("which", "python")
+        venv.which("python")
 
         prepare_kwargs = {
             "project": venv.base.get_remote_path(Path(".").resolve()),

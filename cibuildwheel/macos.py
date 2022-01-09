@@ -156,8 +156,7 @@ def setup_build_venv(
 
     venv_path = tmp / "venv"
     venv = VirtualEnv(platform_backend, base_python, venv_path, constraints_path=constraints_path)
-    venv_bin_path = venv_path / "bin"
-    assert venv_bin_path.exists()
+
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
     # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
     # Also fix an issue with the shebang of installed scripts inside the
@@ -173,28 +172,7 @@ def setup_build_venv(
     # Apply our environment after pip is ready
     venv.env = environment.as_dictionary(venv.env, venv.base.environment_executor)
 
-    # check what pip version we're on
-    assert (venv_bin_path / "pip").exists()
-    venv.call("which", "pip")
-    venv.call("pip", "--version")
-    which_pip = venv.call("which", "pip", capture_stdout=True).strip()
-    if which_pip != str(venv_bin_path / "pip"):
-        print(
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    # check what Python version we're on
-    venv.call("which", "python")
-    venv.call("python", "--version")
-    which_python = venv.call("which", "python", capture_stdout=True).strip()
-    if which_python != str(venv_bin_path / "python"):
-        print(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    venv.sanity_check()
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
