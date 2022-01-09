@@ -63,6 +63,10 @@ class PlatformBackend:
             self._fsmap_file[from_path] = to_path
 
     @abstractmethod
+    def move_files(self, *args: PurePath, dest: PurePath) -> None:
+        ...
+
+    @abstractmethod
     def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
         ...
 
@@ -174,6 +178,12 @@ class NativePlatformBackend(PlatformBackend):
         else:
             shutil.copy(from_path, to_path)
         super().copy_into_(from_path, to_path)
+
+    def move_files(self, *args: PurePath, dest: PurePath) -> None:
+        dest_ = Path(dest).resolve(strict=True)
+        assert dest_.is_dir()
+        for file in args:
+            shutil.move(str(file), dest_)
 
     def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
         return local_environment_executor(command, environment)

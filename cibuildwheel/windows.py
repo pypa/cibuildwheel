@@ -3,30 +3,26 @@ import subprocess
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Sequence, Set
+from typing import List, NamedTuple, Optional, Set
 from zipfile import ZipFile
 
 from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .backend import BuilderBackend, test_one
-from .environment import ParsedEnvironment
+from .backend import BuilderBackend, build_identifier, test_one
 from .logger import log
 from .options import Options
 from .platform_backend import NativePlatformBackend
-from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     BuildSelector,
-    DependencyConstraints,
     call,
     download,
     prepare_command,
     read_python_configs,
     shell,
 )
-from .virtualenv import VirtualEnv
 
 
 def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
@@ -126,70 +122,34 @@ def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path
     return base_python
 
 
-def setup_build_venv(
-    platform_backend: NativePlatformBackend,
-    venv_path: Path,
-    base_python: Path,
-    identifier: str,
-    dependency_constraints: Optional[DependencyConstraints],
-    environment: ParsedEnvironment,
-) -> VirtualEnv:
-    log.step("Setting up build environment...")
-
-    dependency_constraint_flags: Sequence[PathOrStr] = []
-    constraints_path: Optional[Path] = None
-    if dependency_constraints:
-        constraints_path = dependency_constraints.get_for_identifier(identifier)
-        dependency_constraint_flags = ["-c", constraints_path]
-
-    venv = VirtualEnv(platform_backend, base_python, venv_path, constraints_path=constraints_path)
-
-    # pip older than 21.3 builds executables such as pip.exe for x64 platform.
-    # The first re-install of pip updates pip module but builds pip.exe using
-    # the old pip which still generates x64 executable. But the second
-    # re-install uses updated pip and correctly builds pip.exe for the target.
-    # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
-    # pip versions newer than 21.3.
-    if identifier.endswith("arm64") and venv.pip_version < Version("21.3"):
-        venv.install("--force-reinstall", "pip", *dependency_constraint_flags)
-
-    # upgrade pip to the version matching our constraints
-    # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
-    venv.install("--upgrade", "pip", *dependency_constraint_flags)
-
-    # update env with results from CIBW_ENVIRONMENT
-    venv.env = environment.as_dictionary(venv.env, venv.base.environment_executor)
-    venv.sanity_check()
-    return venv
+class _Builder(BuilderBackend):
+    def venv_post_creation_patch(self) -> None:
+        # pip older than 21.3 builds executables such as pip.exe for x64 platform.
+        # The first re-install of pip updates pip module but builds pip.exe using
+        # the old pip which still generates x64 executable. But the second
+        # re-install uses updated pip and correctly builds pip.exe for the target.
+        # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
+        # pip versions newer than 21.3.
+        if self.identifier.endswith("arm64") and self.venv.pip_version < Version("21.3"):
+            self.venv.install("--force-reinstall", "pip", use_constraints=True)
 
 
 def build_one(
-    platform_backend: NativePlatformBackend, config: PythonConfiguration, options: Options
+    platform: NativePlatformBackend, config: PythonConfiguration, options: Options
 ) -> None:
     build_options = options.build_options(config.identifier)
     log.build_start(config.identifier)
 
-    with platform_backend.tmp_dir("install") as install_tmp_dir:
+    with platform.tmp_dir("install") as install_tmp_dir:
         base_python = install_python(Path(install_tmp_dir), config)
 
-    with platform_backend.tmp_dir("repaired_wheel") as repaired_wheel_dir:
-
-        with platform_backend.tmp_dir("build") as build_tmp_dir:
-            venv = setup_build_venv(
-                platform_backend,
-                Path(build_tmp_dir / "venv"),
-                base_python,
-                config.identifier,
-                build_options.dependency_constraints,
-                build_options.environment,
-            )
-            builder = BuilderBackend(build_options, venv, config.identifier)
-            builder.install_build_tools([])
-            repaired_wheel = builder.build(repaired_wheel_dir)[0]
-            constraints_dict = venv.constraints_dict
+    with platform.tmp_dir("repaired_wheel") as repaired_wheel_dir:
+        builder = _Builder(platform, config.identifier, base_python, build_options)
+        repaired_wheel = build_identifier(builder, repaired_wheel_dir)[0]
+        constraints_dict = builder.constraints_dict
 
         if build_options.test_command and options.globals.test_selector(config.identifier):
-            test_one(platform_backend, base_python, constraints_dict, build_options, repaired_wheel)
+            test_one(platform, base_python, constraints_dict, build_options, repaired_wheel)
 
         # we're all done here; move it to output (remove if already exists)
         shutil.move(str(repaired_wheel), build_options.output_dir)

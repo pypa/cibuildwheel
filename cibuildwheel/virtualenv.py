@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path, PurePath
-from typing import Dict, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
@@ -74,6 +74,16 @@ def _virtualenv(
     ):
         additional_flags.append("--symlink-app-data")
 
+    env = platform.env.copy()
+
+    # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
+    # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
+    # Also fix an issue with the shebang of installed scripts inside the
+    # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
+    # https://github.com/pypa/virtualenv/issues/620
+    # Also see https://github.com/python/cpython/pull/9516
+    env.pop("__PYVENV_LAUNCHER__", None)
+
     platform.call(
         *arch_prefix,
         python,
@@ -83,12 +93,12 @@ def _virtualenv(
         "--no-periodic-update",
         *additional_flags,
         venv_path,
+        env=env,
     )
     if platform.name == "windows":
         paths = [str(venv_path), str(venv_path / "Scripts")]
     else:
         paths = [str(venv_path / "bin")]
-    env = platform.env.copy()
     env["PATH"] = platform.pathsep.join(paths + [env["PATH"]])
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -122,8 +132,11 @@ class VirtualEnvBase:
     def shell(self, command: str, cwd: Optional[PathOrStr] = None) -> None:
         self.base.shell(self.arch_prefix_shell + command, cwd=cwd, env=self.env)
 
-    def install(self, *args: PathOrStr) -> None:
-        self.call("python", "-m", "pip", "install", *args)
+    def install(self, *args: PathOrStr, use_constraints: bool = False) -> None:
+        constraints_flags: List[PathOrStr] = []
+        if use_constraints and self.constraints_path is not None:
+            constraints_flags = ["-c", self.constraints_path]
+        self.call("python", "-m", "pip", "install", *args, *constraints_flags)
 
     def which(self, cmd: str) -> PurePath:
         return self.base.which(cmd, env=self.env)
@@ -145,7 +158,7 @@ class VirtualEnvBase:
 
         # check what Python version we're on
         _check("python")
-        self.call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"")
+        self.call("python", "-c", "import struct; print(struct.calcsize('P') * 8)")
 
         # check what pip version we're on
         _check("pip")
@@ -204,3 +217,7 @@ class FakeVirtualEnv(VirtualEnvBase):
         self.base = platform
         super().__init__(platform, venv_path, arch)
         self.env["PATH"] = f'{venv_path / "bin"}:{self.env["PATH"]}'
+
+    @property
+    def is_fake(self) -> bool:
+        return True

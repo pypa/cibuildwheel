@@ -10,8 +10,7 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 from filelock import FileLock
 
 from .architecture import Architecture
-from .backend import BuilderBackend, test_one
-from .environment import ParsedEnvironment
+from .backend import BuilderBackend, build_identifier, test_one
 from .logger import log
 from .options import Options
 from .platform_backend import NativePlatformBackend
@@ -19,7 +18,6 @@ from .typing import Literal, PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     BuildSelector,
-    DependencyConstraints,
     call,
     detect_ci_provider,
     download,
@@ -29,7 +27,6 @@ from .util import (
     shell,
     unwrap,
 )
-from .virtualenv import VirtualEnv
 
 
 def get_macos_version() -> Tuple[int, int]:
@@ -135,93 +132,55 @@ def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path
     return base_python
 
 
-def setup_build_venv(
-    platform_backend: NativePlatformBackend,
-    tmp: Path,
-    base_python: Path,
-    identifier: str,
-    python_version: str,
-    dependency_constraints: Optional[DependencyConstraints],
-    environment: ParsedEnvironment,
-) -> VirtualEnv:
-    tmp.mkdir()
+class _Builder(BuilderBackend):
+    def get_extra_build_tools(self) -> Sequence[str]:
+        return ["delocate"]
 
-    log.step("Setting up build environment...")
+    def update_build_env(self, env: Dict[str, str]) -> None:
+        # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
+        # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
+        env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
 
-    dependency_constraint_flags: Sequence[PathOrStr] = []
-    constraints_path: Optional[Path] = None
-    if dependency_constraints:
-        constraints_path = dependency_constraints.get_for_identifier(identifier)
-        dependency_constraint_flags = ["-c", constraints_path]
+        config_is_arm64 = self.identifier.endswith("arm64")
+        config_is_universal2 = self.identifier.endswith("universal2")
 
-    venv_path = tmp / "venv"
-    venv = VirtualEnv(platform_backend, base_python, venv_path, constraints_path=constraints_path)
+        if self.identifier[2:5] not in {"36-", "37-"}:
+            if config_is_arm64:
+                # macOS 11 is the first OS with arm64 support, so the wheels
+                # have that as a minimum.
+                env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
+                env.setdefault("ARCHFLAGS", "-arch arm64")
+            elif config_is_universal2:
+                env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
+                env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+            elif self.identifier.endswith("x86_64"):
+                # even on the macos11.0 Python installer, on the x86_64 side it's
+                # compatible back to 10.9.
+                env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
+                env.setdefault("ARCHFLAGS", "-arch x86_64")
 
-    # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
-    # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
-    # Also fix an issue with the shebang of installed scripts inside the
-    # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
-    # https://github.com/pypa/virtualenv/issues/620
-    # Also see https://github.com/python/cpython/pull/9516
-    venv.env.pop("__PYVENV_LAUNCHER__", None)
+        building_arm64 = config_is_arm64 or config_is_universal2
+        if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in env:
+            # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
+            # needs the correct SDK selected.
+            sdks = get_macos_sdks()
 
-    # upgrade pip to the version matching our constraints
-    # if necessary, reinstall it to ensure that it's available on PATH as 'pip'
-    venv.install("--upgrade", "pip", *dependency_constraint_flags)
+            # Different versions of Xcode contain different SDK versions...
+            # we're happy with anything newer than macOS 11.0
+            arm64_compatible_sdks = [s for s in sdks if not s.startswith("macosx10.")]
 
-    # Apply our environment after pip is ready
-    venv.env = environment.as_dictionary(venv.env, venv.base.environment_executor)
-
-    venv.sanity_check()
-
-    # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
-    # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
-    venv.env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
-
-    config_is_arm64 = identifier.endswith("arm64")
-    config_is_universal2 = identifier.endswith("universal2")
-
-    if python_version not in {"3.6", "3.7"}:
-        if config_is_arm64:
-            # macOS 11 is the first OS with arm64 support, so the wheels
-            # have that as a minimum.
-            venv.env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
-            venv.env.setdefault("ARCHFLAGS", "-arch arm64")
-        elif config_is_universal2:
-            venv.env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
-            venv.env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
-        elif identifier.endswith("x86_64"):
-            # even on the macos11.0 Python installer, on the x86_64 side it's
-            # compatible back to 10.9.
-            venv.env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
-            venv.env.setdefault("ARCHFLAGS", "-arch x86_64")
-
-    building_arm64 = config_is_arm64 or config_is_universal2
-    if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in venv.env:
-        # xcode 12.2 or higher can build arm64 on macos 10.15 or below, but
-        # needs the correct SDK selected.
-        sdks = get_macos_sdks()
-
-        # Different versions of Xcode contain different SDK versions...
-        # we're happy with anything newer than macOS 11.0
-        arm64_compatible_sdks = [s for s in sdks if not s.startswith("macosx10.")]
-
-        if not arm64_compatible_sdks:
-            log.warning(
-                unwrap(
-                    """
-                    SDK for building arm64-compatible wheels not found. You need Xcode 12.2 or later
-                    to build universal2 or arm64 wheels.
-                    """
+            if not arm64_compatible_sdks:
+                log.warning(
+                    unwrap(
+                        """
+                        SDK for building arm64-compatible wheels not found. You need Xcode 12.2 or later
+                        to build universal2 or arm64 wheels.
+                        """
+                    )
                 )
-            )
-        else:
-            venv.env.setdefault("SDKROOT", arm64_compatible_sdks[0])
+            else:
+                env.setdefault("SDKROOT", arm64_compatible_sdks[0])
 
-    return venv
-
-
-class _BuilderBackend(BuilderBackend):
     def update_repair_kwargs(self, repair_kwargs: Dict[str, PathOrStr]) -> None:
         if self.identifier.endswith("universal2"):
             repair_kwargs["delocate_archs"] = "x86_64,arm64"
@@ -243,20 +202,9 @@ def build_one(
         base_python = install_python(Path(install_tmp_dir), config)
 
     with platform_backend.tmp_dir("repaired_wheel") as repaired_wheel_dir:
-        with platform_backend.tmp_dir("build") as build_tmp_dir:
-            venv = setup_build_venv(
-                platform_backend,
-                Path(build_tmp_dir / "venv"),
-                base_python,
-                config.identifier,
-                config.version,
-                build_options.dependency_constraints,
-                build_options.environment,
-            )
-            builder = _BuilderBackend(build_options, venv, config.identifier)
-            builder.install_build_tools(["delocate"])
-            repaired_wheel = builder.build(repaired_wheel_dir)[0]
-            constraints_dict = venv.constraints_dict
+        builder = _Builder(platform_backend, config.identifier, base_python, build_options)
+        repaired_wheel = build_identifier(builder, repaired_wheel_dir)[0]
+        constraints_dict = builder.constraints_dict
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             machine_arch = platform.machine()

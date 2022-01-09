@@ -2,16 +2,16 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import Iterator, List, NamedTuple, Set, Tuple
+from typing import Iterator, List, NamedTuple, Optional, Set, Tuple
 
 from .architecture import Architecture
-from .backend import BuilderBackend, test_one
+from .backend import BuilderBackend, build_identifier, test_one
 from .docker_container import DockerContainer
 from .logger import log
 from .options import Options
 from .typing import OrderedDict
 from .util import BuildSelector, prepare_command, read_python_configs
-from .virtualenv import FakeVirtualEnv
+from .virtualenv import FakeVirtualEnv, VirtualEnvBase
 
 
 class PythonConfiguration(NamedTuple):
@@ -95,6 +95,20 @@ def get_build_steps(
     yield from steps.values()
 
 
+class _Builder(BuilderBackend):
+    def virtualenv(self, venv: PurePath, constraints: Optional[Path] = None) -> VirtualEnvBase:
+        venv = self._base_python.parent.parent  # override venv path for this fake venv
+        return FakeVirtualEnv(self._platform, self._base_python, venv, constraints)
+
+    @property
+    def skip_upgrade_pip(self) -> bool:
+        return True
+
+    @property
+    def skip_install_build_tools(self) -> bool:
+        return True
+
+
 def build_one(
     config: PythonConfiguration,
     options: Options,
@@ -104,23 +118,12 @@ def build_one(
     log.build_start(config.identifier)
     build_options = options.build_options(config.identifier)
 
-    log.step("Setting up build environment...")
-
-    # put this config's python top of the list
-    base_python = config.path / "bin" / "python"
-    venv = FakeVirtualEnv(docker, base_python, config.path)
-    venv.env = build_options.environment.as_dictionary(
-        venv.env, executor=docker.environment_executor
-    )
-    # check config python is still on PATH
-    venv.sanity_check()
-
     with docker.tmp_dir("repaired_wheel_dir") as repaired_wheel_dir:
-        builder = BuilderBackend(build_options, venv, config.identifier)
-        repaired_wheels = builder.build(repaired_wheel_dir)
+        base_python = config.path / "bin" / "python"
+        builder = _Builder(docker, config.identifier, base_python, build_options)
+        repaired_wheels = build_identifier(builder, repaired_wheel_dir)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
-            log.step("Testing wheel...")
             constraints = {"pip": "embed", "setuptools": "embed", "wheel": "embed"}
             # Note: If auditwheel<4.0.0 produced two wheels, it's because the earlier produced wheel
             # conforms to multiple manylinux standards. These multiple versions of the wheel are

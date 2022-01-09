@@ -260,6 +260,17 @@ class DockerContainer(PlatformBackend):
         except subprocess.CalledProcessError:
             return False
 
+    def is_dir(self, path: PurePath) -> bool:
+        try:
+            self.call("test", "-d", path)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    def move_files(self, *args: PurePath, dest: PurePath) -> None:
+        assert self.is_dir(dest)
+        self.call("mv", *args, f"{dest}/")
+
     def get_environment(self) -> Dict[str, str]:
         return self.env
 
