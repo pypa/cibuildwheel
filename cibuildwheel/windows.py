@@ -10,19 +10,11 @@ from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .backend import BuilderBackend, build_identifier, test_one
+from .backend import BuilderBackend, build_identifier, run_before_all, test_one
 from .logger import log
 from .options import Options
 from .platform_backend import NativePlatformBackend
-from .util import (
-    CIBW_CACHE_PATH,
-    BuildSelector,
-    call,
-    download,
-    prepare_command,
-    read_python_configs,
-    shell,
-)
+from .util import CIBW_CACHE_PATH, BuildSelector, call, download, read_python_configs
 
 
 def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
@@ -166,16 +158,7 @@ def build(options: Options, tmp_dir: Path) -> None:
     try:
         before_all_options_identifier = python_configurations[0].identifier
         before_all_options = options.build_options(before_all_options_identifier)
-
-        if before_all_options.before_all:
-            log.step("Running before_all...")
-            env = before_all_options.environment.as_dictionary(
-                platform_backend.env, platform_backend.environment_executor
-            )
-            before_all_prepared = prepare_command(
-                before_all_options.before_all, project=".", package=options.globals.package_dir
-            )
-            shell(before_all_prepared, env=env)
+        run_before_all(platform_backend, before_all_options, platform_backend.env)
 
         for config in python_configurations:
             build_one(platform_backend, config, options)

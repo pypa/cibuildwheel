@@ -260,3 +260,15 @@ def test_one(
         assert build_options.test_command is not None
         test_command_prepared = prepare_command(build_options.test_command, **prepare_kwargs)
         venv.shell(test_command_prepared, cwd=venv.base.home)
+
+
+def run_before_all(platform: PlatformBackend, options: BuildOptions, env: Dict[str, str]) -> None:
+    if options.before_all:
+        log.step("Running before_all...")
+        prepare_kwargs = {
+            "project": platform.get_remote_path(Path(".").resolve()),
+            "package": platform.get_remote_path(options.package_dir.resolve()),
+        }
+        before_all_prepared = prepare_command(options.before_all, **prepare_kwargs)
+        env = options.environment.as_dictionary(env, platform.environment_executor)
+        platform.shell(before_all_prepared, env=env)

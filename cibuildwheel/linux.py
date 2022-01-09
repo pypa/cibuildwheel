@@ -5,12 +5,12 @@ from pathlib import Path, PurePath
 from typing import Iterator, List, NamedTuple, Optional, Set, Tuple
 
 from .architecture import Architecture
-from .backend import BuilderBackend, build_identifier, test_one
+from .backend import BuilderBackend, build_identifier, run_before_all, test_one
 from .docker_container import DockerContainer
 from .logger import log
 from .options import Options
 from .typing import OrderedDict
-from .util import BuildSelector, prepare_command, read_python_configs
+from .util import BuildSelector, read_python_configs
 from .virtualenv import FakeVirtualEnv, VirtualEnvBase
 
 
@@ -134,7 +134,7 @@ def build_one(
 
         # move repaired wheels to output
         docker.mkdir(container_output_dir, parents=True, exist_ok=True)
-        docker.call("mv", *repaired_wheels, container_output_dir)
+        docker.move_files(*repaired_wheels, dest=container_output_dir)
 
     log.build_end()
 
@@ -145,7 +145,6 @@ def build_on_docker(
     platform_configs: List[PythonConfiguration],
     docker: DockerContainer,
     container_project_path: PurePath,
-    container_package_dir: PurePath,
 ) -> None:
     container_output_dir = PurePath("/output")
 
@@ -154,23 +153,10 @@ def build_on_docker(
 
     before_all_options_identifier = platform_configs[0].identifier
     before_all_options = options.build_options(before_all_options_identifier)
-
-    if before_all_options.before_all:
-        log.step("Running before_all...")
-
-        env = docker.get_environment()
-        env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
-        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-        env = before_all_options.environment.as_dictionary(
-            env, executor=docker.environment_executor
-        )
-
-        before_all_prepared = prepare_command(
-            before_all_options.before_all,
-            project=container_project_path,
-            package=container_package_dir,
-        )
-        docker.call("sh", "-c", before_all_prepared, env=env)
+    env = docker.env.copy()
+    env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    run_before_all(docker, before_all_options, env)
 
     for config in platform_configs:
         build_one(config, options, docker, container_output_dir)
@@ -204,7 +190,6 @@ def build(options: Options, tmp_path: Path) -> None:
         raise Exception("package_dir must be inside the working directory")
 
     container_project_path = PurePath("/project")
-    container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
 
     for build_step in get_build_steps(options, python_configurations):
         try:
@@ -224,7 +209,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     platform_configs=build_step.platform_configs,
                     docker=docker,
                     container_project_path=container_project_path,
-                    container_package_dir=container_package_dir,
                 )
 
         except subprocess.CalledProcessError as error:

@@ -10,7 +10,7 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 from filelock import FileLock
 
 from .architecture import Architecture
-from .backend import BuilderBackend, build_identifier, test_one
+from .backend import BuilderBackend, build_identifier, run_before_all, test_one
 from .logger import log
 from .options import Options
 from .platform_backend import NativePlatformBackend
@@ -22,9 +22,7 @@ from .util import (
     detect_ci_provider,
     download,
     install_certifi_script,
-    prepare_command,
     read_python_configs,
-    shell,
     unwrap,
 )
 
@@ -290,17 +288,9 @@ def build(options: Options, tmp_dir: Path) -> None:
     try:
         before_all_options_identifier = python_configurations[0].identifier
         before_all_options = options.build_options(before_all_options_identifier)
-
-        if before_all_options.before_all:
-            log.step("Running before_all...")
-            env = before_all_options.environment.as_dictionary(
-                platform_backend.env, platform_backend.environment_executor
-            )
-            env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
-            before_all_prepared = prepare_command(
-                before_all_options.before_all, project=".", package=before_all_options.package_dir
-            )
-            shell(before_all_prepared, env=env)
+        env = platform_backend.env.copy()
+        env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
+        run_before_all(platform_backend, before_all_options, env)
 
         for config in python_configurations:
             build_one(platform_backend, config, options)
