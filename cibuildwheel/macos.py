@@ -4,16 +4,16 @@ import re
 import shutil
 import subprocess
 import sys
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 from filelock import FileLock
 
 from .architecture import Architecture
-from .backend import BuilderBackend, test_one_base
+from .backend import BuilderBackend, test_one
 from .environment import ParsedEnvironment
 from .logger import log
-from .options import BuildOptions, Options
+from .options import Options
 from .platform_backend import NativePlatformBackend
 from .typing import Literal, PathOrStr
 from .util import (
@@ -243,38 +243,6 @@ def setup_build_venv(
     return venv
 
 
-def test_one(
-    platform_backend: NativePlatformBackend,
-    base_python: Path,
-    constraints_dict: Dict[str, str],
-    build_options: BuildOptions,
-    repaired_wheel: PurePath,
-    testing_arch: str,
-) -> None:
-    machine_arch = platform.machine()
-    venv_arch = None
-    if testing_arch != machine_arch:
-        if machine_arch == "arm64" and testing_arch == "x86_64":
-            # rosetta2 will provide the emulation with just the arch prefix.
-            venv_arch = testing_arch
-        else:
-            raise RuntimeError("don't know how to emulate {testing_arch} on {machine_arch}")
-
-    with platform_backend.tmp_dir("test-venv") as venv_dir:
-        venv = VirtualEnv(
-            platform_backend,
-            base_python,
-            venv_dir,
-            constraints_dict=constraints_dict,
-            arch=venv_arch,
-        )
-        # update env with results from CIBW_ENVIRONMENT
-        venv.env = build_options.environment.as_dictionary(venv.env, venv.base.environment_executor)
-        # check that we are using the Python from the virtual environment
-        venv.call("which", "python")
-        test_one_base(venv, build_options, repaired_wheel)
-
-
 class _BuilderBackend(BuilderBackend):
     def update_repair_kwargs(self, repair_kwargs: Dict[str, PathOrStr]) -> None:
         if self.identifier.endswith("universal2"):
@@ -363,13 +331,23 @@ def build_one(
 
                     # skip this test
                     continue
+                venv_arch: Optional[str] = None
+                if testing_arch != machine_arch:
+                    if machine_arch == "arm64" and testing_arch == "x86_64":
+                        # rosetta2 will provide the emulation with just the arch prefix.
+                        venv_arch = testing_arch
+                    else:
+                        raise RuntimeError(
+                            "don't know how to emulate {testing_arch} on {machine_arch}"
+                        )
+
                 test_one(
                     platform_backend,
                     base_python,
                     constraints_dict,
                     build_options,
                     repaired_wheel,
-                    testing_arch,
+                    arch=venv_arch,
                 )
 
         # we're all done here; move it to output (overwrite existing)

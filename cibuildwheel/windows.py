@@ -2,18 +2,18 @@ import shutil
 import subprocess
 import sys
 from functools import lru_cache
-from pathlib import Path, PurePath
-from typing import Dict, List, NamedTuple, Optional, Sequence, Set
+from pathlib import Path
+from typing import List, NamedTuple, Optional, Sequence, Set
 from zipfile import ZipFile
 
 from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .backend import BuilderBackend, test_one_base
+from .backend import BuilderBackend, test_one
 from .environment import ParsedEnvironment
 from .logger import log
-from .options import BuildOptions, Options
+from .options import Options
 from .platform_backend import NativePlatformBackend
 from .typing import PathOrStr
 from .util import (
@@ -184,24 +184,6 @@ def setup_build_venv(
 
     venv.call("pip", "--version")
     return venv
-
-
-def test_one(
-    platform_backend: NativePlatformBackend,
-    base_python: Path,
-    constraints_dict: Dict[str, str],
-    build_options: BuildOptions,
-    repaired_wheel: PurePath,
-) -> None:
-    with platform_backend.tmp_dir("test-venv") as venv_dir:
-        venv = VirtualEnv(
-            platform_backend, base_python, venv_dir, constraints_dict=constraints_dict
-        )
-        # update env with results from CIBW_ENVIRONMENT
-        venv.env = build_options.environment.as_dictionary(venv.env, venv.base.environment_executor)
-        # check that we are using the Python from the virtual environment
-        venv.call("where", "python")
-        test_one_base(venv, build_options, repaired_wheel)
 
 
 def build_one(

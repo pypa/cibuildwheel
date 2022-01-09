@@ -2,16 +2,16 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path, PurePath
-from typing import Dict, Iterator, List, NamedTuple, Set, Tuple
+from typing import Iterator, List, NamedTuple, Set, Tuple
 
 from .architecture import Architecture
-from .backend import BuilderBackend, test_one_base
+from .backend import BuilderBackend, test_one
 from .docker_container import DockerContainer
 from .logger import log
-from .options import BuildOptions, Options
+from .options import Options
 from .typing import OrderedDict
 from .util import BuildSelector, prepare_command, read_python_configs
-from .virtualenv import FakeVirtualEnv, VirtualEnv
+from .virtualenv import FakeVirtualEnv
 
 
 class PythonConfiguration(NamedTuple):
@@ -93,26 +93,6 @@ def get_build_steps(
             )
 
     yield from steps.values()
-
-
-def test_one(
-    platform_backend: DockerContainer,
-    base_python: PurePath,
-    constraints_dict: Dict[str, str],
-    build_options: BuildOptions,
-    repaired_wheel: PurePath,
-) -> None:
-    with platform_backend.tmp_dir("test-venv") as venv_dir:
-        venv = VirtualEnv(
-            platform_backend, base_python, venv_dir, constraints_dict=constraints_dict
-        )
-        # update env with results from CIBW_ENVIRONMENT
-        venv.env = build_options.environment.as_dictionary(
-            prev_environment=venv.env, executor=platform_backend.environment_executor
-        )
-        # check that we are using the Python from the virtual environment
-        venv.call("which", "python")
-        test_one_base(venv, build_options, repaired_wheel)
 
 
 def build_one(

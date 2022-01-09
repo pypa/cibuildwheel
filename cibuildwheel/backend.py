@@ -4,13 +4,14 @@ from typing import Dict, Iterable, Optional, Sequence
 
 from .logger import log
 from .options import BuildOptions
+from .platform_backend import PlatformBackend
 from .typing import PathOrStr, assert_never
 from .util import (
     NonPlatformWheelError,
     get_build_verbosity_extra_flags,
     prepare_command,
 )
-from .virtualenv import VirtualEnvBase
+from .virtualenv import VirtualEnv, VirtualEnvBase
 
 
 class BuilderBackend:
@@ -119,29 +120,45 @@ class BuilderBackend:
         pass
 
 
-def test_one_base(
-    venv: VirtualEnvBase, build_options: BuildOptions, repaired_wheel: PurePath
+def test_one(
+    platform_backend: PlatformBackend,
+    base_python: PurePath,
+    constraints_dict: Dict[str, str],
+    build_options: BuildOptions,
+    repaired_wheel: PurePath,
+    arch: Optional[str] = None,
 ) -> None:
-    log.step("Testing wheel..." if venv.arch is None else f"Testing wheel on {venv.arch}...")
-    prepare_kwargs = {
-        "project": venv.base.get_remote_path(Path(".").resolve()),
-        "package": venv.base.get_remote_path(build_options.package_dir.resolve()),
-    }
+    log.step("Testing wheel..." if arch is None else f"Testing wheel on {arch}...")
+    with platform_backend.tmp_dir("test-venv") as venv_dir:
+        venv = VirtualEnv(
+            platform_backend, base_python, venv_dir, constraints_dict=constraints_dict, arch=arch
+        )
+        # update env with results from CIBW_ENVIRONMENT
+        venv.env = build_options.environment.as_dictionary(
+            prev_environment=venv.env, executor=platform_backend.environment_executor
+        )
+        # check that we are using the Python from the virtual environment
+        # TODO venv.call("which", "python")
 
-    if build_options.before_test:
-        before_test_prepared = prepare_command(build_options.before_test, **prepare_kwargs)
-        venv.shell(before_test_prepared)
+        prepare_kwargs = {
+            "project": venv.base.get_remote_path(Path(".").resolve()),
+            "package": venv.base.get_remote_path(build_options.package_dir.resolve()),
+        }
 
-    # install the wheel
-    venv.install(f"{repaired_wheel}{build_options.test_extras}")
+        if build_options.before_test:
+            before_test_prepared = prepare_command(build_options.before_test, **prepare_kwargs)
+            venv.shell(before_test_prepared)
 
-    # test the wheel
-    if build_options.test_requires:
-        venv.install(*build_options.test_requires)
+        # install the wheel
+        venv.install(f"{repaired_wheel}{build_options.test_extras}")
 
-    # run the tests from $HOME, with an absolute path in the command
-    # (this ensures that Python runs the tests against the installed wheel
-    # and not the repo code)
-    assert build_options.test_command is not None
-    test_command_prepared = prepare_command(build_options.test_command, **prepare_kwargs)
-    venv.shell(test_command_prepared, cwd=venv.base.home)
+        # test the wheel
+        if build_options.test_requires:
+            venv.install(*build_options.test_requires)
+
+        # run the tests from $HOME, with an absolute path in the command
+        # (this ensures that Python runs the tests against the installed wheel
+        # and not the repo code)
+        assert build_options.test_command is not None
+        test_command_prepared = prepare_command(build_options.test_command, **prepare_kwargs)
+        venv.shell(test_command_prepared, cwd=venv.base.home)
