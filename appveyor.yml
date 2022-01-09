@@ -18,6 +18,7 @@ init:
       if (-not ($BRANCH -eq 'main' -or $BRANCH.ToLower().StartsWith('appveyor-'))) {
         $env:PYTEST_ADDOPTS='-k "unit_test or test_0_basic" --suppress-no-test-exit-code'
       }
+      python -m pip install -U pip
 
 install: python -m pip install -e ".[dev]" pytest-custom-exit-code
 

@@ -119,7 +119,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
         "pip": "20.0.2",
         "setuptools": "53.0.0",
         "wheel": "0.34.2",
-        "virtualenv": "20.0.35",
+        "virtualenv": "20.11.2",
     }
 
     constraints_file = tmp_path / "constraints file.txt"
