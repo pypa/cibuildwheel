@@ -181,6 +181,11 @@ def test_dir_operations(tmp_path: Path):
         output = container.call("cat", dst_file, capture_stdout=True)
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
+        # test exists
+        assert container.exists(dst_file)
+        assert container.exists(dst_dir)
+        assert not container.exists(PurePath("/this/path/does/not/exist"))
+
         # test glob
         assert list(container.glob(dst_dir, "*.dat")) == [dst_file]
 
@@ -189,6 +194,13 @@ def test_dir_operations(tmp_path: Path):
         container.copy_out(dst_dir, new_test_dir)
 
         assert test_binary_data == (new_test_dir / "test.dat").read_bytes()
+
+        # test rmtree
+        container.rmtree(dst_dir)
+        assert not container.exists(dst_dir)
+
+        # test home
+        assert container.exists(container.home)
 
 
 @pytest.mark.docker

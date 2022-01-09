@@ -48,6 +48,10 @@ class PlatformBackend:
         ...
 
     @abstractmethod
+    def exists(self, path: PurePath) -> bool:
+        ...
+
+    @abstractmethod
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         ...
 
@@ -159,6 +163,9 @@ class NativePlatformBackend(PlatformBackend):
 
     def glob(self, path: PurePath, pattern: str) -> Iterator[PurePath]:
         return Path(path).glob(pattern)
+
+    def exists(self, path: PurePath) -> bool:
+        return Path(path).exists()
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         assert from_path.exists()

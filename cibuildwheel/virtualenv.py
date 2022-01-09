@@ -130,27 +130,25 @@ class VirtualEnvBase:
 
     def sanity_check(self) -> None:
         ext = ".exe" if self.base.name == "windows" else ""
+
+        def _check(tool: str) -> None:
+            expected_path = self.script_dir / f"{tool}{ext}"
+            assert self.base.exists(expected_path)
+            which = self.which(tool)
+            if which != expected_path:
+                print(
+                    f"cibuildwheel: {tool} available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            self.call(tool, "--version")
+
         # check what Python version we're on
-        which_python = self.which("python")
-        if which_python != self.script_dir / f"python{ext}":
-            print(
-                "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-        self.call("python", "--version")
+        _check("python")
         self.call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"")
 
         # check what pip version we're on
-        # assert (self.script_dir / f"pip{ext}").exists()
-        which_pip = self.which("pip")
-        if which_pip != self.script_dir / f"pip{ext}":
-            print(
-                "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-        self.call("pip", "--version")
+        _check("pip")
 
     @property
     def constraints_dict(self) -> Dict[str, str]:

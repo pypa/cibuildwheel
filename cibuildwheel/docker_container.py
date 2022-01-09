@@ -253,6 +253,13 @@ class DockerContainer(PlatformBackend):
     def rmtree(self, path: PurePath) -> None:
         self.call("rm", "-rf", path)
 
+    def exists(self, path: PurePath) -> bool:
+        try:
+            self.call("test", "-e", path)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
     def get_environment(self) -> Dict[str, str]:
         return self.env
 
