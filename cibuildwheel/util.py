@@ -11,6 +11,7 @@ import textwrap
 import time
 import urllib.request
 from enum import Enum
+from functools import lru_cache
 from pathlib import Path
 from shutil import rmtree
 from time import sleep
@@ -30,6 +31,7 @@ from typing import (
 import bracex
 import certifi
 import tomli
+from filelock import FileLock
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from platformdirs import user_cache_path
@@ -461,3 +463,17 @@ def new_tmp_dir(tmp_dir: Path) -> Iterator[Path]:
         # we ignore errors because occasionally Windows fails to unlink a file and we
         # don't want to abort a build because of that
         rmtree(tmp_dir, ignore_errors=IS_WIN)
+
+
+@lru_cache(maxsize=None)
+def ensure_virtualenv() -> Path:
+    input_file = resources_dir / "virtualenv.toml"
+    with input_file.open("rb") as f:
+        loaded_file = tomli.load(f)
+    version = str(loaded_file["version"])
+    url = str(loaded_file["url"])
+    path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
+    with FileLock(str(path) + ".lock"):
+        if not path.exists():
+            download(url, path)
+    return path

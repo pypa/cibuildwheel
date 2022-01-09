@@ -1,22 +1,11 @@
-import os
-from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Optional, Sequence, overload
 
-import tomli
-from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
 
+from cibuildwheel.platform_backend import PlatformBackend
 from cibuildwheel.typing import Final, Literal, PathOrStr
-from cibuildwheel.util import (
-    CIBW_CACHE_PATH,
-    IS_WIN,
-    call,
-    download,
-    resources_dir,
-    shell,
-)
 
 _SEED_PACKAGES: Final = ["pip", "setuptools", "wheel"]
 
@@ -61,25 +50,13 @@ def _parse_constraints_for_virtualenv(constraints_path: Optional[Path]) -> Dict[
     return constraints_dict
 
 
-@lru_cache(maxsize=None)
-def _ensure_virtualenv() -> Path:
-    input_file = resources_dir / "virtualenv.toml"
-    with input_file.open("rb") as f:
-        loaded_file = tomli.load(f)
-    version = str(loaded_file["version"])
-    url = str(loaded_file["url"])
-    path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
-    with FileLock(str(path) + ".lock"):
-        if not path.exists():
-            download(url, path)
-    return path
-
-
 def _virtualenv(
-    arch_prefix: Sequence[str], python: Path, venv_path: Path, constraints: Dict[str, str]
+    platform: PlatformBackend,
+    arch_prefix: Sequence[str],
+    python: Path,
+    venv_path: Path,
+    constraints: Dict[str, str],
 ) -> Dict[str, str]:
-    assert python.exists()
-    virtualenv_app = _ensure_virtualenv()
 
     additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
 
@@ -90,28 +67,28 @@ def _virtualenv(
     # version of pip that will end-up installed.
     # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
     if (
-        not IS_WIN
+        platform.name != "windows"
         and constraints["pip"] != "embed"
         and Version(constraints["pip"]) >= Version("19.3")
     ):
         additional_flags.append("--symlink-app-data")
 
-    call(
+    platform.call(
         *arch_prefix,
         python,
         "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
-        virtualenv_app,
+        platform.virtualenv_path,
         "--activators=",
         "--no-periodic-update",
         *additional_flags,
         venv_path,
     )
-    if IS_WIN:
+    if platform.name == "windows":
         paths = [str(venv_path), str(venv_path / "Scripts")]
     else:
         paths = [str(venv_path / "bin")]
-    env = os.environ.copy()
-    env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
+    env = platform.env.copy()
+    env["PATH"] = platform.pathsep.join(paths + [env["PATH"]])
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     return env
@@ -120,6 +97,7 @@ def _virtualenv(
 class VirtualEnv:
     def __init__(
         self,
+        platform: PlatformBackend,
         python: Path,
         venv_path: Path,
         constraints_path: Optional[Path] = None,
@@ -131,25 +109,40 @@ class VirtualEnv:
         else:
             assert set(constraints_dict.keys()) == set(_SEED_PACKAGES)
             constraints = constraints_dict
+        self.base = platform
         self.venv_path = venv_path
         self.arch = arch
         self.arch_prefix = ("arch", f"-{arch}") if arch else tuple()
         self.arch_prefix_shell = (" ".join(self.arch_prefix) + " ").strip()
-        self.env = _virtualenv(self.arch_prefix, python, venv_path, constraints)
+        self.env = _virtualenv(platform, self.arch_prefix, python, venv_path, constraints)
 
     @overload
-    def call(self, *args: PathOrStr, capture_stdout: Literal[False] = ...) -> None:
+    def call(
+        self,
+        *args: PathOrStr,
+        env: Optional[Dict[str, str]] = None,
+        capture_stdout: Literal[False] = ...,
+    ) -> None:
         ...
 
     @overload
-    def call(self, *args: PathOrStr, capture_stdout: Literal[True]) -> str:
+    def call(
+        self, *args: PathOrStr, env: Optional[Dict[str, str]] = None, capture_stdout: Literal[True]
+    ) -> str:
         ...
 
-    def call(self, *args: PathOrStr, capture_stdout: Literal[False, True] = False) -> Optional[str]:
-        return call(*self.arch_prefix, *args, env=self.env, capture_stdout=capture_stdout)
+    def call(
+        self,
+        *args: PathOrStr,
+        env: Optional[Dict[str, str]] = None,
+        capture_stdout: Literal[False, True] = False,
+    ) -> Optional[str]:
+        if env is None:
+            env = self.env
+        return self.base.call(*self.arch_prefix, *args, env=env, capture_stdout=capture_stdout)
 
     def shell(self, command: str, cwd: Optional[PathOrStr] = None) -> None:
-        shell(self.arch_prefix_shell + command, cwd=cwd, env=self.env)
+        self.base.shell(self.arch_prefix_shell + command, cwd=cwd, env=self.env)
 
     def install(self, *args: PathOrStr) -> None:
         self.call("python", "-m", "pip", "install", *args)

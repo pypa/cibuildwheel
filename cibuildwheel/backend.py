@@ -1,13 +1,12 @@
 import shutil
 from pathlib import Path
-from typing import Dict, Iterable, Sequence
+from typing import Dict, Iterable, Optional, Sequence
 
 from .logger import log
 from .options import BuildOptions
 from .typing import PathOrStr, assert_never
 from .util import (
     NonPlatformWheelError,
-    call,
     get_build_verbosity_extra_flags,
     prepare_command,
 )
@@ -28,8 +27,8 @@ class BuilderBackend:
         self.venv = venv
         self.identifier = identifier
 
-    def call(self, *args: PathOrStr) -> None:
-        self.venv.call(*args)
+    def call(self, *args: PathOrStr, env: Optional[Dict[str, str]] = None) -> None:
+        self.venv.call(*args, env=env)
 
     def shell(self, command: str) -> None:
         self.venv.shell(command)
@@ -91,7 +90,7 @@ class BuilderBackend:
 
                 build_env["PIP_CONSTRAINT"] = str(constraints_path)
                 build_env["VIRTUALENV_PIP"] = str(self.venv.pip_version)
-            call(
+            self.call(
                 "python",
                 "-m",
                 "build",

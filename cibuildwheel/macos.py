@@ -14,6 +14,7 @@ from .backend import BuilderBackend, test_one_base
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import BuildOptions, Options
+from .platform_backend import NativePlatformBackend
 from .typing import Literal, PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
@@ -136,6 +137,7 @@ def install_python(tmp: Path, python_configuration: PythonConfiguration) -> Path
 
 
 def setup_build_venv(
+    platform_backend: NativePlatformBackend,
     tmp: Path,
     base_python: Path,
     identifier: str,
@@ -154,7 +156,7 @@ def setup_build_venv(
         dependency_constraint_flags = ["-c", constraints_path]
 
     venv_path = tmp / "venv"
-    venv = VirtualEnv(base_python, venv_path, constraints_path=constraints_path)
+    venv = VirtualEnv(platform_backend, base_python, venv_path, constraints_path=constraints_path)
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
@@ -243,6 +245,7 @@ def setup_build_venv(
 
 
 def test_one(
+    platform_backend: NativePlatformBackend,
     tmp_dir: Path,
     base_python: Path,
     constraints_dict: Dict[str, str],
@@ -261,7 +264,9 @@ def test_one(
 
     # todo arch ?
     venv_dir = tmp_dir / "venv"
-    venv = VirtualEnv(base_python, venv_dir, constraints_dict=constraints_dict, arch=venv_arch)
+    venv = VirtualEnv(
+        platform_backend, base_python, venv_dir, constraints_dict=constraints_dict, arch=venv_arch
+    )
     # update env with results from CIBW_ENVIRONMENT
     venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
     # check that we are using the Python from the virtual environment
@@ -279,7 +284,12 @@ class _BuilderBackend(BuilderBackend):
             repair_kwargs["delocate_archs"] = "x86_64"
 
 
-def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> None:
+def build_one(
+    platform_backend: NativePlatformBackend,
+    config: PythonConfiguration,
+    options: Options,
+    tmp_dir: Path,
+) -> None:
     build_options = options.build_options(config.identifier)
     log.build_start(config.identifier)
 
@@ -289,6 +299,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
     repaired_wheel_dir = tmp_dir / "repaired_wheel"
     with new_tmp_dir(tmp_dir / "build") as build_tmp_dir:
         venv = setup_build_venv(
+            platform_backend,
             build_tmp_dir / "venv",
             base_python,
             config.identifier,
@@ -354,6 +365,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
                 continue
             with new_tmp_dir(tmp_dir / "test") as test_tmp_dir:
                 test_one(
+                    platform_backend,
                     test_tmp_dir,
                     base_python,
                     constraints_dict,
@@ -368,6 +380,7 @@ def build_one(config: PythonConfiguration, options: Options, tmp_dir: Path) -> N
 
 
 def build(options: Options, tmp_dir: Path) -> None:
+    platform_backend = NativePlatformBackend()
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
@@ -387,7 +400,7 @@ def build(options: Options, tmp_dir: Path) -> None:
 
         for config in python_configurations:
             with new_tmp_dir(tmp_dir / config.identifier) as identifier_tmp_dir:
-                build_one(config, options, identifier_tmp_dir)
+                build_one(platform_backend, config, options, identifier_tmp_dir)
 
     except subprocess.CalledProcessError as error:
         log.step_end_with_error(
