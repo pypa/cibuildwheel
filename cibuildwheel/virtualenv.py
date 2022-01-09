@@ -217,7 +217,3 @@ class FakeVirtualEnv(VirtualEnvBase):
         self.base = platform
         super().__init__(platform, venv_path, arch)
         self.env["PATH"] = f'{venv_path / "bin"}:{self.env["PATH"]}'
-
-    @property
-    def is_fake(self) -> bool:
-        return True

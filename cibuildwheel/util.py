@@ -13,7 +13,6 @@ import urllib.request
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from shutil import rmtree
 from time import sleep
 from typing import (
     Any,
@@ -431,17 +430,6 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
         ),
         sep="\n",
     )
-
-
-@contextlib.contextmanager
-def new_tmp_dir(tmp_dir: Path) -> Iterator[Path]:
-    tmp_dir.mkdir()
-    try:
-        yield tmp_dir
-    finally:
-        # we ignore errors because occasionally Windows fails to unlink a file and we
-        # don't want to abort a build because of that
-        rmtree(tmp_dir, ignore_errors=IS_WIN)
 
 
 @lru_cache(maxsize=None)
