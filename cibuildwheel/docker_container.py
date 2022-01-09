@@ -12,7 +12,7 @@ from typing import IO, Dict, Iterator, List, Optional, Type, cast
 
 from cibuildwheel.platform_backend import PlatformBackend
 from cibuildwheel.typing import PathOrStr, PopenBytes
-from cibuildwheel.util import CIProvider, detect_ci_provider
+from cibuildwheel.util import CIProvider, detect_ci_provider, ensure_virtualenv
 
 
 class DockerContainer(PlatformBackend):
@@ -91,6 +91,7 @@ class DockerContainer(PlatformBackend):
 
         # run a noop command to block until the container is responding
         self.call("/bin/true")
+        self.mkdir(self._tmp_base_dir)
 
         return self
 
@@ -118,8 +119,9 @@ class DockerContainer(PlatformBackend):
         # mounted. https://github.com/moby/moby/issues/38995
         # Use `docker exec` instead.
 
+        print(f"    + copy_into '{from_path}' to '{self.container_name}:{to_path}'")
         if from_path.is_dir():
-            self.call("mkdir", "-p", to_path)
+            self.mkdir(to_path, parents=True, exist_ok=True)
             subprocess.run(
                 f"tar cf - . | docker exec -i {self.container_name} tar -xC {shell_quote(to_path)} -f -",
                 shell=True,
@@ -132,6 +134,7 @@ class DockerContainer(PlatformBackend):
                 shell=True,
                 check=True,
             )
+        super().copy_into_(from_path, to_path)
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
@@ -234,7 +237,27 @@ class DockerContainer(PlatformBackend):
 
         return output
 
+    def shell(
+        self, command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
+    ) -> None:
+        self.call("sh", "-c", command, env=env, cwd=cwd)
+
+    def mkdir(self, path: PurePath, parents: bool = False, exist_ok: bool = False) -> None:
+        options = []
+        if parents != exist_ok:
+            raise NotImplementedError
+        if parents and exist_ok:
+            options = ["-p"]
+        self.call("mkdir", *options, path)
+
+    def rmtree(self, path: PurePath) -> None:
+        self.call("rm", "-rf", path)
+
     def get_environment(self) -> Dict[str, str]:
+        return self.env
+
+    @property
+    def env(self) -> Dict[str, str]:
         env = json.loads(
             self.call(
                 self.UTILITY_PYTHON,
@@ -244,6 +267,23 @@ class DockerContainer(PlatformBackend):
             )
         )
         return cast(Dict[str, str], env)
+
+    @property
+    def pathsep(self) -> str:
+        return ":"
+
+    @property
+    def home(self) -> PurePath:
+        return PurePath("/root")
+
+    @property
+    def virtualenv_path(self) -> PurePath:
+        local_path = ensure_virtualenv()
+        try:
+            return self.get_remote_path(local_path)
+        except FileNotFoundError:
+            self.copy_into(local_path, PurePath("/tmp") / local_path.name)
+            return self.get_remote_path(local_path)
 
     def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output

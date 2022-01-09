@@ -171,7 +171,7 @@ def setup_build_venv(
     venv.install("--upgrade", "pip", *dependency_constraint_flags)
 
     # Apply our environment after pip is ready
-    venv.env = environment.as_dictionary(prev_environment=venv.env)
+    venv.env = environment.as_dictionary(venv.env, venv.base.environment_executor)
 
     # check what pip version we're on
     assert (venv_bin_path / "pip").exists()
@@ -269,7 +269,7 @@ def test_one(
             arch=venv_arch,
         )
         # update env with results from CIBW_ENVIRONMENT
-        venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
+        venv.env = build_options.environment.as_dictionary(venv.env, venv.base.environment_executor)
         # check that we are using the Python from the virtual environment
         venv.call("which", "python")
         test_one_base(venv, build_options, repaired_wheel)
@@ -309,7 +309,7 @@ def build_one(
             )
             builder = _BuilderBackend(build_options, venv, config.identifier)
             builder.install_build_tools(["delocate"])
-            repaired_wheel = builder.build(repaired_wheel_dir)
+            repaired_wheel = builder.build(repaired_wheel_dir)[0]
             constraints_dict = venv.constraints_dict
 
         if build_options.test_command and build_options.test_selector(config.identifier):
@@ -389,7 +389,9 @@ def build(options: Options, tmp_dir: Path) -> None:
 
         if before_all_options.before_all:
             log.step("Running before_all...")
-            env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
+            env = before_all_options.environment.as_dictionary(
+                platform_backend.env, platform_backend.environment_executor
+            )
             env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
             before_all_prepared = prepare_command(
                 before_all_options.before_all, project=".", package=before_all_options.package_dir

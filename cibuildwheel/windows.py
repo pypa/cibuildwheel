@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 import sys
@@ -159,7 +158,7 @@ def setup_build_venv(
     venv.install("--upgrade", "pip", *dependency_constraint_flags)
 
     # update env with results from CIBW_ENVIRONMENT
-    venv.env = environment.as_dictionary(prev_environment=venv.env)
+    venv.env = environment.as_dictionary(venv.env, venv.base.environment_executor)
 
     # check what Python version we're on
     venv.call("where", "python")
@@ -199,7 +198,7 @@ def test_one(
             platform_backend, base_python, venv_dir, constraints_dict=constraints_dict
         )
         # update env with results from CIBW_ENVIRONMENT
-        venv.env = build_options.environment.as_dictionary(prev_environment=venv.env)
+        venv.env = build_options.environment.as_dictionary(venv.env, venv.base.environment_executor)
         # check that we are using the Python from the virtual environment
         venv.call("where", "python")
         test_one_base(venv, build_options, repaired_wheel)
@@ -227,7 +226,7 @@ def build_one(
             )
             builder = BuilderBackend(build_options, venv, config.identifier)
             builder.install_build_tools([])
-            repaired_wheel = builder.build(repaired_wheel_dir)
+            repaired_wheel = builder.build(repaired_wheel_dir)[0]
             constraints_dict = venv.constraints_dict
 
         if build_options.test_command and options.globals.test_selector(config.identifier):
@@ -251,7 +250,9 @@ def build(options: Options, tmp_dir: Path) -> None:
 
         if before_all_options.before_all:
             log.step("Running before_all...")
-            env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
+            env = before_all_options.environment.as_dictionary(
+                platform_backend.env, platform_backend.environment_executor
+            )
             before_all_prepared = prepare_command(
                 before_all_options.before_all, project=".", package=options.globals.package_dir
             )

@@ -10,7 +10,7 @@ from .util import (
     get_build_verbosity_extra_flags,
     prepare_command,
 )
-from .virtualenv import VirtualEnv
+from .virtualenv import VirtualEnvBase
 
 
 class BuilderBackend:
@@ -19,7 +19,7 @@ class BuilderBackend:
         "build": ["build[virtualenv]"],
     }
 
-    def __init__(self, build_options: BuildOptions, venv: VirtualEnv, identifier: str):
+    def __init__(self, build_options: BuildOptions, venv: VirtualEnvBase, identifier: str):
         self.build_options = build_options
         self.venv = venv
         self.identifier = identifier
@@ -36,18 +36,21 @@ class BuilderBackend:
         dependency_constraints_flags: Sequence[PathOrStr] = []
         dependency_constraints = self.build_options.dependency_constraints
         if dependency_constraints:
+            # TODO generic (not used by linux for now)
             constraints_path = dependency_constraints.get_for_identifier(self.identifier)
             dependency_constraints_flags = ["-c", constraints_path]
         self.venv.install("--upgrade", *tools, *extras, *dependency_constraints_flags)
 
-    def build(self, repaired_wheel_dir: PurePath) -> PurePath:
+    def build(self, repaired_wheel_dir: PurePath) -> Sequence[PurePath]:
         build_options = self.build_options
+        project_dir = self.venv.base.get_remote_path(Path("."))
+        package_dir = self.venv.base.get_remote_path(build_options.package_dir.resolve())
 
         # run the before_build command
         if build_options.before_build:
             log.step("Running before_build...")
             before_build_prepared = prepare_command(
-                build_options.before_build, project=".", package=build_options.package_dir
+                build_options.before_build, project=project_dir, package=package_dir
             )
             self.shell(before_build_prepared)
 
@@ -62,7 +65,7 @@ class BuilderBackend:
                     "-m",
                     "pip",
                     "wheel",
-                    build_options.package_dir.resolve(),
+                    package_dir,
                     f"--wheel-dir={built_wheel_dir}",
                     "--no-deps",
                     *verbosity_flags,
@@ -70,17 +73,19 @@ class BuilderBackend:
             elif build_options.build_frontend == "build":
                 config_setting = " ".join(verbosity_flags)
                 build_env = self.venv.env.copy()
-                if build_options.dependency_constraints:
-                    constraints_path = build_options.dependency_constraints.get_for_identifier(
-                        self.identifier
-                    )
-                    build_env["PIP_CONSTRAINT"] = constraints_path.as_uri()
+                if self.venv.constraints_path:
+                    # Bug in pip <= 21.1.3 - we can't have a space in the
+                    # constraints file, and pip doesn't support drive letters
+                    # in uhi.  After probably pip 21.2, we can use uri.
+                    if " " in str(self.venv.constraints_path):
+                        assert " " not in str(self.venv.constraints_path)
+                    build_env["PIP_CONSTRAINT"] = str(self.venv.constraints_path)
                     build_env["VIRTUALENV_PIP"] = str(self.venv.pip_version)
                 self.call(
                     "python",
                     "-m",
                     "build",
-                    build_options.package_dir,
+                    package_dir,
                     "--wheel",
                     f"--outdir={built_wheel_dir}",
                     f"--config-setting={config_setting}",
@@ -108,21 +113,23 @@ class BuilderBackend:
             else:
                 shutil.move(str(built_wheel), repaired_wheel_dir)
 
-        return next(self.venv.base.glob(repaired_wheel_dir, "*.whl"))
+        return tuple(self.venv.base.glob(repaired_wheel_dir, "*.whl"))
 
     def update_repair_kwargs(self, repair_kwargs: Dict[str, PathOrStr]) -> None:
         pass
 
 
-def test_one_base(venv: VirtualEnv, build_options: BuildOptions, repaired_wheel: PurePath) -> None:
+def test_one_base(
+    venv: VirtualEnvBase, build_options: BuildOptions, repaired_wheel: PurePath
+) -> None:
     log.step("Testing wheel..." if venv.arch is None else f"Testing wheel on {venv.arch}...")
+    prepare_kwargs = {
+        "project": venv.base.get_remote_path(Path(".").resolve()),
+        "package": venv.base.get_remote_path(build_options.package_dir.resolve()),
+    }
 
     if build_options.before_test:
-        before_test_prepared = prepare_command(
-            build_options.before_test,
-            project=".",
-            package=build_options.package_dir,
-        )
+        before_test_prepared = prepare_command(build_options.before_test, **prepare_kwargs)
         venv.shell(before_test_prepared)
 
     # install the wheel
@@ -136,9 +143,5 @@ def test_one_base(venv: VirtualEnv, build_options: BuildOptions, repaired_wheel:
     # (this ensures that Python runs the tests against the installed wheel
     # and not the repo code)
     assert build_options.test_command is not None
-    test_command_prepared = prepare_command(
-        build_options.test_command,
-        project=Path(".").resolve(),
-        package=build_options.package_dir.resolve(),
-    )
-    venv.shell(test_command_prepared, cwd=Path.home())
+    test_command_prepared = prepare_command(build_options.test_command, **prepare_kwargs)
+    venv.shell(test_command_prepared, cwd=venv.base.home)

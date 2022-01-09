@@ -94,27 +94,14 @@ def _virtualenv(
     return env
 
 
-class VirtualEnv:
-    def __init__(
-        self,
-        platform: PlatformBackend,
-        python: PurePath,
-        venv_path: PurePath,
-        constraints_path: Optional[Path] = None,
-        constraints_dict: Optional[Dict[str, str]] = None,
-        arch: Optional[str] = None,
-    ):
-        if constraints_dict is None:
-            constraints = _parse_constraints_for_virtualenv(constraints_path)
-        else:
-            assert set(constraints_dict.keys()) == set(_SEED_PACKAGES)
-            constraints = constraints_dict
+class VirtualEnvBase:
+    def __init__(self, platform: PlatformBackend, arch: Optional[str] = None):
         self.base = platform
-        self.venv_path = venv_path
+        self.env = platform.env.copy()
         self.arch = arch
         self.arch_prefix = ("arch", f"-{arch}") if arch else tuple()
         self.arch_prefix_shell = (" ".join(self.arch_prefix) + " ").strip()
-        self.env = _virtualenv(platform, self.arch_prefix, python, venv_path, constraints)
+        self.constraints_path: Optional[PurePath] = None
 
     def call(
         self,
@@ -141,3 +128,48 @@ class VirtualEnv:
     @property
     def pip_version(self) -> Version:
         return Version(self.constraints_dict["pip"])
+
+
+class VirtualEnv(VirtualEnvBase):
+    def __init__(
+        self,
+        platform: PlatformBackend,
+        python: PurePath,
+        venv_path: PurePath,
+        constraints_path: Optional[Path] = None,
+        constraints_dict: Optional[Dict[str, str]] = None,
+        arch: Optional[str] = None,
+    ):
+        if constraints_dict is None:
+            constraints = _parse_constraints_for_virtualenv(constraints_path)
+        else:
+            assert set(constraints_dict.keys()) == set(_SEED_PACKAGES)
+            constraints = constraints_dict
+        self.base = platform
+        super().__init__(platform, arch)
+        self.env = _virtualenv(platform, self.arch_prefix, python, venv_path, constraints)
+        self.constraints_path = None
+        if constraints_path is not None:
+            self.constraints_path = venv_path / "constraints.txt"
+            platform.copy_into(constraints_path, self.constraints_path)
+
+
+class FakeVirtualEnv(VirtualEnvBase):
+    def __init__(
+        self,
+        platform: PlatformBackend,
+        python: PurePath,
+        venv_path: PurePath,
+        constraints_path: Optional[Path] = None,
+        constraints_dict: Optional[Dict[str, str]] = None,
+        arch: Optional[str] = None,
+    ):
+        assert platform.name == "linux"
+        assert python == venv_path / "bin" / "python"
+        if constraints_path is not None:
+            pass  # should we warn ? might be too verbose.
+        if constraints_dict is not None:
+            pass  # should we warn ? might be too verbose.
+        self.base = platform
+        super().__init__(platform, arch)
+        self.env["PATH"] = f'{venv_path / "bin"}:{self.env["PATH"]}'
