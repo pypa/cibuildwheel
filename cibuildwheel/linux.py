@@ -132,7 +132,7 @@ def build_one(
     env = build_options.environment.as_dictionary(env, executor=docker.environment_executor)
 
     # check config python is still on PATH
-    which_python = docker.call(["which", "python"], env=env, capture_output=True).strip()
+    which_python = docker.call("which", "python", env=env, capture_stdout=True).strip()
     if PurePath(which_python) != python_bin / "python":
         print(
             "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
@@ -140,7 +140,7 @@ def build_one(
         )
         sys.exit(1)
 
-    which_pip = docker.call(["which", "pip"], env=env, capture_output=True).strip()
+    which_pip = docker.call("which", "pip", env=env, capture_stdout=True).strip()
     if PurePath(which_pip) != python_bin / "pip":
         print(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
@@ -155,43 +155,39 @@ def build_one(
             project=container_project_path,
             package=container_package_dir,
         )
-        docker.call(["sh", "-c", before_build_prepared], env=env)
+        docker.call("sh", "-c", before_build_prepared, env=env)
 
     log.step("Building wheel...")
 
     temp_dir = PurePath("/tmp/cibuildwheel")
     built_wheel_dir = temp_dir / "built_wheel"
-    docker.call(["rm", "-rf", built_wheel_dir])
-    docker.call(["mkdir", "-p", built_wheel_dir])
+    docker.call("rm", "-rf", built_wheel_dir)
+    docker.call("mkdir", "-p", built_wheel_dir)
 
     verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
 
     if build_options.build_frontend == "pip":
         docker.call(
-            [
-                "python",
-                "-m",
-                "pip",
-                "wheel",
-                container_package_dir,
-                f"--wheel-dir={built_wheel_dir}",
-                "--no-deps",
-                *verbosity_flags,
-            ],
+            "python",
+            "-m",
+            "pip",
+            "wheel",
+            container_package_dir,
+            f"--wheel-dir={built_wheel_dir}",
+            "--no-deps",
+            *verbosity_flags,
             env=env,
         )
     elif build_options.build_frontend == "build":
         config_setting = " ".join(verbosity_flags)
         docker.call(
-            [
-                "python",
-                "-m",
-                "build",
-                container_package_dir,
-                "--wheel",
-                f"--outdir={built_wheel_dir}",
-                f"--config-setting={config_setting}",
-            ],
+            "python",
+            "-m",
+            "build",
+            container_package_dir,
+            "--wheel",
+            f"--outdir={built_wheel_dir}",
+            f"--config-setting={config_setting}",
             env=env,
         )
     else:
@@ -200,8 +196,8 @@ def build_one(
     built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
 
     repaired_wheel_dir = temp_dir / "repaired_wheel"
-    docker.call(["rm", "-rf", repaired_wheel_dir])
-    docker.call(["mkdir", "-p", repaired_wheel_dir])
+    docker.call("rm", "-rf", repaired_wheel_dir)
+    docker.call("mkdir", "-p", repaired_wheel_dir)
 
     if built_wheel.name.endswith("none-any.whl"):
         raise NonPlatformWheelError()
@@ -211,9 +207,9 @@ def build_one(
         repair_command_prepared = prepare_command(
             build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
         )
-        docker.call(["sh", "-c", repair_command_prepared], env=env)
+        docker.call("sh", "-c", repair_command_prepared, env=env)
     else:
-        docker.call(["mv", built_wheel, repaired_wheel_dir])
+        docker.call("mv", built_wheel, repaired_wheel_dir)
 
     repaired_wheels = docker.glob(repaired_wheel_dir, "*.whl")
 
@@ -222,10 +218,10 @@ def build_one(
 
         # set up a virtual environment to install and test from, to make sure
         # there are no dependencies that were pulled in at build time.
-        docker.call(["pip", "install", "virtualenv", *dependency_constraint_flags], env=env)
-        venv_dir = PurePath(docker.call(["mktemp", "-d"], capture_output=True).strip()) / "venv"
+        docker.call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
+        venv_dir = PurePath(docker.call("mktemp", "-d", capture_stdout=True).strip()) / "venv"
 
-        docker.call(["python", "-m", "virtualenv", "--no-download", venv_dir], env=env)
+        docker.call("python", "-m", "virtualenv", "--no-download", venv_dir, env=env)
 
         virtualenv_env = env.copy()
         virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
@@ -236,7 +232,7 @@ def build_one(
                 project=container_project_path,
                 package=container_package_dir,
             )
-            docker.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
+            docker.call("sh", "-c", before_test_prepared, env=virtualenv_env)
 
         # Install the wheel we just built
         # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
@@ -246,13 +242,15 @@ def build_one(
         # Let's just pick the first one.
         wheel_to_test = repaired_wheels[0]
         docker.call(
-            ["pip", "install", str(wheel_to_test) + build_options.test_extras],
+            "pip",
+            "install",
+            str(wheel_to_test) + build_options.test_extras,
             env=virtualenv_env,
         )
 
         # Install any requirements to run the tests
         if build_options.test_requires:
-            docker.call(["pip", "install", *build_options.test_requires], env=virtualenv_env)
+            docker.call("pip", "install", *build_options.test_requires, env=virtualenv_env)
 
         # Run the tests from a different directory
         test_command_prepared = prepare_command(
@@ -260,14 +258,14 @@ def build_one(
             project=container_project_path,
             package=container_package_dir,
         )
-        docker.call(["sh", "-c", test_command_prepared], cwd="/root", env=virtualenv_env)
+        docker.call("sh", "-c", test_command_prepared, cwd="/root", env=virtualenv_env)
 
         # clean up test environment
-        docker.call(["rm", "-rf", venv_dir])
+        docker.call("rm", "-rf", venv_dir)
 
     # move repaired wheels to output
-    docker.call(["mkdir", "-p", container_output_dir])
-    docker.call(["mv", *repaired_wheels, container_output_dir])
+    docker.call("mkdir", "-p", container_output_dir)
+    docker.call("mv", *repaired_wheels, container_output_dir)
 
     log.build_end()
 
@@ -303,7 +301,7 @@ def build_on_docker(
             project=container_project_path,
             package=container_package_dir,
         )
-        docker.call(["sh", "-c", before_all_prepared], env=env)
+        docker.call("sh", "-c", before_all_prepared, env=env)
 
     for config in platform_configs:
         build_one(

@@ -25,7 +25,6 @@ from typing import (
     Optional,
     TextIO,
     cast,
-    overload,
 )
 
 import bracex
@@ -69,32 +68,12 @@ CIBW_CACHE_PATH: Final = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CAC
 IS_WIN: Final = sys.platform.startswith("win")
 
 
-@overload
-def call(
-    *args: PathOrStr,
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[PathOrStr] = None,
-    capture_stdout: Literal[False] = ...,
-) -> None:
-    ...
-
-
-@overload
-def call(
-    *args: PathOrStr,
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[PathOrStr] = None,
-    capture_stdout: Literal[True],
-) -> str:
-    ...
-
-
 def call(
     *args: PathOrStr,
     env: Optional[Dict[str, str]] = None,
     cwd: Optional[PathOrStr] = None,
     capture_stdout: Literal[False, True] = False,
-) -> Optional[str]:
+) -> str:
     """
     Run subprocess.run, but print the commands first. Takes the commands as
     *args. Uses shell=True on Windows due to a bug. Also converts to
@@ -110,7 +89,7 @@ def call(
         kwargs["stdout"] = subprocess.PIPE
     result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
     if not capture_stdout:
-        return None
+        return ""
     return cast(str, result.stdout)
 
 

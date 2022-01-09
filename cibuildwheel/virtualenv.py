@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Optional, Sequence, overload
+from typing import Dict, Optional, Sequence
 
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
@@ -116,27 +116,12 @@ class VirtualEnv:
         self.arch_prefix_shell = (" ".join(self.arch_prefix) + " ").strip()
         self.env = _virtualenv(platform, self.arch_prefix, python, venv_path, constraints)
 
-    @overload
-    def call(
-        self,
-        *args: PathOrStr,
-        env: Optional[Dict[str, str]] = None,
-        capture_stdout: Literal[False] = ...,
-    ) -> None:
-        ...
-
-    @overload
-    def call(
-        self, *args: PathOrStr, env: Optional[Dict[str, str]] = None, capture_stdout: Literal[True]
-    ) -> str:
-        ...
-
     def call(
         self,
         *args: PathOrStr,
         env: Optional[Dict[str, str]] = None,
         capture_stdout: Literal[False, True] = False,
-    ) -> Optional[str]:
+    ) -> str:
         if env is None:
             env = self.env
         return self.base.call(*self.arch_prefix, *args, env=env, capture_stdout=capture_stdout)

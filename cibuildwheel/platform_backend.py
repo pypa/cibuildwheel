@@ -16,8 +16,8 @@ class PlatformBackend:
         *args: PathOrStr,
         env: Optional[Dict[str, str]] = None,
         cwd: Optional[PathOrStr] = None,
-        capture_stdout: Literal[False, True] = False,
-    ) -> Optional[str]:
+        capture_stdout: bool = False,
+    ) -> str:
         raise NotImplementedError()
 
     def shell(
@@ -61,13 +61,13 @@ class NativePlatformBackend(PlatformBackend):
         env: Optional[Dict[str, str]] = None,
         cwd: Optional[PathOrStr] = None,
         capture_stdout: Literal[False, True] = False,
-    ) -> Optional[str]:
+    ) -> str:
         return call(*args, env=env, cwd=cwd, capture_stdout=capture_stdout)
 
     def shell(
         self, command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
     ) -> None:
-        return shell(command, env=env, cwd=cwd)
+        shell(command, env=env, cwd=cwd)
 
     @property
     def pathsep(self) -> str:

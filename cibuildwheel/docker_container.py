@@ -8,14 +8,14 @@ import sys
 import uuid
 from pathlib import Path, PurePath
 from types import TracebackType
-from typing import IO, Dict, List, Optional, Sequence, Type, cast
+from typing import IO, Dict, List, Optional, Type, cast
 
+from cibuildwheel.platform_backend import PlatformBackend
+from cibuildwheel.typing import PathOrStr, PopenBytes
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
-from .typing import PathOrStr, PopenBytes
 
-
-class DockerContainer:
+class DockerContainer(PlatformBackend):
     """
     An object that represents a running Docker container.
 
@@ -42,10 +42,11 @@ class DockerContainer:
         self.docker_image = docker_image
         self.simulate_32_bit = simulate_32_bit
         self.cwd = cwd
-        self.name: Optional[str] = None
+        self.container_name: Optional[str] = None
+        super().__init__("linux")
 
     def __enter__(self) -> "DockerContainer":
-        self.name = f"cibuildwheel-{uuid.uuid4()}"
+        self.container_name = f"cibuildwheel-{uuid.uuid4()}"
         cwd_args = ["-w", str(self.cwd)] if self.cwd else []
 
         # work-around for Travis-CI PPC64le Docker runs since 2021:
@@ -62,7 +63,7 @@ class DockerContainer:
                 "docker",
                 "create",
                 "--env=CIBUILDWHEEL",
-                f"--name={self.name}",
+                f"--name={self.container_name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
                 *network_args,
@@ -78,7 +79,7 @@ class DockerContainer:
                 "start",
                 "--attach",
                 "--interactive",
-                self.name,
+                self.container_name,
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -89,7 +90,7 @@ class DockerContainer:
         self.bash_stdout = self.process.stdout
 
         # run a noop command to block until the container is responding
-        self.call(["/bin/true"])
+        self.call("/bin/true")
 
         return self
 
@@ -104,10 +105,12 @@ class DockerContainer:
         self.process.terminate()
         self.process.wait()
 
-        assert isinstance(self.name, str)
+        assert isinstance(self.container_name, str)
 
-        subprocess.run(["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL)
-        self.name = None
+        subprocess.run(
+            ["docker", "rm", "--force", "-v", self.container_name], stdout=subprocess.DEVNULL
+        )
+        self.container_name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         # `docker cp` causes 'no space left on device' error when
@@ -116,16 +119,16 @@ class DockerContainer:
         # Use `docker exec` instead.
 
         if from_path.is_dir():
-            self.call(["mkdir", "-p", to_path])
+            self.call("mkdir", "-p", to_path)
             subprocess.run(
-                f"tar cf - . | docker exec -i {self.name} tar -xC {shell_quote(to_path)} -f -",
+                f"tar cf - . | docker exec -i {self.container_name} tar -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
             )
         else:
             subprocess.run(
-                f'cat {shell_quote(from_path)} | docker exec -i {self.name} sh -c "cat > {shell_quote(to_path)}"',
+                f'cat {shell_quote(from_path)} | docker exec -i {self.container_name} sh -c "cat > {shell_quote(to_path)}"',
                 shell=True,
                 check=True,
             )
@@ -135,7 +138,7 @@ class DockerContainer:
         to_path.mkdir(parents=True, exist_ok=True)
 
         subprocess.run(
-            f"docker exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -",
+            f"docker exec -i {self.container_name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -",
             shell=True,
             check=True,
             cwd=to_path,
@@ -146,12 +149,10 @@ class DockerContainer:
 
         path_strings = json.loads(
             self.call(
-                [
-                    self.UTILITY_PYTHON,
-                    "-c",
-                    f"import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)",
-                ],
-                capture_output=True,
+                self.UTILITY_PYTHON,
+                "-c",
+                f"import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)",
+                capture_stdout=True,
             )
         )
 
@@ -159,10 +160,10 @@ class DockerContainer:
 
     def call(
         self,
-        args: Sequence[PathOrStr],
+        *args: PathOrStr,
         env: Optional[Dict[str, str]] = None,
-        capture_output: bool = False,
         cwd: Optional[PathOrStr] = None,
+        capture_stdout: bool = False,
     ) -> str:
 
         chdir = f"cd {cwd}" if cwd else ""
@@ -198,7 +199,7 @@ class DockerContainer:
         )
         self.bash_stdin.flush()
 
-        if capture_output:
+        if capture_stdout:
             output_io: IO[bytes] = io.BytesIO()
         else:
             output_io = sys.stdout.buffer
@@ -236,19 +237,17 @@ class DockerContainer:
     def get_environment(self) -> Dict[str, str]:
         env = json.loads(
             self.call(
-                [
-                    self.UTILITY_PYTHON,
-                    "-c",
-                    "import sys, json, os; json.dump(os.environ.copy(), sys.stdout)",
-                ],
-                capture_output=True,
+                self.UTILITY_PYTHON,
+                "-c",
+                "import sys, json, os; json.dump(os.environ.copy(), sys.stdout)",
+                capture_stdout=True,
             )
         )
         return cast(Dict[str, str], env)
 
     def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
-        return self.call(command, env=environment, capture_output=True)
+        return self.call(*command, env=environment, capture_stdout=True)
 
 
 def shell_quote(path: PurePath) -> str:

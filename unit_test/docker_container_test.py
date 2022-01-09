@@ -26,22 +26,20 @@ elif pm == "s390x":
 @pytest.mark.docker
 def test_simple():
     with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
-        assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
+        assert container.call("echo", "hello", capture_stdout=True) == "hello\n"
 
 
 @pytest.mark.docker
 def test_no_lf():
     with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
-        assert container.call(["printf", "hello"], capture_output=True) == "hello"
+        assert container.call("printf", "hello", capture_stdout=True) == "hello"
 
 
 @pytest.mark.docker
 def test_environment():
     with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         assert (
-            container.call(
-                ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
-            )
+            container.call("sh", "-c", "echo $TEST_VAR", env={"TEST_VAR": "1"}, capture_stdout=True)
             == "1\n"
         )
 
@@ -51,8 +49,8 @@ def test_cwd():
     with DockerContainer(
         docker_image=DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory"
     ) as container:
-        assert container.call(["pwd"], capture_output=True) == "/cibuildwheel/working_directory\n"
-        assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
+        assert container.call("pwd", capture_stdout=True) == "/cibuildwheel/working_directory\n"
+        assert container.call("pwd", capture_stdout=True, cwd="/opt") == "/opt\n"
 
 
 @pytest.mark.docker
@@ -93,7 +91,7 @@ def test_large_environment():
     with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
         # check the length of d
         assert (
-            container.call(["sh", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
+            container.call("sh", "-c", "echo ${#d}", env=large_environment, capture_stdout=True)
             == f"{long_env_var_length}\n"
         )
 
@@ -105,31 +103,27 @@ def test_binary_output():
 
         # check that we can pass though arbitrary binary data without erroring
         container.call(
-            [
-                "/usr/bin/python2",
-                "-c",
-                textwrap.dedent(
-                    """
-                    import sys
-                    sys.stdout.write(''.join(chr(n) for n in range(0, 256)))
-                    """
-                ),
-            ]
+            "/usr/bin/python2",
+            "-c",
+            textwrap.dedent(
+                """
+                import sys
+                sys.stdout.write(''.join(chr(n) for n in range(0, 256)))
+                """
+            ),
         )
 
         # check that we can capture arbitrary binary data
         output = container.call(
-            [
-                "/usr/bin/python2",
-                "-c",
-                textwrap.dedent(
-                    """
-                    import sys
-                    sys.stdout.write(''.join(chr(n % 256) for n in range(0, 512)))
-                    """
-                ),
-            ],
-            capture_output=True,
+            "/usr/bin/python2",
+            "-c",
+            textwrap.dedent(
+                """
+                import sys
+                sys.stdout.write(''.join(chr(n % 256) for n in range(0, 512)))
+                """
+            ),
+            capture_stdout=True,
         )
 
         data = bytes(output, encoding="utf8", errors="surrogateescape")
@@ -142,9 +136,11 @@ def test_binary_output():
         binary_data = bytes(n for n in range(1, 256))
         binary_data_string = str(binary_data, encoding="utf8", errors="surrogateescape")
         output = container.call(
-            ["python2", "-c", 'import os, sys; sys.stdout.write(os.environ["TEST_VAR"])'],
+            "python2",
+            "-c",
+            "import os, sys; sys.stdout.write(os.environ['TEST_VAR'])",
             env={"TEST_VAR": binary_data_string},
-            capture_output=True,
+            capture_stdout=True,
         )
         assert output == binary_data_string
 
@@ -161,7 +157,7 @@ def test_file_operations(tmp_path: Path):
 
         container.copy_into(original_test_file, dst_file)
 
-        output = container.call(["cat", dst_file], capture_output=True)
+        output = container.call("cat", dst_file, capture_stdout=True)
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
 
@@ -182,7 +178,7 @@ def test_dir_operations(tmp_path: Path):
         dst_file = dst_dir / "test.dat"
         container.copy_into(test_dir, dst_dir)
 
-        output = container.call(["cat", dst_file], capture_output=True)
+        output = container.call("cat", dst_file, capture_stdout=True)
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
         # test glob
