@@ -103,7 +103,7 @@ def _setup_build_env(builder: BuilderBackend, tmp_dir: PurePath) -> None:
 
     # 4/ update env with results from CIBW_ENVIRONMENT
     venv.env = builder.build_options.environment.as_dictionary(
-        venv.env, venv.base.environment_executor
+        venv.env, builder.platform.environment_executor
     )
 
     # 6/ checks
@@ -239,8 +239,8 @@ def test_one(
         venv.which("python")
 
         prepare_kwargs = {
-            "project": venv.base.get_remote_path(Path(".").resolve()),
-            "package": venv.base.get_remote_path(build_options.package_dir.resolve()),
+            "project": platform_backend.get_remote_path(Path(".").resolve()),
+            "package": platform_backend.get_remote_path(build_options.package_dir.resolve()),
         }
 
         if build_options.before_test:
@@ -259,7 +259,7 @@ def test_one(
         # and not the repo code)
         assert build_options.test_command is not None
         test_command_prepared = prepare_command(build_options.test_command, **prepare_kwargs)
-        venv.shell(test_command_prepared, cwd=venv.base.home)
+        venv.shell(test_command_prepared, cwd=platform_backend.home)
 
 
 def run_before_all(platform: PlatformBackend, options: BuildOptions, env: Dict[str, str]) -> None:
