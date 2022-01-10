@@ -28,7 +28,7 @@ def test(tmp_path):
         print("dummy text", file=ff)
 
     # build the wheels
-    before_all_command = '''python -c "import os;open('{project}/text_info.txt', 'w').write('sample text '+os.environ.get('TEST_VAL', ''))"'''
+    before_all_command = '''python -c "import os;open(r'{project}/text_info.txt', 'w').write('sample text '+os.environ.get('TEST_VAL', ''))"'''
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
