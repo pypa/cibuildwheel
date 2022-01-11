@@ -93,6 +93,7 @@ title: Working examples
 | [CorrectionLib][]                 | ![github icon][] | ![apple icon][] ![linux icon][] | Structured JSON powered correction library for HEP, designed for the CMS experiment at CERN. |
 | [pillow-heif][]                   | ![github icon][] | ![apple icon][] ![linux icon][] | Python CFFI binding to libheif library with third party dependencies like `libde265`, `x265`, `libaom` with test & publishing on PyPi. |
 | [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
+| [polyscope-py][]		    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A C++ & Python viewer for 3D data like meshes and point clouds |  
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [Tornado]: https://github.com/tornadoweb/tornado
@@ -179,6 +180,7 @@ title: Working examples
 [CorrectionLib]: https://github.com/cms-nanoAOD/correctionlib
 [pillow-heif]: https://github.com/bigcat88/pillow_heif
 [SiPM]: https://github.com/EdoPro98/SimSiPM
+[polyscope-py]: https://github.com/nmwsharp/polyscope-py
 
 [appveyor icon]: data/readme_icons/appveyor.svg
 [github icon]: data/readme_icons/github.svg
