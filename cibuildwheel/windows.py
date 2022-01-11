@@ -10,7 +10,7 @@ from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .backend import BuilderBackend, build_identifier, run_before_all, test_one
+from .backend import BuilderBackend, run_before_all, test_one
 from .logger import log
 from .options import Options
 from .platform_backend import NativePlatformBackend
@@ -136,9 +136,9 @@ def build_one(
         base_python = install_python(Path(install_tmp_dir), config)
 
     with platform.tmp_dir("repaired_wheel") as repaired_wheel_dir:
-        builder = _Builder(platform, config.identifier, base_python, build_options)
-        repaired_wheel = build_identifier(builder, repaired_wheel_dir)[0]
-        constraints_dict = builder.constraints_dict
+        with _Builder(platform, config.identifier, base_python, build_options) as builder:
+            repaired_wheel = builder.run(repaired_wheel_dir)[0]
+            constraints_dict = builder.constraints_dict
 
         if build_options.test_command and options.globals.test_selector(config.identifier):
             test_one(platform, base_python, constraints_dict, build_options, repaired_wheel)

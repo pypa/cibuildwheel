@@ -1,6 +1,8 @@
 import sys
+from abc import abstractmethod
 from pathlib import Path, PurePath
-from typing import Dict, List, Optional, Sequence
+from types import TracebackType
+from typing import Dict, List, Optional, Type
 
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
@@ -51,73 +53,28 @@ def _parse_constraints_for_virtualenv(constraints_path: Optional[Path]) -> Dict[
     return constraints_dict
 
 
-def _virtualenv(
-    platform: PlatformBackend,
-    arch_prefix: Sequence[str],
-    python: PurePath,
-    venv_path: PurePath,
-    constraints: Dict[str, str],
-) -> Dict[str, str]:
-
-    additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
-
-    # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
-    # environment. The initial cost is a bit higher but reusing is much faster.
-    # Windows does not always allow symlinks so just disabling for now.
-    # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
-    # version of pip that will end-up installed.
-    # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
-    if (
-        platform.name != "windows"
-        and constraints["pip"] != "embed"
-        and Version(constraints["pip"]) >= Version("19.3")
-    ):
-        additional_flags.append("--symlink-app-data")
-
-    env = platform.env.copy()
-
-    # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
-    # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
-    # Also fix an issue with the shebang of installed scripts inside the
-    # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
-    # https://github.com/pypa/virtualenv/issues/620
-    # Also see https://github.com/python/cpython/pull/9516
-    env.pop("__PYVENV_LAUNCHER__", None)
-
-    platform.call(
-        *arch_prefix,
-        python,
-        "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
-        platform.virtualenv_path,
-        "--activators=",
-        "--no-periodic-update",
-        *additional_flags,
-        venv_path,
-        env=env,
-    )
-    if platform.name == "windows":
-        paths = [str(venv_path), str(venv_path / "Scripts")]
-    else:
-        paths = [str(venv_path / "bin")]
-    env["PATH"] = platform.pathsep.join(paths + [env["PATH"]])
-    # we version pip ourselves, so we don't care about pip version checking
-    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-    return env
-
-
 class VirtualEnvBase:
-    def __init__(self, platform: PlatformBackend, venv_path: PurePath, arch: Optional[str] = None):
-        self.base = platform
+    def __init__(self, platform: PlatformBackend, arch: Optional[str] = None):
+        self._base: Optional[PlatformBackend] = platform
         self.env = platform.env.copy()
-        self.venv_path = venv_path
-        if platform.name == "windows":
-            self.script_dir = self.venv_path / "Scripts"
-        else:
-            self.script_dir = self.venv_path / "bin"
-        self.arch = arch
-        self.arch_prefix = ("arch", f"-{arch}") if arch else tuple()
-        self.arch_prefix_shell = (" ".join(self.arch_prefix) + " ").strip()
-        self.constraints_path: Optional[PurePath] = None
+        self._venv_path: Optional[PurePath] = None
+        self._arch = arch
+        self._arch_prefix = ("arch", f"-{arch}") if arch else tuple()
+        self._arch_prefix_shell = (" ".join(self._arch_prefix) + " ").strip()
+        self._constraints_path: Optional[PurePath] = None
+
+    @abstractmethod
+    def __enter__(self) -> "VirtualEnvBase":
+        ...
+
+    @abstractmethod
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        ...
 
     def call(
         self,
@@ -125,28 +82,39 @@ class VirtualEnvBase:
         env: Optional[Dict[str, str]] = None,
         capture_stdout: Literal[False, True] = False,
     ) -> str:
+        assert self._base is not None
         if env is None:
             env = self.env
-        return self.base.call(*self.arch_prefix, *args, env=env, capture_stdout=capture_stdout)
+        return self._base.call(*self._arch_prefix, *args, env=env, capture_stdout=capture_stdout)
 
     def shell(self, command: str, cwd: Optional[PathOrStr] = None) -> None:
-        self.base.shell(self.arch_prefix_shell + command, cwd=cwd, env=self.env)
+        assert self._base is not None
+        self._base.shell(self._arch_prefix_shell + command, cwd=cwd, env=self.env)
 
     def install(self, *args: PathOrStr, use_constraints: bool = False) -> None:
         constraints_flags: List[PathOrStr] = []
-        if use_constraints and self.constraints_path is not None:
-            constraints_flags = ["-c", self.constraints_path]
+        if use_constraints and self._constraints_path is not None:
+            constraints_flags = ["-c", self._constraints_path]
         self.call("python", "-m", "pip", "install", *args, *constraints_flags)
 
     def which(self, cmd: str) -> PurePath:
-        return self.base.which(cmd, env=self.env)
+        assert self._base is not None
+        return self._base.which(cmd, env=self.env)
 
     def sanity_check(self) -> None:
-        ext = ".exe" if self.base.name == "windows" else ""
+        assert self._base is not None
+        assert self._venv_path is not None
+        if self._base.name == "windows":
+            ext = ".exe"
+            scripts_dir = self._venv_path / "Scripts"
+        else:
+            ext = ""
+            scripts_dir = self._venv_path / "bin"
 
         def _check(tool: str) -> None:
-            expected_path = self.script_dir / f"{tool}{ext}"
-            assert self.base.exists(expected_path)
+            assert self._base is not None
+            expected_path = scripts_dir / f"{tool}{ext}"
+            assert self._base.exists(expected_path)
             which = self.which(tool)
             if which != expected_path:
                 print(
@@ -173,13 +141,16 @@ class VirtualEnvBase:
     def pip_version(self) -> Version:
         return Version(self.constraints_dict["pip"])
 
+    @property
+    def constraints_path(self) -> Optional[PurePath]:
+        return self._constraints_path
+
 
 class VirtualEnv(VirtualEnvBase):
     def __init__(
         self,
         platform: PlatformBackend,
         python: PurePath,
-        venv_path: PurePath,
         constraints_path: Optional[Path] = None,
         constraints_dict: Optional[Dict[str, str]] = None,
         arch: Optional[str] = None,
@@ -189,13 +160,84 @@ class VirtualEnv(VirtualEnvBase):
         else:
             assert set(constraints_dict.keys()) == set(_SEED_PACKAGES)
             constraints = constraints_dict
-        self.base = platform
-        super().__init__(platform, venv_path, arch)
-        self.env = _virtualenv(platform, self.arch_prefix, python, venv_path, constraints)
-        self.constraints_path = None
-        if constraints_path is not None:
-            self.constraints_path = venv_path / "constraints.txt"
-            platform.copy_into(constraints_path, self.constraints_path)
+        self._constraints_dict = constraints
+        self._constraints_path_host = constraints_path
+        self._python = python
+        super().__init__(platform, arch)
+
+    def _create(self) -> None:
+        assert self._venv_path is not None
+        assert self._base is not None
+        constraints = self._constraints_dict
+        additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
+
+        # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
+        # environment. The initial cost is a bit higher but reusing is much faster.
+        # Windows does not always allow symlinks so just disabling for now.
+        # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
+        # version of pip that will end-up installed.
+        # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
+        if (
+            self._base.name != "windows"
+            and constraints["pip"] != "embed"
+            and Version(constraints["pip"]) >= Version("19.3")
+        ):
+            additional_flags.append("--symlink-app-data")
+
+        # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
+        # `sys.path`, ... for PyPy: https://foss.heptapod.net/pypy/pypy/issues/3175
+        # Also fix an issue with the shebang of installed scripts inside the
+        # testing virtualenv- see https://github.com/theacodes/nox/issues/44 and
+        # https://github.com/pypa/virtualenv/issues/620
+        # Also see https://github.com/python/cpython/pull/9516
+        self.env.pop("__PYVENV_LAUNCHER__", None)
+
+        self._base.call(
+            self._python,
+            "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
+            self._base.virtualenv_path,
+            "--activators=",
+            "--no-periodic-update",
+            *additional_flags,
+            self._venv_path,
+            env=self.env,
+        )
+        if self._base.name == "windows":
+            scripts_dir = str(self._venv_path / "Scripts")
+        else:
+            scripts_dir = str(self._venv_path / "bin")
+        self.env["PATH"] = self._base.pathsep.join([scripts_dir, self.env["PATH"]])
+        # we version pip ourselves, so we don't care about pip version checking
+        self.env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+
+    def _cleanup(self) -> None:
+        assert self._venv_path is not None
+        assert self._base is not None
+        self._base.rmtree(self._venv_path)
+        self._base = None
+        self._venv_path = None
+
+    def __enter__(self) -> VirtualEnvBase:
+        assert self._venv_path is None
+        assert self._base is not None
+        self._venv_path = self._base.mkdtemp("venv")
+        try:
+            self._create()
+            if self._constraints_path_host is not None:
+                self._constraints_path = self._venv_path / "constraints.txt"
+                self._base.copy_into(self._constraints_path_host, self._constraints_path)
+        except Exception:
+            self._cleanup()
+            raise
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        self._cleanup()
 
 
 class FakeVirtualEnv(VirtualEnvBase):
@@ -203,17 +245,33 @@ class FakeVirtualEnv(VirtualEnvBase):
         self,
         platform: PlatformBackend,
         python: PurePath,
-        venv_path: PurePath,
         constraints_path: Optional[Path] = None,
         constraints_dict: Optional[Dict[str, str]] = None,
         arch: Optional[str] = None,
     ):
         assert platform.name == "linux"
+        venv_path = python.parent.parent
         assert python == venv_path / "bin" / "python"
         if constraints_path is not None:
             pass  # should we warn ? might be too verbose.
         if constraints_dict is not None:
             pass  # should we warn ? might be too verbose.
-        self.base = platform
-        super().__init__(platform, venv_path, arch)
-        self.env["PATH"] = f'{venv_path / "bin"}:{self.env["PATH"]}'
+        self._real_path = venv_path
+        super().__init__(platform, arch)
+
+    def __enter__(self) -> VirtualEnvBase:
+        assert self._real_path is not None
+        assert self._venv_path is None
+        assert self._base is not None
+        self._venv_path = self._real_path
+        self.env["PATH"] = f'{self._venv_path / "bin"}:{self.env["PATH"]}'
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        self._base = None
+        self._venv_path = None

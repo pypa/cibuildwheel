@@ -5,7 +5,7 @@ from pathlib import Path, PurePath
 from typing import Iterator, List, NamedTuple, Optional, Set, Tuple
 
 from .architecture import Architecture
-from .backend import BuilderBackend, build_identifier, run_before_all, test_one
+from .backend import BuilderBackend, run_before_all, test_one
 from .docker_container import DockerContainer
 from .logger import log
 from .options import Options
@@ -96,9 +96,8 @@ def get_build_steps(
 
 
 class _Builder(BuilderBackend):
-    def virtualenv(self, venv: PurePath, constraints: Optional[Path] = None) -> VirtualEnvBase:
-        venv = self._base_python.parent.parent  # override venv path for this fake venv
-        return FakeVirtualEnv(self._platform, self._base_python, venv, constraints)
+    def virtualenv(self, constraints: Optional[Path] = None) -> VirtualEnvBase:
+        return FakeVirtualEnv(self._platform, self._base_python, constraints)
 
     @property
     def skip_upgrade_pip(self) -> bool:
@@ -120,8 +119,8 @@ def build_one(
 
     with docker.tmp_dir("repaired_wheel_dir") as repaired_wheel_dir:
         base_python = config.path / "bin" / "python"
-        builder = _Builder(docker, config.identifier, base_python, build_options)
-        repaired_wheels = build_identifier(builder, repaired_wheel_dir)
+        with _Builder(docker, config.identifier, base_python, build_options) as builder:
+            repaired_wheels = builder.run(repaired_wheel_dir)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             constraints = {"pip": "embed", "setuptools": "embed", "wheel": "embed"}

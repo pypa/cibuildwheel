@@ -119,13 +119,18 @@ class PlatformBackend:
     def virtualenv_path(self) -> PurePath:
         ...
 
-    @contextmanager
-    def tmp_dir(self, name: str) -> Iterator[PurePath]:
-        assert len(name) > 0
-        name = name + "-" + str(self._tmp_counter)
+    def mkdtemp(self, prefix: str) -> PurePath:
+        assert len(prefix) > 0
+        assert prefix[-1] != "-"
+        name = prefix + "-" + str(self._tmp_counter)
         self._tmp_counter += 1
         path = self._tmp_base_dir / name
         self.mkdir(path)
+        return path
+
+    @contextmanager
+    def tmp_dir(self, prefix: str) -> Iterator[PurePath]:
+        path = self.mkdtemp(prefix)
         try:
             yield path
         finally:
