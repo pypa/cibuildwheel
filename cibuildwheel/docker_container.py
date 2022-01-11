@@ -3,10 +3,10 @@ import shlex
 import subprocess
 import sys
 import uuid
-from os import fsdecode, fspath
+import os
 from pathlib import Path, PurePath
 from types import TracebackType
-from typing import IO, Dict, Optional, Sequence, Type, Union
+from typing import IO, Dict, Optional, Sequence, Type, Union, AnyStr, Mapping
 
 from .container import Container
 from .typing import PathOrStr, PopenBytes
@@ -123,22 +123,24 @@ class DockerContainer(Container):
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: Optional[Dict[str, Union[bytes, str]]] = None,
+        env: Optional[Mapping[str, AnyStr]] = None,
         capture_output: bool = False,
         binary_output: bool = False,
         cwd: Optional[PathOrStr] = None,
-    ) -> Union[str, bytes]:
+    ) -> AnyStr:
 
         if cwd is None:
             cwd = self.cwd
 
         chdir = f"cd {cwd}" if cwd else ""
+        # 3.8: shlex.join
         env_assignments = (
             " ".join(f"{shlex.quote(k)}={shlex.quote(self.unicode_decode(v) if isinstance(v, bytes) else v)}" for k, v in env.items())
             if env is not None
             else ""
         )
-        command = shlex.join([(fspath(p)) for p in args])
+        # 3.8: shlex.join
+        command = ' '.join([(shlex.quote(os.fspath(p))) for p in args])
         end_of_message = str(uuid.uuid4())
 
         # log the command we're executing
@@ -191,7 +193,7 @@ class DockerContainer(Container):
                 output_io.write(line)
 
         if isinstance(output_io, io.BytesIO):
-            output = output_io.getvalue() if binary_output else fsdecode(output_io.getvalue())
+            output = output_io.getvalue() if binary_output else os.fsdecode(output_io.getvalue())
         else:
             output = ""
 
@@ -199,6 +201,11 @@ class DockerContainer(Container):
             raise subprocess.CalledProcessError(returncode, args, output)
 
         return output
+
+    def unicode_decode(cls, b: bytes) -> str:
+        return os.fsdecode(b)
+    def unicode_encode(cls, s: str) -> bytes:
+        return os.fsencode(s)
 
 def shell_quote(path: PurePath) -> str:
     return shlex.quote(str(path))

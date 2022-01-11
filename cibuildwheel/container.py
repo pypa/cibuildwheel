@@ -6,7 +6,11 @@ from abc import abstractmethod
 from contextlib import AbstractContextManager
 from pathlib import Path, PurePath
 from types import TracebackType
-from typing import ClassVar, Optional, List, Dict, Sequence, Union, cast
+'''
+    3.9: Sequence, Mapping -> collections.abc
+        List -> list, Dict -> dict, Type -> type
+'''
+from typing import ClassVar, Optional, List, Dict, Sequence, Union, cast, Type, Mapping, AnyStr
 
 from .typing import PathOrStr
 from .util import CIProvider, detect_ci_provider
@@ -17,7 +21,7 @@ class Container(AbstractContextManager):
     simulate_32_bit: bool = False
     docker_image: str
     cwd: Optional[PathOrStr] = None
-    ci_provider: CIProvider = detect_ci_provider()
+    ci_provider: Optional[CIProvider] = detect_ci_provider()
 
     def __init__(
         self, *, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None
@@ -36,7 +40,7 @@ class Container(AbstractContextManager):
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
+        exc_type: Optional[Type[BaseException]],
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
@@ -62,7 +66,6 @@ class Container(AbstractContextManager):
                     "-c",
                     f"import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)",
                 ],
-                capture_output=True,
                 binary_output=True,
             )
         )
@@ -73,11 +76,11 @@ class Container(AbstractContextManager):
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: Optional[Dict[str, Union[str, bytes]]] = None,
+        env: Optional[Mapping[str, AnyStr]] = None,
         capture_output: bool = False,
         binary_output: bool = False,
         cwd: Optional[PathOrStr] = None,
-    ) -> Union[str, bytes]:
+    ) -> AnyStr:
         raise NotImplementedError
 
     def get_environment(self) -> Dict[str, str]:
@@ -94,10 +97,17 @@ class Container(AbstractContextManager):
         )
         return cast(Dict[str, str], env)
 
-    def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
-        return self.call(command, env=environment, capture_output=True)
+    def environment_executor(self, command: Sequence[PathOrStr], environment: Mapping[str, AnyStr], **kwargs) -> AnyStr:
+        if kwargs == {}:
+            kwargs["capture_output"] = True
+        return self.call(command, env=environment, **kwargs)
 
     @classmethod
-    #@abstractmethod
+    @abstractmethod
     def unicode_decode(cls, b: bytes) -> str:
         return b.decode("raw_unicode_escape", getfilesystemencodeerrors())
+
+    @classmethod
+    @abstractmethod
+    def unicode_encode(cls, s: str) -> bytes:
+        return s.encode("raw_unicode_escape", getfilesystemencodeerrors())

@@ -4,10 +4,9 @@ import sys
 from pathlib import Path, PurePath
 from tarfile import TarFile
 from types import TracebackType
-from typing import Dict, Optional, Sequence, Type, Union
+from typing import Dict, Optional, Sequence, Type, Union, List, Mapping, Any, AnyStr
 from contextlib import redirect_stdout
 from os import fsdecode, fspath
-from shlex import join
 
 from docker import DockerClient, from_env
 from docker.models.images import Image
@@ -42,10 +41,7 @@ class RemoteContainer(Container):
 
     def __enter__(self) -> "RemoteContainer":
         super().__enter__()
-        self.cwd = "" if self.cwd is None else self.cwd
-        cwd_arg = fspath(self.cwd)
-        shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
-        with redirect_stdout(os.devnull) as f:
+        with redirect_stdout(os.devnull):
             try:
                 self.image = self.client.images.get(self.docker_image)
             except ImageNotFound:
@@ -54,16 +50,19 @@ class RemoteContainer(Container):
                 pass
             finally:
                 pass
+        kwargs: dict[str, Any] = {}
+        if self.ci_provider is None or self.ci_provider is CIProvider.travis_ci or self.ci_provider is CIProvider.other:
+            kwargs["network_mode"] = "host"
+        if self.cwd is not None:
+            kwargs["working_dir"] = fspath(self.cwd)
+        kwargs["command"] = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
         self.cont = self.client.containers.create(
             self.image,
             name=self.name,
-            command=shell_args,
-            working_dir=cwd_arg,
             environment=["CIBUILDWHEEL=1"],
-            network_mode="host" if self.ci_provider is CIProvider.travis_ci or
-                self.ci_provider is CIProvider.other else "bridge",
             auto_remove=True,
             stdin_open=True,
+            **kwargs
         )
         self.cont.start()
         return self
@@ -113,20 +112,37 @@ class RemoteContainer(Container):
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: Optional[Dict[str, Union[str, bytes]]] = None,
+        env: Optional[Mapping[str, AnyStr]] = None,
         capture_output: bool = False,
         binary_output: bool = False,
         cwd: Optional[PathOrStr] = None,
-    ) -> Union[str, bytes]:
-        env = dict() if env is None else env
-        docker_env = ['{}={}'.format(k, self.unicode_decode(v) if isinstance(v, bytes) else fspath(v)) for k, v in env.items()]
-        args = join([(fspath(p)) for p in args])
-        output = self.cont.exec_run(
-            args, workdir=cwd, environment=docker_env, demux=False, stream=False
-        ).output
-        sys.stdout.write(f"\t{args}\n")
-        return (
-            output
-            if binary_output else
-            fsdecode(output) if capture_output else ""
-        )
+    ) -> AnyStr:
+        kwargs: dict[str, Any] = {}
+        if env is not None:
+            kwargs["environment"] = ['{}={}'.format(k, self.unicode_decode(v) if isinstance(v, bytes) else fspath(v)) for k, v in env.items()]
+        if cwd is not None:
+            kwargs["workdir"] = fspath(cwd)
+        args = [(fspath(p)) for p in args]
+        sys.stdout.write(f"\t + {' '.join(args)} -> ")
+        try:
+            code, output = self.cont.exec_run(
+                args,
+                demux=False,
+                stream=False,
+                **kwargs
+            )
+            sys.stdout.write(f"{code}")
+        except Exception as err:
+            sys.stdout.write(f"{err}")
+        finally:
+            sys.stdout.write("\n")
+            if binary_output:
+                return output
+            elif capture_output:
+                return fsdecode(output)
+            else: return ""
+
+    def unicode_decode(cls, b: bytes) -> str:
+        return super().unicode_decode(b)
+    def unicode_encode(cls, s: str) -> bytes:
+        return super().unicode_encode(s)

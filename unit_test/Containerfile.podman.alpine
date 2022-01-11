@@ -1,23 +1,28 @@
-FROM alpine:3.15
-RUN apk add python3 py3-pip py3-setuptools podman shadow shadow-uidmap
+FROM docker.io/library/python:3.6.15-alpine3.15
+RUN apk --no-cache add podman-remote shadow shadow-uidmap
 RUN adduser worker; usermod -v 10000-42767 -w 10000-42767 worker;
 RUN chmod 644 /etc/containers/containers.conf; touch /etc/containers/nodocker
 RUN 	sed -i  -e 's|^#mount_program|mount_program|g' \
 		-e '/additionalimage.*/a "/var/lib/shared",' \
-		-e 's|^mountopt[[:space:]]*=.*$|mountopt = "nodev,fsync=0"|g' \
+		-e 's|^mountopt.*$|mountopt = "nodev,fsync=0"|g' \
 		/etc/containers/storage.conf; \
-	sed -i  -e 's|^unqualified-search-registries[[:space:]]*=.*$|unqualified-search-registries = ["quay.io", "docker.io"]|g' \
+	sed -i  -e 's|^unqualified-search-registries.*$|unqualified-search-registries = ["quay.io", "docker.io"]|g' \
 		/etc/containers/registries.conf; \
-	sed -i  -e 's|^#[[:space:]]remote[[:space:]]*=.*$|remote = true|g' \
+	sed -i  -e 's|^#ipcns.*$|ipcns = "private"|g' \
+		-e 's|^#netns.*$|netns = "private"|g' \
+		-e 's|^#init[[:space:]].*$|init = true|g' \
 		/usr/share/containers/containers.conf /etc/containers/containers.conf;
 RUN mkdir -p /var/lib/shared/overlay-images /var/lib/shared/overlay-layers /var/lib/shared/vfs-images /var/lib/shared/vfs-layers; \
 	touch /var/lib/shared/overlay-images/images.lock /var/lib/shared/overlay-layers/layers.lock /var/lib/shared/vfs-images/images.lock /var/lib/shared/vfs-layers/layers.lock;
-RUN ln -sv /usr/bin/podman /usr/bin/docker
+RUN ln -sv /usr/bin/podman-remote /usr/bin/docker; ln -sv /usr/bin/python3 /usr/bin/python;
 WORKDIR /home/worker/project
 RUN mkdir -p /home/worker/.local/share/containers; chown worker:worker -R /home/worker;
 USER worker
+ENV CIBW_VENV=/home/worker/.venv
 COPY --chown=worker ./setup* ./
-RUN pip install -e '.[test]';
+RUN 	python -m venv $CIBW_VENV; \
+	$CIBW_VENV/bin/python -m pip install -e '.[test]'; \
+	$CIBW_VENV/bin/python -m pip check; \
+	$CIBW_VENV/bin/python -m pip freeze
 COPY --chown=worker . ./
-ENV CONTAINER_HOST="unix:///tmp/podman-run-1000/podman/podman.sock"
-ENV DOCKER_HOST="unix:///tmp/podman-run-1000/podman/podman.sock"
+ENV CONTAINER_HOST="unix:///tmp/podman-run-1000/podman/podman.sock" DOCKER_HOST="unix:///tmp/podman.sock/podman-run-1000/podman/podman.sock"

@@ -139,7 +139,7 @@ def test_binary_output():
             env={"TEST_VAR": binary_data},
             capture_output=True,
         )
-        assert output.rstrip("\n") == container.unicode_decode(binary_data)
+        assert container.unicode_encode(output.rstrip("\n")) == binary_data
 
 
 @pytest.mark.docker
