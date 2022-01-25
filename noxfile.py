@@ -4,9 +4,9 @@ from pathlib import Path
 
 import nox
 
-nox.options.sessions = ["lint", "check_manifest", "tests"]
+nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
 
-PYTHON_ALL_VERSIONS = ["3.6", "3.7", "3.8", "3.9"]
+PYTHON_ALL_VERSIONS = ["3.6", "3.7", "3.8", "3.9", "3.10"]
 
 DIR = Path(__file__).parent.resolve()
 

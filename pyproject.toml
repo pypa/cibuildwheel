@@ -86,6 +86,9 @@ ignore = [
 master.py-version = "3.6"
 reports.output-format = "colorized"
 messages_control.disable = [
+  "abstract-class-instantiated",  # filelock triggers this
+  "duplicate-code",
+  "fixme",
   "invalid-name",
   "line-too-long",
   "missing-class-docstring",
@@ -95,14 +98,11 @@ messages_control.disable = [
   "too-few-public-methods",
   "too-many-arguments",
   "too-many-branches",
+  "too-many-instance-attributes",
   "too-many-lines",
   "too-many-locals",
+  "too-many-nested-blocks",
   "too-many-return-statements",
   "too-many-statements",
   "wrong-import-position",
-  "duplicate-code",
-  "too-many-instance-attributes",
-  "too-many-nested-blocks",
-  "fixme",
-  "abstract-class-instantiated",  # filelock triggers this
 ]

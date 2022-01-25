@@ -152,7 +152,7 @@ def format_safe(template: str, **kwargs: Any) -> str:
 
         # we use a function for repl to prevent re.sub interpreting backslashes
         # in repl as escape sequences. Capturing the current value of value.
-        def repl_func(match: Any, value: Any = value) -> str:
+        def repl_func(_: Any, value: Any = value) -> str:
             return str(value)
 
         result = re.sub(
