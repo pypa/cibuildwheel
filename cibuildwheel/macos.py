@@ -1,3 +1,4 @@
+import functools
 import os
 import platform
 import re
@@ -108,7 +109,7 @@ def install_cpython(tmp: Path, version: str, url: str) -> Path:
     return installation_path / "bin" / "python3"
 
 
-def install_pypy(tmp: Path, version: str, url: str) -> Path:
+def install_pypy(tmp: Path, url: str) -> Path:
     pypy_tar_bz2 = url.rsplit("/", 1)[-1]
     extension = ".tar.bz2"
     assert pypy_tar_bz2.endswith(extension)
@@ -136,7 +137,7 @@ def setup_python(
     if implementation_id.startswith("cp"):
         base_python = install_cpython(tmp, python_configuration.version, python_configuration.url)
     elif implementation_id.startswith("pp"):
-        base_python = install_pypy(tmp, python_configuration.version, python_configuration.url)
+        base_python = install_pypy(tmp, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
     assert base_python.exists()
@@ -460,15 +461,19 @@ def build(options: Options, tmp_path: Path) -> None:
                             # rosetta2 will provide the emulation with just the arch prefix.
                             arch_prefix = ["arch", "-x86_64"]
                         else:
-                            raise RuntimeError(
-                                "don't know how to emulate {testing_arch} on {machine_arch}"
-                            )
+                            msg = f"don't know how to emulate {testing_arch} on {machine_arch}"
+                            raise RuntimeError(msg)
 
                     # define a custom 'call' function that adds the arch prefix each time
-                    def call_with_arch(*args: PathOrStr, **kwargs: Any) -> None:
-                        call(*arch_prefix, *args, **kwargs)
+                    call_with_arch = functools.partial(call, *arch_prefix)
 
-                    def shell_with_arch(command: str, **kwargs: Any) -> None:
+                    def shell_with_arch(
+                        command: str,
+                        arch_prefix: Tuple[str, ...] = tuple(
+                            arch_prefix
+                        ),  # required to capture the value of arch_prefix now, rather than later (less confusion)
+                        **kwargs: Any,
+                    ) -> None:
                         command = " ".join(arch_prefix) + " " + command
                         shell(command, **kwargs)
 

@@ -35,6 +35,16 @@ def lint(session: nox.Session) -> None:
 
 
 @nox.session
+def pylint(session: nox.Session) -> None:
+    """
+    Run pylint.
+    """
+
+    session.install("pylint", ".")
+    session.run("pylint", "cibuildwheel", *session.posargs)
+
+
+@nox.session
 def check_manifest(session: nox.Session) -> None:
     """
     Ensure all needed files are included in the manifest.

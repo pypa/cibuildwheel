@@ -45,14 +45,14 @@ def evaluate(
 def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     if node.kind == "word":
         return evaluate_word_node(node, context=context)
-    elif node.kind == "commandsubstitution":
+    if node.kind == "commandsubstitution":
         node_result = evaluate_command_node(node.command, context=context)
         # bash removes training newlines in command substitution
         return node_result.rstrip()
-    elif node.kind == "parameter":
+    if node.kind == "parameter":
         return evaluate_parameter_node(node, context=context)
-    else:
-        raise ValueError(f'Unsupported bash construct: "{node.kind}"')
+
+    raise ValueError(f'Unsupported bash construct: "{node.kind}"')
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
@@ -76,8 +76,8 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
 def evaluate_command_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     if any(n.kind == "operator" for n in node.parts):
         return evaluate_nodes_as_compound_command(node.parts, context=context)
-    else:
-        return evaluate_nodes_as_simple_command(node.parts, context=context)
+
+    return evaluate_nodes_as_simple_command(node.parts, context=context)
 
 
 def evaluate_nodes_as_compound_command(

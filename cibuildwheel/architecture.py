@@ -81,12 +81,14 @@ class Architecture(Enum):
                 Architecture.ppc64le,
                 Architecture.s390x,
             }
-        elif platform == "macos":
+
+        if platform == "macos":
             return {Architecture.x86_64, Architecture.arm64, Architecture.universal2}
-        elif platform == "windows":
+
+        if platform == "windows":
             return {Architecture.x86, Architecture.AMD64, Architecture.ARM64}
-        else:
-            assert_never(platform)
+
+        assert_never(platform)
 
     @staticmethod
     def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> "Set[Architecture]":
@@ -95,10 +97,11 @@ class Architecture(Enum):
 
         if bitness == "64":
             return auto_archs - archs_32
-        elif bitness == "32":
+
+        if bitness == "32":
             return auto_archs & archs_32
-        else:
-            assert_never(bitness)
+
+        assert_never(bitness)
 
 
 def allowed_architectures_check(

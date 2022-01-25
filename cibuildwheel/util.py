@@ -150,11 +150,14 @@ def format_safe(template: str, **kwargs: Any) -> str:
             re.VERBOSE,
         )
 
-        # we use a lambda for repl to prevent re.sub interpreting backslashes
-        # in repl as escape sequences
+        # we use a function for repl to prevent re.sub interpreting backslashes
+        # in repl as escape sequences. Capturing the current value of value.
+        def repl_func(match: Any, value: Any = value) -> str:
+            return str(value)
+
         result = re.sub(
             pattern=find_pattern,
-            repl=lambda _: str(value),
+            repl=repl_func,
             string=result,
         )
 
@@ -177,10 +180,11 @@ def prepare_command(command: str, **kwargs: PathOrStr) -> str:
 def get_build_verbosity_extra_flags(level: int) -> List[str]:
     if level > 0:
         return ["-" + level * "v"]
-    elif level < 0:
+
+    if level < 0:
         return ["-" + -level * "q"]
-    else:
-        return []
+
+    return []
 
 
 def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
@@ -305,18 +309,14 @@ def download(url: str, dest: Path) -> None:
     repeat_num = 3
     for i in range(repeat_num):
         try:
-            response = urllib.request.urlopen(url, context=context)
-        except Exception:
+            with urllib.request.urlopen(url, context=context) as response:
+                dest.write_bytes(response.read())
+                return
+
+        except urllib.error.URLError:
             if i == repeat_num - 1:
                 raise
             sleep(3)
-            continue
-        break
-
-    try:
-        dest.write_bytes(response.read())
-    finally:
-        response.close()
 
 
 class DependencyConstraints:
@@ -338,8 +338,8 @@ class DependencyConstraints:
         specific_file_path = self.base_file_path.with_name(specific_name)
         if specific_file_path.exists():
             return specific_file_path
-        else:
-            return self.base_file_path
+
+        return self.base_file_path
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.base_file_path!r})"
@@ -385,20 +385,20 @@ class CIProvider(Enum):
 def detect_ci_provider() -> Optional[CIProvider]:
     if "TRAVIS" in os.environ:
         return CIProvider.travis_ci
-    elif "APPVEYOR" in os.environ:
+    if "APPVEYOR" in os.environ:
         return CIProvider.appveyor
-    elif "CIRCLECI" in os.environ:
+    if "CIRCLECI" in os.environ:
         return CIProvider.circle_ci
-    elif "AZURE_HTTP_USER_AGENT" in os.environ:
+    if "AZURE_HTTP_USER_AGENT" in os.environ:
         return CIProvider.azure_pipelines
-    elif "GITHUB_ACTIONS" in os.environ:
+    if "GITHUB_ACTIONS" in os.environ:
         return CIProvider.github_actions
-    elif "GITLAB_CI" in os.environ:
+    if "GITLAB_CI" in os.environ:
         return CIProvider.gitlab
-    elif strtobool(os.environ.get("CI", "false")):
+    if strtobool(os.environ.get("CI", "false")):
         return CIProvider.other
-    else:
-        return None
+
+    return None
 
 
 def unwrap(text: str) -> str:
@@ -494,7 +494,7 @@ def _parse_constraints_for_virtualenv(
         assert dependency_constraint_flags[0] == "-c"
         constraint_path = Path(dependency_constraint_flags[1])
         assert constraint_path.exists()
-        with constraint_path.open() as constraint_file:
+        with constraint_path.open(encoding="utf-8") as constraint_file:
             for line in constraint_file:
                 line = line.strip()
                 if len(line) == 0:

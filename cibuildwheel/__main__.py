@@ -237,7 +237,7 @@ def print_preamble(platform: str, options: Options, identifiers: List[str]) -> N
 
     print(f"Cache folder: {CIBW_CACHE_PATH}")
 
-    warnings = detect_warnings(platform=platform, options=options, identifiers=identifiers)
+    warnings = detect_warnings(options=options, identifiers=identifiers)
     if warnings:
         print("\nWarnings:")
         for warning in warnings:
@@ -273,7 +273,7 @@ def get_build_identifiers(
     return [config.identifier for config in python_configurations]
 
 
-def detect_warnings(platform: str, options: Options, identifiers: List[str]) -> List[str]:
+def detect_warnings(*, options: Options, identifiers: List[str]) -> List[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}

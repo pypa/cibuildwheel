@@ -66,7 +66,7 @@ class EnvironmentAssignmentRaw:
     def __repr__(self) -> str:
         return f"{self.name}: {self.value}"
 
-    def evaluated_value(self, **kwargs: Any) -> str:
+    def evaluated_value(self, **_: Any) -> str:
         return self.value
 
 

@@ -23,11 +23,11 @@ class Analyzer(ast.NodeVisitor):
     def __init__(self) -> None:
         self.requires_python: Optional[str] = None
 
-    def visit(self, content: ast.AST) -> None:
-        for node in ast.walk(content):
-            for child in ast.iter_child_nodes(node):
-                child.parent = node  # type: ignore[attr-defined]
-        super().visit(content)
+    def visit(self, node: ast.AST) -> None:
+        for inner_node in ast.walk(node):
+            for child in ast.iter_child_nodes(inner_node):
+                child.parent = inner_node  # type: ignore[attr-defined]
+        super().visit(node)
 
     def visit_keyword(self, node: ast.keyword) -> None:
         self.generic_visit(node)
@@ -46,7 +46,7 @@ def setup_py_python_requires(content: str) -> Optional[str]:
         analyzer = Analyzer()
         analyzer.visit(tree)
         return analyzer.requires_python or None
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         return None
 
 

@@ -81,3 +81,28 @@ ignore = [
     "requirements-dev.txt",
     "noxfile.py",
 ]
+
+[tool.pylint]
+master.py-version = "3.6"
+reports.output-format = "colorized"
+messages_control.disable = [
+  "invalid-name",
+  "line-too-long",
+  "missing-class-docstring",
+  "missing-function-docstring",
+  "missing-module-docstring",
+  "protected-access",
+  "too-few-public-methods",
+  "too-many-arguments",
+  "too-many-branches",
+  "too-many-lines",
+  "too-many-locals",
+  "too-many-return-statements",
+  "too-many-statements",
+  "wrong-import-position",
+  "duplicate-code",
+  "too-many-instance-attributes",
+  "too-many-nested-blocks",
+  "fixme",
+  "abstract-class-instantiated",  # filelock triggers this
+]

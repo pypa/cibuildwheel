@@ -106,7 +106,9 @@ class DockerContainer:
 
         assert isinstance(self.name, str)
 
-        subprocess.run(["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL)
+        subprocess.run(
+            ["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL, check=True
+        )
         self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
@@ -220,8 +222,8 @@ class DockerContainer:
                 # add the last line to output, without the footer
                 output_io.write(line[0:footer_offset])
                 break
-            else:
-                output_io.write(line)
+
+            output_io.write(line)
 
         if isinstance(output_io, io.BytesIO):
             output = str(output_io.getvalue(), encoding="utf8", errors="surrogateescape")
