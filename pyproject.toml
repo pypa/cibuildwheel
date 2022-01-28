@@ -14,7 +14,6 @@ target-version = ['py36', 'py37', 'py38', 'py39']
 
 [tool.isort]
 profile = "black"
-multi_line_output = 3
 
 
 [tool.pytest.ini_options]
@@ -85,6 +84,10 @@ ignore = [
 [tool.pylint]
 master.py-version = "3.6"
 reports.output-format = "colorized"
+master.jobs = "0"
+messages_control.enable = [
+  "useless-suppression",
+]
 messages_control.disable = [
   "abstract-class-instantiated",  # filelock triggers this
   "duplicate-code",
