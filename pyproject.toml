@@ -83,8 +83,10 @@ ignore = [
 
 [tool.pylint]
 master.py-version = "3.6"
-reports.output-format = "colorized"
 master.jobs = "0"
+master.fail-on = ["E", "F"]
+master.fail-under = "9.8"
+reports.output-format = "colorized"
 messages_control.enable = [
   "useless-suppression",
 ]
