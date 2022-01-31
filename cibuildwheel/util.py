@@ -141,7 +141,7 @@ def format_safe(template: str, **kwargs: Any) -> str:
 
     for key, value in kwargs.items():
         find_pattern = re.compile(
-            fr"""
+            rf"""
                 (?<!\#)  # don't match if preceded by a hash
                 {{  # literal open curly bracket
                 {re.escape(key)}  # the field name
