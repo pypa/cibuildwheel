@@ -1,3 +1,4 @@
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -9,6 +10,9 @@ nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
 PYTHON_ALL_VERSIONS = ["3.6", "3.7", "3.8", "3.9", "3.10"]
 
 DIR = Path(__file__).parent.resolve()
+
+if os.environ.get("CI", None):
+    nox.options.error_on_missing_interpreters = True
 
 
 @nox.session
