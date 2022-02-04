@@ -39,6 +39,20 @@ from platformdirs import user_cache_path
 
 from cibuildwheel.typing import Literal, PathOrStr, PlatformName
 
+__all__ = [
+    "resources_dir",
+    "MANYLINUX_ARCHS",
+    "call",
+    "shell",
+    "format_safe",
+    "prepare_command",
+    "get_build_verbosity_extra_flags",
+    "read_python_configs",
+    "selector_matches",
+    "strtobool",
+    "cached_property",
+]
+
 resources_dir = Path(__file__).parent / "resources"
 
 install_certifi_script = resources_dir / "install_certifi.py"
@@ -151,13 +165,10 @@ def format_safe(template: str, **kwargs: Any) -> str:
         )
 
         # we use a function for repl to prevent re.sub interpreting backslashes
-        # in repl as escape sequences. Capturing the current value of value.
-        def repl_func(_: Any, value: Any = value) -> str:
-            return str(value)
-
+        # in repl as escape sequences.
         result = re.sub(
             pattern=find_pattern,
-            repl=repl_func,
+            repl=lambda _: str(value),  # pylint: disable=cell-var-from-loop
             string=result,
         )
 
@@ -560,3 +571,9 @@ def virtualenv(
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
     return env
+
+
+if sys.version_info >= (3, 8):
+    from functools import cached_property
+else:
+    from .functools_cached_property_38 import cached_property

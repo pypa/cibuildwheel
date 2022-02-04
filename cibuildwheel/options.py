@@ -32,6 +32,7 @@ from .util import (
     BuildSelector,
     DependencyConstraints,
     TestSelector,
+    cached_property,
     resources_dir,
     selector_matches,
     strtobool,
@@ -140,7 +141,8 @@ def _dig_first(*pairs: Tuple[Mapping[str, Setting], str], ignore_empty: bool = F
 
             return value
 
-    raise KeyError(key)  # pylint: disable=undefined-loop-variable
+    last_key = pairs[-1][1]
+    raise KeyError(last_key)
 
 
 class OptionsReader:
@@ -324,9 +326,6 @@ class OptionsReader:
 
 
 class Options:
-    # pre-decleration to avoid property decorator mypy clash.
-    package_requires_python_str: Optional[str]
-
     def __init__(self, platform: PlatformName, command_line_arguments: CommandLineArguments):
         self.platform = platform
         self.command_line_arguments = command_line_arguments
@@ -351,8 +350,7 @@ class Options:
 
         return None
 
-    @property  # type: ignore[no-redef, misc]
-    @functools.lru_cache(maxsize=None)
+    @cached_property
     def package_requires_python_str(self) -> Optional[str]:
         args = self.command_line_arguments
         return get_requires_python_str(Path(args.package_dir))

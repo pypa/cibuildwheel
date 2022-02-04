@@ -107,7 +107,7 @@ class DockerContainer:
         assert isinstance(self.name, str)
 
         subprocess.run(
-            ["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL, check=True
+            ["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL, check=False
         )
         self.name = None
 

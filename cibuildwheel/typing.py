@@ -28,8 +28,8 @@ __all__ = (
 
 
 if TYPE_CHECKING:
-    PopenBytes = subprocess.Popen[bytes]  # pylint:disable=unsubscriptable-object
-    PathOrStr = Union[str, os.PathLike[str]]  # pylint:disable=unsubscriptable-object
+    PopenBytes = subprocess.Popen[bytes]
+    PathOrStr = Union[str, os.PathLike[str]]
 else:
     PopenBytes = subprocess.Popen
     PathOrStr = Union[str, "os.PathLike[str]"]

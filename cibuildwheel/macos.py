@@ -469,9 +469,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     def shell_with_arch(
                         command: str,
-                        arch_prefix: Tuple[str, ...] = tuple(
-                            arch_prefix
-                        ),  # required to capture the value of arch_prefix now, rather than later (less confusion)
+                        # required to capture the value of arch_prefix now, rather than later (less confusion)
+                        arch_prefix: Tuple[str, ...] = tuple(arch_prefix),
                         **kwargs: Any,
                     ) -> None:
                         command = " ".join(arch_prefix) + " " + command

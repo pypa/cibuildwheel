@@ -109,5 +109,6 @@ messages_control.disable = [
   "too-many-nested-blocks",
   "too-many-return-statements",
   "too-many-statements",
+  "unsubscriptable-object",
   "wrong-import-position",
 ]
