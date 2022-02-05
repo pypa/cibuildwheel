@@ -1,7 +1,7 @@
 import os
 import shutil
 import sys
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from pathlib import Path, PurePath
 from typing import Dict, Iterator, List, Optional
@@ -11,7 +11,7 @@ from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
 from cibuildwheel.util import call, ensure_virtualenv, shell
 
 
-class PlatformBackend:
+class PlatformBackend(ABC):
     def __init__(self, platform: PlatformName, tmp_dir: PurePath):
         self._platform: Final = platform
         self._tmp_base_dir = tmp_dir
