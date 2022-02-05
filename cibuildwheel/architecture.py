@@ -4,9 +4,9 @@ import re
 from enum import Enum
 from typing import Set
 
-from .typing import Literal, PlatformName, assert_never
+from .typing import Final, Literal, PlatformName, assert_never
 
-PRETTY_NAMES = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
+PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
 
 
 @functools.total_ordering
