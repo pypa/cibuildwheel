@@ -73,22 +73,18 @@ class Architecture(Enum):
 
     @staticmethod
     def all_archs(platform: PlatformName) -> "Set[Architecture]":
-        if platform == "linux":
-            return {
+        all_archs_map = {
+            "linux": {
                 Architecture.x86_64,
                 Architecture.i686,
                 Architecture.aarch64,
                 Architecture.ppc64le,
                 Architecture.s390x,
-            }
-
-        if platform == "macos":
-            return {Architecture.x86_64, Architecture.arm64, Architecture.universal2}
-
-        if platform == "windows":
-            return {Architecture.x86, Architecture.AMD64, Architecture.ARM64}
-
-        assert_never(platform)
+            },
+            "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
+            "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
+        }
+        return all_archs_map[platform]
 
     @staticmethod
     def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> "Set[Architecture]":
