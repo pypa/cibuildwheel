@@ -10,7 +10,7 @@ from filelock import FileLock
 from packaging.version import Version
 
 from .architecture import Architecture
-from .backend import BuilderBackend, run_before_all, test_one
+from .backend import BuilderBackend, do_test_wheel, run_before_all
 from .logger import log
 from .options import Options
 from .platform_backend import NativePlatformBackend
@@ -141,7 +141,7 @@ def build_one(
             constraints_dict = builder.constraints_dict
 
         if build_options.test_command and options.globals.test_selector(config.identifier):
-            test_one(platform, base_python, constraints_dict, build_options, repaired_wheel)
+            do_test_wheel(platform, base_python, constraints_dict, build_options, repaired_wheel)
 
         # we're all done here; move it to output (remove if already exists)
         shutil.move(str(repaired_wheel), build_options.output_dir)

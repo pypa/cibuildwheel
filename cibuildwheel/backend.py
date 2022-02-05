@@ -241,7 +241,7 @@ class BuilderBackend:
         return wheels
 
 
-def test_one(
+def do_test_wheel(
     platform_backend: PlatformBackend,
     base_python: PurePath,
     constraints_dict: Dict[str, str],

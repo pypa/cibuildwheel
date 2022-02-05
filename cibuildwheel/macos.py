@@ -10,7 +10,7 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 from filelock import FileLock
 
 from .architecture import Architecture
-from .backend import BuilderBackend, run_before_all, test_one
+from .backend import BuilderBackend, do_test_wheel, run_before_all
 from .logger import log
 from .options import Options
 from .platform_backend import NativePlatformBackend
@@ -265,7 +265,7 @@ def build_one(
                             "don't know how to emulate {testing_arch} on {machine_arch}"
                         )
 
-                test_one(
+                do_test_wheel(
                     platform_backend,
                     base_python,
                     constraints_dict,

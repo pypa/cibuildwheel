@@ -5,7 +5,7 @@ from pathlib import Path, PurePath
 from typing import Iterator, List, NamedTuple, Optional, Set, Tuple
 
 from .architecture import Architecture
-from .backend import BuilderBackend, run_before_all, test_one
+from .backend import BuilderBackend, do_test_wheel, run_before_all
 from .docker_container import DockerContainer
 from .logger import log
 from .options import Options
@@ -129,7 +129,7 @@ def build_one(
             # functionally the same, differing only in name, wheel metadata, and possibly include
             # different external shared libraries. so it doesn't matter which one we run the tests on.
             # Let's just pick the first one.
-            test_one(docker, base_python, constraints, build_options, repaired_wheels[0])
+            do_test_wheel(docker, base_python, constraints, build_options, repaired_wheels[0])
 
         # move repaired wheels to output
         docker.mkdir(container_output_dir, parents=True, exist_ok=True)
