@@ -9,21 +9,24 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 100
-target-version = ['py36', 'py37', 'py38', 'py39']
+target-version = ['py36', 'py37', 'py38', 'py39', 'py310']
 
 
 [tool.isort]
 profile = "black"
-multi_line_output = 3
 
 
 [tool.pytest.ini_options]
-minversion = 6.0
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 junit_family = "xunit2"
 testpaths = [
     "test",
     "unit_test",
 ]
+xfail_strict = true
+filterwarnings = ["error"]
+log_cli_level = "info"
 
 
 [tool.mypy]
