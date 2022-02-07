@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Sequence, Set, Tuple, cast
+from typing import Dict, List, NamedTuple, Sequence, Set, Tuple, cast
 
 from filelock import FileLock
 
@@ -32,12 +32,6 @@ from .util import (
     unwrap,
     virtualenv,
 )
-
-
-# TODO: normal "shell" can be changed to this
-def shell_join(*commands: str, **kwargs: Any) -> None:
-    command = " ".join(commands)
-    shell(command, **kwargs)
 
 
 def get_macos_version() -> Tuple[int, int]:
@@ -472,7 +466,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     # define a custom 'call' function that adds the arch prefix each time
                     call_with_arch = functools.partial(call, *arch_prefix)
-                    shell_with_arch = functools.partial(shell_join, *arch_prefix)
+                    shell_with_arch = functools.partial(shell, *arch_prefix)
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv
