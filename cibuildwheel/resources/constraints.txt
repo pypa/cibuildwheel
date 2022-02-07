@@ -16,7 +16,7 @@ six==1.16.0
     # via virtualenv
 typing-extensions==4.0.1
     # via delocate
-virtualenv==20.13.0
+virtualenv==20.13.1
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.37.1
     # via
@@ -24,7 +24,7 @@ wheel==0.37.1
     #   delocate
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.0.2
+pip==22.0.3
     # via -r cibuildwheel/resources/constraints.in
-setuptools==60.6.0
+setuptools==60.8.1
     # via -r cibuildwheel/resources/constraints.in
