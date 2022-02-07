@@ -130,7 +130,7 @@ def call(
 
 
 def shell(
-    command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
+    command: str, *, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
 ) -> None:
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)

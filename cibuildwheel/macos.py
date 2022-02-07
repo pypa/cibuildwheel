@@ -34,6 +34,12 @@ from .util import (
 )
 
 
+# TODO: normal "shell" can be changed to this
+def shell_join(*commands: str, **kwargs: Any) -> None:
+    command = " ".join(commands)
+    shell(command, **kwargs)
+
+
 def get_macos_version() -> Tuple[int, int]:
     """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
@@ -466,15 +472,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     # define a custom 'call' function that adds the arch prefix each time
                     call_with_arch = functools.partial(call, *arch_prefix)
-
-                    def shell_with_arch(
-                        command: str,
-                        # required to capture the value of arch_prefix now, rather than later (less confusion)
-                        arch_prefix: Tuple[str, ...] = tuple(arch_prefix),
-                        **kwargs: Any,
-                    ) -> None:
-                        command = " ".join(arch_prefix) + " " + command
-                        shell(command, **kwargs)
+                    shell_with_arch = functools.partial(shell_join, *arch_prefix)
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv
