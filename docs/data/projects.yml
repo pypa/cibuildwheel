@@ -516,4 +516,9 @@
   ci: [github]
   os: [apple, linux]
   pypi: arbor
-  notes: Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focussed on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.
+  notes: >
+    Arbor is a multi-compartment neuron simulation library; compatible with
+    next-generation accelerators; best-practices applied to research software;
+    focused on community-driven development. Includes a
+    [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py)
+    patching `rpath` in bundled libraries.
