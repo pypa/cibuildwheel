@@ -51,8 +51,9 @@ repos:
   rev: v0.931
   hooks:
   - id: mypy
+    name: mypy 3.6 on cibuildwheel/
     exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
-    args: ["--python-version=3.6", "--scripts-are-modules", "--show-error-codes"]
+    args: ["--python-version=3.6", "--show-error-codes"]
     additional_dependencies: &mypy-dependencies
       - nox
       - packaging>=21.0
@@ -66,10 +67,15 @@ repos:
       - types-pyyaml
       - types-requests
       - bracex
+      - dataclasses
   - id: mypy
     name: mypy 3.7+ on bin/
     files: ^((bin|docs)/.*py)$
-    args: ["--python-version=3.7", "--scripts-are-modules", "--show-error-codes"]
+    args: ["--python-version=3.7", "--show-error-codes"]
+    additional_dependencies: *mypy-dependencies
+  - id: mypy
+    name: mypy 3.10
+    args: ["--python-version=3.10", "--show-error-codes"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/asottile/yesqa

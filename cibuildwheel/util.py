@@ -1,4 +1,5 @@
 import contextlib
+import dataclasses
 import fnmatch
 import itertools
 import os
@@ -16,6 +17,7 @@ from pathlib import Path
 from time import sleep
 from typing import (
     Any,
+    ClassVar,
     Dict,
     Iterable,
     Iterator,
@@ -205,6 +207,8 @@ def selector_matches(patterns: str, string: str) -> bool:
     return any(fnmatch.fnmatch(string, pat) for pat in expanded_patterns)
 
 
+# Once we require Python 3.10+, we can add kw_only=True
+@dataclasses.dataclass
 class IdentifierSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
@@ -215,20 +219,12 @@ class IdentifierSelector:
     """
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP = ""
+    PRERELEASE_SKIP: ClassVar[str] = ""
 
-    def __init__(
-        self,
-        *,
-        build_config: str,
-        skip_config: str,
-        requires_python: Optional[SpecifierSet] = None,
-        prerelease_pythons: bool = False,
-    ):
-        self.build_config = build_config
-        self.skip_config = skip_config
-        self.requires_python = requires_python
-        self.prerelease_pythons = prerelease_pythons
+    skip_config: str
+    build_config: str
+    requires_python: Optional[SpecifierSet] = None
+    prerelease_pythons: bool = False
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
@@ -241,9 +237,7 @@ class IdentifierSelector:
                 return False
 
         # filter out the prerelease pythons if self.prerelease_pythons is False
-        if not self.prerelease_pythons and selector_matches(
-            BuildSelector.PRERELEASE_SKIP, build_id
-        ):
+        if not self.prerelease_pythons and selector_matches(self.PRERELEASE_SKIP, build_id):
             return False
 
         should_build = selector_matches(self.build_config, build_id)
@@ -251,28 +245,17 @@ class IdentifierSelector:
 
         return should_build and not should_skip
 
-    def __repr__(self) -> str:
-        result = f"{self.__class__.__name__}(build_config={self.build_config!r}"
 
-        if self.skip_config:
-            result += f", skip_config={self.skip_config!r}"
-        if self.prerelease_pythons:
-            result += ", prerelease_pythons=True"
-
-        result += ")"
-
-        return result
-
-
+@dataclasses.dataclass
 class BuildSelector(IdentifierSelector):
     pass
 
 
 # Note that requires-python is not needed for TestSelector, as you can't test
 # what you can't build.
+@dataclasses.dataclass
 class TestSelector(IdentifierSelector):
-    def __init__(self, *, skip_config: str):
-        super().__init__(build_config="*", skip_config=skip_config)
+    build_config: str = "*"
 
 
 # Taken from https://stackoverflow.com/a/107717
