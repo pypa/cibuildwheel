@@ -510,3 +510,15 @@
   notes: A modern implementation of a PostgreSQL adapter for Python
   ci: [github]
   os: [windows, apple, linux]
+
+- name: Arbor
+  gh: arbor-sim/arbor
+  ci: [github]
+  os: [apple, linux]
+  pypi: arbor
+  notes: >
+    Arbor is a multi-compartment neuron simulation library; compatible with
+    next-generation accelerators; best-practices applied to research software;
+    focused on community-driven development. Includes a
+    [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py)
+    patching `rpath` in bundled libraries.
