@@ -39,15 +39,15 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from cibuildwheel.typing import Literal, PathOrStr, PlatformName
+from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
 
-resources_dir = Path(__file__).parent / "resources"
+resources_dir: Final = Path(__file__).parent / "resources"
 
-install_certifi_script = resources_dir / "install_certifi.py"
+install_certifi_script: Final = resources_dir / "install_certifi.py"
 
-BuildFrontend = Literal["pip", "build"]
+BuildFrontend: Final = Literal["pip", "build"]
 
-MANYLINUX_ARCHS = (
+MANYLINUX_ARCHS: Final = (
     "x86_64",
     "i686",
     "pypy_x86_64",
@@ -58,7 +58,7 @@ MANYLINUX_ARCHS = (
     "pypy_i686",
 )
 
-MUSLLINUX_ARCHS = (
+MUSLLINUX_ARCHS: Final = (
     "x86_64",
     "i686",
     "aarch64",
@@ -66,10 +66,10 @@ MUSLLINUX_ARCHS = (
     "s390x",
 )
 
-DEFAULT_CIBW_CACHE_PATH = user_cache_path(appname="cibuildwheel", appauthor="pypa")
-CIBW_CACHE_PATH = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
+DEFAULT_CIBW_CACHE_PATH: Final = user_cache_path(appname="cibuildwheel", appauthor="pypa")
+CIBW_CACHE_PATH: Final = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
 
-IS_WIN = sys.platform.startswith("win")
+IS_WIN: Final = sys.platform.startswith("win")
 
 
 @overload

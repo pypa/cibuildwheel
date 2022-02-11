@@ -5,16 +5,17 @@ import sys
 import time
 from typing import IO, AnyStr, Optional, Union
 
+from cibuildwheel.typing import Final
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
-DEFAULT_FOLD_PATTERN = ("{name}", "")
-FOLD_PATTERNS = {
+DEFAULT_FOLD_PATTERN: Final = ("{name}", "")
+FOLD_PATTERNS: Final = {
     "azure": ("##[group]{name}", "##[endgroup]"),
     "travis": ("travis_fold:start:{identifier}\n{name}", "travis_fold:end:{identifier}"),
     "github": ("::group::{name}", "::endgroup::{name}"),
 }
 
-PLATFORM_IDENTIFIER_DESCRIPTIONS = {
+PLATFORM_IDENTIFIER_DESCRIPTIONS: Final = {
     "manylinux_x86_64": "manylinux x86_64",
     "manylinux_i686": "manylinux i686",
     "manylinux_aarch64": "manylinux aarch64",
