@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 import sys
+import tarfile
 import textwrap
 from pathlib import Path
 from tempfile import mkdtemp
@@ -82,10 +83,12 @@ def main() -> None:
         default=".",
         nargs="?",
         help="""
-            Path to the package that you want wheels for. Must be a subdirectory of
-            the working directory. When set, the working directory is still
-            considered the 'project' and is copied into the Docker container on
-            Linux. Default: the working directory.
+            Path to the package that you want wheels for. Must be either a
+            a subdirectory of the working directory or a source distribution
+            (sdist) tar.gz archive file that will be extracted in-place.
+            Note that the working directory is always the 'project' directory and
+            is what is copied into the Docker container on Linux.
+            Default: the working directory.
         """,
     )
 
@@ -144,11 +147,26 @@ def main() -> None:
         print(f"cibuildwheel: Unsupported platform: {platform}", file=sys.stderr)
         sys.exit(2)
 
+    # check if we have an sdist tarball as "package_dir" and extract first
+    package_dir = args.package_dir and Path(args.package_dir)
+    from_sdist = package_dir and package_dir.is_file()
+    if from_sdist:
+        if not str(package_dir).endswith(".tar.gz"):
+            msg = f"cibuildwheel: Package {package_dir} is not an sdist '.tar.gz' tarball"
+            print(msg, file=sys.stderr)
+            sys.exit(2)
+
+        extract_dir, _, _ = str(package_dir).rpartition(".tar.gz")
+        with tarfile.open(package_dir) as tar:
+            tar.extractall()
+
+        # important: replace original package_dir with dir of extracted sdist
+        args.package_dir = extract_dir
+
     options = compute_options(platform=platform, command_line_arguments=args)
-
     package_dir = options.globals.package_dir
-    package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
 
+    package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
     if not any(package_dir.joinpath(name).exists() for name in package_files):
         names = ", ".join(sorted(package_files, reverse=True))
         msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
