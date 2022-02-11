@@ -366,10 +366,11 @@ def build(options: Options, tmp_path: Path) -> None:
 
             repaired_wheel_dir.mkdir()
 
-            if built_wheel.name.endswith("none-any.whl"):
+            is_pure_python = built_wheel.name.endswith("none-any.whl")
+            if not build_options.globals.pure_wheel and is_pure_python:
                 raise NonPlatformWheelError()
 
-            if build_options.repair_command:
+            if not is_pure_python and build_options.repair_command:
                 log.step("Repairing wheel...")
 
                 if config_is_universal2:

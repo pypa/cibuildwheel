@@ -229,10 +229,11 @@ def build_on_docker(
         docker.call(["rm", "-rf", repaired_wheel_dir])
         docker.call(["mkdir", "-p", repaired_wheel_dir])
 
-        if built_wheel.name.endswith("none-any.whl"):
+        is_pure_python = built_wheel.name.endswith("none-any.whl")
+        if not build_options.globals.pure_wheel and is_pure_python:
             raise NonPlatformWheelError()
 
-        if build_options.repair_command:
+        if not is_pure_python and build_options.repair_command:
             log.step("Repairing wheel...")
             repair_command_prepared = prepare_command(
                 build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir

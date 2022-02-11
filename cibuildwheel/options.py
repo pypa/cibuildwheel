@@ -47,6 +47,7 @@ class CommandLineArguments:
     print_build_identifiers: bool
     allow_empty: bool
     prerelease_pythons: bool
+    pure_wheel: bool = False
 
 
 class GlobalOptions(NamedTuple):
@@ -55,6 +56,7 @@ class GlobalOptions(NamedTuple):
     build_selector: BuildSelector
     test_selector: TestSelector
     architectures: Set[Architecture]
+    pure_wheel: bool
 
 
 class BuildOptions(NamedTuple):
@@ -356,6 +358,8 @@ class Options:
     def globals(self) -> GlobalOptions:
         args = self.command_line_arguments
         package_dir = Path(args.package_dir)
+        pure_wheel = args.pure_wheel or strtobool(os.environ.get("CIBW_PURE_WHEEL", "0"))
+
         output_dir = Path(
             args.output_dir
             if args.output_dir is not None
@@ -394,6 +398,7 @@ class Options:
             build_selector=build_selector,
             test_selector=test_selector,
             architectures=architectures,
+            pure_wheel=pure_wheel,
         )
 
     def build_options(self, identifier: Optional[str]) -> BuildOptions:

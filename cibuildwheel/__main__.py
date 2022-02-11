@@ -107,6 +107,15 @@ def main() -> None:
         help="Enable pre-release Python versions if available.",
     )
 
+    parser.add_argument(
+        "--pure-wheel",
+        action="store_true",
+        help="""
+            Build pure Python wheel. If not selected, build will fail with a
+            wheel that does not contain platform-specific code.
+        """,
+    )
+
     args = parser.parse_args(namespace=CommandLineArguments())
 
     if args.platform != "auto":
