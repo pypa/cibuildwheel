@@ -45,7 +45,7 @@ resources_dir: Final = Path(__file__).parent / "resources"
 
 install_certifi_script: Final = resources_dir / "install_certifi.py"
 
-BuildFrontend: Final = Literal["pip", "build"]
+BuildFrontend = Literal["pip", "build"]
 
 MANYLINUX_ARCHS: Final = (
     "x86_64",
