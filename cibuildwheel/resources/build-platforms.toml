@@ -71,8 +71,8 @@ python_configurations = [
   { identifier = "cp310-macosx_x86_64", version = "3.10", url = "https://www.python.org/ftp/python/3.10.2/python-3.10.2-macos11.pkg" },
   { identifier = "cp310-macosx_arm64", version = "3.10", url = "https://www.python.org/ftp/python/3.10.2/python-3.10.2-macos11.pkg" },
   { identifier = "cp310-macosx_universal2", version = "3.10", url = "https://www.python.org/ftp/python/3.10.2/python-3.10.2-macos11.pkg" },
-  { identifier = "pp37-macosx_x86_64", version = "3.7", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.7-osx64.tar.bz2" },
-  { identifier = "pp38-macosx_x86_64", version = "3.8", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.7-osx64.tar.bz2" },
+  { identifier = "pp37-macosx_x86_64", version = "3.7", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.8-osx64.tar.bz2" },
+  { identifier = "pp38-macosx_x86_64", version = "3.8", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.8-osx64.tar.bz2" },
 ]
 
 [windows]
@@ -89,6 +89,6 @@ python_configurations = [
   { identifier = "cp310-win_amd64", version = "3.10.2", arch = "64" },
   { identifier = "cp39-win_arm64", version = "3.9.10", arch = "ARM64" },
   { identifier = "cp310-win_arm64", version = "3.10.2", arch = "ARM64" },
-  { identifier = "pp37-win_amd64", version = "3.7", arch = "64", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.7-win64.zip" },
-  { identifier = "pp38-win_amd64", version = "3.8", arch = "64", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.7-win64.zip" },
+  { identifier = "pp37-win_amd64", version = "3.7", arch = "64", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.8-win64.zip" },
+  { identifier = "pp38-win_amd64", version = "3.8", arch = "64", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.8-win64.zip" },
 ]
