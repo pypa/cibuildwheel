@@ -102,7 +102,7 @@ class DockerContainer:
 
         self.bash_stdin.write(b"exit 0\n")
         self.bash_stdin.flush()
-        self.process.wait(timeout=5)
+        self.process.wait(timeout=30)
         self.bash_stdin.close()
         self.bash_stdout.close()
 
