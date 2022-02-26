@@ -11,7 +11,7 @@ import pytest
 from cibuildwheel import linux, util
 from cibuildwheel.__main__ import main
 
-ALL_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "pp37", "pp38"}
+ALL_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "pp37", "pp38", "pp39"}
 
 
 @pytest.fixture
@@ -133,7 +133,7 @@ before-all = "true"
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-manylinux_x86_64" for x in ALL_IDS - {"cp36", "cp310", "pp37", "pp38"}
+        f"{x}-manylinux_x86_64" for x in ALL_IDS - {"cp36", "cp310", "pp37", "pp38", "pp39"}
     }
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
@@ -146,6 +146,7 @@ before-all = "true"
         "cp310-manylinux_x86_64",
         "pp37-manylinux_x86_64",
         "pp38-manylinux_x86_64",
+        "pp39-manylinux_x86_64",
     }
 
     kwargs = build_on_docker.call_args_list[3][1]
