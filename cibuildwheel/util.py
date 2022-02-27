@@ -1,4 +1,5 @@
 import contextlib
+import dataclasses
 import fnmatch
 import itertools
 import os
@@ -16,6 +17,7 @@ from pathlib import Path
 from time import sleep
 from typing import (
     Any,
+    ClassVar,
     Dict,
     Iterable,
     Iterator,
@@ -37,7 +39,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from cibuildwheel.typing import Literal, PathOrStr, PlatformName
+from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
 
 __all__ = [
     "resources_dir",
@@ -53,13 +55,13 @@ __all__ = [
     "cached_property",
 ]
 
-resources_dir = Path(__file__).parent / "resources"
+resources_dir: Final = Path(__file__).parent / "resources"
 
-install_certifi_script = resources_dir / "install_certifi.py"
+install_certifi_script: Final = resources_dir / "install_certifi.py"
 
 BuildFrontend = Literal["pip", "build"]
 
-MANYLINUX_ARCHS = (
+MANYLINUX_ARCHS: Final = (
     "x86_64",
     "i686",
     "pypy_x86_64",
@@ -70,7 +72,7 @@ MANYLINUX_ARCHS = (
     "pypy_i686",
 )
 
-MUSLLINUX_ARCHS = (
+MUSLLINUX_ARCHS: Final = (
     "x86_64",
     "i686",
     "aarch64",
@@ -78,10 +80,10 @@ MUSLLINUX_ARCHS = (
     "s390x",
 )
 
-DEFAULT_CIBW_CACHE_PATH = user_cache_path(appname="cibuildwheel", appauthor="pypa")
-CIBW_CACHE_PATH = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
+DEFAULT_CIBW_CACHE_PATH: Final = user_cache_path(appname="cibuildwheel", appauthor="pypa")
+CIBW_CACHE_PATH: Final = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
 
-IS_WIN = sys.platform.startswith("win")
+IS_WIN: Final = sys.platform.startswith("win")
 
 
 @overload
@@ -156,7 +158,7 @@ def format_safe(template: str, **kwargs: Any) -> str:
 
     for key, value in kwargs.items():
         find_pattern = re.compile(
-            fr"""
+            rf"""
                 (?<!\#)  # don't match if preceded by a hash
                 {{  # literal open curly bracket
                 {re.escape(key)}  # the field name
@@ -220,6 +222,8 @@ def selector_matches(patterns: str, string: str) -> bool:
     return any(fnmatch.fnmatch(string, pat) for pat in expanded_patterns)
 
 
+# Once we require Python 3.10+, we can add kw_only=True
+@dataclasses.dataclass
 class IdentifierSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
@@ -230,20 +234,12 @@ class IdentifierSelector:
     """
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP = ""
+    PRERELEASE_SKIP: ClassVar[str] = ""
 
-    def __init__(
-        self,
-        *,
-        build_config: str,
-        skip_config: str,
-        requires_python: Optional[SpecifierSet] = None,
-        prerelease_pythons: bool = False,
-    ):
-        self.build_config = build_config
-        self.skip_config = skip_config
-        self.requires_python = requires_python
-        self.prerelease_pythons = prerelease_pythons
+    skip_config: str
+    build_config: str
+    requires_python: Optional[SpecifierSet] = None
+    prerelease_pythons: bool = False
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
@@ -256,9 +252,7 @@ class IdentifierSelector:
                 return False
 
         # filter out the prerelease pythons if self.prerelease_pythons is False
-        if not self.prerelease_pythons and selector_matches(
-            BuildSelector.PRERELEASE_SKIP, build_id
-        ):
+        if not self.prerelease_pythons and selector_matches(self.PRERELEASE_SKIP, build_id):
             return False
 
         should_build = selector_matches(self.build_config, build_id)
@@ -266,28 +260,17 @@ class IdentifierSelector:
 
         return should_build and not should_skip
 
-    def __repr__(self) -> str:
-        result = f"{self.__class__.__name__}(build_config={self.build_config!r}"
 
-        if self.skip_config:
-            result += f", skip_config={self.skip_config!r}"
-        if self.prerelease_pythons:
-            result += ", prerelease_pythons=True"
-
-        result += ")"
-
-        return result
-
-
+@dataclasses.dataclass
 class BuildSelector(IdentifierSelector):
     pass
 
 
 # Note that requires-python is not needed for TestSelector, as you can't test
 # what you can't build.
+@dataclasses.dataclass
 class TestSelector(IdentifierSelector):
-    def __init__(self, *, skip_config: str):
-        super().__init__(build_config="*", skip_config=skip_config)
+    build_config: str = "*"
 
 
 # Taken from https://stackoverflow.com/a/107717

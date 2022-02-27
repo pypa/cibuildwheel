@@ -147,7 +147,7 @@ Here are some repos that use cibuildwheel.
 | [pydantic][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Data parsing and validation using Python type hints |
 | [uvloop][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | Ultra fast asyncio event loop. |
 | [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
-| [vaex][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Out-of-Core hybrid Apache Arrow/NumPy DataFrame for Python, ML, visualize and explore big tabular data at a billion rows per second 🚀 |
+| [vaex][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Out-of-Core hybrid Apache Arrow/NumPy DataFrame for Python, ML, visualization and exploration of big tabular data at a billion rows per second 🚀 |
 | [Google Benchmark][]              | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A microbenchmark support library |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
@@ -182,7 +182,7 @@ Since `cibuildwheel` repairs the wheel with `delocate` or `auditwheel`, it might
 
 It helps ensure that the library can run without any dependencies outside of the pip toolchain.
 
-This is similar to static linking, so it might have some licence implications. Check the license for any code you're pulling in to make sure that's allowed.
+This is similar to static linking, so it might have some license implications. Check the license for any code you're pulling in to make sure that's allowed.
 
 Changelog
 =========

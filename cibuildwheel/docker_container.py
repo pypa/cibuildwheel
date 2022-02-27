@@ -100,9 +100,11 @@ class DockerContainer:
         exc_tb: Optional[TracebackType],
     ) -> None:
 
+        self.bash_stdin.write(b"exit 0\n")
+        self.bash_stdin.flush()
+        self.process.wait(timeout=30)
         self.bash_stdin.close()
-        self.process.terminate()
-        self.process.wait()
+        self.bash_stdout.close()
 
         assert isinstance(self.name, str)
 
