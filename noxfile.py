@@ -1,14 +1,18 @@
+import os
 import shutil
 import sys
 from pathlib import Path
 
 import nox
 
-nox.options.sessions = ["lint", "check_manifest", "tests"]
+nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
 
 PYTHON_ALL_VERSIONS = ["3.6", "3.7", "3.8", "3.9", "3.10"]
 
 DIR = Path(__file__).parent.resolve()
+
+if os.environ.get("CI", None):
+    nox.options.error_on_missing_interpreters = True
 
 
 @nox.session
@@ -32,6 +36,16 @@ def lint(session: nox.Session) -> None:
     """
     session.install("pre-commit")
     session.run("pre-commit", "run", "--all-files", *session.posargs)
+
+
+@nox.session
+def pylint(session: nox.Session) -> None:
+    """
+    Run pylint.
+    """
+
+    session.install("pylint", ".")
+    session.run("pylint", "cibuildwheel", *session.posargs)
 
 
 @nox.session

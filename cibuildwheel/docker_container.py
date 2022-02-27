@@ -108,7 +108,9 @@ class DockerContainer:
 
         assert isinstance(self.name, str)
 
-        subprocess.run(["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL)
+        subprocess.run(
+            ["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL, check=False
+        )
         self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:

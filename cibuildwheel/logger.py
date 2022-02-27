@@ -158,7 +158,8 @@ class Logger:
             sys.stdout.flush()
             self.active_fold_group_name = None
 
-    def _fold_group_identifier(self, name: str) -> str:
+    @staticmethod
+    def _fold_group_identifier(name: str) -> str:
         """
         Travis doesn't like fold groups identifiers that have spaces in. This
         method converts them to ascii identifiers
@@ -174,17 +175,11 @@ class Logger:
 
     @property
     def colors(self) -> "Colors":
-        if self.colors_enabled:
-            return Colors(enabled=True)
-        else:
-            return Colors(enabled=False)
+        return Colors(enabled=self.colors_enabled)
 
     @property
     def symbols(self) -> "Symbols":
-        if self.unicode_enabled:
-            return Symbols(unicode=True)
-        else:
-            return Symbols(unicode=False)
+        return Symbols(unicode=self.unicode_enabled)
 
 
 def build_description_from_identifier(identifier: str) -> str:
@@ -263,8 +258,6 @@ def file_supports_unicode(file_obj: IO[AnyStr]) -> bool:
     return "utf" in codec_info.name
 
 
-"""
-Global instance of the Logger.
-"""
+# Global instance of the Logger.
 # (there's only one stdout per-process, so a global instance is justified)
 log = Logger()

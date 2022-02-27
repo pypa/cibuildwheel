@@ -15,18 +15,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit:
-    name: Pre-commit checks (mypy, flake8, etc.)
+  lint:
+    name: Linters (mypy, flake8, etc.)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
     - uses: pre-commit/action@v2.0.3
-    - run: pipx run nox -s check_manifest
+    - name: Check manifest
+      run: pipx run nox -s check_manifest
+    - name: PyLint checks
+      run: |
+        echo "::add-matcher::$GITHUB_WORKSPACE/.github/matchers/pylint.json"
+        pipx run nox -s pylint
 
   test:
     name: Test cibuildwheel on ${{ matrix.os }}
-    needs: pre-commit
+    needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -67,7 +72,7 @@ jobs:
 
   test-emulated:
     name: Test emulated cibuildwheel using qemu
-    needs: pre-commit
+    needs: lint
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:

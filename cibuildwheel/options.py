@@ -1,3 +1,4 @@
+import functools
 import os
 import sys
 import traceback
@@ -31,6 +32,7 @@ from .util import (
     BuildSelector,
     DependencyConstraints,
     TestSelector,
+    cached_property,
     resources_dir,
     selector_matches,
     strtobool,
@@ -139,7 +141,8 @@ def _dig_first(*pairs: Tuple[Mapping[str, Setting], str], ignore_empty: bool = F
 
             return value
 
-    raise KeyError(key)
+    last_key = pairs[-1][1]
+    raise KeyError(last_key)
 
 
 class OptionsReader:
@@ -310,14 +313,16 @@ class OptionsReader:
             if table is None:
                 raise ConfigOptionError(f"{name} does not accept a table")
             return table["sep"].join(table["item"].format(k=k, v=v) for k, v in result.items())
-        elif isinstance(result, list):
+
+        if isinstance(result, list):
             if sep is None:
                 raise ConfigOptionError(f"{name} does not accept a list")
             return sep.join(result)
-        elif isinstance(result, int):
+
+        if isinstance(result, int):
             return str(result)
-        else:
-            return result
+
+        return result
 
 
 class Options:
@@ -345,12 +350,10 @@ class Options:
 
         return None
 
-    @property
+    @cached_property
     def package_requires_python_str(self) -> Optional[str]:
-        if not hasattr(self, "_package_requires_python_str"):
-            args = self.command_line_arguments
-            self._package_requires_python_str = get_requires_python_str(Path(args.package_dir))
-        return self._package_requires_python_str
+        args = self.command_line_arguments
+        return get_requires_python_str(Path(args.package_dir))
 
     @property
     def globals(self) -> GlobalOptions:
@@ -574,9 +577,7 @@ def compute_options(
     return options
 
 
-_all_pinned_docker_images: Optional[ConfigParser] = None
-
-
+@functools.lru_cache(maxsize=None)
 def _get_pinned_docker_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
@@ -585,13 +586,11 @@ def _get_pinned_docker_images() -> Mapping[str, Mapping[str, str]]:
       'pypy_x86_64': {'manylinux2010': '...' }
       ... }
     """
-    global _all_pinned_docker_images
 
-    if _all_pinned_docker_images is None:
-        pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
-        _all_pinned_docker_images = ConfigParser()
-        _all_pinned_docker_images.read(pinned_docker_images_file)
-    return _all_pinned_docker_images
+    pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
+    all_pinned_docker_images = ConfigParser()
+    all_pinned_docker_images.read(pinned_docker_images_file)
+    return all_pinned_docker_images
 
 
 def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:

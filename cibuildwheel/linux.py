@@ -303,11 +303,11 @@ def build_on_docker(
     log.step_end()
 
 
-def build(options: Options, tmp_path: Path) -> None:
+def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-argument
     try:
         # check docker is installed
         subprocess.run(["docker", "--version"], check=True, stdout=subprocess.DEVNULL)
-    except Exception:
+    except subprocess.CalledProcessError:
         print(
             "cibuildwheel: Docker not found. Docker is required to run Linux builds. "
             "If you're building on Travis CI, add `services: [docker]` to your .travis.yml."

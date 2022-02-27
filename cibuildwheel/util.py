@@ -41,6 +41,20 @@ from platformdirs import user_cache_path
 
 from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
 
+__all__ = [
+    "resources_dir",
+    "MANYLINUX_ARCHS",
+    "call",
+    "shell",
+    "format_safe",
+    "prepare_command",
+    "get_build_verbosity_extra_flags",
+    "read_python_configs",
+    "selector_matches",
+    "strtobool",
+    "cached_property",
+]
+
 resources_dir: Final = Path(__file__).parent / "resources"
 
 install_certifi_script: Final = resources_dir / "install_certifi.py"
@@ -118,8 +132,9 @@ def call(
 
 
 def shell(
-    command: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
+    *commands: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
 ) -> None:
+    command = " ".join(commands)
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
 
@@ -152,11 +167,11 @@ def format_safe(template: str, **kwargs: Any) -> str:
             re.VERBOSE,
         )
 
-        # we use a lambda for repl to prevent re.sub interpreting backslashes
-        # in repl as escape sequences
+        # we use a function for repl to prevent re.sub interpreting backslashes
+        # in repl as escape sequences.
         result = re.sub(
             pattern=find_pattern,
-            repl=lambda _: str(value),
+            repl=lambda _: str(value),  # pylint: disable=cell-var-from-loop
             string=result,
         )
 
@@ -288,18 +303,14 @@ def download(url: str, dest: Path) -> None:
     repeat_num = 3
     for i in range(repeat_num):
         try:
-            response = urllib.request.urlopen(url, context=context)
-        except Exception:
+            with urllib.request.urlopen(url, context=context) as response:
+                dest.write_bytes(response.read())
+                return
+
+        except urllib.error.URLError:
             if i == repeat_num - 1:
                 raise
             sleep(3)
-            continue
-        break
-
-    try:
-        dest.write_bytes(response.read())
-    finally:
-        response.close()
 
 
 class DependencyConstraints:
@@ -319,6 +330,7 @@ class DependencyConstraints:
         specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)
+
         if specific_file_path.exists():
             return specific_file_path
         else:
@@ -477,7 +489,7 @@ def _parse_constraints_for_virtualenv(
         assert dependency_constraint_flags[0] == "-c"
         constraint_path = Path(dependency_constraint_flags[1])
         assert constraint_path.exists()
-        with constraint_path.open() as constraint_file:
+        with constraint_path.open(encoding="utf-8") as constraint_file:
             for line in constraint_file:
                 line = line.strip()
                 if len(line) == 0:
@@ -543,3 +555,9 @@ def virtualenv(
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
     return env
+
+
+if sys.version_info >= (3, 8):
+    from functools import cached_property
+else:
+    from .functools_cached_property_38 import cached_property

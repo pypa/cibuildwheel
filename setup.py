@@ -32,7 +32,6 @@ extras = {
         "types-pyyaml",
         "types-click",
         "types-requests",
-        "types-toml",
     ],
 }
 
