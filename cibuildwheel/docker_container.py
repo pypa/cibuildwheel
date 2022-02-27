@@ -222,8 +222,8 @@ class DockerContainer:
                 # add the last line to output, without the footer
                 output_io.write(line[0:footer_offset])
                 break
-
-            output_io.write(line)
+            else:
+                output_io.write(line)
 
         if isinstance(output_io, io.BytesIO):
             output = str(output_io.getvalue(), encoding="utf8", errors="surrogateescape")

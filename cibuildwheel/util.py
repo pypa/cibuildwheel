@@ -192,11 +192,10 @@ def prepare_command(command: str, **kwargs: PathOrStr) -> str:
 def get_build_verbosity_extra_flags(level: int) -> List[str]:
     if level > 0:
         return ["-" + level * "v"]
-
-    if level < 0:
+    elif level < 0:
         return ["-" + -level * "q"]
-
-    return []
+    else:
+        return []
 
 
 def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
@@ -348,10 +347,11 @@ class DependencyConstraints:
         specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)
+
         if specific_file_path.exists():
             return specific_file_path
-
-        return self.base_file_path
+        else:
+            return self.base_file_path
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.base_file_path!r})"
@@ -397,20 +397,20 @@ class CIProvider(Enum):
 def detect_ci_provider() -> Optional[CIProvider]:
     if "TRAVIS" in os.environ:
         return CIProvider.travis_ci
-    if "APPVEYOR" in os.environ:
+    elif "APPVEYOR" in os.environ:
         return CIProvider.appveyor
-    if "CIRCLECI" in os.environ:
+    elif "CIRCLECI" in os.environ:
         return CIProvider.circle_ci
-    if "AZURE_HTTP_USER_AGENT" in os.environ:
+    elif "AZURE_HTTP_USER_AGENT" in os.environ:
         return CIProvider.azure_pipelines
-    if "GITHUB_ACTIONS" in os.environ:
+    elif "GITHUB_ACTIONS" in os.environ:
         return CIProvider.github_actions
-    if "GITLAB_CI" in os.environ:
+    elif "GITLAB_CI" in os.environ:
         return CIProvider.gitlab
-    if strtobool(os.environ.get("CI", "false")):
+    elif strtobool(os.environ.get("CI", "false")):
         return CIProvider.other
-
-    return None
+    else:
+        return None
 
 
 def unwrap(text: str) -> str:

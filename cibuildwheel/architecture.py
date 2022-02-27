@@ -93,11 +93,10 @@ class Architecture(Enum):
 
         if bitness == "64":
             return auto_archs - archs_32
-
-        if bitness == "32":
+        elif bitness == "32":
             return auto_archs & archs_32
-
-        assert_never(bitness)
+        else:
+            assert_never(bitness)
 
 
 def allowed_architectures_check(

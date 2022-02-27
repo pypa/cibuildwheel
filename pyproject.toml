@@ -99,6 +99,8 @@ messages_control.disable = [
   "missing-class-docstring",
   "missing-function-docstring",
   "missing-module-docstring",
+  "no-else-break",
+  "no-else-return",
   "protected-access",
   "too-few-public-methods",
   "too-many-arguments",
