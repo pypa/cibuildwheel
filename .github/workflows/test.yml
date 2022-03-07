@@ -19,7 +19,7 @@ jobs:
     name: Linters (mypy, flake8, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
     - uses: pre-commit/action@v2.0.3
     - name: Check manifest
@@ -39,7 +39,7 @@ jobs:
         python_version: ['3.10']
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
       name: Install Python ${{ matrix.python_version }}
       with:
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
     - name: Install dependencies
       run: |
