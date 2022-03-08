@@ -5,16 +5,19 @@ from __future__ import annotations
 import copy
 import difflib
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Union
 
 import click
 import requests
 import rich
+
 if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib
+
 from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler

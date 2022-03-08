@@ -1,9 +1,11 @@
+import sys
 from typing import Dict, List
 
 if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib
+
 from packaging.version import Version
 
 from cibuildwheel.extra import Printable, dump_python_configurations

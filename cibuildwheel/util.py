@@ -32,10 +32,12 @@ from typing import (
 
 import bracex
 import certifi
+
 if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib
+
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
