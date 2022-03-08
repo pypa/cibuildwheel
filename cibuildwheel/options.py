@@ -18,7 +18,10 @@ from typing import (
     Union,
 )
 
-import tomli
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
@@ -244,7 +247,7 @@ class OptionsReader:
         Load a toml file, returns global and platform as separate dicts.
         """
         with filename.open("rb") as f:
-            config = tomli.load(f)
+            config = tomllib.load(f)
 
         global_options = config.get("tool", {}).get("cibuildwheel", {})
         platform_options = global_options.get(self.platform, {})

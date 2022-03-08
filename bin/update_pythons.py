@@ -11,7 +11,10 @@ from typing import Any, Union
 import click
 import requests
 import rich
-import tomli
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler
@@ -301,7 +304,7 @@ def update_pythons(force: bool, level: str) -> None:
 
     original_toml = toml_file_path.read_text()
     with toml_file_path.open("rb") as f:
-        configs = tomli.load(f)
+        configs = tomllib.load(f)
 
     for config in configs["windows"]["python_configurations"]:
         all_versions.update_config(config)
