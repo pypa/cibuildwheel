@@ -7,6 +7,12 @@
 # ci: [appveyor, github, azurepipelines, circleci, gitlab, travisci] (optional)
 # notes: (text, optional)
 
+- name: abess
+  gh: abess-team/abess
+  notes: A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions.
+  ci: [github]
+  os: [windows, apple, linux]
+
 - name: Matplotlib
   gh: matplotlib/matplotlib
   notes: The venerable Matplotlib, a Python library with C++ portions
@@ -30,8 +36,8 @@
 
 - name: Parselmouth
   gh: YannickJadoul/Parselmouth
-  pypi: praat-parselmouth
-  notes: A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels.
+  pypi: praat-parselmouthA Python interface to the Praat software package, using pybind
+  notes: 11, C++17 and CMake, with the core Praat static library built only once and shared between wheels.
   ci: [github]
   os: [windows, apple, linux]
 
