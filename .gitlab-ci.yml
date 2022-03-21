@@ -9,7 +9,11 @@ linux:
     DOCKER_DRIVER: overlay2
     # See https://github.com/docker-library/docker/pull/166
     DOCKER_TLS_CERTDIR: ""
+
+    # skip all but the basic tests
+    # (comment the below line in a PR to debug a Gitlab-specific issue)
+    PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   script:
     - curl -sSL https://get.docker.com/ | sh
-    - python -m pip install -e ".[dev]"
+    - python -m pip install -e ".[dev]" pytest-custom-exit-code
     - python ./bin/run_tests.py
