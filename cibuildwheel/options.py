@@ -96,7 +96,7 @@ class BuildOptions(NamedTuple):
         return self.globals.architectures
 
 
-Setting = Union[Dict[str, str], List[str], str]
+Setting = Union[Dict[str, str], List[str], str, int]
 
 
 class Override(NamedTuple):
@@ -496,7 +496,7 @@ class Options:
 
                     config_value = self.reader.get(f"musllinux-{build_platform}-image")
 
-                    if config_value is None:
+                    if not config_value:
                         image = pinned_images["musllinux_1_1"]
                     elif config_value in pinned_images:
                         image = pinned_images[config_value]

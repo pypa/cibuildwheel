@@ -38,6 +38,8 @@ files = [
     "noxfile.py",
 ]
 warn_unused_configs = true
+show_error_codes = true
+
 warn_redundant_casts = true
 no_implicit_reexport = true
 strict_equality = true
@@ -48,6 +50,9 @@ disallow_subclassing_any = true
 disallow_any_generics = true
 warn_return_any = true
 no_implicit_optional = true
+
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+warn_unreachable = true
 
 [[tool.mypy.overrides]]
 module = "cibuildwheel.*"
