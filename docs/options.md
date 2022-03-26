@@ -432,6 +432,12 @@ the package is compatible with all versions of Python that it can build.
         requires = ["setuptools>=42", "wheel"]
         build-backend = "setuptools.build_meta"
 
+    Note however, that adding a `[project]` table to your `pyproject.toml` may
+    trigger a series of validations as specified in
+    [PEP621](https://www.python.org/dev/peps/pep-0621/). Also consider that
+    adding `[project]`, if not done carefully, will change the behaviour of your
+    build (e.g. `setuptools` may ignore `install_requires` specified via
+    `setup.py` or `setup.cfg`).
 
     Currently, setuptools has not yet added support for reading this value from
     pyproject.toml yet, and so does not copy it to Requires-Python in the wheel
