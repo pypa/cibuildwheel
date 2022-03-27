@@ -420,39 +420,33 @@ the package is compatible with all versions of Python that it can build.
 !!! note
     Rather than using this option, it's recommended you set
     `project.requires-python` in `pyproject.toml` instead:
-    Example `pyproject.toml`:
 
-        [project]
-        requires-python = ">=3.6"
+    ```toml
+    [project]
+    requires-python = ">=3.6"
+    ```
 
-        # Aside - in pyproject.toml you should always specify minimal build
-        # system options, like this:
+    A few things to note:
 
+      - If your project didn't already have a `pyproject.toml`, be sure to
+        set the build system to your build backend.
+
+        ```toml
         [build-system]
         requires = ["setuptools>=42", "wheel"]
         build-backend = "setuptools.build_meta"
+        ```
 
-    Note however, that adding a `[project]` table to your `pyproject.toml` may
-    trigger a series of validations as specified in
-    [PEP621](https://www.python.org/dev/peps/pep-0621/). Also consider that
-    adding `[project]`, if not done carefully, will change the behaviour of your
-    build (e.g. `setuptools` may ignore `install_requires` specified via
-    `setup.py` or `setup.cfg`).
+      - If you didn't already have a `pyproject.toml` that had a `[project]`
+        table, you should migrate values from `setup.py` or `setup.cfg`, or
+        [list them in the the `dynamic` field](https://peps.python.org/pep-0621/#dynamic).
+        The values to include and the format is listed in
+        [PEP 621](https://peps.python.org/pep-0621/#details)
 
-    Currently, setuptools has not yet added support for reading this value from
-    pyproject.toml yet, and so does not copy it to Requires-Python in the wheel
-    metadata. This mechanism is used by pip to scan through older versions of
-    your package until it finds a release compatible with the current version
-    of Python compatible when installing, so it is an important value to set if
-    you plan to drop support for a version of Python in the future.
-
-    If you don't want to list this value twice, you can also use the setuptools
-    specific location in `setup.cfg` and cibuildwheel will detect it from
-    there. Example `setup.cfg`:
-
-        [options]
-        python_requires = ">=3.6"
-
+      - Adding `[project]` to `pyproject.toml` can
+        change the behaviour of your build (e.g. `setuptools` may ignore
+        `install_requires` specified via `setup.py` or `setup.cfg`). Make sure
+        to double-check the build after adding.
 
 This option is not available in `pyproject.toml` under
 `tool.cibuildwheel.project-requires-python`, since it should be set with the
