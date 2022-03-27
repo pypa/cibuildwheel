@@ -4,6 +4,7 @@ extras = {
     "docs": [
         "mkdocs-include-markdown-plugin==2.8.0",
         "mkdocs==1.0.4",
+        "jinja2==3.0.3",
         "pymdown-extensions",
         "mkdocs-macros-plugin",
     ],
