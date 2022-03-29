@@ -439,9 +439,10 @@ the package is compatible with all versions of Python that it can build.
 
       - If you didn't already have a `pyproject.toml` that had a `[project]`
         table, you should migrate values from `setup.py` or `setup.cfg`, or
-        [list them in the the `dynamic` field](https://peps.python.org/pep-0621/#dynamic).
-        The values to include and the format is listed in
-        [PEP 621](https://peps.python.org/pep-0621/#details)
+        list them in the [the `dynamic` field](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#dynamic).
+        The values to include and the format is listed in the
+        [project source metadata specification](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#dynamic)
+        (as originally defined in PEP 621).
 
       - Adding `[project]` to `pyproject.toml` can
         change the behaviour of your build (e.g. `setuptools` may ignore
