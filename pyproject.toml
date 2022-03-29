@@ -66,8 +66,6 @@ module = [
 ]
 ignore_missing_imports = true
 
-[tool.pycln]
-all = true
 
 [tool.check-manifest]
 ignore = [
