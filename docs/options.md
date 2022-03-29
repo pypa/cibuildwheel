@@ -402,7 +402,7 @@ This option can also be set using the [command-line option](#command-line)
 > Manually set the Python compatibility of your project
 
 By default, cibuildwheel reads your package's Python compatibility from
-`pyproject.toml` following [PEP621](https://www.python.org/dev/peps/pep-0621/)
+`pyproject.toml` following the [project metadata specification](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/)
 or from `setup.cfg`; finally it will try to inspect the AST of `setup.py` for a
 simple keyword assignment in a top level function call. If you need to override
 this behaviour for some reason, you can use this option.
@@ -416,43 +416,26 @@ Default: reads your package's Python compatibility from `pyproject.toml`
 `setup.py` `setup(python_requires="...")`. If not found, cibuildwheel assumes
 the package is compatible with all versions of Python that it can build.
 
-
 !!! note
-    Rather than using this option, it's recommended you set
-    `project.requires-python` in `pyproject.toml` instead:
+    Rather than using this option, it's recommended you set this value
+    statically in a way that your build backend can use it, too. This ensures
+    that your package's metadata is correct when published on PyPI.
 
-    ```toml
-    [project]
-    requires-python = ">=3.6"
-    ```
-
-    A few things to note:
-
-      - If your project didn't already have a `pyproject.toml`, be sure to
-        set the build system to your build backend.
+      - If you have a `pyproject.toml` containing a `[project]` table, you can
+        specify `requires-python` there.
 
         ```toml
-        [build-system]
-        requires = ["setuptools>=42", "wheel"]
-        build-backend = "setuptools.build_meta"
+        [project]
+        requires-python = ">=3.6"
         ```
 
-      - If you didn't already have a `pyproject.toml` that had a `[project]`
-        table, you should migrate values from `setup.py` or `setup.cfg`, or
-        list them in the [the `dynamic` field](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#dynamic).
-        The values to include and the format is listed in the
-        [project source metadata specification](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/#dynamic)
-        (as originally defined in PEP 621).
+        Note that build backend support for the `[project]` table is still patchy, and
+        adding `[project]` to `pyproject.toml` can change the behaviour of your build
+        (e.g. setuptools may ignore `install_requires` specified via `setup.py` or
+        `setup.cfg`). Make sure to double-check the build after adding.
 
-      - Adding `[project]` to `pyproject.toml` can
-        change the behaviour of your build (e.g. `setuptools` may ignore
-        `install_requires` specified via `setup.py` or `setup.cfg`). Make sure
-        to double-check the build after adding.
-
-This option is not available in `pyproject.toml` under
-`tool.cibuildwheel.project-requires-python`, since it should be set with the
-[PEP621](https://www.python.org/dev/peps/pep-0621/) location instead,
-`project.requires-python`.
+      - If you're using setuptools, [you can set this value in `setup.cfg` or `setup.py`](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#python-requirement)
+        and cibuildwheel will read it from there.
 
 #### Examples
 
