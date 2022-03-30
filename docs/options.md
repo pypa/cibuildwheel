@@ -417,24 +417,27 @@ Default: reads your package's Python compatibility from `pyproject.toml`
 the package is compatible with all versions of Python that it can build.
 
 !!! note
-    Rather than using this option, it's recommended you set this value
+    Rather than using this environment variable, it's recommended you set this value
     statically in a way that your build backend can use it, too. This ensures
-    that your package's metadata is correct when published on PyPI.
+    that your package's metadata is correct when published on PyPI. This 
+    cibuildwheel-specific option is provided as an override, and therefore is only
+    available in environment variable form.
 
       - If you have a `pyproject.toml` containing a `[project]` table, you can
         specify `requires-python` there.
 
         ```toml
         [project]
+        ...
         requires-python = ">=3.6"
         ```
 
-        Note that build backend support for the `[project]` table is still patchy, and
-        adding `[project]` to `pyproject.toml` can change the behaviour of your build
-        (e.g. setuptools may ignore `install_requires` specified via `setup.py` or
-        `setup.cfg`). Make sure to double-check the build after adding.
+        Note that not all build backends fully support using a `[project]` table yet;
+        specifically setuptools just added experimental support in version 61.
+        Adding `[project]` to `pyproject.toml` requires all the other supported
+        values to be specified there, or to be listed in `dynamic`.
 
-      - If you're using setuptools, [you can set this value in `setup.cfg` or `setup.py`](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#python-requirement)
+      - If you're using setuptools, [you can set this value in `setup.cfg` (preferred) or `setup.py`](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#python-requirement)
         and cibuildwheel will read it from there.
 
 #### Examples
