@@ -419,7 +419,7 @@ the package is compatible with all versions of Python that it can build.
 !!! note
     Rather than using this environment variable, it's recommended you set this value
     statically in a way that your build backend can use it, too. This ensures
-    that your package's metadata is correct when published on PyPI. This 
+    that your package's metadata is correct when published on PyPI. This
     cibuildwheel-specific option is provided as an override, and therefore is only
     available in environment variable form.
 
