@@ -30,7 +30,8 @@ repos:
   rev: v1.2.5
   hooks:
   - id: pycln
-    args: [--config=pyproject.toml]
+    args: [--all]
+    additional_dependencies: [click<8.1]  # temporary workaround until typer updates
 
 - repo: https://github.com/PyCQA/isort
   rev: 5.10.1
