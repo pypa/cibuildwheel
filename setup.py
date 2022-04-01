@@ -13,6 +13,7 @@ extras = {
         "pytest>=6",
         "pytest-timeout",
         "pytest-xdist",
+        "build",
     ],
     "bin": [
         "click",

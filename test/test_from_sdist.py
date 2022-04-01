@@ -1,0 +1,177 @@
+import os
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from test.test_projects.base import TestProject
+
+from . import test_projects, utils
+
+basic_project = test_projects.new_c_project()
+
+
+# utilities
+
+
+def make_sdist(project: TestProject, working_dir: Path) -> Path:
+    project_dir = working_dir / "project"
+    project_dir.mkdir(parents=True, exist_ok=True)
+    project.generate(project_dir)
+
+    sdist_dir = working_dir / "sdist"
+    subprocess.run(
+        [sys.executable, "-m", "build", "--sdist", "--outdir", sdist_dir, project_dir], check=True
+    )
+
+    return next(sdist_dir.glob("*.tar.gz"))
+
+
+def cibuildwheel_from_sdist_run(sdist_path, add_env=None, config_file=None):
+    env = os.environ.copy()
+
+    if add_env:
+        env.update(add_env)
+
+    with TemporaryDirectory() as tmp_output_dir:
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "cibuildwheel.from_sdist",
+                *(["--config-file", config_file] if config_file else []),
+                "--output-dir",
+                tmp_output_dir,
+                sdist_path,
+            ],
+            env=env,
+            check=True,
+        )
+        return os.listdir(tmp_output_dir)
+
+
+# tests
+
+
+def test_simple(tmp_path):
+    # make an sdist of the project
+    sdist_dir = tmp_path / "sdist"
+    sdist_dir.mkdir()
+    sdist_path = make_sdist(basic_project, sdist_dir)
+
+    # build the wheels from sdist
+    actual_wheels = cibuildwheel_from_sdist_run(
+        sdist_path,
+        add_env={
+            "CIBW_BUILD": "cp39-*",
+        },
+    )
+
+    # check that the expected wheels are produced
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_external_config_file_argument(tmp_path, capfd):
+    # make an sdist of the project
+    sdist_dir = tmp_path / "sdist"
+    sdist_dir.mkdir()
+    sdist_path = make_sdist(basic_project, sdist_dir)
+
+    # add a config file
+    config_file = tmp_path / "config.toml"
+    config_file.write_text(
+        textwrap.dedent(
+            """
+            [tool.cibuildwheel]
+            before-all = 'echo "test log statement from before-all"'
+            """
+        )
+    )
+
+    # build the wheels from sdist
+    actual_wheels = cibuildwheel_from_sdist_run(
+        sdist_path,
+        add_env={
+            "CIBW_BUILD": "cp39-*",
+        },
+        config_file=config_file,
+    )
+
+    # check that the expected wheels are produced
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    assert set(actual_wheels) == set(expected_wheels)
+
+    # check that before-all was run
+    captured = capfd.readouterr()
+    assert "test log statement from before-all" in captured.out
+
+
+def test_config_in_pyproject_toml(tmp_path, capfd):
+    # make a project with a pyproject.toml
+    project = test_projects.new_c_project()
+    project.files["pyproject.toml"] = textwrap.dedent(
+        """
+        [tool.cibuildwheel]
+        before-build = 'echo "test log statement from before-build 8419"'
+        """
+    )
+
+    # make an sdist of the project
+    sdist_dir = tmp_path / "sdist"
+    sdist_dir.mkdir()
+    sdist_path = make_sdist(project, sdist_dir)
+
+    # build the wheels from sdist
+    actual_wheels = cibuildwheel_from_sdist_run(
+        sdist_path,
+        add_env={"CIBW_BUILD": "cp39-*"},
+    )
+
+    # check that the expected wheels are produced
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    assert set(actual_wheels) == set(expected_wheels)
+
+    # check that before-build was run
+    captured = capfd.readouterr()
+    assert "test log statement from before-build 8419" in captured.out
+
+
+def test_internal_config_file_argument(tmp_path, capfd):
+    # make a project with a config file inside
+    project = test_projects.new_c_project(
+        setup_cfg_add="include_package_data = True",
+    )
+    project.files["wheel_build_config.toml"] = textwrap.dedent(
+        """
+        [tool.cibuildwheel]
+        before-all = 'echo "test log statement from before-all 1829"'
+        """
+    )
+    project.files["MANIFEST.in"] = textwrap.dedent(
+        """
+        include wheel_build_config.toml
+        """
+    )
+
+    # make an sdist of the project
+    sdist_dir = tmp_path / "sdist"
+    sdist_dir.mkdir()
+    sdist_path = make_sdist(project, sdist_dir)
+
+    # build the wheels from sdist
+    actual_wheels = cibuildwheel_from_sdist_run(
+        sdist_path,
+        add_env={
+            "CIBW_BUILD": "cp39-*",
+        },
+        config_file="{project}/wheel_build_config.toml",
+    )
+
+    # check that the expected wheels are produced
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    assert set(actual_wheels) == set(expected_wheels)
+
+    # check that before-all was run
+    captured = capfd.readouterr()
+    assert "test log statement from before-all 1829" in captured.out
