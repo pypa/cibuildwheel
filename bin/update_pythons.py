@@ -109,12 +109,7 @@ class PyPyVersions:
         response = requests.get("https://downloads.python.org/pypy/versions.json")
         response.raise_for_status()
 
-        releases = [
-            r
-            for r in response.json()
-            if r["pypy_version"] != "nightly"
-            and f'{r["python_version"]}-{r["pypy_version"]}' != "3.7.12-7.3.8"
-        ]
+        releases = [r for r in response.json() if r["pypy_version"] != "nightly"]
         for release in releases:
             release["pypy_version"] = Version(release["pypy_version"])
             release["python_version"] = Version(release["python_version"])
