@@ -2,6 +2,19 @@
 title: Changelog
 ---
 
+### v2.4.0
+
+_2 April 2022_
+
+- ✨ cibuildwheel now supports running locally on Windows and macOS (as well as Linux). On macOS, you'll have to install the versions of Pythons that you want to use from Python.org, and cibuildwheel will use them. On Windows, cibuildwheel will install it's own versions of Python. Check out [the documentation](https://cibuildwheel.readthedocs.io/en/stable/setup/#local) for instructions. (#974)
+- ✨ Added support for building PyPy 3.9 wheels. (#1031)
+- ✨ Listing at the end of the build now displays the size of each wheel (#975)
+- 🐛 Workaround a connection timeout bug on Travis CI ppc64le runners (#906)
+- 🐛 Fix an encoding error when reading setup.py in the wrong encoding (#977)
+- 🛠 Setuptools updated to 61.3.0, including experimental support for reading config from pyproject.toml(PEP 621). This could change the behaviour of your build if you have a pyproject.toml with a `[project]` table, because that takes precedence over setup.py and setup.cfg. Check out the [setuptools docs](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html) and the [project metadata specification](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/) for more info.
+- 🛠 Many other dependency updates.
+- 📚 Minor docs improvements
+
 ### v2.3.1
 
 _14 December 2021_
