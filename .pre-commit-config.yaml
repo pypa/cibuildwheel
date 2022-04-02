@@ -31,7 +31,7 @@ repos:
   hooks:
   - id: pycln
     args: [--all]
-    additional_dependencies: [click<8.1]  # temporary workaround until typer updates
+    stages: [manual]
 
 - repo: https://github.com/PyCQA/isort
   rev: 5.10.1
@@ -54,7 +54,7 @@ repos:
   - id: mypy
     name: mypy 3.6 on cibuildwheel/
     exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
-    args: ["--python-version=3.6", "--show-error-codes"]
+    args: ["--python-version=3.6"]
     additional_dependencies: &mypy-dependencies
       - nox
       - packaging>=21.0
@@ -72,11 +72,11 @@ repos:
   - id: mypy
     name: mypy 3.7+ on bin/
     files: ^((bin|docs)/.*py)$
-    args: ["--python-version=3.7", "--show-error-codes"]
+    args: ["--python-version=3.7"]
     additional_dependencies: *mypy-dependencies
   - id: mypy
     name: mypy 3.10
-    args: ["--python-version=3.10", "--show-error-codes"]
+    args: ["--python-version=3.10"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/asottile/yesqa
@@ -97,8 +97,6 @@ repos:
   rev: v1.9.0
   hooks:
   - id: python-check-blanket-noqa
-    stages: [manual]
-  - id: python-check-blanket-type-ignore
     stages: [manual]
   - id: python-no-log-warn
   - id: python-no-eval

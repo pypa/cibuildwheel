@@ -96,7 +96,7 @@ class BuildOptions(NamedTuple):
         return self.globals.architectures
 
 
-Setting = Union[Dict[str, str], List[str], str]
+Setting = Union[Dict[str, str], List[str], str, int]
 
 
 class Override(NamedTuple):
@@ -482,13 +482,12 @@ class Options:
 
                     if not config_value:
                         # default to manylinux2014
-                        image = pinned_images.get("manylinux2014")
+                        image = pinned_images["manylinux2014"]
                     elif config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
                         image = config_value
 
-                    assert image is not None
                     manylinux_images[build_platform] = image
 
                 for build_platform in MUSLLINUX_ARCHS:
@@ -496,7 +495,7 @@ class Options:
 
                     config_value = self.reader.get(f"musllinux-{build_platform}-image")
 
-                    if config_value is None:
+                    if not config_value:
                         image = pinned_images["musllinux_1_1"]
                     elif config_value in pinned_images:
                         image = pinned_images[config_value]
