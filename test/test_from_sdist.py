@@ -8,9 +8,6 @@ from test.test_projects.base import TestProject
 
 from . import test_projects, utils
 
-basic_project = test_projects.new_c_project()
-
-
 # utilities
 
 
@@ -54,6 +51,8 @@ def cibuildwheel_from_sdist_run(sdist_path, add_env=None, config_file=None):
 
 
 def test_simple(tmp_path):
+    basic_project = test_projects.new_c_project()
+
     # make an sdist of the project
     sdist_dir = tmp_path / "sdist"
     sdist_dir.mkdir()
@@ -62,9 +61,7 @@ def test_simple(tmp_path):
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={
-            "CIBW_BUILD": "cp39-*",
-        },
+        add_env={"CIBW_BUILD": "cp39-*"},
     )
 
     # check that the expected wheels are produced
@@ -73,6 +70,8 @@ def test_simple(tmp_path):
 
 
 def test_external_config_file_argument(tmp_path, capfd):
+    basic_project = test_projects.new_c_project()
+
     # make an sdist of the project
     sdist_dir = tmp_path / "sdist"
     sdist_dir.mkdir()
@@ -92,9 +91,7 @@ def test_external_config_file_argument(tmp_path, capfd):
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={
-            "CIBW_BUILD": "cp39-*",
-        },
+        add_env={"CIBW_BUILD": "cp39-*"},
         config_file=config_file,
     )
 
@@ -159,12 +156,10 @@ def test_internal_config_file_argument(tmp_path, capfd):
     sdist_dir.mkdir()
     sdist_path = make_sdist(project, sdist_dir)
 
-    # build the wheels from sdist
+    # build the wheels from sdist, referencing the config file inside
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={
-            "CIBW_BUILD": "cp39-*",
-        },
+        add_env={"CIBW_BUILD": "cp39-*"},
         config_file="{project}/wheel_build_config.toml",
     )
 
