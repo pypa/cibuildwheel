@@ -28,6 +28,7 @@ def main() -> None:
     platform: PlatformName
 
     parser = argparse.ArgumentParser(
+        prog="cibuildwheel",
         description="Build wheels for all the platforms.",
         epilog="""
             Most options are supplied via environment variables or in
