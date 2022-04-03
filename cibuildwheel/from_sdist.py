@@ -22,7 +22,7 @@ def main() -> None:
             the package directory.
             """,
         ),
-        epilog="""Any further arguments will be passed on to cibuildwheel.""",
+        epilog="Any further arguments will be passed on to cibuildwheel.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
@@ -65,7 +65,7 @@ def main() -> None:
 
         temp_dir_contents = list(temp_dir.iterdir())
 
-        if len(temp_dir_contents) != 1 or not temp_dir_contents[0].is_dir:
+        if len(temp_dir_contents) != 1 or not temp_dir_contents[0].is_dir():
             exit("invalid sdist: didn't contain a single dir")
 
         project_dir = temp_dir_contents[0]
