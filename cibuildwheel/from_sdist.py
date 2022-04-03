@@ -11,6 +11,7 @@ from cibuildwheel.util import format_safe
 
 def main() -> None:
     parser = argparse.ArgumentParser(
+        prog="cibuildwheel-from-sdist",
         description=textwrap.dedent(
             """
             Build wheels from an sdist archive.
