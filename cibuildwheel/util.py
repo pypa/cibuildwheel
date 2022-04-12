@@ -435,6 +435,11 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
         FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
         for wheel in final_contents - existing_contents
     ]
+
+    if len(new_contents) == 0:
+        print('No new wheels')
+        return
+
     max_name_len = max(len(f.name) for f in new_contents)
     max_size_len = max(len(f.size) for f in new_contents)
     n = len(new_contents)
