@@ -206,30 +206,30 @@ these steps into your package's build process. For example, if you're using
 setuptools, you can add steps to your package's `setup.py` using a structure
 like this:
 
-    ```python
-    import subprocess
-    import setuptools
-    import setuptools.command.build_py
+```python
+import subprocess
+import setuptools
+import setuptools.command.build_py
 
 
-    class BuildPyCommand(setuptools.command.build_py.build_py):
-      """Custom build command."""
+class BuildPyCommand(setuptools.command.build_py.build_py):
+    """Custom build command."""
 
-      def run(self):
+    def run(self):
         # your custom build steps here
         # e.g.
         #   subprocess.run(['python', 'scripts/my_custom_script.py'], check=True)
         setuptools.command.build_py.build_py.run(self)
 
 
-    setuptools.setup(
-        cmdclass={
-            'build_py': BuildPyCommand,
-        },
-        # Usual setup() args.
-        # ...
-    )
-    ```
+setuptools.setup(
+    cmdclass={
+        'build_py': BuildPyCommand,
+    },
+    # Usual setup() args.
+    # ...
+)
+```
 
 #### Compiler flags
 
