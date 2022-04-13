@@ -74,5 +74,5 @@ def test_allow_empty(tmp_path, build_frontend_env):
         project_dir, add_env=build_frontend_env, add_args=["--allow-empty"]
     )
 
-    # check that the expected wheels are produced
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    # check that nothing was built
+    assert len(actual_wheels) == 0
