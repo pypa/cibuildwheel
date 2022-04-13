@@ -51,7 +51,6 @@ class EnvironmentAssignment(Protocol):
         executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
     ) -> str:
         """Returns the value of this assignment, as evaluated in the environment"""
-        ...
 
 
 class EnvironmentAssignmentRaw:
