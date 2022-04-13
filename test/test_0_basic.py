@@ -71,8 +71,8 @@ def test_allow_empty(tmp_path, build_frontend_env):
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(
-        project_dir, add_env=build_frontend_env,
-        add_args=["--allow-empty"])
+        project_dir, add_env=build_frontend_env, add_args=["--allow-empty"]
+    )
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
