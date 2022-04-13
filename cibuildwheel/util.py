@@ -437,7 +437,6 @@ def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
     ]
 
     if len(new_contents) == 0:
-        print("No new wheels")
         return
 
     max_name_len = max(len(f.name) for f in new_contents)
