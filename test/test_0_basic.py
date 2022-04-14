@@ -69,11 +69,8 @@ def test_allow_empty(tmp_path, build_frontend_env):
     # without error
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={
-            "CIBW_BUILD": "BUILD_NOTHING_AT_ALL",
-            **build_frontend_env
-        },
-        add_args=["--allow-empty"]
+        add_env={"CIBW_BUILD": "BUILD_NOTHING_AT_ALL", **build_frontend_env},
+        add_args=["--allow-empty"],
     )
 
     # check that nothing was built
