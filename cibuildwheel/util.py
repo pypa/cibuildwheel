@@ -32,7 +32,12 @@ from typing import (
 
 import bracex
 import certifi
-import tomli
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
@@ -203,7 +208,7 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
 def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
     input_file = resources_dir / "build-platforms.toml"
     with input_file.open("rb") as f:
-        loaded_file = tomli.load(f)
+        loaded_file = tomllib.load(f)
     results: List[Dict[str, str]] = list(loaded_file[config]["python_configurations"])
     return results
 
@@ -460,7 +465,7 @@ def get_pip_version(env: Dict[str, str]) -> str:
 def _ensure_virtualenv() -> Path:
     input_file = resources_dir / "virtualenv.toml"
     with input_file.open("rb") as f:
-        loaded_file = tomli.load(f)
+        loaded_file = tomllib.load(f)
     version = str(loaded_file["version"])
     url = str(loaded_file["url"])
     path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"

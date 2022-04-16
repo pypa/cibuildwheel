@@ -5,12 +5,18 @@ from __future__ import annotations
 import difflib
 import logging
 import subprocess
+import sys
 from pathlib import Path
 from typing import NamedTuple
 
 import click
 import rich
-import tomli
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
@@ -78,7 +84,7 @@ def update_virtualenv(force: bool, level: str) -> None:
 
     original_toml = toml_file_path.read_text()
     with toml_file_path.open("rb") as f:
-        loaded_file = tomli.load(f)
+        loaded_file = tomllib.load(f)
     version = str(loaded_file["version"])
     versions = git_ls_remote_versions(GET_VIRTUALENV_GITHUB)
     if versions[0].version > Version(version):

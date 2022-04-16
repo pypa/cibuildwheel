@@ -3,7 +3,11 @@ from fnmatch import fnmatch
 from pathlib import Path
 
 import pytest
-import tomli
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
@@ -314,7 +318,7 @@ def test_defaults(platform, intercepted_build_args):
     build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
     defaults_config_path = resources_dir / "defaults.toml"
     with defaults_config_path.open("rb") as f:
-        defaults_toml = tomli.load(f)
+        defaults_toml = tomllib.load(f)
 
     root_defaults = defaults_toml["tool"]["cibuildwheel"]
     platform_defaults = defaults_toml["tool"]["cibuildwheel"][platform]

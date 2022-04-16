@@ -1,6 +1,11 @@
+import sys
 from typing import Dict, List
 
-import tomli
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 from packaging.version import Version
 
 from cibuildwheel.extra import Printable, dump_python_configurations
@@ -12,7 +17,7 @@ def test_compare_configs():
         txt = f1.read()
 
     with open(resources_dir / "build-platforms.toml", "rb") as f2:
-        dict_txt = tomli.load(f2)
+        dict_txt = tomllib.load(f2)
 
     new_txt = dump_python_configurations(dict_txt)
     print(new_txt)
