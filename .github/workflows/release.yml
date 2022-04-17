@@ -7,6 +7,9 @@ on:
     types:
     - published
 
+permissions:
+  contents: read
+
 jobs:
   dist:
     runs-on: ubuntu-latest
@@ -24,6 +27,8 @@ jobs:
       run: pipx run twine check dist/*
 
   publish:
+    permissions:
+      contents: none
     needs: [dist]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
