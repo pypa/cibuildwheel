@@ -54,6 +54,7 @@ setup(
         'spam',
         sources=['spam.c'],
         libraries=libraries,
+        {{ setup_py_extension_args_add | indent(8) }}
     )],
     {{ setup_py_setup_args_add | indent(4) }}
 )
@@ -73,6 +74,7 @@ def new_c_project(
     spam_c_top_level_add="",
     spam_c_function_add="",
     setup_py_add="",
+    setup_py_extension_args_add="",
     setup_py_setup_args_add="",
     setup_cfg_add="",
 ):
@@ -91,6 +93,7 @@ def new_c_project(
             "spam_c_top_level_add": spam_c_top_level_add,
             "spam_c_function_add": spam_c_function_add,
             "setup_py_add": setup_py_add,
+            "setup_py_extension_args_add": setup_py_extension_args_add,
             "setup_py_setup_args_add": setup_py_setup_args_add,
             "setup_cfg_add": setup_cfg_add,
         }

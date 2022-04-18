@@ -22,6 +22,7 @@ from .util import (
     NonPlatformWheelError,
     call,
     download,
+    find_compatible_abi3_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
     prepare_command,
@@ -249,6 +250,8 @@ def build(options: Options, tmp_path: Path) -> None:
             )
             shell(before_all_prepared, env=env)
 
+        built_wheels: List[Path] = []
+
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             log.build_start(config.identifier)
@@ -274,83 +277,93 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.build_frontend,
             )
 
-            # run the before_build command
-            if build_options.before_build:
-                log.step("Running before_build...")
-                before_build_prepared = prepare_command(
-                    build_options.before_build, project=".", package=options.globals.package_dir
+            abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
+            if abi3_wheel:
+                log.step_end()
+                print(
+                    f"Found previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                 )
-                shell(before_build_prepared, env=env)
-
-            log.step("Building wheel...")
-            built_wheel_dir.mkdir()
-
-            verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-
-            if build_options.build_frontend == "pip":
-                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                # see https://github.com/pypa/cibuildwheel/pull/369
-                call(
-                    "python",
-                    "-m",
-                    "pip",
-                    "wheel",
-                    options.globals.package_dir.resolve(),
-                    f"--wheel-dir={built_wheel_dir}",
-                    "--no-deps",
-                    *get_build_verbosity_extra_flags(build_options.build_verbosity),
-                    env=env,
-                )
-            elif build_options.build_frontend == "build":
-                config_setting = " ".join(verbosity_flags)
-                build_env = env.copy()
-                if build_options.dependency_constraints:
-                    constraints_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
+                repaired_wheel = abi3_wheel
+            else:
+                # run the before_build command
+                if build_options.before_build:
+                    log.step("Running before_build...")
+                    before_build_prepared = prepare_command(
+                        build_options.before_build, project=".", package=options.globals.package_dir
                     )
-                    # Bug in pip <= 21.1.3 - we can't have a space in the
-                    # constraints file, and pip doesn't support drive letters
-                    # in uhi.  After probably pip 21.2, we can use uri. For
-                    # now, use a temporary file.
-                    if " " in str(constraints_path):
-                        assert " " not in str(identifier_tmp_dir)
-                        tmp_file = identifier_tmp_dir / "constraints.txt"
-                        tmp_file.write_bytes(constraints_path.read_bytes())
-                        constraints_path = tmp_file
+                    shell(before_build_prepared, env=env)
 
-                    build_env["PIP_CONSTRAINT"] = str(constraints_path)
-                    build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                log.step("Building wheel...")
+                built_wheel_dir.mkdir()
+
+                verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
+
+                if build_options.build_frontend == "pip":
+                    # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                    # see https://github.com/pypa/cibuildwheel/pull/369
                     call(
                         "python",
                         "-m",
-                        "build",
-                        build_options.package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        f"--config-setting={config_setting}",
-                        env=build_env,
+                        "pip",
+                        "wheel",
+                        options.globals.package_dir.resolve(),
+                        f"--wheel-dir={built_wheel_dir}",
+                        "--no-deps",
+                        *get_build_verbosity_extra_flags(build_options.build_verbosity),
+                        env=env,
                     )
-            else:
-                assert_never(build_options.build_frontend)
+                elif build_options.build_frontend == "build":
+                    config_setting = " ".join(verbosity_flags)
+                    build_env = env.copy()
+                    if build_options.dependency_constraints:
+                        constraints_path = (
+                            build_options.dependency_constraints.get_for_python_version(
+                                config.version
+                            )
+                        )
+                        # Bug in pip <= 21.1.3 - we can't have a space in the
+                        # constraints file, and pip doesn't support drive letters
+                        # in uhi.  After probably pip 21.2, we can use uri. For
+                        # now, use a temporary file.
+                        if " " in str(constraints_path):
+                            assert " " not in str(identifier_tmp_dir)
+                            tmp_file = identifier_tmp_dir / "constraints.txt"
+                            tmp_file.write_bytes(constraints_path.read_bytes())
+                            constraints_path = tmp_file
 
-            built_wheel = next(built_wheel_dir.glob("*.whl"))
+                        build_env["PIP_CONSTRAINT"] = str(constraints_path)
+                        build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                        call(
+                            "python",
+                            "-m",
+                            "build",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            f"--config-setting={config_setting}",
+                            env=build_env,
+                        )
+                else:
+                    assert_never(build_options.build_frontend)
 
-            # repair the wheel
-            repaired_wheel_dir.mkdir()
+                built_wheel = next(built_wheel_dir.glob("*.whl"))
 
-            if built_wheel.name.endswith("none-any.whl"):
-                raise NonPlatformWheelError()
+                # repair the wheel
+                repaired_wheel_dir.mkdir()
 
-            if build_options.repair_command:
-                log.step("Repairing wheel...")
-                repair_command_prepared = prepare_command(
-                    build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
-                )
-                shell(repair_command_prepared, env=env)
-            else:
-                shutil.move(str(built_wheel), repaired_wheel_dir)
+                if built_wheel.name.endswith("none-any.whl"):
+                    raise NonPlatformWheelError()
 
-            repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                if build_options.repair_command:
+                    log.step("Repairing wheel...")
+                    repair_command_prepared = prepare_command(
+                        build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                    )
+                    shell(repair_command_prepared, env=env)
+                else:
+                    shutil.move(str(built_wheel), repaired_wheel_dir)
+
+                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
 
             if build_options.test_command and options.globals.test_selector(config.identifier):
                 log.step("Testing wheel...")
@@ -405,7 +418,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 shell(test_command_prepared, cwd="c:\\", env=virtualenv_env)
 
             # we're all done here; move it to output (remove if already exists)
-            shutil.move(str(repaired_wheel), build_options.output_dir)
+            if abi3_wheel is None:
+                shutil.move(str(repaired_wheel), build_options.output_dir)
+                built_wheels.append(build_options.output_dir / repaired_wheel.name)
 
             # clean up
             # (we ignore errors because occasionally Windows fails to unlink a file and we
