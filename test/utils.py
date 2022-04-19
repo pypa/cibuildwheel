@@ -83,8 +83,8 @@ def cibuildwheel_run(
                 "--output-dir",
                 str(output_dir or tmp_output_dir),
                 str(package_dir),
-            ]
-            + add_args,
+                *add_args,
+            ],
             env=env,
             cwd=project_path,
             check=True,

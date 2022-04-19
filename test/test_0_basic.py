@@ -61,7 +61,7 @@ def test_build_identifiers(tmp_path):
     ), f"{expected_wheels} vs {build_identifiers}"
 
 
-def test_allow_empty(tmp_path, build_frontend_env):
+def test_allow_empty(tmp_path):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
@@ -69,7 +69,7 @@ def test_allow_empty(tmp_path, build_frontend_env):
     # without error
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={"CIBW_BUILD": "BUILD_NOTHING_AT_ALL", **build_frontend_env},
+        add_env={"CIBW_BUILD": "BUILD_NOTHING_AT_ALL"},
         add_args=["--allow-empty"],
     )
 
