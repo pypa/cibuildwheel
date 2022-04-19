@@ -234,18 +234,20 @@ def build(options: Options, tmp_path: Path) -> None:
         options.globals.build_selector, options.globals.architectures
     )
 
-    try:
-        if len(python_configurations) > 0:
-            before_all_options_identifier = python_configurations[0].identifier
-            before_all_options = options.build_options(before_all_options_identifier)
+    if len(python_configurations) == 0:
+        return
 
-            if before_all_options.before_all:
-                log.step("Running before_all...")
-                env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
-                before_all_prepared = prepare_command(
-                    before_all_options.before_all, project=".", package=options.globals.package_dir
-                )
-                shell(before_all_prepared, env=env)
+    try:
+        before_all_options_identifier = python_configurations[0].identifier
+        before_all_options = options.build_options(before_all_options_identifier)
+
+        if before_all_options.before_all:
+            log.step("Running before_all...")
+            env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
+            before_all_prepared = prepare_command(
+                before_all_options.before_all, project=".", package=options.globals.package_dir
+            )
+            shell(before_all_prepared, env=env)
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
