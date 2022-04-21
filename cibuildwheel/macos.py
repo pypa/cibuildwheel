@@ -287,9 +287,7 @@ def build(options: Options, tmp_path: Path) -> None:
             env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
             env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
             before_all_prepared = prepare_command(
-                before_all_options.before_all,
-                project=".",
-                package=before_all_options.package_dir,
+                before_all_options.before_all, project=".", package=before_all_options.package_dir
             )
             shell(before_all_prepared, env=env)
 
