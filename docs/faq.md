@@ -179,7 +179,7 @@ package 'sdist' will also benefit.
 
 #### Missing build dependencies {: #cibw-options-alternatives-deps}
 
-If your build needs Python dependencies, rather than using CIBW_BEFORE_BUILD, it's best to add these to the
+If your build needs Python dependencies, rather than using `CIBW_BEFORE_BUILD`, it's best to add these to the
 [`build-system.requires`](https://www.python.org/dev/peps/pep-0518/#build-system-table)
 section of your pyproject.toml. For example, if your project requires Cython
 to build, your pyproject.toml might include a section like this:
@@ -201,7 +201,7 @@ You might need to run some other commands before building, like running a
 script that performs codegen or downloading some data that's not stored in
 your source tree.
 
-Rather than using CIBW_BEFORE_ALL or CIBW_BEFORE_BUILD, you could incorporate
+Rather than using `CIBW_BEFORE_ALL` or `CIBW_BEFORE_BUILD`, you could incorporate
 these steps into your package's build process. For example, if you're using
 setuptools, you can add steps to your package's `setup.py` using a structure
 like this:
@@ -309,7 +309,7 @@ See [#816](https://github.com/pypa/cibuildwheel/issues/816), thanks to @phoeriou
 
 Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, these are included with Python, but when compiling with a newer version of Visual Studio, it is possible users will run into problems on systems that do not have these runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it. Since a Python installation normally includes these VC++ Redistributable files for [the version of the MSVC compiler used to compile Python](https://wiki.python.org/moin/WindowsCompilers), this is typically only a problem when compiling a Python C extension with a newer compiler.
 
-Additionally, Visual Studio 2019 started linking to an even newer DLL, `VCRUNTIME140_1.dll`, besides the `VCRUNTIME140.dll` that is included with recent Python versions (starting from Python 3.5; see [here](https://wiki.python.org/moin/WindowsCompilers) for more details on the corresponding Visual Studio & MSVC versions used to compile the different Python versions). To avoid this extra dependency on `VCRUNTIME140_1.dll`, the [`/d2FH4-` flag](https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/) can be added to the MSVC invocations (check out [this issue](https://github.com/pypa/cibuildwheel/issues/423) for details and references).
+Additionally, Visual Studio 2019 started linking to an even newer DLL, `VCRUNTIME140_1.dll`, besides the `VCRUNTIME140.dll` that is included with recent Python versions (starting from Python 3.5; see [here](https://wiki.python.org/moin/WindowsCompilers) for more details on the corresponding Visual Studio & MSVC versions used to compile the different Python versions). To avoid this extra dependency on `VCRUNTIME140_1.dll`, the [`/d2FH4-` flag](https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/) can be added to the MSVC invocations (check out [this issue](https://github.com/pypa/cibuildwheel/issues/423) for details and references). CPython 3.8.3 and all versions after it have this extra DLL, so it is only needed for 3.8 and earlier.
 
 To add the `/d2FH4-` flag to a standard `setup.py` using `setuptools`, the `extra_compile_args` option can be used:
 
