@@ -59,3 +59,19 @@ def test_build_identifiers(tmp_path):
     assert len(expected_wheels) == len(
         build_identifiers
     ), f"{expected_wheels} vs {build_identifiers}"
+
+
+def test_allow_empty(tmp_path):
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    # Sanity check - --allow-empty should cause a no-op build to complete
+    # without error
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={"CIBW_BUILD": "BUILD_NOTHING_AT_ALL"},
+        add_args=["--allow-empty"],
+    )
+
+    # check that nothing was built
+    assert len(actual_wheels) == 0

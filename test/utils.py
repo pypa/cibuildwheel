@@ -44,7 +44,9 @@ def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pyt
     return cmd_output.strip().split("\n")
 
 
-def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, output_dir=None):
+def cibuildwheel_run(
+    project_path, package_dir=".", env=None, add_env=None, output_dir=None, add_args=None
+):
     """
     Runs cibuildwheel as a subprocess, building the project at project_path.
 
@@ -57,12 +59,16 @@ def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, outp
     :param add_env: environment used to update env
     :param output_dir: directory where wheels are saved. If None, a temporary
     directory will be used for the duration of the command.
+    :param add_args: Additional command-line arguments to pass to cibuildwheel.
     :return: list of built wheels (file names).
     """
     if env is None:
         env = os.environ.copy()
         # If present in the host environment, remove the MACOSX_DEPLOYMENT_TARGET for consistency
         env.pop("MACOSX_DEPLOYMENT_TARGET", None)
+
+    if add_args is None:
+        add_args = []
 
     if add_env is not None:
         env.update(add_env)
@@ -77,6 +83,7 @@ def cibuildwheel_run(project_path, package_dir=".", env=None, add_env=None, outp
                 "--output-dir",
                 str(output_dir or tmp_output_dir),
                 str(package_dir),
+                *add_args,
             ],
             env=env,
             cwd=project_path,
