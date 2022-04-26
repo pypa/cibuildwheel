@@ -122,7 +122,7 @@ class DockerContainer:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f"tar cf - . | docker exec -i {self.name} tar -xC {shell_quote(to_path)} -f -",
+                f"tar cf - . | docker exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
