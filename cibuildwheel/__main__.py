@@ -67,6 +67,7 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         type=Path,
+        default=Path(os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")),
         help="Destination folder for the wheels. Default: wheelhouse.",
     )
 
@@ -82,17 +83,18 @@ def main() -> None:
 
     parser.add_argument(
         "package_dir",
+        metavar="PACKAGE",
         default=Path("."),
         type=Path,
         nargs="?",
         help="""
-            Path to the package that you want wheels for. Must be a subdirectory
-            of the working directory. When set to a directory, the working
-            directory is still considered the 'project' and is copied into the
-            Docker container on Linux. Default: the working directory. This can
-            also be a tar.gz file - if it is, then --config-file and
-            --output-dir are relative to the current directory, and other paths
-            are relative to the expanded SDist directory.
+            Path to the package that you want wheels for. Default: the working
+            directory. Can be a directory inside the working directory, or an
+            sdist. When set to a directory, the working directory is still
+            considered the 'project' and is copied into the Docker container
+            on Linux.  When set to a tar.gz sdist file, --config-file
+            and --output-dir are relative to the current directory, and other
+            paths are relative to the expanded SDist directory.
         """,
     )
 
@@ -119,11 +121,7 @@ def main() -> None:
     args.package_dir = args.package_dir.resolve()
 
     # This are always relative to the base directory, even in SDist builds
-    args.output_dir = Path(
-        args.output_dir
-        if args.output_dir is not None
-        else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
-    ).resolve()
+    args.output_dir = args.output_dir.resolve()
 
     # Standard builds if a directory or non-existent path is given
     if not args.package_dir.is_file() and not args.package_dir.name.endswith("tar.gz"):

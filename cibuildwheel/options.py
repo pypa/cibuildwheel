@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import (
     Any,
     Dict,
-    Iterator,
+    Generator,
     List,
     Mapping,
     NamedTuple,
@@ -48,7 +48,7 @@ from .util import (
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
     archs: Optional[str]
-    output_dir: Optional[Path]
+    output_dir: Path
     config_file: str
     package_dir: Path
     print_build_identifiers: bool
@@ -265,7 +265,7 @@ class OptionsReader:
         ]
 
     @contextmanager
-    def identifier(self, identifier: Optional[str]) -> Iterator[None]:
+    def identifier(self, identifier: Optional[str]) -> Generator[None, None, None]:
         self.current_identifier = identifier
         try:
             yield
@@ -363,7 +363,6 @@ class Options:
     @property
     def globals(self) -> GlobalOptions:
         args = self.command_line_arguments
-        assert args.output_dir is not None, "Must be resolved"
         package_dir = args.package_dir
         output_dir = args.output_dir
 
