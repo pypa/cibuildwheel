@@ -24,13 +24,13 @@ def test_output_dir(platform, intercepted_build_args, monkeypatch):
 
     main()
 
-    assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR
+    assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR.resolve()
 
 
 def test_output_dir_default(platform, intercepted_build_args, monkeypatch):
     main()
 
-    assert intercepted_build_args.args[0].globals.output_dir == Path("wheelhouse")
+    assert intercepted_build_args.args[0].globals.output_dir == Path("wheelhouse").resolve()
 
 
 @pytest.mark.parametrize("also_set_environment", [False, True])
@@ -43,7 +43,7 @@ def test_output_dir_argument(also_set_environment, platform, intercepted_build_a
 
     main()
 
-    assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR
+    assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR.resolve()
 
 
 def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_empty):

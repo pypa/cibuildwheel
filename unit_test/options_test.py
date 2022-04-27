@@ -34,7 +34,7 @@ def test_options_1(tmp_path, monkeypatch):
         f.write(PYPROJECT_1)
 
     args = get_default_command_line_arguments()
-    args.package_dir = str(tmp_path)
+    args.package_dir = tmp_path
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
 
@@ -77,7 +77,7 @@ def test_passthrough(tmp_path, monkeypatch):
         f.write(PYPROJECT_1)
 
     args = get_default_command_line_arguments()
-    args.package_dir = str(tmp_path)
+    args.package_dir = tmp_path
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
     monkeypatch.setenv("EXAMPLE_ENV", "ONE")
@@ -105,7 +105,7 @@ def test_passthrough(tmp_path, monkeypatch):
 )
 def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):
     args = get_default_command_line_arguments()
-    args.package_dir = str(tmp_path)
+    args.package_dir = tmp_path
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
     monkeypatch.setenv("CIBW_ENVIRONMENT_PASS_LINUX", "ENV_VAR")

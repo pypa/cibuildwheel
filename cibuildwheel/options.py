@@ -46,9 +46,9 @@ from .util import (
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
     archs: Optional[str]
-    output_dir: Optional[str]
+    output_dir: Optional[Path]
     config_file: str
-    package_dir: str
+    package_dir: Path
     print_build_identifiers: bool
     allow_empty: bool
     prerelease_pythons: bool
@@ -361,12 +361,9 @@ class Options:
     @property
     def globals(self) -> GlobalOptions:
         args = self.command_line_arguments
-        package_dir = Path(args.package_dir)
-        output_dir = Path(
-            args.output_dir
-            if args.output_dir is not None
-            else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
-        )
+        assert args.output_dir is not None, "Must be resolved"
+        package_dir = args.package_dir
+        output_dir = args.output_dir
 
         build_config = self.reader.get("build", env_plat=False, sep=" ") or "*"
         skip_config = self.reader.get("skip", env_plat=False, sep=" ")

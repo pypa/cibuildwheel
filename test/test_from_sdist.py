@@ -18,7 +18,8 @@ def make_sdist(project: TestProject, working_dir: Path) -> Path:
 
     sdist_dir = working_dir / "sdist"
     subprocess.run(
-        [sys.executable, "-m", "build", "--sdist", "--outdir", sdist_dir, project_dir], check=True
+        [sys.executable, "-m", "build", "--sdist", "--outdir", str(sdist_dir), str(project_dir)],
+        check=True,
     )
 
     return next(sdist_dir.glob("*.tar.gz"))
@@ -35,11 +36,11 @@ def cibuildwheel_from_sdist_run(sdist_path, add_env=None, config_file=None):
             [
                 sys.executable,
                 "-m",
-                "cibuildwheel.from_sdist",
+                "cibuildwheel",
                 *(["--config-file", config_file] if config_file else []),
                 "--output-dir",
-                tmp_output_dir,
-                sdist_path,
+                str(tmp_output_dir),
+                str(sdist_path),
             ],
             env=env,
             check=True,
@@ -92,7 +93,7 @@ def test_external_config_file_argument(tmp_path, capfd):
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
         add_env={"CIBW_BUILD": "cp39-*"},
-        config_file=config_file,
+        config_file=str(config_file),
     )
 
     # check that the expected wheels are produced
@@ -186,8 +187,8 @@ def test_argument_passthrough(tmp_path, capfd):
         [
             sys.executable,
             "-m",
-            "cibuildwheel.from_sdist",
-            sdist_path,
+            "cibuildwheel",
+            str(sdist_path),
             "--platform",
             "linux",
             "--archs",
