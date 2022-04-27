@@ -24,7 +24,6 @@ from cibuildwheel.util import (
     Unbuffered,
     chdir,
     detect_ci_provider,
-    format_safe,
 )
 
 
@@ -75,9 +74,9 @@ def main() -> None:
         "--config-file",
         default="",
         help="""
-            TOML config file. Default: "", meaning {package}/pyproject.toml,
-            if it exists. To refer to a project inside your project, use {package}
-            or {project}.
+            TOML config file. Default: "", meaning {package}/pyproject.toml, if
+            it exists. To refer to a project inside your project, use {package};
+            this matters if you build from an SDist.
         """,
     )
 
@@ -87,8 +86,8 @@ def main() -> None:
         type=Path,
         nargs="?",
         help="""
-            Path to the package that you want wheels for. Must be a
-            subdirectory of the working directory. When set, the working
+            Path to the package that you want wheels for. Must be a subdirectory
+            of the working directory. When set to a directory, the working
             directory is still considered the 'project' and is copied into the
             Docker container on Linux. Default: the working directory. This can
             also be a tar.gz file - if it is, then --config-file and
@@ -117,8 +116,9 @@ def main() -> None:
 
     args = parser.parse_args(namespace=CommandLineArguments())
 
-    # These are always relative to the base directory, even in SDist builds
     args.package_dir = args.package_dir.resolve()
+
+    # This are always relative to the base directory, even in SDist builds
     args.output_dir = Path(
         args.output_dir
         if args.output_dir is not None
@@ -129,9 +129,6 @@ def main() -> None:
     if not args.package_dir.is_file() and not args.package_dir.name.endswith("tar.gz"):
         build_in_directory(args)
         return
-
-    if not args.package_dir.name.endswith("tar.gz"):
-        raise SystemExit("Must be a tar.gz file if a file is given.")
 
     # Tarfile builds require extraction and changing the directory
     with tempfile.TemporaryDirectory(prefix="cibw-sdist-") as temp_dir_str:
@@ -145,22 +142,16 @@ def main() -> None:
         except ValueError:
             raise SystemExit("invalid sdist: didn't contain a single dir") from None
 
+        # This is now the new package dir
         args.package_dir = project_dir.resolve()
-
-        if args.config_file:
-            # expand the placeholders if they're used
-            config_file_path = format_safe(
-                args.config_file,
-                project=project_dir,
-                package=project_dir,
-            )
-            args.config_file = str(Path(config_file_path).resolve())
 
         with chdir(temp_dir):
             build_in_directory(args)
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
+    platform: PlatformName
+
     if args.platform != "auto":
         platform = args.platform
     else:

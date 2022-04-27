@@ -22,6 +22,7 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib
+
 from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
@@ -36,6 +37,7 @@ from .util import (
     DependencyConstraints,
     TestSelector,
     cached_property,
+    format_safe,
     resources_dir,
     selector_matches,
     strtobool,
@@ -344,7 +346,7 @@ class Options:
         args = self.command_line_arguments
 
         if args.config_file:
-            return Path(args.config_file.format(package=args.package_dir))
+            return Path(format_safe(args.config_file, package=args.package_dir))
 
         # return pyproject.toml, if it's available
         pyproject_toml_path = Path(args.package_dir) / "pyproject.toml"

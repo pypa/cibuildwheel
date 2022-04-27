@@ -161,7 +161,7 @@ def test_internal_config_file_argument(tmp_path, capfd):
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
         add_env={"CIBW_BUILD": "cp39-*"},
-        config_file="{project}/wheel_build_config.toml",
+        config_file="{package}/wheel_build_config.toml",
     )
 
     # check that the expected wheels are produced
