@@ -287,7 +287,7 @@
   pypi: mypy
   ci: [github]
   os: [apple, linux, windows]
-  notes: MyPyC, the compiled component of MyPy.
+  notes: The compiled version of MyPy using MyPyC.
 
 - name: Imagecodecs (fork)
   gh: czaki/imagecodecs_build
@@ -521,10 +521,71 @@
   gh: arbor-sim/arbor
   ci: [github]
   os: [apple, linux]
-  pypi: arbor
   notes: >
     Arbor is a multi-compartment neuron simulation library; compatible with
     next-generation accelerators; best-practices applied to research software;
     focused on community-driven development. Includes a
     [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py)
     patching `rpath` in bundled libraries.
+
+- name: Kivy
+  gh: kivy/kivy
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: NCNN
+  gh: Tencent/ncnn
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: Prophet
+  gh: facebook/prophet
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: MemRay
+  gh: bloomberg/memray
+  ci: [github]
+  os: [linux]
+
+- name: PyGame
+  gh: pygame/pygame
+  ci: [github]
+  os: [apple, linux]
+
+- name: UltraJSON
+  gh: ultrajson/ultrajson
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: NumPy
+  gh: numpy/numpy
+  ci: [github, travisci]
+  os: [windows, apple, linux]
+
+- name: Wrapt
+  gh: GrahamDumpleton/wrapt
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: SimpleJSON
+  gh: simplejson/simplejson
+  ci: [github]
+  os: [windows, apple, linux]
+
+- name: Implicit
+  gh: benfred/implicit
+  ci: [github]
+  os: [windows, apple, linux]
+  notes: Includes GPU support for linux wheels
+
+- name: power-grid-model
+  gh: alliander-opensource/power-grid-model
+  ci: [github]
+  os: [windows, apple, linux]
+  notes: Python/C++ library for distribution power system analysis
+
+- name: Python-WebRTC
+  gh: MarshalX/python-webrtc
+  ci: [github]
+  os: [windows, apple, linux]
