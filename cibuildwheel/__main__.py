@@ -66,6 +66,12 @@ def main() -> None:
     )
 
     parser.add_argument(
+        "--build",
+        default=None,
+        help="The identifier expression for wheels to build. Overrides CIBW_BUILD.",
+    )
+
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path(os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")),

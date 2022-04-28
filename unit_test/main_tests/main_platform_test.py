@@ -192,3 +192,17 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
             Architecture.arm64,
             Architecture.universal2,
         }
+
+
+@pytest.mark.parametrize("use_env_var", [False, True])
+def test_build_argument(intercepted_build_args, monkeypatch, use_env_var):
+
+    if use_env_var:
+        monkeypatch.setenv("CIBW_BUILD", "cp310-*")
+    else:
+        monkeypatch.setenv("CIBW_BUILD", "unused")
+        monkeypatch.setattr(sys, "argv", sys.argv + ["--build", "cp310-*"])
+
+    main()
+    options = intercepted_build_args.args[0]
+    assert options.globals.build_selector.build_config == "cp310-*"
