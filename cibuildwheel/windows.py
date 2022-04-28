@@ -2,9 +2,10 @@ import os
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Set
+from typing import Dict, List, Optional, Sequence, Set
 from zipfile import ZipFile
 
 from filelock import FileLock
@@ -45,7 +46,8 @@ def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]
     ]
 
 
-class PythonConfiguration(NamedTuple):
+@dataclass(frozen=True)
+class PythonConfiguration:
     version: str
     arch: str
     identifier: str

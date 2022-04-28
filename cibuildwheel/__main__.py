@@ -107,7 +107,7 @@ def main() -> None:
         help="Enable pre-release Python versions if available.",
     )
 
-    args = parser.parse_args(namespace=CommandLineArguments())
+    args = CommandLineArguments(**vars(parser.parse_args()))
 
     if args.platform != "auto":
         platform = args.platform
