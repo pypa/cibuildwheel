@@ -12,6 +12,7 @@ from .typing import OrderedDict, PathOrStr, assert_never
 from .util import (
     BuildSelector,
     NonPlatformWheelError,
+    find_compatible_abi3_wheel,
     get_build_verbosity_extra_flags,
     prepare_command,
     read_python_configs,
@@ -132,6 +133,8 @@ def build_on_docker(
         )
         docker.call(["sh", "-c", before_all_prepared], env=env)
 
+    built_wheels: List[PurePath] = []
+
     for config in platform_configs:
         log.build_start(config.identifier)
         build_options = options.build_options(config.identifier)
@@ -174,74 +177,83 @@ def build_on_docker(
             )
             sys.exit(1)
 
-        if build_options.before_build:
-            log.step("Running before_build...")
-            before_build_prepared = prepare_command(
-                build_options.before_build,
-                project=container_project_path,
-                package=container_package_dir,
+        abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
+        if abi3_wheel:
+            log.step_end()
+            print(
+                f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
             )
-            docker.call(["sh", "-c", before_build_prepared], env=env)
-
-        log.step("Building wheel...")
-
-        temp_dir = PurePath("/tmp/cibuildwheel")
-        built_wheel_dir = temp_dir / "built_wheel"
-        docker.call(["rm", "-rf", built_wheel_dir])
-        docker.call(["mkdir", "-p", built_wheel_dir])
-
-        verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-
-        if build_options.build_frontend == "pip":
-            docker.call(
-                [
-                    "python",
-                    "-m",
-                    "pip",
-                    "wheel",
-                    container_package_dir,
-                    f"--wheel-dir={built_wheel_dir}",
-                    "--no-deps",
-                    *verbosity_flags,
-                ],
-                env=env,
-            )
-        elif build_options.build_frontend == "build":
-            config_setting = " ".join(verbosity_flags)
-            docker.call(
-                [
-                    "python",
-                    "-m",
-                    "build",
-                    container_package_dir,
-                    "--wheel",
-                    f"--outdir={built_wheel_dir}",
-                    f"--config-setting={config_setting}",
-                ],
-                env=env,
-            )
+            repaired_wheels = [abi3_wheel]
         else:
-            assert_never(build_options.build_frontend)
 
-        built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
+            if build_options.before_build:
+                log.step("Running before_build...")
+                before_build_prepared = prepare_command(
+                    build_options.before_build,
+                    project=container_project_path,
+                    package=container_package_dir,
+                )
+                docker.call(["sh", "-c", before_build_prepared], env=env)
 
-        repaired_wheel_dir = temp_dir / "repaired_wheel"
-        docker.call(["rm", "-rf", repaired_wheel_dir])
-        docker.call(["mkdir", "-p", repaired_wheel_dir])
+            log.step("Building wheel...")
 
-        if built_wheel.name.endswith("none-any.whl"):
-            raise NonPlatformWheelError()
+            temp_dir = PurePath("/tmp/cibuildwheel")
+            built_wheel_dir = temp_dir / "built_wheel"
+            docker.call(["rm", "-rf", built_wheel_dir])
+            docker.call(["mkdir", "-p", built_wheel_dir])
 
-        if build_options.repair_command:
-            log.step("Repairing wheel...")
-            repair_command_prepared = prepare_command(
-                build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
-            )
-            docker.call(["sh", "-c", repair_command_prepared], env=env)
-        else:
-            docker.call(["mv", built_wheel, repaired_wheel_dir])
+            verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
 
-        repaired_wheels = docker.glob(repaired_wheel_dir, "*.whl")
+            if build_options.build_frontend == "pip":
+                docker.call(
+                    [
+                        "python",
+                        "-m",
+                        "pip",
+                        "wheel",
+                        container_package_dir,
+                        f"--wheel-dir={built_wheel_dir}",
+                        "--no-deps",
+                        *verbosity_flags,
+                    ],
+                    env=env,
+                )
+            elif build_options.build_frontend == "build":
+                config_setting = " ".join(verbosity_flags)
+                docker.call(
+                    [
+                        "python",
+                        "-m",
+                        "build",
+                        container_package_dir,
+                        "--wheel",
+                        f"--outdir={built_wheel_dir}",
+                        f"--config-setting={config_setting}",
+                    ],
+                    env=env,
+                )
+            else:
+                assert_never(build_options.build_frontend)
+
+            built_wheel = docker.glob(built_wheel_dir, "*.whl")[0]
+
+            repaired_wheel_dir = temp_dir / "repaired_wheel"
+            docker.call(["rm", "-rf", repaired_wheel_dir])
+            docker.call(["mkdir", "-p", repaired_wheel_dir])
+
+            if built_wheel.name.endswith("none-any.whl"):
+                raise NonPlatformWheelError()
+
+            if build_options.repair_command:
+                log.step("Repairing wheel...")
+                repair_command_prepared = prepare_command(
+                    build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                )
+                docker.call(["sh", "-c", repair_command_prepared], env=env)
+            else:
+                docker.call(["mv", built_wheel, repaired_wheel_dir])
+
+            repaired_wheels = docker.glob(repaired_wheel_dir, "*.whl")
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")
@@ -292,8 +304,12 @@ def build_on_docker(
             docker.call(["rm", "-rf", venv_dir])
 
         # move repaired wheels to output
-        docker.call(["mkdir", "-p", container_output_dir])
-        docker.call(["mv", *repaired_wheels, container_output_dir])
+        if abi3_wheel is None:
+            docker.call(["mkdir", "-p", container_output_dir])
+            docker.call(["mv", *repaired_wheels, container_output_dir])
+            built_wheels.extend(
+                container_output_dir / repaired_wheel.name for repaired_wheel in repaired_wheels
+            )
 
         log.build_end()
 
