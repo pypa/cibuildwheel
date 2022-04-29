@@ -6,8 +6,8 @@ title: Changelog
 
 _29 April 2022_
 
-- ✨ Added support for building ABI3 wheels. cibuildwheel will now recognise when an ABI3 wheel was produced, and skip subsequent build steps where the previously built wheel is compatible. Tests still will run on all selected versions of Python, using the ABI3 wheel. (#1091)
-- ✨ You can now build wheels directly from sdist archives, in addition to source directories. Just call cibuildwheel with an sdist argument on the command line, like `cibuildwheel mypackage-1.0.0.tar.gz` (#1096)
+- ✨ Added support for building ABI3 wheels. cibuildwheel will now recognise when an ABI3 wheel was produced, and skip subsequent build steps where the previously built wheel is compatible. Tests still will run on all selected versions of Python, using the ABI3 wheel. Check [this entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#abi3) in the docs for more info. (#1091)
+- ✨ You can now build wheels directly from sdist archives, in addition to source directories. Just call cibuildwheel with an sdist argument on the command line, like `cibuildwheel mypackage-1.0.0.tar.gz`. For more details, check the [`--help` output](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line) (#1096)
 - 🐛 Fix a bug where cibuildwheel would crash when no builds are selected and `--allow-empty` is passed (#1086)
 - 🐛 Workaround a permissions issue on Linux relating to newer versions of git and setuptools_scm (#1095)
 - 📚 Minor docs improvements
