@@ -32,7 +32,7 @@ def fake_package_dir(monkeypatch):
     real_path_exists = Path.exists
 
     def mock_path_exists(path):
-        if path == MOCK_PACKAGE_DIR / "setup.py":
+        if str(path).endswith(str(MOCK_PACKAGE_DIR / "setup.py")):
             return True
         else:
             return real_path_exists(path)

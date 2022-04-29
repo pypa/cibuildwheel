@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import (
     Any,
     Dict,
-    Iterator,
+    Generator,
     List,
     Mapping,
     NamedTuple,
@@ -22,6 +22,7 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib
+
 from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
@@ -36,6 +37,7 @@ from .util import (
     DependencyConstraints,
     TestSelector,
     cached_property,
+    format_safe,
     resources_dir,
     selector_matches,
     strtobool,
@@ -46,9 +48,9 @@ from .util import (
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
     archs: Optional[str]
-    output_dir: Optional[str]
+    output_dir: Path
     config_file: str
-    package_dir: str
+    package_dir: Path
     print_build_identifiers: bool
     allow_empty: bool
     prerelease_pythons: bool
@@ -263,7 +265,7 @@ class OptionsReader:
         ]
 
     @contextmanager
-    def identifier(self, identifier: Optional[str]) -> Iterator[None]:
+    def identifier(self, identifier: Optional[str]) -> Generator[None, None, None]:
         self.current_identifier = identifier
         try:
             yield
@@ -344,7 +346,7 @@ class Options:
         args = self.command_line_arguments
 
         if args.config_file:
-            return Path(args.config_file.format(package=args.package_dir))
+            return Path(format_safe(args.config_file, package=args.package_dir))
 
         # return pyproject.toml, if it's available
         pyproject_toml_path = Path(args.package_dir) / "pyproject.toml"
@@ -361,12 +363,8 @@ class Options:
     @property
     def globals(self) -> GlobalOptions:
         args = self.command_line_arguments
-        package_dir = Path(args.package_dir)
-        output_dir = Path(
-            args.output_dir
-            if args.output_dir is not None
-            else os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")
-        )
+        package_dir = args.package_dir
+        output_dir = args.output_dir
 
         build_config = self.reader.get("build", env_plat=False, sep=" ") or "*"
         skip_config = self.reader.get("skip", env_plat=False, sep=" ")

@@ -19,14 +19,15 @@ from typing import (
     Any,
     ClassVar,
     Dict,
+    Generator,
     Iterable,
-    Iterator,
     List,
     NamedTuple,
     Optional,
     Sequence,
     TextIO,
     TypeVar,
+    Union,
     cast,
     overload,
 )
@@ -61,6 +62,7 @@ __all__ = [
     "selector_matches",
     "strtobool",
     "cached_property",
+    "chdir",
 ]
 
 resources_dir: Final = Path(__file__).parent / "resources"
@@ -417,7 +419,7 @@ def unwrap(text: str) -> str:
 
 
 @contextlib.contextmanager
-def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
+def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     """
     Prints the new items in a directory upon exiting. The message to display
     can include {n} for number of wheels, {s} for total number of seconds,
@@ -609,3 +611,16 @@ if sys.version_info >= (3, 8):
     from functools import cached_property
 else:
     from .functools_cached_property_38 import cached_property
+
+
+# Can be replaced by contextlib.chdir in Python 3.11
+@contextlib.contextmanager
+def chdir(new_path: Union[Path, str]) -> Generator[None, None, None]:
+    """Non thread-safe context manager to change the current working directory."""
+
+    cwd = os.getcwd()
+    try:
+        os.chdir(new_path)
+        yield
+    finally:
+        os.chdir(cwd)
