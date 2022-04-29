@@ -181,7 +181,7 @@ def build_on_docker(
         if abi3_wheel:
             log.step_end()
             print(
-                f"Found previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
             )
             repaired_wheels = [abi3_wheel]
         else:

@@ -281,7 +281,7 @@ def build(options: Options, tmp_path: Path) -> None:
             if abi3_wheel:
                 log.step_end()
                 print(
-                    f"Found previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                    f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                 )
                 repaired_wheel = abi3_wheel
             else:
