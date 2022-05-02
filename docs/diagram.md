@@ -37,7 +37,6 @@
     <div class="step" v-for="(step, sIndex) in diagram.steps">
       <component v-for="action in step"
                  class="action"
-                 v-bind:class="{hasHoverState: action.tooltip}"
                  v-bind:is="action.href ? 'a' : 'div'"
                  v-bind:href="action.href">
         <div class="dots" v-if="action.style == 'dot'">
@@ -260,7 +259,7 @@
           const tooltip = action.tooltip
 
           if (tooltip) {
-            tippy(el, {
+            const tippyInstance = tippy(el, {
               content: `
                 <div class="tooltip-title">
                   ${tooltip.title || ''}
@@ -277,6 +276,21 @@
               maxWidth: 'none',
               appendTo: document.getElementById('flow-diagram'),
               offset: [0, 10],
+              onShow() {
+                const stepEl = el.closest('.action')
+                stepEl.classList.add('tooltip-open')
+              },
+              onHide() {
+                const stepEl = el.closest('.action')
+                stepEl.classList.remove('tooltip-open')
+              }
+            })
+
+            el.addEventListener('touchend', e => {
+              e.preventDefault()
+              e.stopPropagation()
+              tippy.hideAll()
+              tippyInstance.show()
             })
           }
         }
@@ -329,10 +343,10 @@
   a.action {
     color: inherit;
   }
-  .action.hasHoverState:hover .dot-graphic {
+  .action.tooltip-open .dot-graphic {
     background-color: #416EDA;
   }
-  .action.hasHoverState:hover .block {
+  .action.tooltip-open .block {
     background-color: #416EDA;
     color: white;
   }
