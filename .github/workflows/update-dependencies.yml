@@ -12,7 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: excitedleigh/setup-nox@v2.0.0
+    - uses: actions/setup-python@v3
+      with:
+        python-version: "3.6"
+    - uses: wntrblm/nox@f12fb342cc72bbe6df00b14077b42f1e1d55d69a
 
     - name: "Run update: dependencies"
       run: nox --force-color -s update_constraints
