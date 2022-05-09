@@ -62,6 +62,11 @@
   </div>
 </div>
 
+<noscript>
+  <img src="data/how-it-works.png" alt="Diagram showing the steps for each platform">
+  <p><strong>Enable JavaScript for an interactive version of this diagram.</strong></p>
+</noscript>
+
 <script type="module" async>
   import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
   import 'https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js'
@@ -311,6 +316,9 @@
     /* font-size: 10px; */
     font-size: 0.7em;
     padding-bottom: 2em;
+  }
+  .no-js #flow-diagram {
+    display: none
   }
   .diagram-grid {
     display: grid;
