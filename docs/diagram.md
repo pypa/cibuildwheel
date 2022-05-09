@@ -255,30 +255,35 @@
       info: {
         inserted(el, binding) {
           const action = binding.value
-          const {env, label, optional=false, description=''} = action
+          const {env, label, optional=false, description='', href=''} = action
           const tooltip = action.tooltip
 
           if (tooltip) {
             const tippyInstance = tippy(el, {
               content: `
-                <div class="tooltip-title">
-                  ${tooltip.title || ''}
-                </div>
-                <div class="tooltip-tag">
-                  ${tooltip.tag || ''}
-                </div>
-                <div class="tooltip-description">
-                  ${tooltip.description}
-                </div
+                <a class="tooltip-contents" href="${href || ''}">
+                  <div class="tooltip-title">
+                    ${tooltip.title || ''}
+                  </div>
+                  <div class="tooltip-tag">
+                    ${tooltip.tag || ''}
+                  </div>
+                  <div class="tooltip-description">
+                    ${tooltip.description}
+                  </div>
+                </a>
               `,
               placement: 'right-start',
               allowHTML: true,
               maxWidth: 'none',
               appendTo: document.getElementById('flow-diagram'),
               offset: [0, 10],
-              onShow() {
+              onShow(instance) {
                 const stepEl = el.closest('.action')
                 stepEl.classList.add('tooltip-open')
+                instance.setProps({
+                  interactive: tippy.currentInput.isTouch
+                })
               },
               onHide() {
                 const stepEl = el.closest('.action')
@@ -286,11 +291,11 @@
               }
             })
 
-            el.addEventListener('touchend', e => {
-              e.preventDefault()
-              e.stopPropagation()
-              tippy.hideAll()
-              tippyInstance.show()
+            el.addEventListener('click', e => {
+              // click event should just open the tooltip on touch devices
+              if (tippy.currentInput.isTouch) {
+                e.preventDefault()
+              }
             })
           }
         }
@@ -450,6 +455,11 @@
   }
   .tippy-box[data-placement^='right'] > .tippy-arrow::before {
     border-right-color: white;
+  }
+  a.tooltip-contents {
+    color: inherit;
+    text-decoration: none;
+    display: block;
   }
   .tooltip-title {
     font-weight: 600;
