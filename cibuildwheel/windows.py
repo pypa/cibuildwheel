@@ -1,7 +1,10 @@
+import fileinput
 import os
+import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Sequence, Set
@@ -88,8 +91,8 @@ def _ensure_nuget() -> Path:
     return nuget
 
 
-def install_cpython(version: str, arch: str) -> Path:
-    base_output_dir = CIBW_CACHE_PATH / "nuget-cpython"
+def install_cpython(version: str, arch: str, suffix: str) -> Path:
+    base_output_dir = CIBW_CACHE_PATH / f"nuget-cpython{suffix}"
     nuget_args = get_nuget_args(version, arch, base_output_dir)
     installation_path = base_output_dir / (nuget_args[0] + "." + version) / "tools"
     with FileLock(str(base_output_dir) + f"-{version}-{arch}.lock"):
@@ -121,18 +124,40 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
+    cross_compiling_target_arch: Optional[str],
 ) -> Dict[str, str]:
     tmp.mkdir()
+
+    # if cross compiling, use a suffix to avoid messing up native python in
+    # cache dir. its libs will be overwritten with target python.
+    python_suffix = "-cross" if cross_compiling_target_arch else ""
+
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        base_python = install_cpython(python_configuration.version, python_configuration.arch)
+        base_python = install_cpython(
+            python_configuration.version, python_configuration.arch, python_suffix
+        )
     elif implementation_id.startswith("pp"):
+        if cross_compiling_target_arch:
+            raise ValueError("cross compilation is only supported with cpython variant")
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
     else:
         raise ValueError("Unknown Python implementation")
     assert base_python.exists()
+
+    if cross_compiling_target_arch:
+        # we copy target libs in base libs
+        # there is no other proper way to pass this directory on LIBPATH
+        # when compiling the wheel.
+        target_python = install_cpython(
+            python_configuration.version, cross_compiling_target_arch, python_suffix
+        )
+        base_libs = base_python.parent / "libs"
+        target_libs = target_python.parent / "libs"
+        shutil.rmtree(base_libs)
+        shutil.copytree(target_libs, base_libs)
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -230,6 +255,43 @@ def setup_python(
     return env
 
 
+def fix_cross_compiled_wheel(target_arch: str, wheel: Path) -> None:
+    # replace occurrences to win_amd64 by win_{target_arch} in wheel
+    #
+    # in theory, set SETUPTOOLS_EXT_SUFFIX=.cp310-win_arm64.pyd should be able
+    # to change name of .pyd files when building wheel.
+    # Alas, it requires using distutils from setuptools
+    # (SETUPTOOLS_USE_DISTUTILS=local), which is not supported on all projects.
+    # Thus, we change name of pyd files here.
+
+    wheel_arch = {"ARM64": "arm64"}
+
+    old_suffix = "win_amd64"
+    new_suffix = "win_" + wheel_arch[target_arch]
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        wheel_zip = Path(tmp_dir).joinpath("wheel.zip")
+        shutil.copyfile(wheel, wheel_zip)
+        content = Path(tmp_dir).joinpath("wheel")
+        shutil.unpack_archive(str(wheel_zip), content, format="zip")
+        os.remove(wheel_zip)
+        pyd = content.rglob("*" + old_suffix + ".pyd")
+        for file in pyd:
+            orig = file
+            new_path = str(file).replace(old_suffix, new_suffix)
+            dest = Path(new_path)
+            print("change name: " + orig.name + " -> " + dest.name)
+            os.rename(orig, dest)
+
+        record = next(content.rglob("RECORD"))
+        print("fix RECORD file")
+        with fileinput.FileInput(record, inplace=True) as record_file:
+            for line in record_file:
+                print(line.replace(old_suffix + ".pyd", new_suffix + ".pyd"), end="")
+
+        shutil.make_archive(str(content), "zip", root_dir=content)
+        shutil.move(str(wheel_zip), wheel)
+
+
 def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
@@ -268,6 +330,14 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_options.dependency_constraints.get_for_python_version(config.version),
                 ]
 
+            cross_compiling_target_arch = None
+
+            if config.arch == "ARM64" and platform.machine() == "AMD64":
+                x64_arch = "64"
+                config = config._replace(arch=x64_arch)
+                cross_compiling_target_arch = "ARM64"
+                log.step("Cross compiling for " + cross_compiling_target_arch + "...")
+
             # install Python
             env = setup_python(
                 identifier_tmp_dir / "build",
@@ -275,7 +345,13 @@ def build(options: Options, tmp_path: Path) -> None:
                 dependency_constraint_flags,
                 build_options.environment,
                 build_options.build_frontend,
+                cross_compiling_target_arch,
             )
+
+            if cross_compiling_target_arch:
+                target_vs_arch = {"ARM64": "arm64"}
+                # set env var to enable cross compilation in cpython
+                env["VSCMD_ARG_TGT_ARCH"] = target_vs_arch[cross_compiling_target_arch]
 
             abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
             if abi3_wheel:
@@ -354,6 +430,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 if built_wheel.name.endswith("none-any.whl"):
                     raise NonPlatformWheelError()
 
+                if cross_compiling_target_arch:
+                    log.step("Fix cross compiled wheel...")
+                    fix_cross_compiled_wheel(cross_compiling_target_arch, built_wheel)
+
                 if build_options.repair_command:
                     log.step("Repairing wheel...")
                     repair_command_prepared = prepare_command(
@@ -365,7 +445,18 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
 
-            if build_options.test_command and options.globals.test_selector(config.identifier):
+            if (
+                cross_compiling_target_arch
+                and build_options.test_command
+                and options.globals.test_selector(config.identifier)
+            ):
+                log.step("skip wheel testing (cross compile)")
+
+            if (
+                not cross_compiling_target_arch
+                and build_options.test_command
+                and options.globals.test_selector(config.identifier)
+            ):
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
