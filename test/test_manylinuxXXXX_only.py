@@ -72,8 +72,8 @@ def test(manylinux_image, tmp_path):
         # We don't have a manylinux1 image for PyPy & CPython 3.10 and above
         add_env["CIBW_SKIP"] = "pp* cp31*"
     if manylinux_image in {"manylinux2010"}:
-        # We don't have a manylinux2010 image for PyPy 3.9
-        add_env["CIBW_SKIP"] = "pp39*"
+        # We don't have a manylinux2010 image for PyPy 3.9, CPython 3.11
+        add_env["CIBW_SKIP"] = "pp39* cp311*"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
@@ -92,6 +92,6 @@ def test(manylinux_image, tmp_path):
         # remove PyPy & CPython 3.10 and above
         expected_wheels = [w for w in expected_wheels if "-pp" not in w and "-cp31" not in w]
     if manylinux_image in {"manylinux2010"}:
-        # remove PyPy 3.9
-        expected_wheels = [w for w in expected_wheels if "-pp39" not in w]
+        # remove PyPy 3.9 & CPython 3.11
+        expected_wheels = [w for w in expected_wheels if "-pp39" not in w and "-cp311" not in w]
     assert set(actual_wheels) == set(expected_wheels)
