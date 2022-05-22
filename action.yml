@@ -20,10 +20,17 @@ branding:
 runs:
   using: composite
   steps:
+    # Set up a non-EOL, cibuildwheel & pipx supported Python version
+    - uses: actions/setup-python@766e8c60885ef280a3e447209d1f1083b3c7039d
+      id: python
+      with:
+        python-version: "3.7 - 3.10"
+        update-environment: false
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: >
         pipx run
+        --python '${{ steps.python.outputs.python-path }}'
         --spec '${{ github.action_path }}'
         cibuildwheel
         ${{ inputs.package-dir }}

@@ -66,6 +66,19 @@ jobs:
         name: sample_wheels
         path: wheelhouse
 
+    - name: Get some sample wheels (GitHub Action)
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse_action
+      env:
+        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: sample_wheels_action
+        path: wheelhouse_action
+
     - name: Test cibuildwheel
       run: |
         python ./bin/run_tests.py
