@@ -1,12 +1,12 @@
 import io
 import json
-import os
 import platform
 import shlex
+import shutil
 import subprocess
 import sys
 import uuid
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, List, Optional, Sequence, Type, cast
 
@@ -128,11 +128,28 @@ class DockerContainer:
                 cwd=from_path,
             )
         else:
-            subprocess.run(
-                f'cat {shell_quote(from_path)} | docker exec -i {self.name} sh -c "cat > {shell_quote(to_path)}"',
-                shell=True,
-                check=True,
+            docker = subprocess.Popen(
+                [
+                    "docker",
+                    "exec",
+                    "-i",
+                    str(self.name),
+                    "sh",
+                    "-c",
+                    f"cat > {shell_quote(to_path)}",
+                ],
+                stdin=subprocess.PIPE,
             )
+            docker.stdin = cast(IO[bytes], docker.stdin)
+
+            with open(from_path, "rb") as from_file:
+                shutil.copyfileobj(from_file, docker.stdin)
+
+            docker.stdin.close()
+            docker.wait()
+
+            if docker.returncode:
+                raise subprocess.CalledProcessError(docker.returncode, docker.args, None, None)
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
@@ -145,21 +162,21 @@ class DockerContainer:
             cwd=to_path,
         )
 
-    def glob(self, path: PurePath, pattern: str) -> List[PurePath]:
-        glob_pattern = os.path.join(str(path), pattern)
+    def glob(self, path: PurePosixPath, pattern: str) -> List[PurePosixPath]:
+        glob_pattern = path.joinpath(pattern)
 
         path_strings = json.loads(
             self.call(
                 [
                     self.UTILITY_PYTHON,
                     "-c",
-                    f"import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)",
+                    f"import sys, json, glob; json.dump(glob.glob({str(glob_pattern)!r}), sys.stdout)",
                 ],
                 capture_output=True,
             )
         )
 
-        return [PurePath(p) for p in path_strings]
+        return [PurePosixPath(p) for p in path_strings]
 
     def call(
         self,

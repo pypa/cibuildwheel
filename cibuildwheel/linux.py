@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import textwrap
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PurePosixPath
 from typing import Iterator, List, NamedTuple, Set, Tuple
 
 from .architecture import Architecture
@@ -25,8 +25,8 @@ class PythonConfiguration(NamedTuple):
     path_str: str
 
     @property
-    def path(self) -> PurePath:
-        return PurePath(self.path_str)
+    def path(self) -> PurePosixPath:
+        return PurePosixPath(self.path_str)
 
 
 class BuildStep(NamedTuple):
@@ -108,7 +108,7 @@ def build_on_docker(
     container_project_path: PurePath,
     container_package_dir: PurePath,
 ) -> None:
-    container_output_dir = PurePath("/output")
+    container_output_dir = PurePosixPath("/output")
 
     log.step("Copying project into Docker...")
     docker.copy_into(Path.cwd(), container_project_path)
@@ -133,7 +133,7 @@ def build_on_docker(
         )
         docker.call(["sh", "-c", before_all_prepared], env=env)
 
-    built_wheels: List[PurePath] = []
+    built_wheels: List[PurePosixPath] = []
 
     for config in platform_configs:
         log.build_start(config.identifier)
@@ -162,7 +162,7 @@ def build_on_docker(
 
         # check config python is still on PATH
         which_python = docker.call(["which", "python"], env=env, capture_output=True).strip()
-        if PurePath(which_python) != python_bin / "python":
+        if PurePosixPath(which_python) != python_bin / "python":
             print(
                 "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
                 file=sys.stderr,
@@ -170,7 +170,7 @@ def build_on_docker(
             sys.exit(1)
 
         which_pip = docker.call(["which", "pip"], env=env, capture_output=True).strip()
-        if PurePath(which_pip) != python_bin / "pip":
+        if PurePosixPath(which_pip) != python_bin / "pip":
             print(
                 "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
                 file=sys.stderr,
@@ -197,7 +197,7 @@ def build_on_docker(
 
             log.step("Building wheel...")
 
-            temp_dir = PurePath("/tmp/cibuildwheel")
+            temp_dir = PurePosixPath("/tmp/cibuildwheel")
             built_wheel_dir = temp_dir / "built_wheel"
             docker.call(["rm", "-rf", built_wheel_dir])
             docker.call(["mkdir", "-p", built_wheel_dir])
@@ -341,7 +341,7 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
     if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         raise Exception("package_dir must be inside the working directory")
 
-    container_project_path = PurePath("/project")
+    container_project_path = PurePosixPath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)
 
     for build_step in get_build_steps(options, python_configurations):
