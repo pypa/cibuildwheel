@@ -2,6 +2,13 @@
 title: Changelog
 ---
 
+### v2.6.0
+
+_25 May 2022_
+
+- 🌟 Added the ability to test building wheels on CPython 3.11! Because CPython 3.11 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons) to test. This version of cibuildwheel includes CPython 3.11.0b1. (#1109)
+- 📚 Added an interactive diagram showing how cibuildwheel works to the [docs](https://cibuildwheel.readthedocs.io/en/stable/#how-it-works) (#1100)
+
 ### v2.5.0
 
 _29 April 2022_
