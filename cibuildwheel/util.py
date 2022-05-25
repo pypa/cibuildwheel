@@ -244,7 +244,7 @@ class IdentifierSelector:
     """
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = ""
+    PRERELEASE_SKIP: ClassVar[str] = "cp311-*"
 
     skip_config: str
     build_config: str
