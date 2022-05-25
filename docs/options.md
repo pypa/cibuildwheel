@@ -783,7 +783,7 @@ Platform-specific environment variables are also available:<br/>
 
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
-> Execute a shell command to repair each (non-pure Python) built wheel
+> Execute a shell command to repair each built wheel
 
 Default:
 
