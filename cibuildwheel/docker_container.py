@@ -128,7 +128,7 @@ class DockerContainer:
                 cwd=from_path,
             )
         else:
-            docker = subprocess.Popen(
+            with subprocess.Popen(
                 [
                     "docker",
                     "exec",
@@ -139,17 +139,17 @@ class DockerContainer:
                     f"cat > {shell_quote(to_path)}",
                 ],
                 stdin=subprocess.PIPE,
-            )
-            docker.stdin = cast(IO[bytes], docker.stdin)
+            ) as docker:
+                docker.stdin = cast(IO[bytes], docker.stdin)
 
-            with open(from_path, "rb") as from_file:
-                shutil.copyfileobj(from_file, docker.stdin)
+                with open(from_path, "rb") as from_file:
+                    shutil.copyfileobj(from_file, docker.stdin)
 
-            docker.stdin.close()
-            docker.wait()
+                docker.stdin.close()
+                docker.wait()
 
-            if docker.returncode:
-                raise subprocess.CalledProcessError(docker.returncode, docker.args, None, None)
+                if docker.returncode:
+                    raise subprocess.CalledProcessError(docker.returncode, docker.args, None, None)
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
