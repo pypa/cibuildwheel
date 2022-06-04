@@ -52,4 +52,11 @@ install:
 - $PYTHON -m pip install -U pip
 - $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
 
-script: $PYTHON ./bin/run_tests.py
+script: |
+  # travis_wait disable the output while waiting
+  # use the same kind of tricks as in multibuild
+  (while true; do echo "travis_keep_alive"; sleep 300; done) &
+  SPINNER_PID=$!
+  disown
+  $PYTHON ./bin/run_tests.py
+  kill -9 ${SPINNER_PID}
