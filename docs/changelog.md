@@ -2,6 +2,12 @@
 title: Changelog
 ---
 
+### v2.6.1
+
+_7 June 2022_
+
+- 🛠 Update the prerelease CPython 3.11 to 3.11.0b3
+
 ### v2.6.0
 
 _25 May 2022_
