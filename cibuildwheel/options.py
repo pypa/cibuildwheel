@@ -387,7 +387,7 @@ class Options:
             requires_python=requires_python,
             prerelease_pythons=prerelease_pythons,
         )
-        test_selector = TestSelector(skip_config=test_skip)
+        test_selector = TestSelector(skip_config=test_skip, prerelease_pythons=prerelease_pythons)
 
         archs_config_str = args.archs or self.reader.get("archs", sep=" ")
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
