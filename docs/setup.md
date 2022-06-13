@@ -154,10 +154,9 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     {% include "../examples/github-minimal.yml" %}
     ```
 
-
-    You can use `env:` with the action just like you would with `run:`; you can
-    also use `with:` to set the command line options: `package-dir: .` and
-    `output-dir: wheelhouse` (those values are the defaults).
+    Use `env:` to pass [build options](options.md) and `with:` to set
+    `package-dir: .`, `output-dir: wheelhouse` and `config-file: ''`
+    locations (those values are the defaults).
 
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in
