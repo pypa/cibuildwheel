@@ -234,21 +234,20 @@ def selector_matches(patterns: str, string: str) -> bool:
 
 # Once we require Python 3.10+, we can add kw_only=True
 @dataclasses.dataclass
-class IdentifierSelector:
+class BuildSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
     build identifier, and it returns True if that identifier should be
     included. Only call this on valid identifiers, ones that have at least 2
-    numeric digits before the first dash. If a pre-release version X.Y is present,
-    you can filter it with prerelease="XY".
+    numeric digits before the first dash.
     """
+
+    build_config: str
+    skip_config: str
+    requires_python: Optional[SpecifierSet] = None
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
     PRERELEASE_SKIP: ClassVar[str] = "cp311-*"
-
-    skip_config: str
-    build_config: str
-    requires_python: Optional[SpecifierSet] = None
     prerelease_pythons: bool = False
 
     def __call__(self, build_id: str) -> bool:
@@ -272,15 +271,16 @@ class IdentifierSelector:
 
 
 @dataclasses.dataclass
-class BuildSelector(IdentifierSelector):
-    pass
+class TestSelector:
+    """
+    A build selector that can only skip tests according to a skip pattern.
+    """
 
+    skip_config: str
 
-# Note that requires-python is not needed for TestSelector, as you can't test
-# what you can't build.
-@dataclasses.dataclass
-class TestSelector(IdentifierSelector):
-    build_config: str = "*"
+    def __call__(self, build_id: str) -> bool:
+        should_skip = selector_matches(self.skip_config, build_id)
+        return not should_skip
 
 
 # Taken from https://stackoverflow.com/a/107717

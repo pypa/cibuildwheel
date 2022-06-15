@@ -136,3 +136,14 @@ def test_build_limited_python_patch():
 
     assert build_selector("cp36-manylinux_x86_64")
     assert build_selector("cp37-manylinux_x86_64")
+
+
+def test_testing_selector():
+    # local import to avoid pytest trying to collect this as a test class!
+    from cibuildwheel.util import TestSelector
+
+    test_selector = TestSelector(skip_config="cp36-*")
+
+    assert not test_selector("cp36-win_amd64")
+    assert test_selector("cp37-manylinux_x86_64")
+    assert test_selector("cp311-manylinux_x86_64")
