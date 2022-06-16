@@ -79,6 +79,7 @@ class BuildOptions(NamedTuple):
     test_extras: str
     build_verbosity: int
     build_frontend: BuildFrontend
+    container_engine: str
 
     @property
     def package_dir(self) -> Path:
@@ -422,6 +423,7 @@ class Options:
             test_requires = self.reader.get("test-requires", sep=" ").split()
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
+            container_engine = self.reader.get("container-engine")
 
             build_frontend: BuildFrontend
             if build_frontend_str == "build":
@@ -520,6 +522,7 @@ class Options:
                 manylinux_images=manylinux_images or None,
                 musllinux_images=musllinux_images or None,
                 build_frontend=build_frontend,
+                container_engine=container_engine,
             )
 
     def check_for_invalid_configuration(self, identifiers: List[str]) -> None:

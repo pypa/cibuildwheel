@@ -14,6 +14,7 @@ extras = {
         "pytest-timeout",
         "pytest-xdist",
         "build",
+        "toml",
     ],
     "bin": [
         "click",

@@ -16,7 +16,7 @@ def pytest_configure(config):
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--run-docker"):
-        # --run-docker given in cli: do not skip docker tests
+        # --run-docker given in cli: do not skip container tests
         return
     skip_docker = pytest.mark.skip(reason="need --run-docker option to run")
     for item in items:
