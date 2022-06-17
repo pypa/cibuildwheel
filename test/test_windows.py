@@ -18,7 +18,7 @@ def test_wheel_tag_is_correct_when_using_windows_cross_compile(tmp_path):
         add_env={
             "CIBW_BUILD": "cp310-*",
         },
-        add_args=["--platform", "windows", "--archs", "ARM64"]
+        add_args=["--platform", "windows", "--archs", "ARM64"],
     )
 
     # check that the expected wheels are produced
