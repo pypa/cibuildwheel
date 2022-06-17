@@ -34,11 +34,16 @@ from .util import (
 
 
 def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
-    platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
-    platform_suffix["AMD64"] = platform_suffix["64"]  # aliased name
-    python_name = "python" + platform_suffix[arch]
+    package_name = {
+        "32": "pythonx86",
+        "64": "python",
+        "ARM64": "pythonarm64",
+        # Aliases for platform.machine() return values
+        "x86": "pythonx86",
+        "AMD64": "python",
+    }[arch]
     return [
-        python_name,
+        package_name,
         "-Version",
         version,
         "-FallbackSource",
