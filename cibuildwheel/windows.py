@@ -35,7 +35,7 @@ from .util import (
 
 def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
     platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
-    platform_suffix["AMD64"] = platform_suffix["64"]    # aliased name
+    platform_suffix["AMD64"] = platform_suffix["64"]  # aliased name
     python_name = "python" + platform_suffix[arch]
     return [
         python_name,
@@ -178,7 +178,9 @@ def setup_python(
             # To cross-compile for ARM64, we need a native CPython to run the
             # build, and a copy of the ARM64 import libraries ('.\libs\*.lib')
             # for any extension modules.
-            python_libs_base = install_cpython(python_configuration.version, python_configuration.arch)
+            python_libs_base = install_cpython(
+                python_configuration.version, python_configuration.arch
+            )
             python_libs_base = python_libs_base.parent / "libs"
             log.step(f"Installing native Python {native_arch} for cross-compilation...")
             base_python = install_cpython(python_configuration.version, native_arch)
