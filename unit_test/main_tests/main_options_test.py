@@ -80,6 +80,7 @@ def test_empty_selector(platform, intercepted_build_args, monkeypatch):
         ("x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
         ("x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
+        ("x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "custom_image", "custom_image"),
         ("i686", None, "quay.io/pypa/manylinux2014_i686:*"),
         ("i686", "manylinux1", "quay.io/pypa/manylinux1_i686:*"),
@@ -92,6 +93,7 @@ def test_empty_selector(platform, intercepted_build_args, monkeypatch):
         ("pypy_x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
         ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
+        ("pypy_x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "custom_image", "custom_image"),
     ],
 )
