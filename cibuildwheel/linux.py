@@ -131,7 +131,7 @@ def build_on_docker(
             project=container_project_path,
             package=container_package_dir,
         )
-        docker.call(["sh", "-c", before_all_prepared], env=env)
+        docker.call(["sh", "-e", "-c", before_all_prepared], env=env)
 
     built_wheels: List[PurePath] = []
 
@@ -193,7 +193,7 @@ def build_on_docker(
                     project=container_project_path,
                     package=container_package_dir,
                 )
-                docker.call(["sh", "-c", before_build_prepared], env=env)
+                docker.call(["sh", "-e", "-c", before_build_prepared], env=env)
 
             log.step("Building wheel...")
 
@@ -249,7 +249,7 @@ def build_on_docker(
                 repair_command_prepared = prepare_command(
                     build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
                 )
-                docker.call(["sh", "-c", repair_command_prepared], env=env)
+                docker.call(["sh", "-e", "-c", repair_command_prepared], env=env)
             else:
                 docker.call(["mv", built_wheel, repaired_wheel_dir])
 
@@ -274,7 +274,7 @@ def build_on_docker(
                     project=container_project_path,
                     package=container_package_dir,
                 )
-                docker.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
+                docker.call(["sh", "-e", "-c", before_test_prepared], env=virtualenv_env)
 
             # Install the wheel we just built
             # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
@@ -298,7 +298,7 @@ def build_on_docker(
                 project=container_project_path,
                 package=container_package_dir,
             )
-            docker.call(["sh", "-c", test_command_prepared], cwd="/root", env=virtualenv_env)
+            docker.call(["sh", "-e", "-c", test_command_prepared], cwd="/root", env=virtualenv_env)
 
             # clean up test environment
             docker.call(["rm", "-rf", venv_dir])
