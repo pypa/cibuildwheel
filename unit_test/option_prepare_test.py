@@ -2,7 +2,7 @@ import platform as platform_module
 import subprocess
 import sys
 from contextlib import contextmanager
-from pathlib import Path
+from pathlib import PurePosixPath
 from typing import cast
 from unittest import mock
 
@@ -53,7 +53,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
     # In Python 3.8+, this can be simplified to [0].kwargs
     kwargs = build_on_docker.call_args_list[0][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -61,7 +61,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
 
     kwargs = build_on_docker.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -69,7 +69,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
 
     kwargs = build_on_docker.call_args_list[2][1]
     assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -79,7 +79,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
 
     kwargs = build_on_docker.call_args_list[3][1]
     assert "quay.io/pypa/musllinux_1_1_i686" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -119,7 +119,7 @@ before-all = "true"
 
     kwargs = build_on_docker.call_args_list[0][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -128,7 +128,7 @@ before-all = "true"
 
     kwargs = build_on_docker.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -139,7 +139,7 @@ before-all = "true"
 
     kwargs = build_on_docker.call_args_list[2][1]
     assert "quay.io/pypa/manylinux_2_24_x86_64" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
@@ -151,7 +151,7 @@ before-all = "true"
 
     kwargs = build_on_docker.call_args_list[3][1]
     assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -159,7 +159,7 @@ before-all = "true"
 
     kwargs = build_on_docker.call_args_list[4][1]
     assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -169,7 +169,7 @@ before-all = "true"
 
     kwargs = build_on_docker.call_args_list[5][1]
     assert "quay.io/pypa/musllinux_1_1_i686" in kwargs["docker"]["docker_image"]
-    assert kwargs["docker"]["cwd"] == Path("/project")
+    assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}

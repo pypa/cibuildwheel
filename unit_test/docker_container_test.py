@@ -3,7 +3,7 @@ import random
 import shutil
 import subprocess
 import textwrap
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PurePosixPath
 
 import pytest
 
@@ -178,7 +178,7 @@ def test_dir_operations(tmp_path: Path):
         test_file = test_dir / "test.dat"
         shutil.copyfile(original_test_file, test_file)
 
-        dst_dir = PurePath("/tmp/test_dir")
+        dst_dir = PurePosixPath("/tmp/test_dir")
         dst_file = dst_dir / "test.dat"
         container.copy_into(test_dir, dst_dir)
 
