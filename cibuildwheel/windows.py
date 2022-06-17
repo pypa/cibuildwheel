@@ -1,4 +1,5 @@
 import os
+import platform as platform_module
 import shutil
 import subprocess
 import sys
@@ -34,6 +35,7 @@ from .util import (
 
 def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
     platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
+    platform_suffix["AMD64"] = platform_suffix["64"]    # aliased name
     python_name = "python" + platform_suffix[arch]
     return [
         python_name,
@@ -115,6 +117,50 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     return installation_path / "python.exe"
 
 
+def setup_setuptools_cross_compile(
+    python_configuration: PythonConfiguration,
+    python_libs_base: Path,
+    env: Dict[str, str],
+):
+    # We write to distutils_cfg for distutils-based builds because we know we
+    # currently don't have one (unless it's our own from a previous build)
+    for p in env["PATH"].split(os.pathsep):
+        distutils_cfg = Path(p) / "Lib/site-packages/setuptools/_distutils/distutils.cfg"
+        if distutils_cfg.parent.is_dir():
+            break
+    else:
+        log.warning("Did not find setuptools install to configure")
+        return
+
+    # Ensure our additional import libraries are made available, and explicitly
+    # set the platform name
+    map_plat = {"32": "win32", "64": "win-amd64", "ARM64": "win-arm64"}
+    plat_name = map_plat[python_configuration.arch]
+    # (Sorry, this file must be default/locale encoding.)
+    with distutils_cfg.open("w") as f:
+        print("[build]", file=f)
+        print("plat_name=", plat_name, file=f, sep="")
+        print("[build_ext]", file=f)
+        print("library_dirs=", python_libs_base, file=f, sep="")
+        print("plat_name=", plat_name, file=f, sep="")
+        print("[bdist_wheel]", file=f)
+        print("plat_name=", plat_name, file=f, sep="")
+
+    # setuptools builds require explicit override of PYD extension
+    # This is because it always gets the extension from the running
+    # interpreter, and has no logic to construct it. Currently, CPython's
+    # extensions follow our identifiers, but if they ever diverge in the
+    # future, we will need to store new data
+    env["SETUPTOOLS_EXT_SUFFIX"] = f".{python_configuration.identifier}.pyd"
+
+    # Cross-compilation requires fixes that only exist in setuptools's copy of
+    # distutils, so ensure that it is activated
+    # Since not all projects can handle the newer distutils, display a warning
+    # to help them figure out what may have gone wrong if this breaks for them
+    log.warning("Setting SETUPTOOLS_USE_DISTUTILS=local as it is required for cross-compilation")
+    env["SETUPTOOLS_USE_DISTUTILS"] = "local"
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -124,9 +170,20 @@ def setup_python(
 ) -> Dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
+    python_libs_base = None
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        base_python = install_cpython(python_configuration.version, python_configuration.arch)
+        native_arch = platform_module.machine()
+        if python_configuration.arch == "ARM64" != native_arch:
+            # To cross-compile for ARM64, we need a native CPython to run the
+            # build, and a copy of the ARM64 import libraries ('.\libs\*.lib')
+            # for any extension modules.
+            python_libs_base = install_cpython(python_configuration.version, python_configuration.arch)
+            python_libs_base = python_libs_base.parent / "libs"
+            log.step(f"Installing native Python {native_arch} for cross-compilation...")
+            base_python = install_cpython(python_configuration.version, native_arch)
+        else:
+            base_python = install_cpython(python_configuration.version, python_configuration.arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
@@ -226,6 +283,10 @@ def setup_python(
         )
     else:
         assert_never(build_frontend)
+
+    if python_libs_base:
+        # Set up the environment for various backends to enable cross-compilation
+        setup_setuptools_cross_compile(python_configuration, python_libs_base, env)
 
     return env
 
