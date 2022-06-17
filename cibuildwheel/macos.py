@@ -24,6 +24,7 @@ from .util import (
     call,
     detect_ci_provider,
     download,
+    find_compatible_abi3_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
@@ -293,6 +294,8 @@ def build(options: Options, tmp_path: Path) -> None:
             )
             shell(before_all_prepared, env=env)
 
+        built_wheels: List[Path] = []
+
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             log.build_start(config.identifier)
@@ -320,84 +323,94 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.build_frontend,
             )
 
-            if build_options.before_build:
-                log.step("Running before_build...")
-                before_build_prepared = prepare_command(
-                    build_options.before_build, project=".", package=build_options.package_dir
+            abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
+            if abi3_wheel:
+                log.step_end()
+                print(
+                    f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                 )
-                shell(before_build_prepared, env=env)
-
-            log.step("Building wheel...")
-            built_wheel_dir.mkdir()
-
-            verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-
-            if build_options.build_frontend == "pip":
-                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                # see https://github.com/pypa/cibuildwheel/pull/369
-                call(
-                    "python",
-                    "-m",
-                    "pip",
-                    "wheel",
-                    build_options.package_dir.resolve(),
-                    f"--wheel-dir={built_wheel_dir}",
-                    "--no-deps",
-                    *verbosity_flags,
-                    env=env,
-                )
-            elif build_options.build_frontend == "build":
-                config_setting = " ".join(verbosity_flags)
-                build_env = env.copy()
-                if build_options.dependency_constraints:
-                    constraint_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
+                repaired_wheel = abi3_wheel
+            else:
+                if build_options.before_build:
+                    log.step("Running before_build...")
+                    before_build_prepared = prepare_command(
+                        build_options.before_build, project=".", package=build_options.package_dir
                     )
-                    build_env["PIP_CONSTRAINT"] = constraint_path.as_uri()
-                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-                call(
-                    "python",
-                    "-m",
-                    "build",
-                    build_options.package_dir,
-                    "--wheel",
-                    f"--outdir={built_wheel_dir}",
-                    f"--config-setting={config_setting}",
-                    env=build_env,
-                )
-            else:
-                assert_never(build_options.build_frontend)
+                    shell(before_build_prepared, env=env)
 
-            built_wheel = next(built_wheel_dir.glob("*.whl"))
+                log.step("Building wheel...")
+                built_wheel_dir.mkdir()
 
-            repaired_wheel_dir.mkdir()
+                verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
 
-            if built_wheel.name.endswith("none-any.whl"):
-                raise NonPlatformWheelError()
-
-            if build_options.repair_command:
-                log.step("Repairing wheel...")
-
-                if config_is_universal2:
-                    delocate_archs = "x86_64,arm64"
-                elif config_is_arm64:
-                    delocate_archs = "arm64"
+                if build_options.build_frontend == "pip":
+                    # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                    # see https://github.com/pypa/cibuildwheel/pull/369
+                    call(
+                        "python",
+                        "-m",
+                        "pip",
+                        "wheel",
+                        build_options.package_dir.resolve(),
+                        f"--wheel-dir={built_wheel_dir}",
+                        "--no-deps",
+                        *verbosity_flags,
+                        env=env,
+                    )
+                elif build_options.build_frontend == "build":
+                    config_setting = " ".join(verbosity_flags)
+                    build_env = env.copy()
+                    if build_options.dependency_constraints:
+                        constraint_path = (
+                            build_options.dependency_constraints.get_for_python_version(
+                                config.version
+                            )
+                        )
+                        build_env["PIP_CONSTRAINT"] = constraint_path.as_uri()
+                    build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                    call(
+                        "python",
+                        "-m",
+                        "build",
+                        build_options.package_dir,
+                        "--wheel",
+                        f"--outdir={built_wheel_dir}",
+                        f"--config-setting={config_setting}",
+                        env=build_env,
+                    )
                 else:
-                    delocate_archs = "x86_64"
+                    assert_never(build_options.build_frontend)
 
-                repair_command_prepared = prepare_command(
-                    build_options.repair_command,
-                    wheel=built_wheel,
-                    dest_dir=repaired_wheel_dir,
-                    delocate_archs=delocate_archs,
-                )
-                shell(repair_command_prepared, env=env)
-            else:
-                shutil.move(str(built_wheel), repaired_wheel_dir)
+                built_wheel = next(built_wheel_dir.glob("*.whl"))
 
-            repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                repaired_wheel_dir.mkdir()
 
-            log.step_end()
+                if built_wheel.name.endswith("none-any.whl"):
+                    raise NonPlatformWheelError()
+
+                if build_options.repair_command:
+                    log.step("Repairing wheel...")
+
+                    if config_is_universal2:
+                        delocate_archs = "x86_64,arm64"
+                    elif config_is_arm64:
+                        delocate_archs = "arm64"
+                    else:
+                        delocate_archs = "x86_64"
+
+                    repair_command_prepared = prepare_command(
+                        build_options.repair_command,
+                        wheel=built_wheel,
+                        dest_dir=repaired_wheel_dir,
+                        delocate_archs=delocate_archs,
+                    )
+                    shell(repair_command_prepared, env=env)
+                else:
+                    shutil.move(str(built_wheel), repaired_wheel_dir)
+
+                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+
+                log.step_end()
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()
@@ -523,7 +536,14 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
 
             # we're all done here; move it to output (overwrite existing)
-            shutil.move(str(repaired_wheel), build_options.output_dir)
+            if abi3_wheel is None:
+                try:
+                    (build_options.output_dir / repaired_wheel.name).unlink()
+                except FileNotFoundError:
+                    pass
+
+                shutil.move(str(repaired_wheel), build_options.output_dir)
+                built_wheels.append(build_options.output_dir / repaired_wheel.name)
 
             # clean up
             shutil.rmtree(identifier_tmp_dir)

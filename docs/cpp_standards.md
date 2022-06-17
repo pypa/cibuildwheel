@@ -14,7 +14,7 @@ The old `manylinux1` image (based on CentOS 5) contains a version of GCC and lib
 
 OS X/macOS allows you to specify a so-called "deployment target" version that will ensure backwards compatibility with older versions of macOS. One way to do this is by setting the `MACOSX_DEPLOYMENT_TARGET` environment variable.
 
-However, to enable modern C++ standards, the deploment target needs to be set high enough (since older OS X/macOS versions did not have the necessary modern C++ standard library).
+However, to enable modern C++ standards, the deployment target needs to be set high enough (since older OS X/macOS versions did not have the necessary modern C++ standard library).
 
 To get C++11 and C++14 support, `MACOSX_DEPLOYMENT_TARGET` needs to be set to (at least) `"10.9"`. By default, `cibuildwheel` already does this, building 64-bit-only wheels for macOS 10.9 and later.
 

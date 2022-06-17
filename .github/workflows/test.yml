@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
-    - uses: pre-commit/action@v2.0.3
+    - uses: pre-commit/action@v3.0.0
     - name: Check manifest
       run: pipx run nox -s check_manifest
     - name: PyLint checks
@@ -84,7 +84,7 @@ jobs:
 
     - name: Set up QEMU
       id: qemu
-      uses: docker/setup-qemu-action@v1
+      uses: docker/setup-qemu-action@v2
       with:
         platforms: all
 

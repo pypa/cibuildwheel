@@ -60,14 +60,14 @@ def test_platform_argument(platform, intercepted_build_args, monkeypatch):
 
     options = intercepted_build_args.args[0]
 
-    assert options.globals.package_dir == MOCK_PACKAGE_DIR
+    assert options.globals.package_dir == MOCK_PACKAGE_DIR.resolve()
 
 
 def test_platform_environment(platform, intercepted_build_args, monkeypatch):
     main()
     options = intercepted_build_args.args[0]
 
-    assert options.globals.package_dir == MOCK_PACKAGE_DIR
+    assert options.globals.package_dir == MOCK_PACKAGE_DIR.resolve()
 
 
 def test_archs_default(platform, intercepted_build_args, monkeypatch):

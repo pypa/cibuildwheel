@@ -103,6 +103,12 @@ Linux), and the other architectures are emulated automatically.
 {% include "../examples/github-with-qemu.yml" %}
 ```
 
+### Building CPython ABI3 wheels (Limited API) {: #abi3}
+
+The CPython Limited API is a subset of the Python C Extension API that's declared to be forward-compatible, meaning you can compile wheels for one version of Python, and they'll be compatible with future versions. Wheels that use the Limited API are known as ABI3 wheels.
+
+To create a package that builds ABI3 wheels, you'll need to configure your build backend to compile libraries correctly create wheels with the right tags. [Check this repo](https://github.com/joerick/python-abi3-package-sample) for an example of how to do this with setuptools.
+
 ### Building packages with optional C extensions
 
 `cibuildwheel` defines the environment variable `CIBUILDWHEEL` to the value `1` allowing projects for which the C extension is optional to make it mandatory when building wheels.
@@ -127,7 +133,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v2.4.0
+uses: pypa/cibuildwheel@v2.6.1
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -153,7 +159,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==2.4.0
+cibuildwheel==2.6.1
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:

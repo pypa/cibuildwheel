@@ -13,18 +13,20 @@ import urllib.request
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
-from pathlib import Path
+from pathlib import Path, PurePath
 from time import sleep
 from typing import (
     Any,
     ClassVar,
     Dict,
+    Generator,
     Iterable,
-    Iterator,
     List,
     Optional,
     Sequence,
     TextIO,
+    TypeVar,
+    Union,
     cast,
     overload,
 )
@@ -40,6 +42,7 @@ else:
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
+from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
@@ -50,6 +53,7 @@ __all__ = [
     "MANYLINUX_ARCHS",
     "call",
     "shell",
+    "find_compatible_abi3_wheel",
     "format_safe",
     "prepare_command",
     "get_build_verbosity_extra_flags",
@@ -57,6 +61,7 @@ __all__ = [
     "selector_matches",
     "strtobool",
     "cached_property",
+    "chdir",
 ]
 
 resources_dir: Final = Path(__file__).parent / "resources"
@@ -228,21 +233,20 @@ def selector_matches(patterns: str, string: str) -> bool:
 
 # Once we require Python 3.10+, we can add kw_only=True
 @dataclass(frozen=True)
-class IdentifierSelector:
+class BuildSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
     build identifier, and it returns True if that identifier should be
     included. Only call this on valid identifiers, ones that have at least 2
-    numeric digits before the first dash. If a pre-release version X.Y is present,
-    you can filter it with prerelease="XY".
+    numeric digits before the first dash.
     """
 
-    # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = ""
-
-    skip_config: str
     build_config: str
+    skip_config: str
     requires_python: Optional[SpecifierSet] = None
+
+    # a pattern that skips prerelease versions, when include_prereleases is False.
+    PRERELEASE_SKIP: ClassVar[str] = "cp311-*"
     prerelease_pythons: bool = False
 
     def __call__(self, build_id: str) -> bool:
@@ -266,15 +270,16 @@ class IdentifierSelector:
 
 
 @dataclass(frozen=True)
-class BuildSelector(IdentifierSelector):
-    pass
+class TestSelector:
+    """
+    A build selector that can only skip tests according to a skip pattern.
+    """
 
+    skip_config: str
 
-# Note that requires-python is not needed for TestSelector, as you can't test
-# what you can't build.
-@dataclass(frozen=True)
-class TestSelector(IdentifierSelector):
-    build_config: str = "*"
+    def __call__(self, build_id: str) -> bool:
+        should_skip = selector_matches(self.skip_config, build_id)
+        return not should_skip
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -419,7 +424,7 @@ class FileReport:
 
 
 @contextlib.contextmanager
-def print_new_wheels(msg: str, output_dir: Path) -> Iterator[None]:
+def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     """
     Prints the new items in a directory upon exiting. The message to display
     can include {n} for number of wheels, {s} for total number of seconds,
@@ -567,7 +572,56 @@ def virtualenv(
     return env
 
 
+T = TypeVar("T", bound=PurePath)
+
+
+def find_compatible_abi3_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
+    """
+    Finds an ABI3 wheel in `wheels` compatible with the Python interpreter
+    specified by `identifier`.
+    """
+
+    interpreter, platform = identifier.split("-")
+    if not interpreter.startswith("cp3"):
+        return None
+    for wheel in wheels:
+        _, _, _, tags = parse_wheel_filename(wheel.name)
+        for tag in tags:
+            if tag.abi != "abi3":
+                continue
+            if not tag.interpreter.startswith("cp3"):
+                continue
+            if int(tag.interpreter[3:]) > int(interpreter[3:]):
+                continue
+            if platform.startswith(("manylinux", "musllinux", "macosx")):
+                # Linux, macOS
+                os_, arch = platform.split("_", 1)
+                if not tag.platform.startswith(os_):
+                    continue
+                if not tag.platform.endswith("_" + arch):
+                    continue
+            else:
+                # Windows
+                if not tag.platform == platform:
+                    continue
+            return wheel
+    return None
+
+
 if sys.version_info >= (3, 8):
     from functools import cached_property
 else:
     from .functools_cached_property_38 import cached_property
+
+
+# Can be replaced by contextlib.chdir in Python 3.11
+@contextlib.contextmanager
+def chdir(new_path: Union[Path, str]) -> Generator[None, None, None]:
+    """Non thread-safe context manager to change the current working directory."""
+
+    cwd = os.getcwd()
+    try:
+        os.chdir(new_path)
+        yield
+    finally:
+        os.chdir(cwd)

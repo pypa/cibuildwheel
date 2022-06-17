@@ -2,6 +2,8 @@ import argparse
 import os
 import shutil
 import sys
+import tarfile
+import tempfile
 import textwrap
 from pathlib import Path
 from tempfile import mkdtemp
@@ -20,13 +22,12 @@ from cibuildwheel.util import (
     CIBW_CACHE_PATH,
     BuildSelector,
     Unbuffered,
+    chdir,
     detect_ci_provider,
 )
 
 
 def main() -> None:
-    platform: PlatformName
-
     parser = argparse.ArgumentParser(
         description="Build wheels for all the platforms.",
         epilog="""
@@ -65,6 +66,8 @@ def main() -> None:
 
     parser.add_argument(
         "--output-dir",
+        type=Path,
+        default=Path(os.environ.get("CIBW_OUTPUT_DIR", "wheelhouse")),
         help="Destination folder for the wheels. Default: wheelhouse.",
     )
 
@@ -72,20 +75,26 @@ def main() -> None:
         "--config-file",
         default="",
         help="""
-            TOML config file. Default: "", meaning {package}/pyproject.toml,
-            if it exists.
+            TOML config file. Default: "", meaning {package}/pyproject.toml, if
+            it exists. To refer to a project inside your project, use {package};
+            this matters if you build from an SDist.
         """,
     )
 
     parser.add_argument(
         "package_dir",
-        default=".",
+        metavar="PACKAGE",
+        default=Path("."),
+        type=Path,
         nargs="?",
         help="""
-            Path to the package that you want wheels for. Must be a subdirectory of
-            the working directory. When set, the working directory is still
-            considered the 'project' and is copied into the Docker container on
-            Linux. Default: the working directory.
+            Path to the package that you want wheels for. Default: the working
+            directory. Can be a directory inside the working directory, or an
+            sdist. When set to a directory, the working directory is still
+            considered the 'project' and is copied into the Docker container
+            on Linux.  When set to a tar.gz sdist file, --config-file
+            and --output-dir are relative to the current directory, and other
+            paths are relative to the expanded SDist directory.
         """,
     )
 
@@ -108,6 +117,38 @@ def main() -> None:
     )
 
     args = CommandLineArguments(**vars(parser.parse_args()))
+
+    args.package_dir = args.package_dir.resolve()
+
+    # This are always relative to the base directory, even in SDist builds
+    args.output_dir = args.output_dir.resolve()
+
+    # Standard builds if a directory or non-existent path is given
+    if not args.package_dir.is_file() and not args.package_dir.name.endswith("tar.gz"):
+        build_in_directory(args)
+        return
+
+    # Tarfile builds require extraction and changing the directory
+    with tempfile.TemporaryDirectory(prefix="cibw-sdist-") as temp_dir_str:
+        temp_dir = Path(temp_dir_str)
+        with tarfile.open(args.package_dir) as tar:
+            tar.extractall(path=temp_dir)
+
+        # The extract directory is now the project dir
+        try:
+            (project_dir,) = temp_dir.iterdir()
+        except ValueError:
+            raise SystemExit("invalid sdist: didn't contain a single dir") from None
+
+        # This is now the new package dir
+        args.package_dir = project_dir.resolve()
+
+        with chdir(temp_dir):
+            build_in_directory(args)
+
+
+def build_in_directory(args: CommandLineArguments) -> None:
+    platform: PlatformName
 
     if args.platform != "auto":
         platform = args.platform
