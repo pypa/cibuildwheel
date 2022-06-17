@@ -121,7 +121,7 @@ def setup_setuptools_cross_compile(
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
     env: Dict[str, str],
-):
+) -> None:
     # We write to distutils_cfg for distutils-based builds because we know we
     # currently don't have one (unless it's our own from a previous build)
     for p in env["PATH"].split(os.pathsep):
