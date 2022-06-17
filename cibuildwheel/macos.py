@@ -535,6 +535,11 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (overwrite existing)
             if abi3_wheel is None:
+                try:
+                    (build_options.output_dir / repaired_wheel.name).unlink()
+                except FileNotFoundError:
+                    pass
+
                 shutil.move(str(repaired_wheel), build_options.output_dir)
                 built_wheels.append(build_options.output_dir / repaired_wheel.name)
 
