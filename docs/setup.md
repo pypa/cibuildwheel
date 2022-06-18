@@ -191,7 +191,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     ```
 
 !!! tab "Generic"
-    This is the most generic form using setup-python and pip; it looks the most
+    This is the most generic form using python3 and pip; it looks the most
     like the other CI examples. If you want to avoid having setup that takes
     advantage of GitHub Actions features or pipx being preinstalled, this might
     appeal to you.
@@ -214,14 +214,11 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         steps:
           - uses: actions/checkout@v2
 
-          # Used to host cibuildwheel
-          - uses: actions/setup-python@v2
-
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.7.0
+            run: python3 -m pip install cibuildwheel==2.7.0
 
           - name: Build wheels
-            run: python -m cibuildwheel --output-dir wheelhouse
+            run: python3 -m cibuildwheel --output-dir wheelhouse
 
           - uses: actions/upload-artifact@v2
             with:
