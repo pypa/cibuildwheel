@@ -374,10 +374,10 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
 
 
 def _matches_prepared_command(error_cmd: List[str], command_template: str) -> bool:
-    if len(error_cmd) < 3 or error_cmd[0:2] != ["sh", "-c"]:
+    if error_cmd[0:3] != ["sh", "-e", "-c"]:
         return False
     command_prefix = command_template.split("{", maxsplit=1)[0].strip()
-    return error_cmd[2].startswith(command_prefix)
+    return error_cmd[3].startswith(command_prefix)
 
 
 def troubleshoot(options: Options, error: Exception) -> None:
