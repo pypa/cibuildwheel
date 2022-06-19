@@ -1,5 +1,5 @@
 # name: image name
-# os: operating system in the image 
+# os: operating system in the image
 # packman: package management tool
 
 - name: manylinux_2_28
