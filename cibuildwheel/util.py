@@ -373,6 +373,20 @@ class NonPlatformWheelError(Exception):
         super().__init__(message)
 
 
+class AlreadyBuiltWheelError(Exception):
+    def __init__(self, wheel_name: str) -> None:
+        message = textwrap.dedent(
+            f"""
+            cibuildwheel: Build failed because a wheel named {wheel_name} was already generated in the current run.
+
+            If you expected another wheel to be generated, check your project configuration, or run
+            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
+            """
+        )
+
+        super().__init__(message)
+
+
 def strtobool(val: str) -> bool:
     return val.lower() in {"y", "yes", "t", "true", "on", "1"}
 

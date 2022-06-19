@@ -17,6 +17,7 @@ from .options import Options
 from .typing import Literal, PathOrStr, assert_never
 from .util import (
     CIBW_CACHE_PATH,
+    AlreadyBuiltWheelError,
     BuildFrontend,
     BuildSelector,
     NonPlatformWheelError,
@@ -407,6 +408,9 @@ def build(options: Options, tmp_path: Path) -> None:
                     shutil.move(str(built_wheel), repaired_wheel_dir)
 
                 repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise AlreadyBuiltWheelError(repaired_wheel.name)
 
                 log.step_end()
 

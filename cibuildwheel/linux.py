@@ -10,6 +10,7 @@ from .logger import log
 from .options import Options
 from .typing import OrderedDict, PathOrStr, assert_never
 from .util import (
+    AlreadyBuiltWheelError,
     BuildSelector,
     NonPlatformWheelError,
     find_compatible_wheel,
@@ -254,6 +255,10 @@ def build_on_docker(
                 docker.call(["mv", built_wheel, repaired_wheel_dir])
 
             repaired_wheels = docker.glob(repaired_wheel_dir, "*.whl")
+
+            for repaired_wheel in repaired_wheels:
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise AlreadyBuiltWheelError(repaired_wheel.name)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")
