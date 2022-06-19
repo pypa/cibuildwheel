@@ -23,7 +23,7 @@ from .util import (
     call,
     detect_ci_provider,
     download,
-    find_compatible_abi3_wheel,
+    find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
@@ -321,13 +321,13 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.build_frontend,
             )
 
-            abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
-            if abi3_wheel:
+            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
+            if compatible_wheel:
                 log.step_end()
                 print(
-                    f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                    f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                 )
-                repaired_wheel = abi3_wheel
+                repaired_wheel = compatible_wheel
             else:
                 if build_options.before_build:
                     log.step("Running before_build...")
@@ -534,7 +534,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
 
             # we're all done here; move it to output (overwrite existing)
-            if abi3_wheel is None:
+            if compatible_wheel is None:
                 try:
                     (build_options.output_dir / repaired_wheel.name).unlink()
                 except FileNotFoundError:

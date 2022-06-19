@@ -54,7 +54,7 @@ __all__ = [
     "MANYLINUX_ARCHS",
     "call",
     "shell",
-    "find_compatible_abi3_wheel",
+    "find_compatible_wheel",
     "format_safe",
     "prepare_command",
     "get_build_verbosity_extra_flags",
@@ -574,23 +574,25 @@ def virtualenv(
 T = TypeVar("T", bound=PurePath)
 
 
-def find_compatible_abi3_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
+def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
     """
-    Finds an ABI3 wheel in `wheels` compatible with the Python interpreter
+    Finds a wheel with an abi3 or a none ABI tag in `wheels` compatible with the Python interpreter
     specified by `identifier`.
     """
 
     interpreter, platform = identifier.split("-")
-    if not interpreter.startswith("cp3"):
-        return None
     for wheel in wheels:
         _, _, _, tags = parse_wheel_filename(wheel.name)
         for tag in tags:
-            if tag.abi != "abi3":
+            if tag.abi == "abi3":
+                if not (interpreter.startswith("cp3") and tag.interpreter.startswith("cp3")):
+                    continue
+            elif tag.abi == "none":
+                if tag.interpreter[:3] != "py3":
+                    continue
+            else:
                 continue
-            if not tag.interpreter.startswith("cp3"):
-                continue
-            if int(tag.interpreter[3:]) > int(interpreter[3:]):
+            if tag.interpreter != "py3" and int(tag.interpreter[3:]) > int(interpreter[3:]):
                 continue
             if platform.startswith(("manylinux", "musllinux", "macosx")):
                 # Linux, macOS
