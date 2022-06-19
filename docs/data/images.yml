@@ -1,0 +1,23 @@
+# name: image name
+# os: operating system in the image 
+# packman: package management tool
+
+- name: manylinux_2_28
+  os: AlmaLinux 8
+  packman: dnf
+
+- name: manylinux_2_24
+  os: Debian 9
+  packman: apt-get
+
+- name: manylinux2014
+  os: CentOS 7
+  packman: yum
+
+- name: manylinux2010
+  os: CentOS 6
+  packman: yum
+
+- name: manylinux1
+  os: CentOS 5
+  packman: yum
