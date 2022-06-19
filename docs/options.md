@@ -635,7 +635,7 @@ To specify more than one environment variable, separate the variable names by sp
 ### `CIBW_BEFORE_ALL` {: #before-all}
 > Execute a shell command on the build system before any wheels are built.
 
-Shell command to prepare a common part of the project (e.g. build or install libraries which does not depend on the specific version of Python).
+Shell command that runs before creating Python environment, to build or install parts that do not depend on the specific version of Python.
 
 This option is very useful for the Linux build, where builds take place in isolated Docker containers managed by cibuildwheel. This command will run inside the container before the wheel builds start. Note, if you're building both `x86_64` and `i686` wheels (the default), your build uses two different Docker images. In that case, this command will execute twice - once per build container.
 
