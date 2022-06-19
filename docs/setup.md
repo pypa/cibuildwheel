@@ -154,10 +154,9 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     {% include "../examples/github-minimal.yml" %}
     ```
 
-
-    You can use `env:` with the action just like you would with `run:`; you can
-    also use `with:` to set the command line options: `package-dir: .` and
-    `output-dir: wheelhouse` (those values are the defaults).
+    Use `env:` to pass [build options](options.md) and `with:` to set
+    `package-dir: .`, `output-dir: wheelhouse` and `config-file: ''`
+    locations (those values are the defaults).
 
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in
@@ -180,12 +179,12 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
             os: [ubuntu-20.04, windows-2019, macos-10.15]
 
         steps:
-          - uses: actions/checkout@v2
+          - uses: actions/checkout@v3
 
           - name: Build wheels
             run: pipx run cibuildwheel==2.7.0
 
-          - uses: actions/upload-artifact@v2
+          - uses: actions/upload-artifact@v3
             with:
               path: ./wheelhouse/*.whl
     ```
@@ -212,10 +211,10 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
             os: [ubuntu-20.04, windows-2019, macos-10.15]
 
         steps:
-          - uses: actions/checkout@v2
+          - uses: actions/checkout@v3
 
           # Used to host cibuildwheel
-          - uses: actions/setup-python@v2
+          - uses: actions/setup-python@v3
 
           - name: Install cibuildwheel
             run: python -m pip install cibuildwheel==2.7.0
@@ -223,7 +222,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse
 
-          - uses: actions/upload-artifact@v2
+          - uses: actions/upload-artifact@v3
             with:
               path: ./wheelhouse/*.whl
     ```
