@@ -26,5 +26,5 @@ wheel==0.37.1
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.1.2
     # via -r cibuildwheel/resources/constraints.in
-setuptools==62.4.0
+setuptools==62.6.0
     # via -r cibuildwheel/resources/constraints.in
