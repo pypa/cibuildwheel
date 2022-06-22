@@ -367,7 +367,7 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
 
         except subprocess.CalledProcessError as error:
             log.step_end_with_error(
-                f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
+                f"Command {error.cmd} failed with code {error.returncode}. {error.output}"
             )
             troubleshoot(options, error)
             sys.exit(1)
