@@ -172,7 +172,7 @@ class DockerContainer:
         else:
             with subprocess.Popen(
                 [
-                    "{self.container_engine}",
+                    self.container_engine,
                     "exec",
                     "-i",
                     str(self.name),
