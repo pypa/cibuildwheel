@@ -32,12 +32,14 @@ class DockerContainer:
 
     Example:
         >>> from cibuildwheel.docker_container import *  # NOQA
-        >>> docker_image = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
+        >>> from cibuildwheel.options import _get_pinned_docker_images
+        >>> docker_image = _get_pinned_docker_images()['x86_64']['manylinux2014']
         >>> # Test the default container
         >>> with DockerContainer(docker_image=docker_image) as self:
         ...     self.call(["echo", "hello world"])
         ...     self.call(["cat", "/proc/1/cgroup"])
         ...     print(self.get_environment())
+        ...     print(self.debug_info())
     """
 
     UTILITY_PYTHON = "/opt/python/cp38-cp38/bin/python"
