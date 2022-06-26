@@ -80,7 +80,6 @@ class DockerContainer:
             network_args = ["--network=host"]
 
         shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
-
         subprocess.run(
             [
                 self.container_engine,
@@ -89,8 +88,10 @@ class DockerContainer:
                 f"--name={self.name}",
                 "--interactive",
                 *network_args,
+                # Do we need the hostmout?
                 # Z-flags is for SELinux
-                "--volume=/:/host:Z",  # ignored on CircleCI
+                # "--volume=/:/host:Z",  # ignored on CircleCI
+                # "--volume=/:/host",
                 self.docker_image,
                 *shell_args,
             ],
@@ -116,13 +117,13 @@ class DockerContainer:
         self.bash_stdout = self.process.stdout
 
         # run a noop command to block until the container is responding
-        self.call(["/bin/true"], cwd="")
+        self.call(["/bin/true"], cwd="/")
 
         if self.cwd:
             # Although `docker create -w` does create the working dir if it
             # does not exist, podman does not. There does not seem to be a way
             # to setup a workdir for a container running in podman.
-            self.call(["mkdir", "-p", str(self.cwd)], cwd="")
+            self.call(["mkdir", "-p", str(self.cwd)], cwd="/")
 
         return self
 
@@ -200,7 +201,20 @@ class DockerContainer:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
 
-        if self.container_engine == "podman":
+        TRY_SIMPLE_CP = 0
+        if TRY_SIMPLE_CP:
+            # There is a bug in docker that prevents this simple implementation
+            # from working https://github.com/moby/moby/issues/38995
+            # It seems to also not workin podman as well
+            command = f"{self.container_engine} cp {self.name}:{shell_quote(from_path)} {shell_quote(to_path)}"
+            subprocess.run(
+                command,
+                shell=True,
+                check=True,
+                cwd=to_path,
+                env=self.env,
+            )
+        elif self.container_engine == "podman":
             # The copy out logic that works for docker does not seem to
             # translate to podman, which seems to need the steps spelled out
             # more explicitly.
