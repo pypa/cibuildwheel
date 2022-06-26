@@ -7,9 +7,10 @@ import subprocess
 import tempfile
 import textwrap
 from pathlib import Path, PurePath, PurePosixPath
+from typing import Dict, Optional, Union
 
 import pytest
-import toml  # type: ignore[import]
+import toml
 
 from cibuildwheel.docker_container import DockerContainer
 from cibuildwheel.environment import EnvironmentAssignmentBash
@@ -28,11 +29,9 @@ elif pm == "s390x":
 else:
     DEFAULT_IMAGE = ""
 
-# A dictionary to make it easier to manipulate globals
-_STATE = {
-    "temp_test_dir": None,
-    "using_podman": False,
-}
+# These globals will be manipulated
+temp_test_dir: Optional[tempfile.TemporaryDirectory[str]] = None
+using_podman = False
 
 
 # @atexit.register
@@ -52,13 +51,14 @@ def _cleanup_podman_vfs_tempdir():
     References:
         .. [PodmanStoragePerms] https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
     """
-    temp_test_dir = _STATE["temp_test_dir"]
+    global temp_test_dir
+    global using_podman
     if temp_test_dir is not None:
-        # When podman creates special directories, they cant be cleaned up
+        # When podman creates special directories, they can't be cleaned up
         # unless you fake a UID of 0. The package rootlesskit helps with that.
-        if _STATE["using_podman"]:
+        if using_podman:
             subprocess.call(["podman", "unshare", "rm", "-rf", temp_test_dir.name])
-    _STATE["temp_test_dir"] = None
+    temp_test_dir = None
 
 
 def basis_container_kwargs():
@@ -77,6 +77,8 @@ def basis_container_kwargs():
         Dict: a configuration passed as ``container_kwargs`` to each
         parameterized test.
     """
+    global temp_test_dir
+    global using_podman
 
     # TODO: Pytest should be aware of if we are trying to test docker / podman
     # or not
@@ -86,9 +88,9 @@ def basis_container_kwargs():
     REQUESTED_DOCKER = HAVE_DOCKER
     REQUESTED_PODMAN = HAVE_PODMAN
 
-    if _STATE["temp_test_dir"] is None:
+    if temp_test_dir is None:
         # Only setup the temp directory once for all tests
-        _STATE["temp_test_dir"] = tempfile.TemporaryDirectory(prefix="cibw_test_")
+        temp_test_dir = tempfile.TemporaryDirectory(prefix="cibw_test_")
         if REQUESTED_PODMAN:
             # Register the special cleanup hook after the temp directory is
             # created to ensure that it runs before the temp directory logic
@@ -96,15 +98,13 @@ def basis_container_kwargs():
             # UID).
             atexit.register(_cleanup_podman_vfs_tempdir)
 
-    temp_test_dir = _STATE["temp_test_dir"]
-
     if REQUESTED_DOCKER:
         # Basic podman configuration
         yield {"container_engine": "docker", "docker_image": DEFAULT_IMAGE}
 
     if REQUESTED_PODMAN:
         # Basic podman usage
-        _STATE["using_podman"] = True
+        using_podman = True
         yield {"container_engine": "podman", "docker_image": DEFAULT_IMAGE}
 
         # VFS Podman usage (for the podman in docker use-case)
