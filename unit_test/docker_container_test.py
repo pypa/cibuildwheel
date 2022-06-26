@@ -30,8 +30,8 @@ else:
 
 # A dictionary to make it easier to manipulate globals
 _STATE = {
-    'temp_test_dir': None,
-    'using_podman': False,
+    "temp_test_dir": None,
+    "using_podman": False,
 }
 
 
@@ -52,13 +52,13 @@ def _cleanup_podman_vfs_tempdir():
     References:
         .. [PodmanStoragePerms] https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
     """
-    temp_test_dir = _STATE['temp_test_dir']
+    temp_test_dir = _STATE["temp_test_dir"]
     if temp_test_dir is not None:
         # When podman creates special directories, they cant be cleaned up
         # unless you fake a UID of 0. The package rootlesskit helps with that.
-        if _STATE['using_podman']:
-            subprocess.call(['podman', 'unshare', 'rm', '-rf', temp_test_dir.name])
-    _STATE['temp_test_dir'] = None
+        if _STATE["using_podman"]:
+            subprocess.call(["podman", "unshare", "rm", "-rf", temp_test_dir.name])
+    _STATE["temp_test_dir"] = None
 
 
 def basis_container_kwargs():
@@ -86,9 +86,9 @@ def basis_container_kwargs():
     REQUESTED_DOCKER = HAVE_DOCKER
     REQUESTED_PODMAN = HAVE_PODMAN
 
-    if _STATE['temp_test_dir'] is None:
+    if _STATE["temp_test_dir"] is None:
         # Only setup the temp directory once for all tests
-        _STATE['temp_test_dir'] = tempfile.TemporaryDirectory(prefix="cibw_test_")
+        _STATE["temp_test_dir"] = tempfile.TemporaryDirectory(prefix="cibw_test_")
         if REQUESTED_PODMAN:
             # Register the special cleanup hook after the temp directory is
             # created to ensure that it runs before the temp directory logic
@@ -96,7 +96,7 @@ def basis_container_kwargs():
             # UID).
             atexit.register(_cleanup_podman_vfs_tempdir)
 
-    temp_test_dir = _STATE['temp_test_dir']
+    temp_test_dir = _STATE["temp_test_dir"]
 
     if REQUESTED_DOCKER:
         # Basic podman configuration
@@ -104,7 +104,7 @@ def basis_container_kwargs():
 
     if REQUESTED_PODMAN:
         # Basic podman usage
-        _STATE['using_podman'] = True
+        _STATE["using_podman"] = True
         yield {"container_engine": "podman", "docker_image": DEFAULT_IMAGE}
 
         # VFS Podman usage (for the podman in docker use-case)
@@ -182,7 +182,7 @@ def _setup_podman_vfs(dpath):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_simple(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
@@ -191,7 +191,7 @@ def test_simple(container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_no_lf(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
@@ -200,7 +200,7 @@ def test_no_lf(container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_debug_info(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     container = DockerContainer(**container_kwargs)
     print(container.debug_info())
@@ -211,7 +211,7 @@ def test_debug_info(container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_environment(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assert (
@@ -233,7 +233,7 @@ def test_cwd(container_kwargs):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_container_removed(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         docker_containers_listing = subprocess.run(
@@ -260,7 +260,7 @@ def test_container_removed(container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_large_environment(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     # max environment variable size is 128kB
     long_env_var_length = 127 * 1024
@@ -282,7 +282,7 @@ def test_large_environment(container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_binary_output(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         # note: the below embedded snippets are in python2
@@ -336,7 +336,7 @@ def test_binary_output(container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_file_operation(tmp_path: Path, container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         # test copying a file in
@@ -355,7 +355,7 @@ def test_file_operation(tmp_path: Path, container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_dir_operations(tmp_path: Path, container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
@@ -388,7 +388,7 @@ def test_dir_operations(tmp_path: Path, container_kwargs, monkeypatch):
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
 def test_environment_executor(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop('env', {}).items():
+    for k, v in container_kwargs.pop("env", {}).items():
         monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assignment = EnvironmentAssignmentBash("TEST=$(echo 42)")
