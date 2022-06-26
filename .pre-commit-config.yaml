@@ -67,6 +67,7 @@ repos:
       - types-jinja2
       - types-pyyaml
       - types-requests
+      - types-toml
       - bracex
       - dataclasses
   - id: mypy

@@ -7,7 +7,6 @@ import subprocess
 import tempfile
 import textwrap
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Optional
 
 import pytest
 import toml
@@ -30,7 +29,7 @@ else:
     DEFAULT_IMAGE = ""
 
 # These globals will be manipulated
-temp_test_dir: Optional[tempfile.TemporaryDirectory[str]] = None
+temp_test_dir = None
 using_podman = False
 
 
@@ -56,7 +55,7 @@ def _cleanup_podman_vfs_tempdir():
     if temp_test_dir is not None:
         # When podman creates special directories, they can't be cleaned up
         # unless you fake a UID of 0. The package rootlesskit helps with that.
-        if using_podman:
+        if using_podman:  # type: ignore[unreachable]
             subprocess.call(["podman", "unshare", "rm", "-rf", temp_test_dir.name])
     temp_test_dir = None
 
