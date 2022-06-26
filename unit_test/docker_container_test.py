@@ -224,7 +224,9 @@ def test_environment(container_kwargs, monkeypatch):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_cwd(container_kwargs):
+def test_cwd(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop("env", {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(cwd="/cibuildwheel/working_directory", **container_kwargs) as container:
         assert container.call(["pwd"], capture_output=True) == "/cibuildwheel/working_directory\n"
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
