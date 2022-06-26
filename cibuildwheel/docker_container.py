@@ -65,7 +65,6 @@ class DockerContainer:
         self.cwd = cwd
         self.name: Optional[str] = None
         self.container_engine = container_engine
-        self.env = env  # If specified, overwrite environment variables
 
     def __enter__(self) -> "DockerContainer":
 
@@ -80,6 +79,21 @@ class DockerContainer:
             network_args = ["--network=host"]
 
         shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
+
+        # volume args are ignored on CircleCI
+        # For a discussion of if :Z should be included or not:
+        # https://github.com/pypa/cibuildwheel/pull/966#discussion_r906707824
+        # https://stackoverflow.com/questions/35218194/what-is-z-flag-in-docker-containers-volumes-from-option/35222815#35222815
+        # https://github.com/moby/moby/issues/30934
+        # The Z option indicates that the bind mount content is private and
+        # unshared. Use extreme caution with these options. Bind-mounting a
+        # system directory such as /home or /usr with the Z option renders your
+        # host machine inoperable and you may need to relabel the host machine
+        # files by hand.
+        volume_args = ['--volume=/:/host']
+        # volume_args = ['--volume=/:/host:Z']
+        # volume_args = []
+
         subprocess.run(
             [
                 self.container_engine,
@@ -88,14 +102,10 @@ class DockerContainer:
                 f"--name={self.name}",
                 "--interactive",
                 *network_args,
-                # Do we need the hostmout?
-                # Z-flags is for SELinux
-                # "--volume=/:/host:Z",  # ignored on CircleCI
-                # "--volume=/:/host",
+                *volume_args,
                 self.docker_image,
                 *shell_args,
             ],
-            env=self.env,
             check=True,
         )
 
@@ -109,7 +119,6 @@ class DockerContainer:
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            env=self.env,
         )
 
         assert self.process.stdin and self.process.stdout
@@ -152,7 +161,6 @@ class DockerContainer:
         subprocess.run(
             [self.container_engine, "rm", "--force", "-v", self.name],
             stdout=subprocess.DEVNULL,
-            env=self.env,
             check=False,
         )
         self.name = None
@@ -170,7 +178,6 @@ class DockerContainer:
                 shell=True,
                 check=True,
                 cwd=from_path,
-                env=self.env,
             )
         else:
             with subprocess.Popen(
@@ -183,7 +190,6 @@ class DockerContainer:
                     "-c",
                     f"cat > {shell_quote(to_path)}",
                 ],
-                env=self.env,
                 stdin=subprocess.PIPE,
             ) as docker:
                 docker.stdin = cast(IO[bytes], docker.stdin)
@@ -212,7 +218,6 @@ class DockerContainer:
                 shell=True,
                 check=True,
                 cwd=to_path,
-                env=self.env,
             )
         elif self.container_engine == "podman":
             # The copy out logic that works for docker does not seem to
@@ -224,7 +229,6 @@ class DockerContainer:
                 shell=True,
                 check=True,
                 cwd=to_path,
-                env=self.env,
             )
 
             command = f"{self.container_engine} cp {self.name}:/tmp/output-{self.name}.tar output-{self.name}.tar"
@@ -233,7 +237,6 @@ class DockerContainer:
                 shell=True,
                 check=True,
                 cwd=to_path,
-                env=self.env,
             )
             command = f"tar -xvf output-{self.name}.tar"
             subprocess.run(
@@ -241,7 +244,6 @@ class DockerContainer:
                 shell=True,
                 check=True,
                 cwd=to_path,
-                env=self.env,
             )
             os.unlink(to_path / f"output-{self.name}.tar")
         elif self.container_engine == "docker":
@@ -251,7 +253,6 @@ class DockerContainer:
                 shell=True,
                 check=True,
                 cwd=to_path,
-                env=self.env,
             )
         else:
             raise KeyError(self.container_engine)
@@ -380,7 +381,6 @@ class DockerContainer:
             shell=True,
             check=True,
             cwd=self.cwd,
-            env=self.env,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
         )

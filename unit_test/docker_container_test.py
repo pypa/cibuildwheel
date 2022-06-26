@@ -178,21 +178,27 @@ def _setup_podman_vfs(dpath):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_simple(container_kwargs):
+def test_simple(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_no_lf(container_kwargs):
+def test_no_lf(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_debug_info(container_kwargs):
+def test_debug_info(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     container = DockerContainer(**container_kwargs)
     print(container.debug_info())
     with container:
@@ -201,7 +207,9 @@ def test_debug_info(container_kwargs):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_environment(container_kwargs):
+def test_environment(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assert (
             container.call(
@@ -221,7 +229,9 @@ def test_cwd(container_kwargs):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_container_removed(container_kwargs):
+def test_container_removed(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         docker_containers_listing = subprocess.run(
             f"{container.container_engine} container ls",
@@ -229,7 +239,6 @@ def test_container_removed(container_kwargs):
             check=True,
             stdout=subprocess.PIPE,
             universal_newlines=True,
-            env=container.env,
         ).stdout
         assert container.name is not None
         assert container.name in docker_containers_listing
@@ -241,14 +250,15 @@ def test_container_removed(container_kwargs):
         check=True,
         stdout=subprocess.PIPE,
         universal_newlines=True,
-        env=container.env,
     ).stdout
     assert old_container_name not in docker_containers_listing
 
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_large_environment(container_kwargs):
+def test_large_environment(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     # max environment variable size is 128kB
     long_env_var_length = 127 * 1024
     large_environment = {
@@ -268,7 +278,9 @@ def test_large_environment(container_kwargs):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_binary_output(container_kwargs):
+def test_binary_output(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         # note: the below embedded snippets are in python2
 
@@ -320,7 +332,9 @@ def test_binary_output(container_kwargs):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_file_operation(tmp_path: Path, container_kwargs):
+def test_file_operation(tmp_path: Path, container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         # test copying a file in
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
@@ -337,7 +351,9 @@ def test_file_operation(tmp_path: Path, container_kwargs):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_dir_operations(tmp_path: Path, container_kwargs):
+def test_dir_operations(tmp_path: Path, container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
@@ -368,7 +384,9 @@ def test_dir_operations(tmp_path: Path, container_kwargs):
 
 @pytest.mark.docker
 @pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_environment_executor(container_kwargs):
+def test_environment_executor(container_kwargs, monkeypatch):
+    for k, v in container_kwargs.pop('env', {}).items():
+        monkeypatch.setenv(k, v)
     with DockerContainer(**container_kwargs) as container:
         assignment = EnvironmentAssignmentBash("TEST=$(echo 42)")
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
