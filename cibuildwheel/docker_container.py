@@ -55,7 +55,6 @@ class DockerContainer:
         simulate_32_bit: bool = False,
         cwd: Optional[PathOrStr] = None,
         container_engine: str = "docker",
-        env: Optional[Dict[str, str]] = None,
     ):
         if not docker_image:
             raise ValueError("Must have a non-empty docker image to run.")
@@ -80,20 +79,6 @@ class DockerContainer:
 
         shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
 
-        # volume args are ignored on CircleCI
-        # For a discussion of if :Z should be included or not:
-        # https://github.com/pypa/cibuildwheel/pull/966#discussion_r906707824
-        # https://stackoverflow.com/questions/35218194/what-is-z-flag-in-docker-containers-volumes-from-option/35222815#35222815
-        # https://github.com/moby/moby/issues/30934
-        # The Z option indicates that the bind mount content is private and
-        # unshared. Use extreme caution with these options. Bind-mounting a
-        # system directory such as /home or /usr with the Z option renders your
-        # host machine inoperable and you may need to relabel the host machine
-        # files by hand.
-        volume_args = ['--volume=/:/host']
-        # volume_args = ['--volume=/:/host:Z']
-        # volume_args = []
-
         subprocess.run(
             [
                 self.container_engine,
@@ -101,8 +86,8 @@ class DockerContainer:
                 "--env=CIBUILDWHEEL",
                 f"--name={self.name}",
                 "--interactive",
+                "--volume=/:/host",  # ignored on CircleCI
                 *network_args,
-                *volume_args,
                 self.docker_image,
                 *shell_args,
             ],
@@ -126,13 +111,13 @@ class DockerContainer:
         self.bash_stdout = self.process.stdout
 
         # run a noop command to block until the container is responding
-        self.call(["/bin/true"], cwd="/")
+        self.call(["/bin/true"])
 
         if self.cwd:
             # Although `docker create -w` does create the working dir if it
             # does not exist, podman does not. There does not seem to be a way
             # to setup a workdir for a container running in podman.
-            self.call(["mkdir", "-p", str(self.cwd)], cwd="/")
+            self.call(["mkdir", "-p", os.fspath(self.cwd)])
 
         return self
 
@@ -389,4 +374,4 @@ class DockerContainer:
 
 
 def shell_quote(path: PurePath) -> str:
-    return shlex.quote(str(path))
+    return shlex.quote(os.fspath(path))

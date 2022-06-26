@@ -36,7 +36,7 @@ _STATE = {
 
 
 # @atexit.register
-def _cleanup_tempdir():
+def _cleanup_podman_vfs_tempdir():
     """
     Cleans up any configuration written by :func:`basis_container_kwargs`.
 
@@ -58,10 +58,6 @@ def _cleanup_tempdir():
         # unless you fake a UID of 0. The package rootlesskit helps with that.
         if _STATE['using_podman']:
             subprocess.call(['podman', 'unshare', 'rm', '-rf', temp_test_dir.name])
-        try:
-            temp_test_dir.cleanup()
-        except Exception as ex:
-            print(f"Issue cleaning up ex = {ex!r}")
     _STATE['temp_test_dir'] = None
 
 
@@ -82,24 +78,31 @@ def basis_container_kwargs():
         parameterized test.
     """
 
-    if _STATE['temp_test_dir'] is None:
-        # Only setup the temp directory once for all tests
-        _STATE['temp_test_dir'] = tempfile.TemporaryDirectory(prefix="cibw_test_")
-        # Register the special cleanup hook after the temp directory is created
-        # to ensure that it runs before the temp directory logic runs (which
-        # will not handle cases where there is a fake root UID).
-        atexit.register(_cleanup_tempdir)
-
-    temp_test_dir = _STATE['temp_test_dir']
-
+    # TODO: Pytest should be aware of if we are trying to test docker / podman
+    # or not
     HAVE_DOCKER = bool(shutil.which("docker"))
     HAVE_PODMAN = bool(shutil.which("podman"))
 
-    if HAVE_DOCKER:
+    REQUESTED_DOCKER = HAVE_DOCKER
+    REQUESTED_PODMAN = HAVE_PODMAN
+
+    if _STATE['temp_test_dir'] is None:
+        # Only setup the temp directory once for all tests
+        _STATE['temp_test_dir'] = tempfile.TemporaryDirectory(prefix="cibw_test_")
+        if REQUESTED_PODMAN:
+            # Register the special cleanup hook after the temp directory is
+            # created to ensure that it runs before the temp directory logic
+            # runs (which will not handle cases where there is a fake root
+            # UID).
+            atexit.register(_cleanup_podman_vfs_tempdir)
+
+    temp_test_dir = _STATE['temp_test_dir']
+
+    if REQUESTED_DOCKER:
         # Basic podman configuration
         yield {"container_engine": "docker", "docker_image": DEFAULT_IMAGE}
 
-    if HAVE_PODMAN:
+    if REQUESTED_PODMAN:
         # Basic podman usage
         _STATE['using_podman'] = True
         yield {"container_engine": "podman", "docker_image": DEFAULT_IMAGE}
