@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import textwrap
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Dict, Optional, Union
+from typing import Optional
 
 import pytest
 import toml
