@@ -21,6 +21,7 @@ def test(tmp_path, capfd, request):
         add_env={
             "CIBW_BUILD": "cp310-*{manylinux,musllinux}_x86_64",
             "CIBW_BEFORE_ALL": "echo 'test log statement from before-all'",
+            "CIBW_CONTAINER_ENGINE": "podman",
         },
     )
 
