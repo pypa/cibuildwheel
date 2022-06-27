@@ -30,7 +30,7 @@ class OCIContainer:
     back to cibuildwheel.
 
     Example:
-        >>> from cibuildwheel.docker_container import *  # NOQA
+        >>> from cibuildwheel.oci_container import *  # NOQA
         >>> from cibuildwheel.options import _get_pinned_container_images
         >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
         >>> # Test the default container
