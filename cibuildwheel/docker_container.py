@@ -192,45 +192,16 @@ class DockerContainer:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
 
-        TRY_SIMPLE_CP = 0
-        if TRY_SIMPLE_CP:
+        if self.container_engine == "podman":
             # There is a bug in docker that prevents this simple implementation
             # from working https://github.com/moby/moby/issues/38995
-            # It seems to also not workin podman as well
-            command = f"{self.container_engine} cp {self.name}:{shell_quote(from_path)} {shell_quote(to_path)}"
+            command = f"{self.container_engine} cp {self.name}:{shell_quote(from_path)}/. {shell_quote(to_path)}"
             subprocess.run(
                 command,
                 shell=True,
                 check=True,
                 cwd=to_path,
             )
-        elif self.container_engine == "podman":
-            # The copy out logic that works for docker does not seem to
-            # translate to podman, which seems to need the steps spelled out
-            # more explicitly.
-            command = f"{self.container_engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f /tmp/output-{self.name}.tar ."
-            subprocess.run(
-                command,
-                shell=True,
-                check=True,
-                cwd=to_path,
-            )
-
-            command = f"{self.container_engine} cp {self.name}:/tmp/output-{self.name}.tar output-{self.name}.tar"
-            subprocess.run(
-                command,
-                shell=True,
-                check=True,
-                cwd=to_path,
-            )
-            command = f"tar -xvf output-{self.name}.tar"
-            subprocess.run(
-                command,
-                shell=True,
-                check=True,
-                cwd=to_path,
-            )
-            os.unlink(to_path / f"output-{self.name}.tar")
         elif self.container_engine == "docker":
             command = f"{self.container_engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
             subprocess.run(
