@@ -16,6 +16,7 @@ from typing import (
     Set,
     Tuple,
     Union,
+    cast,
 )
 
 if sys.version_info >= (3, 11):
@@ -26,6 +27,7 @@ else:
 from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
+from .docker_container import ContainerEngine
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .projectfiles import get_requires_python_str
 from .typing import PLATFORMS, Literal, PlatformName, TypedDict
@@ -79,7 +81,7 @@ class BuildOptions(NamedTuple):
     test_extras: str
     build_verbosity: int
     build_frontend: BuildFrontend
-    container_engine: str
+    container_engine: ContainerEngine
 
     @property
     def package_dir(self) -> Path:
@@ -423,7 +425,14 @@ class Options:
             test_requires = self.reader.get("test-requires", sep=" ").split()
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
-            container_engine = self.reader.get("container-engine")
+            container_engine_str = self.reader.get("container-engine")
+
+            if container_engine_str not in ["docker", "podman"]:
+                msg = f"cibuildwheel: Unrecognised container_engine '{container_engine_str}', only 'docker' and 'podman' are supported"
+                print(msg, file=sys.stderr)
+                sys.exit(2)
+
+            container_engine = cast(ContainerEngine, container_engine_str)
 
             build_frontend: BuildFrontend
             if build_frontend_str == "build":

@@ -13,7 +13,9 @@ from typing import IO, Dict, List, Optional, Sequence, Type, cast
 
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
-from .typing import PathOrStr, PopenBytes
+from .typing import Literal, PathOrStr, PopenBytes
+
+ContainerEngine = Literal["docker", "podman"]
 
 
 class DockerContainer:
@@ -54,7 +56,7 @@ class DockerContainer:
         docker_image: str,
         simulate_32_bit: bool = False,
         cwd: Optional[PathOrStr] = None,
-        container_engine: str = "docker",
+        container_engine: ContainerEngine = "docker",
     ):
         if not docker_image:
             raise ValueError("Must have a non-empty docker image to run.")
@@ -193,8 +195,6 @@ class DockerContainer:
         to_path.mkdir(parents=True, exist_ok=True)
 
         if self.container_engine == "podman":
-            # There is a bug in docker that prevents this simple implementation
-            # from working https://github.com/moby/moby/issues/38995
             subprocess.run(
                 [
                     self.container_engine,
@@ -206,6 +206,8 @@ class DockerContainer:
                 cwd=to_path,
             )
         elif self.container_engine == "docker":
+            # There is a bug in docker that prevents a simple 'cp' invocation
+            # from working https://github.com/moby/moby/issues/38995
             command = f"{self.container_engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
             subprocess.run(
                 command,
