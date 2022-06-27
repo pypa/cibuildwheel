@@ -18,26 +18,23 @@ from .typing import Literal, PathOrStr, PopenBytes
 ContainerEngine = Literal["docker", "podman"]
 
 
-class DockerContainer:
+class OCIContainer:
     """
-    An object that represents a running Docker container.
+    An object that represents a running OCI (e.g. Docker) container.
 
     Intended for use as a context manager e.g.
-    `with DockerContainer(docker_image = 'ubuntu') as docker:`
+    `with OCIContainer(image = 'ubuntu') as docker:`
 
     A bash shell is running in the remote container. When `call()` is invoked,
     the command is relayed to the remote shell, and the results are streamed
     back to cibuildwheel.
 
-    TODO:
-        - [ ] Rename to Container as this now generalizes docker and podman?
-
     Example:
         >>> from cibuildwheel.docker_container import *  # NOQA
-        >>> from cibuildwheel.options import _get_pinned_docker_images
-        >>> docker_image = _get_pinned_docker_images()['x86_64']['manylinux2014']
+        >>> from cibuildwheel.options import _get_pinned_container_images
+        >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
         >>> # Test the default container
-        >>> with DockerContainer(docker_image=docker_image) as self:
+        >>> with OCIContainer(image=image) as self:
         ...     self.call(["echo", "hello world"])
         ...     self.call(["cat", "/proc/1/cgroup"])
         ...     print(self.get_environment())
@@ -53,21 +50,21 @@ class DockerContainer:
     def __init__(
         self,
         *,
-        docker_image: str,
+        image: str,
         simulate_32_bit: bool = False,
         cwd: Optional[PathOrStr] = None,
-        container_engine: ContainerEngine = "docker",
+        engine: ContainerEngine = "docker",
     ):
-        if not docker_image:
+        if not image:
             raise ValueError("Must have a non-empty docker image to run.")
 
-        self.docker_image = docker_image
+        self.image = image
         self.simulate_32_bit = simulate_32_bit
         self.cwd = cwd
         self.name: Optional[str] = None
-        self.container_engine = container_engine
+        self.engine = engine
 
-    def __enter__(self) -> "DockerContainer":
+    def __enter__(self) -> "OCIContainer":
 
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
@@ -83,14 +80,14 @@ class DockerContainer:
 
         subprocess.run(
             [
-                self.container_engine,
+                self.engine,
                 "create",
                 "--env=CIBUILDWHEEL",
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
                 *network_args,
-                self.docker_image,
+                self.image,
                 *shell_args,
             ],
             check=True,
@@ -98,7 +95,7 @@ class DockerContainer:
 
         self.process = subprocess.Popen(
             [
-                self.container_engine,
+                self.engine,
                 "start",
                 "--attach",
                 "--interactive",
@@ -136,7 +133,7 @@ class DockerContainer:
         self.bash_stdin.close()
         self.bash_stdout.close()
 
-        if self.container_engine == "podman":
+        if self.engine == "podman":
             # This works around what seems to be a race condition in the podman
             # backend. The full reason is not understood. See PR #966 for a
             # discussion on possible causes and attempts to remove this line.
@@ -146,7 +143,7 @@ class DockerContainer:
         assert isinstance(self.name, str)
 
         subprocess.run(
-            [self.container_engine, "rm", "--force", "-v", self.name],
+            [self.engine, "rm", "--force", "-v", self.name],
             stdout=subprocess.DEVNULL,
             check=False,
         )
@@ -161,7 +158,7 @@ class DockerContainer:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f"tar cf - . | {self.container_engine} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
+                f"tar cf - . | {self.engine} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
@@ -169,7 +166,7 @@ class DockerContainer:
         else:
             with subprocess.Popen(
                 [
-                    self.container_engine,
+                    self.engine,
                     "exec",
                     "-i",
                     str(self.name),
@@ -194,10 +191,10 @@ class DockerContainer:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
 
-        if self.container_engine == "podman":
+        if self.engine == "podman":
             subprocess.run(
                 [
-                    self.container_engine,
+                    self.engine,
                     "cp",
                     f"{self.name}:{from_path}/.",
                     str(to_path),
@@ -205,10 +202,10 @@ class DockerContainer:
                 check=True,
                 cwd=to_path,
             )
-        elif self.container_engine == "docker":
+        elif self.engine == "docker":
             # There is a bug in docker that prevents a simple 'cp' invocation
             # from working https://github.com/moby/moby/issues/38995
-            command = f"{self.container_engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
+            command = f"{self.engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
             subprocess.run(
                 command,
                 shell=True,
@@ -216,7 +213,7 @@ class DockerContainer:
                 cwd=to_path,
             )
         else:
-            raise KeyError(self.container_engine)
+            raise KeyError(self.engine)
 
     def glob(self, path: PurePosixPath, pattern: str) -> List[PurePosixPath]:
         glob_pattern = path.joinpath(pattern)
@@ -333,10 +330,10 @@ class DockerContainer:
         return self.call(command, env=environment, capture_output=True)
 
     def debug_info(self) -> str:
-        if self.container_engine == "podman":
-            command = f"{self.container_engine} info --debug"
+        if self.engine == "podman":
+            command = f"{self.engine} info --debug"
         else:
-            command = f"{self.container_engine} info"
+            command = f"{self.engine} info"
         completed = subprocess.run(
             command,
             shell=True,

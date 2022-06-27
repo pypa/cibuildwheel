@@ -35,7 +35,7 @@ def mock_build_docker(monkeypatch):
     monkeypatch.setattr(subprocess, "Popen", fail_on_call)
     monkeypatch.setattr(subprocess, "run", ignore_call)
     monkeypatch.setattr(util, "download", fail_on_call)
-    monkeypatch.setattr("cibuildwheel.linux.DockerContainer", ignore_context_call)
+    monkeypatch.setattr("cibuildwheel.linux.OCIContainer", ignore_context_call)
 
     monkeypatch.setattr("cibuildwheel.linux.build_on_docker", mock.Mock(spec=linux.build_on_docker))
     monkeypatch.setattr("cibuildwheel.util.print_new_wheels", ignore_context_call)
@@ -52,7 +52,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
 
     # In Python 3.8+, this can be simplified to [0].kwargs
     kwargs = build_on_docker.call_args_list[0][1]
-    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -60,7 +60,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
     assert identifiers == {f"{x}-manylinux_x86_64" for x in ALL_IDS}
 
     kwargs = build_on_docker.call_args_list[1][1]
-    assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
@@ -68,7 +68,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
     assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
 
     kwargs = build_on_docker.call_args_list[2][1]
-    assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -78,7 +78,7 @@ def test_build_default_launches(mock_build_docker, fake_package_dir, monkeypatch
     }
 
     kwargs = build_on_docker.call_args_list[3][1]
-    assert "quay.io/pypa/musllinux_1_1_i686" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/musllinux_1_1_i686" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
@@ -118,7 +118,7 @@ before-all = "true"
     assert build_on_docker.call_count == 6
 
     kwargs = build_on_docker.call_args_list[0][1]
-    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -127,7 +127,7 @@ before-all = "true"
     assert kwargs["options"].build_options("cp36-manylinux_x86_64").before_all == "true"
 
     kwargs = build_on_docker.call_args_list[1][1]
-    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -138,7 +138,7 @@ before-all = "true"
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
     kwargs = build_on_docker.call_args_list[2][1]
-    assert "quay.io/pypa/manylinux_2_24_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux_2_24_x86_64" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
@@ -150,7 +150,7 @@ before-all = "true"
     }
 
     kwargs = build_on_docker.call_args_list[3][1]
-    assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/manylinux2014_i686" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 
@@ -158,7 +158,7 @@ before-all = "true"
     assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
 
     kwargs = build_on_docker.call_args_list[4][1]
-    assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert not kwargs["docker"]["simulate_32_bit"]
 
@@ -168,7 +168,7 @@ before-all = "true"
     }
 
     kwargs = build_on_docker.call_args_list[5][1]
-    assert "quay.io/pypa/musllinux_1_1_i686" in kwargs["docker"]["docker_image"]
+    assert "quay.io/pypa/musllinux_1_1_i686" in kwargs["docker"]["image"]
     assert kwargs["docker"]["cwd"] == PurePosixPath("/project")
     assert kwargs["docker"]["simulate_32_bit"]
 

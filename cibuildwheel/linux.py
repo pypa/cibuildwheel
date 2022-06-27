@@ -5,7 +5,7 @@ from pathlib import Path, PurePath, PurePosixPath
 from typing import Iterator, List, NamedTuple, Set, Tuple
 
 from .architecture import Architecture
-from .docker_container import DockerContainer
+from .docker_container import OCIContainer
 from .logger import log
 from .options import Options
 from .typing import OrderedDict, PathOrStr, assert_never
@@ -33,7 +33,7 @@ class PythonConfiguration(NamedTuple):
 class BuildStep(NamedTuple):
     platform_configs: List[PythonConfiguration]
     platform_tag: str
-    docker_image: str
+    container_image: str
 
 
 def get_python_configurations(
@@ -55,7 +55,7 @@ def get_python_configurations(
     ]
 
 
-def docker_image_for_python_configuration(config: PythonConfiguration, options: Options) -> str:
+def container_image_for_python_configuration(config: PythonConfiguration, options: Options) -> str:
     build_options = options.build_options(config.identifier)
     # e.g
     # identifier is 'cp310-manylinux_x86_64'
@@ -87,15 +87,17 @@ def get_build_steps(
         _, platform_tag = config.identifier.split("-", 1)
 
         before_all = options.build_options(config.identifier).before_all
-        docker_image = docker_image_for_python_configuration(config, options)
+        container_image = container_image_for_python_configuration(config, options)
 
-        step_key = (platform_tag, docker_image, before_all)
+        step_key = (platform_tag, container_image, before_all)
 
         if step_key in steps:
             steps[step_key].platform_configs.append(config)
         else:
             steps[step_key] = BuildStep(
-                platform_configs=[config], platform_tag=platform_tag, docker_image=docker_image
+                platform_configs=[config],
+                platform_tag=platform_tag,
+                container_image=container_image,
             )
 
     yield from steps.values()
@@ -105,7 +107,7 @@ def build_on_docker(
     *,
     options: Options,
     platform_configs: List[PythonConfiguration],
-    docker: DockerContainer,
+    docker: OCIContainer,
     container_project_path: PurePath,
     container_package_dir: PurePath,
 ) -> None:
@@ -357,14 +359,14 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
         try:
             ids_to_build = [x.identifier for x in build_step.platform_configs]
             log.step(
-                f"Starting Docker image {build_step.docker_image} for {', '.join(ids_to_build)}..."
+                f"Starting Docker image {build_step.container_image} for {', '.join(ids_to_build)}..."
             )
 
-            with DockerContainer(
-                docker_image=build_step.docker_image,
+            with OCIContainer(
+                image=build_step.container_image,
                 simulate_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
-                container_engine=options.globals.container_engine,
+                engine=options.globals.container_engine,
             ) as docker:
 
                 build_on_docker(

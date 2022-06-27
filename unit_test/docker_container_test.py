@@ -9,7 +9,7 @@ from pathlib import Path, PurePath, PurePosixPath
 import pytest
 import toml
 
-from cibuildwheel.docker_container import DockerContainer
+from cibuildwheel.docker_container import OCIContainer
 from cibuildwheel.environment import EnvironmentAssignmentBash
 
 # Test utilities
@@ -42,30 +42,24 @@ def container_engine(request):
 
 
 def test_simple(container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
 
 def test_no_lf(container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
 def test_debug_info(container_engine):
-    container = DockerContainer(container_engine=container_engine, docker_image=DEFAULT_IMAGE)
+    container = OCIContainer(engine=container_engine, image=DEFAULT_IMAGE)
     print(container.debug_info())
     with container:
         pass
 
 
 def test_environment(container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assert (
             container.call(
                 ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
@@ -75,21 +69,17 @@ def test_environment(container_engine):
 
 
 def test_cwd(container_engine):
-    with DockerContainer(
-        container_engine=container_engine,
-        docker_image=DEFAULT_IMAGE,
-        cwd="/cibuildwheel/working_directory",
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory"
     ) as container:
         assert container.call(["pwd"], capture_output=True) == "/cibuildwheel/working_directory\n"
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
 def test_container_removed(container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         docker_containers_listing = subprocess.run(
-            f"{container.container_engine} container ls",
+            f"{container.engine} container ls",
             shell=True,
             check=True,
             stdout=subprocess.PIPE,
@@ -100,7 +90,7 @@ def test_container_removed(container_engine):
         old_container_name = container.name
 
     docker_containers_listing = subprocess.run(
-        f"{container.container_engine} container ls",
+        f"{container.engine} container ls",
         shell=True,
         check=True,
         stdout=subprocess.PIPE,
@@ -119,9 +109,7 @@ def test_large_environment(container_engine):
         "d": "0" * long_env_var_length,
     }
 
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         # check the length of d
         assert (
             container.call(["sh", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
@@ -130,9 +118,7 @@ def test_large_environment(container_engine):
 
 
 def test_binary_output(container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         # note: the below embedded snippets are in python2
 
         # check that we can pass though arbitrary binary data without erroring
@@ -182,9 +168,7 @@ def test_binary_output(container_engine):
 
 
 def test_file_operation(tmp_path: Path, container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         # test copying a file in
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
@@ -199,9 +183,7 @@ def test_file_operation(tmp_path: Path, container_engine):
 
 
 def test_dir_operations(tmp_path: Path, container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
         original_test_file.write_bytes(test_binary_data)
@@ -230,9 +212,7 @@ def test_dir_operations(tmp_path: Path, container_engine):
 
 
 def test_environment_executor(container_engine):
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assignment = EnvironmentAssignmentBash("TEST=$(echo 42)")
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
 
@@ -298,9 +278,7 @@ def test_podman_vfs(container_engine, tmp_path: Path, monkeypatch):
     monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
     monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
 
-    with DockerContainer(
-        container_engine=container_engine, docker_image=DEFAULT_IMAGE
-    ) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         # test running a command
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 

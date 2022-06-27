@@ -11,7 +11,7 @@ else:
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.options import BuildOptions, _get_pinned_docker_images
+from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.util import BuildSelector, resources_dir
 
 # CIBW_PLATFORM is tested in main_platform_test.py
@@ -339,6 +339,6 @@ def test_defaults(platform, intercepted_build_args):
 
     if platform == "linux":
         assert build_options.manylinux_images
-        pinned_images = _get_pinned_docker_images()
+        pinned_images = _get_pinned_container_images()
         default_x86_64_image = pinned_images["x86_64"][defaults["manylinux-x86_64-image"]]
         assert build_options.manylinux_images["x86_64"] == default_x86_64_image
