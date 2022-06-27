@@ -46,7 +46,7 @@ def main() -> None:
             auto-detected platform or to run cibuildwheel on your development
             machine. Specifying "macos" or "windows" only works on that
             operating system, but "linux" works on all three, as long as
-            Docker is installed. Default: auto.
+            Docker/Podman is installed. Default: auto.
         """,
     )
 
@@ -91,7 +91,7 @@ def main() -> None:
             Path to the package that you want wheels for. Default: the working
             directory. Can be a directory inside the working directory, or an
             sdist. When set to a directory, the working directory is still
-            considered the 'project' and is copied into the Docker container
+            considered the 'project' and is copied into the build container
             on Linux.  When set to a tar.gz sdist file, --config-file
             and --output-dir are relative to the current directory, and other
             paths are relative to the expanded SDist directory.
@@ -208,7 +208,6 @@ def build_in_directory(args: CommandLineArguments) -> None:
         sys.exit(0)
 
     # Add CIBUILDWHEEL environment variable
-    # This needs to be passed on to the docker container in linux.py
     os.environ["CIBUILDWHEEL"] = "1"
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'

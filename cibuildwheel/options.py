@@ -27,8 +27,8 @@ else:
 from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
-from .docker_container import ContainerEngine
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
 from .typing import PLATFORMS, Literal, PlatformName, TypedDict
 from .util import (

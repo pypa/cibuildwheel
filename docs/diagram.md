@@ -8,7 +8,7 @@
     <!-- the docker container outline -->
     <div class="grid-outline docker">
       <div class="outline">
-        Manylinux Docker container
+        Manylinux container
       </div>
     </div>
     <!-- the venv outlines -->
@@ -76,7 +76,7 @@
     steps: [
       [
         {
-          label: 'copy project into docker',
+          label: 'copy project into container',
           platforms: ['linux'],
           style: 'block',
           width: 2,
@@ -204,7 +204,7 @@
       ],
       [
         {
-          label: 'Copy wheels out of Docker',
+          label: 'Copy wheels out of container',
           platforms: ['linux'],
           style: 'block',
           width: 2,

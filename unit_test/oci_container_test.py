@@ -9,8 +9,8 @@ from pathlib import Path, PurePath, PurePosixPath
 import pytest
 import toml
 
-from cibuildwheel.docker_container import OCIContainer
 from cibuildwheel.environment import EnvironmentAssignmentBash
+from cibuildwheel.oci_container import OCIContainer
 
 # Test utilities
 

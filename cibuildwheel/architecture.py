@@ -59,7 +59,7 @@ class Architecture(Enum):
         result = {native_architecture}
 
         if platform == "linux" and native_architecture == Architecture.x86_64:
-            # x86_64 machines can run i686 docker containers
+            # x86_64 machines can run i686 containers
             result.add(Architecture.i686)
 
         if platform == "windows" and native_architecture == Architecture.AMD64:

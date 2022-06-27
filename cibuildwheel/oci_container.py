@@ -56,7 +56,7 @@ class OCIContainer:
         engine: ContainerEngine = "docker",
     ):
         if not image:
-            raise ValueError("Must have a non-empty docker image to run.")
+            raise ValueError("Must have a non-empty image to run.")
 
         self.image = image
         self.simulate_32_bit = simulate_32_bit
@@ -175,17 +175,19 @@ class OCIContainer:
                     f"cat > {shell_quote(to_path)}",
                 ],
                 stdin=subprocess.PIPE,
-            ) as docker:
-                docker.stdin = cast(IO[bytes], docker.stdin)
+            ) as exec_process:
+                exec_process.stdin = cast(IO[bytes], exec_process.stdin)
 
                 with open(from_path, "rb") as from_file:
-                    shutil.copyfileobj(from_file, docker.stdin)
+                    shutil.copyfileobj(from_file, exec_process.stdin)
 
-                docker.stdin.close()
-                docker.wait()
+                exec_process.stdin.close()
+                exec_process.wait()
 
-                if docker.returncode:
-                    raise subprocess.CalledProcessError(docker.returncode, docker.args, None, None)
+                if exec_process.returncode:
+                    raise subprocess.CalledProcessError(
+                        exec_process.returncode, exec_process.args, None, None
+                    )
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir

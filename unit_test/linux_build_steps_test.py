@@ -2,8 +2,8 @@ import textwrap
 from pathlib import Path
 from pprint import pprint
 
-import cibuildwheel.docker_container
 import cibuildwheel.linux
+import cibuildwheel.oci_container
 from cibuildwheel.options import Options
 
 from .utils import get_default_command_line_arguments
@@ -11,7 +11,7 @@ from .utils import get_default_command_line_arguments
 
 def test_linux_container_split(tmp_path: Path, monkeypatch):
     """
-    Tests splitting linux builds by docker image and before_all
+    Tests splitting linux builds by container image and before_all
     """
 
     args = get_default_command_line_arguments()
