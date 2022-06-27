@@ -217,10 +217,10 @@ def test_environment_executor(container_engine):
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
 
 
-def test_podman_vfs(container_engine, tmp_path: Path, monkeypatch):
+def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     # Tests podman VFS, for the podman in docker use-case
-    if container_engine != "podman":
-        pytest.skip("podman is the only supported container engine for this test")
+    if not request.config.getoption("--run-podman"):
+        pytest.skip("need --run-podman option to run")
 
     # create the VFS configuration
     vfs_path = tmp_path / "podman_vfs"
@@ -278,7 +278,7 @@ def test_podman_vfs(container_engine, tmp_path: Path, monkeypatch):
     monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
     monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
 
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(engine="podman", image=DEFAULT_IMAGE) as container:
         # test running a command
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
