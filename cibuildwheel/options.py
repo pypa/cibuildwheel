@@ -64,6 +64,7 @@ class GlobalOptions(NamedTuple):
     build_selector: BuildSelector
     test_selector: TestSelector
     architectures: Set[Architecture]
+    container_engine: ContainerEngine
 
 
 class BuildOptions(NamedTuple):
@@ -81,7 +82,6 @@ class BuildOptions(NamedTuple):
     test_extras: str
     build_verbosity: int
     build_frontend: BuildFrontend
-    container_engine: ContainerEngine
 
     @property
     def package_dir(self) -> Path:
@@ -395,12 +395,22 @@ class Options:
         archs_config_str = args.archs or self.reader.get("archs", sep=" ")
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
+        container_engine_str = self.reader.get("container-engine")
+
+        if container_engine_str not in ["docker", "podman"]:
+            msg = f"cibuildwheel: Unrecognised container_engine '{container_engine_str}', only 'docker' and 'podman' are supported"
+            print(msg, file=sys.stderr)
+            sys.exit(2)
+
+        container_engine = cast(ContainerEngine, container_engine_str)
+
         return GlobalOptions(
             package_dir=package_dir,
             output_dir=output_dir,
             build_selector=build_selector,
             test_selector=test_selector,
             architectures=architectures,
+            container_engine=container_engine,
         )
 
     def build_options(self, identifier: Optional[str]) -> BuildOptions:
@@ -425,14 +435,6 @@ class Options:
             test_requires = self.reader.get("test-requires", sep=" ").split()
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
-            container_engine_str = self.reader.get("container-engine")
-
-            if container_engine_str not in ["docker", "podman"]:
-                msg = f"cibuildwheel: Unrecognised container_engine '{container_engine_str}', only 'docker' and 'podman' are supported"
-                print(msg, file=sys.stderr)
-                sys.exit(2)
-
-            container_engine = cast(ContainerEngine, container_engine_str)
 
             build_frontend: BuildFrontend
             if build_frontend_str == "build":
@@ -531,7 +533,6 @@ class Options:
                 manylinux_images=manylinux_images or None,
                 musllinux_images=musllinux_images or None,
                 build_frontend=build_frontend,
-                container_engine=container_engine,
             )
 
     def check_for_invalid_configuration(self, identifiers: List[str]) -> None:

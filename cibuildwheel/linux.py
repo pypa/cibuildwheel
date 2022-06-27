@@ -16,6 +16,7 @@ from .util import (
     get_build_verbosity_extra_flags,
     prepare_command,
     read_python_configs,
+    unwrap,
 )
 
 
@@ -320,18 +321,22 @@ def build_on_docker(
 
 
 def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-argument
-
-    build_opts = options.build_options(None)
     try:
-        # check docker is installed
+        # check the container engine is installed
         subprocess.run(
-            [build_opts.container_engine, "--version"], check=True, stdout=subprocess.DEVNULL
+            [options.globals.container_engine, "--version"], check=True, stdout=subprocess.DEVNULL
         )
     except subprocess.CalledProcessError:
         print(
-            f"cibuildwheel: {build_opts.container_engine} not found. An OCI exe like Docker or Podman is required to run Linux builds "
-            "If you're building on Travis CI, add `services: [docker]` to your .travis.yml."
-            "If you're building on Circle CI in Linux, add a `setup_remote_docker` step to your .circleci/config.yml",
+            unwrap(
+                f"""
+                cibuildwheel: {options.globals.container_engine} not found. An
+                OCI exe like Docker or Podman is required to run Linux builds.
+                If you're building on Travis CI, add `services: [docker]` to
+                your .travis.yml. If you're building on Circle CI in Linux,
+                add a `setup_remote_docker` step to your .circleci/config.yml.
+                """
+            ),
             file=sys.stderr,
         )
         sys.exit(2)
@@ -359,7 +364,7 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
                 docker_image=build_step.docker_image,
                 simulate_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
-                container_engine=build_opts.container_engine,
+                container_engine=options.globals.container_engine,
             ) as docker:
 
                 build_on_docker(
