@@ -7,7 +7,6 @@ import textwrap
 from pathlib import Path, PurePath, PurePosixPath
 
 import pytest
-
 import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
