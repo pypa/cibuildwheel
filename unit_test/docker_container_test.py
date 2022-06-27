@@ -4,6 +4,7 @@ import platform
 import random
 import shutil
 import subprocess
+from tabnanny import check
 import tempfile
 import textwrap
 from pathlib import Path, PurePath, PurePosixPath
@@ -13,6 +14,8 @@ import toml
 
 from cibuildwheel.docker_container import DockerContainer
 from cibuildwheel.environment import EnvironmentAssignmentBash
+
+# Test utilities
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
@@ -28,191 +31,44 @@ elif pm == "s390x":
 else:
     DEFAULT_IMAGE = ""
 
-# These globals will be manipulated
-temp_test_dir = None
-using_podman = False
+
+@pytest.fixture(params=["docker", "podman"])
+def container_engine(request):
+    if request.param == "docker" and not request.config.getoption("--run-docker"):
+        pytest.skip("need --run-docker option to run")
+    if request.param == "podman" and not request.config.getoption("--run-podman"):
+        pytest.skip("need --run-podman option to run")
+    return request.param
 
 
-# @atexit.register
-def _cleanup_podman_vfs_tempdir():
-    """
-    Cleans up any configuration written by :func:`basis_container_kwargs`.
-
-    For podman tests, the user is not given write permissions by default in new
-    directories. As a workaround chown them before trying to delete them.
-
-    It may be possible to handle this more cleanly in pytest itself, but using
-    atexit works well enough for now.
-
-    The reason why permission errors occur on podman is documented in
-    [PodmanStoragePerms]_.
-
-    References:
-        .. [PodmanStoragePerms] https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
-    """
-    global temp_test_dir
-    global using_podman
-    if temp_test_dir is not None:
-        # When podman creates special directories, they can't be cleaned up
-        # unless you fake a UID of 0. The package rootlesskit helps with that.
-        if using_podman:  # type: ignore[unreachable]
-            subprocess.call(["podman", "unshare", "rm", "-rf", temp_test_dir.name])
-    temp_test_dir = None
+# Tests
 
 
-def basis_container_kwargs():
-    """
-    Generate keyword args that can be passed to to :class:`DockerContainer`.
-
-    This is used with :func:`pytest.mark.parametrize` to run each test with
-    different configurations of each supported containers engine.
-
-    For docker we test the default configuration.
-
-    For podman we test the default configuration and a configuration with VFS
-    (virtual file system) enabled as the storage driver.
-
-    Yields:
-        Dict: a configuration passed as ``container_kwargs`` to each
-        parameterized test.
-    """
-    global temp_test_dir
-    global using_podman
-
-    # TODO: Pytest should be aware of if we are trying to test docker / podman
-    # or not
-    HAVE_DOCKER = bool(shutil.which("docker"))
-    HAVE_PODMAN = bool(shutil.which("podman"))
-
-    REQUESTED_DOCKER = HAVE_DOCKER
-    REQUESTED_PODMAN = HAVE_PODMAN
-
-    if temp_test_dir is None:
-        # Only setup the temp directory once for all tests
-        temp_test_dir = tempfile.TemporaryDirectory(prefix="cibw_test_")
-        if REQUESTED_PODMAN:
-            # Register the special cleanup hook after the temp directory is
-            # created to ensure that it runs before the temp directory logic
-            # runs (which will not handle cases where there is a fake root
-            # UID).
-            atexit.register(_cleanup_podman_vfs_tempdir)
-
-    if REQUESTED_DOCKER:
-        # Basic podman configuration
-        yield {"container_engine": "docker", "docker_image": DEFAULT_IMAGE}
-
-    if REQUESTED_PODMAN:
-        # Basic podman usage
-        using_podman = True
-        yield {"container_engine": "podman", "docker_image": DEFAULT_IMAGE}
-
-        # VFS Podman usage (for the podman in docker use-case)
-        oci_environ = _setup_podman_vfs(temp_test_dir.name)
-        yield {
-            "container_engine": "podman",
-            "docker_image": DEFAULT_IMAGE,
-            "env": oci_environ,
-        }
-
-
-def _setup_podman_vfs(dpath):
-    """
-    Setup the filesystem and environment variables for the VFS podman test
-    """
-    dpath = Path(dpath)
-    # This requires that we write configuration files and point to them
-    # with environment variables before we run podman
-    # https://github.com/containers/common/blob/main/docs/containers.conf.5.md
-    vfs_containers_conf_data = {
-        "containers": {
-            "default_capabilities": [
-                "CHOWN",
-                "DAC_OVERRIDE",
-                "FOWNER",
-                "FSETID",
-                "KILL",
-                "NET_BIND_SERVICE",
-                "SETFCAP",
-                "SETGID",
-                "SETPCAP",
-                "SETUID",
-                "SYS_CHROOT",
-            ]
-        },
-        "engine": {"cgroup_manager": "cgroupfs", "events_logger": "file"},
-    }
-    # https://github.com/containers/storage/blob/main/docs/containers-storage.conf.5.md
-    storage_root = dpath / ".local/share/containers/vfs-storage"
-    run_root = dpath / ".local/share/containers/vfs-runroot"
-    storage_root.mkdir(parents=True, exist_ok=True)
-    run_root.mkdir(parents=True, exist_ok=True)
-    vfs_containers_storage_conf_data = {
-        "storage": {
-            "driver": "vfs",
-            "graphroot": os.fspath(storage_root),
-            "runroot": os.fspath(run_root),
-            "rootless_storage_path": os.fspath(storage_root),
-            "options": {
-                # "remap-user": "containers",
-                "aufs": {"mountopt": "rw"},
-                "overlay": {"mountopt": "rw", "force_mask": "shared"},
-                # "vfs": {"ignore_chown_errors": "true"},
-            },
-        }
-    }
-    vfs_containers_conf_fpath = dpath / "temp_vfs_containers.conf"
-    vfs_containers_storage_conf_fpath = dpath / "temp_vfs_containers_storage.conf"
-    with open(vfs_containers_conf_fpath, "w") as file:
-        toml.dump(vfs_containers_conf_data, file)
-
-    with open(vfs_containers_storage_conf_fpath, "w") as file:
-        toml.dump(vfs_containers_storage_conf_data, file)
-
-    oci_environ = os.environ.copy()
-    oci_environ.update(
-        {
-            "CONTAINERS_CONF": os.fspath(vfs_containers_conf_fpath),
-            "CONTAINERS_STORAGE_CONF": os.fspath(vfs_containers_storage_conf_fpath),
-        }
-    )
-    return oci_environ
-
-
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_simple(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_simple(container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_no_lf(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_no_lf(container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_debug_info(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    container = DockerContainer(**container_kwargs)
+def test_debug_info(container_engine):
+    container = DockerContainer(container_engine=container_engine, docker_image=DEFAULT_IMAGE)
     print(container.debug_info())
     with container:
         pass
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_environment(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_environment(container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         assert (
             container.call(
                 ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
@@ -221,22 +77,20 @@ def test_environment(container_kwargs, monkeypatch):
         )
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_cwd(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(cwd="/cibuildwheel/working_directory", **container_kwargs) as container:
+def test_cwd(container_engine):
+    with DockerContainer(
+        container_engine=container_engine,
+        docker_image=DEFAULT_IMAGE,
+        cwd="/cibuildwheel/working_directory",
+    ) as container:
         assert container.call(["pwd"], capture_output=True) == "/cibuildwheel/working_directory\n"
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_container_removed(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_container_removed(container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         docker_containers_listing = subprocess.run(
             f"{container.container_engine} container ls",
             shell=True,
@@ -258,11 +112,7 @@ def test_container_removed(container_kwargs, monkeypatch):
     assert old_container_name not in docker_containers_listing
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_large_environment(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
+def test_large_environment(container_engine):
     # max environment variable size is 128kB
     long_env_var_length = 127 * 1024
     large_environment = {
@@ -272,7 +122,9 @@ def test_large_environment(container_kwargs, monkeypatch):
         "d": "0" * long_env_var_length,
     }
 
-    with DockerContainer(**container_kwargs) as container:
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         # check the length of d
         assert (
             container.call(["sh", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
@@ -280,12 +132,10 @@ def test_large_environment(container_kwargs, monkeypatch):
         )
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_binary_output(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_binary_output(container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         # note: the below embedded snippets are in python2
 
         # check that we can pass though arbitrary binary data without erroring
@@ -334,12 +184,10 @@ def test_binary_output(container_kwargs, monkeypatch):
         assert output == binary_data_string
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_file_operation(tmp_path: Path, container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_file_operation(tmp_path: Path, container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         # test copying a file in
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
@@ -353,12 +201,10 @@ def test_file_operation(tmp_path: Path, container_kwargs, monkeypatch):
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_dir_operations(tmp_path: Path, container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_dir_operations(tmp_path: Path, container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
         original_test_file.write_bytes(test_binary_data)
@@ -386,11 +232,90 @@ def test_dir_operations(tmp_path: Path, container_kwargs, monkeypatch):
         assert test_binary_data == (new_test_dir / "test.dat").read_bytes()
 
 
-@pytest.mark.docker
-@pytest.mark.parametrize("container_kwargs", basis_container_kwargs())
-def test_environment_executor(container_kwargs, monkeypatch):
-    for k, v in container_kwargs.pop("env", {}).items():
-        monkeypatch.setenv(k, v)
-    with DockerContainer(**container_kwargs) as container:
+def test_environment_executor(container_engine):
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
         assignment = EnvironmentAssignmentBash("TEST=$(echo 42)")
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
+
+
+def test_podman_vfs(container_engine, tmp_path: Path, monkeypatch):
+    # Tests podman VFS, for the podman in docker use-case
+    if container_engine != "podman":
+        pytest.skip("podman is the only supported container engine for this test")
+
+    # create the VFS configuration
+    vfs_path = tmp_path / "podman_vfs"
+    vfs_path.mkdir()
+
+    # This requires that we write configuration files and point to them
+    # with environment variables before we run podman
+    # https://github.com/containers/common/blob/main/docs/containers.conf.5.md
+    vfs_containers_conf_data = {
+        "containers": {
+            "default_capabilities": [
+                "CHOWN",
+                "DAC_OVERRIDE",
+                "FOWNER",
+                "FSETID",
+                "KILL",
+                "NET_BIND_SERVICE",
+                "SETFCAP",
+                "SETGID",
+                "SETPCAP",
+                "SETUID",
+                "SYS_CHROOT",
+            ]
+        },
+        "engine": {"cgroup_manager": "cgroupfs", "events_logger": "file"},
+    }
+    # https://github.com/containers/storage/blob/main/docs/containers-storage.conf.5.md
+    storage_root = vfs_path / ".local/share/containers/vfs-storage"
+    run_root = vfs_path / ".local/share/containers/vfs-runroot"
+    storage_root.mkdir(parents=True, exist_ok=True)
+    run_root.mkdir(parents=True, exist_ok=True)
+    vfs_containers_storage_conf_data = {
+        "storage": {
+            "driver": "vfs",
+            "graphroot": os.fspath(storage_root),
+            "runroot": os.fspath(run_root),
+            "rootless_storage_path": os.fspath(storage_root),
+            "options": {
+                # "remap-user": "containers",
+                "aufs": {"mountopt": "rw"},
+                "overlay": {"mountopt": "rw", "force_mask": "shared"},
+                # "vfs": {"ignore_chown_errors": "true"},
+            },
+        }
+    }
+
+    vfs_containers_conf_fpath = vfs_path / "temp_vfs_containers.conf"
+    vfs_containers_storage_conf_fpath = vfs_path / "temp_vfs_containers_storage.conf"
+    with open(vfs_containers_conf_fpath, "w") as file:
+        toml.dump(vfs_containers_conf_data, file)
+
+    with open(vfs_containers_storage_conf_fpath, "w") as file:
+        toml.dump(vfs_containers_storage_conf_data, file)
+
+    monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
+    monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
+
+    with DockerContainer(
+        container_engine=container_engine, docker_image=DEFAULT_IMAGE
+    ) as container:
+        # test running a command
+        assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
+
+        # test copying a file into the container
+        (tmp_path / "some_file.txt").write_text("1234")
+        container.copy_into(tmp_path / "some_file.txt", PurePosixPath("some_file.txt"))
+        assert container.call(["cat", "some_file.txt"], capture_output=True) == "1234"
+
+    # Clean up
+
+    # When using the VFS, user is not given write permissions by default in
+    # new directories. As a workaround we use 'podman unshare' to delete them
+    # as UID 0. The reason why permission errors occur on podman is documented
+    # in https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
+    subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
