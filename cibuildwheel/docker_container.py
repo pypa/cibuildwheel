@@ -195,10 +195,13 @@ class DockerContainer:
         if self.container_engine == "podman":
             # There is a bug in docker that prevents this simple implementation
             # from working https://github.com/moby/moby/issues/38995
-            command = f"{self.container_engine} cp {self.name}:{shell_quote(from_path)}/. {shell_quote(to_path)}"
             subprocess.run(
-                command,
-                shell=True,
+                [
+                    self.container_engine,
+                    "cp",
+                    f"{self.name}:{from_path}/.",
+                    str(to_path),
+                ],
                 check=True,
                 cwd=to_path,
             )
