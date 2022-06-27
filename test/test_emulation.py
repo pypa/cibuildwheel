@@ -17,8 +17,10 @@ def test_spam():
 """
 
 
-@pytest.mark.emulation
-def test(tmp_path):
+def test(tmp_path, request):
+    if not request.config.getoption("--run-emulation"):
+        pytest.skip("needs --run-emulation option to run")
+
     project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
 

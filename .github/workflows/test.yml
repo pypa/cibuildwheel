@@ -75,7 +75,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        python ./bin/run_tests.py
+        python ./bin/run_tests.py --run-podman
 
   test-emulated:
     name: Test emulated cibuildwheel using qemu
