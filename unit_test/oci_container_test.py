@@ -7,7 +7,8 @@ import textwrap
 from pathlib import Path, PurePath, PurePosixPath
 
 import pytest
-import toml
+
+import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
 from cibuildwheel.oci_container import OCIContainer
@@ -269,11 +270,11 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
 
     vfs_containers_conf_fpath = vfs_path / "temp_vfs_containers.conf"
     vfs_containers_storage_conf_fpath = vfs_path / "temp_vfs_containers_storage.conf"
-    with open(vfs_containers_conf_fpath, "w") as file:
-        toml.dump(vfs_containers_conf_data, file)
+    with open(vfs_containers_conf_fpath, "wb") as file:
+        tomli_w.dump(vfs_containers_conf_data, file)
 
-    with open(vfs_containers_storage_conf_fpath, "w") as file:
-        toml.dump(vfs_containers_storage_conf_data, file)
+    with open(vfs_containers_storage_conf_fpath, "wb") as file:
+        tomli_w.dump(vfs_containers_storage_conf_data, file)
 
     monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
     monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
