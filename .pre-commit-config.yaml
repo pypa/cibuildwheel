@@ -61,13 +61,13 @@ repos:
       - pygithub
       - rich
       - tomli
+      - tomli_w
       - types-certifi
       - types-click
       - types-dataclasses
       - types-jinja2
       - types-pyyaml
       - types-requests
-      - types-toml
       - bracex
       - dataclasses
   - id: mypy
