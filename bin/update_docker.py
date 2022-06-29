@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import configparser
+from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple
 
 import requests
 
@@ -11,7 +11,8 @@ DIR = Path(__file__).parent.resolve()
 RESOURCES = DIR.parent / "cibuildwheel/resources"
 
 
-class Image(NamedTuple):
+@dataclass(frozen=True)
+class Image:
     manylinux_version: str
     platform: str
     image_name: str

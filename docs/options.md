@@ -553,6 +553,10 @@ Platform-specific environment variables are also available:<br/>
     # Supply options to `pip` to affect how it downloads dependencies
     CIBW_ENVIRONMENT: PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple
 
+    # Any pip command-line options can be set using the PIP_ prefix
+    # https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
+    CIBW_ENVIRONMENT: PIP_GLOBAL_OPTION="build_ext -j4"
+
     # Set two flags on linux only
     CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
     ```
@@ -581,6 +585,10 @@ Platform-specific environment variables are also available:<br/>
 
     # Supply options to `pip` to affect how it downloads dependencies
     environment = { PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple" }
+
+    # Any pip command-line option can be set using the PIP_ prefix
+    # https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
+    environment = { PIP_GLOBAL_OPTION="build_ext -j4" }
 
     # Set two flags on linux only
     [tool.cibuildwheel.linux]
