@@ -116,7 +116,7 @@ def main() -> None:
         help="Enable pre-release Python versions if available.",
     )
 
-    args = parser.parse_args(namespace=CommandLineArguments())
+    args = CommandLineArguments(**vars(parser.parse_args()))
 
     args.package_dir = args.package_dir.resolve()
 

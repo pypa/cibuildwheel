@@ -4,19 +4,9 @@ import sys
 import traceback
 from configparser import ConfigParser
 from contextlib import contextmanager
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import (
-    Any,
-    Dict,
-    Generator,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-)
+from typing import Any, Dict, Generator, List, Mapping, Optional, Set, Tuple, Union
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -45,6 +35,7 @@ from .util import (
 )
 
 
+@dataclass
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
     archs: Optional[str]
@@ -56,7 +47,8 @@ class CommandLineArguments:
     prerelease_pythons: bool
 
 
-class GlobalOptions(NamedTuple):
+@dataclass(frozen=True)
+class GlobalOptions:
     package_dir: Path
     output_dir: Path
     build_selector: BuildSelector
@@ -64,7 +56,8 @@ class GlobalOptions(NamedTuple):
     architectures: Set[Architecture]
 
 
-class BuildOptions(NamedTuple):
+@dataclass(frozen=True)
+class BuildOptions:
     globals: GlobalOptions
     environment: ParsedEnvironment
     before_all: str
@@ -104,7 +97,8 @@ class BuildOptions(NamedTuple):
 Setting = Union[Dict[str, str], List[str], str, int]
 
 
-class Override(NamedTuple):
+@dataclass(frozen=True)
+class Override:
     select_pattern: str
     options: Dict[str, Setting]
 
@@ -548,12 +542,12 @@ class Options:
     def summary(self, identifiers: List[str]) -> str:
         lines = [
             f"{option_name}: {option_value!r}"
-            for option_name, option_value in sorted(self.globals._asdict().items())
+            for option_name, option_value in sorted(asdict(self.globals).items())
         ]
 
         build_option_defaults = self.build_options(identifier=None)
 
-        for option_name, default_value in sorted(build_option_defaults._asdict().items()):
+        for option_name, default_value in sorted(asdict(build_option_defaults).items()):
             if option_name == "globals":
                 continue
 
@@ -561,7 +555,7 @@ class Options:
 
             # if any identifiers have an overridden value, print that too
             for identifier in identifiers:
-                option_value = self.build_options(identifier=identifier)._asdict()[option_name]
+                option_value = getattr(self.build_options(identifier=identifier), option_name)
                 if option_value != default_value:
                     lines.append(f"  {identifier}: {option_value!r}")
 

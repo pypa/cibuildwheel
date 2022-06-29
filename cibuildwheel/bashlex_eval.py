@@ -1,5 +1,6 @@
 import subprocess
-from typing import Callable, Dict, List, NamedTuple, Optional, Sequence
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional, Sequence
 
 import bashlex
 
@@ -13,7 +14,8 @@ def local_environment_executor(command: List[str], env: Dict[str, str]) -> str:
     ).stdout
 
 
-class NodeExecutionContext(NamedTuple):
+@dataclass(frozen=True)
+class NodeExecutionContext:
     environment: Dict[str, str]
     input: str
     executor: EnvironmentExecutor

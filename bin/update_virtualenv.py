@@ -6,8 +6,8 @@ import difflib
 import logging
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple
 
 import click
 import rich
@@ -36,7 +36,8 @@ GET_VIRTUALENV_URL_TEMPLATE: Final[
 ] = f"{GET_VIRTUALENV_GITHUB}/blob/{{version}}/public/virtualenv.pyz?raw=true"
 
 
-class VersionTuple(NamedTuple):
+@dataclass(frozen=True)
+class VersionTuple:
     version: Version
     version_string: str
 

@@ -1,5 +1,4 @@
 import contextlib
-import dataclasses
 import fnmatch
 import itertools
 import os
@@ -11,6 +10,7 @@ import sys
 import textwrap
 import time
 import urllib.request
+from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path, PurePath
@@ -22,7 +22,6 @@ from typing import (
     Generator,
     Iterable,
     List,
-    NamedTuple,
     Optional,
     Sequence,
     TextIO,
@@ -233,7 +232,7 @@ def selector_matches(patterns: str, string: str) -> bool:
 
 
 # Once we require Python 3.10+, we can add kw_only=True
-@dataclasses.dataclass
+@dataclass(frozen=True)
 class BuildSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
@@ -270,7 +269,7 @@ class BuildSelector:
         return should_build and not should_skip
 
 
-@dataclasses.dataclass
+@dataclass(frozen=True)
 class TestSelector:
     """
     A build selector that can only skip tests according to a skip pattern.
@@ -418,6 +417,12 @@ def unwrap(text: str) -> str:
     return re.sub(r"\s+", " ", text)
 
 
+@dataclass(frozen=True)
+class FileReport:
+    name: str
+    size: str
+
+
 @contextlib.contextmanager
 def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     """
@@ -431,10 +436,6 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     existing_contents = set(output_dir.iterdir())
     yield
     final_contents = set(output_dir.iterdir())
-
-    class FileReport(NamedTuple):
-        name: str
-        size: str
 
     new_contents = [
         FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
