@@ -964,6 +964,44 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
     if you prefer; they have no effect on `macos` and `windows`.
 
+
+### `CIBW_CONTAINER_ENGINE` {: #container-engine}
+> Specify which container engine to use when building Linux wheels
+
+Options: `docker` `podman`
+
+Default: `docker`
+
+Set the container engine to use. Docker is the default, or you can switch to
+[Podman](https://podman.io/). To use Docker, you need to have a Docker daemon
+running and `docker` available on PATH. To use Podman, it needs to be
+installed and `podman` available on PATH.
+
+!!! tip
+
+    While most users will stick with Docker, Podman is available in different
+    contexts - for example, it can be run inside a Docker container, or without
+    root access. Thanks to the [OCI], images are compatible between engines, so
+    you can still use the regular manylinux/musllinux containers.
+
+[OCI]: https://opencontainers.org/
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_CONTAINER_ENGINE: podman
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    container-engine = "podman"
+    ```
+
+
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
 > Specify how cibuildwheel controls the versions of the tools it uses
 
@@ -1028,6 +1066,7 @@ Platform-specific environment variables are also available:<br/>
     # Use your own pip constraints file
     dependency-versions = "./constraints.txt"
     ```
+
 
 ## Testing
 
