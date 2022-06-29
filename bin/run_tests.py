@@ -8,7 +8,9 @@ from pathlib import Path
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--run-podman", action="store_true", default=False, help="run podman tests")
+    parser.add_argument(
+        "--run-podman", action="store_true", default=False, help="run podman tests (linux only)"
+    )
     args = parser.parse_args()
 
     # move cwd to the project root
@@ -20,8 +22,9 @@ if __name__ == "__main__":
     if sys.platform.startswith("linux"):
         # run the docker unit tests only on Linux
         unit_test_args += ["--run-docker"]
-    if args.run_podman:
-        unit_test_args += ["--run-podman"]
+
+        if args.run_podman:
+            unit_test_args += ["--run-podman"]
 
     subprocess.run(unit_test_args, check=True)
 
@@ -37,7 +40,8 @@ if __name__ == "__main__":
         "--timeout=2400",
         "test",
     ]
-    if args.run_podman:
+
+    if sys.platform.startswith("linux") and args.run_podman:
         integration_test_args += ["--run-podman"]
 
     subprocess.run(integration_test_args, check=True)
