@@ -154,7 +154,7 @@ ctypes_project.files["test/add_test.py"] = textwrap.dedent(
 )
 
 
-def test_abi_none(tmp_path):
+def test_abi_none(tmp_path, capfd):
     project_dir = tmp_path / "project"
     ctypes_project.generate(project_dir)
 
@@ -164,9 +164,16 @@ def test_abi_none(tmp_path):
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
             "CIBW_TEST_COMMAND": "pytest {project}/test",
+            # limit the number of builds for test performance reasons
+            "CIBW_BUILD": "cp38-* cp310-* pp39-*",
         },
     )
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("ctypesexample", "1.0.0", python_abi_tags=["py3-none"])
     assert set(actual_wheels) == set(expected_wheels)
+
+    # check that each wheel was built once, and reused
+    captured = capfd.readouterr()
+    assert "Building wheel..." in captured.out
+    assert "Found previously built wheel" in captured.out
