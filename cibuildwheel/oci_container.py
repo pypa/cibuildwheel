@@ -110,13 +110,13 @@ class OCIContainer:
         self.bash_stdout = self.process.stdout
 
         # run a noop command to block until the container is responding
-        self.call(["/bin/true"])
+        self.call(["/bin/true"], cwd="/")
 
         if self.cwd:
             # Although `docker create -w` does create the working dir if it
             # does not exist, podman does not. There does not seem to be a way
             # to setup a workdir for a container running in podman.
-            self.call(["mkdir", "-p", os.fspath(self.cwd)])
+            self.call(["mkdir", "-p", os.fspath(self.cwd)], cwd="/")
 
         return self
 
