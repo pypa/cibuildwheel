@@ -147,10 +147,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    ignore:
-      # Optional: Official actions have moving tags like v1;
-      # if you use those, you don't need updates.
-      - dependency-name: "actions/*"
 ```
 
 #### Option 2: Requirement files
