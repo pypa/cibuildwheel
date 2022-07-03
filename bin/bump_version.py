@@ -184,7 +184,7 @@ def bump_version() -> None:
     print()
 
     release_url = "https://github.com/pypa/cibuildwheel/releases/new?" + urllib.parse.urlencode(
-        {"tag": new_version}
+        {"tag": f"v{new_version}"}
     )
     print("Then create a release at the URL:")
     print(f"    {release_url}")
