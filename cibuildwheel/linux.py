@@ -13,7 +13,7 @@ from .typing import OrderedDict, PathOrStr, assert_never
 from .util import (
     BuildSelector,
     NonPlatformWheelError,
-    find_compatible_abi3_wheel,
+    find_compatible_wheel,
     get_build_verbosity_extra_flags,
     prepare_command,
     read_python_configs,
@@ -180,13 +180,13 @@ def build_on_docker(
             )
             sys.exit(1)
 
-        abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
-        if abi3_wheel:
+        compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
+        if compatible_wheel:
             log.step_end()
             print(
-                f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
             )
-            repaired_wheels = [abi3_wheel]
+            repaired_wheels = [compatible_wheel]
         else:
 
             if build_options.before_build:
@@ -307,7 +307,7 @@ def build_on_docker(
             docker.call(["rm", "-rf", venv_dir])
 
         # move repaired wheels to output
-        if abi3_wheel is None:
+        if compatible_wheel is None:
             docker.call(["mkdir", "-p", container_output_dir])
             docker.call(["mv", *repaired_wheels, container_output_dir])
             built_wheels.extend(
