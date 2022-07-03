@@ -21,6 +21,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
     - uses: pre-commit/action@v3.0.0
     - name: Check manifest
       run: pipx run nox -s check_manifest
@@ -78,6 +80,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
     - name: Install dependencies
       run: |
         python -m pip install ".[test]"
