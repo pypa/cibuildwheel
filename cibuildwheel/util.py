@@ -1,5 +1,4 @@
 import contextlib
-import dataclasses
 import fnmatch
 import itertools
 import os
@@ -11,6 +10,7 @@ import sys
 import textwrap
 import time
 import urllib.request
+from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path, PurePath
@@ -22,7 +22,6 @@ from typing import (
     Generator,
     Iterable,
     List,
-    NamedTuple,
     Optional,
     Sequence,
     TextIO,
@@ -233,7 +232,7 @@ def selector_matches(patterns: str, string: str) -> bool:
 
 
 # Once we require Python 3.10+, we can add kw_only=True
-@dataclasses.dataclass
+@dataclass(frozen=True)
 class BuildSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
@@ -270,7 +269,7 @@ class BuildSelector:
         return should_build and not should_skip
 
 
-@dataclasses.dataclass
+@dataclass(frozen=True)
 class TestSelector:
     """
     A build selector that can only skip tests according to a skip pattern.
@@ -432,6 +431,12 @@ def unwrap(text: str) -> str:
     return re.sub(r"\s+", " ", text)
 
 
+@dataclass(frozen=True)
+class FileReport:
+    name: str
+    size: str
+
+
 @contextlib.contextmanager
 def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     """
@@ -445,10 +450,6 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     existing_contents = set(output_dir.iterdir())
     yield
     final_contents = set(output_dir.iterdir())
-
-    class FileReport(NamedTuple):
-        name: str
-        size: str
 
     new_contents = [
         FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
@@ -591,7 +592,7 @@ T = TypeVar("T", bound=PurePath)
 def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
     """
     Finds a wheel with an abi3 or a none ABI tag in `wheels` compatible with the Python interpreter
-    specified by `identifier`.
+    specified by `identifier` that is previously built.
     """
 
     interpreter, platform = identifier.split("-")
@@ -599,27 +600,36 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
         _, _, _, tags = parse_wheel_filename(wheel.name)
         for tag in tags:
             if tag.abi == "abi3":
+                # ABI3 wheels must start with cp3 for impl and tag
                 if not (interpreter.startswith("cp3") and tag.interpreter.startswith("cp3")):
                     continue
             elif tag.abi == "none":
+                # CPythonless wheels must include py3 tag
                 if tag.interpreter[:3] != "py3":
                     continue
             else:
+                # Other types of wheels are not detected, this is looking for previously built wheels.
                 continue
+
             if tag.interpreter != "py3" and int(tag.interpreter[3:]) > int(interpreter[3:]):
+                # If a minor version number is given, it has to be lower than the current one.
                 continue
+
             if platform.startswith(("manylinux", "musllinux", "macosx")):
-                # Linux, macOS
+                # Linux, macOS require the beginning and ending match (macos/manylinux version doesn't need to)
                 os_, arch = platform.split("_", 1)
                 if not tag.platform.startswith(os_):
                     continue
-                if not tag.platform.endswith("_" + arch):
+                if not tag.platform.endswith(f"_{arch}"):
                     continue
             else:
-                # Windows
+                # Windows should exactly match
                 if not tag.platform == platform:
                     continue
+
+            # If all the filters above pass, then the wheel is a previously built compatible wheel.
             return wheel
+
     return None
 
 

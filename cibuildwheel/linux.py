@@ -1,8 +1,9 @@
 import subprocess
 import sys
 import textwrap
+from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Iterator, List, NamedTuple, Set, Tuple
+from typing import Iterator, List, Set, Tuple
 
 from .architecture import Architecture
 from .docker_container import DockerContainer
@@ -20,7 +21,8 @@ from .util import (
 )
 
 
-class PythonConfiguration(NamedTuple):
+@dataclass(frozen=True)
+class PythonConfiguration:
     version: str
     identifier: str
     path_str: str
@@ -30,7 +32,8 @@ class PythonConfiguration(NamedTuple):
         return PurePosixPath(self.path_str)
 
 
-class BuildStep(NamedTuple):
+@dataclass(frozen=True)
+class BuildStep:
     platform_configs: List[PythonConfiguration]
     platform_tag: str
     docker_image: str

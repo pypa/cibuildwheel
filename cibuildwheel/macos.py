@@ -5,8 +5,9 @@ import re
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Sequence, Set, Tuple, cast
+from typing import Dict, List, Sequence, Set, Tuple, cast
 
 from filelock import FileLock
 
@@ -55,7 +56,8 @@ def get_macos_sdks() -> List[str]:
     return [m.group(1) for m in re.finditer(r"-sdk (macosx\S+)", output)]
 
 
-class PythonConfiguration(NamedTuple):
+@dataclass(frozen=True)
+class PythonConfiguration:
     version: str
     identifier: str
     url: str
