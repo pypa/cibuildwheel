@@ -21,7 +21,7 @@ runs:
   using: composite
   steps:
     # Set up a non-EOL, cibuildwheel & pipx supported Python version
-    - uses: actions/setup-python@766e8c60885ef280a3e447209d1f1083b3c7039d
+    - uses: actions/setup-python@v4
       id: python
       with:
         python-version: "3.7 - 3.10"
