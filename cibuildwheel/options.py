@@ -6,7 +6,18 @@ from configparser import ConfigParser
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Mapping, Optional, Set, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    cast,
+)
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -17,6 +28,7 @@ from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
 from .typing import PLATFORMS, Literal, PlatformName, TypedDict
 from .util import (
@@ -54,6 +66,7 @@ class GlobalOptions:
     build_selector: BuildSelector
     test_selector: TestSelector
     architectures: Set[Architecture]
+    container_engine: ContainerEngine
 
 
 @dataclass(frozen=True)
@@ -386,12 +399,22 @@ class Options:
         archs_config_str = args.archs or self.reader.get("archs", sep=" ")
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
+        container_engine_str = self.reader.get("container-engine")
+
+        if container_engine_str not in ["docker", "podman"]:
+            msg = f"cibuildwheel: Unrecognised container_engine '{container_engine_str}', only 'docker' and 'podman' are supported"
+            print(msg, file=sys.stderr)
+            sys.exit(2)
+
+        container_engine = cast(ContainerEngine, container_engine_str)
+
         return GlobalOptions(
             package_dir=package_dir,
             output_dir=output_dir,
             build_selector=build_selector,
             test_selector=test_selector,
             architectures=architectures,
+            container_engine=container_engine,
         )
 
     def build_options(self, identifier: Optional[str]) -> BuildOptions:
@@ -466,10 +489,10 @@ class Options:
             manylinux_images: Dict[str, str] = {}
             musllinux_images: Dict[str, str] = {}
             if self.platform == "linux":
-                all_pinned_docker_images = _get_pinned_docker_images()
+                all_pinned_container_images = _get_pinned_container_images()
 
                 for build_platform in MANYLINUX_ARCHS:
-                    pinned_images = all_pinned_docker_images[build_platform]
+                    pinned_images = all_pinned_container_images[build_platform]
 
                     config_value = self.reader.get(
                         f"manylinux-{build_platform}-image", ignore_empty=True
@@ -486,7 +509,7 @@ class Options:
                     manylinux_images[build_platform] = image
 
                 for build_platform in MUSLLINUX_ARCHS:
-                    pinned_images = all_pinned_docker_images[build_platform]
+                    pinned_images = all_pinned_container_images[build_platform]
 
                     config_value = self.reader.get(f"musllinux-{build_platform}-image")
 
@@ -572,7 +595,7 @@ def compute_options(
 
 
 @functools.lru_cache(maxsize=None)
-def _get_pinned_docker_images() -> Mapping[str, Mapping[str, str]]:
+def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
     { 'x86_64': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
@@ -581,10 +604,10 @@ def _get_pinned_docker_images() -> Mapping[str, Mapping[str, str]]:
       ... }
     """
 
-    pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
-    all_pinned_docker_images = ConfigParser()
-    all_pinned_docker_images.read(pinned_docker_images_file)
-    return all_pinned_docker_images
+    pinned_images_file = resources_dir / "pinned_docker_images.cfg"
+    all_pinned_images = ConfigParser()
+    all_pinned_images.read(pinned_images_file)
+    return all_pinned_images
 
 
 def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:

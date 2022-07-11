@@ -1,3 +1,4 @@
+import os
 import platform
 import random
 import shutil
@@ -6,9 +7,12 @@ import textwrap
 from pathlib import Path, PurePath, PurePosixPath
 
 import pytest
+import tomli_w
 
-from cibuildwheel.docker_container import DockerContainer
 from cibuildwheel.environment import EnvironmentAssignmentBash
+from cibuildwheel.oci_container import OCIContainer
+
+# Test utilities
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
@@ -21,23 +25,41 @@ elif pm == "ppc64le":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
 elif pm == "s390x":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_s390x:2020-05-17-2f8ac3b"
+else:
+    DEFAULT_IMAGE = ""
 
 
-@pytest.mark.docker
-def test_simple():
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+@pytest.fixture(params=["docker", "podman"])
+def container_engine(request):
+    if request.param == "docker" and not request.config.getoption("--run-docker"):
+        pytest.skip("need --run-docker option to run")
+    if request.param == "podman" and not request.config.getoption("--run-podman"):
+        pytest.skip("need --run-podman option to run")
+    return request.param
+
+
+# Tests
+
+
+def test_simple(container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
 
-@pytest.mark.docker
-def test_no_lf():
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+def test_no_lf(container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
-@pytest.mark.docker
-def test_environment():
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+def test_debug_info(container_engine):
+    container = OCIContainer(engine=container_engine, image=DEFAULT_IMAGE)
+    print(container.debug_info())
+    with container:
+        pass
+
+
+def test_environment(container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assert (
             container.call(
                 ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
@@ -46,20 +68,18 @@ def test_environment():
         )
 
 
-@pytest.mark.docker
-def test_cwd():
-    with DockerContainer(
-        docker_image=DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory"
+def test_cwd(container_engine):
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory"
     ) as container:
         assert container.call(["pwd"], capture_output=True) == "/cibuildwheel/working_directory\n"
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
-@pytest.mark.docker
-def test_container_removed():
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+def test_container_removed(container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         docker_containers_listing = subprocess.run(
-            "docker container ls",
+            f"{container.engine} container ls",
             shell=True,
             check=True,
             stdout=subprocess.PIPE,
@@ -70,7 +90,7 @@ def test_container_removed():
         old_container_name = container.name
 
     docker_containers_listing = subprocess.run(
-        "docker container ls",
+        f"{container.engine} container ls",
         shell=True,
         check=True,
         stdout=subprocess.PIPE,
@@ -79,8 +99,7 @@ def test_container_removed():
     assert old_container_name not in docker_containers_listing
 
 
-@pytest.mark.docker
-def test_large_environment():
+def test_large_environment(container_engine):
     # max environment variable size is 128kB
     long_env_var_length = 127 * 1024
     large_environment = {
@@ -90,7 +109,7 @@ def test_large_environment():
         "d": "0" * long_env_var_length,
     }
 
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         # check the length of d
         assert (
             container.call(["sh", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
@@ -98,9 +117,8 @@ def test_large_environment():
         )
 
 
-@pytest.mark.docker
-def test_binary_output():
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+def test_binary_output(container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         # note: the below embedded snippets are in python2
 
         # check that we can pass though arbitrary binary data without erroring
@@ -149,9 +167,8 @@ def test_binary_output():
         assert output == binary_data_string
 
 
-@pytest.mark.docker
-def test_file_operations(tmp_path: Path):
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+def test_file_operation(tmp_path: Path, container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         # test copying a file in
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
@@ -165,9 +182,8 @@ def test_file_operations(tmp_path: Path):
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
 
-@pytest.mark.docker
-def test_dir_operations(tmp_path: Path):
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+def test_dir_operations(tmp_path: Path, container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
         original_test_file.write_bytes(test_binary_data)
@@ -195,8 +211,86 @@ def test_dir_operations(tmp_path: Path):
         assert test_binary_data == (new_test_dir / "test.dat").read_bytes()
 
 
-@pytest.mark.docker
-def test_environment_executor():
-    with DockerContainer(docker_image=DEFAULT_IMAGE) as container:
+def test_environment_executor(container_engine):
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         assignment = EnvironmentAssignmentBash("TEST=$(echo 42)")
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
+
+
+def test_podman_vfs(tmp_path: Path, monkeypatch, request):
+    # Tests podman VFS, for the podman in docker use-case
+    if not request.config.getoption("--run-podman"):
+        pytest.skip("need --run-podman option to run")
+
+    # create the VFS configuration
+    vfs_path = tmp_path / "podman_vfs"
+    vfs_path.mkdir()
+
+    # This requires that we write configuration files and point to them
+    # with environment variables before we run podman
+    # https://github.com/containers/common/blob/main/docs/containers.conf.5.md
+    vfs_containers_conf_data = {
+        "containers": {
+            "default_capabilities": [
+                "CHOWN",
+                "DAC_OVERRIDE",
+                "FOWNER",
+                "FSETID",
+                "KILL",
+                "NET_BIND_SERVICE",
+                "SETFCAP",
+                "SETGID",
+                "SETPCAP",
+                "SETUID",
+                "SYS_CHROOT",
+            ]
+        },
+        "engine": {"cgroup_manager": "cgroupfs", "events_logger": "file"},
+    }
+    # https://github.com/containers/storage/blob/main/docs/containers-storage.conf.5.md
+    storage_root = vfs_path / ".local/share/containers/vfs-storage"
+    run_root = vfs_path / ".local/share/containers/vfs-runroot"
+    storage_root.mkdir(parents=True, exist_ok=True)
+    run_root.mkdir(parents=True, exist_ok=True)
+    vfs_containers_storage_conf_data = {
+        "storage": {
+            "driver": "vfs",
+            "graphroot": os.fspath(storage_root),
+            "runroot": os.fspath(run_root),
+            "rootless_storage_path": os.fspath(storage_root),
+            "options": {
+                # "remap-user": "containers",
+                "aufs": {"mountopt": "rw"},
+                "overlay": {"mountopt": "rw", "force_mask": "shared"},
+                # "vfs": {"ignore_chown_errors": "true"},
+            },
+        }
+    }
+
+    vfs_containers_conf_fpath = vfs_path / "temp_vfs_containers.conf"
+    vfs_containers_storage_conf_fpath = vfs_path / "temp_vfs_containers_storage.conf"
+    with open(vfs_containers_conf_fpath, "wb") as file:
+        tomli_w.dump(vfs_containers_conf_data, file)
+
+    with open(vfs_containers_storage_conf_fpath, "wb") as file:
+        tomli_w.dump(vfs_containers_storage_conf_data, file)
+
+    monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
+    monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
+
+    with OCIContainer(engine="podman", image=DEFAULT_IMAGE) as container:
+        # test running a command
+        assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
+
+        # test copying a file into the container
+        (tmp_path / "some_file.txt").write_text("1234")
+        container.copy_into(tmp_path / "some_file.txt", PurePosixPath("some_file.txt"))
+        assert container.call(["cat", "some_file.txt"], capture_output=True) == "1234"
+
+    # Clean up
+
+    # When using the VFS, user is not given write permissions by default in
+    # new directories. As a workaround we use 'podman unshare' to delete them
+    # as UID 0. The reason why permission errors occur on podman is documented
+    # in https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
+    subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)

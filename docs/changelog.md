@@ -2,6 +2,19 @@
 title: Changelog
 ---
 
+### v2.8.0
+
+_5 July 2022_
+
+- ✨ You can now run cibuildwheel on Podman, as an alternate container engine to Docker (which remains the default). This is useful in environments where a Docker daemon isn't available, for example, it can be run inside a Docker container, or without root access. To use Podman, set the [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#966)
+- ✨ Adds support for building `py3-none-{platform}` wheels. This works the same as ABI3 - wheels won't be rebuilt, but tests will still be run across all selected versions of Python.
+
+  > These wheels contain native extension code, but don't use the Python APIs. Typically, they're bridged to Python using a FFI module like [ctypes](https://docs.python.org/3/library/ctypes.html) or [cffi](https://cffi.readthedocs.io/en/latest/). Because they don't use Python ABI, the wheels are more compatible - they work across many Python versions.
+
+  Check out this [example ctypes project](https://github.com/joerick/python-ctypes-package-sample) to see an example of how it works. (#1151)
+- 🛠 cibuildwheel will now error if multiple builds in a single run produce the same wheel filename, as this indicates a misconfiguration. (#1152)
+- 📚 A few docs improvements and updates to keep things up-to-date.
+
 ### v2.7.0
 
 _17 June 2022_

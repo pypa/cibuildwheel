@@ -53,7 +53,7 @@ __all__ = [
     "MANYLINUX_ARCHS",
     "call",
     "shell",
-    "find_compatible_abi3_wheel",
+    "find_compatible_wheel",
     "format_safe",
     "prepare_command",
     "get_build_verbosity_extra_flags",
@@ -372,6 +372,20 @@ class NonPlatformWheelError(Exception):
         super().__init__(message)
 
 
+class AlreadyBuiltWheelError(Exception):
+    def __init__(self, wheel_name: str) -> None:
+        message = textwrap.dedent(
+            f"""
+            cibuildwheel: Build failed because a wheel named {wheel_name} was already generated in the current run.
+
+            If you expected another wheel to be generated, check your project configuration, or run
+            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
+            """
+        )
+
+        super().__init__(message)
+
+
 def strtobool(val: str) -> bool:
     return val.lower() in {"y", "yes", "t", "true", "on", "1"}
 
@@ -575,36 +589,47 @@ def virtualenv(
 T = TypeVar("T", bound=PurePath)
 
 
-def find_compatible_abi3_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
+def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
     """
-    Finds an ABI3 wheel in `wheels` compatible with the Python interpreter
-    specified by `identifier`.
+    Finds a wheel with an abi3 or a none ABI tag in `wheels` compatible with the Python interpreter
+    specified by `identifier` that is previously built.
     """
 
     interpreter, platform = identifier.split("-")
-    if not interpreter.startswith("cp3"):
-        return None
     for wheel in wheels:
         _, _, _, tags = parse_wheel_filename(wheel.name)
         for tag in tags:
-            if tag.abi != "abi3":
+            if tag.abi == "abi3":
+                # ABI3 wheels must start with cp3 for impl and tag
+                if not (interpreter.startswith("cp3") and tag.interpreter.startswith("cp3")):
+                    continue
+            elif tag.abi == "none":
+                # CPythonless wheels must include py3 tag
+                if tag.interpreter[:3] != "py3":
+                    continue
+            else:
+                # Other types of wheels are not detected, this is looking for previously built wheels.
                 continue
-            if not tag.interpreter.startswith("cp3"):
+
+            if tag.interpreter != "py3" and int(tag.interpreter[3:]) > int(interpreter[3:]):
+                # If a minor version number is given, it has to be lower than the current one.
                 continue
-            if int(tag.interpreter[3:]) > int(interpreter[3:]):
-                continue
+
             if platform.startswith(("manylinux", "musllinux", "macosx")):
-                # Linux, macOS
+                # Linux, macOS require the beginning and ending match (macos/manylinux version doesn't need to)
                 os_, arch = platform.split("_", 1)
                 if not tag.platform.startswith(os_):
                     continue
-                if not tag.platform.endswith("_" + arch):
+                if not tag.platform.endswith(f"_{arch}"):
                     continue
             else:
-                # Windows
+                # Windows should exactly match
                 if not tag.platform == platform:
                     continue
+
+            # If all the filters above pass, then the wheel is a previously built compatible wheel.
             return wheel
+
     return None
 
 

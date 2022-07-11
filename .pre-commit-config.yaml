@@ -39,7 +39,7 @@ repos:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 22.3.0
+  rev: 22.6.0
   hooks:
   - id: black
 
@@ -61,6 +61,7 @@ repos:
       - pygithub
       - rich
       - tomli
+      - tomli_w
       - types-certifi
       - types-click
       - types-dataclasses

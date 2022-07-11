@@ -20,7 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
     - uses: pre-commit/action@v3.0.0
     - name: Check manifest
       run: pipx run nox -s check_manifest
@@ -40,10 +42,22 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v4
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
+
+    # Install podman on this CI instance for podman tests on linux
+    # Snippet from: https://github.com/redhat-actions/podman-login/blob/main/.github/workflows/example.yml
+    - name: Install latest podman
+      if: runner.os == 'Linux'
+      run: |
+        . /etc/os-release
+        echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+        curl -sSfL "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key" | sudo apt-key add -
+        sudo apt-get update
+        sudo apt-get -y upgrade
+        sudo apt-get -y install podman
 
     - name: Install dependencies
       run: |
@@ -68,7 +82,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        python ./bin/run_tests.py
+        python ./bin/run_tests.py --run-podman
 
   test-emulated:
     name: Test emulated cibuildwheel using qemu
@@ -77,7 +91,9 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
     - name: Install dependencies
       run: |
         python -m pip install ".[test]"

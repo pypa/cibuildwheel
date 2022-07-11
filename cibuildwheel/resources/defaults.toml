@@ -19,6 +19,8 @@ before-test = ""
 test-requires = []
 test-extras = []
 
+container-engine = "docker"
+
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"

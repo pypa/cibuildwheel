@@ -113,6 +113,7 @@ def expected_wheels(
     musllinux_versions=None,
     macosx_deployment_target="10.9",
     machine_arch=None,
+    python_abi_tags=None,
 ):
     """
     Returns a list of expected wheels from a run of cibuildwheel.
@@ -139,21 +140,22 @@ def expected_wheels(
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_1"]
 
-    python_abi_tags = [
-        "cp36-cp36m",
-        "cp37-cp37m",
-        "cp38-cp38",
-        "cp39-cp39",
-        "cp310-cp310",
-        "cp311-cp311",
-    ]
+    if python_abi_tags is None:
+        python_abi_tags = [
+            "cp36-cp36m",
+            "cp37-cp37m",
+            "cp38-cp38",
+            "cp39-cp39",
+            "cp310-cp310",
+            "cp311-cp311",
+        ]
 
-    if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
-        python_abi_tags += ["pp37-pypy37_pp73", "pp38-pypy38_pp73", "pp39-pypy39_pp73"]
+        if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
+            python_abi_tags += ["pp37-pypy37_pp73", "pp38-pypy38_pp73", "pp39-pypy39_pp73"]
 
-    if platform == "macos" and machine_arch == "arm64":
-        # currently, arm64 macs are only supported by cp39, cp310 & cp311
-        python_abi_tags = ["cp39-cp39", "cp310-cp310", "cp311-cp311"]
+        if platform == "macos" and machine_arch == "arm64":
+            # currently, arm64 macs are only supported by cp39, cp310 & cp311
+            python_abi_tags = ["cp39-cp39", "cp310-cp310", "cp311-cp311"]
 
     wheels = []
 
@@ -185,10 +187,10 @@ def expected_wheels(
                 )
 
         elif platform == "windows":
-            if python_abi_tag.startswith("cp"):
-                platform_tags = ["win32", "win_amd64"]
-            else:
+            if python_abi_tag.startswith("pp"):
                 platform_tags = ["win_amd64"]
+            else:
+                platform_tags = ["win32", "win_amd64"]
 
         elif platform == "macos":
             if python_abi_tag == "cp39-cp39" and machine_arch == "arm64":
