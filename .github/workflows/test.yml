@@ -49,35 +49,22 @@ jobs:
       run: |
         python -m pip install ".[test]"
 
-    - name: Sample build
-      if: "contains(github.event.pull_request.labels.*.name, 'CI: Sample build')"
-      run: |
-        python bin/sample_build.py
-
-    - name: Get some sample wheels
+    - name: Generate a sample project
       run: |
         python -m test.test_projects test.test_0_basic.basic_project sample_proj
-        cibuildwheel --output-dir wheelhouse sample_proj
-      env:
-        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
 
-    - uses: actions/upload-artifact@v3
-      with:
-        name: sample_wheels
-        path: wheelhouse
-
-    - name: Get some sample wheels (GitHub Action)
+    - name: Run a sample build (GitHub Action)
       uses: ./
       with:
         package-dir: sample_proj
-        output-dir: wheelhouse_action
+        output-dir: wheelhouse
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
 
     - uses: actions/upload-artifact@v3
       with:
         name: sample_wheels_action
-        path: wheelhouse_action
+        path: wheelhouse
 
     - name: Test cibuildwheel
       run: |
