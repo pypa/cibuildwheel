@@ -14,7 +14,7 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.34.0
+  rev: v2.37.1
   hooks:
   - id: pyupgrade
     name: PyUpgrade 3.6+
@@ -27,7 +27,7 @@ repos:
 
 # Autoremoves unused imports
 - repo: https://github.com/hadialqattan/pycln
-  rev: v1.3.5
+  rev: v2.0.1
   hooks:
   - id: pycln
     args: [--all]
