@@ -316,7 +316,7 @@ def download(url: str, dest: Path) -> None:
                 dest.write_bytes(response.read())
                 return
 
-        except urllib.error.URLError:
+        except OSError:
             if i == repeat_num - 1:
                 raise
             sleep(3)
