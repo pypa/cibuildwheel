@@ -4,6 +4,8 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
+from __future__ import annotations
+
 import os
 import platform as pm
 import subprocess

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from packaging.specifiers import SpecifierSet
 
 from cibuildwheel.util import BuildSelector

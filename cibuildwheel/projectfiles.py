@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import ast
 import sys
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -24,7 +26,7 @@ else:
 
 class Analyzer(ast.NodeVisitor):
     def __init__(self) -> None:
-        self.requires_python: Optional[str] = None
+        self.requires_python: str | None = None
 
     def visit(self, node: ast.AST) -> None:
         for inner_node in ast.walk(node):
@@ -43,7 +45,7 @@ class Analyzer(ast.NodeVisitor):
                 self.requires_python = get_constant(node.value)
 
 
-def setup_py_python_requires(content: str) -> Optional[str]:
+def setup_py_python_requires(content: str) -> str | None:
     try:
         tree = ast.parse(content)
         analyzer = Analyzer()
@@ -53,7 +55,7 @@ def setup_py_python_requires(content: str) -> Optional[str]:
         return None
 
 
-def get_requires_python_str(package_dir: Path) -> Optional[str]:
+def get_requires_python_str(package_dir: Path) -> str | None:
     """Return the python requires string from the most canonical source available, or None"""
 
     # Read in from pyproject.toml:project.requires-python

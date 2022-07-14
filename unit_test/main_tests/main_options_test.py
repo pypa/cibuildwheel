@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 from fnmatch import fnmatch
 from pathlib import Path

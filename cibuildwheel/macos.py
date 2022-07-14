@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import platform
@@ -7,7 +9,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Sequence, Set, Tuple, cast
+from typing import Sequence, Tuple, cast
 
 from filelock import FileLock
 
@@ -37,7 +39,7 @@ from .util import (
 )
 
 
-def get_macos_version() -> Tuple[int, int]:
+def get_macos_version() -> tuple[int, int]:
     """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
 
@@ -51,7 +53,7 @@ def get_macos_version() -> Tuple[int, int]:
     return cast(Tuple[int, int], version)
 
 
-def get_macos_sdks() -> List[str]:
+def get_macos_sdks() -> list[str]:
     output = call("xcodebuild", "-showsdks", capture_stdout=True)
     return [m.group(1) for m in re.finditer(r"-sdk (macosx\S+)", output)]
 
@@ -64,8 +66,8 @@ class PythonConfiguration:
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: Set[Architecture]
-) -> List[PythonConfiguration]:
+    build_selector: BuildSelector, architectures: set[Architecture]
+) -> list[PythonConfiguration]:
 
     full_python_configs = read_python_configs("macos")
 
@@ -134,7 +136,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
@@ -295,7 +297,7 @@ def build(options: Options, tmp_path: Path) -> None:
             )
             shell(before_all_prepared, env=env)
 
-        built_wheels: List[Path] = []
+        built_wheels: list[Path] = []
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
@@ -418,7 +420,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()
-                testing_archs: List[Literal["x86_64", "arm64"]]
+                testing_archs: list[Literal["x86_64", "arm64"]]
 
                 if config_is_arm64:
                     testing_archs = ["arm64"]

@@ -18,6 +18,7 @@ repos:
   hooks:
   - id: pyupgrade
     args: ["--py37-plus"]
+    exclude: ^cibuildwheel/resources/.*py$
 
 # Autoremoves unused imports
 - repo: https://github.com/hadialqattan/pycln
@@ -31,6 +32,8 @@ repos:
   rev: 5.10.1
   hooks:
   - id: isort
+    args: ["-a", "from __future__ import annotations"]
+    exclude: ^cibuildwheel/resources/.*py$
 
 - repo: https://github.com/psf/black
   rev: 22.6.0
