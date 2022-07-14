@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# This file supports 3.6+
 
 import os
 import shutil

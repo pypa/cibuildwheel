@@ -17,12 +17,6 @@ repos:
   rev: v2.37.1
   hooks:
   - id: pyupgrade
-    name: PyUpgrade 3.6+
-    args: ["--py36-plus"]
-    exclude: ^bin/
-  - id: pyupgrade
-    name: PyUpgrade 3.7+ on bin
-    exclude: ^(cibuildwheel|unit_test|test)/
     args: ["--py37-plus"]
 
 # Autoremoves unused imports
@@ -52,9 +46,9 @@ repos:
   rev: v0.961
   hooks:
   - id: mypy
-    name: mypy 3.6 on cibuildwheel/
-    exclude: ^(bin|cibuildwheel/resources|docs)/.*py$
-    args: ["--python-version=3.6"]
+    name: mypy 3.7 on cibuildwheel/
+    exclude: ^cibuildwheel/resources/.*py$
+    args: ["--python-version=3.7"]
     additional_dependencies: &mypy-dependencies
       - nox
       - packaging>=21.0
@@ -70,11 +64,6 @@ repos:
       - types-requests
       - bracex
       - dataclasses
-  - id: mypy
-    name: mypy 3.7+ on bin/
-    files: ^((bin|docs)/.*py)$
-    args: ["--python-version=3.7"]
-    additional_dependencies: *mypy-dependencies
   - id: mypy
     name: mypy 3.10
     args: ["--python-version=3.10"]

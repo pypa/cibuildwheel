@@ -35,7 +35,7 @@ def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pyt
 
     cmd_output = subprocess.run(
         cmd,
-        universal_newlines=True,
+        text=True,
         env=env,
         check=True,
         stdout=subprocess.PIPE,

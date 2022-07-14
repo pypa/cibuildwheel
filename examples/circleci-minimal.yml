@@ -4,7 +4,7 @@ jobs:
   linux-wheels:
     working_directory: ~/linux-wheels
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.9
     steps:
       - checkout
       - setup_remote_docker

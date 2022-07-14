@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 100
-target-version = ['py36', 'py37', 'py38', 'py39', 'py310']
+target-version = ['py37', 'py38', 'py39', 'py310']
 
 
 [tool.isort]
@@ -88,7 +88,7 @@ ignore = [
 ]
 
 [tool.pylint]
-master.py-version = "3.6"
+master.py-version = "3.7"
 master.jobs = "0"
 master.fail-on = ["E", "F"]
 master.fail-under = "9.8"

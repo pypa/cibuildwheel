@@ -9,9 +9,7 @@ EnvironmentExecutor = Callable[[List[str], Dict[str, str]], str]
 
 
 def local_environment_executor(command: List[str], env: Dict[str, str]) -> str:
-    return subprocess.run(
-        command, env=env, universal_newlines=True, stdout=subprocess.PIPE, check=True
-    ).stdout
+    return subprocess.run(command, env=env, text=True, stdout=subprocess.PIPE, check=True).stdout
 
 
 @dataclass(frozen=True)
