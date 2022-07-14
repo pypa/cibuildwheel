@@ -44,7 +44,7 @@ def mock_build_container(monkeypatch):
 
 
 def test_build_default_launches(mock_build_container, fake_package_dir, monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--platform=linux"])
+    monkeypatch.setattr(sys, "argv", sys.argv + ["--platform=linux"])
 
     main()
 
