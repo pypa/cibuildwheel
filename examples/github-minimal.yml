@@ -21,7 +21,7 @@ jobs:
         # with:
         #   package-dir: .
         #   output-dir: wheelhouse
-        #   config-file: {package}/pyproject.toml
+        #   config-file: "{package}/pyproject.toml"
 
       - uses: actions/upload-artifact@v3
         with:
