@@ -700,9 +700,9 @@ Platform-specific environment variables also available:<br/>
 
     In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
 
-Note that manylinux2_24 builds occur inside a Debian9 docker, where
+Note that manylinux_2_24 builds occur inside a Debian9 docker, where
 manylinux2010 and manylinux2014 builds occur inside a CentOS one. So for
-`manylinux2_24` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
+`manylinux_2_24` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
 instead.
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
