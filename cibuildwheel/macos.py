@@ -465,6 +465,23 @@ def build(options: Options, tmp_path: Path) -> None:
                         # skip this test
                         continue
 
+                    if testing_arch == "arm64" and config.identifier.startswith("cp38-"):
+                        log.warning(
+                            unwrap(
+                                """
+                                While cibuildwheel can build CPython 3.8 universal2/arm64 wheels, we
+                                cannot test the arm64 part of them, even when running on an Apple
+                                Silicon machine. This is because we use the x86_64 installer of
+                                CPython 3.8. See the discussion in
+                                https://github.com/pypa/cibuildwheel/pull/1169 for the details. To
+                                silence this warning, set `CIBW_TEST_SKIP: cp38-macosx_*:arm64`.
+                                """
+                            )
+                        )
+
+                        # skip this test
+                        continue
+
                     log.step(
                         "Testing wheel..."
                         if testing_arch == machine_arch

@@ -154,8 +154,8 @@ def expected_wheels(
             python_abi_tags += ["pp37-pypy37_pp73", "pp38-pypy38_pp73", "pp39-pypy39_pp73"]
 
         if platform == "macos" and machine_arch == "arm64":
-            # currently, arm64 macs are only supported by cp39, cp310 & cp311
-            python_abi_tags = ["cp39-cp39", "cp310-cp310", "cp311-cp311"]
+            # arm64 macs are only supported by cp38+
+            python_abi_tags = ["cp38-cp38", "cp39-cp39", "cp310-cp310", "cp311-cp311"]
 
     wheels = []
 
@@ -193,7 +193,7 @@ def expected_wheels(
                 platform_tags = ["win32", "win_amd64"]
 
         elif platform == "macos":
-            if python_abi_tag == "cp39-cp39" and machine_arch == "arm64":
+            if machine_arch == "arm64":
                 arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(
                     macosx_deployment_target
                 )
