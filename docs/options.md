@@ -643,7 +643,7 @@ To specify more than one environment variable, separate the variable names by sp
 ### `CIBW_BEFORE_ALL` {: #before-all}
 > Execute a shell command on the build system before any wheels are built.
 
-Shell command to prepare a common part of the project (e.g. build or install libraries which does not depend on the specific version of Python).
+Shell command that runs before any builds are run, to build or install parts that do not depend on the specific version of Python.
 
 This option is very useful for the Linux build, where builds take place in isolated containers managed by cibuildwheel. This command will run inside the container before the wheel builds start. Note, if you're building both `x86_64` and `i686` wheels (the default), your build uses two different container images. In that case, this command will execute twice - once per build container.
 
@@ -657,6 +657,10 @@ on macOS and Windows.
 
 Platform-specific environment variables also available:<br/>
 `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+
+!!! note
+
+    This command is executed in a different Python environment from the builds themselves. So you can't `pip install` a Python dependency in CIBW_BEFORE_ALL and use it in the build. Instead, look at [`CIBW_BEFORE_BUILD`](#before-build), or, if your project uses pyproject.toml, the [build-system.requires](https://peps.python.org/pep-0518/#build-system-table) field.
 
 #### Examples
 
