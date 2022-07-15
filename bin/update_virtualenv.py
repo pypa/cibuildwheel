@@ -36,7 +36,7 @@ GET_VIRTUALENV_URL_TEMPLATE: Final[
 ] = f"{GET_VIRTUALENV_GITHUB}/blob/{{version}}/public/virtualenv.pyz?raw=true"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class VersionTuple:
     version: Version
     version_string: str
