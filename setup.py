@@ -3,10 +3,11 @@ from setuptools import setup
 extras = {
     "docs": [
         "mkdocs-include-markdown-plugin==2.8.0",
-        "mkdocs==1.0.4",
+        "mkdocs==1.0.4",  # Doesn't support Python 3.10+
         "jinja2==3.0.3",
         "pymdown-extensions",
         "mkdocs-macros-plugin",
+        "markdown<3.4",  # Breaks mkdocs 1.0.4
     ],
     "test": [
         "jinja2",

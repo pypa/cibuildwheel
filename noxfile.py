@@ -92,12 +92,13 @@ def update_proj(session: nox.Session) -> None:
     )
 
 
-@nox.session
+@nox.session(python="3.9")
 def docs(session: nox.Session) -> None:
     """
     Build the docs.
     """
     session.install("-e", ".[docs]")
+    session.run("pip", "list")
 
     if session.posargs:
         if "serve" in session.posargs:
