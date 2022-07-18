@@ -2,6 +2,15 @@
 title: Changelog
 ---
 
+### v2.8.1
+
+_18 July 2022_
+
+- 🐛 Fix a bug when building CPython 3.8 wheels on an Apple Silicon machine where testing would always fail. cibuildwheel will no longer attempt to test the arm64 part of CPython 3.8 wheels because we use the x86_64 installer of CPython 3.8 due to its macOS system version backward-compatibility. See [#1169](https://github.com/pypa/cibuildwheel/pull/1169) for more details. (#1171)
+- 🛠 Update the prerelease CPython 3.11 to 3.11.0b4. (#1180)
+- 🛠 The GitHub Action will ensure a compatible version of Python is installed on the runner (#1114)
+- 📚 A few docs improvements
+
 ### v2.8.0
 
 _5 July 2022_
