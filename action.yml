@@ -21,16 +21,28 @@ runs:
   using: composite
   steps:
     # Set up a non-EOL, cibuildwheel & pipx supported Python version
+    # setup-python@v4 does not support ARM runners (e.g., self-hosted runners).
+    # These runners must ensure cibuildwheel and provided on their own before
+    # cibuildwheel.
+    # See https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
     - uses: actions/setup-python@v4
       id: python
       with:
         python-version: "3.7 - 3.10"
         update-environment: false
+      if: ${{ env.CIBW_GITHUB_ACTIONS_PYTHON == '' }}
+
+    # Set CIBW_GITHUB_ACTIONS_PYTHON to the Python installed in the step above, unless
+    # the user already set it.
+    - run: >
+        echo "CIBW_GITHUB_ACTIONS_PYTHON=${{ steps.python.outputs.python-path }}" >> $GITHUB_ENV
+      shell: bash
+      if: ${{ env.CIBW_GITHUB_ACTIONS_PYTHON == '' }}
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: >
         pipx run
-        --python '${{ steps.python.outputs.python-path }}'
+        --python '${{ env.CIBW_GITHUB_ACTIONS_PYTHON }}'
         --spec '${{ github.action_path }}'
         cibuildwheel
         ${{ inputs.package-dir }}
