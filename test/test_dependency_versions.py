@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import platform
 import re
 import textwrap
 
@@ -60,6 +61,8 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
     build_environment = {}
 
     if python_version == "3.6":
+        if utils.platform == "macos" and platform.machine() == "arm64":
+            pytest.skip("macOS arm64 does not support Python 3.6")
         constraint_filename = "constraints-python36.txt"
         build_pattern = "[cp]p36-*"
     elif python_version == "3.7":
