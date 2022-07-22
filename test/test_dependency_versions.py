@@ -123,7 +123,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     tool_versions = {
         "pip": "20.0.2",
         "setuptools": "53.0.0",
-        "wheel": "0.34.2",
+        "wheel": "0.36.2",
         "virtualenv": "20.11.2",
     }
 
