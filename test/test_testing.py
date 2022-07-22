@@ -142,6 +142,8 @@ def test_failing_test(tmp_path):
                 # problems with this, so let's check that.
                 "CIBW_MANYLINUX_I686_IMAGE": "manylinux1",
                 "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux1",
+                # tests don't run on CPython 3.8 when running on macOS arm64
+                "CIBW_SKIP": "cp38-macosx_arm64",
             },
         )
 
