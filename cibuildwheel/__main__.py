@@ -160,9 +160,9 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 textwrap.dedent(
                     """
                     cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server;
-                    Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, and Gitlab are
-                    supported. You can run on your development machine or other CI providers using the
-                    --platform argument. Check --help output for more information.
+                    Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, Gitlab, and Cirrus CI
+                    are supported. You can run on your development machine or other CI providers
+                    using the --platform argument. Check --help output for more information.
                     """
                 ),
                 file=sys.stderr,
