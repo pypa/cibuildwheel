@@ -43,7 +43,7 @@ linux_arm64_task:
 windows_x86_task:
   # The task takes ~55 minutes while the timeout happens
   # after 60 minutes by default, let's allow some wiggle room.
-  timeout_in: 70m
+  timeout_in: 90m
   windows_container:
     image: cirrusci/windowsservercore:visualstudio2022
     cpu: 8
