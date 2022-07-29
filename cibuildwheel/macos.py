@@ -505,7 +505,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     # define a custom 'call' function that adds the arch prefix each time
                     call_with_arch = functools.partial(call, *arch_prefix)
-                    shell_with_arch = functools.partial(shell, *arch_prefix)
+                    shell_with_arch = functools.partial(call, *arch_prefix, "/bin/sh", "-c")
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv
