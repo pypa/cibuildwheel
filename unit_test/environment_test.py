@@ -1,7 +1,8 @@
 import os
-import sys
 
 from cibuildwheel.environment import parse_environment
+
+PYTHON_ECHO = 'python -c "import sys; print(*sys.argv[1:])"'
 
 
 def test_basic_parsing():
@@ -29,11 +30,7 @@ def test_inheritance():
 
 
 def test_shell_eval():
-    if sys.platform == "win32":
-        env_string = 'VAR="$(cmd /C "echo a   test string")"'
-    else:
-        env_string = 'VAR="$(echo "a   test" string)"'
-    environment_recipe = parse_environment(env_string)
+    environment_recipe = parse_environment(f'VAR="$({PYTHON_ECHO} "a   test" string)"')
 
     env_copy = os.environ.copy()
     env_copy.pop("VAR", None)
@@ -44,11 +41,7 @@ def test_shell_eval():
 
 
 def test_shell_eval_and_env():
-    if sys.platform == "win32":
-        env_string = 'VAR="$(cmd /C "echo $PREV_VAR string")"'
-    else:
-        env_string = 'VAR="$(echo "$PREV_VAR" string)"'
-    environment_recipe = parse_environment(env_string)
+    environment_recipe = parse_environment(f'VAR="$({PYTHON_ECHO} "$PREV_VAR" string)"')
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={"PREV_VAR": "1 2 3"})
 
@@ -82,11 +75,9 @@ def test_no_vars_pass_through():
 
 
 def test_operators_inside_eval():
-    if sys.platform == "win32":
-        env_string = 'SOMETHING="$(cmd /C echo a; cmd /C echo b; cmd /C echo c)"'
-    else:
-        env_string = 'SOMETHING="$(echo a; echo b; echo c)"'
-    environment_recipe = parse_environment(env_string)
+    environment_recipe = parse_environment(
+        f'SOMETHING="$({PYTHON_ECHO} a; {PYTHON_ECHO} b; {PYTHON_ECHO} c)"'
+    )
 
     # pass the existing process env so PATH is available
     environment_dict = environment_recipe.as_dictionary(os.environ.copy())
@@ -104,13 +95,9 @@ def test_substitution_with_backslash():
 
 
 def test_awkwardly_quoted_variable():
-    if sys.platform == "win32":
-        env_string = 'VAR2=something"like this""$VAR1"$VAR1$(cmd /C echo there is more)"$(cmd /C echo and more!)"'
-    else:
-        env_string = (
-            'VAR2=something"like this""$VAR1"$VAR1$(echo "there is more")"$(echo "and more!")"'
-        )
-    environment_recipe = parse_environment(env_string)
+    environment_recipe = parse_environment(
+        f'VAR2=something"like this""$VAR1"$VAR1$({PYTHON_ECHO} "there is more")"$({PYTHON_ECHO} "and more!")"'
+    )
 
     # pass the existing process env so PATH is available
     environment_dict = environment_recipe.as_dictionary({"VAR1": "but wait"})

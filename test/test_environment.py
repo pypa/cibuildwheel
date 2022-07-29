@@ -33,6 +33,7 @@ project_with_environment_asserts = test_projects.new_c_project(
 
 
 def test(tmp_path):
+    python_echo = 'python -c "import sys; print(*sys.argv[1:])"'
     project_dir = tmp_path / "project"
     project_with_environment_asserts.generate(project_dir)
 
@@ -43,7 +44,7 @@ def test(tmp_path):
         project_dir,
         add_env={
             "CIBW_ENVIRONMENT": """CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$(echo 'test string 3')" PATH=$PATH:/opt/cibw_test_path""",
-            "CIBW_ENVIRONMENT_WINDOWS": '''CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$(cmd /C echo test string 3)" PATH="$PATH;/opt/cibw_test_path"''',
+            "CIBW_ENVIRONMENT_WINDOWS": f'''CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$({python_echo} 'test string 3')" PATH="$PATH;/opt/cibw_test_path"''',
         },
     )
 
