@@ -1,8 +1,9 @@
 import os
+import sys
 
 from cibuildwheel.environment import parse_environment
 
-PYTHON_ECHO = 'python -c "import sys; print(*sys.argv[1:])"'
+PYTHON_ECHO = f'"{sys.executable}" -c "import sys; print(*sys.argv[1:])"'
 
 
 def test_basic_parsing():

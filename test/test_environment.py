@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import textwrap
 
 import pytest
@@ -33,7 +34,7 @@ project_with_environment_asserts = test_projects.new_c_project(
 
 
 def test(tmp_path):
-    python_echo = 'python -c "import sys; print(*sys.argv[1:])"'
+    python_echo = f'"{sys.executable}" -c "import sys; print(*sys.argv[1:])"'
     project_dir = tmp_path / "project"
     project_with_environment_asserts.generate(project_dir)
 
