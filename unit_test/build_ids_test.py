@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import sys
-from typing import Dict, List
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -27,7 +28,7 @@ def test_compare_configs():
 
 def test_dump_with_Version():
     # MyPy doesn't understand deeply nested dicts correctly
-    example: Dict[str, Dict[str, List[Dict[str, Printable]]]] = {
+    example: dict[str, dict[str, list[dict[str, Printable]]]] = {
         "windows": {
             "python_configurations": [
                 {"identifier": "cp27-win32", "version": Version("2.7.18"), "arch": "32"},

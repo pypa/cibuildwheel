@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 
@@ -12,7 +14,7 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def fake_package_dir(monkeypatch):
+def fake_package_dir(tmp_path, monkeypatch):
     """
     Monkey-patch enough for the main() function to run
     """
@@ -25,6 +27,8 @@ def fake_package_dir(monkeypatch):
             return real_path_exists(path)
 
     args = ["cibuildwheel", str(MOCK_PACKAGE_DIR)]
+    tmp_path.joinpath(MOCK_PACKAGE_DIR).mkdir()
     monkeypatch.setattr(Path, "exists", mock_path_exists)
     monkeypatch.setattr(sys, "argv", args)
+    monkeypatch.chdir(tmp_path)
     return args

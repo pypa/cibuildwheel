@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 import json
 import os
@@ -9,7 +11,7 @@ import sys
 import uuid
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, List, Optional, Sequence, Type, cast
+from typing import IO, Dict, Sequence, cast
 
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
@@ -52,7 +54,7 @@ class OCIContainer:
         *,
         image: str,
         simulate_32_bit: bool = False,
-        cwd: Optional[PathOrStr] = None,
+        cwd: PathOrStr | None = None,
         engine: ContainerEngine = "docker",
     ):
         if not image:
@@ -61,10 +63,10 @@ class OCIContainer:
         self.image = image
         self.simulate_32_bit = simulate_32_bit
         self.cwd = cwd
-        self.name: Optional[str] = None
+        self.name: str | None = None
         self.engine = engine
 
-    def __enter__(self) -> "OCIContainer":
+    def __enter__(self) -> OCIContainer:
 
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
@@ -122,9 +124,9 @@ class OCIContainer:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
 
         self.bash_stdin.write(b"exit 0\n")
@@ -217,7 +219,7 @@ class OCIContainer:
         else:
             raise KeyError(self.engine)
 
-    def glob(self, path: PurePosixPath, pattern: str) -> List[PurePosixPath]:
+    def glob(self, path: PurePosixPath, pattern: str) -> list[PurePosixPath]:
         glob_pattern = path.joinpath(pattern)
 
         path_strings = json.loads(
@@ -236,9 +238,9 @@ class OCIContainer:
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: Optional[Dict[str, str]] = None,
+        env: dict[str, str] | None = None,
         capture_output: bool = False,
-        cwd: Optional[PathOrStr] = None,
+        cwd: PathOrStr | None = None,
     ) -> str:
 
         if cwd is None:
@@ -314,7 +316,7 @@ class OCIContainer:
 
         return output
 
-    def get_environment(self) -> Dict[str, str]:
+    def get_environment(self) -> dict[str, str]:
         env = json.loads(
             self.call(
                 [
@@ -327,7 +329,7 @@ class OCIContainer:
         )
         return cast(Dict[str, str], env)
 
-    def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
+    def environment_executor(self, command: list[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
         return self.call(command, env=environment, capture_output=True)
 

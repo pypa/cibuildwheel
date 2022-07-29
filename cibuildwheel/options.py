@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import sys
@@ -6,18 +8,7 @@ from configparser import ConfigParser
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import (
-    Any,
-    Dict,
-    Generator,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Any, Dict, Generator, List, Mapping, Union, cast
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -50,7 +41,7 @@ from .util import (
 @dataclass
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
-    archs: Optional[str]
+    archs: str | None
     output_dir: Path
     config_file: str
     package_dir: Path
@@ -65,7 +56,7 @@ class GlobalOptions:
     output_dir: Path
     build_selector: BuildSelector
     test_selector: TestSelector
-    architectures: Set[Architecture]
+    architectures: set[Architecture]
     container_engine: ContainerEngine
 
 
@@ -74,14 +65,14 @@ class BuildOptions:
     globals: GlobalOptions
     environment: ParsedEnvironment
     before_all: str
-    before_build: Optional[str]
+    before_build: str | None
     repair_command: str
-    manylinux_images: Optional[Dict[str, str]]
-    musllinux_images: Optional[Dict[str, str]]
-    dependency_constraints: Optional[DependencyConstraints]
-    test_command: Optional[str]
-    before_test: Optional[str]
-    test_requires: List[str]
+    manylinux_images: dict[str, str] | None
+    musllinux_images: dict[str, str] | None
+    dependency_constraints: DependencyConstraints | None
+    test_command: str | None
+    before_test: str | None
+    test_requires: list[str]
     test_extras: str
     build_verbosity: int
     build_frontend: BuildFrontend
@@ -103,7 +94,7 @@ class BuildOptions:
         return self.globals.test_selector
 
     @property
-    def architectures(self) -> Set[Architecture]:
+    def architectures(self) -> set[Architecture]:
         return self.globals.architectures
 
 
@@ -113,7 +104,7 @@ Setting = Union[Dict[str, str], List[str], str, int]
 @dataclass(frozen=True)
 class Override:
     select_pattern: str
-    options: Dict[str, Setting]
+    options: dict[str, Setting]
 
 
 MANYLINUX_OPTIONS = {f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS}
@@ -134,7 +125,7 @@ class ConfigOptionError(KeyError):
     pass
 
 
-def _dig_first(*pairs: Tuple[Mapping[str, Setting], str], ignore_empty: bool = False) -> Setting:
+def _dig_first(*pairs: tuple[Mapping[str, Setting], str], ignore_empty: bool = False) -> Setting:
     """
     Return the first dict item that matches from pairs of dicts and keys.
     Will throw a KeyError if missing.
@@ -176,10 +167,10 @@ class OptionsReader:
 
     def __init__(
         self,
-        config_file_path: Optional[Path] = None,
+        config_file_path: Path | None = None,
         *,
         platform: PlatformName,
-        disallow: Optional[Dict[str, Set[str]]] = None,
+        disallow: dict[str, set[str]] | None = None,
     ) -> None:
         self.platform = platform
         self.disallow = disallow or {}
@@ -189,8 +180,8 @@ class OptionsReader:
         self.default_options, self.default_platform_options = self._load_file(defaults_path)
 
         # Load the project config file
-        config_options: Dict[str, Any] = {}
-        config_platform_options: Dict[str, Any] = {}
+        config_options: dict[str, Any] = {}
+        config_platform_options: dict[str, Any] = {}
 
         if config_file_path is not None:
             config_options, config_platform_options = self._load_file(config_file_path)
@@ -209,8 +200,8 @@ class OptionsReader:
         self.config_options = config_options
         self.config_platform_options = config_platform_options
 
-        self.overrides: List[Override] = []
-        self.current_identifier: Optional[str] = None
+        self.overrides: list[Override] = []
+        self.current_identifier: str | None = None
 
         config_overrides = self.config_options.get("overrides")
 
@@ -251,7 +242,7 @@ class OptionsReader:
 
         return name in allowed_option_names
 
-    def _load_file(self, filename: Path) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    def _load_file(self, filename: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         """
         Load a toml file, returns global and platform as separate dicts.
         """
@@ -264,7 +255,7 @@ class OptionsReader:
         return global_options, platform_options
 
     @property
-    def active_config_overrides(self) -> List[Override]:
+    def active_config_overrides(self) -> list[Override]:
         if self.current_identifier is None:
             return []
         return [
@@ -272,7 +263,7 @@ class OptionsReader:
         ]
 
     @contextmanager
-    def identifier(self, identifier: Optional[str]) -> Generator[None, None, None]:
+    def identifier(self, identifier: str | None) -> Generator[None, None, None]:
         self.current_identifier = identifier
         try:
             yield
@@ -284,8 +275,8 @@ class OptionsReader:
         name: str,
         *,
         env_plat: bool = True,
-        sep: Optional[str] = None,
-        table: Optional[TableFmt] = None,
+        sep: str | None = None,
+        table: TableFmt | None = None,
         ignore_empty: bool = False,
     ) -> str:
         """
@@ -349,7 +340,7 @@ class Options:
         )
 
     @property
-    def config_file_path(self) -> Optional[Path]:
+    def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
 
         if args.config_file:
@@ -363,7 +354,7 @@ class Options:
         return None
 
     @cached_property
-    def package_requires_python_str(self) -> Optional[str]:
+    def package_requires_python_str(self) -> str | None:
         args = self.command_line_arguments
         return get_requires_python_str(Path(args.package_dir))
 
@@ -383,7 +374,7 @@ class Options:
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
-        requires_python_str: Optional[str] = (
+        requires_python_str: str | None = (
             os.environ.get("CIBW_PROJECT_REQUIRES_PYTHON") or self.package_requires_python_str
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
@@ -417,7 +408,7 @@ class Options:
             container_engine=container_engine,
         )
 
-    def build_options(self, identifier: Optional[str]) -> BuildOptions:
+    def build_options(self, identifier: str | None) -> BuildOptions:
         """
         Compute BuildOptions for a single run configuration.
         """
@@ -469,9 +460,9 @@ class Options:
                         pass
 
             if dependency_versions == "pinned":
-                dependency_constraints: Optional[
+                dependency_constraints: None | (
                     DependencyConstraints
-                ] = DependencyConstraints.with_defaults()
+                ) = DependencyConstraints.with_defaults()
             elif dependency_versions == "latest":
                 dependency_constraints = None
             else:
@@ -486,8 +477,8 @@ class Options:
             except ValueError:
                 build_verbosity = 0
 
-            manylinux_images: Dict[str, str] = {}
-            musllinux_images: Dict[str, str] = {}
+            manylinux_images: dict[str, str] = {}
+            musllinux_images: dict[str, str] = {}
             if self.platform == "linux":
                 all_pinned_container_images = _get_pinned_container_images()
 
@@ -539,7 +530,7 @@ class Options:
                 build_frontend=build_frontend,
             )
 
-    def check_for_invalid_configuration(self, identifiers: List[str]) -> None:
+    def check_for_invalid_configuration(self, identifiers: list[str]) -> None:
         if self.platform in ["macos", "windows"]:
             before_all_values = {self.build_options(i).before_all for i in identifiers}
 
@@ -562,7 +553,7 @@ class Options:
         deprecated_selectors("CIBW_SKIP", build_selector.skip_config)
         deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
-    def summary(self, identifiers: List[str]) -> str:
+    def summary(self, identifiers: list[str]) -> str:
         lines = [
             f"{option_name}: {option_value!r}"
             for option_name, option_value in sorted(asdict(self.globals).items())

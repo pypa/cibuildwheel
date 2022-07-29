@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import subprocess
 import sys
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Iterator, List, Set, Tuple
+from typing import Iterator, Tuple
 
 from .architecture import Architecture
 from .logger import log
@@ -35,15 +37,15 @@ class PythonConfiguration:
 
 @dataclass(frozen=True)
 class BuildStep:
-    platform_configs: List[PythonConfiguration]
+    platform_configs: list[PythonConfiguration]
     platform_tag: str
     container_image: str
 
 
 def get_python_configurations(
     build_selector: BuildSelector,
-    architectures: Set[Architecture],
-) -> List[PythonConfiguration]:
+    architectures: set[Architecture],
+) -> list[PythonConfiguration]:
 
     full_python_configs = read_python_configs("linux")
 
@@ -79,7 +81,7 @@ def container_image_for_python_configuration(config: PythonConfiguration, option
 
 
 def get_build_steps(
-    options: Options, python_configurations: List[PythonConfiguration]
+    options: Options, python_configurations: list[PythonConfiguration]
 ) -> Iterator[BuildStep]:
     """
     Groups PythonConfigurations into BuildSteps. Each BuildStep represents a
@@ -110,7 +112,7 @@ def get_build_steps(
 def build_in_container(
     *,
     options: Options,
-    platform_configs: List[PythonConfiguration],
+    platform_configs: list[PythonConfiguration],
     container: OCIContainer,
     container_project_path: PurePath,
     container_package_dir: PurePath,
@@ -140,13 +142,13 @@ def build_in_container(
         )
         container.call(["sh", "-c", before_all_prepared], env=env)
 
-    built_wheels: List[PurePosixPath] = []
+    built_wheels: list[PurePosixPath] = []
 
     for config in platform_configs:
         log.build_start(config.identifier)
         build_options = options.build_options(config.identifier)
 
-        dependency_constraint_flags: List[PathOrStr] = []
+        dependency_constraint_flags: list[PathOrStr] = []
 
         if build_options.dependency_constraints:
             constraints_file = build_options.dependency_constraints.get_for_python_version(
@@ -395,7 +397,7 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
             sys.exit(1)
 
 
-def _matches_prepared_command(error_cmd: List[str], command_template: str) -> bool:
+def _matches_prepared_command(error_cmd: list[str], command_template: str) -> bool:
     if len(error_cmd) < 3 or error_cmd[0:2] != ["sh", "-c"]:
         return False
     command_prefix = command_template.split("{", maxsplit=1)[0].strip()

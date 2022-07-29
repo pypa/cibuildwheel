@@ -1,4 +1,4 @@
-from typing import Dict
+from __future__ import annotations
 
 import pytest
 
@@ -13,5 +13,5 @@ def pytest_addoption(parser) -> None:
 @pytest.fixture(
     params=[{"CIBW_BUILD_FRONTEND": "pip"}, {"CIBW_BUILD_FRONTEND": "build"}], ids=["pip", "build"]
 )
-def build_frontend_env(request) -> Dict[str, str]:
+def build_frontend_env(request) -> dict[str, str]:
     return request.param  # type: ignore[no-any-return]

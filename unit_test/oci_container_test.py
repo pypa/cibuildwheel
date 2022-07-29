@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import platform
 import random
@@ -83,7 +85,7 @@ def test_container_removed(container_engine):
             shell=True,
             check=True,
             stdout=subprocess.PIPE,
-            universal_newlines=True,
+            text=True,
         ).stdout
         assert container.name is not None
         assert container.name in docker_containers_listing
@@ -94,7 +96,7 @@ def test_container_removed(container_engine):
         shell=True,
         check=True,
         stdout=subprocess.PIPE,
-        universal_newlines=True,
+        text=True,
     ).stdout
     assert old_container_name not in docker_containers_listing
 

@@ -4,6 +4,8 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
+from __future__ import annotations
+
 import os
 import platform as pm
 import subprocess
@@ -35,7 +37,7 @@ def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pyt
 
     cmd_output = subprocess.run(
         cmd,
-        universal_newlines=True,
+        text=True,
         env=env,
         check=True,
         stdout=subprocess.PIPE,

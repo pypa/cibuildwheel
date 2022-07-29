@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import fnmatch
 import itertools
@@ -18,15 +20,11 @@ from time import sleep
 from typing import (
     Any,
     ClassVar,
-    Dict,
     Generator,
     Iterable,
-    List,
-    Optional,
     Sequence,
     TextIO,
     TypeVar,
-    Union,
     cast,
     overload,
 )
@@ -98,8 +96,8 @@ IS_WIN: Final = sys.platform.startswith("win")
 @overload
 def call(
     *args: PathOrStr,
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[PathOrStr] = None,
+    env: dict[str, str] | None = None,
+    cwd: PathOrStr | None = None,
     capture_stdout: Literal[False] = ...,
 ) -> None:
     ...
@@ -108,8 +106,8 @@ def call(
 @overload
 def call(
     *args: PathOrStr,
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[PathOrStr] = None,
+    env: dict[str, str] | None = None,
+    cwd: PathOrStr | None = None,
     capture_stdout: Literal[True],
 ) -> str:
     ...
@@ -117,10 +115,10 @@ def call(
 
 def call(
     *args: PathOrStr,
-    env: Optional[Dict[str, str]] = None,
-    cwd: Optional[PathOrStr] = None,
+    env: dict[str, str] | None = None,
+    cwd: PathOrStr | None = None,
     capture_stdout: bool = False,
-) -> Optional[str]:
+) -> str | None:
     """
     Run subprocess.run, but print the commands first. Takes the commands as
     *args. Uses shell=True on Windows due to a bug. Also converts to
@@ -130,7 +128,7 @@ def call(
     args_ = [str(arg) for arg in args]
     # print the command executing for the logs
     print("+ " + " ".join(shlex.quote(a) for a in args_))
-    kwargs: Dict[str, Any] = {}
+    kwargs: dict[str, Any] = {}
     if capture_stdout:
         kwargs["universal_newlines"] = True
         kwargs["stdout"] = subprocess.PIPE
@@ -140,9 +138,7 @@ def call(
     return cast(str, result.stdout)
 
 
-def shell(
-    *commands: str, env: Optional[Dict[str, str]] = None, cwd: Optional[PathOrStr] = None
-) -> None:
+def shell(*commands: str, env: dict[str, str] | None = None, cwd: PathOrStr | None = None) -> None:
     command = " ".join(commands)
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
@@ -200,7 +196,7 @@ def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     return format_safe(command, python="python", pip="pip", **kwargs)
 
 
-def get_build_verbosity_extra_flags(level: int) -> List[str]:
+def get_build_verbosity_extra_flags(level: int) -> list[str]:
     if level > 0:
         return ["-" + level * "v"]
     elif level < 0:
@@ -209,11 +205,11 @@ def get_build_verbosity_extra_flags(level: int) -> List[str]:
         return []
 
 
-def read_python_configs(config: PlatformName) -> List[Dict[str, str]]:
+def read_python_configs(config: PlatformName) -> list[dict[str, str]]:
     input_file = resources_dir / "build-platforms.toml"
     with input_file.open("rb") as f:
         loaded_file = tomllib.load(f)
-    results: List[Dict[str, str]] = list(loaded_file[config]["python_configurations"])
+    results: list[dict[str, str]] = list(loaded_file[config]["python_configurations"])
     return results
 
 
@@ -243,7 +239,7 @@ class BuildSelector:
 
     build_config: str
     skip_config: str
-    requires_python: Optional[SpecifierSet] = None
+    requires_python: SpecifierSet | None = None
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
     PRERELEASE_SKIP: ClassVar[str] = "cp311-*"
@@ -328,7 +324,7 @@ class DependencyConstraints:
         self.base_file_path = base_file_path.resolve()
 
     @staticmethod
-    def with_defaults() -> "DependencyConstraints":
+    def with_defaults() -> DependencyConstraints:
         return DependencyConstraints(base_file_path=resources_dir / "constraints.txt")
 
     def get_for_python_version(self, version: str) -> Path:
@@ -400,7 +396,7 @@ class CIProvider(Enum):
     other = "other"
 
 
-def detect_ci_provider() -> Optional[CIProvider]:
+def detect_ci_provider() -> CIProvider | None:
     if "TRAVIS" in os.environ:
         return CIProvider.travis_ci
     elif "APPVEYOR" in os.environ:
@@ -473,7 +469,7 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     )
 
 
-def get_pip_version(env: Dict[str, str]) -> str:
+def get_pip_version(env: dict[str, str]) -> str:
     versions_output_text = call(
         "python", "-m", "pip", "freeze", "--all", capture_stdout=True, env=env
     )
@@ -501,7 +497,7 @@ def _ensure_virtualenv() -> Path:
 
 def _parse_constraints_for_virtualenv(
     dependency_constraint_flags: Sequence[PathOrStr],
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """
     Parses the constraints file referenced by `dependency_constraint_flags` and returns a dict where
     the key is the package name, and the value is the constraint version.
@@ -547,7 +543,7 @@ def _parse_constraints_for_virtualenv(
 
 def virtualenv(
     python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
-) -> Dict[str, str]:
+) -> dict[str, str]:
     assert python.exists()
     virtualenv_app = _ensure_virtualenv()
     constraints = _parse_constraints_for_virtualenv(dependency_constraint_flags)
@@ -589,7 +585,7 @@ def virtualenv(
 T = TypeVar("T", bound=PurePath)
 
 
-def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> Optional[T]:
+def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     """
     Finds a wheel with an abi3 or a none ABI tag in `wheels` compatible with the Python interpreter
     specified by `identifier` that is previously built.
@@ -641,7 +637,7 @@ else:
 
 # Can be replaced by contextlib.chdir in Python 3.11
 @contextlib.contextmanager
-def chdir(new_path: Union[Path, str]) -> Generator[None, None, None]:
+def chdir(new_path: Path | str) -> Generator[None, None, None]:
     """Non thread-safe context manager to change the current working directory."""
 
     cwd = os.getcwd()

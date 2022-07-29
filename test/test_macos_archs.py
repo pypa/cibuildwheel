@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import platform
 import subprocess
-from typing import Tuple
 
 import pytest
 
@@ -14,10 +15,10 @@ ALL_MACOS_WHEELS = {
 }
 
 
-def get_xcode_version() -> Tuple[int, int]:
+def get_xcode_version() -> tuple[int, int]:
     output = subprocess.run(
         ["xcodebuild", "-version"],
-        universal_newlines=True,
+        text=True,
         check=True,
         stdout=subprocess.PIPE,
     ).stdout

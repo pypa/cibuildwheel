@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 import shutil
@@ -7,7 +9,6 @@ import tempfile
 import textwrap
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import List, Set, Union
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -257,7 +258,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             log.warning(f"Can't delete temporary folder '{str(tmp_path)}'")
 
 
-def print_preamble(platform: str, options: Options, identifiers: List[str]) -> None:
+def print_preamble(platform: str, options: Options, identifiers: list[str]) -> None:
     print(
         textwrap.dedent(
             """
@@ -287,13 +288,13 @@ def print_preamble(platform: str, options: Options, identifiers: List[str]) -> N
 
 
 def get_build_identifiers(
-    platform: PlatformName, build_selector: BuildSelector, architectures: Set[Architecture]
-) -> List[str]:
-    python_configurations: Union[
-        List[cibuildwheel.linux.PythonConfiguration],
-        List[cibuildwheel.windows.PythonConfiguration],
-        List[cibuildwheel.macos.PythonConfiguration],
-    ]
+    platform: PlatformName, build_selector: BuildSelector, architectures: set[Architecture]
+) -> list[str]:
+    python_configurations: (
+        list[cibuildwheel.linux.PythonConfiguration]
+        | list[cibuildwheel.windows.PythonConfiguration]
+        | list[cibuildwheel.macos.PythonConfiguration]
+    )
 
     if platform == "linux":
         python_configurations = cibuildwheel.linux.get_python_configurations(
@@ -313,7 +314,7 @@ def get_build_identifiers(
     return [config.identifier for config in python_configurations]
 
 
-def detect_warnings(*, options: Options, identifiers: List[str]) -> List[str]:
+def detect_warnings(*, options: Options, identifiers: list[str]) -> list[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}

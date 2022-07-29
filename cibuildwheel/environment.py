@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import dataclasses
-from typing import Any, Dict, List, Mapping, Optional, Sequence
+from typing import Any, Mapping, Sequence
 
 import bashlex
 
@@ -12,7 +14,7 @@ class EnvironmentParseError(Exception):
     pass
 
 
-def split_env_items(env_string: str) -> List[str]:
+def split_env_items(env_string: str) -> list[str]:
     """Splits space-separated variable assignments into a list of individual assignments.
 
     >>> split_env_items('VAR=abc')
@@ -47,8 +49,8 @@ class EnvironmentAssignment(Protocol):
     def evaluated_value(
         self,
         *,
-        environment: Dict[str, str],
-        executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
+        environment: dict[str, str],
+        executor: bashlex_eval.EnvironmentExecutor | None = None,
     ) -> str:
         """Returns the value of this assignment, as evaluated in the environment"""
 
@@ -84,8 +86,8 @@ class EnvironmentAssignmentBash:
 
     def evaluated_value(
         self,
-        environment: Dict[str, str],
-        executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
+        environment: dict[str, str],
+        executor: bashlex_eval.EnvironmentExecutor | None = None,
     ) -> str:
         return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
 
@@ -100,7 +102,7 @@ class EnvironmentAssignmentBash:
 
 @dataclasses.dataclass
 class ParsedEnvironment:
-    assignments: List[EnvironmentAssignment]
+    assignments: list[EnvironmentAssignment]
 
     def __init__(self, assignments: Sequence[EnvironmentAssignment]) -> None:
         self.assignments = list(assignments)
@@ -108,8 +110,8 @@ class ParsedEnvironment:
     def as_dictionary(
         self,
         prev_environment: Mapping[str, str],
-        executor: Optional[bashlex_eval.EnvironmentExecutor] = None,
-    ) -> Dict[str, str]:
+        executor: bashlex_eval.EnvironmentExecutor | None = None,
+    ) -> dict[str, str]:
         environment = dict(**prev_environment)
 
         for assignment in self.assignments:

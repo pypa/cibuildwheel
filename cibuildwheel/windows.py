@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import shutil
 import subprocess
@@ -5,7 +7,7 @@ import sys
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Set
+from typing import Sequence
 from zipfile import ZipFile
 
 from filelock import FileLock
@@ -34,7 +36,7 @@ from .util import (
 )
 
 
-def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
+def get_nuget_args(version: str, arch: str, output_directory: Path) -> list[str]:
     platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
     python_name = "python" + platform_suffix[arch]
     return [
@@ -53,13 +55,13 @@ class PythonConfiguration:
     version: str
     arch: str
     identifier: str
-    url: Optional[str] = None
+    url: str | None = None
 
 
 def get_python_configurations(
     build_selector: BuildSelector,
-    architectures: Set[Architecture],
-) -> List[PythonConfiguration]:
+    architectures: set[Architecture],
+) -> list[PythonConfiguration]:
 
     full_python_configs = read_python_configs("windows")
 
@@ -124,7 +126,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
@@ -253,7 +255,7 @@ def build(options: Options, tmp_path: Path) -> None:
             )
             shell(before_all_prepared, env=env)
 
-        built_wheels: List[Path] = []
+        built_wheels: list[Path] = []
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)

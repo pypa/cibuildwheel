@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from textwrap import dedent
 
 from cibuildwheel.projectfiles import get_requires_python_str, setup_py_python_requires
