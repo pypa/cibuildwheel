@@ -3,6 +3,7 @@ import sys
 
 from cibuildwheel.environment import parse_environment
 
+# this command is equivalent to Unix 'echo', but works on Windows too
 PYTHON_ECHO = f"'{sys.executable}' -c \"import sys; print(*sys.argv[1:])\""
 
 
@@ -44,9 +45,10 @@ def test_shell_eval():
 def test_shell_eval_and_env():
     environment_recipe = parse_environment(f'VAR="$({PYTHON_ECHO} "$PREV_VAR" string)"')
 
-    environment_dict = environment_recipe.as_dictionary(prev_environment={"PREV_VAR": "1 2 3"})
+    prev_environment = {**os.environ, "PREV_VAR": "1 2 3"}
+    environment_dict = environment_recipe.as_dictionary(prev_environment=prev_environment)
 
-    assert environment_dict == {"PREV_VAR": "1 2 3", "VAR": "1 2 3 string"}
+    assert environment_dict == {**prev_environment, "VAR": "1 2 3 string"}
 
 
 def test_empty_var():
@@ -80,8 +82,8 @@ def test_operators_inside_eval():
         f'SOMETHING="$({PYTHON_ECHO} a; {PYTHON_ECHO} b; {PYTHON_ECHO} c)"'
     )
 
-    # pass the existing process env so PATH is available
-    environment_dict = environment_recipe.as_dictionary(os.environ.copy())
+    # pass the existing process env so subcommands can be run in the evaluation
+    environment_dict = environment_recipe.as_dictionary(prev_environment=os.environ.copy())
 
     assert environment_dict.get("SOMETHING") == "a\nb\nc"
 
@@ -89,7 +91,6 @@ def test_operators_inside_eval():
 def test_substitution_with_backslash():
     environment_recipe = parse_environment('PATH2="somewhere_else;$PATH1"')
 
-    # pass the existing process env so PATH is available
     environment_dict = environment_recipe.as_dictionary(prev_environment={"PATH1": "c:\\folder\\"})
 
     assert environment_dict.get("PATH2") == "somewhere_else;c:\\folder\\"
@@ -100,8 +101,8 @@ def test_awkwardly_quoted_variable():
         f'VAR2=something"like this""$VAR1"$VAR1$({PYTHON_ECHO} "there is more")"$({PYTHON_ECHO} "and more!")"'
     )
 
-    # pass the existing process env so PATH is available
-    environment_dict = environment_recipe.as_dictionary({"VAR1": "but wait"})
+    prev_environment = {**os.environ, "VAR1": "but wait"}
+    environment_dict = environment_recipe.as_dictionary(prev_environment=prev_environment)
 
     assert (
         environment_dict.get("VAR2") == "somethinglike thisbut waitbut waitthere is moreand more!"
