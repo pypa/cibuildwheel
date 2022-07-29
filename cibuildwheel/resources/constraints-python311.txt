@@ -24,7 +24,7 @@ wheel==0.37.1
     #   delocate
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.1.2
+pip==22.2
     # via -r cibuildwheel/resources/constraints.in
 setuptools==63.2.0
     # via -r cibuildwheel/resources/constraints.in
