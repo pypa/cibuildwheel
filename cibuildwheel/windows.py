@@ -161,7 +161,10 @@ def setup_setuptools_cross_compile(
     # interpreter, and has no logic to construct it. Currently, CPython's
     # extensions follow our identifiers, but if they ever diverge in the
     # future, we will need to store new data
-    log.info("Setting SETUPTOOLS_EXT_SUFFIX=.%s.pyd for cross-compilation", python_configuration.identifier)
+    log.info(
+        "Setting SETUPTOOLS_EXT_SUFFIX=.%s.pyd for cross-compilation",
+        python_configuration.identifier,
+    )
     env["SETUPTOOLS_EXT_SUFFIX"] = f".{python_configuration.identifier}.pyd"
 
     # Cross-compilation requires fixes that only exist in setuptools's copy of
@@ -197,7 +200,7 @@ def setup_rust_cross_compile(
     else:
         log.warning(
             "Unable to configure Rust cross-compilation for architecture '%s'",
-            python_configuration.arch
+            python_configuration.arch,
         )
 
 
