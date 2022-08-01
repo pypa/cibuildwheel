@@ -203,7 +203,7 @@ def setup_rust_cross_compile(
     else:
         log.warning(
             "Unable to configure Rust cross-compilation for architecture '%s'",
-            python_configuration.arch
+            python_configuration.arch,
         )
 
 
