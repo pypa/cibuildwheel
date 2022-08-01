@@ -160,8 +160,27 @@ repairs-wheel-command = "repair-project-linux"
 """
     )
 
-    with pytest.raises(ConfigOptionError):
+    with pytest.raises(ConfigOptionError) as excinfo:
         OptionsReader(pyproject_toml, platform="linux")
+
+    assert "repair-wheel-command" in str(excinfo.value)
+
+
+def test_underscores_in_key(tmp_path):
+    # Note that platform contents are only checked when running
+    # for that platform.
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+repair_wheel_command = "repair-project-linux"
+"""
+    )
+
+    with pytest.raises(ConfigOptionError) as excinfo:
+        OptionsReader(pyproject_toml, platform="linux")
+
+    assert "repair-wheel-command" in str(excinfo.value)
 
 
 def test_unexpected_table(tmp_path):
