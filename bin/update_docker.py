@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import configparser
+from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple
 
 import requests
 
@@ -11,7 +11,8 @@ DIR = Path(__file__).parent.resolve()
 RESOURCES = DIR.parent / "cibuildwheel/resources"
 
 
-class Image(NamedTuple):
+@dataclass(frozen=True)
+class Image:
     manylinux_version: str
     platform: str
     image_name: str
@@ -45,6 +46,12 @@ images = [
     Image("manylinux_2_24", "pypy_x86_64", "quay.io/pypa/manylinux_2_24_x86_64", None),
     Image("manylinux_2_24", "pypy_i686", "quay.io/pypa/manylinux_2_24_i686", None),
     Image("manylinux_2_24", "pypy_aarch64", "quay.io/pypa/manylinux_2_24_aarch64", None),
+    # manylinux_2_28 images
+    Image("manylinux_2_28", "x86_64", "quay.io/pypa/manylinux_2_28_x86_64", None),
+    Image("manylinux_2_28", "aarch64", "quay.io/pypa/manylinux_2_28_aarch64", None),
+    Image("manylinux_2_28", "ppc64le", "quay.io/pypa/manylinux_2_28_ppc64le", None),
+    Image("manylinux_2_28", "pypy_x86_64", "quay.io/pypa/manylinux_2_28_x86_64", None),
+    Image("manylinux_2_28", "pypy_aarch64", "quay.io/pypa/manylinux_2_28_aarch64", None),
     # musllinux_1_1 images
     Image("musllinux_1_1", "x86_64", "quay.io/pypa/musllinux_1_1_x86_64", None),
     Image("musllinux_1_1", "i686", "quay.io/pypa/musllinux_1_1_i686", None),

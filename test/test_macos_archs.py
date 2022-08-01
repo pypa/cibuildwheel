@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import platform
 import subprocess
-from typing import Tuple
 
 import pytest
 
@@ -14,10 +15,10 @@ ALL_MACOS_WHEELS = {
 }
 
 
-def get_xcode_version() -> Tuple[int, int]:
+def get_xcode_version() -> tuple[int, int]:
     output = subprocess.run(
         ["xcodebuild", "-version"],
-        universal_newlines=True,
+        text=True,
         check=True,
         stdout=subprocess.PIPE,
     ).stdout
@@ -131,5 +132,38 @@ def test_universal2_testing(tmp_path, capfd, skip_arm64_test):
             assert warning_message in captured.err
 
     expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" in w]
+
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_cp38_arm64_testing(tmp_path, capfd):
+    if utils.platform != "macos":
+        pytest.skip("this test is only relevant to macos")
+    if get_xcode_version() < (12, 2):
+        pytest.skip("this test only works with Xcode 12.2 or greater")
+    if platform.machine() != "arm64":
+        pytest.skip("this test only works on arm64")
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_BUILD": "cp38-*",
+            "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
+            "CIBW_ARCHS": "x86_64,universal2,arm64",
+        },
+    )
+
+    captured = capfd.readouterr()
+
+    assert "running tests on x86_64" in captured.out
+    assert "running tests on arm64" not in captured.out
+
+    warning_message = "While cibuildwheel can build CPython 3.8 universal2/arm64 wheels, we cannot test the arm64 part of them"
+    assert warning_message in captured.err
+
+    expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp38" in w]
 
     assert set(actual_wheels) == set(expected_wheels)

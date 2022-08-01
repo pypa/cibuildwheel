@@ -2,6 +2,37 @@
 title: Changelog
 ---
 
+### v2.8.1
+
+_18 July 2022_
+
+- 🐛 Fix a bug when building CPython 3.8 wheels on an Apple Silicon machine where testing would always fail. cibuildwheel will no longer attempt to test the arm64 part of CPython 3.8 wheels because we use the x86_64 installer of CPython 3.8 due to its macOS system version backward-compatibility. See [#1169](https://github.com/pypa/cibuildwheel/pull/1169) for more details. (#1171)
+- 🛠 Update the prerelease CPython 3.11 to 3.11.0b4. (#1180)
+- 🛠 The GitHub Action will ensure a compatible version of Python is installed on the runner (#1114)
+- 📚 A few docs improvements
+
+### v2.8.0
+
+_5 July 2022_
+
+- ✨ You can now run cibuildwheel on Podman, as an alternate container engine to Docker (which remains the default). This is useful in environments where a Docker daemon isn't available, for example, it can be run inside a Docker container, or without root access. To use Podman, set the [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#966)
+- ✨ Adds support for building `py3-none-{platform}` wheels. This works the same as ABI3 - wheels won't be rebuilt, but tests will still be run across all selected versions of Python.
+
+  > These wheels contain native extension code, but don't use the Python APIs. Typically, they're bridged to Python using a FFI module like [ctypes](https://docs.python.org/3/library/ctypes.html) or [cffi](https://cffi.readthedocs.io/en/latest/). Because they don't use Python ABI, the wheels are more compatible - they work across many Python versions.
+
+  Check out this [example ctypes project](https://github.com/joerick/python-ctypes-package-sample) to see an example of how it works. (#1151)
+- 🛠 cibuildwheel will now error if multiple builds in a single run produce the same wheel filename, as this indicates a misconfiguration. (#1152)
+- 📚 A few docs improvements and updates to keep things up-to-date.
+
+### v2.7.0
+
+_17 June 2022_
+
+- 🌟 Added support for the new `manylinux_2_28` images. These new images are based on AlmaLinux, the community-driven successor to CentOS, unlike manylinux_2_24, which was based on Debian. To build on these images, set your [`CIBW_MANYLINUX_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image) option to `manylinux_2_28`. (#1026)
+- 🐛 Fix a bug where tests were not being run on CPython 3.11 (when CIBW_PRERELEASE_PYTHONS was set) (#1138)
+- ✨ You can now build Linux wheels on Windows, as long as you have Docker installed and set to 'Linux containers' (#1117)
+- 🐛 Fix a bug on macOS that caused cibuildwheel to crash trying to overwrite a previously-built wheel of the same name. (#1129)
+
 ### v2.6.1
 
 _7 June 2022_

@@ -117,9 +117,9 @@ matches overriding earlier ones if multiple selectors match. Environment
 variables always override static configuration.
 
 A few of the options below have special handling in overrides. A different
-`before-all` will trigger a new docker launch on Linux, and cannot be
+`before-all` will trigger a new container to launch on Linux, and cannot be
 overridden on macOS or Windows.  Overriding the image on linux will also
-generate new docker launches, one per image.  Some commands are not supported;
+trigger new containers, one per image. Some commands are not supported;
 `output-dir`, build/skip/test_skip selectors, and architectures cannot be
 overridden.
 
@@ -174,7 +174,7 @@ Default: `auto`
 
 `auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
 
-- For `linux`, you need Docker running, on Linux, macOS, or Windows.
+- For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
@@ -523,7 +523,7 @@ Choose which build backend to use. Can either be "pip", which will run
 
 A list of environment variables to set during the build. Bash syntax should be used, even on Windows.
 
-You must set this variable to pass variables to Linux builds (since they execute in a Docker container). It also works for the other platforms.
+You must set this variable to pass variables to Linux builds (since they execute in a container). It also works for the other platforms.
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
@@ -553,6 +553,10 @@ Platform-specific environment variables are also available:<br/>
     # Supply options to `pip` to affect how it downloads dependencies
     CIBW_ENVIRONMENT: PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple
 
+    # Any pip command-line options can be set using the PIP_ prefix
+    # https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
+    CIBW_ENVIRONMENT: PIP_GLOBAL_OPTION="build_ext -j4"
+
     # Set two flags on linux only
     CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
     ```
@@ -581,6 +585,10 @@ Platform-specific environment variables are also available:<br/>
 
     # Supply options to `pip` to affect how it downloads dependencies
     environment = { PIP_EXTRA_INDEX_URL="https://pypi.myorg.com/simple" }
+
+    # Any pip command-line option can be set using the PIP_ prefix
+    # https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
+    environment = { PIP_GLOBAL_OPTION="build_ext -j4" }
 
     # Set two flags on linux only
     [tool.cibuildwheel.linux]
@@ -635,20 +643,24 @@ To specify more than one environment variable, separate the variable names by sp
 ### `CIBW_BEFORE_ALL` {: #before-all}
 > Execute a shell command on the build system before any wheels are built.
 
-Shell command to prepare a common part of the project (e.g. build or install libraries which does not depend on the specific version of Python).
+Shell command that runs before any builds are run, to build or install parts that do not depend on the specific version of Python.
 
-This option is very useful for the Linux build, where builds take place in isolated Docker containers managed by cibuildwheel. This command will run inside the container before the wheel builds start. Note, if you're building both `x86_64` and `i686` wheels (the default), your build uses two different Docker images. In that case, this command will execute twice - once per build container.
+This option is very useful for the Linux build, where builds take place in isolated containers managed by cibuildwheel. This command will run inside the container before the wheel builds start. Note, if you're building both `x86_64` and `i686` wheels (the default), your build uses two different container images. In that case, this command will execute twice - once per build container.
 
 The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by cibuildwheel.
 
 On Windows and macOS, the version of Python available inside `CIBW_BEFORE_ALL` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
 
 This option has special behavior in the overrides section in `pyproject.toml`.
-On linux, overriding it triggers a new docker launch. It cannot be overridden
+On linux, overriding it triggers a new container launch. It cannot be overridden
 on macOS and Windows.
 
 Platform-specific environment variables also available:<br/>
 `CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+
+!!! note
+
+    This command is executed in a different Python environment from the builds themselves. So you can't `pip install` a Python dependency in CIBW_BEFORE_ALL and use it in the build. Instead, look at [`CIBW_BEFORE_BUILD`](#before-build), or, if your project uses pyproject.toml, the [build-system.requires](https://peps.python.org/pep-0518/#build-system-table) field.
 
 #### Examples
 
@@ -692,9 +704,9 @@ Platform-specific environment variables also available:<br/>
 
     In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
 
-Note that manylinux2_24 builds occur inside a Debian9 docker, where
+Note that manylinux_2_24 builds occur inside a Debian9 docker, where
 manylinux2010 and manylinux2014 builds occur inside a CentOS one. So for
-`manylinux2_24` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
+`manylinux_2_24` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
 instead.
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
@@ -866,7 +878,7 @@ Platform-specific environment variables are also available:<br/>
 <div class="link-target" id="manylinux-image"></div>
 
 ### `CIBW_MANYLINUX_*_IMAGE`, `CIBW_MUSLLINUX_*_IMAGE` {: #linux-image}
-> Specify alternative manylinux / musllinux Docker images
+> Specify alternative manylinux / musllinux container images
 
 The available options are (default value):
 
@@ -886,16 +898,16 @@ The available options are (default value):
 
 Set an alternative Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
-For `CIBW_MANYLINUX_*_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014` or `manylinux_2_24` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
-than x86 (x86\_64 and i686) `manylinux2014` or `manylinux_2_24` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`.
+For `CIBW_MANYLINUX_*_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
+than x86 (x86\_64 and i686) `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`. `manylinux_2_28` is not supported for `i686` & `s390x` architectures.
 
 For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `musllinux_1_1` to use a pinned version of the [official musllinux images](https://github.com/pypa/musllinux). Alternatively, set these options to any other valid Docker image name.
 
 If this option is blank, it will fall though to the next available definition (environment variable -> pyproject.toml -> default).
 
-If setting a custom Docker image, you'll need to make sure it can be used in the same way as the official, default Docker images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/musllinux_1_1 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
+If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/musllinux_1_1 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
 
-Auditwheel detects the version of the manylinux / musllinux standard in the Docker image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a Docker image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
+Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
 #### Examples
 
@@ -955,6 +967,44 @@ Auditwheel detects the version of the manylinux / musllinux standard in the Dock
 
     Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
     if you prefer; they have no effect on `macos` and `windows`.
+
+
+### `CIBW_CONTAINER_ENGINE` {: #container-engine}
+> Specify which container engine to use when building Linux wheels
+
+Options: `docker` `podman`
+
+Default: `docker`
+
+Set the container engine to use. Docker is the default, or you can switch to
+[Podman](https://podman.io/). To use Docker, you need to have a Docker daemon
+running and `docker` available on PATH. To use Podman, it needs to be
+installed and `podman` available on PATH.
+
+!!! tip
+
+    While most users will stick with Docker, Podman is available in different
+    contexts - for example, it can be run inside a Docker container, or without
+    root access. Thanks to the [OCI], images are compatible between engines, so
+    you can still use the regular manylinux/musllinux containers.
+
+[OCI]: https://opencontainers.org/
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_CONTAINER_ENGINE: podman
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    container-engine = "podman"
+    ```
+
 
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
 > Specify how cibuildwheel controls the versions of the tools it uses
@@ -1020,6 +1070,7 @@ Platform-specific environment variables are also available:<br/>
     # Use your own pip constraints file
     dependency-versions = "./constraints.txt"
     ```
+
 
 ## Testing
 

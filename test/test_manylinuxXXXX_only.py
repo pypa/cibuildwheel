@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import platform
 import textwrap
 
@@ -21,17 +23,24 @@ project_with_manylinux_symbols = test_projects.new_c_project(
         #if !__GLIBC_PREREQ(2, 5)  /* manylinux1 is glibc 2.5 */
         #error "Must run on a glibc >= 2.5 linux environment"
         #endif
+
+        #if __GLIBC_PREREQ(2, 28)
+        #include <threads.h>
+        #endif
         """
     ),
     spam_c_function_add=textwrap.dedent(
         r"""
-        #if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 24)
+        #if __GLIBC_PREREQ(2, 28)
+            // thrd_equal & thrd_current are only available in manylinux_2_28+
+            sts = thrd_equal(thrd_current(), thrd_current()) ? 0 : 1;;
+        #elif __GLIBC_PREREQ(2, 24)
             // nextupf is only available in manylinux_2_24+
             sts = (int)nextupf(0.0F);
-        #elif defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 17)  /* manylinux2014 is glibc 2.17 */
+        #elif __GLIBC_PREREQ(2, 17)  /* manylinux2014 is glibc 2.17 */
             // secure_getenv is only available in manylinux2014+
             sts = (int)(intptr_t)secure_getenv("NON_EXISTING_ENV_VARIABLE");
-        #elif defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 10)  /* manylinux2010 is glibc 2.12 */
+        #elif __GLIBC_PREREQ(2, 10)  /* manylinux2010 is glibc 2.12 */
             // malloc_info is only available on manylinux2010+
             sts = malloc_info(0, stdout);
         #endif
@@ -41,14 +50,19 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 
 
 @pytest.mark.parametrize(
-    "manylinux_image", ["manylinux1", "manylinux2010", "manylinux2014", "manylinux_2_24"]
+    "manylinux_image",
+    ["manylinux1", "manylinux2010", "manylinux2014", "manylinux_2_24", "manylinux_2_28"],
 )
 def test(manylinux_image, tmp_path):
     if utils.platform != "linux":
-        pytest.skip("the docker test is only relevant to the linux build")
+        pytest.skip("the container image test is only relevant to the linux build")
     elif platform.machine() not in ["x86_64", "i686"]:
         if manylinux_image in ["manylinux1", "manylinux2010"]:
             pytest.skip("manylinux1 and 2010 doesn't exist for non-x86 architectures")
+        elif manylinux_image == "manylinux_2_28" and platform.machine() == "s390x":
+            pytest.skip("manylinux_2_28 doesn't exist for s390x architecture")
+    elif manylinux_image == "manylinux_2_28" and platform.machine() == "i686":
+        pytest.skip("manylinux_2_28 doesn't exist for i686 architecture")
 
     project_dir = tmp_path / "project"
     project_with_manylinux_symbols.generate(project_dir)
@@ -74,6 +88,9 @@ def test(manylinux_image, tmp_path):
     if manylinux_image in {"manylinux2010"}:
         # We don't have a manylinux2010 image for PyPy 3.9, CPython 3.11
         add_env["CIBW_SKIP"] = "pp39* cp311*"
+    if manylinux_image == "manylinux_2_28" and platform.machine() == "x86_64":
+        # We don't have a manylinux_2_28 image for i686
+        add_env["CIBW_ARCHS"] = "x86_64"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
@@ -91,7 +108,13 @@ def test(manylinux_image, tmp_path):
     if manylinux_image in {"manylinux1"}:
         # remove PyPy & CPython 3.10 and above
         expected_wheels = [w for w in expected_wheels if "-pp" not in w and "-cp31" not in w]
+
     if manylinux_image in {"manylinux2010"}:
         # remove PyPy 3.9 & CPython 3.11
         expected_wheels = [w for w in expected_wheels if "-pp39" not in w and "-cp311" not in w]
+
+    if manylinux_image == "manylinux_2_28" and platform.machine() == "x86_64":
+        # We don't have a manylinux_2_28 image for i686
+        expected_wheels = [w for w in expected_wheels if "i686" not in w]
+
     assert set(actual_wheels) == set(expected_wheels)

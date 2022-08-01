@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import codecs
 import os
 import re
 import sys
 import time
-from typing import IO, AnyStr, Optional, Union
+from typing import IO, AnyStr
 
 from cibuildwheel.typing import Final
 from cibuildwheel.util import CIProvider, detect_ci_provider
@@ -39,10 +41,10 @@ class Logger:
     fold_mode: str
     colors_enabled: bool
     unicode_enabled: bool
-    active_build_identifier: Optional[str] = None
-    build_start_time: Optional[float] = None
-    step_start_time: Optional[float] = None
-    active_fold_group_name: Optional[str] = None
+    active_build_identifier: str | None = None
+    build_start_time: float | None = None
+    step_start_time: float | None = None
+    active_fold_group_name: str | None = None
 
     def __init__(self) -> None:
         if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
@@ -120,7 +122,7 @@ class Logger:
 
             self.step_start_time = None
 
-    def step_end_with_error(self, error: Union[BaseException, str]) -> None:
+    def step_end_with_error(self, error: BaseException | str) -> None:
         self.step_end(success=False)
         self.error(error)
 
@@ -131,7 +133,7 @@ class Logger:
             c = self.colors
             print(f"{c.yellow}Warning{c.end}: {message}\n", file=sys.stderr)
 
-    def error(self, error: Union[BaseException, str]) -> None:
+    def error(self, error: BaseException | str) -> None:
         if self.fold_mode == "github":
             print(f"::error::{error}\n", file=sys.stderr)
         else:
@@ -174,11 +176,11 @@ class Logger:
         return identifier.lower()[:20]
 
     @property
-    def colors(self) -> "Colors":
+    def colors(self) -> Colors:
         return Colors(enabled=self.colors_enabled)
 
     @property
-    def symbols(self) -> "Symbols":
+    def symbols(self) -> Symbols:
         return Symbols(unicode=self.unicode_enabled)
 
 

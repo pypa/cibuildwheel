@@ -1,4 +1,10 @@
-from cibuildwheel.util import format_safe, prepare_command
+from __future__ import annotations
+
+from pathlib import PurePath
+
+import pytest
+
+from cibuildwheel.util import find_compatible_wheel, format_safe, prepare_command
 
 
 def test_format_safe():
@@ -46,3 +52,41 @@ def test_prepare_command():
         prepare_command("{a}{a,b}{b:.2e}{c}{d%s}{e:3}{f[0]}", a="42", b="3.14159")
         == "42{a,b}{b:.2e}{c}{d%s}{e:3}{f[0]}"
     )
+
+
+@pytest.mark.parametrize(
+    "wheel,identifier",
+    (
+        ("foo-0.1-cp38-abi3-win_amd64.whl", "cp310-win_amd64"),
+        ("foo-0.1-cp38-abi3-macosx_11_0_x86_64.whl", "cp310-macosx_x86_64"),
+        ("foo-0.1-cp38-abi3-manylinux2014_x86_64.whl", "cp310-manylinux_x86_64"),
+        ("foo-0.1-cp38-abi3-musllinux_1_1_x86_64.whl", "cp310-musllinux_x86_64"),
+        ("foo-0.1-py2.py3-none-win_amd64.whl", "cp310-win_amd64"),
+        ("foo-0.1-py2.py3-none-win_amd64.whl", "pp310-win_amd64"),
+        ("foo-0.1-py3-none-win_amd64.whl", "cp310-win_amd64"),
+        ("foo-0.1-py38-none-win_amd64.whl", "cp310-win_amd64"),
+        ("foo-0.1-py38-none-win_amd64.whl", "pp310-win_amd64"),
+    ),
+)
+def test_find_compatible_wheel_found(wheel: str, identifier: str):
+    wheel_ = PurePath(wheel)
+    found = find_compatible_wheel([wheel_], identifier)
+    assert found is wheel_
+
+
+@pytest.mark.parametrize(
+    "wheel,identifier",
+    (
+        ("foo-0.1-cp38-abi3-win_amd64.whl", "cp310-win32"),
+        ("foo-0.1-cp38-abi3-win_amd64.whl", "cp37-win_amd64"),
+        ("foo-0.1-cp38-abi3-macosx_11_0_x86_64.whl", "cp310-macosx_universal2"),
+        ("foo-0.1-cp38-abi3-manylinux2014_x86_64.whl", "cp310-musllinux_x86_64"),
+        ("foo-0.1-cp38-abi3-musllinux_1_1_x86_64.whl", "cp310-manylinux_x86_64"),
+        ("foo-0.1-py2-none-win_amd64.whl", "cp310-win_amd64"),
+        ("foo-0.1-py38-none-win_amd64.whl", "cp37-win_amd64"),
+        ("foo-0.1-py38-none-win_amd64.whl", "pp37-win_amd64"),
+        ("foo-0.1-cp38-cp38-win_amd64.whl", "cp310-win_amd64"),
+    ),
+)
+def test_find_compatible_wheel_not_found(wheel: str, identifier: str):
+    assert find_compatible_wheel([PurePath(wheel)], identifier) is None

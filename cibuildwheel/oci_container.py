@@ -1,30 +1,46 @@
+from __future__ import annotations
+
 import io
 import json
 import os
 import platform
 import shlex
+import shutil
 import subprocess
 import sys
 import uuid
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, List, Optional, Sequence, Type, cast
+from typing import IO, Dict, Sequence, cast
 
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
-from .typing import PathOrStr, PopenBytes
+from .typing import Literal, PathOrStr, PopenBytes
+
+ContainerEngine = Literal["docker", "podman"]
 
 
-class DockerContainer:
+class OCIContainer:
     """
-    An object that represents a running Docker container.
+    An object that represents a running OCI (e.g. Docker) container.
 
     Intended for use as a context manager e.g.
-    `with DockerContainer(docker_image = 'ubuntu') as docker:`
+    `with OCIContainer(image = 'ubuntu') as docker:`
 
     A bash shell is running in the remote container. When `call()` is invoked,
     the command is relayed to the remote shell, and the results are streamed
     back to cibuildwheel.
+
+    Example:
+        >>> from cibuildwheel.oci_container import *  # NOQA
+        >>> from cibuildwheel.options import _get_pinned_container_images
+        >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
+        >>> # Test the default container
+        >>> with OCIContainer(image=image) as self:
+        ...     self.call(["echo", "hello world"])
+        ...     self.call(["cat", "/proc/1/cgroup"])
+        ...     print(self.get_environment())
+        ...     print(self.debug_info())
     """
 
     UTILITY_PYTHON = "/opt/python/cp38-cp38/bin/python"
@@ -34,19 +50,25 @@ class DockerContainer:
     bash_stdout: IO[bytes]
 
     def __init__(
-        self, *, docker_image: str, simulate_32_bit: bool = False, cwd: Optional[PathOrStr] = None
+        self,
+        *,
+        image: str,
+        simulate_32_bit: bool = False,
+        cwd: PathOrStr | None = None,
+        engine: ContainerEngine = "docker",
     ):
-        if not docker_image:
-            raise ValueError("Must have a non-empty docker image to run.")
+        if not image:
+            raise ValueError("Must have a non-empty image to run.")
 
-        self.docker_image = docker_image
+        self.image = image
         self.simulate_32_bit = simulate_32_bit
         self.cwd = cwd
-        self.name: Optional[str] = None
+        self.name: str | None = None
+        self.engine = engine
 
-    def __enter__(self) -> "DockerContainer":
+    def __enter__(self) -> OCIContainer:
+
         self.name = f"cibuildwheel-{uuid.uuid4()}"
-        cwd_args = ["-w", str(self.cwd)] if self.cwd else []
 
         # work-around for Travis-CI PPC64le Docker runs since 2021:
         # this avoids network splits
@@ -57,24 +79,25 @@ class DockerContainer:
             network_args = ["--network=host"]
 
         shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
+
         subprocess.run(
             [
-                "docker",
+                self.engine,
                 "create",
                 "--env=CIBUILDWHEEL",
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
                 *network_args,
-                *cwd_args,
-                self.docker_image,
+                self.image,
                 *shell_args,
             ],
             check=True,
         )
+
         self.process = subprocess.Popen(
             [
-                "docker",
+                self.engine,
                 "start",
                 "--attach",
                 "--interactive",
@@ -89,15 +112,21 @@ class DockerContainer:
         self.bash_stdout = self.process.stdout
 
         # run a noop command to block until the container is responding
-        self.call(["/bin/true"])
+        self.call(["/bin/true"], cwd="/")
+
+        if self.cwd:
+            # Although `docker create -w` does create the working dir if it
+            # does not exist, podman does not. There does not seem to be a way
+            # to setup a workdir for a container running in podman.
+            self.call(["mkdir", "-p", os.fspath(self.cwd)], cwd="/")
 
         return self
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
 
         self.bash_stdin.write(b"exit 0\n")
@@ -106,10 +135,19 @@ class DockerContainer:
         self.bash_stdin.close()
         self.bash_stdout.close()
 
+        if self.engine == "podman":
+            # This works around what seems to be a race condition in the podman
+            # backend. The full reason is not understood. See PR #966 for a
+            # discussion on possible causes and attempts to remove this line.
+            # For now, this seems to work "well enough".
+            self.process.wait()
+
         assert isinstance(self.name, str)
 
         subprocess.run(
-            ["docker", "rm", "--force", "-v", self.name], stdout=subprocess.DEVNULL, check=False
+            [self.engine, "rm", "--force", "-v", self.name],
+            stdout=subprocess.DEVNULL,
+            check=False,
         )
         self.name = None
 
@@ -122,52 +160,93 @@ class DockerContainer:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f"tar cf - . | docker exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
+                f"tar cf - . | {self.engine} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
             )
         else:
-            subprocess.run(
-                f'cat {shell_quote(from_path)} | docker exec -i {self.name} sh -c "cat > {shell_quote(to_path)}"',
-                shell=True,
-                check=True,
-            )
+            with subprocess.Popen(
+                [
+                    self.engine,
+                    "exec",
+                    "-i",
+                    str(self.name),
+                    "sh",
+                    "-c",
+                    f"cat > {shell_quote(to_path)}",
+                ],
+                stdin=subprocess.PIPE,
+            ) as exec_process:
+                exec_process.stdin = cast(IO[bytes], exec_process.stdin)
+
+                with open(from_path, "rb") as from_file:
+                    shutil.copyfileobj(from_file, exec_process.stdin)
+
+                exec_process.stdin.close()
+                exec_process.wait()
+
+                if exec_process.returncode:
+                    raise subprocess.CalledProcessError(
+                        exec_process.returncode, exec_process.args, None, None
+                    )
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
 
-        subprocess.run(
-            f"docker exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -",
-            shell=True,
-            check=True,
-            cwd=to_path,
-        )
+        if self.engine == "podman":
+            subprocess.run(
+                [
+                    self.engine,
+                    "cp",
+                    f"{self.name}:{from_path}/.",
+                    str(to_path),
+                ],
+                check=True,
+                cwd=to_path,
+            )
+        elif self.engine == "docker":
+            # There is a bug in docker that prevents a simple 'cp' invocation
+            # from working https://github.com/moby/moby/issues/38995
+            command = f"{self.engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
+            subprocess.run(
+                command,
+                shell=True,
+                check=True,
+                cwd=to_path,
+            )
+        else:
+            raise KeyError(self.engine)
 
-    def glob(self, path: PurePath, pattern: str) -> List[PurePath]:
-        glob_pattern = os.path.join(str(path), pattern)
+    def glob(self, path: PurePosixPath, pattern: str) -> list[PurePosixPath]:
+        glob_pattern = path.joinpath(pattern)
 
         path_strings = json.loads(
             self.call(
                 [
                     self.UTILITY_PYTHON,
                     "-c",
-                    f"import sys, json, glob; json.dump(glob.glob({glob_pattern!r}), sys.stdout)",
+                    f"import sys, json, glob; json.dump(glob.glob({str(glob_pattern)!r}), sys.stdout)",
                 ],
                 capture_output=True,
             )
         )
 
-        return [PurePath(p) for p in path_strings]
+        return [PurePosixPath(p) for p in path_strings]
 
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: Optional[Dict[str, str]] = None,
+        env: dict[str, str] | None = None,
         capture_output: bool = False,
-        cwd: Optional[PathOrStr] = None,
+        cwd: PathOrStr | None = None,
     ) -> str:
+
+        if cwd is None:
+            # Podman does not start the a container in a specific working dir
+            # so we always need to specify it when making calls.
+            cwd = self.cwd
 
         chdir = f"cd {cwd}" if cwd else ""
         env_assignments = (
@@ -237,7 +316,7 @@ class DockerContainer:
 
         return output
 
-    def get_environment(self) -> Dict[str, str]:
+    def get_environment(self) -> dict[str, str]:
         env = json.loads(
             self.call(
                 [
@@ -250,10 +329,26 @@ class DockerContainer:
         )
         return cast(Dict[str, str], env)
 
-    def environment_executor(self, command: List[str], environment: Dict[str, str]) -> str:
+    def environment_executor(self, command: list[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
         return self.call(command, env=environment, capture_output=True)
 
+    def debug_info(self) -> str:
+        if self.engine == "podman":
+            command = f"{self.engine} info --debug"
+        else:
+            command = f"{self.engine} info"
+        completed = subprocess.run(
+            command,
+            shell=True,
+            check=True,
+            cwd=self.cwd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        output = str(completed.stdout, encoding="utf8", errors="surrogateescape")
+        return output
+
 
 def shell_quote(path: PurePath) -> str:
-    return shlex.quote(str(path))
+    return shlex.quote(os.fspath(path))

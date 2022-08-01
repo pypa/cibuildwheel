@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
@@ -36,7 +38,7 @@ else:
 
 
 PlatformName = Literal["linux", "macos", "windows"]
-PLATFORMS: Final[Set[PlatformName]] = {"linux", "macos", "windows"}
+PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows"}
 
 
 def assert_never(value: NoReturn) -> NoReturn:

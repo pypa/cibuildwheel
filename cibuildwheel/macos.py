@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import platform
@@ -5,8 +7,9 @@ import re
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Sequence, Set, Tuple, cast
+from typing import Sequence, Tuple, cast
 
 from filelock import FileLock
 
@@ -17,13 +20,14 @@ from .options import Options
 from .typing import Literal, PathOrStr, assert_never
 from .util import (
     CIBW_CACHE_PATH,
+    AlreadyBuiltWheelError,
     BuildFrontend,
     BuildSelector,
     NonPlatformWheelError,
     call,
     detect_ci_provider,
     download,
-    find_compatible_abi3_wheel,
+    find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
@@ -35,7 +39,7 @@ from .util import (
 )
 
 
-def get_macos_version() -> Tuple[int, int]:
+def get_macos_version() -> tuple[int, int]:
     """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
 
@@ -49,20 +53,21 @@ def get_macos_version() -> Tuple[int, int]:
     return cast(Tuple[int, int], version)
 
 
-def get_macos_sdks() -> List[str]:
+def get_macos_sdks() -> list[str]:
     output = call("xcodebuild", "-showsdks", capture_stdout=True)
     return [m.group(1) for m in re.finditer(r"-sdk (macosx\S+)", output)]
 
 
-class PythonConfiguration(NamedTuple):
+@dataclass(frozen=True)
+class PythonConfiguration:
     version: str
     identifier: str
     url: str
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: Set[Architecture]
-) -> List[PythonConfiguration]:
+    build_selector: BuildSelector, architectures: set[Architecture]
+) -> list[PythonConfiguration]:
 
     full_python_configs = read_python_configs("macos")
 
@@ -131,7 +136,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
@@ -292,7 +297,7 @@ def build(options: Options, tmp_path: Path) -> None:
             )
             shell(before_all_prepared, env=env)
 
-        built_wheels: List[Path] = []
+        built_wheels: list[Path] = []
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
@@ -321,13 +326,13 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.build_frontend,
             )
 
-            abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
-            if abi3_wheel:
+            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
+            if compatible_wheel:
                 log.step_end()
                 print(
-                    f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                    f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                 )
-                repaired_wheel = abi3_wheel
+                repaired_wheel = compatible_wheel
             else:
                 if build_options.before_build:
                     log.step("Running before_build...")
@@ -408,11 +413,14 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
 
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise AlreadyBuiltWheelError(repaired_wheel.name)
+
                 log.step_end()
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()
-                testing_archs: List[Literal["x86_64", "arm64"]]
+                testing_archs: list[Literal["x86_64", "arm64"]]
 
                 if config_is_arm64:
                     testing_archs = ["arm64"]
@@ -459,6 +467,23 @@ def build(options: Options, tmp_path: Path) -> None:
                         # skip this test
                         continue
 
+                    if testing_arch == "arm64" and config.identifier.startswith("cp38-"):
+                        log.warning(
+                            unwrap(
+                                """
+                                While cibuildwheel can build CPython 3.8 universal2/arm64 wheels, we
+                                cannot test the arm64 part of them, even when running on an Apple
+                                Silicon machine. This is because we use the x86_64 installer of
+                                CPython 3.8. See the discussion in
+                                https://github.com/pypa/cibuildwheel/pull/1169 for the details. To
+                                silence this warning, set `CIBW_TEST_SKIP: cp38-macosx_*:arm64`.
+                                """
+                            )
+                        )
+
+                        # skip this test
+                        continue
+
                     log.step(
                         "Testing wheel..."
                         if testing_arch == machine_arch
@@ -482,7 +507,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     # define a custom 'call' function that adds the arch prefix each time
                     call_with_arch = functools.partial(call, *arch_prefix)
-                    shell_with_arch = functools.partial(shell, *arch_prefix)
+                    shell_with_arch = functools.partial(call, *arch_prefix, "/bin/sh", "-c")
 
                     # Use --no-download to ensure determinism by using seed libraries
                     # built into virtualenv
@@ -534,7 +559,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
 
             # we're all done here; move it to output (overwrite existing)
-            if abi3_wheel is None:
+            if compatible_wheel is None:
+                try:
+                    (build_options.output_dir / repaired_wheel.name).unlink()
+                except FileNotFoundError:
+                    pass
+
                 shutil.move(str(repaired_wheel), build_options.output_dir)
                 built_wheels.append(build_options.output_dir / repaired_wheel.name)
 

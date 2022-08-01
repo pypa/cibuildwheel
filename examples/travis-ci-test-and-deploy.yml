@@ -9,7 +9,6 @@ os: linux
 dist: focal
 language: python
 python:
-  - 3.6
   - 3.7
   - 3.8
 
@@ -55,7 +54,7 @@ jobs:
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker
-      install: python3 -m pip install cibuildwheel==2.6.1 twine
+      install: python3 -m pip install cibuildwheel==2.8.1 twine
       script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
     # Deploy on windows
@@ -63,7 +62,7 @@ jobs:
       name: Build and deploy Windows wheels
       os: windows
       language: shell
-      install: python3 -m pip install cibuildwheel==2.6.1 twine
+      install: python3 -m pip install cibuildwheel==2.8.1 twine
       script: python3 -m cibuildwheel --output-dir wheelhouse
       after_success: python3 -m twine upload --skip-existing wheelhouse/*.whl
 

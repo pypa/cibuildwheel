@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import os
 import platform as platform_module
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Sequence, Set
+from typing import Sequence
 from zipfile import ZipFile
 
 from filelock import FileLock
@@ -18,12 +21,13 @@ from .options import Options
 from .typing import PathOrStr, assert_never
 from .util import (
     CIBW_CACHE_PATH,
+    AlreadyBuiltWheelError,
     BuildFrontend,
     BuildSelector,
     NonPlatformWheelError,
     call,
     download,
-    find_compatible_abi3_wheel,
+    find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
     prepare_command,
@@ -53,17 +57,18 @@ def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]
     ]
 
 
-class PythonConfiguration(NamedTuple):
+@dataclass(frozen=True)
+class PythonConfiguration:
     version: str
     arch: str
     identifier: str
-    url: Optional[str] = None
+    url: str | None = None
 
 
 def get_python_configurations(
     build_selector: BuildSelector,
-    architectures: Set[Architecture],
-) -> List[PythonConfiguration]:
+    architectures: set[Architecture],
+) -> list[PythonConfiguration]:
 
     full_python_configs = read_python_configs("windows")
 
@@ -172,7 +177,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     python_libs_base = None
@@ -318,7 +323,7 @@ def build(options: Options, tmp_path: Path) -> None:
             )
             shell(before_all_prepared, env=env)
 
-        built_wheels: List[Path] = []
+        built_wheels: list[Path] = []
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
@@ -345,13 +350,13 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.build_frontend,
             )
 
-            abi3_wheel = find_compatible_abi3_wheel(built_wheels, config.identifier)
-            if abi3_wheel:
+            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
+            if compatible_wheel:
                 log.step_end()
                 print(
-                    f"\nFound previously built wheel {abi3_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                    f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                 )
-                repaired_wheel = abi3_wheel
+                repaired_wheel = compatible_wheel
             else:
                 # run the before_build command
                 if build_options.before_build:
@@ -433,6 +438,9 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
 
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise AlreadyBuiltWheelError(repaired_wheel.name)
+
             if build_options.test_command and options.globals.test_selector(config.identifier):
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
@@ -486,7 +494,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 shell(test_command_prepared, cwd="c:\\", env=virtualenv_env)
 
             # we're all done here; move it to output (remove if already exists)
-            if abi3_wheel is None:
+            if compatible_wheel is None:
                 shutil.move(str(repaired_wheel), build_options.output_dir)
                 built_wheels.append(build_options.output_dir / repaired_wheel.name)
 

@@ -4,14 +4,14 @@ jobs:
   linux-wheels:
     working_directory: ~/linux-wheels
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.9
     steps:
       - checkout
       - setup_remote_docker
       - run:
           name: Build the Linux wheels.
           command: |
-            pip3 install --user cibuildwheel==2.6.1
+            pip3 install --user cibuildwheel==2.8.1
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -25,7 +25,7 @@ jobs:
       - run:
           name: Build the OS X wheels.
           command: |
-            pip3 install cibuildwheel==2.6.1
+            pip3 install cibuildwheel==2.8.1
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/

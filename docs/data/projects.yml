@@ -589,3 +589,8 @@
   gh: MarshalX/python-webrtc
   ci: [github]
   os: [windows, apple, linux]
+
+- name: cf-units
+  gh: SciTools/cf-units
+  ci: [github]
+  os: [apple, linux]

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from threading import RLock
-from typing import Any, Callable, Generic, Optional, Type, TypeVar, overload
+from typing import Any, Callable, Generic, TypeVar, overload
 
 __all__ = ["cached_property"]
 
@@ -11,11 +13,11 @@ _T = TypeVar("_T")
 class cached_property(Generic[_T]):
     def __init__(self, func: Callable[[Any], _T]):
         self.func = func
-        self.attrname: Optional[str] = None
+        self.attrname: str | None = None
         self.__doc__ = func.__doc__
         self.lock = RLock()
 
-    def __set_name__(self, owner: Type[Any], name: str) -> None:
+    def __set_name__(self, owner: type[Any], name: str) -> None:
         if self.attrname is None:
             self.attrname = name
         elif name != self.attrname:
@@ -25,14 +27,14 @@ class cached_property(Generic[_T]):
             )
 
     @overload
-    def __get__(self, instance: None, owner: Optional[Type[Any]] = ...) -> "cached_property[_T]":
+    def __get__(self, instance: None, owner: type[Any] | None = ...) -> cached_property[_T]:
         ...
 
     @overload
-    def __get__(self, instance: object, owner: Optional[Type[Any]] = ...) -> _T:
+    def __get__(self, instance: object, owner: type[Any] | None = ...) -> _T:
         ...
 
-    def __get__(self, instance: Optional[object], owner: Optional[Type[Any]] = None) -> Any:
+    def __get__(self, instance: object | None, owner: type[Any] | None = None) -> Any:
         if instance is None:
             return self
         if self.attrname is None:

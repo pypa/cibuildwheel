@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import textwrap
 from pathlib import Path
 from pprint import pprint
 
-import cibuildwheel.docker_container
 import cibuildwheel.linux
+import cibuildwheel.oci_container
 from cibuildwheel.options import Options
 
 from .utils import get_default_command_line_arguments
@@ -11,7 +13,7 @@ from .utils import get_default_command_line_arguments
 
 def test_linux_container_split(tmp_path: Path, monkeypatch):
     """
-    Tests splitting linux builds by docker image and before_all
+    Tests splitting linux builds by container image and before_all
     """
 
     args = get_default_command_line_arguments()
@@ -21,16 +23,16 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
         textwrap.dedent(
             """
                 [tool.cibuildwheel]
-                manylinux-x86_64-image = "normal_docker_image"
-                manylinux-i686-image = "normal_docker_image"
+                manylinux-x86_64-image = "normal_container_image"
+                manylinux-i686-image = "normal_container_image"
                 build = "*-manylinux_x86_64"
                 skip = "pp*"
                 archs = "x86_64 i686"
 
                 [[tool.cibuildwheel.overrides]]
                 select = "cp{38,39,310}-*"
-                manylinux-x86_64-image = "other_docker_image"
-                manylinux-i686-image = "other_docker_image"
+                manylinux-x86_64-image = "other_container_image"
+                manylinux-i686-image = "other_container_image"
 
                 [[tool.cibuildwheel.overrides]]
                 select = "cp39-*"
@@ -57,14 +59,14 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
 
     pprint(build_steps)
 
-    assert build_steps[0].docker_image == "normal_docker_image"
+    assert build_steps[0].container_image == "normal_container_image"
     assert identifiers(build_steps[0]) == ["cp36-manylinux_x86_64", "cp37-manylinux_x86_64"]
     assert before_alls(build_steps[0]) == ["", ""]
 
-    assert build_steps[1].docker_image == "other_docker_image"
+    assert build_steps[1].container_image == "other_container_image"
     assert identifiers(build_steps[1]) == ["cp38-manylinux_x86_64", "cp310-manylinux_x86_64"]
     assert before_alls(build_steps[1]) == ["", ""]
 
-    assert build_steps[2].docker_image == "other_docker_image"
+    assert build_steps[2].container_image == "other_container_image"
     assert identifiers(build_steps[2]) == ["cp39-manylinux_x86_64"]
     assert before_alls(build_steps[2]) == ["echo 'a cp39-only command'"]

@@ -11,22 +11,11 @@ jobs:
         python ./bin/run_tests.py
 
 - job: macos_38
-  pool: {vmImage: 'macOS-10.15'}
+  pool: {vmImage: 'macOS-11'}
   steps:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.8'
-    - bash: |
-        python -m pip install -e ".[dev]" pytest-azurepipelines
-        python ./bin/run_tests.py
-
-- job: windows_36
-  pool: {vmImage: 'windows-2019'}
-  timeoutInMinutes: 180
-  steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.6'
     - bash: |
         python -m pip install -e ".[dev]" pytest-azurepipelines
         python ./bin/run_tests.py

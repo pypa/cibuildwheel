@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import platform as platform_module
 
 import pytest
 
 from cibuildwheel.__main__ import get_build_identifiers
 from cibuildwheel.environment import parse_environment
-from cibuildwheel.options import Options, _get_pinned_docker_images
+from cibuildwheel.options import Options, _get_pinned_container_images
 
 from .utils import get_default_command_line_arguments
 
@@ -58,18 +60,18 @@ test_command: 'pyproject'
 
     assert default_build_options.environment == parse_environment('FOO="BAR"')
 
-    all_pinned_docker_images = _get_pinned_docker_images()
-    pinned_x86_64_docker_image = all_pinned_docker_images["x86_64"]
+    all_pinned_container_images = _get_pinned_container_images()
+    pinned_x86_64_container_image = all_pinned_container_images["x86_64"]
 
     local = options.build_options("cp38-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject"
-    assert local.manylinux_images["x86_64"] == pinned_x86_64_docker_image["manylinux1"]
+    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux1"]
 
     local = options.build_options("cp37-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
-    assert local.manylinux_images["x86_64"] == pinned_x86_64_docker_image["manylinux2014"]
+    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux2014"]
 
 
 def test_passthrough(tmp_path, monkeypatch):

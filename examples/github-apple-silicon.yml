@@ -4,16 +4,16 @@ on: [push, pull_request]
 
 jobs:
   build_wheels_macos:
-    name: Build wheels on macos-10.15
-    runs-on: macos-10.15
+    name: Build wheels on macos-11
+    runs-on: macos-11
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.6.1
+        uses: pypa/cibuildwheel@v2.8.1
         env:
           CIBW_ARCHS_MACOS: x86_64 universal2
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl

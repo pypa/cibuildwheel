@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 import shutil
@@ -7,7 +9,6 @@ import tempfile
 import textwrap
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import List, Set, Union
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -46,7 +47,7 @@ def main() -> None:
             auto-detected platform or to run cibuildwheel on your development
             machine. Specifying "macos" or "windows" only works on that
             operating system, but "linux" works on all three, as long as
-            Docker is installed. Default: auto.
+            Docker/Podman is installed. Default: auto.
         """,
     )
 
@@ -91,7 +92,7 @@ def main() -> None:
             Path to the package that you want wheels for. Default: the working
             directory. Can be a directory inside the working directory, or an
             sdist. When set to a directory, the working directory is still
-            considered the 'project' and is copied into the Docker container
+            considered the 'project' and is copied into the build container
             on Linux.  When set to a tar.gz sdist file, --config-file
             and --output-dir are relative to the current directory, and other
             paths are relative to the expanded SDist directory.
@@ -116,7 +117,7 @@ def main() -> None:
         help="Enable pre-release Python versions if available.",
     )
 
-    args = parser.parse_args(namespace=CommandLineArguments())
+    args = CommandLineArguments(**vars(parser.parse_args()))
 
     args.package_dir = args.package_dir.resolve()
 
@@ -208,7 +209,6 @@ def build_in_directory(args: CommandLineArguments) -> None:
         sys.exit(0)
 
     # Add CIBUILDWHEEL environment variable
-    # This needs to be passed on to the docker container in linux.py
     os.environ["CIBUILDWHEEL"] = "1"
 
     # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
@@ -258,7 +258,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             log.warning(f"Can't delete temporary folder '{str(tmp_path)}'")
 
 
-def print_preamble(platform: str, options: Options, identifiers: List[str]) -> None:
+def print_preamble(platform: str, options: Options, identifiers: list[str]) -> None:
     print(
         textwrap.dedent(
             """
@@ -288,13 +288,13 @@ def print_preamble(platform: str, options: Options, identifiers: List[str]) -> N
 
 
 def get_build_identifiers(
-    platform: PlatformName, build_selector: BuildSelector, architectures: Set[Architecture]
-) -> List[str]:
-    python_configurations: Union[
-        List[cibuildwheel.linux.PythonConfiguration],
-        List[cibuildwheel.windows.PythonConfiguration],
-        List[cibuildwheel.macos.PythonConfiguration],
-    ]
+    platform: PlatformName, build_selector: BuildSelector, architectures: set[Architecture]
+) -> list[str]:
+    python_configurations: (
+        list[cibuildwheel.linux.PythonConfiguration]
+        | list[cibuildwheel.windows.PythonConfiguration]
+        | list[cibuildwheel.macos.PythonConfiguration]
+    )
 
     if platform == "linux":
         python_configurations = cibuildwheel.linux.get_python_configurations(
@@ -314,7 +314,7 @@ def get_build_identifiers(
     return [config.identifier for config in python_configurations]
 
 
-def detect_warnings(*, options: Options, identifiers: List[str]) -> List[str]:
+def detect_warnings(*, options: Options, identifiers: list[str]) -> list[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}

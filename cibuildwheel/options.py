@@ -1,22 +1,14 @@
+from __future__ import annotations
+
 import functools
 import os
 import sys
 import traceback
 from configparser import ConfigParser
 from contextlib import contextmanager
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import (
-    Any,
-    Dict,
-    Generator,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-)
+from typing import Any, Dict, Generator, List, Mapping, Union, cast
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -27,6 +19,7 @@ from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
 from .typing import PLATFORMS, Literal, PlatformName, TypedDict
 from .util import (
@@ -45,9 +38,10 @@ from .util import (
 )
 
 
+@dataclass
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
-    archs: Optional[str]
+    archs: str | None
     output_dir: Path
     config_file: str
     package_dir: Path
@@ -56,26 +50,29 @@ class CommandLineArguments:
     prerelease_pythons: bool
 
 
-class GlobalOptions(NamedTuple):
+@dataclass(frozen=True)
+class GlobalOptions:
     package_dir: Path
     output_dir: Path
     build_selector: BuildSelector
     test_selector: TestSelector
-    architectures: Set[Architecture]
+    architectures: set[Architecture]
+    container_engine: ContainerEngine
 
 
-class BuildOptions(NamedTuple):
+@dataclass(frozen=True)
+class BuildOptions:
     globals: GlobalOptions
     environment: ParsedEnvironment
     before_all: str
-    before_build: Optional[str]
+    before_build: str | None
     repair_command: str
-    manylinux_images: Optional[Dict[str, str]]
-    musllinux_images: Optional[Dict[str, str]]
-    dependency_constraints: Optional[DependencyConstraints]
-    test_command: Optional[str]
-    before_test: Optional[str]
-    test_requires: List[str]
+    manylinux_images: dict[str, str] | None
+    musllinux_images: dict[str, str] | None
+    dependency_constraints: DependencyConstraints | None
+    test_command: str | None
+    before_test: str | None
+    test_requires: list[str]
     test_extras: str
     build_verbosity: int
     build_frontend: BuildFrontend
@@ -97,16 +94,17 @@ class BuildOptions(NamedTuple):
         return self.globals.test_selector
 
     @property
-    def architectures(self) -> Set[Architecture]:
+    def architectures(self) -> set[Architecture]:
         return self.globals.architectures
 
 
 Setting = Union[Dict[str, str], List[str], str, int]
 
 
-class Override(NamedTuple):
+@dataclass(frozen=True)
+class Override:
     select_pattern: str
-    options: Dict[str, Setting]
+    options: dict[str, Setting]
 
 
 MANYLINUX_OPTIONS = {f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS}
@@ -127,7 +125,7 @@ class ConfigOptionError(KeyError):
     pass
 
 
-def _dig_first(*pairs: Tuple[Mapping[str, Setting], str], ignore_empty: bool = False) -> Setting:
+def _dig_first(*pairs: tuple[Mapping[str, Setting], str], ignore_empty: bool = False) -> Setting:
     """
     Return the first dict item that matches from pairs of dicts and keys.
     Will throw a KeyError if missing.
@@ -169,10 +167,10 @@ class OptionsReader:
 
     def __init__(
         self,
-        config_file_path: Optional[Path] = None,
+        config_file_path: Path | None = None,
         *,
         platform: PlatformName,
-        disallow: Optional[Dict[str, Set[str]]] = None,
+        disallow: dict[str, set[str]] | None = None,
     ) -> None:
         self.platform = platform
         self.disallow = disallow or {}
@@ -182,8 +180,8 @@ class OptionsReader:
         self.default_options, self.default_platform_options = self._load_file(defaults_path)
 
         # Load the project config file
-        config_options: Dict[str, Any] = {}
-        config_platform_options: Dict[str, Any] = {}
+        config_options: dict[str, Any] = {}
+        config_platform_options: dict[str, Any] = {}
 
         if config_file_path is not None:
             config_options, config_platform_options = self._load_file(config_file_path)
@@ -202,8 +200,8 @@ class OptionsReader:
         self.config_options = config_options
         self.config_platform_options = config_platform_options
 
-        self.overrides: List[Override] = []
-        self.current_identifier: Optional[str] = None
+        self.overrides: list[Override] = []
+        self.current_identifier: str | None = None
 
         config_overrides = self.config_options.get("overrides")
 
@@ -244,7 +242,7 @@ class OptionsReader:
 
         return name in allowed_option_names
 
-    def _load_file(self, filename: Path) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    def _load_file(self, filename: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         """
         Load a toml file, returns global and platform as separate dicts.
         """
@@ -257,7 +255,7 @@ class OptionsReader:
         return global_options, platform_options
 
     @property
-    def active_config_overrides(self) -> List[Override]:
+    def active_config_overrides(self) -> list[Override]:
         if self.current_identifier is None:
             return []
         return [
@@ -265,7 +263,7 @@ class OptionsReader:
         ]
 
     @contextmanager
-    def identifier(self, identifier: Optional[str]) -> Generator[None, None, None]:
+    def identifier(self, identifier: str | None) -> Generator[None, None, None]:
         self.current_identifier = identifier
         try:
             yield
@@ -277,8 +275,8 @@ class OptionsReader:
         name: str,
         *,
         env_plat: bool = True,
-        sep: Optional[str] = None,
-        table: Optional[TableFmt] = None,
+        sep: str | None = None,
+        table: TableFmt | None = None,
         ignore_empty: bool = False,
     ) -> str:
         """
@@ -342,7 +340,7 @@ class Options:
         )
 
     @property
-    def config_file_path(self) -> Optional[Path]:
+    def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
 
         if args.config_file:
@@ -356,7 +354,7 @@ class Options:
         return None
 
     @cached_property
-    def package_requires_python_str(self) -> Optional[str]:
+    def package_requires_python_str(self) -> str | None:
         args = self.command_line_arguments
         return get_requires_python_str(Path(args.package_dir))
 
@@ -376,7 +374,7 @@ class Options:
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
-        requires_python_str: Optional[str] = (
+        requires_python_str: str | None = (
             os.environ.get("CIBW_PROJECT_REQUIRES_PYTHON") or self.package_requires_python_str
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
@@ -392,15 +390,25 @@ class Options:
         archs_config_str = args.archs or self.reader.get("archs", sep=" ")
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
+        container_engine_str = self.reader.get("container-engine")
+
+        if container_engine_str not in ["docker", "podman"]:
+            msg = f"cibuildwheel: Unrecognised container_engine '{container_engine_str}', only 'docker' and 'podman' are supported"
+            print(msg, file=sys.stderr)
+            sys.exit(2)
+
+        container_engine = cast(ContainerEngine, container_engine_str)
+
         return GlobalOptions(
             package_dir=package_dir,
             output_dir=output_dir,
             build_selector=build_selector,
             test_selector=test_selector,
             architectures=architectures,
+            container_engine=container_engine,
         )
 
-    def build_options(self, identifier: Optional[str]) -> BuildOptions:
+    def build_options(self, identifier: str | None) -> BuildOptions:
         """
         Compute BuildOptions for a single run configuration.
         """
@@ -452,9 +460,9 @@ class Options:
                         pass
 
             if dependency_versions == "pinned":
-                dependency_constraints: Optional[
+                dependency_constraints: None | (
                     DependencyConstraints
-                ] = DependencyConstraints.with_defaults()
+                ) = DependencyConstraints.with_defaults()
             elif dependency_versions == "latest":
                 dependency_constraints = None
             else:
@@ -469,13 +477,13 @@ class Options:
             except ValueError:
                 build_verbosity = 0
 
-            manylinux_images: Dict[str, str] = {}
-            musllinux_images: Dict[str, str] = {}
+            manylinux_images: dict[str, str] = {}
+            musllinux_images: dict[str, str] = {}
             if self.platform == "linux":
-                all_pinned_docker_images = _get_pinned_docker_images()
+                all_pinned_container_images = _get_pinned_container_images()
 
                 for build_platform in MANYLINUX_ARCHS:
-                    pinned_images = all_pinned_docker_images[build_platform]
+                    pinned_images = all_pinned_container_images[build_platform]
 
                     config_value = self.reader.get(
                         f"manylinux-{build_platform}-image", ignore_empty=True
@@ -492,7 +500,7 @@ class Options:
                     manylinux_images[build_platform] = image
 
                 for build_platform in MUSLLINUX_ARCHS:
-                    pinned_images = all_pinned_docker_images[build_platform]
+                    pinned_images = all_pinned_container_images[build_platform]
 
                     config_value = self.reader.get(f"musllinux-{build_platform}-image")
 
@@ -522,7 +530,7 @@ class Options:
                 build_frontend=build_frontend,
             )
 
-    def check_for_invalid_configuration(self, identifiers: List[str]) -> None:
+    def check_for_invalid_configuration(self, identifiers: list[str]) -> None:
         if self.platform in ["macos", "windows"]:
             before_all_values = {self.build_options(i).before_all for i in identifiers}
 
@@ -545,15 +553,15 @@ class Options:
         deprecated_selectors("CIBW_SKIP", build_selector.skip_config)
         deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
-    def summary(self, identifiers: List[str]) -> str:
+    def summary(self, identifiers: list[str]) -> str:
         lines = [
             f"{option_name}: {option_value!r}"
-            for option_name, option_value in sorted(self.globals._asdict().items())
+            for option_name, option_value in sorted(asdict(self.globals).items())
         ]
 
         build_option_defaults = self.build_options(identifier=None)
 
-        for option_name, default_value in sorted(build_option_defaults._asdict().items()):
+        for option_name, default_value in sorted(asdict(build_option_defaults).items()):
             if option_name == "globals":
                 continue
 
@@ -561,7 +569,7 @@ class Options:
 
             # if any identifiers have an overridden value, print that too
             for identifier in identifiers:
-                option_value = self.build_options(identifier=identifier)._asdict()[option_name]
+                option_value = getattr(self.build_options(identifier=identifier), option_name)
                 if option_value != default_value:
                     lines.append(f"  {identifier}: {option_value!r}")
 
@@ -578,7 +586,7 @@ def compute_options(
 
 
 @functools.lru_cache(maxsize=None)
-def _get_pinned_docker_images() -> Mapping[str, Mapping[str, str]]:
+def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
     { 'x86_64': {'manylinux1': '...', 'manylinux2010': '...', 'manylinux2014': '...'},
@@ -587,10 +595,10 @@ def _get_pinned_docker_images() -> Mapping[str, Mapping[str, str]]:
       ... }
     """
 
-    pinned_docker_images_file = resources_dir / "pinned_docker_images.cfg"
-    all_pinned_docker_images = ConfigParser()
-    all_pinned_docker_images.read(pinned_docker_images_file)
-    return all_pinned_docker_images
+    pinned_images_file = resources_dir / "pinned_docker_images.cfg"
+    all_pinned_images = ConfigParser()
+    all_pinned_images.read(pinned_images_file)
+    return all_pinned_images
 
 
 def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:

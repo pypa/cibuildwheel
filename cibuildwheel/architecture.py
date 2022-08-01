@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import functools
 import platform as platform_module
 import re
 from enum import Enum
-from typing import Set
 
 from .typing import Final, Literal, PlatformName, assert_never
 
@@ -32,11 +33,11 @@ class Architecture(Enum):
     ARM64 = "ARM64"
 
     # Allow this to be sorted
-    def __lt__(self, other: "Architecture") -> bool:
+    def __lt__(self, other: Architecture) -> bool:
         return self.value < other.value
 
     @staticmethod
-    def parse_config(config: str, platform: PlatformName) -> "Set[Architecture]":
+    def parse_config(config: str, platform: PlatformName) -> set[Architecture]:
         result = set()
         for arch_str in re.split(r"[\s,]+", config):
             if arch_str == "auto":
@@ -54,12 +55,12 @@ class Architecture(Enum):
         return result
 
     @staticmethod
-    def auto_archs(platform: PlatformName) -> "Set[Architecture]":
+    def auto_archs(platform: PlatformName) -> set[Architecture]:
         native_architecture = Architecture(platform_module.machine())
         result = {native_architecture}
 
         if platform == "linux" and native_architecture == Architecture.x86_64:
-            # x86_64 machines can run i686 docker containers
+            # x86_64 machines can run i686 containers
             result.add(Architecture.i686)
 
         if platform == "windows" and native_architecture == Architecture.AMD64:
@@ -72,7 +73,7 @@ class Architecture(Enum):
         return result
 
     @staticmethod
-    def all_archs(platform: PlatformName) -> "Set[Architecture]":
+    def all_archs(platform: PlatformName) -> set[Architecture]:
         all_archs_map = {
             "linux": {
                 Architecture.x86_64,
@@ -87,7 +88,7 @@ class Architecture(Enum):
         return all_archs_map[platform]
 
     @staticmethod
-    def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> "Set[Architecture]":
+    def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> set[Architecture]:
         archs_32 = {Architecture.i686, Architecture.x86}
         auto_archs = Architecture.auto_archs(platform)
 
@@ -101,7 +102,7 @@ class Architecture(Enum):
 
 def allowed_architectures_check(
     platform: PlatformName,
-    architectures: Set[Architecture],
+    architectures: set[Architecture],
 ) -> None:
 
     allowed_architectures = Architecture.all_archs(platform)

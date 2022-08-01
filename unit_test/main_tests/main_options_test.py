@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 from fnmatch import fnmatch
 from pathlib import Path
@@ -11,7 +13,7 @@ else:
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.options import BuildOptions, _get_pinned_docker_images
+from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.util import BuildSelector, resources_dir
 
 # CIBW_PLATFORM is tested in main_platform_test.py
@@ -80,6 +82,7 @@ def test_empty_selector(platform, intercepted_build_args, monkeypatch):
         ("x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
         ("x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
+        ("x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "custom_image", "custom_image"),
         ("i686", None, "quay.io/pypa/manylinux2014_i686:*"),
         ("i686", "manylinux1", "quay.io/pypa/manylinux1_i686:*"),
@@ -92,6 +95,7 @@ def test_empty_selector(platform, intercepted_build_args, monkeypatch):
         ("pypy_x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
         ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
+        ("pypy_x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "custom_image", "custom_image"),
     ],
 )
@@ -337,6 +341,6 @@ def test_defaults(platform, intercepted_build_args):
 
     if platform == "linux":
         assert build_options.manylinux_images
-        pinned_images = _get_pinned_docker_images()
+        pinned_images = _get_pinned_container_images()
         default_x86_64_image = pinned_images["x86_64"][defaults["manylinux-x86_64-image"]]
         assert build_options.manylinux_images["x86_64"] == default_x86_64_image
