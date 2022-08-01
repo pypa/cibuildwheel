@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-
-from __future__ import annotations
+# This file supports 3.6+
 
 import os
 import shutil
@@ -34,7 +33,7 @@ subprocess.run(
 )
 
 # default constraints.txt
-if python_version == "39":
+if python_version == "311":
     shutil.copyfile(
         RESOURCES / f"constraints-python{python_version}.txt",
         RESOURCES / "constraints.txt",
