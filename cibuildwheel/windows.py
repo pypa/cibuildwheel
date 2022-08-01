@@ -167,7 +167,9 @@ def setup_setuptools_cross_compile(
     # interpreter, and has no logic to construct it. Currently, CPython's
     # extensions follow our identifiers, but if they ever diverge in the
     # future, we will need to store new data
-    log.notice(f"Setting SETUPTOOLS_EXT_SUFFIX=.{python_configuration.identifier}.pyd for cross-compilation")
+    log.notice(
+        f"Setting SETUPTOOLS_EXT_SUFFIX=.{python_configuration.identifier}.pyd for cross-compilation"
+    )
     env["SETUPTOOLS_EXT_SUFFIX"] = f".{python_configuration.identifier}.pyd"
 
     # Cross-compilation requires fixes that only exist in setuptools's copy of
