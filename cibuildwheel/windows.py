@@ -5,6 +5,7 @@ import platform as platform_module
 import shutil
 import subprocess
 import sys
+import textwrap
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -146,29 +147,34 @@ def setup_setuptools_cross_compile(
     # set the platform name
     map_plat = {"32": "win32", "64": "win-amd64", "ARM64": "win-arm64"}
     plat_name = map_plat[python_configuration.arch]
-    # (Sorry, this file must be default/locale encoding.)
-    with distutils_cfg.open("w") as f:
-        print("[build]", file=f)
-        print("plat_name=", plat_name, file=f, sep="")
-        print("[build_ext]", file=f)
-        print("library_dirs=", python_libs_base, file=f, sep="")
-        print("plat_name=", plat_name, file=f, sep="")
-        print("[bdist_wheel]", file=f)
-        print("plat_name=", plat_name, file=f, sep="")
+    # (This file must be default/locale encoding, so we can't pass 'encoding')
+    distutils_cfg.write_text(
+        textwrap.dedent(
+            f"""\
+            [build]
+            plat_name={plat_name}
+            [build_ext]
+            library_dirs={python_libs_base}
+            plat_name={plat_name}
+            [bdist_wheel]
+            plat_name={plat_name}
+            """
+        )
+    )
 
     # setuptools builds require explicit override of PYD extension
     # This is because it always gets the extension from the running
     # interpreter, and has no logic to construct it. Currently, CPython's
     # extensions follow our identifiers, but if they ever diverge in the
     # future, we will need to store new data
-    log.info("Setting SETUPTOOLS_EXT_SUFFIX=.%s.pyd for cross-compilation", python_configuration.identifier)
+    log.notice(f"Setting SETUPTOOLS_EXT_SUFFIX=.{python_configuration.identifier}.pyd for cross-compilation")
     env["SETUPTOOLS_EXT_SUFFIX"] = f".{python_configuration.identifier}.pyd"
 
     # Cross-compilation requires fixes that only exist in setuptools's copy of
     # distutils, so ensure that it is activated
     # Since not all projects can handle the newer distutils, display a warning
     # to help them figure out what may have gone wrong if this breaks for them
-    log.warning("Setting SETUPTOOLS_USE_DISTUTILS=local as it is required for cross-compilation")
+    log.notice("Setting SETUPTOOLS_USE_DISTUTILS=local as it is required for cross-compilation")
     env["SETUPTOOLS_USE_DISTUTILS"] = "local"
 
 
@@ -189,10 +195,10 @@ def setup_rust_cross_compile(
     # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
     if env.get("CARGO_BUILD_TARGET"):
         if env["CARGO_BUILD_TARGET"] != cargo_target:
-            log.warning("Not overriding CARGO_BUILD_TARGET as it has already been set")
+            log.notice("Not overriding CARGO_BUILD_TARGET as it has already been set")
         # No message if it was set to what we were planning to set it to
     elif cargo_target:
-        log.info("Setting CARGO_BUILD_TARGET=%s for cross-compilation", cargo_target)
+        log.notice("Setting CARGO_BUILD_TARGET=%s for cross-compilation", cargo_target)
         env["CARGO_BUILD_TARGET"] = cargo_target
     else:
         log.warning(
