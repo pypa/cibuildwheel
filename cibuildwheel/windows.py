@@ -161,6 +161,7 @@ def setup_setuptools_cross_compile(
     # interpreter, and has no logic to construct it. Currently, CPython's
     # extensions follow our identifiers, but if they ever diverge in the
     # future, we will need to store new data
+    log.info("Setting SETUPTOOLS_EXT_SUFFIX=.%s.pyd for cross-compilation", python_configuration.identifier)
     env["SETUPTOOLS_EXT_SUFFIX"] = f".{python_configuration.identifier}.pyd"
 
     # Cross-compilation requires fixes that only exist in setuptools's copy of
@@ -169,6 +170,35 @@ def setup_setuptools_cross_compile(
     # to help them figure out what may have gone wrong if this breaks for them
     log.warning("Setting SETUPTOOLS_USE_DISTUTILS=local as it is required for cross-compilation")
     env["SETUPTOOLS_USE_DISTUTILS"] = "local"
+
+
+def setup_rust_cross_compile(
+    python_configuration: PythonConfiguration,
+    python_libs_base: Path,
+    env: Dict[str, str],
+) -> None:
+    # Assume that MSVC will be used, because we already know that we are
+    # cross-compiling. MinGW users can set CARGO_BUILD_TARGET themselves
+    # and we will respect the existing value.
+    cargo_target = {
+        "64": "x86_64-pc-windows-msvc",
+        "32": "i686-pc-windows-msvc",
+        "ARM64": "aarch64-pc-windows-msvc",
+    }.get(python_configuration.arch)
+
+    # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
+    if env.get("CARGO_BUILD_TARGET"):
+        if env["CARGO_BUILD_TARGET"] != cargo_target:
+            log.warning("Not overriding CARGO_BUILD_TARGET as it has already been set")
+        # No message if it was set to what we were planning to set it to
+    elif cargo_target:
+        log.info("Setting CARGO_BUILD_TARGET=%s for cross-compilation", cargo_target)
+        env["CARGO_BUILD_TARGET"] = cargo_target
+    else:
+        log.warning(
+            "Unable to configure Rust cross-compilation for architecture '%s'",
+            python_configuration.arch
+        )
 
 
 def setup_python(
@@ -299,6 +329,7 @@ def setup_python(
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
         setup_setuptools_cross_compile(python_configuration, python_libs_base, env)
+        setup_rust_cross_compile(python_configuration, python_libs_base, env)
 
     return env
 
