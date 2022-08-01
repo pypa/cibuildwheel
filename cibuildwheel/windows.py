@@ -38,7 +38,7 @@ from .util import (
 )
 
 
-def get_nuget_args(version: str, arch: str, output_directory: Path) -> List[str]:
+def get_nuget_args(version: str, arch: str, output_directory: Path) -> list[str]:
     package_name = {
         "32": "pythonx86",
         "64": "python",
@@ -131,7 +131,7 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
 def setup_setuptools_cross_compile(
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
-    env: Dict[str, str],
+    env: dict[str, str],
 ) -> None:
     # We write to distutils_cfg for distutils-based builds because we know we
     # currently don't have one (unless it's our own from a previous build)
@@ -183,7 +183,7 @@ def setup_setuptools_cross_compile(
 def setup_rust_cross_compile(
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
-    env: Dict[str, str],
+    env: dict[str, str],
 ) -> None:
     # Assume that MSVC will be used, because we already know that we are
     # cross-compiling. MinGW users can set CARGO_BUILD_TARGET themselves
@@ -200,12 +200,11 @@ def setup_rust_cross_compile(
             log.notice("Not overriding CARGO_BUILD_TARGET as it has already been set")
         # No message if it was set to what we were planning to set it to
     elif cargo_target:
-        log.notice("Setting CARGO_BUILD_TARGET=%s for cross-compilation", cargo_target)
+        log.notice(f"Setting CARGO_BUILD_TARGET={cargo_target} for cross-compilation")
         env["CARGO_BUILD_TARGET"] = cargo_target
     else:
         log.warning(
-            "Unable to configure Rust cross-compilation for architecture '%s'",
-            python_configuration.arch,
+            f"Unable to configure Rust cross-compilation for architecture {python_configuration.arch}"
         )
 
 
