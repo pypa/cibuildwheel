@@ -298,7 +298,7 @@ class OptionsReader:
         """
 
         if name not in self.default_options and name not in self.default_platform_options:
-            msg = f"{name} must be in cibuildwheel/resources/defaults.toml file to be accessed."
+            msg = f"{name!r} must be in cibuildwheel/resources/defaults.toml file to be accessed."
             raise ConfigOptionError(msg)
 
         # Environment variable form
