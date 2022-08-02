@@ -65,8 +65,27 @@ def update_constraints(session: nox.Session) -> None:
     """
     Update the dependencies inplace.
     """
-    session.install("requests", "pip-tools")
-    session.run("python", "bin/update_dependencies.py")
+    session.install("pip-tools")
+    assert isinstance(session.python, str)
+    python_version = session.python.replace(".", "")
+    env = os.environ.copy()
+    # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+    # regenerate the constraints files
+    env["CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+    session.run(
+        "pip-compile",
+        "--allow-unsafe",
+        "--upgrade",
+        "cibuildwheel/resources/constraints.in",
+        f"--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
+        env=env,
+    )
+    if session.python == PYTHON_ALL_VERSIONS[-1]:
+        RESOURCES = DIR / "cibuildwheel" / "resources"
+        shutil.copyfile(
+            RESOURCES / f"constraints-python{python_version}.txt",
+            RESOURCES / "constraints.txt",
+        )
 
 
 @nox.session
