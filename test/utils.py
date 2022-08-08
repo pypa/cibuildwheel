@@ -116,6 +116,7 @@ def expected_wheels(
     macosx_deployment_target="10.9",
     machine_arch=None,
     python_abi_tags=None,
+    include_universal2=False,
 ):
     """
     Returns a list of expected wheels from a run of cibuildwheel.
@@ -199,14 +200,14 @@ def expected_wheels(
                 arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(
                     macosx_deployment_target
                 )
-                platform_tags = [
-                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
-                    f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64',
-                ]
+                platform_tags = [f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64']
             else:
-                platform_tags = [
-                    f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64',
-                ]
+                platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
+
+            if include_universal2:
+                platform_tags.append(
+                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
+                )
 
         else:
             raise Exception("unsupported platform")
