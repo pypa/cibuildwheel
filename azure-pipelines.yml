@@ -7,7 +7,7 @@ jobs:
       inputs:
         versionSpec: '3.8'
     - bash: |
-        python -m pip install -e ".[dev]" pytest-azurepipelines
+        python -m pip install -e ".[dev]"
         python ./bin/run_tests.py
 
 - job: macos_38
@@ -17,7 +17,7 @@ jobs:
       inputs:
         versionSpec: '3.8'
     - bash: |
-        python -m pip install -e ".[dev]" pytest-azurepipelines
+        python -m pip install -e ".[dev]"
         python ./bin/run_tests.py
 
 - job: windows_38
@@ -28,5 +28,5 @@ jobs:
       inputs:
         versionSpec: '3.8'
     - bash: |
-        python -m pip install -e ".[dev]" pytest-azurepipelines
+        python -m pip install -e ".[dev]"
         python ./bin/run_tests.py
