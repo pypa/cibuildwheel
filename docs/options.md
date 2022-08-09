@@ -351,7 +351,7 @@ Default: `auto`
 | Linux / Intel | `x86_64` | `x86_64` `i686` | `x86_64` | `i686` |
 | Windows / Intel | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
-| macOS / Apple Silicon | `arm64` | `arm64` `universal2` | `arm64` `universal2`|  |
+| macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 
 If not listed above, `auto` is the same as `native`.
 
