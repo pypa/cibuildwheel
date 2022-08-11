@@ -8,7 +8,7 @@ delocate==0.10.2
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.5
     # via virtualenv
-filelock==3.7.1
+filelock==3.8.0
     # via virtualenv
 importlib-metadata==4.12.0
     # via virtualenv
