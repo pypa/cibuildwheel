@@ -60,8 +60,12 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
     pprint(build_steps)
 
     assert build_steps[0].container_image == "normal_container_image"
-    assert identifiers(build_steps[0]) == ["cp36-manylinux_x86_64", "cp37-manylinux_x86_64"]
-    assert before_alls(build_steps[0]) == ["", ""]
+    assert identifiers(build_steps[0]) == [
+        "cp36-manylinux_x86_64",
+        "cp37-manylinux_x86_64",
+        "cp311-manylinux_x86_64",
+    ]
+    assert before_alls(build_steps[0]) == ["", "", ""]
 
     assert build_steps[1].container_image == "other_container_image"
     assert identifiers(build_steps[1]) == ["cp38-manylinux_x86_64", "cp310-manylinux_x86_64"]

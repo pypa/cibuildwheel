@@ -594,3 +594,15 @@
   gh: SciTools/cf-units
   ci: [github]
   os: [apple, linux]
+
+- name: envd
+  gh: tensorchord/envd
+  ci: [github]
+  os: [apple, linux, windows]
+  note: A machine learning development environment build toool
+
+- name: mosec
+  gh: mosecorg/mosec
+  ci: [github]
+  os: [linux, apple]
+  note: A machine learning model serving framework powered by Rust

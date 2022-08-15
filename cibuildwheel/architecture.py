@@ -66,10 +66,6 @@ class Architecture(Enum):
         if platform == "windows" and native_architecture == Architecture.AMD64:
             result.add(Architecture.x86)
 
-        if platform == "macos" and native_architecture == Architecture.arm64:
-            # arm64 can build and test both archs of a universal2 wheel.
-            result.add(Architecture.universal2)
-
         return result
 
     @staticmethod

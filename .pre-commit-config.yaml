@@ -14,7 +14,7 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.37.2
+  rev: v2.37.3
   hooks:
   - id: pyupgrade
     args: ["--py37-plus"]
@@ -22,7 +22,7 @@ repos:
 
 # Autoremoves unused imports
 - repo: https://github.com/hadialqattan/pycln
-  rev: v2.0.4
+  rev: v2.1.1
   hooks:
   - id: pycln
     args: [--all]
@@ -41,9 +41,10 @@ repos:
   - id: black
 
 - repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v1.20.2
+  rev: v2.0.0
   hooks:
   - id: setup-cfg-fmt
+    args: [--include-version-classifiers, --max-py-version=3.10]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v0.971
@@ -73,14 +74,14 @@ repos:
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/asottile/yesqa
-  rev: v1.3.0
+  rev: v1.4.0
   hooks:
   - id: yesqa
     additional_dependencies: &flake8-dependencies
     - flake8-bugbear
 
 - repo: https://github.com/PyCQA/flake8
-  rev: 4.0.1
+  rev: 5.0.4
   hooks:
   - id: flake8
     exclude: cibuildwheel/resources/

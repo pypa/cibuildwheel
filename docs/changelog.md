@@ -2,6 +2,15 @@
 title: Changelog
 ---
 
+### v2.9.0
+
+_11 August 2022_
+
+- 🌟 CPython 3.11 wheels are now built by default - without the CIBW_PRERELEASE_PYTHONS flag. It's time to build and upload these wheels to PyPI! This release includes CPython 3.11.0rc1, which is guaranteed to be ABI compatible with the final release. (#1226)
+- ⚠️ Removed support for running cibuildwheel in Python 3.6. Python 3.6 is EOL. However, cibuildwheel continues to build CPython 3.6 wheels for the moment. (#1175)
+- ✨ Improved error messages when misspelling TOML options, suggesting close matches (#1205)
+- 🛠 When running on Apple Silicon (so far, an unsupported mode of operation), cibuildwheel no longer builds universal2 wheels by default - just arm64. See [#1204](https://github.com/pypa/cibuildwheel/issues/1204) for discussion. We hope to release official support for native builds on Apple Silicon soon! (#1217)
+
 ### v2.8.1
 
 _18 July 2022_

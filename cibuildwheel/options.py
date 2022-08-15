@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import difflib
 import functools
 import os
 import sys
@@ -188,14 +189,10 @@ class OptionsReader:
 
         # Validate project config
         for option_name in config_options:
-            if not self._is_valid_global_option(option_name):
-                raise ConfigOptionError(f'Option "{option_name}" not supported in a config file')
+            self._validate_global_option(option_name)
 
         for option_name in config_platform_options:
-            if not self._is_valid_platform_option(option_name):
-                raise ConfigOptionError(
-                    f'Option "{option_name}" not supported in the "{self.platform}" section'
-                )
+            self._validate_platform_option(option_name)
 
         self.config_options = config_options
         self.config_platform_options = config_platform_options
@@ -207,40 +204,51 @@ class OptionsReader:
 
         if config_overrides is not None:
             if not isinstance(config_overrides, list):
-                raise ConfigOptionError('"tool.cibuildwheel.overrides" must be a list')
+                raise ConfigOptionError("'tool.cibuildwheel.overrides' must be a list")
 
             for config_override in config_overrides:
                 select = config_override.pop("select", None)
 
                 if not select:
-                    raise ConfigOptionError('"select" must be set in an override')
+                    raise ConfigOptionError("'select' must be set in an override")
 
                 if isinstance(select, list):
                     select = " ".join(select)
 
                 self.overrides.append(Override(select, config_override))
 
-    def _is_valid_global_option(self, name: str) -> bool:
+    def _validate_global_option(self, name: str) -> None:
         """
-        Returns True if an option with this name is allowed in the
+        Raises an error if an option with this name is not allowed in the
         [tool.cibuildwheel] section of a config file.
         """
         allowed_option_names = self.default_options.keys() | PLATFORMS | {"overrides"}
 
-        return name in allowed_option_names
+        if name not in allowed_option_names:
+            msg = f"Option {name!r} not supported in a config file."
+            matches = difflib.get_close_matches(name, allowed_option_names, 1, 0.7)
+            if matches:
+                msg += f" Perhaps you meant {matches[0]!r}?"
+            raise ConfigOptionError(msg)
 
-    def _is_valid_platform_option(self, name: str) -> bool:
+    def _validate_platform_option(self, name: str) -> None:
         """
-        Returns True if an option with this name is allowed in the
+        Raises an error if an option with this name is not allowed in the
         [tool.cibuildwheel.<current-platform>] section of a config file.
         """
         disallowed_platform_options = self.disallow.get(self.platform, set())
         if name in disallowed_platform_options:
-            return False
+            msg = f"{name!r} is not allowed in {disallowed_platform_options}"
+            raise ConfigOptionError(msg)
 
         allowed_option_names = self.default_options.keys() | self.default_platform_options.keys()
 
-        return name in allowed_option_names
+        if name not in allowed_option_names:
+            msg = f"Option {name!r} not supported in the {self.platform!r} section"
+            matches = difflib.get_close_matches(name, allowed_option_names, 1, 0.7)
+            if matches:
+                msg += f" Perhaps you meant {matches[0]!r}?"
+            raise ConfigOptionError(msg)
 
     def _load_file(self, filename: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         """
@@ -290,7 +298,8 @@ class OptionsReader:
         """
 
         if name not in self.default_options and name not in self.default_platform_options:
-            raise ConfigOptionError(f"{name} must be in cibuildwheel/resources/defaults.toml file")
+            msg = f"{name!r} must be in cibuildwheel/resources/defaults.toml file to be accessed."
+            raise ConfigOptionError(msg)
 
         # Environment variable form
         envvar = f"CIBW_{name.upper().replace('-', '_')}"
@@ -314,12 +323,12 @@ class OptionsReader:
 
         if isinstance(result, dict):
             if table is None:
-                raise ConfigOptionError(f"{name} does not accept a table")
+                raise ConfigOptionError(f"{name!r} does not accept a table")
             return table["sep"].join(table["item"].format(k=k, v=v) for k, v in result.items())
 
         if isinstance(result, list):
             if sep is None:
-                raise ConfigOptionError(f"{name} does not accept a list")
+                raise ConfigOptionError(f"{name!r} does not accept a list")
             return sep.join(result)
 
         if isinstance(result, int):
@@ -393,7 +402,7 @@ class Options:
         container_engine_str = self.reader.get("container-engine")
 
         if container_engine_str not in ["docker", "podman"]:
-            msg = f"cibuildwheel: Unrecognised container_engine '{container_engine_str}', only 'docker' and 'podman' are supported"
+            msg = f"cibuildwheel: Unrecognised container_engine {container_engine_str!r}, only 'docker' and 'podman' are supported"
             print(msg, file=sys.stderr)
             sys.exit(2)
 
@@ -437,7 +446,7 @@ class Options:
             elif build_frontend_str == "pip":
                 build_frontend = "pip"
             else:
-                msg = f"cibuildwheel: Unrecognised build frontend '{build_frontend_str}', only 'pip' and 'build' are supported"
+                msg = f"cibuildwheel: Unrecognised build frontend {build_frontend_str!r}, only 'pip' and 'build' are supported"
                 print(msg, file=sys.stderr)
                 sys.exit(2)
 
@@ -445,7 +454,7 @@ class Options:
                 environment = parse_environment(environment_config)
             except (EnvironmentParseError, ValueError):
                 print(
-                    f'cibuildwheel: Malformed environment option "{environment_config}"',
+                    f"cibuildwheel: Malformed environment option {environment_config!r}",
                     file=sys.stderr,
                 )
                 traceback.print_exc(None, sys.stderr)

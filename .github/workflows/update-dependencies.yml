@@ -1,6 +1,15 @@
 name: Update dependencies
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/update-dependencies.yml'
+      - 'bin/update_pythons.py'
+      - 'bin/update_docker.py'
+      - 'bin/update_virtualenv.py'
+      - 'bin/projects.py'
+      - 'docs/data/projects.yml'
+      - 'noxfile.py'
   workflow_dispatch:
   schedule:
     - cron: '0 6 * * 1'  # "At 06:00 on Monday."
@@ -12,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+
+    - uses: wntrblm/nox@2022.8.7
       with:
-        python-version: "3.11-dev"
-    - uses: excitedleigh/setup-nox@v2.1.0
+        python-versions: "3.6, 3.7, 3.8, 3.9, 3.10, 3.11-dev"
 
     - name: "Run update: dependencies"
       run: nox --force-color -s update_constraints
