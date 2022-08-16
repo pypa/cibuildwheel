@@ -606,7 +606,7 @@
   ci: [github]
   os: [linux, apple]
   note: A machine learning model serving framework powered by Rust
-  
+
 - name: ril
   gh: Cryptex-github/ril-py
   ci: [github]
