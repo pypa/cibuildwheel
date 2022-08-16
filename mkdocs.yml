@@ -5,6 +5,9 @@ theme:
   highlightjs: true
   hljs_languages:
       - yaml
+  collapse_navigation: false
+  navigation_depth: 3
+  custom_dir: docs/theme_overrides
 repo_url: https://github.com/pypa/cibuildwheel
 edit_uri: edit/main/docs/
 
@@ -13,6 +16,7 @@ extra_css:
 
 extra_javascript:
   - extra.js
+
 
 nav:
   - Home: index.md

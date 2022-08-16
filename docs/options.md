@@ -1,3 +1,5 @@
+# Options
+
 ## Setting options
 
 cibuildwheel can either be configured using environment variables, or from

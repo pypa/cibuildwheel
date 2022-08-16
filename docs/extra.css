@@ -4,6 +4,7 @@
 body {
     overflow-wrap: break-word;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
 p {
@@ -105,10 +106,10 @@ h1, h2, h3, h4, h5, h6 {
 .code-block-filename + pre code {
     padding-top: 0.9em;
 }
-
+/*
 .toctree-l3 {
   border-left: 10px solid transparent;
-}
+} */
 
 /* import font awesome 4 for icons */
 @import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css);
@@ -225,4 +226,85 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 0;
   padding-right: 0;
   margin-bottom: 0.5em;
+}
+
+/* theme fix-ups */
+
+.rst-content code, .rst-content tt, code {
+  /* border: none; */
+  /* background-color: #f0f1f1; */
+  color: inherit;
+}
+.rst-content pre code {
+  border: none;
+}
+
+.rst-content h1 code,
+.rst-content h2 code,
+.rst-content h3 code,
+.rst-content h4 code,
+.rst-content h5 code,
+.rst-content h6 code {
+  border: none;
+  color: inherit;
+  background-color: #f0f1f1;
+  font-size: 100%;
+}
+
+
+/* expand all the toctree entries */
+.wy-menu-vertical .toctree-l1.current .toctree-l2>ul,
+.wy-menu-vertical .toctree-l2.current .toctree-l3>ul,
+.wy-menu-vertical .toctree-l3.current .toctree-l4>ul,
+.wy-menu-vertical .toctree-l4.current .toctree-l5>ul,
+.wy-menu-vertical .toctree-l5.current .toctree-l6>ul,
+.wy-menu-vertical .toctree-l6.current .toctree-l7>ul,
+.wy-menu-vertical .toctree-l7.current .toctree-l8>ul,
+.wy-menu-vertical .toctree-l8.current .toctree-l9>ul,
+.wy-menu-vertical .toctree-l9.current .toctree-l10>ul,
+.wy-menu-vertical .toctree-l10.current .toctree-l11>ul {
+  display: block;
+}
+
+/* hide all the buttons */
+.wy-menu-vertical li.current>a button.toctree-expand,
+.wy-menu-vertical li.on a button.toctree-expand,
+.wy-menu-vertical li.toctree-l2 button.toctree-expand,
+.wy-menu-vertical li a button.toctree-expand {
+  display: none;
+}
+
+/* toctree layout improvements */
+.wy-menu-vertical a {
+  padding: 0.4em 1.2em;
+}
+.wy-menu-vertical li.current>a,
+.wy-menu-vertical li.on a {
+  font-weight: normal;
+  padding: 0.4em 1.2em;
+  /* border-right: 1px solid #f0f0f0; */
+}
+.wy-menu-vertical li.current a {
+  padding: 0.4em 1.2em;
+}
+.wy-menu-vertical li.toctree-l3 a,
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a {
+  padding-left: 1.8em;
+}
+.wy-menu-vertical li.toctree-l2.current>a {
+  padding: 0.4em 1.2em;
+}
+.wy-menu-vertical li.toctree-l2.current>a,
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a {
+  background: transparent;
+}
+.wy-menu-vertical li.toctree-l2.current>a:hover,
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a:hover {
+  background: #d6d6d6;
+}
+.wy-menu-vertical li.current>a.current {
+  background: #fafafa !important;
+}
+.wy-menu-vertical li.current a {
+
 }

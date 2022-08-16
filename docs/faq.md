@@ -2,6 +2,8 @@
 title: Tips and tricks
 ---
 
+# Tips and tricks
+
 ## Tips
 
 ### Linux builds in containers
