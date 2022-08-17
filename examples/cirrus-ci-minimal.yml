@@ -20,30 +20,6 @@ linux_x86_task:
     - apt install -y python3-venv python-is-python3
   <<: *BUILD_AND_STORE_WHEELS
 
-linux_arm64_task:
-  name: Build Linux arm64 wheels.
-  arm_container:
-    image: python:3.10
-    cpu: 1
-    memory: 1G
-    additional_containers:
-      - name: dockerdaemon
-        privileged: true
-        cpu: 3
-        memory: 3G
-        image: docker:dind
-        command: dockerd
-        port: 2375
-        env:
-          DOCKER_DRIVER: overlay2
-          DOCKER_TLS_CERTDIR: ""
-  env:
-    DOCKER_HOST: tcp://localhost:2375
-
-  install_pre_requirements_script:
-    - curl -sSL https://get.docker.com/ | sh
-  <<: *BUILD_AND_STORE_WHEELS
-
 windows_x86_task:
   name: Build Windows x86 wheels.
   windows_container:
