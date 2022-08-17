@@ -59,10 +59,11 @@ Usage
 | AppVeyor        | ✅    | ✅    | ✅      |           | ✅²       |
 | CircleCI        | ✅    | ✅    |         |           | ✅²       |
 | Gitlab CI       | ✅    |       |         |           | ✅²       |
-| Cirrus CI       | ✅    |       | ✅      | ✅        | ✅        |
+| Cirrus CI       | ✅    | ✅³   | ✅      | ✅        | ✅        |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). It is not possible to test `arm64` and the `arm64` part of a `universal2` wheel on this CI platform.</sup><br>
+<sup>³ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). Thanks to Rosetta 2 emulation, it is possible to test `x86_64` and both parts of a `universal2` wheel on this CI platform.</sup><br>
 
 <!--intro-end-->
 
