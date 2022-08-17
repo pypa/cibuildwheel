@@ -63,6 +63,13 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
 }
 
+@media screen and (max-width: 768px) {
+  .wy-nav-content-wrap .wy-nav-content {
+      padding: 1em;
+  }
+}
+
+
 /*
     Code block filename style
 
@@ -228,7 +235,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0.5em;
 }
 
-/* theme fix-ups */
+/* mkdocs update theme fix-ups */
 
 .rst-content code, .rst-content tt, code {
   /* border: none; */

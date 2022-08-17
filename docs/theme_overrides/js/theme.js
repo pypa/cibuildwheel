@@ -1,3 +1,8 @@
+// imported from
+// https://github.com/readthedocs/sphinx_rtd_theme/blob/bc73ad84068b4ee7d8ddae7e51f5b767e8fd377b/src/theme.js
+// modified to suit our documentation structure, to not scroll the nav sidebar
+// when clicked - this is disorienting
+
 var jQuery = window.jQuery;
 
 // Sphinx theme nav state

@@ -1354,6 +1354,12 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     margin-top: 28px;
     overflow-x: auto;
   }
+  @media screen and (max-width: 768px) {
+    .options-toc {
+      grid-gap: 1em 0.5em;
+      gap: 1em 0.5em;
+    }
+  }
   .options-toc .header {
     grid-column: 1 / 3;
     font-weight: bold;

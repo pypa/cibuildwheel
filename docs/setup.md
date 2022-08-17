@@ -91,7 +91,7 @@ You should see the builds taking place. You can experiment with options using en
     cibuildwheel --platform linux
     ```
 
-## Linux builds
+### Linux builds
 
 If you've got [Docker](https://www.docker.com/products/docker-desktop) installed on
 your development machine, you can run a Linux build.
@@ -107,7 +107,7 @@ they're perfectly reproducible.
 
 The only side effect to your system will be docker images being pulled.
 
-## macOS / Windows builds
+### macOS / Windows builds
 
 Pre-requisite: you need to have native build tools installed.
 
