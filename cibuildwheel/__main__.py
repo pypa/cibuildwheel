@@ -66,9 +66,13 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "--build",
+        "--only",
         default=None,
-        help="The identifier expression for wheels to build. Overrides CIBW_BUILD.",
+        help="""
+            Force a single wheel build when given an identifier. Overrides
+            CIBW_BUILD/CIBW_SKIP. --platform and --arch cannot be specified
+            if this is given.
+        """,
     )
 
     parser.add_argument(
@@ -157,7 +161,32 @@ def main() -> None:
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName
 
-    if args.platform != "auto":
+    if args.only is not None:
+        if "linux_" in args.only:
+            platform = "linux"
+        elif "macosx_" in args.only:
+            platform = "macos"
+        elif "win_" in args.only:
+            platform = "windows"
+        else:
+            print(
+                f"Invalid --only='{args.only}', must be a build selector with a known platform",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if args.platform != "auto":
+            print(
+                "--platform cannot be specified with --only, it is computed from --only",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if args.archs is not None:
+            print(
+                "--arch cannot be specified with --only, it is computed from --only",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+    elif args.platform != "auto":
         platform = args.platform
     else:
         ci_provider = detect_ci_provider()

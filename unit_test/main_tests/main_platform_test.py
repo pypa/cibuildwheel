@@ -10,6 +10,12 @@ from cibuildwheel.architecture import Architecture
 from ..conftest import MOCK_PACKAGE_DIR
 
 
+class ArgsInterceptor:
+    def __call__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+
 def test_unknown_platform_non_ci(monkeypatch, capsys):
     monkeypatch.delenv("CI", raising=False)
     monkeypatch.delenv("BITRISE_BUILD_NUMBER", raising=False)
@@ -194,15 +200,62 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
         }
 
 
-@pytest.mark.parametrize("use_env_var", [False, True])
-def test_build_argument(intercepted_build_args, monkeypatch, use_env_var):
+@pytest.mark.parametrize(
+    "only,plat",
+    (
+        ("cp311-manylinux_x86_64", "linux"),
+        ("cp310-win_amd64", "windows"),
+        ("cp311-macosx_x86_64", "macos"),
+    ),
+)
+def test_only_argument(monkeypatch, only, plat):
+    from cibuildwheel import linux, macos, windows
 
-    if use_env_var:
-        monkeypatch.setenv("CIBW_BUILD", "cp310-*")
-    else:
-        monkeypatch.setenv("CIBW_BUILD", "unused")
-        monkeypatch.setattr(sys, "argv", sys.argv + ["--build", "cp310-*"])
+    monkeypatch.setenv("CIBW_BUILD", "unused")
+    monkeypatch.setenv("CIBW_SKIP", "unused")
+    monkeypatch.setattr(sys, "argv", sys.argv + ["--only", only])
+
+    intercepted = ArgsInterceptor()
+
+    if plat == "linux":
+        monkeypatch.setattr(linux, "build", intercepted)
+    elif plat == "macos":
+        monkeypatch.setattr(macos, "build", intercepted)
+    elif plat == "windows":
+        monkeypatch.setattr(windows, "build", intercepted)
 
     main()
-    options = intercepted_build_args.args[0]
-    assert options.globals.build_selector.build_config == "cp310-*"
+    options = intercepted.args[0]
+    assert options.globals.build_selector.build_config == only
+    assert options.globals.build_selector.skip_config == ""
+    assert options.platform == plat
+    assert options.globals.architectures == Architecture.all_archs(plat)
+
+
+@pytest.mark.parametrize("only", ("cp311-manylxinux_x86_64", "some_linux_thing"))
+def test_only_failed(intercepted_build_args, monkeypatch, only):
+    monkeypatch.setattr(sys, "argv", sys.argv + ["--only", only])
+    monkeypatch.delenv("CIBW_PLATFORM")
+
+    with pytest.raises(SystemExit):
+        main()
+
+
+def test_only_no_platform(intercepted_build_args, monkeypatch):
+    monkeypatch.delenv("CIBW_PLATFORM")
+    monkeypatch.setattr(
+        sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64", "--platform", "macos"]
+    )
+
+    with pytest.raises(SystemExit):
+        main()
+
+
+def test_only_no_archs(intercepted_build_args, monkeypatch):
+    monkeypatch.delenv("CIBW_PLATFORM")
+    monkeypatch.setattr(
+        sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64", "--archs", "x86_64"]
+    )
+
+    with pytest.raises(SystemExit):
+        main()

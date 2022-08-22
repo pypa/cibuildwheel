@@ -44,7 +44,7 @@ class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"]
     archs: str | None
     output_dir: Path
-    build: str | None
+    only: str | None
     config_file: str
     package_dir: Path
     print_build_identifiers: bool
@@ -374,7 +374,7 @@ class Options:
         package_dir = args.package_dir
         output_dir = args.output_dir
 
-        build_config = args.build or self.reader.get("build", env_plat=False, sep=" ") or "*"
+        build_config = self.reader.get("build", env_plat=False, sep=" ") or "*"
         skip_config = self.reader.get("skip", env_plat=False, sep=" ")
         test_skip = self.reader.get("test-skip", env_plat=False, sep=" ")
 
@@ -389,6 +389,15 @@ class Options:
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
+        archs_config_str = args.archs or self.reader.get("archs", sep=" ")
+        architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
+
+        # Process `--only`
+        if args.only is not None:
+            build_config = args.only
+            skip_config = ""
+            architectures = Architecture.all_archs(self.platform)
+
         build_selector = BuildSelector(
             build_config=build_config,
             skip_config=skip_config,
@@ -396,9 +405,6 @@ class Options:
             prerelease_pythons=prerelease_pythons,
         )
         test_selector = TestSelector(skip_config=test_skip)
-
-        archs_config_str = args.archs or self.reader.get("archs", sep=" ")
-        architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
         container_engine_str = self.reader.get("container-engine")
 
