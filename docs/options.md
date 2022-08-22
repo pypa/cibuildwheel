@@ -113,7 +113,7 @@ The complete set of defaults for the current version of cibuildwheel are shown b
 
 !!! tip
     Static configuration works across all CI systems, and can be used locally if
-    you run `cibuildwheel --plat linux`. This is preferred, but environment
+    you run `cibuildwheel --platform linux`. This is preferred, but environment
     variables are better if you need to change per-matrix element
     (`CIBW_BUILD` is often in this category, for example), or if you cannot or do
     not want to change a `pyproject.toml` file. You can specify a different file to
@@ -201,6 +201,10 @@ This option can also be set using the [command-line option](#command-line) `--pl
     ```
 
     This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](#configuration-file).
+
+    You can also run a single identifier with `--only <identifier>`. This will
+    not require `--platform` or `--arch`, and will override any build/skip
+    configuration.
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
 
@@ -919,7 +923,7 @@ If this option is blank, it will fall though to the next available definition (e
 
 If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/musllinux_1_1 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
 
-Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
+Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--platform` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
 #### Examples
 
