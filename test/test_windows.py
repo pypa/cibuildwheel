@@ -37,7 +37,7 @@ def test_wheel_tag_is_correct_when_using_windows_cross_compile(tmp_path, use_pyp
 
     # check that the expected wheels are produced
     expected_wheels = [
-        "spam-0.1.0-cp310-win_arm64.whl",
+        "spam-0.1.0-cp310-cp310-win_arm64.whl",
     ]
 
     print("actual_wheels", actual_wheels)
