@@ -20,6 +20,20 @@ linux_x86_task:
     - apt install -y python3-venv python-is-python3
   <<: *BUILD_AND_STORE_WHEELS
 
+linux_arm64_task:
+  name: Build Linux arm64 wheels.
+  compute_engine_instance:
+    image_project: cirrus-images
+    image: family/docker-builder-arm64
+    architecture: arm64
+    platform: linux
+    cpu: 4
+    memory: 4G
+
+  install_pre_requirements_script:
+    - apt install -y python3-venv python-is-python3
+  <<: *BUILD_AND_STORE_WHEELS
+
 windows_x86_task:
   name: Build Windows x86 wheels.
   windows_container:

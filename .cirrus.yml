@@ -17,6 +17,19 @@ linux_x86_task:
     - apt install -y python3-venv python-is-python3
   <<: *RUN_TESTS
 
+linux_arm64_task:
+  compute_engine_instance:
+    image_project: cirrus-images
+    image: family/docker-builder-arm64
+    architecture: arm64
+    platform: linux
+    cpu: 4
+    memory: 4G
+
+  install_pre_requirements_script:
+    - apt install -y python3-venv python-is-python3
+  <<: *RUN_TESTS
+
 windows_x86_task:
   # The task takes ~55 minutes while the timeout happens
   # after 60 minutes by default, let's allow some wiggle room.
