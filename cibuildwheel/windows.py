@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import atexit
 import os
 import platform as platform_module
 import shutil
@@ -133,14 +134,43 @@ def setup_setuptools_cross_compile(
     python_libs_base: Path,
     env: dict[str, str],
 ) -> None:
-    # We write to distutils_cfg for distutils-based builds because we know we
-    # currently don't have one (unless it's our own from a previous build)
-    for p in env["PATH"].split(os.pathsep):
-        distutils_cfg = Path(p) / "Lib/site-packages/setuptools/_distutils/distutils.cfg"
-        if distutils_cfg.parent.is_dir():
-            break
-    else:
-        log.warning("Did not find setuptools install to configure")
+    # We write to distutils_cfg for distutils-based builds to override some
+    # settings. Ideally, we'd pass them on the command line, but since we don't
+    # know that setuptools is going to be used, we can't do it.
+    userprofile = os.getenv("USERPROFILE")
+    if not userprofile:
+        log.warning(
+            "Unable to configure setuptools for cross-compiling because USERPROFILE was not found"
+        )
+        return
+    distutils_cfg = Path(userprofile) / "pydistutils.cfg"
+    if distutils_cfg.is_file():
+        # More than 1000 backup files is likely a different issue, so don't
+        # bother going further than that.
+        for counter in range(1000):
+            distutils_bak = distutils_cfg.with_suffix(f".{counter}.bak")
+            if not distutils_bak.exists():
+                break
+        else:
+            log.warning(
+                f"Unable to configure setuptools for cross-compiling because existing {distutils_cfg} file cannot be backed up: Too many existing backup files were found"
+            )
+            return
+
+        # Move the existing file and restore it when we exit
+        log.notice(f"Preserving {distutils_cfg} as {distutils_bak.name}. It will be restored afterwards.")
+        try:
+            distutils_cfg.replace(distutils_bak)
+        except OSError as exc:
+            log.warning(
+                f"Unable to configure setuptools for cross-compiling because existing {distutils_cfg} file cannot be backed up. Error was {exc}"
+            )
+            return
+        atexit.register(lambda: distutils_bak.replace(distutils_cfg))
+    elif distutils_cfg.is_dir():
+        log.warning(
+            f"Unable to configure setuptools for cross-compiling because {distutils_cfg} is a directory"
+        )
         return
 
     # Ensure our additional import libraries are made available, and explicitly
