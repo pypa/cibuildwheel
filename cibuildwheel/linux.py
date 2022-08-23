@@ -20,6 +20,7 @@ from .util import (
     get_build_verbosity_extra_flags,
     prepare_command,
     read_python_configs,
+    split_config_settings,
     unwrap,
 )
 
@@ -212,8 +213,10 @@ def build_in_container(
             container.call(["mkdir", "-p", built_wheel_dir])
 
             verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
+            extra_flags = split_config_settings(build_options.config_settings)
 
             if build_options.build_frontend == "pip":
+                extra_flags += verbosity_flags
                 container.call(
                     [
                         "python",
@@ -223,12 +226,13 @@ def build_in_container(
                         container_package_dir,
                         f"--wheel-dir={built_wheel_dir}",
                         "--no-deps",
-                        *verbosity_flags,
+                        *extra_flags,
                     ],
                     env=env,
                 )
             elif build_options.build_frontend == "build":
-                config_setting = " ".join(verbosity_flags)
+                verbosity_setting = " ".join(verbosity_flags)
+                extra_flags += (f"--config-setting={verbosity_setting}",)
                 container.call(
                     [
                         "python",
@@ -237,7 +241,7 @@ def build_in_container(
                         container_package_dir,
                         "--wheel",
                         f"--outdir={built_wheel_dir}",
-                        f"--config-setting={config_setting}",
+                        *extra_flags,
                     ],
                     env=env,
                 )
