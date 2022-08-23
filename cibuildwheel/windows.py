@@ -158,7 +158,9 @@ def setup_setuptools_cross_compile(
             return
 
         # Move the existing file and restore it when we exit
-        log.notice(f"Preserving {distutils_cfg} as {distutils_bak.name}. It will be restored afterwards.")
+        log.notice(
+            f"Preserving {distutils_cfg} as {distutils_bak.name}. It will be restored afterwards."
+        )
         try:
             distutils_cfg.replace(distutils_bak)
         except OSError as exc:
