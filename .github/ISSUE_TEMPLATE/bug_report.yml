@@ -29,3 +29,13 @@ body:
     placeholder: https://...
   validations:
     required: false
+
+- type: input
+  id: cibuildwheel-config
+  attributes:
+    label: cibuildwheel config
+    description: Link to the cibuildwheel config that produced the build log above. e.g. the pyproject.toml file that contains 
+[tool.cibuildwheel] section
+    placeholder: https://...
+  validations:
+    required: false
