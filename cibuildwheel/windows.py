@@ -175,7 +175,7 @@ def setup_setuptools_cross_compile(
         )
         return
     else:
-        atexit.register(lambda: distutils_cfg.unlink)
+        atexit.register(lambda: distutils_cfg.unlink())
 
     # Ensure our additional import libraries are made available, and explicitly
     # set the platform name

@@ -72,7 +72,7 @@ class TestSpam(TestCase):
 '''
 
 
-ADD_ENV = {}
+ADD_ENV: dict[str, str] = {}
 
 if utils.platform == "windows":
     if platform.machine() != "ARM64":
