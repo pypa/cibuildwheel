@@ -2,6 +2,8 @@
 title: Changelog
 ---
 
+# Changelog
+
 ### v2.9.0
 
 _11 August 2022_
