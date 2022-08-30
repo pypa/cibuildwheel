@@ -1,0 +1,57 @@
+run_tests: &RUN_TESTS
+  install_cibuildwheel_script:
+    - python -m pip install -e ".[dev]" pytest-custom-exit-code
+  run_cibuildwheel_tests_script:
+    - python ./bin/run_tests.py
+
+
+linux_x86_task:
+  compute_engine_instance:
+    image_project: cirrus-images
+    image: family/docker-builder
+    platform: linux
+    cpu: 8
+    memory: 8G
+
+  install_pre_requirements_script:
+    - apt install -y python3-venv python-is-python3
+  <<: *RUN_TESTS
+
+linux_aarch64_task:
+  compute_engine_instance:
+    image_project: cirrus-images
+    image: family/docker-builder-arm64
+    architecture: arm64
+    platform: linux
+    cpu: 4
+    memory: 4G
+
+  install_pre_requirements_script:
+    - apt install -y python3-venv python-is-python3
+  <<: *RUN_TESTS
+
+windows_x86_task:
+  # The task takes ~55 minutes while the timeout happens
+  # after 60 minutes by default, let's allow some wiggle room.
+  timeout_in: 90m
+  windows_container:
+    image: cirrusci/windowsservercore:visualstudio2022
+    cpu: 8
+    memory: 8G
+
+  install_pre_requirements_script:
+    - choco install -y --no-progress python3 --version 3.10.6
+    - refreshenv
+    - echo PATH=%PATH% >> "%CIRRUS_ENV%"
+  <<: *RUN_TESTS
+
+macos_arm64_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-monterey-xcode
+
+  env:
+    PATH: /opt/homebrew/opt/python@3.10/bin:$PATH
+  install_pre_requirements_script:
+    - brew install python@3.10
+    - ln -s python3 /opt/homebrew/opt/python@3.10/bin/python
+  <<: *RUN_TESTS

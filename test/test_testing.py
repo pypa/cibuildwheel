@@ -142,6 +142,11 @@ def test_failing_test(tmp_path):
                 # problems with this, so let's check that.
                 "CIBW_MANYLINUX_I686_IMAGE": "manylinux1",
                 "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux1",
+                # CPython 3.8 when running on macOS arm64 is unusual. The build
+                # always runs in x86_64, so the arm64 tests are not run. See
+                # #1169 for reasons why. That means the build succeeds, which
+                # we don't want. So we skip that build.
+                "CIBW_SKIP": "cp38-macosx_arm64",
             },
         )
 

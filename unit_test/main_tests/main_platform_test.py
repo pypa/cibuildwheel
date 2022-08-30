@@ -19,6 +19,7 @@ def test_unknown_platform_non_ci(monkeypatch, capsys):
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     monkeypatch.delenv("GITLAB_CI", raising=False)
     monkeypatch.delenv("CIRCLECI", raising=False)
+    monkeypatch.delenv("CIRRUS_CI", raising=False)
     monkeypatch.delenv("CIBW_PLATFORM", raising=False)
 
     with pytest.raises(SystemExit) as exit:

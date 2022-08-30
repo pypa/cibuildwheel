@@ -8,6 +8,7 @@ cibuildwheel
 [![Appveyor status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/main?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/main)
 [![CircleCI Status](https://img.shields.io/circleci/build/gh/pypa/cibuildwheel/main?logo=circleci)](https://circleci.com/gh/pypa/cibuildwheel)
 [![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName=main)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=4&branchName=main)
+[![Cirrus CI Status](https://img.shields.io/cirrus/github/pypa/cibuildwheel/main?logo=cirrusci)](https://cirrus-ci.com/github/pypa/cibuildwheel)
 
 
 [Documentation](https://cibuildwheel.readthedocs.org)
@@ -39,7 +40,7 @@ What does it do?
 <sup>³ Alpine 3.14 and very briefly 3.15's default python3 [was not able to load](https://github.com/pypa/cibuildwheel/issues/934) musllinux wheels. This has been fixed; please upgrade the python package if using Alpine from before the fix.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
-- Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI
+- Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
 
@@ -50,16 +51,19 @@ Usage
 
 `cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
-|                 | Linux | macOS | Windows | Linux ARM |
-|-----------------|-------|-------|---------|--------------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹          |
-| Azure Pipelines | ✅    | ✅    | ✅      |              |
-| Travis CI       | ✅    |       | ✅      | ✅           |
-| AppVeyor        | ✅    | ✅    | ✅      |              |
-| CircleCI        | ✅    | ✅    |         |              |
-| Gitlab CI       | ✅    |       |         |              |
+|                 | Linux | macOS | Windows | Linux ARM | macOS ARM |
+|-----------------|-------|-------|---------|-----------|-----------|
+| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹       | ✅²       |
+| Azure Pipelines | ✅    | ✅    | ✅      |           | ✅²       |
+| Travis CI       | ✅    |       | ✅      | ✅        | ✅²       |
+| AppVeyor        | ✅    | ✅    | ✅      |           | ✅²       |
+| CircleCI        | ✅    | ✅    |         |           | ✅²       |
+| Gitlab CI       | ✅    |       |         |           | ✅²       |
+| Cirrus CI       | ✅    | ✅³   | ✅      | ✅        | ✅        |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
+<sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). It is not possible to test `arm64` and the `arm64` part of a `universal2` wheel on this CI platform.</sup><br>
+<sup>³ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). Thanks to Rosetta 2 emulation, it is possible to test `x86_64` and both parts of a `universal2` wheel on this CI platform.</sup><br>
 
 <!--intro-end-->
 
@@ -179,6 +183,7 @@ Here are some repos that use cibuildwheel.
 [circleci icon]: docs/data/readme_icons/circleci.svg
 [gitlab icon]: docs/data/readme_icons/gitlab.svg
 [travisci icon]: docs/data/readme_icons/travisci.svg
+[cirrusci icon]: docs/data/readme_icons/cirrusci.svg
 [windows icon]: docs/data/readme_icons/windows.svg
 [apple icon]: docs/data/readme_icons/apple.svg
 [linux icon]: docs/data/readme_icons/linux.svg

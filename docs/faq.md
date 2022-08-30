@@ -83,6 +83,14 @@ Here's an example GitHub Actions workflow with a job that builds for Apple Silic
 {% include "../examples/github-apple-silicon.yml" %}
 ```
 
+Here's an example Cirrus CI workflow with a job that builds for macOS Intel through Rosetta 2 emulation and for Apple Silicon natively:
+
+> .cirrus.yml
+
+```yml
+{% include "../examples/cirrus-ci-intel-mac.yml" %}
+```
+
 ### Building non-native architectures using emulation  {: #emulation}
 
 cibuildwheel supports building non-native architectures on Linux, via

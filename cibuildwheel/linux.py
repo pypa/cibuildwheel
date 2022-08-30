@@ -349,6 +349,7 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
                 If you're building on Travis CI, add `services: [docker]` to
                 your .travis.yml. If you're building on Circle CI in Linux,
                 add a `setup_remote_docker` step to your .circleci/config.yml.
+                If you're building on Cirrus CI, use `docker_builder` task.
                 """
             ),
             file=sys.stderr,

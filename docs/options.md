@@ -75,6 +75,16 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
         CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
+!!! tab "Cirrus CI"
+
+    > .cirrus.yml ([docs](https://cirrus-ci.org/guide/writing-tasks/#environment-variables))
+
+    ```yaml
+    env:
+      CIBW_TEST_REQUIRES: pytest
+      CIBW_TEST_COMMAND: "pytest {project}/tests"
+    ```
+
 ### Configuration file {: #configuration-file}
 
 You can configure cibuildwheel with a config file, such as `pyproject.toml`.
