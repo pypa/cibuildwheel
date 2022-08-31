@@ -9,7 +9,7 @@ import textwrap
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Callable, Sequence
+from typing import Any, Callable, Sequence
 from zipfile import ZipFile
 
 from filelock import FileLock
@@ -34,6 +34,7 @@ from .util import (
     prepare_command,
     read_python_configs,
     shell,
+    unwrap,
     virtualenv,
 )
 
@@ -132,7 +133,7 @@ def setup_setuptools_cross_compile(
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
     env: dict[str, str],
-    cleanup_command_list: list[Callable[[], None]],
+    cleanup_command_list: list[Callable[[], Any]],
 ) -> None:
     # We write to distutils_cfg for distutils-based builds to override some
     # settings. Ideally, we'd pass them on the command line, but since we don't
@@ -220,7 +221,7 @@ def setup_rust_cross_compile(
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
     env: dict[str, str],
-    cleanup_command_list: list[Callable[[], None]],
+    cleanup_command_list: list[Callable[[], Any]],
 ) -> None:
     # Assume that MSVC will be used, because we already know that we are
     # cross-compiling. MinGW users can set CARGO_BUILD_TARGET themselves
@@ -251,7 +252,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
-    cleanup_command_list: list[Callable[[], None]],
+    cleanup_command_list: list[Callable[[], Any]],
 ) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
@@ -421,7 +422,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # list of callables to do any urgent cleanup, for example,
             # config files that may bleed into other builds
-            cleanup_command_list = []
+            cleanup_command_list: list[Callable[[], Any]] = []
             # install Python
             env = setup_python(
                 identifier_tmp_dir / "build",
