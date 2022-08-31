@@ -1,3 +1,5 @@
+# Options
+
 ## Setting options
 
 cibuildwheel can either be configured using environment variables, or from
@@ -71,6 +73,16 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
       variables:
         CIBW_TEST_REQUIRES: pytest
         CIBW_TEST_COMMAND: "pytest {project}/tests"
+    ```
+
+!!! tab "Cirrus CI"
+
+    > .cirrus.yml ([docs](https://cirrus-ci.org/guide/writing-tasks/#environment-variables))
+
+    ```yaml
+    env:
+      CIBW_TEST_REQUIRES: pytest
+      CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
 ### Configuration file {: #configuration-file}
@@ -1351,6 +1363,12 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     margin-bottom: 28px;
     margin-top: 28px;
     overflow-x: auto;
+  }
+  @media screen and (max-width: 768px) {
+    .options-toc {
+      grid-gap: 1em 0.5em;
+      gap: 1em 0.5em;
+    }
   }
   .options-toc .header {
     grid-column: 1 / 3;

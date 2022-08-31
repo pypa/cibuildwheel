@@ -2,6 +2,8 @@
 title: Delivering to PyPI
 ---
 
+# Delivering to PyPI
+
 After you've built your wheels, you'll probably want to deliver them to PyPI.
 
 ## Manual method

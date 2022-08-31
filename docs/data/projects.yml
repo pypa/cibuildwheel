@@ -4,7 +4,7 @@
 # stars: GitHub repo (optional, if different from package, such as for Twisted)
 # pypi: The pypi name, if different from the GitHub package name
 # os: Operating system list, [windows, apple, linux] (optional)
-# ci: [appveyor, github, azurepipelines, circleci, gitlab, travisci] (optional)
+# ci: [appveyor, github, azurepipelines, circleci, gitlab, travisci, cirrusci] (optional)
 # notes: (text, optional)
 
 - name: abess

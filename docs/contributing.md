@@ -2,6 +2,8 @@
 title: Contributing
 ---
 
+# Contributing
+
 Wheel-building can be pretty complex. We expect users to find edge-cases - please help the rest of the community out by documenting these, adding features to support them, and reporting bugs.
 
 If you have an idea for a modification or feature, it's probably best to raise an issue first and discuss it with the maintainer team. Once we have rough consensus on a design, begin work in a PR.

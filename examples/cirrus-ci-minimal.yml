@@ -1,0 +1,60 @@
+build_and_store_wheels: &BUILD_AND_STORE_WHEELS
+  install_cibuildwheel_script:
+    - python -m pip install cibuildwheel==2.9.0
+  run_cibuildwheel_script:
+    - cibuildwheel
+  wheels_artifacts:
+    path: "wheelhouse/*"
+
+
+linux_x86_task:
+  name: Build Linux x86 wheels.
+  compute_engine_instance:
+    image_project: cirrus-images
+    image: family/docker-builder
+    platform: linux
+    cpu: 4
+    memory: 4G
+
+  install_pre_requirements_script:
+    - apt install -y python3-venv python-is-python3
+  <<: *BUILD_AND_STORE_WHEELS
+
+linux_aarch64_task:
+  name: Build Linux aarch64 wheels.
+  compute_engine_instance:
+    image_project: cirrus-images
+    image: family/docker-builder-arm64
+    architecture: arm64
+    platform: linux
+    cpu: 4
+    memory: 4G
+
+  install_pre_requirements_script:
+    - apt install -y python3-venv python-is-python3
+  <<: *BUILD_AND_STORE_WHEELS
+
+windows_x86_task:
+  name: Build Windows x86 wheels.
+  windows_container:
+    image: cirrusci/windowsservercore:visualstudio2022
+    cpu: 4
+    memory: 4G
+
+  install_pre_requirements_script:
+    - choco install -y --no-progress python3 --version 3.10.6
+    - refreshenv
+    - echo PATH=%PATH% >> "%CIRRUS_ENV%"
+  <<: *BUILD_AND_STORE_WHEELS
+
+macos_arm64_task:
+  name: Build macOS arm64 wheels.
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-monterey-xcode
+
+  env:
+    PATH: /opt/homebrew/opt/python@3.10/bin:$PATH
+  install_pre_requirements_script:
+    - brew install python@3.10
+    - ln -s python3 /opt/homebrew/opt/python@3.10/bin/python
+  <<: *BUILD_AND_STORE_WHEELS
