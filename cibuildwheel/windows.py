@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import atexit
 import os
 import platform as platform_module
 import shutil
@@ -10,7 +9,7 @@ import textwrap
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
 from zipfile import ZipFile
 
 from filelock import FileLock
@@ -133,6 +132,7 @@ def setup_setuptools_cross_compile(
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
     env: dict[str, str],
+    cleanup_command_list: list[Callable[[], None]],
 ) -> None:
     # We write to distutils_cfg for distutils-based builds to override some
     # settings. Ideally, we'd pass them on the command line, but since we don't
@@ -168,14 +168,14 @@ def setup_setuptools_cross_compile(
                 f"Unable to configure setuptools for cross-compiling because existing {distutils_cfg} file cannot be backed up. Error was {exc}"
             )
             return
-        atexit.register(lambda: distutils_bak.replace(distutils_cfg))
+        cleanup_command_list.append(lambda: distutils_bak.replace(distutils_cfg))
     elif distutils_cfg.is_dir():
         log.warning(
             f"Unable to configure setuptools for cross-compiling because {distutils_cfg} is a directory"
         )
         return
     else:
-        atexit.register(lambda: distutils_cfg.unlink())
+        cleanup_command_list.append(lambda: distutils_cfg.unlink())
 
     # Ensure our additional import libraries are made available, and explicitly
     # set the platform name
@@ -220,6 +220,7 @@ def setup_rust_cross_compile(
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
     env: dict[str, str],
+    cleanup_command_list: list[Callable[[], None]],
 ) -> None:
     # Assume that MSVC will be used, because we already know that we are
     # cross-compiling. MinGW users can set CARGO_BUILD_TARGET themselves
@@ -250,6 +251,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontend,
+    cleanup_command_list: list[Callable[[], None]],
 ) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
@@ -371,8 +373,8 @@ def setup_python(
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
-        setup_setuptools_cross_compile(python_configuration, python_libs_base, env)
-        setup_rust_cross_compile(python_configuration, python_libs_base, env)
+        setup_setuptools_cross_compile(python_configuration, python_libs_base, env, cleanup_command_list)
+        setup_rust_cross_compile(python_configuration, python_libs_base, env, cleanup_command_list)
 
     return env
 
@@ -415,6 +417,9 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_options.dependency_constraints.get_for_python_version(config.version),
                 ]
 
+            # list of callables to do any urgent cleanup, for example,
+            # config files that may bleed into other builds
+            cleanup_command_list = []
             # install Python
             env = setup_python(
                 identifier_tmp_dir / "build",
@@ -422,100 +427,119 @@ def build(options: Options, tmp_path: Path) -> None:
                 dependency_constraint_flags,
                 build_options.environment,
                 build_options.build_frontend,
+                cleanup_command_list,
             )
 
-            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-            if compatible_wheel:
-                log.step_end()
-                print(
-                    f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
-                )
-                repaired_wheel = compatible_wheel
-            else:
-                # run the before_build command
-                if build_options.before_build:
-                    log.step("Running before_build...")
-                    before_build_prepared = prepare_command(
-                        build_options.before_build, project=".", package=options.globals.package_dir
+            try:
+                compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
+                if compatible_wheel:
+                    log.step_end()
+                    print(
+                        f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                     )
-                    shell(before_build_prepared, env=env)
-
-                log.step("Building wheel...")
-                built_wheel_dir.mkdir()
-
-                verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-
-                if build_options.build_frontend == "pip":
-                    # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                    # see https://github.com/pypa/cibuildwheel/pull/369
-                    call(
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        options.globals.package_dir.resolve(),
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *get_build_verbosity_extra_flags(build_options.build_verbosity),
-                        env=env,
-                    )
-                elif build_options.build_frontend == "build":
-                    config_setting = " ".join(verbosity_flags)
-                    build_env = env.copy()
-                    if build_options.dependency_constraints:
-                        constraints_path = (
-                            build_options.dependency_constraints.get_for_python_version(
-                                config.version
-                            )
+                    repaired_wheel = compatible_wheel
+                else:
+                    # run the before_build command
+                    if build_options.before_build:
+                        log.step("Running before_build...")
+                        before_build_prepared = prepare_command(
+                            build_options.before_build, project=".", package=options.globals.package_dir
                         )
-                        # Bug in pip <= 21.1.3 - we can't have a space in the
-                        # constraints file, and pip doesn't support drive letters
-                        # in uhi.  After probably pip 21.2, we can use uri. For
-                        # now, use a temporary file.
-                        if " " in str(constraints_path):
-                            assert " " not in str(identifier_tmp_dir)
-                            tmp_file = identifier_tmp_dir / "constraints.txt"
-                            tmp_file.write_bytes(constraints_path.read_bytes())
-                            constraints_path = tmp_file
+                        shell(before_build_prepared, env=env)
 
-                        build_env["PIP_CONSTRAINT"] = str(constraints_path)
-                        build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                    log.step("Building wheel...")
+                    built_wheel_dir.mkdir()
+
+                    verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
+
+                    if build_options.build_frontend == "pip":
+                        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                        # see https://github.com/pypa/cibuildwheel/pull/369
                         call(
                             "python",
                             "-m",
-                            "build",
-                            build_options.package_dir,
-                            "--wheel",
-                            f"--outdir={built_wheel_dir}",
-                            f"--config-setting={config_setting}",
-                            env=build_env,
+                            "pip",
+                            "wheel",
+                            options.globals.package_dir.resolve(),
+                            f"--wheel-dir={built_wheel_dir}",
+                            "--no-deps",
+                            *get_build_verbosity_extra_flags(build_options.build_verbosity),
+                            env=env,
                         )
-                else:
-                    assert_never(build_options.build_frontend)
+                    elif build_options.build_frontend == "build":
+                        config_setting = " ".join(verbosity_flags)
+                        build_env = env.copy()
+                        if build_options.dependency_constraints:
+                            constraints_path = (
+                                build_options.dependency_constraints.get_for_python_version(
+                                    config.version
+                                )
+                            )
+                            # Bug in pip <= 21.1.3 - we can't have a space in the
+                            # constraints file, and pip doesn't support drive letters
+                            # in uhi.  After probably pip 21.2, we can use uri. For
+                            # now, use a temporary file.
+                            if " " in str(constraints_path):
+                                assert " " not in str(identifier_tmp_dir)
+                                tmp_file = identifier_tmp_dir / "constraints.txt"
+                                tmp_file.write_bytes(constraints_path.read_bytes())
+                                constraints_path = tmp_file
 
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
+                            build_env["PIP_CONSTRAINT"] = str(constraints_path)
+                            build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                            call(
+                                "python",
+                                "-m",
+                                "build",
+                                build_options.package_dir,
+                                "--wheel",
+                                f"--outdir={built_wheel_dir}",
+                                f"--config-setting={config_setting}",
+                                env=build_env,
+                            )
+                    else:
+                        assert_never(build_options.build_frontend)
 
-                # repair the wheel
-                repaired_wheel_dir.mkdir()
+                    built_wheel = next(built_wheel_dir.glob("*.whl"))
 
-                if built_wheel.name.endswith("none-any.whl"):
-                    raise NonPlatformWheelError()
+                    # repair the wheel
+                    repaired_wheel_dir.mkdir()
 
-                if build_options.repair_command:
-                    log.step("Repairing wheel...")
-                    repair_command_prepared = prepare_command(
-                        build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
-                    )
-                    shell(repair_command_prepared, env=env)
-                else:
-                    shutil.move(str(built_wheel), repaired_wheel_dir)
+                    if built_wheel.name.endswith("none-any.whl"):
+                        raise NonPlatformWheelError()
 
-                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                    if build_options.repair_command:
+                        log.step("Repairing wheel...")
+                        repair_command_prepared = prepare_command(
+                            build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                        )
+                        shell(repair_command_prepared, env=env)
+                    else:
+                        shutil.move(str(built_wheel), repaired_wheel_dir)
 
-                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise AlreadyBuiltWheelError(repaired_wheel.name)
+                    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+
+                    if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                        raise AlreadyBuiltWheelError(repaired_wheel.name)
+
+            finally:
+                while cleanup_command_list:
+                    cleanup_command_list.pop(0)()
 
             if build_options.test_command and options.globals.test_selector(config.identifier):
+                if config.arch == "ARM64" != platform_module.machine():
+                    log.warning(
+                        unwrap(
+                            """
+                            While arm64 wheels can be built on other platforms, they cannot
+                            be tested. An arm64 runner is required. To silence this warning,
+                            set `CIBW_TEST_SKIP: *-win_arm64`.
+                            """
+                        )
+                    )
+                    # skip this test
+                    continue
+
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.

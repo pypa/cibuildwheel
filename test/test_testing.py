@@ -72,13 +72,6 @@ class TestSpam(TestCase):
 '''
 
 
-ADD_ENV: dict[str, str] = {}
-
-if utils.platform == "windows":
-    if platform.machine() != "ARM64":
-        ADD_ENV["CIBW_TEST_SKIP"] = "*-win_arm64 " + ADD_ENV.get("CIBW_TEST_SKIP", "")
-
-
 def test(tmp_path):
     project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
@@ -92,7 +85,6 @@ def test(tmp_path):
             # mac/linux.
             "CIBW_TEST_COMMAND": "false || pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
-            **ADD_ENV,
         },
     )
 
@@ -114,7 +106,6 @@ def test_extras_require(tmp_path):
             # mac/linux.
             "CIBW_TEST_COMMAND": "false || pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
-            **ADD_ENV,
         },
     )
 
@@ -152,7 +143,6 @@ def test_failing_test(tmp_path):
                 # problems with this, so let's check that.
                 "CIBW_MANYLINUX_I686_IMAGE": "manylinux1",
                 "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux1",
-                **ADD_ENV,
             },
         )
 
