@@ -373,7 +373,9 @@ def setup_python(
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
-        setup_setuptools_cross_compile(python_configuration, python_libs_base, env, cleanup_command_list)
+        setup_setuptools_cross_compile(
+            python_configuration, python_libs_base, env, cleanup_command_list
+        )
         setup_rust_cross_compile(python_configuration, python_libs_base, env, cleanup_command_list)
 
     return env
@@ -443,7 +445,9 @@ def build(options: Options, tmp_path: Path) -> None:
                     if build_options.before_build:
                         log.step("Running before_build...")
                         before_build_prepared = prepare_command(
-                            build_options.before_build, project=".", package=options.globals.package_dir
+                            build_options.before_build,
+                            project=".",
+                            package=options.globals.package_dir,
                         )
                         shell(before_build_prepared, env=env)
 
@@ -511,7 +515,9 @@ def build(options: Options, tmp_path: Path) -> None:
                     if build_options.repair_command:
                         log.step("Repairing wheel...")
                         repair_command_prepared = prepare_command(
-                            build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                            build_options.repair_command,
+                            wheel=built_wheel,
+                            dest_dir=repaired_wheel_dir,
                         )
                         shell(repair_command_prepared, env=env)
                     else:
