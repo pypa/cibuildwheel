@@ -130,11 +130,12 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
 
 
 def setup_setuptools_cross_compile(
+    tmp: Path,
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
     env: dict[str, str],
 ) -> None:
-    distutils_cfg = python_libs_base / "extra-setup.cfg"
+    distutils_cfg = tmp / "extra-setup.cfg"
     env["DISTUTILS_EXTRA_CONFIG"] = str(distutils_cfg)
     log.notice(f"Setting DISTUTILS_EXTRA_CONFIG={distutils_cfg} for cross-compilation")
 
@@ -176,6 +177,7 @@ def setup_setuptools_cross_compile(
 
 
 def setup_rust_cross_compile(
+    tmp: Path,
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
     env: dict[str, str],
@@ -330,8 +332,8 @@ def setup_python(
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
-        setup_setuptools_cross_compile(python_configuration, python_libs_base, env)
-        setup_rust_cross_compile(python_configuration, python_libs_base, env)
+        setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
+        setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
     return env
 
