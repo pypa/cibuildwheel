@@ -3,6 +3,7 @@ from __future__ import annotations
 import difflib
 import functools
 import os
+import shlex
 import sys
 import traceback
 from configparser import ConfigParser
@@ -344,9 +345,11 @@ class OptionsReader:
 def _inner_fmt(k: str, v: Any, table_item: str) -> Iterator[str]:
     if isinstance(v, list):
         for inner_v in v:
-            yield table_item.format(k=k, v=inner_v)
+            qv = shlex.quote(inner_v)
+            yield table_item.format(k=k, v=qv)
     else:
-        yield table_item.format(k=k, v=v)
+        qv = shlex.quote(v)
+        yield table_item.format(k=k, v=qv)
 
 
 class Options:
@@ -439,13 +442,13 @@ class Options:
 
             build_frontend_str = self.reader.get("build-frontend", env_plat=False)
             environment_config = self.reader.get(
-                "environment", table={"item": '{k}="{v}"', "sep": " "}
+                "environment", table={"item": "{k}={v}", "sep": " "}
             )
             environment_pass = self.reader.get("environment-pass", sep=" ").split()
             before_build = self.reader.get("before-build", sep=" && ")
             repair_command = self.reader.get("repair-wheel-command", sep=" && ")
             config_settings = self.reader.get(
-                "config-settings", table={"item": '{k}="{v}"', "sep": " "}
+                "config-settings", table={"item": "{k}={v}", "sep": " "}
             )
 
             dependency_versions = self.reader.get("dependency-versions")

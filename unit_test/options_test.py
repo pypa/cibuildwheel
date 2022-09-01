@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import platform as platform_module
+import textwrap
 
 import pytest
 
@@ -58,7 +59,7 @@ test_command: 'pyproject'
 
     default_build_options = options.build_options(identifier=None)
 
-    assert default_build_options.environment == parse_environment('FOO="BAR"')
+    assert default_build_options.environment == parse_environment("FOO=BAR")
 
     all_pinned_container_images = _get_pinned_container_images()
     pinned_x86_64_container_image = all_pinned_container_images["x86_64"]
@@ -116,3 +117,32 @@ def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):
     monkeypatch.setenv("ENV_VAR", env_var_value)
     parsed_environment = options.build_options(identifier=None).environment
     assert parsed_environment.as_dictionary(prev_environment={}) == {"ENV_VAR": env_var_value}
+
+
+@pytest.mark.parametrize(
+    "env_var_value",
+    [
+        "normal value",
+        '"value wrapped in quotes"',
+        'an unclosed double-quote: "',
+        "string\nwith\ncarriage\nreturns\n",
+        "a trailing backslash \\",
+    ],
+)
+def test_toml_environment_evil(tmp_path, monkeypatch, env_var_value):
+    args = get_default_command_line_arguments()
+    args.package_dir = tmp_path
+
+    with tmp_path.joinpath("pyproject.toml").open("w") as f:
+        f.write(
+            textwrap.dedent(
+                f"""\
+        [tool.cibuildwheel.environment]
+        EXAMPLE='''{env_var_value}'''
+        """
+            )
+        )
+
+    options = Options(platform="linux", command_line_arguments=args)
+    parsed_environment = options.build_options(identifier=None).environment
+    assert parsed_environment.as_dictionary(prev_environment={}) == {"EXAMPLE": env_var_value}
