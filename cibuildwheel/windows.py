@@ -9,7 +9,7 @@ import textwrap
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Sequence
 from zipfile import ZipFile
 
 from filelock import FileLock
