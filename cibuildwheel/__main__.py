@@ -5,7 +5,6 @@ import os
 import shutil
 import sys
 import tarfile
-import tempfile
 import textwrap
 from pathlib import Path
 from tempfile import mkdtemp
@@ -130,8 +129,8 @@ def main() -> None:
         return
 
     # Tarfile builds require extraction and changing the directory
-    with tempfile.TemporaryDirectory(prefix="cibw-sdist-") as temp_dir_str:
-        temp_dir = Path(temp_dir_str)
+    temp_dir = Path(mkdtemp(prefix="cibw-sdist-")).resolve(strict=True)
+    try:
         with tarfile.open(args.package_dir) as tar:
             tar.extractall(path=temp_dir)
 
@@ -146,6 +145,12 @@ def main() -> None:
 
         with chdir(temp_dir):
             build_in_directory(args)
+    finally:
+        # avoid https://github.com/python/cpython/issues/86962 by performing
+        # cleanup manually
+        shutil.rmtree(temp_dir, ignore_errors=sys.platform.startswith("win"))
+        if temp_dir.exists():
+            log.warning(f"Can't delete temporary folder '{str(temp_dir)}'")
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
@@ -253,6 +258,8 @@ def build_in_directory(args: CommandLineArguments) -> None:
             else:
                 assert_never(platform)
     finally:
+        # avoid https://github.com/python/cpython/issues/86962 by performing
+        # cleanup manually
         shutil.rmtree(tmp_path, ignore_errors=sys.platform.startswith("win"))
         if tmp_path.exists():
             log.warning(f"Can't delete temporary folder '{str(tmp_path)}'")
