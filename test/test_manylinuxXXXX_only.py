@@ -59,8 +59,6 @@ def test(manylinux_image, tmp_path):
     elif platform.machine() not in ["x86_64", "i686"]:
         if manylinux_image in ["manylinux1", "manylinux2010"]:
             pytest.skip("manylinux1 and 2010 doesn't exist for non-x86 architectures")
-        elif manylinux_image == "manylinux_2_28" and platform.machine() == "s390x":
-            pytest.skip("manylinux_2_28 doesn't exist for s390x architecture")
     elif manylinux_image == "manylinux_2_28" and platform.machine() == "i686":
         pytest.skip("manylinux_2_28 doesn't exist for i686 architecture")
 
