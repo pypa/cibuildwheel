@@ -576,6 +576,9 @@ class Options:
         ]
 
         build_option_defaults = self.build_options(identifier=None)
+        build_options_for_identifier = {
+            identifier: self.build_options(identifier) for identifier in identifiers
+        }
 
         for option_name, default_value in sorted(asdict(build_option_defaults).items()):
             if option_name == "globals":
@@ -585,7 +588,7 @@ class Options:
 
             # if any identifiers have an overridden value, print that too
             for identifier in identifiers:
-                option_value = getattr(self.build_options(identifier=identifier), option_name)
+                option_value = getattr(build_options_for_identifier[identifier], option_name)
                 if option_value != default_value:
                     lines.append(f"  {identifier}: {option_value!r}")
 
