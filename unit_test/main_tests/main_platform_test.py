@@ -246,3 +246,23 @@ def test_only_no_archs(monkeypatch):
 
     with pytest.raises(SystemExit):
         main()
+
+
+@pytest.mark.parametrize(
+    "envvar_name,envvar_value",
+    (
+        ("CIBW_BUILD", "cp310-*"),
+        ("CIBW_SKIP", "cp311-*"),
+        ("CIBW_ARCHS", "auto32"),
+        ("CIBW_PLATFORM", "macos"),
+    ),
+)
+def test_only_overrides_env_vars(monkeypatch, intercepted_build_args, envvar_name, envvar_value):
+    monkeypatch.setattr(sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64"])
+    monkeypatch.setenv(envvar_name, envvar_value)
+
+    main()
+
+    options = intercepted_build_args.args[0]
+    assert options.globals.build_selector.build_config == "cp311-manylinux_x86_64"
+    assert options.globals.build_selector.skip_config == ""
