@@ -161,7 +161,6 @@ def main() -> None:
 
 def build_in_directory(args: CommandLineArguments) -> None:
     platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
-
     platform: PlatformName
 
     if args.only is not None:
@@ -191,7 +190,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             sys.exit(2)
     elif platform_option_value != "auto":
         if platform_option_value not in PLATFORMS:
-            print(f"cibuildwheel: Unsupported platform: {platform}", file=sys.stderr)
+            print(f"cibuildwheel: Unsupported platform: {platform_option_value}", file=sys.stderr)
             sys.exit(2)
 
         platform = cast(PlatformName, platform_option_value)
