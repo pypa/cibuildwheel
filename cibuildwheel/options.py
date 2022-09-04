@@ -41,7 +41,7 @@ from .util import (
 
 @dataclass
 class CommandLineArguments:
-    platform: Literal["auto", "linux", "macos", "windows"]
+    platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
     output_dir: Path
     only: str | None

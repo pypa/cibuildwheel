@@ -9,6 +9,7 @@ import tempfile
 import textwrap
 from pathlib import Path
 from tempfile import mkdtemp
+from typing import cast
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -41,7 +42,7 @@ def main() -> None:
     parser.add_argument(
         "--platform",
         choices=["auto", "linux", "macos", "windows"],
-        default=os.environ.get("CIBW_PLATFORM", "auto"),
+        default=None,
         help="""
             Platform to build for. Use this option to override the
             auto-detected platform or to run cibuildwheel on your development
@@ -159,6 +160,8 @@ def main() -> None:
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
+    platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
+
     platform: PlatformName
 
     if args.only is not None:
@@ -174,7 +177,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 file=sys.stderr,
             )
             sys.exit(2)
-        if args.platform != "auto":
+        if args.platform is not None:
             print(
                 "--platform cannot be specified with --only, it is computed from --only",
                 file=sys.stderr,
@@ -186,8 +189,12 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 file=sys.stderr,
             )
             sys.exit(2)
-    elif args.platform != "auto":
-        platform = args.platform
+    elif platform_option_value != "auto":
+        if platform_option_value not in PLATFORMS:
+            print(f"cibuildwheel: Unsupported platform: {platform}", file=sys.stderr)
+            sys.exit(2)
+
+        platform = cast(PlatformName, platform_option_value)
     else:
         ci_provider = detect_ci_provider()
         if ci_provider is None:
@@ -216,10 +223,6 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 file=sys.stderr,
             )
             sys.exit(2)
-
-    if platform not in PLATFORMS:
-        print(f"cibuildwheel: Unsupported platform: {platform}", file=sys.stderr)
-        sys.exit(2)
 
     options = compute_options(platform=platform, command_line_arguments=args)
 
