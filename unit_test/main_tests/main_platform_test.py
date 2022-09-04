@@ -208,24 +208,14 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
         ("cp311-macosx_x86_64", "macos"),
     ),
 )
-def test_only_argument(monkeypatch, only, plat):
-    from cibuildwheel import linux, macos, windows
-
+def test_only_argument(intercepted_build_args, monkeypatch, only, plat):
     monkeypatch.setenv("CIBW_BUILD", "unused")
     monkeypatch.setenv("CIBW_SKIP", "unused")
     monkeypatch.setattr(sys, "argv", sys.argv + ["--only", only])
 
-    intercepted = ArgsInterceptor()
-
-    if plat == "linux":
-        monkeypatch.setattr(linux, "build", intercepted)
-    elif plat == "macos":
-        monkeypatch.setattr(macos, "build", intercepted)
-    elif plat == "windows":
-        monkeypatch.setattr(windows, "build", intercepted)
-
     main()
-    options = intercepted.args[0]
+
+    options = intercepted_build_args.args[0]
     assert options.globals.build_selector.build_config == only
     assert options.globals.build_selector.skip_config == ""
     assert options.platform == plat
@@ -233,16 +223,14 @@ def test_only_argument(monkeypatch, only, plat):
 
 
 @pytest.mark.parametrize("only", ("cp311-manylxinux_x86_64", "some_linux_thing"))
-def test_only_failed(intercepted_build_args, monkeypatch, only):
+def test_only_failed(monkeypatch, only):
     monkeypatch.setattr(sys, "argv", sys.argv + ["--only", only])
-    monkeypatch.delenv("CIBW_PLATFORM")
 
     with pytest.raises(SystemExit):
         main()
 
 
-def test_only_no_platform(intercepted_build_args, monkeypatch):
-    monkeypatch.delenv("CIBW_PLATFORM")
+def test_only_no_platform(monkeypatch):
     monkeypatch.setattr(
         sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64", "--platform", "macos"]
     )
@@ -251,8 +239,7 @@ def test_only_no_platform(intercepted_build_args, monkeypatch):
         main()
 
 
-def test_only_no_archs(intercepted_build_args, monkeypatch):
-    monkeypatch.delenv("CIBW_PLATFORM")
+def test_only_no_archs(monkeypatch):
     monkeypatch.setattr(
         sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64", "--archs", "x86_64"]
     )
