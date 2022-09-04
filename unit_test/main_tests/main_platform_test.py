@@ -10,12 +10,6 @@ from cibuildwheel.architecture import Architecture
 from ..conftest import MOCK_PACKAGE_DIR
 
 
-class ArgsInterceptor:
-    def __call__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-
 def test_unknown_platform_non_ci(monkeypatch, capsys):
     monkeypatch.delenv("CI", raising=False)
     monkeypatch.delenv("BITRISE_BUILD_NUMBER", raising=False)
@@ -266,3 +260,5 @@ def test_only_overrides_env_vars(monkeypatch, intercepted_build_args, envvar_nam
     options = intercepted_build_args.args[0]
     assert options.globals.build_selector.build_config == "cp311-manylinux_x86_64"
     assert options.globals.build_selector.skip_config == ""
+    assert options.platform == "linux"
+    assert options.globals.architectures == Architecture.all_archs("linux")
