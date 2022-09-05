@@ -21,10 +21,8 @@ class cached_property(Generic[_T]):
         if self.attrname is None:
             self.attrname = name
         elif name != self.attrname:
-            raise TypeError(
-                "Cannot assign the same cached_property to two different names "
-                f"({self.attrname!r} and {name!r})."
-            )
+            msg = "Cannot assign the same cached_property to two different names ({self.attrname!r} and {name!r})."
+            raise TypeError(msg)
 
     @overload
     def __get__(self, instance: None, owner: type[Any] | None = ...) -> cached_property[_T]:
@@ -38,9 +36,8 @@ class cached_property(Generic[_T]):
         if instance is None:
             return self
         if self.attrname is None:
-            raise TypeError(
-                "Cannot use cached_property instance without calling __set_name__ on it."
-            )
+            msg = "Cannot use cached_property instance without calling __set_name__ on it."
+            raise TypeError(msg)
         try:
             cache = instance.__dict__
         except AttributeError:  # not all objects have __dict__ (e.g. class defines slots)

@@ -31,7 +31,8 @@ def mock_protection(monkeypatch):
     """
 
     def fail_on_call(*args, **kwargs):
-        raise RuntimeError("This should never be called")
+        msg = "This should never be called"
+        raise RuntimeError(msg)
 
     def ignore_call(*args, **kwargs):
         pass

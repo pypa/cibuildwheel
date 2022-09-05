@@ -58,7 +58,8 @@ class OCIContainer:
         engine: ContainerEngine = "docker",
     ):
         if not image:
-            raise ValueError("Must have a non-empty image to run.")
+            msg = "Must have a non-empty image to run."
+            raise ValueError(msg)
 
         self.image = image
         self.simulate_32_bit = simulate_32_bit

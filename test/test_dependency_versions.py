@@ -108,7 +108,8 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
             w for w in utils.expected_wheels("spam", "0.1.0") if "-cp39" in w or "-pp39" in w
         ]
     else:
-        raise ValueError("unhandled python version")
+        msg = "unhandled python version"
+        raise ValueError(msg)
 
     assert set(actual_wheels) == set(expected_wheels)
 

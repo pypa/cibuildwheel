@@ -146,7 +146,8 @@ def setup_python(
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
     else:
-        raise ValueError("Unknown Python implementation")
+        msg = "Unknown Python implementation"
+        raise ValueError(msg)
     assert base_python.exists()
 
     log.step("Setting up build environment...")
@@ -466,7 +467,8 @@ def build(options: Options, tmp_path: Path) -> None:
                                 )
                             )
                         else:
-                            raise RuntimeError("unreachable")
+                            msg = "unreachable"
+                            raise RuntimeError(msg)
 
                         # skip this test
                         continue
