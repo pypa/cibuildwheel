@@ -67,7 +67,6 @@ module = [
     "pytest", # ignored in pre-commit to speed up check
     "bashlex",
     "importlib_resources",
-    "ghapi.*",
 ]
 ignore_missing_imports = true
 

@@ -20,7 +20,6 @@ extras = {
     ],
     "bin": [
         "click",
-        "ghapi",
         "pip-tools",
         "pygithub",
         "pyyaml",
