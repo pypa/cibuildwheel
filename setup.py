@@ -46,6 +46,4 @@ extras["dev"] = [
     *extras["bin"],
 ]
 
-extras["all"] = sum(extras.values(), [])
-
 setup(extras_require=extras)
