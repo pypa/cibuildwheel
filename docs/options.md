@@ -529,6 +529,36 @@ Choose which build backend to use. Can either be "pip", which will run
     build-frontend = "pip"
     ```
 
+### `CIBW_CONFIG_SETTINGS` {: #config-settings}
+> Specify config-settings for the build backend.
+
+Specify config settings for the build backend. Each space separated
+item will be passed via `--config-setting`. In TOML, you can specify
+a table of items, including arrays.
+
+!!! tip
+    Currently, "build" supports arrays for options, but "pip" only supports
+    single values.
+
+Platform-specific environment variables also available:<br/>
+`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_CONFIG_SETTINGS: "--build-option=--use-mypyc"
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.config-settings]
+    --build-option = "--use-mypyc"
+    ```
+
 
 ### `CIBW_ENVIRONMENT` {: #environment}
 > Set environment variables needed during the build

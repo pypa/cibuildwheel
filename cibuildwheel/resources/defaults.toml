@@ -5,6 +5,7 @@ test-skip = ""
 
 archs = ["auto"]
 build-frontend = "pip"
+config-settings = {}
 dependency-versions = "pinned"
 environment = {}
 environment-pass = []

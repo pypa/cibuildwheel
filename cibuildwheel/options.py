@@ -3,13 +3,14 @@ from __future__ import annotations
 import difflib
 import functools
 import os
+import shlex
 import sys
 import traceback
 from configparser import ConfigParser
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Mapping, Union, cast
+from typing import Any, Dict, Generator, Iterator, List, Mapping, Union, cast
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -77,6 +78,7 @@ class BuildOptions:
     test_extras: str
     build_verbosity: int
     build_frontend: BuildFrontend
+    config_settings: str
 
     @property
     def package_dir(self) -> Path:
@@ -293,8 +295,9 @@ class OptionsReader:
         accept platform versions of the environment variable. If this is an
         array it will be merged with "sep" before returning. If it is a table,
         it will be formatted with "table['item']" using {k} and {v} and merged
-        with "table['sep']". Empty variables will not override if ignore_empty
-        is True.
+        with "table['sep']". If sep is also given, it will be used for arrays
+        inside the table (must match table['sep']). Empty variables will not
+        override if ignore_empty is True.
         """
 
         if name not in self.default_options and name not in self.default_platform_options:
@@ -324,7 +327,9 @@ class OptionsReader:
         if isinstance(result, dict):
             if table is None:
                 raise ConfigOptionError(f"{name!r} does not accept a table")
-            return table["sep"].join(table["item"].format(k=k, v=v) for k, v in result.items())
+            return table["sep"].join(
+                item for k, v in result.items() for item in _inner_fmt(k, v, table["item"])
+            )
 
         if isinstance(result, list):
             if sep is None:
@@ -335,6 +340,16 @@ class OptionsReader:
             return str(result)
 
         return result
+
+
+def _inner_fmt(k: str, v: Any, table_item: str) -> Iterator[str]:
+    if isinstance(v, list):
+        for inner_v in v:
+            qv = shlex.quote(inner_v)
+            yield table_item.format(k=k, v=qv)
+    else:
+        qv = shlex.quote(v)
+        yield table_item.format(k=k, v=qv)
 
 
 class Options:
@@ -427,11 +442,14 @@ class Options:
 
             build_frontend_str = self.reader.get("build-frontend", env_plat=False)
             environment_config = self.reader.get(
-                "environment", table={"item": '{k}="{v}"', "sep": " "}
+                "environment", table={"item": "{k}={v}", "sep": " "}
             )
             environment_pass = self.reader.get("environment-pass", sep=" ").split()
             before_build = self.reader.get("before-build", sep=" && ")
             repair_command = self.reader.get("repair-wheel-command", sep=" && ")
+            config_settings = self.reader.get(
+                "config-settings", table={"item": "{k}={v}", "sep": " "}
+            )
 
             dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", sep=" && ")
@@ -537,6 +555,7 @@ class Options:
                 manylinux_images=manylinux_images or None,
                 musllinux_images=musllinux_images or None,
                 build_frontend=build_frontend,
+                config_settings=config_settings,
             )
 
     def check_for_invalid_configuration(self, identifiers: list[str]) -> None:

@@ -14,7 +14,7 @@ else:
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
-from cibuildwheel.util import BuildSelector, resources_dir
+from cibuildwheel.util import BuildSelector, resources_dir, split_config_settings
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -261,6 +261,27 @@ def test_build_verbosity(
 
     expected_verbosity = max(-3, min(3, int(build_verbosity or 0)))
     assert build_options.build_verbosity == expected_verbosity
+
+
+@pytest.mark.parametrize("platform_specific", [False, True])
+def test_config_settings(platform_specific, platform, intercepted_build_args, monkeypatch):
+    config_settings = 'setting=value setting=value2 other="something else"'
+    if platform_specific:
+        monkeypatch.setenv("CIBW_CONFIG_SETTINGS_" + platform.upper(), config_settings)
+        monkeypatch.setenv("CIBW_CONFIG_SETTIGNS", "a=b")
+    else:
+        monkeypatch.setenv("CIBW_CONFIG_SETTINGS", config_settings)
+
+    main()
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
+    assert build_options.config_settings == config_settings
+
+    assert split_config_settings(config_settings) == [
+        "--config-setting=setting=value",
+        "--config-setting=setting=value2",
+        "--config-setting=other=something else",
+    ]
 
 
 @pytest.mark.parametrize(
