@@ -7,9 +7,9 @@ import sys
 import tarfile
 import tempfile
 import textwrap
+import typing
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import cast
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -193,7 +193,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             print(f"cibuildwheel: Unsupported platform: {platform_option_value}", file=sys.stderr)
             sys.exit(2)
 
-        platform = cast(PlatformName, platform_option_value)
+        platform = typing.cast(PlatformName, platform_option_value)
     else:
         ci_provider = detect_ci_provider()
         if ci_provider is None:
