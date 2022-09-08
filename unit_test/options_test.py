@@ -5,7 +5,7 @@ import textwrap
 
 import pytest
 
-from cibuildwheel.__main__ import get_build_configs
+from cibuildwheel.__main__ import get_build_identifiers
 from cibuildwheel.environment import parse_environment
 from cibuildwheel.options import Options, _get_pinned_container_images
 
@@ -43,14 +43,11 @@ def test_options_1(tmp_path, monkeypatch):
 
     options = Options(platform="linux", command_line_arguments=args)
 
-    identifiers = [
-        c.identifier
-        for c in get_build_configs(
-            platform="linux",
-            build_selector=options.globals.build_selector,
-            architectures=options.globals.architectures,
-        )
-    ]
+    identifiers = get_build_identifiers(
+        platform="linux",
+        build_selector=options.globals.build_selector,
+        architectures=options.globals.architectures,
+    )
 
     override_display = """\
 test_command: 'pyproject'

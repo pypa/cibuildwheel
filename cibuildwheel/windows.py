@@ -58,10 +58,6 @@ class PythonConfiguration:
     identifier: str
     url: str | None = None
 
-    @property
-    def architecture(self) -> Architecture:
-        return Architecture[self.identifier.split("_", maxsplit=1)[-1]]
-
 
 def get_python_configurations(
     build_selector: BuildSelector,

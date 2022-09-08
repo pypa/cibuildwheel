@@ -106,7 +106,9 @@ def main() -> None:
         help="""
             Print the build identifiers matched by the current invocation and
             exit.  Optionally, specify a format string to print the identifiers.
-            Available replacements are {identifier}, {arch}, {version}. Default: {identifier}.
+            Available replacements are {identifier}, {arch}, {version}, {os}
+            (manylinux / musllinux / macos / windows), and {impl} (CPython,
+            PyPy). Default: {identifier}.
         """,
     )
 
@@ -208,24 +210,28 @@ def build_in_directory(args: CommandLineArguments) -> None:
         print(msg, file=sys.stderr)
         sys.exit(2)
 
-    configs = get_build_configs(
+    identifiers = get_build_identifiers(
         platform=platform,
         build_selector=options.globals.build_selector,
         architectures=options.globals.architectures,
     )
 
     if args.print_build_identifiers is not None:
-        for config in configs:
+        for identifier in identifiers:
+            py_ver, os_plat = identifier.split("-")
+            impl = py_ver[:2]
+            version = f"{py_ver[2]}.{py_ver[3:]}"
+            os_, arch = os_plat.split("_", maxsplit=1)
             print(
                 args.print_build_identifiers.format(
-                    identifier=config.identifier,
-                    arch=config.architecture.name,
-                    version=config.version,
+                    identifier=identifier,
+                    arch=arch,
+                    version=version,
+                    os=os_,
+                    impl="CPython" if impl == "cp" else "PyPy",
                 )
             )
         sys.exit(0)
-
-    identifiers = [config.identifier for config in configs]
 
     # Add CIBUILDWHEEL environment variable
     os.environ["CIBUILDWHEEL"] = "1"
@@ -308,20 +314,31 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
     print("\nHere we go!\n")
 
 
-def get_build_configs(
+def get_build_identifiers(
     platform: PlatformName, build_selector: BuildSelector, architectures: set[Architecture]
-) -> list[cibuildwheel.linux.PythonConfiguration] | list[
-    cibuildwheel.windows.PythonConfiguration
-] | list[cibuildwheel.macos.PythonConfiguration]:
+) -> list[str]:
+    python_configurations: (
+        list[cibuildwheel.linux.PythonConfiguration]
+        | list[cibuildwheel.windows.PythonConfiguration]
+        | list[cibuildwheel.macos.PythonConfiguration]
+    )
 
     if platform == "linux":
-        return cibuildwheel.linux.get_python_configurations(build_selector, architectures)
+        python_configurations = cibuildwheel.linux.get_python_configurations(
+            build_selector, architectures
+        )
     elif platform == "windows":
-        return cibuildwheel.windows.get_python_configurations(build_selector, architectures)
+        python_configurations = cibuildwheel.windows.get_python_configurations(
+            build_selector, architectures
+        )
     elif platform == "macos":
-        return cibuildwheel.macos.get_python_configurations(build_selector, architectures)
+        python_configurations = cibuildwheel.macos.get_python_configurations(
+            build_selector, architectures
+        )
     else:
         assert_never(platform)
+
+    return [config.identifier for config in python_configurations]
 
 
 def detect_warnings(*, options: Options, identifiers: list[str]) -> list[str]:
