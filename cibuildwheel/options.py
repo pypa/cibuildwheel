@@ -47,7 +47,7 @@ class CommandLineArguments:
     output_dir: Path
     config_file: str
     package_dir: Path
-    print_build_identifiers: bool
+    print_build_identifiers: str | None
     allow_empty: bool
     prerelease_pythons: bool
 

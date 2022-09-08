@@ -35,6 +35,10 @@ class PythonConfiguration:
     def path(self) -> PurePosixPath:
         return PurePosixPath(self.path_str)
 
+    @property
+    def architecture(self) -> Architecture:
+        return Architecture[self.identifier.split("_", maxsplit=1)[-1]]
+
 
 @dataclass(frozen=True)
 class BuildStep:

@@ -14,7 +14,7 @@ def get_default_command_line_arguments() -> CommandLineArguments:
         output_dir=Path("wheelhouse"),
         package_dir=Path("."),
         prerelease_pythons=False,
-        print_build_identifiers=False,
+        print_build_identifiers=None,
     )
 
     return defaults

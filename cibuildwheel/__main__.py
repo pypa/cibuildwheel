@@ -100,8 +100,14 @@ def main() -> None:
 
     parser.add_argument(
         "--print-build-identifiers",
-        action="store_true",
-        help="Print the build identifiers matched by the current invocation and exit.",
+        action="store",
+        const="{identifier}",
+        nargs="?",
+        help="""
+            Print the build identifiers matched by the current invocation and
+            exit.  Optionally, specify a format string to print the identifiers.
+            Available replacements are {identifier}, {arch}, {version}. Default: {identifier}.
+        """,
     )
 
     parser.add_argument(
@@ -202,16 +208,24 @@ def build_in_directory(args: CommandLineArguments) -> None:
         print(msg, file=sys.stderr)
         sys.exit(2)
 
-    identifiers = get_build_identifiers(
+    configs = get_build_configs(
         platform=platform,
         build_selector=options.globals.build_selector,
         architectures=options.globals.architectures,
     )
 
-    if args.print_build_identifiers:
-        for identifier in identifiers:
-            print(identifier)
+    if args.print_build_identifiers is not None:
+        for config in configs:
+            print(
+                args.print_build_identifiers.format(
+                    identifier=config.identifier,
+                    arch=config.architecture.name,
+                    version=config.version,
+                )
+            )
         sys.exit(0)
+
+    identifiers = [config.identifier for config in configs]
 
     # Add CIBUILDWHEEL environment variable
     os.environ["CIBUILDWHEEL"] = "1"
@@ -294,31 +308,20 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
     print("\nHere we go!\n")
 
 
-def get_build_identifiers(
+def get_build_configs(
     platform: PlatformName, build_selector: BuildSelector, architectures: set[Architecture]
-) -> list[str]:
-    python_configurations: (
-        list[cibuildwheel.linux.PythonConfiguration]
-        | list[cibuildwheel.windows.PythonConfiguration]
-        | list[cibuildwheel.macos.PythonConfiguration]
-    )
+) -> list[cibuildwheel.linux.PythonConfiguration] | list[
+    cibuildwheel.windows.PythonConfiguration
+] | list[cibuildwheel.macos.PythonConfiguration]:
 
     if platform == "linux":
-        python_configurations = cibuildwheel.linux.get_python_configurations(
-            build_selector, architectures
-        )
+        return cibuildwheel.linux.get_python_configurations(build_selector, architectures)
     elif platform == "windows":
-        python_configurations = cibuildwheel.windows.get_python_configurations(
-            build_selector, architectures
-        )
+        return cibuildwheel.windows.get_python_configurations(build_selector, architectures)
     elif platform == "macos":
-        python_configurations = cibuildwheel.macos.get_python_configurations(
-            build_selector, architectures
-        )
+        return cibuildwheel.macos.get_python_configurations(build_selector, architectures)
     else:
         assert_never(platform)
-
-    return [config.identifier for config in python_configurations]
 
 
 def detect_warnings(*, options: Options, identifiers: list[str]) -> list[str]:
