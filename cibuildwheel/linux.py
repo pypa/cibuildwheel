@@ -177,7 +177,7 @@ def build_in_container(
                 "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
                 file=sys.stderr,
             )
-            sys.exit(1)
+            raise SystemExit(1)
 
         which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
         if PurePosixPath(which_pip) != python_bin / "pip":
@@ -185,7 +185,7 @@ def build_in_container(
                 "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
                 file=sys.stderr,
             )
-            sys.exit(1)
+            raise SystemExit(1)
 
         compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
         if compatible_wheel:
@@ -358,7 +358,7 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
             ),
             file=sys.stderr,
         )
-        sys.exit(2)
+        raise SystemExit(2) from None
 
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
@@ -399,7 +399,7 @@ def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-a
                 f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
             )
             troubleshoot(options, error)
-            sys.exit(1)
+            raise SystemExit(1) from None
 
 
 def _matches_prepared_command(error_cmd: list[str], command_template: str) -> bool:

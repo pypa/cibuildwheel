@@ -213,7 +213,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 ),
                 file=sys.stderr,
             )
-            sys.exit(2)
+            raise SystemExit(2)
         if sys.platform.startswith("linux"):
             platform = "linux"
         elif sys.platform == "darwin":
@@ -226,7 +226,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 "cibuildwheel using the --platform argument. Check --help output for more information.",
                 file=sys.stderr,
             )
-            sys.exit(2)
+            raise SystemExit(2)
 
     options = compute_options(platform=platform, command_line_arguments=args)
 
@@ -237,7 +237,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
         names = ", ".join(sorted(package_files, reverse=True))
         msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
         print(msg, file=sys.stderr)
-        sys.exit(2)
+        raise SystemExit(2)
 
     identifiers = get_build_identifiers(
         platform=platform,
@@ -248,7 +248,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
     if args.print_build_identifiers:
         for identifier in identifiers:
             print(identifier)
-        sys.exit(0)
+        raise SystemExit(0)
 
     # Add CIBUILDWHEEL environment variable
     os.environ["CIBUILDWHEEL"] = "1"
@@ -266,7 +266,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
         allowed_architectures_check(platform, options.globals.architectures)
     except ValueError as err:
         print("cibuildwheel:", *err.args, file=sys.stderr)
-        sys.exit(4)
+        raise SystemExit(4) from None
 
     if not identifiers:
         print(
@@ -274,7 +274,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             file=sys.stderr,
         )
         if not args.allow_empty:
-            sys.exit(3)
+            raise SystemExit(3)
 
     output_dir = options.globals.output_dir
 

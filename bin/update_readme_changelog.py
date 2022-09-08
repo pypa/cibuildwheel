@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent / ".."
@@ -39,7 +38,7 @@ def main():
     )
 
     if not re.search(README_CHANGELOG_SECTION, readme_text):
-        sys.exit("Changelog section not found in README")
+        raise SystemExit("Changelog section not found in README")
 
     readme_text = re.sub(README_CHANGELOG_SECTION, mini_changelog, readme_text)
     README_FILE.write_text(readme_text)

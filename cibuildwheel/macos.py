@@ -192,7 +192,7 @@ def setup_python(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
             file=sys.stderr,
         )
-        sys.exit(1)
+        raise SystemExit(1)
 
     # check what Python version we're on
     call("which", "python", env=env)
@@ -203,7 +203,7 @@ def setup_python(
             "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
             file=sys.stderr,
         )
-        sys.exit(1)
+        raise SystemExit(1)
 
     # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
     # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
@@ -580,4 +580,4 @@ def build(options: Options, tmp_path: Path) -> None:
         log.step_end_with_error(
             f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
         )
-        sys.exit(1)
+        raise SystemExit(1) from None

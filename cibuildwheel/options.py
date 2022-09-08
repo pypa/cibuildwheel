@@ -426,7 +426,7 @@ class Options:
         if container_engine_str not in ["docker", "podman"]:
             msg = f"cibuildwheel: Unrecognised container_engine {container_engine_str!r}, only 'docker' and 'podman' are supported"
             print(msg, file=sys.stderr)
-            sys.exit(2)
+            raise SystemExit(2)
 
         container_engine = cast(ContainerEngine, container_engine_str)
 
@@ -473,7 +473,7 @@ class Options:
             else:
                 msg = f"cibuildwheel: Unrecognised build frontend {build_frontend_str!r}, only 'pip' and 'build' are supported"
                 print(msg, file=sys.stderr)
-                sys.exit(2)
+                raise SystemExit(2)
 
             try:
                 environment = parse_environment(environment_config)
@@ -483,7 +483,7 @@ class Options:
                     file=sys.stderr,
                 )
                 traceback.print_exc(None, sys.stderr)
-                sys.exit(2)
+                raise SystemExit(2) from None
 
             # Pass through environment variables
             if self.platform == "linux":
@@ -644,4 +644,4 @@ def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> No
         msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
         print(msg, file=sys.stderr)
         if error:
-            sys.exit(4)
+            raise SystemExit(4)

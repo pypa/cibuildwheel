@@ -6,7 +6,6 @@ from __future__ import annotations
 import glob
 import os
 import subprocess
-import sys
 import urllib.parse
 from pathlib import Path
 
@@ -65,7 +64,7 @@ def bump_version() -> None:
 
     if repo_has_uncommitted_changes:
         print("error: Uncommitted changes detected.")
-        sys.exit(1)
+        raise SystemExit(1)
 
     # fmt: off
     print(              'Current version:', current_version)  # noqa: E201 whitespace
@@ -77,7 +76,7 @@ def bump_version() -> None:
     except InvalidVersion:
         print("error: This version doesn't conform to PEP440")
         print("       https://www.python.org/dev/peps/pep-0440/")
-        sys.exit(1)
+        raise SystemExit(1) from None
 
     actions = []
 
@@ -86,7 +85,7 @@ def bump_version() -> None:
 
         if not paths:
             print(f"error: Pattern {path_pattern} didn't match any files")
-            sys.exit(1)
+            raise SystemExit(1)
 
         find_pattern = version_pattern.format(current_version)
         replace_pattern = version_pattern.format(new_version)
@@ -106,7 +105,7 @@ def bump_version() -> None:
 
         if not found_at_least_one_file_needing_update:
             print(f'''error: Didn't find any occurrences of "{find_pattern}" in "{path_pattern}"''')
-            sys.exit(1)
+            raise SystemExit(1)
 
     print()
     print("Here's the plan:")
@@ -122,7 +121,7 @@ def bump_version() -> None:
 
     if answer != "y":
         print("Aborted")
-        sys.exit(1)
+        raise SystemExit(1)
 
     for path, find, replace in actions:
         contents = path.read_text(encoding="utf8")

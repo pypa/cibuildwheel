@@ -24,4 +24,6 @@ if __name__ == "__main__":
         check=True,
     )
 
-    sys.exit(subprocess.run([sys.executable, "-m", "cibuildwheel"], cwd=project_dir).returncode)
+    raise SystemExit(
+        subprocess.run([sys.executable, "-m", "cibuildwheel"], cwd=project_dir).returncode
+    )
