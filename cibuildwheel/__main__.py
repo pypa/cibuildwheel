@@ -216,12 +216,20 @@ def build_in_directory(args: CommandLineArguments) -> None:
         architectures=options.globals.architectures,
     )
 
-    if args.print_build_identifiers is not None:
+    if args.print_build_identifiers:
         for identifier in identifiers:
             py_ver, os_plat = identifier.split("-")
             impl = py_ver[:2]
             version = f"{py_ver[2]}.{py_ver[3:]}"
-            os_, arch = os_plat.split("_", maxsplit=1)
+
+            if os_plat == "win32":
+                os_ = "win32"
+                arch = "x86"
+            else:
+                os_, arch = os_plat.split("_", maxsplit=1)
+                if os_ == "win32":
+                    arch = arch.upper()
+
             print(
                 args.print_build_identifiers.format(
                     identifier=identifier,

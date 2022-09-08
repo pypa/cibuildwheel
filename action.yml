@@ -13,6 +13,10 @@ inputs:
     description: 'File containing the config, defaults to {package}/pyproject.toml'
     required: false
     default: ''
+  print-build-identifiers:
+    description: 'Print build identifiers and exit. Set id: to access these in a later step'
+    required: false
+    default: ''
 branding:
   icon: package
   color: yellow
@@ -36,5 +40,6 @@ runs:
         ${{ inputs.package-dir }}
         --output-dir ${{ inputs.output-dir }}
         --config-file "${{ inputs.config-file }}"
+        --print-build-identifiers "${{ inputs.print-build-identifiers }}"
         2>&1
       shell: bash
