@@ -55,10 +55,10 @@ Usage
 |-----------------|-------|-------|---------|-----------|-----------|
 | GitHub Actions  | ✅    | ✅    | ✅      | ✅¹       | ✅²       |
 | Azure Pipelines | ✅    | ✅    | ✅      |           | ✅²       |
-| Travis CI       | ✅    |       | ✅      | ✅        | ✅²       |
+| Travis CI       | ✅    |       | ✅      | ✅        |           |
 | AppVeyor        | ✅    | ✅    | ✅      |           | ✅²       |
 | CircleCI        | ✅    | ✅    |         |           | ✅²       |
-| Gitlab CI       | ✅    |       |         |           | ✅²       |
+| Gitlab CI       | ✅    |       |         |           |           |
 | Cirrus CI       | ✅    | ✅³   | ✅      | ✅        | ✅        |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
