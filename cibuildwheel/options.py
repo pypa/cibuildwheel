@@ -393,7 +393,7 @@ class Options:
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
         # Process `--only`
-        if args.only is not None:
+        if args.only:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)

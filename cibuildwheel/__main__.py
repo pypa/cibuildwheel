@@ -163,7 +163,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
     platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
     platform: PlatformName
 
-    if args.only is not None:
+    if args.only:
         if "linux_" in args.only:
             platform = "linux"
         elif "macosx_" in args.only:
