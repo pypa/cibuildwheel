@@ -331,3 +331,38 @@ test-command = "pyproject-override"
 
     with pytest.raises(ConfigOptionError):
         OptionsReader(config_file_path=pyproject_toml, platform=platform)
+
+
+def test_config_settings(tmp_path):
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel.config-settings]
+example = "one"
+other = ["two", "three"]
+"""
+    )
+
+    options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux")
+    assert (
+        options_reader.get("config-settings", table={"item": '{k}="{v}"', "sep": " "})
+        == 'example="one" other="two" other="three"'
+    )
+
+
+def test_pip_config_settings(tmp_path):
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel.config-settings]
+--build-option="--use-mypyc"
+"""
+    )
+
+    options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux")
+    assert (
+        options_reader.get(
+            "config-settings", table={"item": "--config-settings='{k}=\"{v}\"'", "sep": " "}
+        )
+        == "--config-settings='--build-option=\"--use-mypyc\"'"
+    )

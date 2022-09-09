@@ -529,6 +529,36 @@ Choose which build backend to use. Can either be "pip", which will run
     build-frontend = "pip"
     ```
 
+### `CIBW_CONFIG_SETTINGS` {: #config-settings}
+> Specify config-settings for the build backend.
+
+Specify config settings for the build backend. Each space separated
+item will be passed via `--config-setting`. In TOML, you can specify
+a table of items, including arrays.
+
+!!! tip
+    Currently, "build" supports arrays for options, but "pip" only supports
+    single values.
+
+Platform-specific environment variables also available:<br/>
+`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_CONFIG_SETTINGS: "--build-option=--use-mypyc"
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.config-settings]
+    --build-option = "--use-mypyc"
+    ```
+
 
 ### `CIBW_ENVIRONMENT` {: #environment}
 > Set environment variables needed during the build
@@ -911,7 +941,7 @@ The available options are (default value):
 Set an alternative Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
 For `CIBW_MANYLINUX_*_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
-than x86 (x86\_64 and i686) `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`. `manylinux_2_28` is not supported for `i686` & `s390x` architectures.
+than x86 (x86\_64 and i686) `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`. `manylinux_2_28` is not supported for `i686` architecture.
 
 For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `musllinux_1_1` to use a pinned version of the [official musllinux images](https://github.com/pypa/musllinux). Alternatively, set these options to any other valid Docker image name.
 

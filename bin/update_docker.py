@@ -50,6 +50,7 @@ images = [
     Image("manylinux_2_28", "x86_64", "quay.io/pypa/manylinux_2_28_x86_64", None),
     Image("manylinux_2_28", "aarch64", "quay.io/pypa/manylinux_2_28_aarch64", None),
     Image("manylinux_2_28", "ppc64le", "quay.io/pypa/manylinux_2_28_ppc64le", None),
+    Image("manylinux_2_28", "s390x", "quay.io/pypa/manylinux_2_28_s390x", None),
     Image("manylinux_2_28", "pypy_x86_64", "quay.io/pypa/manylinux_2_28_x86_64", None),
     Image("manylinux_2_28", "pypy_aarch64", "quay.io/pypa/manylinux_2_28_aarch64", None),
     # musllinux_1_1 images

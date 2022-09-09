@@ -6,7 +6,7 @@
 #
 delocate==0.10.2
     # via -r cibuildwheel/resources/constraints.in
-distlib==0.3.5
+distlib==0.3.6
     # via virtualenv
 filelock==3.4.1
     # via virtualenv
@@ -20,7 +20,7 @@ typing-extensions==4.1.1
     # via
     #   delocate
     #   importlib-metadata
-virtualenv==20.16.3
+virtualenv==20.16.4
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.37.1
     # via

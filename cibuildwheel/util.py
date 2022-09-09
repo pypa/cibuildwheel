@@ -60,6 +60,7 @@ __all__ = [
     "strtobool",
     "cached_property",
     "chdir",
+    "split_config_settings",
 ]
 
 resources_dir: Final = Path(__file__).parent / "resources"
@@ -203,6 +204,11 @@ def get_build_verbosity_extra_flags(level: int) -> list[str]:
         return ["-" + -level * "q"]
     else:
         return []
+
+
+def split_config_settings(config_settings: str) -> list[str]:
+    config_settings_list = shlex.split(config_settings)
+    return [f"--config-setting={setting}" for setting in config_settings_list]
 
 
 def read_python_configs(config: PlatformName) -> list[dict[str, str]]:
