@@ -145,7 +145,7 @@ def shell(*commands: str, env: dict[str, str] | None = None, cwd: PathOrStr | No
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
 
 
-def format_safe(template: str, **kwargs: Any) -> str:
+def format_safe(template: str, **kwargs: str | os.PathLike[str]) -> str:
     """
     Works similarly to `template.format(**kwargs)`, except that unmatched
     fields in `template` are passed through untouched.
@@ -173,11 +173,9 @@ def format_safe(template: str, **kwargs: Any) -> str:
             re.VERBOSE,
         )
 
-        # we use a function for repl to prevent re.sub interpreting backslashes
-        # in repl as escape sequences.
         result = re.sub(
             pattern=find_pattern,
-            repl=lambda _: str(value),  # pylint: disable=cell-var-from-loop
+            repl=str(value).replace("\\", r"\\"),
             string=result,
         )
 

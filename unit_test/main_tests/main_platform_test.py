@@ -192,3 +192,73 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
             Architecture.arm64,
             Architecture.universal2,
         }
+
+
+@pytest.mark.parametrize(
+    "only,plat",
+    (
+        ("cp311-manylinux_x86_64", "linux"),
+        ("cp310-win_amd64", "windows"),
+        ("cp311-macosx_x86_64", "macos"),
+    ),
+)
+def test_only_argument(intercepted_build_args, monkeypatch, only, plat):
+    monkeypatch.setenv("CIBW_BUILD", "unused")
+    monkeypatch.setenv("CIBW_SKIP", "unused")
+    monkeypatch.setattr(sys, "argv", sys.argv + ["--only", only])
+
+    main()
+
+    options = intercepted_build_args.args[0]
+    assert options.globals.build_selector.build_config == only
+    assert options.globals.build_selector.skip_config == ""
+    assert options.platform == plat
+    assert options.globals.architectures == Architecture.all_archs(plat)
+
+
+@pytest.mark.parametrize("only", ("cp311-manylxinux_x86_64", "some_linux_thing"))
+def test_only_failed(monkeypatch, only):
+    monkeypatch.setattr(sys, "argv", sys.argv + ["--only", only])
+
+    with pytest.raises(SystemExit):
+        main()
+
+
+def test_only_no_platform(monkeypatch):
+    monkeypatch.setattr(
+        sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64", "--platform", "macos"]
+    )
+
+    with pytest.raises(SystemExit):
+        main()
+
+
+def test_only_no_archs(monkeypatch):
+    monkeypatch.setattr(
+        sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64", "--archs", "x86_64"]
+    )
+
+    with pytest.raises(SystemExit):
+        main()
+
+
+@pytest.mark.parametrize(
+    "envvar_name,envvar_value",
+    (
+        ("CIBW_BUILD", "cp310-*"),
+        ("CIBW_SKIP", "cp311-*"),
+        ("CIBW_ARCHS", "auto32"),
+        ("CIBW_PLATFORM", "macos"),
+    ),
+)
+def test_only_overrides_env_vars(monkeypatch, intercepted_build_args, envvar_name, envvar_value):
+    monkeypatch.setattr(sys, "argv", sys.argv + ["--only", "cp311-manylinux_x86_64"])
+    monkeypatch.setenv(envvar_name, envvar_value)
+
+    main()
+
+    options = intercepted_build_args.args[0]
+    assert options.globals.build_selector.build_config == "cp311-manylinux_x86_64"
+    assert options.globals.build_selector.skip_config == ""
+    assert options.platform == "linux"
+    assert options.globals.architectures == Architecture.all_archs("linux")

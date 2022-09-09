@@ -113,7 +113,7 @@ The complete set of defaults for the current version of cibuildwheel are shown b
 
 !!! tip
     Static configuration works across all CI systems, and can be used locally if
-    you run `cibuildwheel --plat linux`. This is preferred, but environment
+    you run `cibuildwheel --platform linux`. This is preferred, but environment
     variables are better if you need to change per-matrix element
     (`CIBW_BUILD` is often in this category, for example), or if you cannot or do
     not want to change a `pyproject.toml` file. You can specify a different file to
@@ -201,6 +201,10 @@ This option can also be set using the [command-line option](#command-line) `--pl
     ```
 
     This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](#configuration-file).
+
+    You can also run a single identifier with `--only <identifier>`. This will
+    not require `--platform` or `--arch`, and will override any build/skip
+    configuration.
 
 ### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
 

@@ -6,6 +6,7 @@ import shutil
 import sys
 import tarfile
 import textwrap
+import typing
 from pathlib import Path
 from tempfile import mkdtemp
 
@@ -40,7 +41,7 @@ def main() -> None:
     parser.add_argument(
         "--platform",
         choices=["auto", "linux", "macos", "windows"],
-        default=os.environ.get("CIBW_PLATFORM", "auto"),
+        default=None,
         help="""
             Platform to build for. Use this option to override the
             auto-detected platform or to run cibuildwheel on your development
@@ -61,6 +62,16 @@ def main() -> None:
             via emulation, for example, using binfmt_misc and QEMU.
             Default: auto.
             Choices: auto, auto64, auto32, native, all, {arch_list_str}
+        """,
+    )
+
+    parser.add_argument(
+        "--only",
+        default=None,
+        help="""
+            Force a single wheel build when given an identifier. Overrides
+            CIBW_BUILD/CIBW_SKIP. --platform and --arch cannot be specified
+            if this is given.
         """,
     )
 
@@ -154,10 +165,40 @@ def main() -> None:
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
+    platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
     platform: PlatformName
 
-    if args.platform != "auto":
-        platform = args.platform
+    if args.only:
+        if "linux_" in args.only:
+            platform = "linux"
+        elif "macosx_" in args.only:
+            platform = "macos"
+        elif "win_" in args.only:
+            platform = "windows"
+        else:
+            print(
+                f"Invalid --only='{args.only}', must be a build selector with a known platform",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if args.platform is not None:
+            print(
+                "--platform cannot be specified with --only, it is computed from --only",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if args.archs is not None:
+            print(
+                "--arch cannot be specified with --only, it is computed from --only",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+    elif platform_option_value != "auto":
+        if platform_option_value not in PLATFORMS:
+            print(f"cibuildwheel: Unsupported platform: {platform_option_value}", file=sys.stderr)
+            sys.exit(2)
+
+        platform = typing.cast(PlatformName, platform_option_value)
     else:
         ci_provider = detect_ci_provider()
         if ci_provider is None:
@@ -186,10 +227,6 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 file=sys.stderr,
             )
             sys.exit(2)
-
-    if platform not in PLATFORMS:
-        print(f"cibuildwheel: Unsupported platform: {platform}", file=sys.stderr)
-        sys.exit(2)
 
     options = compute_options(platform=platform, command_line_arguments=args)
 

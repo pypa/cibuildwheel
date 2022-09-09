@@ -42,9 +42,10 @@ from .util import (
 
 @dataclass
 class CommandLineArguments:
-    platform: Literal["auto", "linux", "macos", "windows"]
+    platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
     output_dir: Path
+    only: str | None
     config_file: str
     package_dir: Path
     print_build_identifiers: bool
@@ -403,6 +404,15 @@ class Options:
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
+        archs_config_str = args.archs or self.reader.get("archs", sep=" ")
+        architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
+
+        # Process `--only`
+        if args.only:
+            build_config = args.only
+            skip_config = ""
+            architectures = Architecture.all_archs(self.platform)
+
         build_selector = BuildSelector(
             build_config=build_config,
             skip_config=skip_config,
@@ -410,9 +420,6 @@ class Options:
             prerelease_pythons=prerelease_pythons,
         )
         test_selector = TestSelector(skip_config=test_skip)
-
-        archs_config_str = args.archs or self.reader.get("archs", sep=" ")
-        architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
         container_engine_str = self.reader.get("container-engine")
 
@@ -588,6 +595,9 @@ class Options:
         ]
 
         build_option_defaults = self.build_options(identifier=None)
+        build_options_for_identifier = {
+            identifier: self.build_options(identifier) for identifier in identifiers
+        }
 
         for option_name, default_value in sorted(asdict(build_option_defaults).items()):
             if option_name == "globals":
@@ -597,7 +607,7 @@ class Options:
 
             # if any identifiers have an overridden value, print that too
             for identifier in identifiers:
-                option_value = getattr(self.build_options(identifier=identifier), option_name)
+                option_value = getattr(build_options_for_identifier[identifier], option_name)
                 if option_value != default_value:
                     lines.append(f"  {identifier}: {option_value!r}")
 
