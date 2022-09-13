@@ -197,7 +197,7 @@ def build_description_from_identifier(identifier: str) -> str:
     elif python_interpreter == "pp":
         build_description += "PyPy"
     else:
-        msg = "unknown python {python_interpreter!r}"
+        msg = f"unknown python {python_interpreter!r}"
         raise Exception(msg)
 
     build_description += f" {python_version[0]}.{python_version[1:]} "

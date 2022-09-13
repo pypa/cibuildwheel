@@ -21,7 +21,7 @@ class cached_property(Generic[_T]):
         if self.attrname is None:
             self.attrname = name
         elif name != self.attrname:
-            msg = "Cannot assign the same cached_property to two different names ({self.attrname!r} and {name!r})."
+            msg = f"Cannot assign the same cached_property to two different names ({self.attrname!r} and {name!r})."
             raise TypeError(msg)
 
     @overload
