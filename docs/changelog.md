@@ -4,6 +4,18 @@ title: Changelog
 
 # Changelog
 
+### v2.10.0
+
+_13 September 2022_
+
+- 🌟 Adds support for [building wheels on Cirrus CI](https://cibuildwheel.readthedocs.io/en/stable/setup/#cirrus-ci). This is exciting for us, as it's the first public CI platform that natively supports macOS Apple Silicon (aka. M1, `arm64`) runners. As such, it's the first platform that you can natively build _and test_ macOS `arm64` wheels. It also has native Linux ARM (aarch64) runners, for fast, native builds there. (#1191)
+- 🌟 Adds support for running cibuildwheel on Apple Silicon machines. For a while, we've supported cross-compilation of Apple Silicon wheels on `x86_64`, but now that we have Cirrus CI we can run our test suite and officially support running cibuildwheel on `arm64`. (#1191)
+- ✨ Adds the `--only` [command line option](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line), to specify a single build to run. Previously, it could be cumbersome to set all the build selection options to target a specific build - for example, you might have to run something like `CIBW_BUILD=cp39-manylinux_x86_64 cibuildwheel --platform linux --archs x86_64`. The new `--only` option overrides all the build selection options to simplify running a single build, which now looks like `cibuildwheel --only cp39-manylinux_x86_64`. (#1098)
+- ✨ Adds the [`CIBW_CONFIG_SETTINGS`](https://cibuildwheel.readthedocs.io/en/stable/options/#config-settings) option, so you can pass arguments to your package's build backend (#1244)
+- 🛠 Updates the CPython 3.11 version to the latest release candidate - v3.11.0rc2. (#1265)
+- 🐛 Fix a bug that can cause a RecursionError on Windows when building from an sdist. (#1253)
+- 🛠 Add support for the s390x architecture on manylinux_2_28 (#1255)
+
 ### v2.9.0
 
 _11 August 2022_
