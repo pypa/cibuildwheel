@@ -63,13 +63,13 @@ __all__ = [
     "split_config_settings",
 ]
 
-resources_dir: Final = Path(__file__).parent / "resources"
+resources_dir: Final[Path] = Path(__file__).parent / "resources"
 
-install_certifi_script: Final = resources_dir / "install_certifi.py"
+install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 
 BuildFrontend = Literal["pip", "build"]
 
-MANYLINUX_ARCHS: Final = (
+MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
     "i686",
     "pypy_x86_64",
@@ -80,7 +80,7 @@ MANYLINUX_ARCHS: Final = (
     "pypy_i686",
 )
 
-MUSLLINUX_ARCHS: Final = (
+MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
     "i686",
     "aarch64",
@@ -88,10 +88,12 @@ MUSLLINUX_ARCHS: Final = (
     "s390x",
 )
 
-DEFAULT_CIBW_CACHE_PATH: Final = user_cache_path(appname="cibuildwheel", appauthor="pypa")
-CIBW_CACHE_PATH: Final = Path(os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)).resolve()
+DEFAULT_CIBW_CACHE_PATH: Final[Path] = user_cache_path(appname="cibuildwheel", appauthor="pypa")
+CIBW_CACHE_PATH: Final[Path] = Path(
+    os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)
+).resolve()
 
-IS_WIN: Final = sys.platform.startswith("win")
+IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
 @overload
