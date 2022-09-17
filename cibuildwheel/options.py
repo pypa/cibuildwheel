@@ -10,7 +10,7 @@ from configparser import ConfigParser
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterator, List, Mapping, Union, cast
+from typing import Any, Callable, Dict, Generator, Iterator, List, Mapping, Union, cast
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -23,7 +23,7 @@ from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
-from .typing import PLATFORMS, Literal, PlatformName, TypedDict
+from .typing import PLATFORMS, Literal, NotRequired, PlatformName, TypedDict
 from .util import (
     MANYLINUX_ARCHS,
     MUSLLINUX_ARCHS,
@@ -123,6 +123,7 @@ DISALLOWED_OPTIONS = {
 class TableFmt(TypedDict):
     item: str
     sep: str
+    quote: NotRequired[Callable[[str], str]]
 
 
 class ConfigOptionError(KeyError):
@@ -329,7 +330,7 @@ class OptionsReader:
             if table is None:
                 raise ConfigOptionError(f"{name!r} does not accept a table")
             return table["sep"].join(
-                item for k, v in result.items() for item in _inner_fmt(k, v, table["item"])
+                item for k, v in result.items() for item in _inner_fmt(k, v, table)
             )
 
         if isinstance(result, list):
@@ -343,14 +344,16 @@ class OptionsReader:
         return result
 
 
-def _inner_fmt(k: str, v: Any, table_item: str) -> Iterator[str]:
+def _inner_fmt(k: str, v: Any, table: TableFmt) -> Iterator[str]:
+    quote_function = table.get("quote", lambda a: a)
+
     if isinstance(v, list):
         for inner_v in v:
-            qv = shlex.quote(inner_v)
-            yield table_item.format(k=k, v=qv)
+            qv = quote_function(inner_v)
+            yield table["item"].format(k=k, v=qv)
     else:
-        qv = shlex.quote(v)
-        yield table_item.format(k=k, v=qv)
+        qv = quote_function(v)
+        yield table["item"].format(k=k, v=qv)
 
 
 class Options:
@@ -449,13 +452,13 @@ class Options:
 
             build_frontend_str = self.reader.get("build-frontend", env_plat=False)
             environment_config = self.reader.get(
-                "environment", table={"item": "{k}={v}", "sep": " "}
+                "environment", table={"item": '{k}="{v}"', "sep": " "}
             )
             environment_pass = self.reader.get("environment-pass", sep=" ").split()
             before_build = self.reader.get("before-build", sep=" && ")
             repair_command = self.reader.get("repair-wheel-command", sep=" && ")
             config_settings = self.reader.get(
-                "config-settings", table={"item": "{k}={v}", "sep": " "}
+                "config-settings", table={"item": "{k}={v}", "sep": " ", "quote": shlex.quote}
             )
 
             dependency_versions = self.reader.get("dependency-versions")

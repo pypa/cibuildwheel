@@ -66,6 +66,7 @@ module = [
     "setuptools",
     "pytest", # ignored in pre-commit to speed up check
     "bashlex",
+    "bashlex.*",
     "importlib_resources",
     "ghapi.*",
 ]
