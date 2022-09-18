@@ -4,6 +4,7 @@ import dataclasses
 from typing import Any, Mapping, Sequence
 
 import bashlex
+import bashlex.errors
 
 from cibuildwheel.typing import Protocol
 
@@ -33,7 +34,11 @@ def split_env_items(env_string: str) -> list[str]:
     if not env_string:
         return []
 
-    command_node = bashlex.parsesingle(env_string)
+    try:
+        command_node = bashlex.parsesingle(env_string)
+    except bashlex.errors.ParsingError as e:
+        raise EnvironmentParseError(env_string) from e
+
     result = []
 
     for word_node in command_node.parts:
