@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.10.1
+
+_18 September 2022_
+
+- 🐛 Fix a bug that stopped environment variables specified in TOML from being expanded. (#1273)
+
 ### v2.10.0
 
 _13 September 2022_
