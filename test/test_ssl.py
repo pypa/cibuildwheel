@@ -15,6 +15,7 @@ project_with_ssl_tests = test_projects.new_c_project(
         data = urlopen("https://www.nist.gov", context=context)
         data = urlopen("https://raw.githubusercontent.com/pypa/cibuildwheel/main/CI.md", context=context)
         data = urlopen("https://raw.githubusercontent.com/pypa/cibuildwheel/main/CI.md")
+        data = urlopen("https://cloudflare.com")
         """
     )
 )
