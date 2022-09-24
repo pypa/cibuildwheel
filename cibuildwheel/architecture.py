@@ -10,17 +10,11 @@ from .typing import Final, Literal, PlatformName, assert_never
 
 PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
 
-ARCH_CATEGORIES: Final[dict[str, set[str]]] = {
-    "32": {"i686", "x86"},
-    "64": {"x86_64", "AMD64"},
-    "arm": {"ARM64", "aarch64", "arm64"},
-}
-
-PLATFORM_CATEGORIES: Final[dict[PlatformName, set[str]]] = {
-    "linux": {"i686", "x86_64", "aarch64", "ppc64le", "s390x"},
-    "macos": {"x86_64", "arm64", "universal2"},
-    "windows": {"x86", "AMD64", "ARM64"},
-}
+ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
+    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64"},
+    {"linux": "i686", "macos": None, "windows": "x86"},
+    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64"},
+]
 
 
 @functools.total_ordering
@@ -72,25 +66,28 @@ class Architecture(Enum):
         native_machine = platform_module.machine()
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
-        host_platform = (
+        host_platform: PlatformName = (
             "windows"
             if sys.platform.startswith("win")
             else ("macos" if sys.platform.startswith("darwin") else "linux")
         )
 
-        result = set()
+        native_architecture = Architecture(native_machine)
 
-        # Replace native_machine with the matching machine for intel or arm
-        if host_platform == platform:
-            native_architecture = Architecture(native_machine)
-            result.add(native_architecture)
-        else:
-            for arch_group in ARCH_CATEGORIES.values():
-                if native_machine in arch_group:
-                    possible_archs = arch_group & PLATFORM_CATEGORIES[platform]
-                    if len(possible_archs) == 1:
-                        (cross_machine,) = possible_archs
-                        result.add(Architecture(cross_machine))
+        # we might need to rename the native arch to the machine we're running
+        # on, as the same arch can have different names on different platforms
+        if host_platform != platform:
+            for arch_synonym in ARCH_SYNONYMS:
+                if native_machine == arch_synonym.get(host_platform):
+                    synonym = arch_synonym[platform]
+
+                    if synonym is None:
+                        # can't build anything on this platform
+                        return set()
+
+                    native_architecture = Architecture(synonym)
+
+        result = {native_architecture}
 
         if platform == "linux" and Architecture.x86_64 in result:
             # x86_64 machines can run i686 containers
@@ -104,15 +101,21 @@ class Architecture(Enum):
     @staticmethod
     def all_archs(platform: PlatformName) -> set[Architecture]:
         all_archs_map = {
-            "linux": {Architecture[item] for item in PLATFORM_CATEGORIES["linux"]},
-            "macos": {Architecture[item] for item in PLATFORM_CATEGORIES["macos"]},
-            "windows": {Architecture[item] for item in PLATFORM_CATEGORIES["windows"]},
+            "linux": {
+                Architecture.x86_64,
+                Architecture.i686,
+                Architecture.aarch64,
+                Architecture.ppc64le,
+                Architecture.s390x,
+            },
+            "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
+            "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
         }
         return all_archs_map[platform]
 
     @staticmethod
     def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> set[Architecture]:
-        archs_32 = {Architecture[item] for item in ARCH_CATEGORIES["32"]}
+        archs_32 = {Architecture.i686, Architecture.x86}
         auto_archs = Architecture.auto_archs(platform)
 
         if bitness == "64":
