@@ -173,7 +173,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             platform = "linux"
         elif "macosx_" in args.only:
             platform = "macos"
-        elif "win_" in args.only:
+        elif "win_" in args.only or "win32" in args.only:
             platform = "windows"
         else:
             print(
