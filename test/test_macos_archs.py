@@ -167,3 +167,33 @@ def test_cp38_arm64_testing(tmp_path, capfd):
     expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp38" in w]
 
     assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_cp38_arm64_testing_universal2_installer(tmp_path, capfd, request):
+    if not request.config.getoption("--run-cp38-universal2"):
+        pytest.skip("needs --run-cp38-universal2 option to run")
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_BUILD": "cp38-*",
+            "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
+            "CIBW_ARCHS": "x86_64,universal2,arm64",
+            "MACOSX_DEPLOYMENT_TARGET": "11.0",
+        },
+    )
+
+    captured = capfd.readouterr()
+
+    assert "running tests on x86_64" in captured.out
+    assert "running tests on arm64" in captured.out
+
+    warning_message = "While cibuildwheel can build CPython 3.8 universal2/arm64 wheels, we cannot test the arm64 part of them"
+    assert warning_message not in captured.err
+
+    expected_wheels = [w.replace("10_9", "11_0") for w in ALL_MACOS_WHEELS if "cp38" in w]
+
+    assert set(actual_wheels) == set(expected_wheels)

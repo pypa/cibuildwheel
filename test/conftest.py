@@ -8,6 +8,12 @@ def pytest_addoption(parser) -> None:
         "--run-emulation", action="store_true", default=False, help="run emulation tests"
     )
     parser.addoption("--run-podman", action="store_true", default=False, help="run podman tests")
+    parser.addoption(
+        "--run-cp38-universal2",
+        action="store_true",
+        default=False,
+        help="macOS cp38 uses the universal2 installer",
+    )
 
 
 @pytest.fixture(
