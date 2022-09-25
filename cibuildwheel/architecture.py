@@ -3,11 +3,18 @@ from __future__ import annotations
 import functools
 import platform as platform_module
 import re
+import sys
 from enum import Enum
 
 from .typing import Final, Literal, PlatformName, assert_never
 
 PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
+
+ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
+    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64"},
+    {"linux": "i686", "macos": None, "windows": "x86"},
+    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64"},
+]
 
 
 @functools.total_ordering
@@ -56,14 +63,37 @@ class Architecture(Enum):
 
     @staticmethod
     def auto_archs(platform: PlatformName) -> set[Architecture]:
-        native_architecture = Architecture(platform_module.machine())
+        native_machine = platform_module.machine()
+
+        # Cross-platform support. Used for --print-build-identifiers or docker builds.
+        host_platform: PlatformName = (
+            "windows"
+            if sys.platform.startswith("win")
+            else ("macos" if sys.platform.startswith("darwin") else "linux")
+        )
+
+        native_architecture = Architecture(native_machine)
+
+        # we might need to rename the native arch to the machine we're running
+        # on, as the same arch can have different names on different platforms
+        if host_platform != platform:
+            for arch_synonym in ARCH_SYNONYMS:
+                if native_machine == arch_synonym.get(host_platform):
+                    synonym = arch_synonym[platform]
+
+                    if synonym is None:
+                        # can't build anything on this platform
+                        return set()
+
+                    native_architecture = Architecture(synonym)
+
         result = {native_architecture}
 
-        if platform == "linux" and native_architecture == Architecture.x86_64:
+        if platform == "linux" and Architecture.x86_64 in result:
             # x86_64 machines can run i686 containers
             result.add(Architecture.i686)
 
-        if platform == "windows" and native_architecture == Architecture.AMD64:
+        if platform == "windows" and Architecture.AMD64 in result:
             result.add(Architecture.x86)
 
         return result
