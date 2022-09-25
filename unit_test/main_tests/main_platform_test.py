@@ -199,6 +199,7 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
     (
         ("cp311-manylinux_x86_64", "linux"),
         ("cp310-win_amd64", "windows"),
+        ("cp310-win32", "windows"),
         ("cp311-macosx_x86_64", "macos"),
     ),
 )
