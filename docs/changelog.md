@@ -4,6 +4,14 @@ title: Changelog
 
 # Changelog
 
+### v2.10.2
+
+_25 September 2022_
+
+- 🐛 Fix a bug that caused `win32` identifiers to fail when used with `--only`. (#1282)
+- 🐛 Fix computation of `auto`/`auto64`/`auto32` archs when targeting a different platform to the one that you're running cibuildwheel on. (#1266)
+- 📚 Fix an mistake in the 'how it works' diagram. (#1274)
+
 ### v2.10.1
 
 _18 September 2022_
