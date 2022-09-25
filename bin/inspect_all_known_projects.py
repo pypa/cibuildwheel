@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+
+"""
+Check known projects for usage of requires-python.
+
+Usage:
+
+    ./bin/inspect_all_known_projects.py --online=$GITHUB_TOKEN
+
+This will cache the results to all_known_setup.yaml; you can reprint
+the results without the `--online` setting.
+"""
+
+
 from __future__ import annotations
 
 import ast
@@ -7,7 +20,7 @@ from typing import Iterator
 
 import click
 import yaml
-from ghapi.core import GhApi, HTTP404NotFoundError
+from github import Github, GithubException
 from rich import print
 
 from cibuildwheel.projectfiles import Analyzer
@@ -47,33 +60,38 @@ def check_repo(name: str, contents: str) -> str:
 
 
 class MaybeRemote:
-    def __init__(self, cached_file: Path | str, *, online: bool) -> None:
-        self.online = online
-        if self.online:
-            self.contents: dict[str, dict[str, str | None]] = {
+    github: Github | None
+    contents: dict[str, dict[str, str | None]]
+
+    def __init__(self, cached_file: Path | str, *, online: str | None) -> None:
+        if online is not None:
+            self.github = Github(online)
+            self.contents = {
                 "setup.py": {},
                 "setup.cfg": {},
                 "pyproject.toml": {},
             }
         else:
+            self.github = None
             with open(cached_file) as f:
                 self.contents = yaml.safe_load(f)
 
     def get(self, repo: str, filename: str) -> str | None:
-        if self.online:
+        if self.github:
             try:
-                self.contents[filename][repo] = (
-                    GhApi(*repo.split("/")).get_content(filename).decode()
-                )
-            except HTTP404NotFoundError:
+                gh_file = self.github.get_repo(repo).get_contents(filename)
+            except GithubException:
                 self.contents[filename][repo] = None
+            else:
+                assert not isinstance(gh_file, list)
+                self.contents[filename][repo] = gh_file.decoded_content.decode(encoding="utf-8")
+
             return self.contents[filename][repo]
         elif repo in self.contents[filename]:
             return self.contents[filename][repo]
         else:
-            raise RuntimeError(
-                f"Trying to access {repo}:{filename} and not in cache, rebuild cache"
-            )
+            msg = f"Trying to access {repo}:{filename} and not in cache, rebuild cache"
+            raise RuntimeError(msg)
 
     def save(self, filename: Path | str) -> None:
         with open(filename, "w") as f:
@@ -87,8 +105,8 @@ class MaybeRemote:
 
 
 @click.command()
-@click.option("--online", is_flag=True, help="Remember to set GITHUB_TOKEN")
-def main(online: bool) -> None:
+@click.option("--online", help="Set to $GITHUB_TOKEN")
+def main(online: str | None) -> None:
     with open(DIR / "../docs/data/projects.yml") as f:
         known = yaml.safe_load(f)
 

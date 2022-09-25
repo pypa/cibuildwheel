@@ -149,7 +149,8 @@ def main() -> None:
         try:
             (project_dir,) = temp_dir.iterdir()
         except ValueError:
-            raise SystemExit("invalid sdist: didn't contain a single dir") from None
+            msg = "invalid sdist: didn't contain a single dir"
+            raise SystemExit(msg) from None
 
         # This is now the new package dir
         args.package_dir = project_dir.resolve()

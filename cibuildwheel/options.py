@@ -138,7 +138,8 @@ def _dig_first(*pairs: tuple[Mapping[str, Setting], str], ignore_empty: bool = F
     _dig_first((dict1, "key1"), (dict2, "key2"), ...)
     """
     if not pairs:
-        raise ValueError("pairs cannot be empty")
+        msg = "pairs cannot be empty"
+        raise ValueError(msg)
 
     for dict_like, key in pairs:
         if key in dict_like:
@@ -208,13 +209,15 @@ class OptionsReader:
 
         if config_overrides is not None:
             if not isinstance(config_overrides, list):
-                raise ConfigOptionError("'tool.cibuildwheel.overrides' must be a list")
+                msg = "'tool.cibuildwheel.overrides' must be a list"
+                raise ConfigOptionError(msg)
 
             for config_override in config_overrides:
                 select = config_override.pop("select", None)
 
                 if not select:
-                    raise ConfigOptionError("'select' must be set in an override")
+                    msg = "'select' must be set in an override"
+                    raise ConfigOptionError(msg)
 
                 if isinstance(select, list):
                     select = " ".join(select)
@@ -328,14 +331,16 @@ class OptionsReader:
 
         if isinstance(result, dict):
             if table is None:
-                raise ConfigOptionError(f"{name!r} does not accept a table")
+                msg = f"{name!r} does not accept a table"
+                raise ConfigOptionError(msg)
             return table["sep"].join(
                 item for k, v in result.items() for item in _inner_fmt(k, v, table)
             )
 
         if isinstance(result, list):
             if sep is None:
-                raise ConfigOptionError(f"{name!r} does not accept a list")
+                msg = f"{name!r} does not accept a list"
+                raise ConfigOptionError(msg)
             return sep.join(result)
 
         if isinstance(result, int):

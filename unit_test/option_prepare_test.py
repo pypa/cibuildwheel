@@ -19,7 +19,8 @@ ALL_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "cp311", "pp37", "pp38", "pp
 @pytest.fixture
 def mock_build_container(monkeypatch):
     def fail_on_call(*args, **kwargs):
-        raise RuntimeError("This should never be called")
+        msg = "This should never be called"
+        raise RuntimeError(msg)
 
     def ignore_call(*args, **kwargs):
         pass

@@ -81,7 +81,8 @@ def ci_service_for_config_file(config_file):
         if service.name == service_name:
             return service
 
-    raise ValueError(f"unknown ci service for config file {config_file}")
+    msg = f"unknown ci service for config file {config_file}"
+    raise ValueError(msg)
 
 
 @click.command()
@@ -100,7 +101,8 @@ def run_example_ci_configs(config_files=None):
     for config_file in config_files:
         service = ci_service_for_config_file(config_file)
         if service.name in configs_by_service:
-            raise Exception("You cannot specify more than one config per CI service")
+            msg = "You cannot specify more than one config per CI service"
+            raise Exception(msg)
         configs_by_service[service.name] = config_file
 
     if git_repo_has_changes():

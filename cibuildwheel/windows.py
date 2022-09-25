@@ -137,7 +137,8 @@ def setup_python(
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
     else:
-        raise ValueError("Unknown Python implementation")
+        msg = "Unknown Python implementation"
+        raise ValueError(msg)
     assert base_python.exists()
 
     log.step("Setting up build environment...")

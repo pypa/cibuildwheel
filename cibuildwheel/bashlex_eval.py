@@ -32,7 +32,8 @@ def evaluate(
     command_node = bashlex.parsesingle(value)
 
     if len(command_node.parts) != 1:
-        raise ValueError(f'"{value}" has too many parts')
+        msg = f"{value!r} has too many parts"
+        raise ValueError(msg)
 
     value_word_node = command_node.parts[0]
 
@@ -54,7 +55,8 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     elif node.kind == "parameter":
         return evaluate_parameter_node(node, context=context)
     else:
-        raise ValueError(f'Unsupported bash construct: "{node.kind}"')
+        msg = f"Unsupported bash construct: {node.kind!r}"
+        raise ValueError(msg)
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
@@ -65,10 +67,8 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
         part_value = evaluate_node(part, context=context)
 
         if part_string not in value:
-            raise RuntimeError(
-                f'bash parse failed. part "{part_string}" not found in "{value}". '
-                f'Word was "{node.word}". Full input was "{context.input}"'
-            )
+            msg = f"bash parse failed. part {part_string!r} not found in {value!r}. Word was {node.word!r}. Full input was {context.input!r}"
+            raise RuntimeError(msg)
 
         value = value.replace(part_string, part_value, 1)
 
@@ -95,9 +95,11 @@ def evaluate_nodes_as_compound_command(
             result += evaluate_command_node(node, context=context)
         elif node.kind == "operator":
             if node.op != ";":
-                raise ValueError(f'Unsupported bash operator: "{node.op}"')
+                msg = f"Unsupported bash operator: {node.op!r}"
+                raise ValueError(msg)
         else:
-            raise ValueError(f'Unsupported bash node in compound command: "{node.kind}"')
+            msg = f"Unsupported bash node in compound command: {node.kind!r}"
+            raise ValueError(msg)
 
     return result
 
