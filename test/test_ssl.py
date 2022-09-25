@@ -15,7 +15,15 @@ project_with_ssl_tests = test_projects.new_c_project(
         data = urlopen("https://www.nist.gov", context=context)
         data = urlopen("https://raw.githubusercontent.com/pypa/cibuildwheel/main/CI.md", context=context)
         data = urlopen("https://raw.githubusercontent.com/pypa/cibuildwheel/main/CI.md")
-        data = urlopen("https://cloudflare.com")
+        # try a cloudflare-hosted site
+        data = urlopen(
+            Request(
+                "https://anaconda.org/multibuild-wheels-staging/openblas-libs/files",
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 ; (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3"
+                }
+            )
+        )
         """
     )
 )
