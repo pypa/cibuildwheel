@@ -17,7 +17,7 @@ def pytest_addoption(parser):
         default=False,
         help="macOS cp38 uses the universal2 installer",
     )
-    
+
 
 @pytest.fixture
 def fake_package_dir(tmp_path, monkeypatch):
