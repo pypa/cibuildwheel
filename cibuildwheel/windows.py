@@ -137,8 +137,8 @@ def setup_setuptools_cross_compile(
     env: dict[str, str],
 ) -> None:
     distutils_cfg = tmp / "extra-setup.cfg"
-    env["DISTUTILS_EXTRA_CONFIG"] = str(distutils_cfg)
-    log.notice(f"Setting DISTUTILS_EXTRA_CONFIG={distutils_cfg} for cross-compilation")
+    env["DIST_EXTRA_CONFIG"] = str(distutils_cfg)
+    log.notice(f"Setting DIST_EXTRA_CONFIG={distutils_cfg} for cross-compilation")
 
     # Ensure our additional import libraries are made available, and explicitly
     # set the platform name
