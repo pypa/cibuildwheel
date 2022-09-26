@@ -204,14 +204,16 @@ def build_description_from_identifier(identifier: str) -> str:
     elif python_interpreter == "pp":
         build_description += "PyPy"
     else:
-        raise Exception("unknown python")
+        msg = f"unknown python {python_interpreter!r}"
+        raise Exception(msg)
 
     build_description += f" {python_version[0]}.{python_version[1:]} "
 
     try:
         build_description += PLATFORM_IDENTIFIER_DESCRIPTIONS[platform_identifier]
     except KeyError as e:
-        raise Exception("unknown platform") from e
+        msg = f"unknown platform {platform_identifier!r}"
+        raise Exception(msg) from e
 
     return build_description
 

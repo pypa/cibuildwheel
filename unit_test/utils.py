@@ -10,6 +10,7 @@ def get_default_command_line_arguments() -> CommandLineArguments:
         platform="auto",
         allow_empty=False,
         archs=None,
+        only=None,
         config_file="",
         output_dir=Path("wheelhouse"),
         package_dir=Path("."),

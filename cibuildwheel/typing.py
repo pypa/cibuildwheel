@@ -10,6 +10,10 @@ if sys.version_info < (3, 8):
 else:
     from typing import Final, Literal, OrderedDict, Protocol, TypedDict
 
+if sys.version_info < (3, 11):
+    from typing_extensions import NotRequired
+else:
+    from typing import NotRequired
 
 __all__ = (
     "Final",
@@ -26,6 +30,7 @@ __all__ = (
     "OrderedDict",
     "Union",
     "assert_never",
+    "NotRequired",
 )
 
 

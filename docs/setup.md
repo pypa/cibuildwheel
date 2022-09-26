@@ -184,7 +184,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/checkout@v3
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.9.0
+            run: pipx run cibuildwheel==2.10.2
 
           - uses: actions/upload-artifact@v3
             with:
@@ -219,7 +219,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/setup-python@v3
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.9.0
+            run: python -m pip install cibuildwheel==2.10.2
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse
@@ -314,7 +314,7 @@ Commit this file, and push to Gitlab. The pipeline should start automatically.
 
 Gitlab will store the built wheels for you - you can access them from the Pipelines view. Check out the Gitlab [docs](https://docs.gitlab.com/ee/ci/yaml/) for more info on this config file.
 
-## Cirrus CI [linux/mac/windows] {: #cirrus-ci}
+### Cirrus CI [linux/mac/windows] {: #cirrus-ci}
 
 To build Linux, Mac, and Windows wheels on Cirrus CI, create a `.cirrus.yml` file in your repo,
 

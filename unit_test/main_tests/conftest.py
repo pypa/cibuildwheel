@@ -12,7 +12,13 @@ from cibuildwheel import linux, macos, util, windows
 
 
 class ArgsInterceptor:
+    def __init__(self):
+        self.call_count = 0
+        self.args = None
+        self.kwargs = None
+
     def __call__(self, *args, **kwargs):
+        self.call_count += 1
         self.args = args
         self.kwargs = kwargs
 
@@ -25,7 +31,8 @@ def mock_protection(monkeypatch):
     """
 
     def fail_on_call(*args, **kwargs):
-        raise RuntimeError("This should never be called")
+        msg = "This should never be called"
+        raise RuntimeError(msg)
 
     def ignore_call(*args, **kwargs):
         pass
@@ -75,16 +82,14 @@ def platform(request, monkeypatch):
 
 
 @pytest.fixture
-def intercepted_build_args(platform, monkeypatch):
+def intercepted_build_args(monkeypatch):
     intercepted = ArgsInterceptor()
 
-    if platform == "linux":
-        monkeypatch.setattr(linux, "build", intercepted)
-    elif platform == "macos":
-        monkeypatch.setattr(macos, "build", intercepted)
-    elif platform == "windows":
-        monkeypatch.setattr(windows, "build", intercepted)
-    else:
-        raise ValueError(f"unknown platform value: {platform}")
+    monkeypatch.setattr(linux, "build", intercepted)
+    monkeypatch.setattr(macos, "build", intercepted)
+    monkeypatch.setattr(windows, "build", intercepted)
 
-    return intercepted
+    yield intercepted
+
+    # check that intercepted_build_args only ever had one set of args
+    assert intercepted.call_count <= 1

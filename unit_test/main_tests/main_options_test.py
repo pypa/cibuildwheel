@@ -126,7 +126,8 @@ def get_default_repair_command(platform):
     elif platform == "windows":
         return ""
     else:
-        raise ValueError("Unknown platform", platform)
+        msg = f"Unknown platform: {platform!r}"
+        raise ValueError(msg)
 
 
 @pytest.mark.parametrize("repair_command", [None, "repair", "repair -w {dest_dir} {wheel}"])

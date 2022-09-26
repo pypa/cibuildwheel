@@ -141,7 +141,8 @@ class PyPyVersions:
         releases = [r for r in releases if self.get_arch_file(r)]
 
         if not releases:
-            raise RuntimeError(f"PyPy Win {self.arch} not found for {spec}! {self.releases}")
+            msg = f"PyPy Win {self.arch} not found for {spec}! {self.releases}"
+            raise RuntimeError(msg)
 
         version_arch = "win32" if self.arch == "32" else "win_amd64"
 
@@ -159,13 +160,15 @@ class PyPyVersions:
 
     def update_version_macos(self, spec: Specifier) -> ConfigMacOS:
         if self.arch != "64":
-            raise RuntimeError("Other archs not supported yet on macOS")
+            msg = "Other archs not supported yet on macOS"
+            raise RuntimeError(msg)
 
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
         releases = sorted(releases, key=lambda r: r["pypy_version"])  # type: ignore[no-any-return]
 
         if not releases:
-            raise RuntimeError(f"PyPy macOS {self.arch} not found for {spec}!")
+            msg = f"PyPy macOS {self.arch} not found for {spec}!"
+            raise RuntimeError(msg)
 
         release = releases[-1]
         version = release["python_version"]

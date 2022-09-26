@@ -23,7 +23,8 @@ elif sys.platform.startswith("darwin"):
 elif sys.platform in ["win32", "cygwin"]:
     platform = "windows"
 else:
-    raise Exception("Unsupported platform")
+    msg = f"Unsupported platform {sys.platform!r}"
+    raise Exception(msg)
 
 
 def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pythons=False):
@@ -210,7 +211,8 @@ def expected_wheels(
                 )
 
         else:
-            raise Exception("unsupported platform")
+            msg = f"Unsupported platform {platform!r}"
+            raise Exception(msg)
 
         for platform_tag in platform_tags:
             wheels.append(f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl")

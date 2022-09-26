@@ -29,7 +29,7 @@
     </div>
     <div class="grid-column-label"
          style="grid-row: 2 / span 1;
-                grid-column: 8 / -3;
+                grid-column: 9 / -3;
                 margin-bottom: 0.5em;">
       <div class="label">If tests are configured</div>
     </div>
@@ -382,7 +382,7 @@
   }
   .grid-column-label .label {
     background: #fcfcfc;
-    padding: 0 2em;
+    padding: 0 1em;
     position: relative;
   }
   .grid-row-label {
@@ -420,7 +420,7 @@
     grid-column: 3 / -2;
   }
   .grid-outline.testVenv {
-    grid-column: 8 / span 4;
+    grid-column: 9 / span 3;
   }
   .grid-outline .outline {
     position: absolute;

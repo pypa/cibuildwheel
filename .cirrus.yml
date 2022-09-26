@@ -6,6 +6,7 @@ run_tests: &RUN_TESTS
 
 
 linux_x86_task:
+  timeout_in: 120m
   compute_engine_instance:
     image_project: cirrus-images
     image: family/docker-builder
@@ -33,7 +34,7 @@ linux_aarch64_task:
 windows_x86_task:
   # The task takes ~55 minutes while the timeout happens
   # after 60 minutes by default, let's allow some wiggle room.
-  timeout_in: 90m
+  timeout_in: 120m
   windows_container:
     image: cirrusci/windowsservercore:visualstudio2022
     cpu: 8

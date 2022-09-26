@@ -4,6 +4,32 @@ title: Changelog
 
 # Changelog
 
+### v2.10.2
+
+_25 September 2022_
+
+- 🐛 Fix a bug that caused `win32` identifiers to fail when used with `--only`. (#1282)
+- 🐛 Fix computation of `auto`/`auto64`/`auto32` archs when targeting a different platform to the one that you're running cibuildwheel on. (#1266)
+- 📚 Fix an mistake in the 'how it works' diagram. (#1274)
+
+### v2.10.1
+
+_18 September 2022_
+
+- 🐛 Fix a bug that stopped environment variables specified in TOML from being expanded. (#1273)
+
+### v2.10.0
+
+_13 September 2022_
+
+- 🌟 Adds support for [building wheels on Cirrus CI](https://cibuildwheel.readthedocs.io/en/stable/setup/#cirrus-ci). This is exciting for us, as it's the first public CI platform that natively supports macOS Apple Silicon (aka. M1, `arm64`) runners. As such, it's the first platform that you can natively build _and test_ macOS `arm64` wheels. It also has native Linux ARM (aarch64) runners, for fast, native builds there. (#1191)
+- 🌟 Adds support for running cibuildwheel on Apple Silicon machines. For a while, we've supported cross-compilation of Apple Silicon wheels on `x86_64`, but now that we have Cirrus CI we can run our test suite and officially support running cibuildwheel on `arm64`. (#1191)
+- ✨ Adds the `--only` [command line option](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line), to specify a single build to run. Previously, it could be cumbersome to set all the build selection options to target a specific build - for example, you might have to run something like `CIBW_BUILD=cp39-manylinux_x86_64 cibuildwheel --platform linux --archs x86_64`. The new `--only` option overrides all the build selection options to simplify running a single build, which now looks like `cibuildwheel --only cp39-manylinux_x86_64`. (#1098)
+- ✨ Adds the [`CIBW_CONFIG_SETTINGS`](https://cibuildwheel.readthedocs.io/en/stable/options/#config-settings) option, so you can pass arguments to your package's build backend (#1244)
+- 🛠 Updates the CPython 3.11 version to the latest release candidate - v3.11.0rc2. (#1265)
+- 🐛 Fix a bug that can cause a RecursionError on Windows when building from an sdist. (#1253)
+- 🛠 Add support for the s390x architecture on manylinux_2_28 (#1255)
+
 ### v2.9.0
 
 _11 August 2022_
@@ -29,9 +55,10 @@ _5 July 2022_
 - ✨ You can now run cibuildwheel on Podman, as an alternate container engine to Docker (which remains the default). This is useful in environments where a Docker daemon isn't available, for example, it can be run inside a Docker container, or without root access. To use Podman, set the [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#966)
 - ✨ Adds support for building `py3-none-{platform}` wheels. This works the same as ABI3 - wheels won't be rebuilt, but tests will still be run across all selected versions of Python.
 
-  > These wheels contain native extension code, but don't use the Python APIs. Typically, they're bridged to Python using a FFI module like [ctypes](https://docs.python.org/3/library/ctypes.html) or [cffi](https://cffi.readthedocs.io/en/latest/). Because they don't use Python ABI, the wheels are more compatible - they work across many Python versions.
+    These wheels contain native extension code, but don't use the Python APIs. Typically, they're bridged to Python using a FFI module like [ctypes](https://docs.python.org/3/library/ctypes.html) or [cffi](https://cffi.readthedocs.io/en/latest/). Because they don't use Python ABI, the wheels are more compatible - they work across many Python versions.
 
-  Check out this [example ctypes project](https://github.com/joerick/python-ctypes-package-sample) to see an example of how it works. (#1151)
+    Check out this [example ctypes project](https://github.com/joerick/python-ctypes-package-sample) to see an example of how it works. (#1151)
+
 - 🛠 cibuildwheel will now error if multiple builds in a single run produce the same wheel filename, as this indicates a misconfiguration. (#1152)
 - 📚 A few docs improvements and updates to keep things up-to-date.
 
@@ -715,6 +742,18 @@ _13 April 2017_
 _31 March 2017_
 
 - 🌟 First public release!
+
+<style>
+
+/* improve list formatting to help separate items */
+
+.rst-content li {
+  margin-bottom: 12px;
+}
+.rst-content .section ol li>p:only-child, .rst-content .section ol li>p:only-child:last-child, .rst-content .section ul li>p:only-child, .rst-content .section ul li>p:only-child:last-child, .rst-content .toctree-wrapper ol li>p:only-child, .rst-content .toctree-wrapper ol li>p:only-child:last-child, .rst-content .toctree-wrapper ul li>p:only-child, .rst-content .toctree-wrapper ul li>p:only-child:last-child, .rst-content section ol li>p:only-child, .rst-content section ol li>p:only-child:last-child, .rst-content section ul li>p:only-child, .rst-content section ul li>p:only-child:last-child {
+  margin-bottom: 12px
+}
+</style>
 
 <script>
   // undo the scrollTop that the theme did on this page, as there are loads

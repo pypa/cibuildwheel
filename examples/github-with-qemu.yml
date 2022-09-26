@@ -20,7 +20,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.9.0
+        uses: pypa/cibuildwheel@v2.10.2
         env:
           # configure cibuildwheel to build native archs ('auto'), and some
           # emulated ones

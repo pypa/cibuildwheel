@@ -10,7 +10,7 @@ from configparser import ConfigParser
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterator, List, Mapping, Union, cast
+from typing import Any, Callable, Dict, Generator, Iterator, List, Mapping, Union, cast
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -23,7 +23,7 @@ from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
-from .typing import PLATFORMS, Literal, PlatformName, TypedDict
+from .typing import PLATFORMS, Literal, NotRequired, PlatformName, TypedDict
 from .util import (
     MANYLINUX_ARCHS,
     MUSLLINUX_ARCHS,
@@ -42,9 +42,10 @@ from .util import (
 
 @dataclass
 class CommandLineArguments:
-    platform: Literal["auto", "linux", "macos", "windows"]
+    platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
     output_dir: Path
+    only: str | None
     config_file: str
     package_dir: Path
     print_build_identifiers: bool
@@ -122,6 +123,7 @@ DISALLOWED_OPTIONS = {
 class TableFmt(TypedDict):
     item: str
     sep: str
+    quote: NotRequired[Callable[[str], str]]
 
 
 class ConfigOptionError(KeyError):
@@ -136,7 +138,8 @@ def _dig_first(*pairs: tuple[Mapping[str, Setting], str], ignore_empty: bool = F
     _dig_first((dict1, "key1"), (dict2, "key2"), ...)
     """
     if not pairs:
-        raise ValueError("pairs cannot be empty")
+        msg = "pairs cannot be empty"
+        raise ValueError(msg)
 
     for dict_like, key in pairs:
         if key in dict_like:
@@ -206,13 +209,15 @@ class OptionsReader:
 
         if config_overrides is not None:
             if not isinstance(config_overrides, list):
-                raise ConfigOptionError("'tool.cibuildwheel.overrides' must be a list")
+                msg = "'tool.cibuildwheel.overrides' must be a list"
+                raise ConfigOptionError(msg)
 
             for config_override in config_overrides:
                 select = config_override.pop("select", None)
 
                 if not select:
-                    raise ConfigOptionError("'select' must be set in an override")
+                    msg = "'select' must be set in an override"
+                    raise ConfigOptionError(msg)
 
                 if isinstance(select, list):
                     select = " ".join(select)
@@ -326,14 +331,16 @@ class OptionsReader:
 
         if isinstance(result, dict):
             if table is None:
-                raise ConfigOptionError(f"{name!r} does not accept a table")
+                msg = f"{name!r} does not accept a table"
+                raise ConfigOptionError(msg)
             return table["sep"].join(
-                item for k, v in result.items() for item in _inner_fmt(k, v, table["item"])
+                item for k, v in result.items() for item in _inner_fmt(k, v, table)
             )
 
         if isinstance(result, list):
             if sep is None:
-                raise ConfigOptionError(f"{name!r} does not accept a list")
+                msg = f"{name!r} does not accept a list"
+                raise ConfigOptionError(msg)
             return sep.join(result)
 
         if isinstance(result, int):
@@ -342,14 +349,16 @@ class OptionsReader:
         return result
 
 
-def _inner_fmt(k: str, v: Any, table_item: str) -> Iterator[str]:
+def _inner_fmt(k: str, v: Any, table: TableFmt) -> Iterator[str]:
+    quote_function = table.get("quote", lambda a: a)
+
     if isinstance(v, list):
         for inner_v in v:
-            qv = shlex.quote(inner_v)
-            yield table_item.format(k=k, v=qv)
+            qv = quote_function(inner_v)
+            yield table["item"].format(k=k, v=qv)
     else:
-        qv = shlex.quote(v)
-        yield table_item.format(k=k, v=qv)
+        qv = quote_function(v)
+        yield table["item"].format(k=k, v=qv)
 
 
 class Options:
@@ -403,6 +412,15 @@ class Options:
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
+        archs_config_str = args.archs or self.reader.get("archs", sep=" ")
+        architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
+
+        # Process `--only`
+        if args.only:
+            build_config = args.only
+            skip_config = ""
+            architectures = Architecture.all_archs(self.platform)
+
         build_selector = BuildSelector(
             build_config=build_config,
             skip_config=skip_config,
@@ -410,9 +428,6 @@ class Options:
             prerelease_pythons=prerelease_pythons,
         )
         test_selector = TestSelector(skip_config=test_skip)
-
-        archs_config_str = args.archs or self.reader.get("archs", sep=" ")
-        architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
         container_engine_str = self.reader.get("container-engine")
 
@@ -442,13 +457,13 @@ class Options:
 
             build_frontend_str = self.reader.get("build-frontend", env_plat=False)
             environment_config = self.reader.get(
-                "environment", table={"item": "{k}={v}", "sep": " "}
+                "environment", table={"item": '{k}="{v}"', "sep": " "}
             )
             environment_pass = self.reader.get("environment-pass", sep=" ").split()
             before_build = self.reader.get("before-build", sep=" && ")
             repair_command = self.reader.get("repair-wheel-command", sep=" && ")
             config_settings = self.reader.get(
-                "config-settings", table={"item": "{k}={v}", "sep": " "}
+                "config-settings", table={"item": "{k}={v}", "sep": " ", "quote": shlex.quote}
             )
 
             dependency_versions = self.reader.get("dependency-versions")
@@ -588,6 +603,9 @@ class Options:
         ]
 
         build_option_defaults = self.build_options(identifier=None)
+        build_options_for_identifier = {
+            identifier: self.build_options(identifier) for identifier in identifiers
+        }
 
         for option_name, default_value in sorted(asdict(build_option_defaults).items()):
             if option_name == "globals":
@@ -597,7 +615,7 @@ class Options:
 
             # if any identifiers have an overridden value, print that too
             for identifier in identifiers:
-                option_value = getattr(self.build_options(identifier=identifier), option_name)
+                option_value = getattr(build_options_for_identifier[identifier], option_name)
                 if option_value != default_value:
                     lines.append(f"  {identifier}: {option_value!r}")
 

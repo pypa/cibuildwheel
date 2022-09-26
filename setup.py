@@ -20,7 +20,6 @@ extras = {
     ],
     "bin": [
         "click",
-        "ghapi",
         "pip-tools",
         "pygithub",
         "pyyaml",
@@ -45,7 +44,5 @@ extras["dev"] = [
     *extras["test"],
     *extras["bin"],
 ]
-
-extras["all"] = sum(extras.values(), [])
 
 setup(extras_require=extras)
