@@ -29,8 +29,10 @@ def skip_if_no_msvc(arm64=False):
             vswhere,
             "-latest",
             "-prerelease",
-            "-property", "installationPath",
-            "-requires", require,
+            "-property",
+            "installationPath",
+            "-requires",
+            require,
         ]
     ):
         pytest.skip("Requires ARM64 compiler to be installed")
