@@ -91,7 +91,7 @@ Here's an example Cirrus CI workflow with a job that builds for macOS Intel thro
 {% include "../examples/cirrus-ci-intel-mac.yml" %}
 ```
 
-### Building non-native architectures using emulation  {: #emulation}
+### Building Linux wheels for non-native archs using emulation  {: #emulation}
 
 cibuildwheel supports building non-native architectures on Linux, via
 emulation through the binfmt_misc kernel feature. The easiest way to use this
@@ -118,7 +118,7 @@ The CPython Limited API is a subset of the Python C Extension API that's declare
 
 To create a package that builds ABI3 wheels, you'll need to configure your build backend to compile libraries correctly create wheels with the right tags. [Check this repo](https://github.com/joerick/python-abi3-package-sample) for an example of how to do this with setuptools.
 
-### Building packages with optional C extensions
+### Packages with optional C extensions {: #optional-extensions}
 
 `cibuildwheel` defines the environment variable `CIBUILDWHEEL` to the value `1` allowing projects for which the C extension is optional to make it mandatory when building wheels.
 
@@ -132,10 +132,11 @@ myextension = Extension(
 )
 ```
 
-### Automatic updates {: #automatic-updates}
+### Automatic updates using Dependabot {: #automatic-updates}
 
 Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worse-case scenario, it could occur during a release.
-There are two suggested methods for keeping cibuildwheel up to date that instead involve scheduled pull requests using GitHub's dependabot.
+
+There are two suggested methods for keeping cibuildwheel up to date that instead involve scheduled pull requests using GitHub's Dependabot.
 
 #### Option 1: GitHub Action
 
@@ -260,7 +261,28 @@ To quickly test your config without doing a git push and waiting for your code t
 
 ### Missing dependencies
 
-You might need to install something on the build machine. You can do this with apt/yum, brew or choco, using the [`CIBW_BEFORE_ALL`](options.md#before-all) option. Or, for a Python dependency, consider [adding it to pyproject.toml](#cibw-options-alternatives-deps).
+Sometimes a build will fail due to a missing dependency.
+
+**If the build is missing a Python package**, you should [add it to pyproject.toml](#cibw-options-alternatives-deps).
+
+**If you need a build tool** (e.g. cmake, automake, ninja), you can install it through a package manager like apt/yum, brew or choco, using the [`CIBW_BEFORE_ALL`](options.md#before-all) option.
+
+**If your build is linking into a native library dependency**, you can build/install that in [`CIBW_BEFORE_ALL`](options.md#before-all). However, on Linux, Mac (and Windows if you're using [delvewheel]), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
+
+- the bundled library doesn't accidentally increase the minimum system requirements (such as the minimum macOS version)
+- the bundled library matches the architecture of the wheel you're building when cross-compiling
+
+This is particularly an issue on macOS, where de facto package manager Homebrew will install libraries that are compiled for the specific version of macOS that the build machine is running, rendering the wheels useless for any previous version. And brew will not install the right arch for cross compilation of Apple Silicon wheels.
+
+For these reasons, it's strongly recommended to not use brew for native library dependencies. Instead, we recommend compiling the library yourself. If you compile in the [`CIBW_BEFORE_ALL`](options.md#before-all) step, cibuildwheel will have already set the appropriate `MACOSX_DEPLOYMENT_TARGET` env var, so the library will target the correct version of macOS.
+
+!!! tip
+    For build steps, Homebrew is still a great resource - you can [look up the build formula](https://formulae.brew.sh/) and use that as a starting point.
+
+[delvewheel]: https://github.com/adang1345/delvewheel
+[repair step]: options.md#repair-wheel-command
+[Homebrew]: https://brew.sh/
+[delocate]: https://github.com/matthew-brett/delocate
 
 ### macOS: ModuleNotFoundError
 
@@ -281,13 +303,14 @@ python3 -m twine upload wheelhouse/*.whl
 
 This doesn't work because while `cibuildwheel` was running, it installed a few new versions of 'python3', so the `python3` run on line 3 isn't the same as the `python3` that ran on line 1.
 
-Solutions to this vary, but the simplest is to install tools immediately before they're used:
+Solutions to this vary, but the simplest is to use pipx:
 
 ```bash
-python3 -m pip install cibuildwheel
-python3 -m cibuildwheel --output-dir wheelhouse
-python3 -m pip install twine
-python3 -m twine upload wheelhouse/*.whl
+# most runners have pipx preinstalled, but in case you don't
+python3 -m pip install pipx
+
+pipx run cibuildwheel==2.10.2 --output-dir wheelhouse
+pipx run twine upload wheelhouse/*.whl
 ```
 
 ### macOS: Passing DYLD_LIBRARY_PATH to delocate
