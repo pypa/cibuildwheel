@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from typing import TYPE_CHECKING, NoReturn, Set, Union
+from typing import TYPE_CHECKING, Union
 
 if sys.version_info < (3, 8):
     from typing_extensions import Final, Literal, OrderedDict, Protocol, TypedDict
@@ -11,9 +11,9 @@ else:
     from typing import Final, Literal, OrderedDict, Protocol, TypedDict
 
 if sys.version_info < (3, 11):
-    from typing_extensions import NotRequired
+    from typing_extensions import NotRequired, assert_never
 else:
-    from typing import NotRequired
+    from typing import NotRequired, assert_never
 
 __all__ = (
     "Final",
@@ -25,10 +25,8 @@ __all__ = (
     "PLATFORMS",
     "PopenBytes",
     "Protocol",
-    "Set",
     "TypedDict",
     "OrderedDict",
-    "Union",
     "assert_never",
     "NotRequired",
 )
@@ -44,7 +42,3 @@ else:
 
 PlatformName = Literal["linux", "macos", "windows"]
 PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows"}
-
-
-def assert_never(value: NoReturn) -> NoReturn:
-    assert False, f"Unhandled value: {value} ({type(value).__name__})"  # noqa: B011
