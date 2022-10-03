@@ -22,7 +22,7 @@ pipx run build --sdist
 # provider can be configured to store them for you. Put them all into the
 # 'dist' folder.
 
-# Upload using 'twine' (you may need to 'pip install twine')
+# Upload using 'twine'
 pipx run twine upload dist/*
 ```
 
@@ -82,7 +82,7 @@ This requires a [PyPI upload token](https://pypi.org/manage/account/token/), sto
         password: ${{ secrets.pypi_password }}
 ```
 
-You should use dependabot to keep the publish action up to date. In the above
+You should use Dependabot to keep the publish action up to date. In the above
 example, the same name (the default, "artifact" is used for all upload-artifact
 runs, so we can just download all of the in one step into a common directory.
 
