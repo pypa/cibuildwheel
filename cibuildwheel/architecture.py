@@ -114,6 +114,7 @@ class Architecture(Enum):
         return all_archs_map[platform]
 
     @staticmethod
+    # pylint: disable-next=inconsistent-return-statements
     def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> set[Architecture]:
         archs_32 = {Architecture.i686, Architecture.x86}
         auto_archs = Architecture.auto_archs(platform)
