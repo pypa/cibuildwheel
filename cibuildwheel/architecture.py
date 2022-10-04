@@ -93,12 +93,8 @@ class Architecture(Enum):
             # x86_64 machines can run i686 containers
             result.add(Architecture.i686)
 
-        if platform == "windows":
-            if Architecture.ARM64 in result:
-                result.add(Architecture.AMD64)
-                result.add(Architecture.x86)
-            elif Architecture.AMD64 in result:
-                result.add(Architecture.x86)
+        if platform == "windows" and Architecture.AMD64 in result:
+            result.add(Architecture.x86)
 
         return result
 

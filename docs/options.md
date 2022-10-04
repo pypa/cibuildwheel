@@ -369,7 +369,7 @@ Default: `auto`
 |---|---|---|---|---|
 | Linux / Intel | `x86_64` | `x86_64` `i686` | `x86_64` | `i686` |
 | Windows / Intel | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
-| Windows / ARM64 | `ARM64` | `ARM64` `AMD64` `x86` | `ARM64` `AMD64` | `x86` |
+| Windows / ARM64 | `ARM64` | `ARM64` | `ARM64` | |
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 
