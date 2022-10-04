@@ -425,6 +425,13 @@ def build(options: Options, tmp_path: Path) -> None:
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()
+                python_arch = call(
+                    "python",
+                    "-sSc",
+                    "import platform; print(platform.machine())",
+                    env=env,
+                    capture_stdout=True,
+                ).strip()
                 testing_archs: list[Literal["x86_64", "arm64"]]
 
                 if config_is_arm64:
@@ -473,7 +480,8 @@ def build(options: Options, tmp_path: Path) -> None:
                         # skip this test
                         continue
 
-                    if testing_arch == "arm64" and config.identifier.startswith("cp38-"):
+                    is_cp38 = config.identifier.startswith("cp38-")
+                    if testing_arch == "arm64" and is_cp38 and python_arch != "arm64":
                         log.warning(
                             unwrap(
                                 """
