@@ -448,4 +448,4 @@ def troubleshoot(options: Options, error: Exception) -> None:
 
             print("  Files detected:")
             print("\n".join(f"    {f}" for f in so_files))
-            print("")
+            print()

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import configparser
+import contextlib
+import dataclasses
 import difflib
 import functools
 import os
 import shlex
 import sys
 import traceback
-from configparser import ConfigParser
-from contextlib import contextmanager
-from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterator, List, Mapping, Union, cast
 
@@ -40,7 +40,7 @@ from .util import (
 )
 
 
-@dataclass
+@dataclasses.dataclass
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
@@ -53,7 +53,7 @@ class CommandLineArguments:
     prerelease_pythons: bool
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class GlobalOptions:
     package_dir: Path
     output_dir: Path
@@ -63,7 +63,7 @@ class GlobalOptions:
     container_engine: ContainerEngine
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class BuildOptions:
     globals: GlobalOptions
     environment: ParsedEnvironment
@@ -105,7 +105,7 @@ class BuildOptions:
 Setting = Union[Dict[str, str], List[str], str, int]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Override:
     select_pattern: str
     options: dict[str, Setting]
@@ -277,7 +277,7 @@ class OptionsReader:
             o for o in self.overrides if selector_matches(o.select_pattern, self.current_identifier)
         ]
 
-    @contextmanager
+    @contextlib.contextmanager
     def identifier(self, identifier: str | None) -> Generator[None, None, None]:
         self.current_identifier = identifier
         try:
@@ -496,10 +496,8 @@ class Options:
             # Pass through environment variables
             if self.platform == "linux":
                 for env_var_name in environment_pass:
-                    try:
+                    with contextlib.suppress(KeyError):
                         environment.add(env_var_name, os.environ[env_var_name])
-                    except KeyError:
-                        pass
 
             if dependency_versions == "pinned":
                 dependency_constraints: None | (
@@ -574,7 +572,7 @@ class Options:
             )
 
     def check_for_invalid_configuration(self, identifiers: list[str]) -> None:
-        if self.platform in ["macos", "windows"]:
+        if self.platform in {"macos", "windows"}:
             before_all_values = {self.build_options(i).before_all for i in identifiers}
 
             if len(before_all_values) > 1:
@@ -599,7 +597,7 @@ class Options:
     def summary(self, identifiers: list[str]) -> str:
         lines = [
             f"{option_name}: {option_value!r}"
-            for option_name, option_value in sorted(asdict(self.globals).items())
+            for option_name, option_value in sorted(dataclasses.asdict(self.globals).items())
         ]
 
         build_option_defaults = self.build_options(identifier=None)
@@ -607,7 +605,7 @@ class Options:
             identifier: self.build_options(identifier) for identifier in identifiers
         }
 
-        for option_name, default_value in sorted(asdict(build_option_defaults).items()):
+        for option_name, default_value in sorted(dataclasses.asdict(build_option_defaults).items()):
             if option_name == "globals":
                 continue
 
@@ -642,7 +640,7 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
 
     pinned_images_file = resources_dir / "pinned_docker_images.cfg"
-    all_pinned_images = ConfigParser()
+    all_pinned_images = configparser.ConfigParser()
     all_pinned_images.read(pinned_images_file)
     return all_pinned_images
 
