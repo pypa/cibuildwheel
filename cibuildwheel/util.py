@@ -461,7 +461,7 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
         for wheel in final_contents - existing_contents
     ]
 
-    if len(new_contents) == 0:
+    if not new_contents:
         return
 
     max_name_len = max(len(f.name) for f in new_contents)
@@ -526,7 +526,7 @@ def _parse_constraints_for_virtualenv(
         with constraint_path.open(encoding="utf-8") as constraint_file:
             for line in constraint_file:
                 line = line.strip()
-                if len(line) == 0:
+                if not line:
                     continue
                 if line.startswith("#"):
                     continue

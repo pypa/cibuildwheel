@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import ast
+import configparser
+import contextlib
 import sys
-from configparser import ConfigParser
 from pathlib import Path
 from typing import Any
 
@@ -59,25 +60,21 @@ def get_requires_python_str(package_dir: Path) -> str | None:
     """Return the python requires string from the most canonical source available, or None"""
 
     # Read in from pyproject.toml:project.requires-python
-    try:
+    with contextlib.suppress(FileNotFoundError):
         with (package_dir / "pyproject.toml").open("rb") as f1:
             info = tomllib.load(f1)
-        return str(info["project"]["requires-python"])
-    except (FileNotFoundError, KeyError, IndexError, TypeError):
-        pass
+        with contextlib.suppress(KeyError, IndexError, TypeError):
+            return str(info["project"]["requires-python"])
 
     # Read in from setup.cfg:options.python_requires
-    try:
-        config = ConfigParser()
+    config = configparser.ConfigParser()
+    with contextlib.suppress(FileNotFoundError):
         config.read(package_dir / "setup.cfg")
-        return str(config["options"]["python_requires"])
-    except (FileNotFoundError, KeyError, IndexError, TypeError):
-        pass
+        with contextlib.suppress(KeyError, IndexError, TypeError):
+            return str(config["options"]["python_requires"])
 
-    try:
+    with contextlib.suppress(FileNotFoundError):
         with (package_dir / "setup.py").open(encoding="utf8") as f2:
             return setup_py_python_requires(f2.read())
-    except FileNotFoundError:
-        pass
 
     return None

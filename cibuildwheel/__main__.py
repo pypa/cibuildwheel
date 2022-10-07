@@ -162,7 +162,7 @@ def main() -> None:
         # cleanup manually
         shutil.rmtree(temp_dir, ignore_errors=sys.platform.startswith("win"))
         if temp_dir.exists():
-            log.warning(f"Can't delete temporary folder '{str(temp_dir)}'")
+            log.warning(f"Can't delete temporary folder '{temp_dir}'")
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
@@ -300,7 +300,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
         # cleanup manually
         shutil.rmtree(tmp_path, ignore_errors=sys.platform.startswith("win"))
         if tmp_path.exists():
-            log.warning(f"Can't delete temporary folder '{str(tmp_path)}'")
+            log.warning(f"Can't delete temporary folder '{tmp_path}'")
 
 
 def print_preamble(platform: str, options: Options, identifiers: list[str]) -> None:
