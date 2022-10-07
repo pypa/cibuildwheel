@@ -24,7 +24,6 @@ windows:
     - choco install git.install -y
     - py -m pip install cibuildwheel==2.10.2
   script:
-    - git submodule update --init
     - py -m cibuildwheel --output-dir wheelhouse --platform windows
   artifacts:
     paths:
