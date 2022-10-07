@@ -1,6 +1,7 @@
 os: linux
 dist: focal
 language: python
+python: "3.9"
 
 jobs:
   include:
