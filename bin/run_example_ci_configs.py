@@ -64,7 +64,7 @@ services = [
     CIService(
         name="gitlab",
         dst_config_path=".gitlab-ci.yml",
-        badge_md="[![Gitlab](https://gitlab.com/pypa/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/pypa/cibuildwheel/-/commits/{branch})",
+        badge_md="[![Gitlab](https://gitlab.com/joerick/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/joerick/cibuildwheel/-/commits/{branch})",
     ),
     CIService(
         name="cirrus-ci",
@@ -75,14 +75,13 @@ services = [
 
 
 def ci_service_for_config_file(config_file):
-    service_name = Path(config_file).name.rsplit("-", 1)[0]
+    filename = Path(config_file).name
 
-    for service in services:
-        if service.name == service_name:
-            return service
-
-    msg = f"unknown ci service for config file {config_file}"
-    raise ValueError(msg)
+    try:
+        return next(s for s in services if filename.startswith(s.name))
+    except StopIteration:
+        msg = f"unknown ci service for config file {config_file}"
+        raise ValueError(msg) from None
 
 
 @click.command()
