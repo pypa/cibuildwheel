@@ -19,6 +19,7 @@ linux:
       - wheelhouse/
 
 windows:
+  image: mcr.microsoft.com/windows/servercore:1809
   before_script:
     - choco install python -y --version 3.8.6
     - choco install git.install -y
@@ -28,6 +29,5 @@ windows:
   artifacts:
     paths:
       - wheelhouse/
-  image: mcr.microsoft.com/windows/servercore:1809
   tags:
     - windows
