@@ -17,3 +17,18 @@ linux:
   artifacts:
     paths:
       - wheelhouse/
+
+windows:
+  before_script:
+    - choco install python -y --version 3.8.6
+    - choco install git.install -y
+    - py -m pip install cibuildwheel==2.10.2
+  script:
+    - git submodule update --init
+    - py -m cibuildwheel --output-dir wheelhouse --platform windows
+  artifacts:
+    paths:
+      - wheelhouse/
+  image: mcr.microsoft.com/windows/servercore:1809
+  tags:
+    - windows
