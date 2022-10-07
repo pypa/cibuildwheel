@@ -44,7 +44,7 @@ services = [
     CIService(
         name="azure-pipelines",
         dst_config_path="azure-pipelines.yml",
-        badge_md="[![Build Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/joerick.cibuildwheel?branchName={branch})](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName={branch})",
+        badge_md="[![Build Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName={branch})](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName={branch})",
     ),
     CIService(
         name="circleci",
