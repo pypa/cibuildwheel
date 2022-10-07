@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 import os
 import platform
@@ -283,7 +284,7 @@ def build(options: Options, tmp_path: Path) -> None:
         options.globals.build_selector, options.globals.architectures
     )
 
-    if len(python_configurations) == 0:
+    if not python_configurations:
         return
 
     try:
@@ -574,10 +575,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (overwrite existing)
             if compatible_wheel is None:
-                try:
+                with contextlib.suppress(FileNotFoundError):
                     (build_options.output_dir / repaired_wheel.name).unlink()
-                except FileNotFoundError:
-                    pass
 
                 shutil.move(str(repaired_wheel), build_options.output_dir)
                 built_wheels.append(build_options.output_dir / repaired_wheel.name)

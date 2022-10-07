@@ -6,6 +6,7 @@
 # for the ssl module.  Uses the certificates provided by the certifi package:
 #       https://pypi.org/project/certifi/
 
+import contextlib
 import os
 import os.path
 import ssl
@@ -39,10 +40,8 @@ def main():
     relpath_to_certifi_cafile = os.path.relpath(certifi.where())
 
     print(" -- removing any existing file or link")
-    try:
+    with contextlib.suppress(FileNotFoundError):
         os.remove(openssl_cafile)
-    except FileNotFoundError:
-        pass
     print(" -- creating symlink to certifi certificate bundle")
     os.symlink(relpath_to_certifi_cafile, openssl_cafile)
 

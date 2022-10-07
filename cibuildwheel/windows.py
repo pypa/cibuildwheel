@@ -242,7 +242,7 @@ def build(options: Options, tmp_path: Path) -> None:
         options.globals.build_selector, options.globals.architectures
     )
 
-    if len(python_configurations) == 0:
+    if not python_configurations:
         return
 
     try:
