@@ -39,7 +39,7 @@ services = [
     CIService(
         name="appveyor",
         dst_config_path="appveyor.yml",
-        badge_md="[![Build status](https://ci.appveyor.com/api/projects/status/wbsgxshp05tt1tif/branch/{branch}?svg=true)](https://ci.appveyor.com/project/pypa/cibuildwheel/branch/{branch})",
+        badge_md="[![Build status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/{branch}?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/{branch})",
     ),
     CIService(
         name="azure-pipelines",
@@ -59,7 +59,7 @@ services = [
     CIService(
         name="travis-ci",
         dst_config_path=".travis.yml",
-        badge_md="[![Build Status](https://travis-ci.org/pypa/cibuildwheel.svg?branch={branch})](https://travis-ci.org/pypa/cibuildwheel)",
+        badge_md="[![Build Status](https://app.travis-ci.com/pypa/cibuildwheel.svg?branch={branch})](https://app.travis-ci.com/pypa/cibuildwheel)",
     ),
     CIService(
         name="gitlab",
