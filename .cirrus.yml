@@ -1,6 +1,6 @@
 run_tests: &RUN_TESTS
   install_cibuildwheel_script:
-    - python -m pip install -e ".[dev]" pytest-custom-exit-code
+    - python -m pip install ".[dev]" pytest-custom-exit-code
   run_cibuildwheel_tests_script:
     - python ./bin/run_tests.py
 
