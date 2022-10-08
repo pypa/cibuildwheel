@@ -20,7 +20,7 @@ init:
       }
       python -m pip install -U pip
 
-install: python -m pip install ".[dev]" pytest-custom-exit-code
+install: python -m pip install -e ".[dev]" pytest-custom-exit-code
 
 # the '-u' flag is required so the output is in the correct order.
 # See https://github.com/pypa/cibuildwheel/pull/24 for more info.
