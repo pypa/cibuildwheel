@@ -110,6 +110,29 @@ def get_build_steps(
     yield from steps.values()
 
 
+def check_all_python_exist(
+    *, platform_configs: list[PythonConfiguration], container: OCIContainer
+) -> None:
+    exist = True
+    messages = []
+    for config in platform_configs:
+        python_path = config.path / "bin" / "python"
+        try:
+            container.call(["test", "-x", python_path])
+        except subprocess.CalledProcessError:
+            messages.append(
+                f"  '{python_path}' executable doesn't exist in image '{container.image}' to build '{config.identifier}'."
+            )
+            exist = False
+    if not exist:
+        message = "\n".join(messages)
+        print(
+            f"cibuildwheel:\n{message}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
 def build_in_container(
     *,
     options: Options,
@@ -119,6 +142,8 @@ def build_in_container(
     container_package_dir: PurePath,
 ) -> None:
     container_output_dir = PurePosixPath("/output")
+
+    check_all_python_exist(platform_configs=platform_configs, container=container)
 
     log.step("Copying project into container...")
     container.copy_into(Path.cwd(), container_project_path)
