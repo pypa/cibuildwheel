@@ -12,7 +12,7 @@ filelock==3.8.0
     # via virtualenv
 platformdirs==2.5.2
     # via virtualenv
-typing-extensions==4.3.0
+typing-extensions==4.4.0
     # via delocate
 virtualenv==20.16.5
     # via -r cibuildwheel/resources/constraints.in
