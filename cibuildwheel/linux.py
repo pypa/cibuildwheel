@@ -157,6 +157,7 @@ def build_in_container(
         env = container.get_environment()
         env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+        env["PIP_ROOT_USER_ACTION"] = "ignore"
         env = before_all_options.environment.as_dictionary(
             env, executor=container.environment_executor
         )
