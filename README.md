@@ -51,19 +51,20 @@ Usage
 
 `cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
-|                 | Linux | macOS | Windows | Linux ARM | macOS ARM |
-|-----------------|-------|-------|---------|-----------|-----------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹       | ✅²       |
-| Azure Pipelines | ✅    | ✅    | ✅      |           | ✅²       |
-| Travis CI       | ✅    |       | ✅      | ✅        |           |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅²       |
-| CircleCI        | ✅    | ✅    |         |           | ✅²       |
-| Gitlab CI       | ✅    |       | ✅       | ✅¹       |           |
-| Cirrus CI       | ✅    | ✅³   | ✅      | ✅        | ✅        |
+|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM |
+|-----------------|-------|-------|---------|-----------|-----------|-------------|
+| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹       | ✅²       | ✅⁴         |
+| Azure Pipelines | ✅    | ✅    | ✅      |           | ✅²       | ✅⁴         |
+| Travis CI       | ✅    |       | ✅      | ✅        |           |             |
+| AppVeyor        | ✅    | ✅    | ✅      |           | ✅²       | ✅⁴         |
+| CircleCI        | ✅    | ✅    |         |           | ✅²       |             |
+| Gitlab CI       | ✅    |       | ✅      | ✅¹       |           |             |
+| Cirrus CI       | ✅    | ✅³   | ✅      | ✅        | ✅        |             |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). It is not possible to test `arm64` and the `arm64` part of a `universal2` wheel on this CI platform.</sup><br>
 <sup>³ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). Thanks to Rosetta 2 emulation, it is possible to test `x86_64` and both parts of a `universal2` wheel on this CI platform.</sup><br>
+<sup>⁴ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
 
 <!--intro-end-->
 

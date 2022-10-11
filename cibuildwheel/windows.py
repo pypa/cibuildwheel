@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+import platform as platform_module
 import shutil
 import subprocess
 import sys
+import textwrap
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -33,15 +35,22 @@ from .util import (
     read_python_configs,
     shell,
     split_config_settings,
+    unwrap,
     virtualenv,
 )
 
 
 def get_nuget_args(version: str, arch: str, output_directory: Path) -> list[str]:
-    platform_suffix = {"32": "x86", "64": "", "ARM64": "arm64"}
-    python_name = "python" + platform_suffix[arch]
+    package_name = {
+        "32": "pythonx86",
+        "64": "python",
+        "ARM64": "pythonarm64",
+        # Aliases for platform.machine() return values
+        "x86": "pythonx86",
+        "AMD64": "python",
+    }[arch]
     return [
-        python_name,
+        package_name,
         "-Version",
         version,
         "-FallbackSource",
@@ -121,6 +130,82 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     return installation_path / "python.exe"
 
 
+def setup_setuptools_cross_compile(
+    tmp: Path,
+    python_configuration: PythonConfiguration,
+    python_libs_base: Path,
+    env: dict[str, str],
+) -> None:
+    distutils_cfg = tmp / "extra-setup.cfg"
+    env["DIST_EXTRA_CONFIG"] = str(distutils_cfg)
+    log.notice(f"Setting DIST_EXTRA_CONFIG={distutils_cfg} for cross-compilation")
+
+    # Ensure our additional import libraries are made available, and explicitly
+    # set the platform name
+    map_plat = {"32": "win32", "64": "win-amd64", "ARM64": "win-arm64"}
+    plat_name = map_plat[python_configuration.arch]
+    # (This file must be default/locale encoding, so we can't pass 'encoding')
+    distutils_cfg.write_text(
+        textwrap.dedent(
+            f"""\
+            [build]
+            plat_name={plat_name}
+            [build_ext]
+            library_dirs={python_libs_base}
+            plat_name={plat_name}
+            [bdist_wheel]
+            plat_name={plat_name}
+            """
+        )
+    )
+
+    # setuptools builds require explicit override of PYD extension
+    # This is because it always gets the extension from the running
+    # interpreter, and has no logic to construct it. Currently, CPython's
+    # extensions follow our identifiers, but if they ever diverge in the
+    # future, we will need to store new data
+    log.notice(
+        f"Setting SETUPTOOLS_EXT_SUFFIX=.{python_configuration.identifier}.pyd for cross-compilation"
+    )
+    env["SETUPTOOLS_EXT_SUFFIX"] = f".{python_configuration.identifier}.pyd"
+
+    # Cross-compilation requires fixes that only exist in setuptools's copy of
+    # distutils, so ensure that it is activated
+    # Since not all projects can handle the newer distutils, display a warning
+    # to help them figure out what may have gone wrong if this breaks for them
+    log.notice("Setting SETUPTOOLS_USE_DISTUTILS=local as it is required for cross-compilation")
+    env["SETUPTOOLS_USE_DISTUTILS"] = "local"
+
+
+def setup_rust_cross_compile(
+    tmp: Path,
+    python_configuration: PythonConfiguration,
+    python_libs_base: Path,
+    env: dict[str, str],
+) -> None:
+    # Assume that MSVC will be used, because we already know that we are
+    # cross-compiling. MinGW users can set CARGO_BUILD_TARGET themselves
+    # and we will respect the existing value.
+    cargo_target = {
+        "64": "x86_64-pc-windows-msvc",
+        "32": "i686-pc-windows-msvc",
+        "ARM64": "aarch64-pc-windows-msvc",
+    }.get(python_configuration.arch)
+
+    # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
+    if env.get("CARGO_BUILD_TARGET"):
+        if env["CARGO_BUILD_TARGET"] != cargo_target:
+            log.notice("Not overriding CARGO_BUILD_TARGET as it has already been set")
+        # No message if it was set to what we were planning to set it to
+    elif cargo_target:
+        log.notice(f"Setting CARGO_BUILD_TARGET={cargo_target} for cross-compilation")
+        env["CARGO_BUILD_TARGET"] = cargo_target
+    else:
+        log.warning(
+            f"Unable to configure Rust cross-compilation for architecture {python_configuration.arch}"
+        )
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -130,9 +215,22 @@ def setup_python(
 ) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
+    python_libs_base = None
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        base_python = install_cpython(python_configuration.version, python_configuration.arch)
+        native_arch = platform_module.machine()
+        if python_configuration.arch == "ARM64" != native_arch:
+            # To cross-compile for ARM64, we need a native CPython to run the
+            # build, and a copy of the ARM64 import libraries ('.\libs\*.lib')
+            # for any extension modules.
+            python_libs_base = install_cpython(
+                python_configuration.version, python_configuration.arch
+            )
+            python_libs_base = python_libs_base.parent / "libs"
+            log.step(f"Installing native Python {native_arch} for cross-compilation...")
+            base_python = install_cpython(python_configuration.version, native_arch)
+        else:
+            base_python = install_cpython(python_configuration.version, python_configuration.arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
@@ -234,6 +332,11 @@ def setup_python(
     else:
         assert_never(build_frontend)
 
+    if python_libs_base:
+        # Set up the environment for various backends to enable cross-compilation
+        setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
+        setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
+
     return env
 
 
@@ -296,7 +399,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 if build_options.before_build:
                     log.step("Running before_build...")
                     before_build_prepared = prepare_command(
-                        build_options.before_build, project=".", package=options.globals.package_dir
+                        build_options.before_build,
+                        project=".",
+                        package=options.globals.package_dir,
                     )
                     shell(before_build_prepared, env=env)
 
@@ -367,7 +472,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 if build_options.repair_command:
                     log.step("Repairing wheel...")
                     repair_command_prepared = prepare_command(
-                        build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                        build_options.repair_command,
+                        wheel=built_wheel,
+                        dest_dir=repaired_wheel_dir,
                     )
                     shell(repair_command_prepared, env=env)
                 else:
@@ -379,6 +486,19 @@ def build(options: Options, tmp_path: Path) -> None:
                     raise AlreadyBuiltWheelError(repaired_wheel.name)
 
             if build_options.test_command and options.globals.test_selector(config.identifier):
+                if config.arch == "ARM64" != platform_module.machine():
+                    log.warning(
+                        unwrap(
+                            """
+                            While arm64 wheels can be built on other platforms, they cannot
+                            be tested. An arm64 runner is required. To silence this warning,
+                            set `CIBW_TEST_SKIP: *-win_arm64`.
+                            """
+                        )
+                    )
+                    # skip this test
+                    continue
+
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.

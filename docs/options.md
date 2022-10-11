@@ -347,11 +347,14 @@ On macOS, this option can be used to cross-compile between `x86_64`,
 On Linux, this option can be used to build non-native architectures under
 emulation. See [this guide](faq.md#emulation) for more information.
 
+On Windows, this option can be used to compile for `ARM64` from an Intel
+machine, provided the cross-compiling tools are installed.
+
 Options:
 
 - Linux: `x86_64` `i686` `aarch64` `ppc64le` `s390x`
 - macOS: `x86_64` `arm64` `universal2`
-- Windows: `AMD64` `x86`
+- Windows: `AMD64` `x86` `ARM64`
 - `auto`: The default archs for your machine - see the table below.
     - `auto64`: Just the 64-bit auto archs
     - `auto32`: Just the 32-bit auto archs
@@ -366,6 +369,7 @@ Default: `auto`
 |---|---|---|---|---|
 | Linux / Intel | `x86_64` | `x86_64` `i686` | `x86_64` | `i686` |
 | Windows / Intel | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
+| Windows / ARM64 | `ARM64` | `ARM64` | `ARM64` | |
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 
