@@ -12,6 +12,8 @@ import subprocess
 import sys
 from tempfile import TemporaryDirectory
 
+from cibuildwheel.util import CIBW_CACHE_PATH
+
 platform: str
 
 if "CIBW_PLATFORM" in os.environ:
@@ -47,6 +49,20 @@ def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pyt
     return cmd_output.strip().split("\n")
 
 
+def _update_pip_cache_dir(env: dict[str, str]) -> None:
+    # Fix for pip concurrency bug https://github.com/pypa/pip/issues/11340
+    # See https://github.com/pypa/cibuildwheel/issues/1254 for discussion.
+    if platform == "linux":
+        return
+    if "PIP_CACHE_DIR" in env:
+        return
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER")
+    if worker_id is None or worker_id == "gw0":
+        return
+    pip_cache_dir = CIBW_CACHE_PATH / "test_cache" / f"pip_cache_dir_{worker_id}"
+    env["PIP_CACHE_DIR"] = str(pip_cache_dir)
+
+
 def cibuildwheel_run(
     project_path, package_dir=".", env=None, add_env=None, output_dir=None, add_args=None
 ):
@@ -75,6 +91,8 @@ def cibuildwheel_run(
 
     if add_env is not None:
         env.update(add_env)
+
+    _update_pip_cache_dir(env)
 
     with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(
