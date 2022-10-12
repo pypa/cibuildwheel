@@ -17,3 +17,16 @@ linux:
     - curl -sSL https://get.docker.com/ | sh
     - python -m pip install -e ".[dev]" pytest-custom-exit-code
     - python ./bin/run_tests.py
+
+windows:
+  image: mcr.microsoft.com/windows/servercore:1809
+  variables:
+    PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
+  before_script:
+    - choco install python -y --version 3.8.6
+  script:
+    - py -m cibuildwheel --output-dir wheelhouse --platform windows
+    - py -m pip install -e ".[dev]" pytest-custom-exit-code
+    - py bin\run_tests.py
+  tags:
+    - windows

@@ -204,6 +204,12 @@
   ci: [github]
   os: [windows, apple, linux]
 
+- name: pybind11 cross build example
+  gh: wbarnha/pybind_cmake_example_crossbuild
+  ci: [github, gitlab]
+  os: [windows, apple, linux]
+  notes: Same as pybind11 cmake_example but used to demo Linux ARM + Windows + macOS builds on GitLab
+
 - name: iminuit
   gh: scikit-hep/iminuit
   ci: [github]
@@ -599,7 +605,7 @@
   gh: tensorchord/envd
   ci: [github]
   os: [apple, linux, windows]
-  note: A machine learning development environment build toool
+  note: A machine learning development environment build tool
 
 - name: mosec
   gh: mosecorg/mosec
