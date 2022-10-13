@@ -25,8 +25,8 @@ windows:
   before_script:
     - choco install python -y --version 3.8.6
   script:
-    - py -m cibuildwheel --output-dir wheelhouse --platform windows
     - py -m pip install -e ".[dev]" pytest-custom-exit-code
+    - py -m cibuildwheel --output-dir wheelhouse --platform windows
     - py bin\run_tests.py
   tags:
     - windows
