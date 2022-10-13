@@ -172,11 +172,13 @@
 
 - name: pyzmq
   gh: zeromq/pyzmq
-  ci: [github]
+  ci: [github, circleci]
   os: [windows, apple, linux]
   ci_config: .github/workflows/wheels.yml
   notes: |
-    Python bindings for zeromq, the networking library. Uses Cython and CFFI.
+    Python bindings for zeromq, the networking library.
+    Uses Cython on CPython and CFFI on PyPy.
+    ARM wheels for linux are built natively on CircleCI.
 
 - name: python-rapidjson
   gh: python-rapidjson/python-rapidjson
