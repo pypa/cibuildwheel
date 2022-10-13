@@ -4,6 +4,19 @@ title: Changelog
 
 # Changelog
 
+### v2.11.0
+
+_13 October 2022_
+
+- 🌟 Adds support for cross-compiling Windows ARM64 wheels. To use this feature, add `ARM64` to the [CIBW_ARCHS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs) option on a Windows Intel runner. (#1144)
+- ✨ Adds support for building Linux aarch64 wheels on Circle CI. (#1307)
+- ✨ Adds support for building Windows wheels on Gitlab CI. (#1295)
+- ✨ Adds support for building Linux aarch64 wheels under emulation on Gitlab CI. (#1295)
+- ✨ Adds the ability to test `cp38-macosx_arm64` wheels on a native arm64 runner. To do this, you'll need to preinstall the (experimental) [universal2 version of CPython 3.8](https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg) on your arm64 runner before invoking cibuildwheel. Note: it is not recommended to build x86_64 wheels with this setup, your wheels will have limited compatibility wrt macOS versions. (#1283)
+- 🛠 Improved error messages when using custom Docker images and Python cannot be found at the correct path. (#1298)
+- 📚 Sample configs for Azure Pipelines and Travis CI updated (#1296)
+- 📚 Other docs improvements - including more information about using Homebrew for build dependencies (#1290)
+
 ### v2.10.2
 
 _25 September 2022_
