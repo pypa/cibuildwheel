@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.11.1
+
+_13 October 2022_
+
+- 🛠 Updates to the latest manylinux images, and updates CPython 3.10 to 3.10.8.
+
 ### v2.11.0
 
 _13 October 2022_
