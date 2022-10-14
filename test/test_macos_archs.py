@@ -66,10 +66,14 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
             "CIBW_BUILD": "cp39-*",
             "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
             "CIBW_ARCHS": "universal2" if build_universal2 else "x86_64 arm64",
+            "CIBW_BUILD_VERBOSITY": "3",
         },
     )
 
     captured = capfd.readouterr()
+
+    assert "[WARNING] MACOSX_DEPLOYMENT_TARGET is set to a lower value" not in captured.out
+    assert "[WARNING] MACOSX_DEPLOYMENT_TARGET is set to a lower value" not in captured.err
 
     if platform.machine() == "x86_64":
         # ensure that tests were run on only x86_64
