@@ -189,6 +189,8 @@ def build_in_container(
         log.step("Setting up build environment...")
 
         env = container.get_environment()
+        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+        env["PIP_ROOT_USER_ACTION"] = "ignore"
 
         # put this config's python top of the list
         python_bin = config.path / "bin"
