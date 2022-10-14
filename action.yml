@@ -28,7 +28,7 @@ runs:
     - uses: actions/setup-python@v4
       id: python
       with:
-        python-version: "3.7 - 3.10"
+        python-version: "3.7 - 3.11"
         update-environment: false
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
