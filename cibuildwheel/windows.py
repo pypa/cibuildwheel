@@ -177,6 +177,8 @@ def setup_setuptools_cross_compile(
     env["SETUPTOOLS_USE_DISTUTILS"] = "local"
 
 
+# these cross-compile setup functions have the same signature by design
+# pylint: disable=unused-argument
 def setup_rust_cross_compile(
     tmp: Path,
     python_configuration: PythonConfiguration,
