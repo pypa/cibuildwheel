@@ -207,10 +207,6 @@ def setup_python(
         )
         sys.exit(1)
 
-    # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
-    # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
-    env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
-
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
 
@@ -220,14 +216,19 @@ def setup_python(
             # have that as a minimum.
             env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
             env.setdefault("ARCHFLAGS", "-arch arm64")
+            env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11")
         elif config_is_universal2:
             env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
             env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+            env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11")
         elif python_configuration.identifier.endswith("x86_64"):
             # even on the macos11.0 Python installer, on the x86_64 side it's
             # compatible back to 10.9.
             env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
             env.setdefault("ARCHFLAGS", "-arch x86_64")
+            # Set MACOSX_DEPLOYMENT_TARGET to 10.9, if the user didn't set it.
+            # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
+            env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
 
     building_arm64 = config_is_arm64 or config_is_universal2
     if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in env:
