@@ -220,7 +220,7 @@ def setup_python(
         elif config_is_universal2:
             env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
             env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
-            env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11")
+            env.setdefault("MACOSX_DEPLOYMENT_TARGET", "10.9")
         elif python_configuration.identifier.endswith("x86_64"):
             # even on the macos11.0 Python installer, on the x86_64 side it's
             # compatible back to 10.9.
