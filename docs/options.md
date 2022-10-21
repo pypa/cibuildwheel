@@ -851,7 +851,7 @@ Platform-specific environment variables are also available:<br/>
 Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
-- on macOS: `'delocate-listdeps {wheel} && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}'`
+- on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
 - on Windows: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
