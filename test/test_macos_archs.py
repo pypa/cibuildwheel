@@ -14,6 +14,8 @@ ALL_MACOS_WHEELS = {
     *utils.expected_wheels("spam", "0.1.0", machine_arch="arm64", include_universal2=True),
 }
 
+DEPLOYMENT_TARGET_TOO_LOW_WARNING = "[WARNING] MACOSX_DEPLOYMENT_TARGET is set to a lower value"
+
 
 def get_xcode_version() -> tuple[int, int]:
     output = subprocess.run(
@@ -66,10 +68,13 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
             "CIBW_BUILD": "cp39-*",
             "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
             "CIBW_ARCHS": "universal2" if build_universal2 else "x86_64 arm64",
+            "CIBW_BUILD_VERBOSITY": "3",
         },
     )
 
     captured = capfd.readouterr()
+
+    assert DEPLOYMENT_TARGET_TOO_LOW_WARNING not in captured.err
 
     if platform.machine() == "x86_64":
         # ensure that tests were run on only x86_64
@@ -95,6 +100,28 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_deployment_target_warning_is_firing(tmp_path, capfd):
+    # force the warning to check that we can detect it if it happens
+    if utils.platform != "macos":
+        pytest.skip("this test is only relevant to macos")
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_BUILD": "cp39-*",
+            "CIBW_ARCHS": "x86_64",
+            "MACOSX_DEPLOYMENT_TARGET": "10.8",
+            "CIBW_BUILD_VERBOSITY": "3",
+        },
+    )
+
+    captured = capfd.readouterr()
+    assert DEPLOYMENT_TARGET_TOO_LOW_WARNING in captured.err
 
 
 @pytest.mark.parametrize("skip_arm64_test", [False, True])
