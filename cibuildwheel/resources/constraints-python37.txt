@@ -24,7 +24,7 @@ wheel==0.37.1
     # via
     #   -r cibuildwheel/resources/constraints.in
     #   delocate
-zipp==3.9.0
+zipp==3.10.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
