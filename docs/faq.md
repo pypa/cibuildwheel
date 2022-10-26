@@ -323,18 +323,17 @@ To work around this, use a different environment variable such as `REPAIR_LIBRAR
 
     ```yaml
     CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
-        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
+        DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
     ```
 
 !!! tab examples "pyproject.toml"
 
     ```toml
     [tool.cibuildwheel.macos]
-    repair-wheel-command = [
-        "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel}",
-        "DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
-    ]
+    repair-wheel-command = """\
+    DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
+    --require-archs {delocate_archs} -w {dest_dir} -v {wheel}\
+    """
     ```
 
 See [#816](https://github.com/pypa/cibuildwheel/issues/816), thanks to @phoerious for reporting.
