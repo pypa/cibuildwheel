@@ -339,6 +339,25 @@ To work around this, use a different environment variable such as `REPAIR_LIBRAR
 
 See [#816](https://github.com/pypa/cibuildwheel/issues/816), thanks to @phoerious for reporting.
 
+### macOS: Building CPython 3.8 wheels on arm64
+
+If you're building on an arm64 runner, you might notice something strange about CPython 3.8 - unlike Python 3.9+, it's cross-compiled to arm64 from an x86_64 version of Python running under Rosetta emulation. This is because (despite the prevalence of arm64 versions of Python 3.8 from Apple and Homebrew) there is no officially supported Python.org installer of Python 3.8 for arm64.
+
+This is fine for simple C extensions, but for more complicated builds on arm64 it becomes an issue.
+
+So, if the cross-compilation is an issue for you, there is an 'experimental' installer available that's built natively for arm64.
+
+To use this installer and perform native CPython 3.8 building, before invoking cibuildwheel, install the universal2 version of Python on your arm64 runner, something like:
+
+
+```bash
+curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
+sudo installer -pkg /tmp/Python38.pkg -target /
+sh "/Applications/Python 3.8/Install Certificates.command"
+```
+
+Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
+
 ### Windows: 'ImportError: DLL load failed: The specific module could not be found'
 
 Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, the C parts of the runtime are included with Python, but the C++ components are not. When compiling modules using C++, it is possible users will run into problems on systems that do not have the full set of runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it.
