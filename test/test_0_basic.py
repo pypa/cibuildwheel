@@ -33,7 +33,9 @@ def test(tmp_path, build_frontend_env, capfd):
 
     # Verify pip warning not shown
     captured = capfd.readouterr()
-    assert "WARNING: Running pip as the 'root' user can result" not in captured.err
+    for stream in (captured.err, captured.out):
+        assert "WARNING: Running pip as the 'root' user can result" not in stream
+        assert "A new release of pip available" not in stream
 
 
 @pytest.mark.skip(reason="to keep test output clean")
