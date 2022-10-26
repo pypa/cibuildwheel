@@ -347,12 +347,13 @@ This is fine for simple C extensions, but for more complicated builds on arm64 i
 
 So, if the cross-compilation is an issue for you, there is an 'experimental' installer available that's built natively for arm64.
 
-To use this installer and perform native CPython 3.8 building, before invoking cibuildwheel, install the universal2 version of Python on your arm64 runner, something like-
+To use this installer and perform native CPython 3.8 building, before invoking cibuildwheel, install the universal2 version of Python on your arm64 runner, something like:
 
 
 ```bash
 curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
 sudo installer -pkg /tmp/Python38.pkg -target /
+sh "/Applications/Python 3.8/Install Certificates.command"
 ```
 
 Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
