@@ -11,7 +11,7 @@ jobs:
       - run:
           name: Build the Linux wheels.
           command: |
-            pip3 install --user cibuildwheel==2.11.1
+            pip3 install --user cibuildwheel==2.11.2
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
-            python3 -m pip install --user cibuildwheel==2.11.1
+            python3 -m pip install --user cibuildwheel==2.11.2
             python3 -m cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -42,7 +42,7 @@ jobs:
       - run:
           name: Build the OS X wheels.
           command: |
-            pip3 install cibuildwheel==2.11.1
+            pip3 install cibuildwheel==2.11.2
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/

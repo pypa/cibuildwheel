@@ -4,6 +4,18 @@ title: Changelog
 
 # Changelog
 
+### v2.11.2
+
+_26 October 2022_
+
+- 🛠 Updates CPython 3.11 to 3.11.0 - final release (#1327)
+- 🛠 Simplify the default macOS repair command (#1322)
+- 🛠 Fix the default `MACOSX_DEPLOYMENT_TARGET` on arm64 (#1312)
+- 🛠 Hide irrelevant pip warnings on linux (#1311)
+- 🐛 Fix a bug that caused the stdout and stderr of commands in containers to be in the wrong order Previously, stdout could appear after stderr. (#1324)
+- 📚 Added [a FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#macos-building-cpython-38-wheels-on-arm64) describing how to perform native builds of CPython 3.8 wheels on Apple Silicon. (#1323)
+- 📚 Other docs improvements
+
 ### v2.11.1
 
 _13 October 2022_

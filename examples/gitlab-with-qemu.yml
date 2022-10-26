@@ -14,7 +14,7 @@ linux:
     - curl -sSL https://get.docker.com/ | sh
     # Warning: This is extremely slow, be careful with how many wheels you build
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - python -m pip install cibuildwheel==2.11.1
+    - python -m pip install cibuildwheel==2.11.2
     # Assuming your CI runner's default architecture is x86_64...
     - cibuildwheel --output-dir wheelhouse --platform linux --archs aarch64
   artifacts:
