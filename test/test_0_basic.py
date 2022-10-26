@@ -20,7 +20,7 @@ basic_project = test_projects.new_c_project(
 )
 
 
-def test(tmp_path, build_frontend_env):
+def test(tmp_path, build_frontend_env, capfd):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
@@ -30,6 +30,10 @@ def test(tmp_path, build_frontend_env):
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
+
+    # Verify pip warning not shown
+    captured = capfd.readouterr()
+    assert "WARNING: Running pip as the 'root' user can result" not in captured.err
 
 
 @pytest.mark.skip(reason="to keep test output clean")
