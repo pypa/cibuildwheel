@@ -303,9 +303,11 @@ class OCIContainer:
                 return_code = int(return_code_str)
                 # add the last line to output, without the footer
                 output_io.write(line[0:footer_offset])
+                output_io.flush()
                 break
             else:
                 output_io.write(line)
+                output_io.flush()
 
         if isinstance(output_io, io.BytesIO):
             output = str(output_io.getvalue(), encoding="utf8", errors="surrogateescape")
