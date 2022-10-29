@@ -243,7 +243,7 @@ def projects(
             README_FILE, projects=projects[:10], input_filename=input.name, include_info=False
         )
         insert_projects_table(
-            DOCS_PAGE, projects=projects, input_filename=input.name, include_info=True
+            DOCS_PAGE, projects=projects, input_filename=input.name, include_info=False
         )
 
 
