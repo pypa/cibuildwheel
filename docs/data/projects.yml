@@ -621,3 +621,10 @@
   os: [windows, apple, linux]
   pypi: pyril
   notes: A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels.
+
+- name: Picologging
+  gh: microsoft/picologging
+  ci: [github]
+  os: [windows, apple, linux]
+  pypi: picologging
+  notes: A high-performance logging library for Python.
