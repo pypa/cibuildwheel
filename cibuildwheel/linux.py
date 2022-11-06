@@ -21,6 +21,7 @@ from .util import (
     prepare_command,
     read_python_configs,
     split_config_settings,
+    test_fail_cwd_file,
     unwrap,
 )
 
@@ -306,9 +307,11 @@ def build_in_container(
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
             container.call(["pip", "install", "virtualenv", *dependency_constraint_flags], env=env)
-            venv_dir = (
-                PurePath(container.call(["mktemp", "-d"], capture_output=True).strip()) / "venv"
+
+            testing_temp_dir = PurePosixPath(
+                container.call(["mktemp", "-d"], capture_output=True).strip()
             )
+            venv_dir = testing_temp_dir / "venv"
 
             container.call(["python", "-m", "virtualenv", "--no-download", venv_dir], env=env)
 
@@ -345,10 +348,14 @@ def build_in_container(
                 project=container_project_path,
                 package=container_package_dir,
             )
-            container.call(["sh", "-c", test_command_prepared], cwd="/root", env=virtualenv_env)
+            test_cwd = testing_temp_dir / "test_cwd"
+            container.call(["mkdir", "-p", test_cwd])
+            container.copy_into(test_fail_cwd_file, test_cwd / "test_fail.py")
+
+            container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 
             # clean up test environment
-            container.call(["rm", "-rf", venv_dir])
+            container.call(["rm", "-rf", testing_temp_dir])
 
         # move repaired wheels to output
         if compatible_wheel is None:
