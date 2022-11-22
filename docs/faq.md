@@ -118,6 +118,8 @@ The CPython Limited API is a subset of the Python C Extension API that's declare
 
 To create a package that builds ABI3 wheels, you'll need to configure your build backend to compile libraries correctly create wheels with the right tags. [Check this repo](https://github.com/joerick/python-abi3-package-sample) for an example of how to do this with setuptools.
 
+You could also consider running [abi3audit](https://github.com/trailofbits/abi3audit) against the produced wheels in order to check for abi3 violations or inconsistencies.
+
 ### Packages with optional C extensions {: #optional-extensions}
 
 `cibuildwheel` defines the environment variable `CIBUILDWHEEL` to the value `1` allowing projects for which the C extension is optional to make it mandatory when building wheels.
