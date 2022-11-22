@@ -52,8 +52,8 @@ runs:
         --spec "${{ github.action_path }}"
         cibuildwheel
         "${{ inputs.package-dir }}"
-        --output-dir "${{ inputs.output-dir }}"
-        --config-file "${{ inputs.config-file }}"
-        --only "${{ inputs.only }}"
+        --output-dir '"${{ inputs.output-dir }}"'
+        --config-file '"${{ inputs.config-file }}"'
+        --only '"${{ inputs.only }}"'
       shell: pwsh
       if: runner.os == 'Windows'
