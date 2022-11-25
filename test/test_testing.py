@@ -167,6 +167,9 @@ def test_bare_pytest_invocation(tmp_path: Path, capfd: pytest.CaptureFixture[str
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
                 "CIBW_TEST_COMMAND": "python -m pytest",
+                # Skip CPython 3.8 on macOS arm64, see comment above in
+                # 'test_failing_test'
+                "CIBW_SKIP": "cp38-macosx_arm64",
             },
         )
 
