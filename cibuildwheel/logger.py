@@ -228,6 +228,7 @@ class Colors:
         self.bright_red = "\033[91m" if enabled else ""
         self.bright_green = "\033[92m" if enabled else ""
         self.white = "\033[37m\033[97m" if enabled else ""
+        self.gray = "\033[90m" if enabled else ""
 
         self.bg_grey = "\033[48;5;235m" if enabled else ""
 

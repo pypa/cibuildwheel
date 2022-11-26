@@ -681,7 +681,7 @@ class Options:
         c = log.colors
 
         result = ""
-        result += c.faint if not has_been_set else ""
+        result += c.gray if not has_been_set else ""
         result += f"{option_name}: "
 
         if overrides_value_strs:
