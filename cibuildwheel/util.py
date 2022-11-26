@@ -270,6 +270,14 @@ class BuildSelector:
 
         return should_build and not should_skip
 
+    def options_summary(self) -> Any:
+        return {
+            "build_config": self.build_config,
+            "skip_config": self.skip_config,
+            "requires_python": str(self.requires_python),
+            "prerelease_pythons": self.prerelease_pythons,
+        }
+
 
 @dataclass(frozen=True)
 class TestSelector:
@@ -282,6 +290,9 @@ class TestSelector:
     def __call__(self, build_id: str) -> bool:
         should_skip = selector_matches(self.skip_config, build_id)
         return not should_skip
+
+    def options_summary(self) -> Any:
+        return {"skip_config": self.skip_config}
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -355,6 +366,12 @@ class DependencyConstraints:
             return False
 
         return self.base_file_path == o.base_file_path
+
+    def options_summary(self) -> Any:
+        if self == DependencyConstraints.with_defaults():
+            return "pinned"
+        else:
+            return self.base_file_path.name
 
 
 class NonPlatformWheelError(Exception):

@@ -6,9 +6,7 @@ from pprint import pprint
 
 import cibuildwheel.linux
 import cibuildwheel.oci_container
-from cibuildwheel.options import Options
-
-from .utils import get_default_command_line_arguments
+from cibuildwheel.options import CommandLineArguments, Options
 
 
 def test_linux_container_split(tmp_path: Path, monkeypatch):
@@ -16,7 +14,7 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
     Tests splitting linux builds by container image and before_all
     """
 
-    args = get_default_command_line_arguments()
+    args = CommandLineArguments.defaults()
     args.platform = "linux"
 
     (tmp_path / "pyproject.toml").write_text(
@@ -42,7 +40,7 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
     )
 
     monkeypatch.chdir(tmp_path)
-    options = Options("linux", command_line_arguments=args)
+    options = Options("linux", command_line_arguments=args, environ={})
 
     python_configurations = cibuildwheel.linux.get_python_configurations(
         options.globals.build_selector, options.globals.architectures

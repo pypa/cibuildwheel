@@ -70,7 +70,7 @@ class EnvironmentAssignmentRaw:
         self.value = value
 
     def __repr__(self) -> str:
-        return f"{self.name}: {self.value}"
+        return f"{self.name}={self.value}"
 
     def evaluated_value(self, **_: Any) -> str:
         return self.value
@@ -130,6 +130,9 @@ class ParsedEnvironment:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({[repr(a) for a in self.assignments]!r})"
+
+    def options_summary(self) -> Any:
+        return self.assignments
 
 
 def parse_environment(env_string: str) -> ParsedEnvironment:

@@ -229,7 +229,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             )
             sys.exit(2)
 
-    options = compute_options(platform=platform, command_line_arguments=args)
+    options = compute_options(platform=platform, command_line_arguments=args, environ=os.environ)
 
     package_dir = options.globals.package_dir
     package_files = {"setup.py", "setup.cfg", "pyproject.toml"}
@@ -318,9 +318,10 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
     print(f"cibuildwheel version {cibuildwheel.__version__}\n")
 
     print("Build options:")
-    print(f"  platform: {platform!r}")
+    print(f"  platform: {platform}")
     print(textwrap.indent(options.summary(identifiers), "  "))
 
+    print()
     print(f"Cache folder: {CIBW_CACHE_PATH}")
 
     warnings = detect_warnings(options=options, identifiers=identifiers)
