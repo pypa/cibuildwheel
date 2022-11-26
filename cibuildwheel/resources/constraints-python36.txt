@@ -20,7 +20,7 @@ typing-extensions==4.1.1
     # via
     #   delocate
     #   importlib-metadata
-virtualenv==20.16.6
+virtualenv==20.16.7
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.37.1
     # via

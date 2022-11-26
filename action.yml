@@ -37,9 +37,23 @@ runs:
         --python '${{ steps.python.outputs.python-path }}'
         --spec '${{ github.action_path }}'
         cibuildwheel
-        ${{ inputs.package-dir }}
-        --output-dir ${{ inputs.output-dir }}
+        "${{ inputs.package-dir }}"
+        --output-dir "${{ inputs.output-dir }}"
         --config-file "${{ inputs.config-file }}"
         --only "${{ inputs.only }}"
         2>&1
       shell: bash
+      if: runner.os != 'Windows'
+
+    # Windows needs powershell to interact nicely with Meson
+    - run: >
+        pipx run
+        --python "${{ steps.python.outputs.python-path }}"
+        --spec "${{ github.action_path }}"
+        cibuildwheel
+        "${{ inputs.package-dir }}"
+        --output-dir '"${{ inputs.output-dir }}"'
+        --config-file '"${{ inputs.config-file }}"'
+        --only '"${{ inputs.only }}"'
+      shell: pwsh
+      if: runner.os == 'Windows'
