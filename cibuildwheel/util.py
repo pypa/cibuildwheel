@@ -683,9 +683,9 @@ def fix_ansi_codes_for_github_actions(text: str) -> str:
     ansi_codes: list[str] = []
     output = ""
 
-    for line in text.split("\n"):
+    for line in text.splitlines(keepends=True):
         # add the current ANSI codes to the beginning of the line
-        output += "".join(ansi_codes) + line + "\n"
+        output += "".join(ansi_codes) + line
 
         # split the line at each ANSI code
         parts = ansi_code_regex.split(line)
