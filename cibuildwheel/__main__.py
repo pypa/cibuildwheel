@@ -22,9 +22,11 @@ from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
 from cibuildwheel.util import (
     CIBW_CACHE_PATH,
     BuildSelector,
+    CIProvider,
     Unbuffered,
     chdir,
     detect_ci_provider,
+    fix_ansi_codes_for_github_actions,
 )
 
 
@@ -319,7 +321,10 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
 
     print("Build options:")
     print(f"  platform: {platform}")
-    print(textwrap.indent(options.summary(identifiers), "  "))
+    options_summary = textwrap.indent(options.summary(identifiers), "  ")
+    if detect_ci_provider() == CIProvider.github_actions:
+        options_summary = fix_ansi_codes_for_github_actions(options_summary)
+    print(options_summary)
 
     print()
     print(f"Cache folder: {CIBW_CACHE_PATH}")

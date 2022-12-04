@@ -669,6 +669,10 @@ class Options:
         default_value: Any,
         overrides: dict[str, Any] | None = None,
     ) -> str:
+        """
+        Return a summary of the option value, including any overrides, with
+        ANSI 'dim' color if it's the default.
+        """
         value_str = self.option_summary_value(option_value)
         default_value_str = self.option_summary_value(default_value)
         overrides_value_strs = {
