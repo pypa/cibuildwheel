@@ -154,7 +154,10 @@ def test_failing_test(tmp_path):
     assert len(os.listdir(output_dir)) == 0
 
 
-def test_bare_pytest_invocation(tmp_path: Path, capfd: pytest.CaptureFixture[str]):
+@pytest.mark.parametrize("test_runner", ["pytest", "unittest"])
+def test_bare_pytest_invocation(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], test_runner: str
+):
     """Check that if a user runs pytest in the the test cwd, it raises a helpful error"""
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"
@@ -165,8 +168,10 @@ def test_bare_pytest_invocation(tmp_path: Path, capfd: pytest.CaptureFixture[str
             project_dir,
             output_dir=output_dir,
             add_env={
-                "CIBW_TEST_REQUIRES": "pytest",
-                "CIBW_TEST_COMMAND": "python -m pytest",
+                "CIBW_TEST_REQUIRES": "pytest" if test_runner == "pytest" else "",
+                "CIBW_TEST_COMMAND": (
+                    "python -m pytest" if test_runner == "pytest" else "python -m unittest"
+                ),
                 # Skip CPython 3.8 on macOS arm64, see comment above in
                 # 'test_failing_test'
                 "CIBW_SKIP": "cp38-macosx_arm64",
@@ -179,5 +184,5 @@ def test_bare_pytest_invocation(tmp_path: Path, capfd: pytest.CaptureFixture[str
 
     assert (
         "Please specify a path to your tests when invoking pytest using the {project} placeholder"
-        in captured.out
+        in captured.out + captured.err
     )
