@@ -893,10 +893,20 @@ Platform-specific environment variables are also available:<br/>
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
 
     # Multi-line example - use && to join on all platforms
-    # Use abi3audit to catch issues with Limited API wheels
     CIBW_REPAIR_WHEEL_COMMAND: >
       python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
-      python scripts/check_repaired_wheel.py -w {dest_dir} {wheel} &&
+      python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
+    ```
+
+    ```yaml
+    # Use abi3audit to catch issues with Limited API wheels
+    CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+      auditwheel repair -w {dest_dir} {wheel} &&
+      pipx run abi3audit --strict --report {wheel}
+    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+      delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
+      pipx run abi3audit --strict --report {wheel}
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
       pipx run abi3audit --strict --report {wheel}
     ```
 
@@ -917,13 +927,27 @@ Platform-specific environment variables are also available:<br/>
     repair-wheel-command = "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
 
     # Multi-line example
-    # Use abi3audit to catch issues with Limited API wheels
     [tool.cibuildwheel]
     repair-wheel-command = [
       'python scripts/repair_wheel.py -w {dest_dir} {wheel}',
       'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
-      'pipx run abi3audit --strict --report {wheel}',
     ]
+    ```
+
+    ```toml
+    # Use abi3audit to catch issues with Limited API wheels
+    [tool.cibuildwheel.linux]
+    repair-wheel-command = [
+      "auditwheel repair -w {dest_dir} {wheel}",
+      "pipx run abi3audit --strict --report {wheel}",
+    ]
+    [tool.cibuildwheel.macos]
+    repair-wheel-command = [
+      "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
+      "pipx run abi3audit --strict --report {wheel}",
+    ]
+    [tool.cibuildwheel.windows]
+    repair-wheel-command = "pipx run abi3audit --strict --report {wheel}"
     ```
 
     In configuration mode, you can use an inline array, and the items will be joined with `&&`.
