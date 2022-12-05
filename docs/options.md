@@ -893,9 +893,11 @@ Platform-specific environment variables are also available:<br/>
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
 
     # Multi-line example - use && to join on all platforms
+    # Use abi3audit to catch issues with Limited API wheels
     CIBW_REPAIR_WHEEL_COMMAND: >
       python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
-      python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
+      python scripts/check_repaired_wheel.py -w {dest_dir} {wheel} &&
+      pipx run abi3audit --strict --report {wheel}
     ```
 
 !!! tab examples "pyproject.toml"
@@ -915,10 +917,12 @@ Platform-specific environment variables are also available:<br/>
     repair-wheel-command = "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
 
     # Multi-line example
+    # Use abi3audit to catch issues with Limited API wheels
     [tool.cibuildwheel]
     repair-wheel-command = [
       'python scripts/repair_wheel.py -w {dest_dir} {wheel}',
       'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
+      'pipx run abi3audit --strict --report {wheel}',
     ]
     ```
 
