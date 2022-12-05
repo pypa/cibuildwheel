@@ -684,8 +684,7 @@ class Options:
         has_been_set = (value_str != default_value_str) or overrides_value_strs
         c = log.colors
 
-        result = ""
-        result += c.gray if not has_been_set else ""
+        result = c.gray if not has_been_set else ""
         result += f"{option_name}: "
 
         if overrides_value_strs:
