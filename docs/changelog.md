@@ -4,6 +4,14 @@ title: Changelog
 
 # Changelog
 
+### v2.11.3
+
+_5 Dec 2022_
+
+- ✨ Improves the 'build options' log output that's printed at the start of each run (#1352)
+- ✨ Added a friendly error message to a common misconfiguration of the `CIBW_TEST_COMMAND` option - not specifying path using the `{project}` placeholder (#1336)
+- 🛠 The GitHub Action now uses Powershell on Windows to avoid occasional incompabilities with bash (#1346)
+
 ### v2.11.2
 
 _26 October 2022_
