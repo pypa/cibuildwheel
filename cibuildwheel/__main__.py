@@ -231,7 +231,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             )
             sys.exit(2)
 
-    options = compute_options(platform=platform, command_line_arguments=args, environ=os.environ)
+    options = compute_options(platform=platform, command_line_arguments=args, env=os.environ)
 
     package_dir = options.globals.package_dir
     package_files = {"setup.py", "setup.cfg", "pyproject.toml"}

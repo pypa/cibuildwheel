@@ -35,7 +35,7 @@ def test_simple_settings(tmp_path, platform, fname):
     config_file_path: Path = tmp_path / fname
     config_file_path.write_text(PYPROJECT_1)
 
-    options_reader = OptionsReader(config_file_path, platform=platform, environ={})
+    options_reader = OptionsReader(config_file_path, platform=platform, env={})
 
     assert options_reader.get("build", env_plat=False, sep=" ") == "cp39*"
 
@@ -78,7 +78,7 @@ def test_envvar_override(tmp_path, platform, monkeypatch):
     options_reader = OptionsReader(
         config_file_path,
         platform=platform,
-        environ={
+        env={
             "CIBW_BUILD": "cp38*",
             "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux_2_24",
             "CIBW_TEST_COMMAND": "mytest",
@@ -108,13 +108,13 @@ def test_project_global_override_default_platform(tmp_path, platform):
 repair-wheel-command = "repair-project-global"
 """
     )
-    options_reader = OptionsReader(pyproject_toml, platform=platform, environ={})
+    options_reader = OptionsReader(pyproject_toml, platform=platform, env={})
     assert options_reader.get("repair-wheel-command") == "repair-project-global"
 
 
 def test_env_global_override_default_platform(tmp_path, platform, monkeypatch):
     options_reader = OptionsReader(
-        platform=platform, environ={"CIBW_REPAIR_WHEEL_COMMAND": "repair-env-global"}
+        platform=platform, env={"CIBW_REPAIR_WHEEL_COMMAND": "repair-env-global"}
     )
     assert options_reader.get("repair-wheel-command") == "repair-env-global"
 
@@ -134,7 +134,7 @@ repair-wheel-command = "repair-project-macos"
     options_reader = OptionsReader(
         pyproject_toml,
         platform=platform,
-        environ={
+        env={
             "CIBW_REPAIR_WHEEL_COMMAND": "repair-env-global",
         },
     )
@@ -155,7 +155,7 @@ repair-wheel-command = "repair-project-macos"
 repair-wheel-command = "repair-project-global"
 """
     )
-    options_reader = OptionsReader(pyproject_toml, platform=platform, environ={})
+    options_reader = OptionsReader(pyproject_toml, platform=platform, env={})
     assert options_reader.get("repair-wheel-command") == f"repair-project-{platform}"
 
 
@@ -171,7 +171,7 @@ repairs-wheel-command = "repair-project-linux"
     )
 
     with pytest.raises(ConfigOptionError) as excinfo:
-        OptionsReader(pyproject_toml, platform="linux", environ={})
+        OptionsReader(pyproject_toml, platform="linux", env={})
 
     assert "repair-wheel-command" in str(excinfo.value)
 
@@ -188,7 +188,7 @@ repair_wheel_command = "repair-project-linux"
     )
 
     with pytest.raises(ConfigOptionError) as excinfo:
-        OptionsReader(pyproject_toml, platform="linux", environ={})
+        OptionsReader(pyproject_toml, platform="linux", env={})
 
     assert "repair-wheel-command" in str(excinfo.value)
 
@@ -202,7 +202,7 @@ repair-wheel-command = "repair-project-linux"
 """
     )
     with pytest.raises(ConfigOptionError):
-        OptionsReader(pyproject_toml, platform="linux", environ={})
+        OptionsReader(pyproject_toml, platform="linux", env={})
 
 
 def test_unsupported_join(tmp_path):
@@ -213,7 +213,7 @@ def test_unsupported_join(tmp_path):
 build = ["1", "2"]
 """
     )
-    options_reader = OptionsReader(pyproject_toml, platform="linux", environ={})
+    options_reader = OptionsReader(pyproject_toml, platform="linux", env={})
 
     assert "1, 2" == options_reader.get("build", sep=", ")
     with pytest.raises(ConfigOptionError):
@@ -229,9 +229,9 @@ manylinux-x86_64-image = "manylinux1"
 """
     )
     disallow = {"windows": {"manylinux-x86_64-image"}}
-    OptionsReader(pyproject_toml, platform="linux", disallow=disallow, environ={})
+    OptionsReader(pyproject_toml, platform="linux", disallow=disallow, env={})
     with pytest.raises(ConfigOptionError):
-        OptionsReader(pyproject_toml, platform="windows", disallow=disallow, environ={})
+        OptionsReader(pyproject_toml, platform="windows", disallow=disallow, env={})
 
 
 def test_environment_override_empty(tmp_path, monkeypatch):
@@ -247,7 +247,7 @@ manylinux-x86_64-image = ""
     options_reader = OptionsReader(
         pyproject_toml,
         platform="linux",
-        environ={
+        env={
             "CIBW_MANYLINUX_I686_IMAGE": "",
             "CIBW_MANYLINUX_AARCH64_IMAGE": "manylinux1",
         },
@@ -320,7 +320,7 @@ def test_pyproject_2(tmp_path, platform):
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(PYPROJECT_2)
 
-    options_reader = OptionsReader(config_file_path=pyproject_toml, platform=platform, environ={})
+    options_reader = OptionsReader(config_file_path=pyproject_toml, platform=platform, env={})
     assert options_reader.get("test-command") == "pyproject"
 
     with options_reader.identifier("random"):
@@ -344,7 +344,7 @@ test-command = "pyproject-override"
     )
 
     with pytest.raises(ConfigOptionError):
-        OptionsReader(config_file_path=pyproject_toml, platform=platform, environ={})
+        OptionsReader(config_file_path=pyproject_toml, platform=platform, env={})
 
 
 def test_config_settings(tmp_path):
@@ -357,7 +357,7 @@ other = ["two", "three"]
 """
     )
 
-    options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux", environ={})
+    options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
     assert (
         options_reader.get("config-settings", table={"item": '{k}="{v}"', "sep": " "})
         == 'example="one" other="two" other="three"'
@@ -373,7 +373,7 @@ def test_pip_config_settings(tmp_path):
 """
     )
 
-    options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux", environ={})
+    options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
     assert (
         options_reader.get(
             "config-settings", table={"item": "--config-settings='{k}=\"{v}\"'", "sep": " "}

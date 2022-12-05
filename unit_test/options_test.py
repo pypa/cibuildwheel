@@ -47,7 +47,7 @@ def test_options_1(tmp_path, monkeypatch):
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
 
-    options = Options(platform="linux", command_line_arguments=args, environ={})
+    options = Options(platform="linux", command_line_arguments=args, env={})
 
     identifiers = get_build_identifiers(
         platform="linux",
@@ -89,7 +89,7 @@ def test_passthrough(tmp_path, monkeypatch):
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
 
-    options = Options(platform="linux", command_line_arguments=args, environ={"EXAMPLE_ENV": "ONE"})
+    options = Options(platform="linux", command_line_arguments=args, env={"EXAMPLE_ENV": "ONE"})
 
     default_build_options = options.build_options(identifier=None)
 
@@ -118,7 +118,7 @@ def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):
     options = Options(
         platform="linux",
         command_line_arguments=args,
-        environ={"CIBW_ENVIRONMENT_PASS_LINUX": "ENV_VAR", "ENV_VAR": env_var_value},
+        env={"CIBW_ENVIRONMENT_PASS_LINUX": "ENV_VAR", "ENV_VAR": env_var_value},
     )
 
     parsed_environment = options.build_options(identifier=None).environment
@@ -153,7 +153,7 @@ def test_toml_environment_evil(tmp_path, monkeypatch, env_var_value):
         )
     )
 
-    options = Options(platform="linux", command_line_arguments=args, environ={})
+    options = Options(platform="linux", command_line_arguments=args, env={})
     parsed_environment = options.build_options(identifier=None).environment
     assert parsed_environment.as_dictionary(prev_environment={}) == {"EXAMPLE": env_var_value}
 
@@ -189,7 +189,7 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value)
         )
     )
 
-    options = Options(platform="linux", command_line_arguments=args, environ={})
+    options = Options(platform="linux", command_line_arguments=args, env={})
     parsed_environment = options.build_options(identifier=None).environment
     environment_values = parsed_environment.as_dictionary(
         prev_environment={**os.environ, "PARAM": "spam"},

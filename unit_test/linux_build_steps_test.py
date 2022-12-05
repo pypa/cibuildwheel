@@ -40,7 +40,7 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
     )
 
     monkeypatch.chdir(tmp_path)
-    options = Options("linux", command_line_arguments=args, environ={})
+    options = Options("linux", command_line_arguments=args, env={})
 
     python_configurations = cibuildwheel.linux.get_python_configurations(
         options.globals.build_selector, options.globals.architectures

@@ -192,11 +192,11 @@ class OptionsReader:
         config_file_path: Path | None = None,
         *,
         platform: PlatformName,
-        environ: Mapping[str, str],
+        env: Mapping[str, str],
         disallow: dict[str, set[str]] | None = None,
     ) -> None:
         self.platform = platform
-        self.environ = environ
+        self.env = env
         self.disallow = disallow or {}
 
         # Open defaults.toml, loading both global and platform sections
@@ -337,8 +337,8 @@ class OptionsReader:
         # get the option from the environment, then the config file, then finally the default.
         # platform-specific options are preferred, if they're allowed.
         result = _dig_first(
-            (self.environ if env_plat else {}, plat_envvar),
-            (self.environ, envvar),
+            (self.env if env_plat else {}, plat_envvar),
+            (self.env, envvar),
             *[(o.options, name) for o in active_config_overrides],
             (self.config_platform_options, name),
             (self.config_options, name),
@@ -384,17 +384,17 @@ class Options:
         self,
         platform: PlatformName,
         command_line_arguments: CommandLineArguments,
-        environ: Mapping[str, str],
+        env: Mapping[str, str],
         read_config_file: bool = True,
     ):
         self.platform = platform
         self.command_line_arguments = command_line_arguments
-        self.environ = environ
+        self.env = env
 
         self.reader = OptionsReader(
             self.config_file_path if read_config_file else None,
             platform=platform,
-            environ=environ,
+            env=env,
             disallow=DISALLOWED_OPTIONS,
         )
 
@@ -428,13 +428,13 @@ class Options:
         test_skip = self.reader.get("test-skip", env_plat=False, sep=" ")
 
         prerelease_pythons = args.prerelease_pythons or strtobool(
-            self.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
+            self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
         )
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
         requires_python_str: str | None = (
-            self.environ.get("CIBW_PROJECT_REQUIRES_PYTHON") or self.package_requires_python_str
+            self.env.get("CIBW_PROJECT_REQUIRES_PYTHON") or self.package_requires_python_str
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
@@ -523,7 +523,7 @@ class Options:
             if self.platform == "linux":
                 for env_var_name in environment_pass:
                     with contextlib.suppress(KeyError):
-                        environment.add(env_var_name, self.environ[env_var_name])
+                        environment.add(env_var_name, self.env[env_var_name])
 
             if dependency_versions == "pinned":
                 dependency_constraints: None | (
@@ -625,7 +625,7 @@ class Options:
         return Options(
             platform=self.platform,
             command_line_arguments=CommandLineArguments.defaults(),
-            environ={},
+            env={},
             read_config_file=False,
         )
 
@@ -730,11 +730,9 @@ class Options:
 def compute_options(
     platform: PlatformName,
     command_line_arguments: CommandLineArguments,
-    environ: Mapping[str, str],
+    env: Mapping[str, str],
 ) -> Options:
-    options = Options(
-        platform=platform, command_line_arguments=command_line_arguments, environ=environ
-    )
+    options = Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
     options.check_for_deprecated_options()
     return options
 
