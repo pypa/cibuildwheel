@@ -43,6 +43,9 @@ class Architecture(Enum):
     def __lt__(self, other: Architecture) -> bool:
         return self.value < other.value
 
+    def __str__(self) -> str:
+        return self.name
+
     @staticmethod
     def parse_config(config: str, platform: PlatformName) -> set[Architecture]:
         result = set()

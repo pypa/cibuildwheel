@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import collections
 import configparser
 import contextlib
 import dataclasses
 import difflib
 import functools
-import os
 import shlex
 import sys
+import textwrap
 import traceback
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterator, List, Mapping, Union, cast
@@ -21,6 +22,7 @@ from packaging.specifiers import SpecifierSet
 
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from .logger import log
 from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
 from .typing import PLATFORMS, Literal, NotRequired, PlatformName, TypedDict
@@ -51,6 +53,20 @@ class CommandLineArguments:
     print_build_identifiers: bool
     allow_empty: bool
     prerelease_pythons: bool
+
+    @staticmethod
+    def defaults() -> CommandLineArguments:
+        return CommandLineArguments(
+            platform="auto",
+            allow_empty=False,
+            archs=None,
+            only=None,
+            config_file="",
+            output_dir=Path("wheelhouse"),
+            package_dir=Path("."),
+            prerelease_pythons=False,
+            print_build_identifiers=False,
+        )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -176,9 +192,11 @@ class OptionsReader:
         config_file_path: Path | None = None,
         *,
         platform: PlatformName,
+        env: Mapping[str, str],
         disallow: dict[str, set[str]] | None = None,
     ) -> None:
         self.platform = platform
+        self.env = env
         self.disallow = disallow or {}
 
         # Open defaults.toml, loading both global and platform sections
@@ -319,8 +337,8 @@ class OptionsReader:
         # get the option from the environment, then the config file, then finally the default.
         # platform-specific options are preferred, if they're allowed.
         result = _dig_first(
-            (os.environ if env_plat else {}, plat_envvar),  # type: ignore[arg-type]
-            (os.environ, envvar),
+            (self.env if env_plat else {}, plat_envvar),
+            (self.env, envvar),
             *[(o.options, name) for o in active_config_overrides],
             (self.config_platform_options, name),
             (self.config_options, name),
@@ -362,13 +380,21 @@ def _inner_fmt(k: str, v: Any, table: TableFmt) -> Iterator[str]:
 
 
 class Options:
-    def __init__(self, platform: PlatformName, command_line_arguments: CommandLineArguments):
+    def __init__(
+        self,
+        platform: PlatformName,
+        command_line_arguments: CommandLineArguments,
+        env: Mapping[str, str],
+        read_config_file: bool = True,
+    ):
         self.platform = platform
         self.command_line_arguments = command_line_arguments
+        self.env = env
 
         self.reader = OptionsReader(
-            self.config_file_path,
+            self.config_file_path if read_config_file else None,
             platform=platform,
+            env=env,
             disallow=DISALLOWED_OPTIONS,
         )
 
@@ -402,13 +428,13 @@ class Options:
         test_skip = self.reader.get("test-skip", env_plat=False, sep=" ")
 
         prerelease_pythons = args.prerelease_pythons or strtobool(
-            os.environ.get("CIBW_PRERELEASE_PYTHONS", "0")
+            self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
         )
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
         requires_python_str: str | None = (
-            os.environ.get("CIBW_PROJECT_REQUIRES_PYTHON") or self.package_requires_python_str
+            self.env.get("CIBW_PROJECT_REQUIRES_PYTHON") or self.package_requires_python_str
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
@@ -497,7 +523,7 @@ class Options:
             if self.platform == "linux":
                 for env_var_name in environment_pass:
                     with contextlib.suppress(KeyError):
-                        environment.add(env_var_name, os.environ[env_var_name])
+                        environment.add(env_var_name, self.env[env_var_name])
 
             if dependency_versions == "pinned":
                 dependency_constraints: None | (
@@ -594,37 +620,119 @@ class Options:
         deprecated_selectors("CIBW_SKIP", build_selector.skip_config)
         deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
-    def summary(self, identifiers: list[str]) -> str:
-        lines = [
-            f"{option_name}: {option_value!r}"
-            for option_name, option_value in sorted(dataclasses.asdict(self.globals).items())
-        ]
+    @cached_property
+    def defaults(self) -> Options:
+        return Options(
+            platform=self.platform,
+            command_line_arguments=CommandLineArguments.defaults(),
+            env={},
+            read_config_file=False,
+        )
 
-        build_option_defaults = self.build_options(identifier=None)
+    def summary(self, identifiers: list[str]) -> str:
+        lines = []
+        global_option_names = sorted(f.name for f in dataclasses.fields(self.globals))
+
+        for option_name in global_option_names:
+            option_value = getattr(self.globals, option_name)
+            default_value = getattr(self.defaults.globals, option_name)
+            lines.append(self.option_summary(option_name, option_value, default_value))
+
+        build_options = self.build_options(identifier=None)
+        build_options_defaults = self.defaults.build_options(identifier=None)
         build_options_for_identifier = {
             identifier: self.build_options(identifier) for identifier in identifiers
         }
 
-        for option_name, default_value in sorted(dataclasses.asdict(build_option_defaults).items()):
+        build_option_names = sorted(f.name for f in dataclasses.fields(build_options))
+
+        for option_name in build_option_names:
             if option_name == "globals":
                 continue
 
-            lines.append(f"{option_name}: {default_value!r}")
+            option_value = getattr(build_options, option_name)
+            default_value = getattr(build_options_defaults, option_name)
+            overrides = {
+                i: getattr(build_options_for_identifier[i], option_name) for i in identifiers
+            }
 
-            # if any identifiers have an overridden value, print that too
-            for identifier in identifiers:
-                option_value = getattr(build_options_for_identifier[identifier], option_name)
-                if option_value != default_value:
-                    lines.append(f"  {identifier}: {option_value!r}")
+            lines.append(
+                self.option_summary(option_name, option_value, default_value, overrides=overrides)
+            )
 
         return "\n".join(lines)
+
+    def option_summary(
+        self,
+        option_name: str,
+        option_value: Any,
+        default_value: Any,
+        overrides: dict[str, Any] | None = None,
+    ) -> str:
+        """
+        Return a summary of the option value, including any overrides, with
+        ANSI 'dim' color if it's the default.
+        """
+        value_str = self.option_summary_value(option_value)
+        default_value_str = self.option_summary_value(default_value)
+        overrides_value_strs = {
+            k: self.option_summary_value(v) for k, v in (overrides or {}).items()
+        }
+        # if the override value is the same as the non-overridden value, don't print it
+        overrides_value_strs = {k: v for k, v in overrides_value_strs.items() if v != value_str}
+
+        has_been_set = (value_str != default_value_str) or overrides_value_strs
+        c = log.colors
+
+        result = c.gray if not has_been_set else ""
+        result += f"{option_name}: "
+
+        if overrides_value_strs:
+            overrides_groups = collections.defaultdict(list)
+            for k, v in overrides_value_strs.items():
+                overrides_groups[v].append(k)
+
+            result += "\n  *: "
+            result += self.indent_if_multiline(value_str, "    ")
+
+            for override_value_str, identifiers in overrides_groups.items():
+                result += f"\n  {', '.join(identifiers)}: "
+                result += self.indent_if_multiline(override_value_str, "    ")
+        else:
+            result += self.indent_if_multiline(value_str, "  ")
+
+        result += c.end
+
+        return result
+
+    def indent_if_multiline(self, value: str, indent: str) -> str:
+        if "\n" in value:
+            return "\n" + textwrap.indent(value.strip(), indent)
+        else:
+            return value
+
+    def option_summary_value(self, option_value: Any) -> str:
+        if hasattr(option_value, "options_summary"):
+            option_value = option_value.options_summary()
+
+        if isinstance(option_value, list):
+            return "".join(f"{el}\n" for el in option_value)
+
+        if isinstance(option_value, set):
+            return ", ".join(str(el) for el in sorted(option_value))
+
+        if isinstance(option_value, dict):
+            return "".join(f"{k}: {v}\n" for k, v in option_value.items())
+
+        return str(option_value)
 
 
 def compute_options(
     platform: PlatformName,
     command_line_arguments: CommandLineArguments,
+    env: Mapping[str, str],
 ) -> Options:
-    options = Options(platform=platform, command_line_arguments=command_line_arguments)
+    options = Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
     options.check_for_deprecated_options()
     return options
 

@@ -10,13 +10,16 @@ import pytest
 from cibuildwheel.__main__ import get_build_identifiers
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.environment import parse_environment
-from cibuildwheel.options import Options, _get_pinned_container_images
-
-from .utils import get_default_command_line_arguments
+from cibuildwheel.options import (
+    CommandLineArguments,
+    Options,
+    _get_pinned_container_images,
+)
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = ["cp38*", "cp37*"]
+skip = ["*musllinux*"]
 environment = {FOO="BAR"}
 
 test-command = "pyproject"
@@ -39,12 +42,12 @@ def test_options_1(tmp_path, monkeypatch):
     with tmp_path.joinpath("pyproject.toml").open("w") as f:
         f.write(PYPROJECT_1)
 
-    args = get_default_command_line_arguments()
+    args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
 
-    options = Options(platform="linux", command_line_arguments=args)
+    options = Options(platform="linux", command_line_arguments=args, env={})
 
     identifiers = get_build_identifiers(
         platform="linux",
@@ -53,9 +56,8 @@ def test_options_1(tmp_path, monkeypatch):
     )
 
     override_display = """\
-test_command: 'pyproject'
-  cp37-manylinux_x86_64: 'pyproject-override'"""
-
+  *: pyproject
+  cp37-manylinux_x86_64, cp37-manylinux_i686: pyproject-override"""
     print(options.summary(identifiers))
 
     assert override_display in options.summary(identifiers)
@@ -82,13 +84,12 @@ def test_passthrough(tmp_path, monkeypatch):
     with tmp_path.joinpath("pyproject.toml").open("w") as f:
         f.write(PYPROJECT_1)
 
-    args = get_default_command_line_arguments()
+    args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
-    monkeypatch.setenv("EXAMPLE_ENV", "ONE")
 
-    options = Options(platform="linux", command_line_arguments=args)
+    options = Options(platform="linux", command_line_arguments=args, env={"EXAMPLE_ENV": "ONE"})
 
     default_build_options = options.build_options(identifier=None)
 
@@ -110,14 +111,16 @@ def test_passthrough(tmp_path, monkeypatch):
     ],
 )
 def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):
-    args = get_default_command_line_arguments()
+    args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
-    monkeypatch.setenv("CIBW_ENVIRONMENT_PASS_LINUX", "ENV_VAR")
-    options = Options(platform="linux", command_line_arguments=args)
+    options = Options(
+        platform="linux",
+        command_line_arguments=args,
+        env={"CIBW_ENVIRONMENT_PASS_LINUX": "ENV_VAR", "ENV_VAR": env_var_value},
+    )
 
-    monkeypatch.setenv("ENV_VAR", env_var_value)
     parsed_environment = options.build_options(identifier=None).environment
     assert parsed_environment.as_dictionary(prev_environment={}) == {"ENV_VAR": env_var_value}
 
@@ -138,7 +141,7 @@ xfail_env_parse = pytest.mark.xfail(
     ],
 )
 def test_toml_environment_evil(tmp_path, monkeypatch, env_var_value):
-    args = get_default_command_line_arguments()
+    args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
     tmp_path.joinpath("pyproject.toml").write_text(
@@ -150,7 +153,7 @@ def test_toml_environment_evil(tmp_path, monkeypatch, env_var_value):
         )
     )
 
-    options = Options(platform="linux", command_line_arguments=args)
+    options = Options(platform="linux", command_line_arguments=args, env={})
     parsed_environment = options.build_options(identifier=None).environment
     assert parsed_environment.as_dictionary(prev_environment={}) == {"EXAMPLE": env_var_value}
 
@@ -174,7 +177,7 @@ def test_toml_environment_evil(tmp_path, monkeypatch, env_var_value):
     ],
 )
 def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value):
-    args = get_default_command_line_arguments()
+    args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
     tmp_path.joinpath("pyproject.toml").write_text(
@@ -186,7 +189,7 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value)
         )
     )
 
-    options = Options(platform="linux", command_line_arguments=args)
+    options = Options(platform="linux", command_line_arguments=args, env={})
     parsed_environment = options.build_options(identifier=None).environment
     environment_values = parsed_environment.as_dictionary(
         prev_environment={**os.environ, "PARAM": "spam"},

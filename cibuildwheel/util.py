@@ -272,6 +272,14 @@ class BuildSelector:
 
         return should_build and not should_skip
 
+    def options_summary(self) -> Any:
+        return {
+            "build_config": self.build_config,
+            "skip_config": self.skip_config,
+            "requires_python": str(self.requires_python),
+            "prerelease_pythons": self.prerelease_pythons,
+        }
+
 
 @dataclass(frozen=True)
 class TestSelector:
@@ -284,6 +292,9 @@ class TestSelector:
     def __call__(self, build_id: str) -> bool:
         should_skip = selector_matches(self.skip_config, build_id)
         return not should_skip
+
+    def options_summary(self) -> Any:
+        return {"skip_config": self.skip_config}
 
 
 # Taken from https://stackoverflow.com/a/107717
@@ -357,6 +368,12 @@ class DependencyConstraints:
             return False
 
         return self.base_file_path == o.base_file_path
+
+    def options_summary(self) -> Any:
+        if self == DependencyConstraints.with_defaults():
+            return "pinned"
+        else:
+            return self.base_file_path.name
 
 
 class NonPlatformWheelError(Exception):
@@ -657,3 +674,31 @@ def chdir(new_path: Path | str) -> Generator[None, None, None]:
         yield
     finally:
         os.chdir(cwd)
+
+
+def fix_ansi_codes_for_github_actions(text: str) -> str:
+    """
+    Github Actions forgets the current ANSI style on every new line. This
+    function repeats the current ANSI style on every new line.
+    """
+    ansi_code_regex = re.compile(r"(\033\[[0-9;]*m)")
+    ansi_codes: list[str] = []
+    output = ""
+
+    for line in text.splitlines(keepends=True):
+        # add the current ANSI codes to the beginning of the line
+        output += "".join(ansi_codes) + line
+
+        # split the line at each ANSI code
+        parts = ansi_code_regex.split(line)
+        # if there are any ANSI codes, save them
+        if len(parts) > 1:
+            # iterate over the ANSI codes in this line
+            for code in parts[1::2]:
+                if code == "\033[0m":
+                    # reset the list of ANSI codes when the clear code is found
+                    ansi_codes = []
+                else:
+                    ansi_codes.append(code)
+
+    return output

@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import textwrap
 from pathlib import PurePath
 
 import pytest
 
-from cibuildwheel.util import find_compatible_wheel, format_safe, prepare_command
+from cibuildwheel.util import (
+    find_compatible_wheel,
+    fix_ansi_codes_for_github_actions,
+    format_safe,
+    prepare_command,
+)
 
 
 def test_format_safe():
@@ -90,3 +96,31 @@ def test_find_compatible_wheel_found(wheel: str, identifier: str):
 )
 def test_find_compatible_wheel_not_found(wheel: str, identifier: str):
     assert find_compatible_wheel([PurePath(wheel)], identifier) is None
+
+
+def test_fix_ansi_codes_for_github_actions():
+    input = textwrap.dedent(
+        """
+        This line is normal
+        \033[1mThis line is bold
+        This line is also bold
+        \033[31m this line is red and bold
+        This line is red and bold, too\033[0m
+        This line is normal again
+        """
+    )
+
+    expected = textwrap.dedent(
+        """
+        This line is normal
+        \033[1mThis line is bold
+        \033[1mThis line is also bold
+        \033[1m\033[31m this line is red and bold
+        \033[1m\033[31mThis line is red and bold, too\033[0m
+        This line is normal again
+        """
+    )
+
+    output = fix_ansi_codes_for_github_actions(input)
+
+    assert output == expected
