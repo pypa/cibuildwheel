@@ -35,6 +35,7 @@ from .util import (
     read_python_configs,
     shell,
     split_config_settings,
+    test_fail_cwd_file,
     unwrap,
     virtualenv,
 )
@@ -542,7 +543,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 if build_options.test_requires:
                     call("pip", "install", *build_options.test_requires, env=virtualenv_env)
 
-                # run the tests from c:\, with an absolute path in the command
+                # run the tests from a temp dir, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel
                 # and not the repo code)
                 test_command_prepared = prepare_command(
@@ -550,7 +551,11 @@ def build(options: Options, tmp_path: Path) -> None:
                     project=Path(".").resolve(),
                     package=options.globals.package_dir.resolve(),
                 )
-                shell(test_command_prepared, cwd="c:\\", env=virtualenv_env)
+                test_cwd = identifier_tmp_dir / "test_cwd"
+                test_cwd.mkdir()
+                (test_cwd / "test_fail.py").write_text(test_fail_cwd_file.read_text())
+
+                shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (remove if already exists)
             if compatible_wheel is None:
