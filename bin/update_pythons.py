@@ -159,8 +159,8 @@ class PyPyVersions:
         )
 
     def update_version_macos(self, spec: Specifier) -> ConfigMacOS:
-        if self.arch != "64":
-            msg = "Other archs not supported yet on macOS"
+        if self.arch not in {"64", "ARM64"}:
+            msg = f"'{self.arch}' arch not supported yet on macOS"
             raise RuntimeError(msg)
 
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
@@ -172,12 +172,14 @@ class PyPyVersions:
 
         release = releases[-1]
         version = release["python_version"]
-        identifier = f"pp{version.major}{version.minor}-macosx_x86_64"
+        arch = "x86_64" if self.arch == "64" else self.arch.lower()
+        identifier = f"pp{version.major}{version.minor}-macosx_{arch}"
 
+        arch = "x64" if self.arch == "64" else self.arch.lower()
         (url,) = (
             rf["download_url"]
             for rf in release["files"]
-            if "" in rf["platform"] == "darwin" and rf["arch"] == "x64"
+            if "" in rf["platform"] == "darwin" and rf["arch"] == arch
         )
 
         return ConfigMacOS(
@@ -251,6 +253,7 @@ class AllVersions:
 
         self.macos_cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
+        self.macos_pypy_arm64 = PyPyVersions("ARM64")
 
     def update_config(self, config: dict[str, str]) -> None:
         identifier = config["identifier"]
@@ -261,11 +264,14 @@ class AllVersions:
         config_update: AnyConfig | None = None
 
         # We need to use ** in update due to MyPy (probably a bug)
-        if "macos" in identifier:
+        if "macosx" in identifier:
             if identifier.startswith("cp"):
                 config_update = self.macos_cpython.update_version_macos(identifier, version, spec)
             elif identifier.startswith("pp"):
-                config_update = self.macos_pypy.update_version_macos(spec)
+                if "macosx_x86_64" in identifier:
+                    config_update = self.macos_pypy.update_version_macos(spec)
+                elif "macosx_arm64" in identifier:
+                    config_update = self.macos_pypy_arm64.update_version_macos(spec)
         elif "win32" in identifier:
             if identifier.startswith("cp"):
                 config_update = self.windows_32.update_version_windows(spec)
