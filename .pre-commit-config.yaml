@@ -55,7 +55,7 @@ repos:
     args: ["--python-version=3.7"]
     additional_dependencies: &mypy-dependencies
       - nox
-      - packaging>=21.0
+      - packaging~=21.0
       - pygithub
       - rich
       - tomli
