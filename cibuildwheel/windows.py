@@ -488,20 +488,19 @@ def build(options: Options, tmp_path: Path) -> None:
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise AlreadyBuiltWheelError(repaired_wheel.name)
 
-            if build_options.test_command and options.globals.test_selector(config.identifier):
-                if config.arch == "ARM64" != platform_module.machine():
-                    log.warning(
-                        unwrap(
-                            """
+            test_selected = options.globals.test_selector(config.identifier)
+            if test_selected and config.arch == "ARM64" != platform_module.machine():
+                log.warning(
+                    unwrap(
+                        """
                             While arm64 wheels can be built on other platforms, they cannot
                             be tested. An arm64 runner is required. To silence this warning,
                             set `CIBW_TEST_SKIP: *-win_arm64`.
                             """
-                        )
                     )
-                    # skip this test
-                    continue
-
+                )
+                # skip this test
+            elif test_selected and build_options.test_command:
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
