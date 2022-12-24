@@ -4,6 +4,15 @@ title: Changelog
 
 # Changelog
 
+### v2.11.4
+
+_24 Dec 2022_
+
+- 🐛 Fix a bug that caused missing wheels on Windows when a test was skipped using CIBW_TEST_SKIP (#1377)
+- 🛠 Updates CPython 3.11 to 3.11.1 (#1371)
+- 🛠 Updates PyPy to 7.3.10, except on macOS which remains on 7.3.9 due to a bug on that platform. (#1371)
+- 📚 Added a reference to abi3audit to the docs (#1347)
+
 ### v2.11.3
 
 _5 Dec 2022_

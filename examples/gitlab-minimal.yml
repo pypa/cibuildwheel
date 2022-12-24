@@ -12,7 +12,7 @@ linux:
     DOCKER_TLS_CERTDIR: ""
   script:
     - curl -sSL https://get.docker.com/ | sh
-    - python -m pip install cibuildwheel==2.11.3
+    - python -m pip install cibuildwheel==2.11.4
     - cibuildwheel --output-dir wheelhouse
   artifacts:
     paths:
@@ -23,7 +23,7 @@ windows:
   before_script:
     - choco install python -y --version 3.8.6
     - choco install git.install -y
-    - py -m pip install cibuildwheel==2.11.3
+    - py -m pip install cibuildwheel==2.11.4
   script:
     - py -m cibuildwheel --output-dir wheelhouse --platform windows
   artifacts:
