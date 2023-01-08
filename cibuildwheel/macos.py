@@ -83,6 +83,16 @@ def get_python_configurations(
         if any(c.identifier.endswith(a.value) for a in architectures)
     ]
 
+    # filter-out some cross-compilation configs with PyPy:
+    # can't build arm64 on x86_64
+    # rosetta allows to build x86_64 on arm64
+    if platform.machine() == "x86_64":
+        python_configurations = [
+            c
+            for c in python_configurations
+            if not (c.identifier.startswith("pp") and c.identifier.endswith("arm64"))
+        ]
+
     # skip builds as required by BUILD/SKIP
     return [c for c in python_configurations if build_selector(c.identifier)]
 

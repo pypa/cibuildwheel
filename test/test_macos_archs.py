@@ -65,7 +65,7 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp39-*",
+            "CIBW_BUILD": "cp39-*" if build_universal2 else "*p39-*",
             "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
             "CIBW_ARCHS": "universal2" if build_universal2 else "x86_64 arm64",
             "CIBW_BUILD_VERBOSITY": "3",
@@ -76,7 +76,8 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
 
     assert DEPLOYMENT_TARGET_TOO_LOW_WARNING not in captured.err
 
-    if platform.machine() == "x86_64":
+    platform_machine = platform.machine()
+    if platform_machine == "x86_64":
         # ensure that tests were run on only x86_64
         assert "running tests on x86_64" in captured.out
         assert "running tests on arm64" not in captured.out
@@ -89,15 +90,24 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
             assert (
                 "While arm64 wheels can be built on x86_64, they cannot be tested" in captured.err
             )
-    elif platform.machine() == "arm64":
+    elif platform_machine == "arm64":
         # ensure that tests were run on both x86_64 and arm64
         assert "running tests on x86_64" in captured.out
         assert "running tests on arm64" in captured.out
+        assert (
+            "While universal2 wheels can be built on x86_64, the arm64 part of them cannot currently be tested"
+            not in captured.err
+        )
+        assert (
+            "While arm64 wheels can be built on x86_64, they cannot be tested" not in captured.err
+        )
 
     if build_universal2:
         expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" in w]
     else:
-        expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" not in w]
+        expected_wheels = [w for w in ALL_MACOS_WHEELS if "p39-" in w and "universal2" not in w]
+        if platform_machine == "x86_64":
+            expected_wheels = [w for w in expected_wheels if not ("pp39" in w and "arm64" in w)]
 
     assert set(actual_wheels) == set(expected_wheels)
 
