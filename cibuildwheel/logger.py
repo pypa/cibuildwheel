@@ -126,6 +126,10 @@ class Logger:
         self.step_end(success=False)
         self.error(error)
 
+    def quiet(self, message: str) -> None:
+        c = self.colors
+        print(f"{c.gray}{message}{c.end}", file=sys.stderr)
+
     def notice(self, message: str) -> None:
         if self.fold_mode == "github":
             print(f"::notice::{message}\n", file=sys.stderr)
