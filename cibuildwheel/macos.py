@@ -103,7 +103,7 @@ def get_python_configurations(
                 unwrap(
                     f"""
                     Note: {ids}  {'was' if len(removed_elements) == 1 else 'were'}
-                    selected but can't be built on x86_64
+                    selected, but can't be built on x86_64 so will be skipped automatically.
                     """
                 )
             )
