@@ -84,7 +84,31 @@ def get_python_configurations(
     ]
 
     # skip builds as required by BUILD/SKIP
-    return [c for c in python_configurations if build_selector(c.identifier)]
+    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
+
+    # filter-out some cross-compilation configs with PyPy:
+    # can't build arm64 on x86_64
+    # rosetta allows to build x86_64 on arm64
+    if platform.machine() == "x86_64":
+        python_configurations_before = set(python_configurations)
+        python_configurations = [
+            c
+            for c in python_configurations
+            if not (c.identifier.startswith("pp") and c.identifier.endswith("arm64"))
+        ]
+        removed_elements = python_configurations_before - set(python_configurations)
+        if removed_elements:
+            ids = ", ".join(c.identifier for c in removed_elements)
+            log.quiet(
+                unwrap(
+                    f"""
+                    Note: {ids}  {'was' if len(removed_elements) == 1 else 'were'}
+                    selected, but can't be built on x86_64 so will be skipped automatically.
+                    """
+                )
+            )
+
+    return python_configurations
 
 
 def install_cpython(tmp: Path, version: str, url: str) -> Path:

@@ -89,7 +89,9 @@ python_configurations = [
   { identifier = "cp311-macosx_universal2", version = "3.11", url = "https://www.python.org/ftp/python/3.11.1/python-3.11.1-macos11.pkg" },
   { identifier = "pp37-macosx_x86_64", version = "3.7", url = "https://downloads.python.org/pypy/pypy3.7-v7.3.9-osx64.tar.bz2" },
   { identifier = "pp38-macosx_x86_64", version = "3.8", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.11-macos_x86_64.tar.bz2" },
+  { identifier = "pp38-macosx_arm64", version = "3.8", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.11-macos_arm64.tar.bz2" },
   { identifier = "pp39-macosx_x86_64", version = "3.9", url = "https://downloads.python.org/pypy/pypy3.9-v7.3.11-macos_x86_64.tar.bz2" },
+  { identifier = "pp39-macosx_arm64", version = "3.9", url = "https://downloads.python.org/pypy/pypy3.9-v7.3.11-macos_arm64.tar.bz2" },
 ]
 
 [windows]
