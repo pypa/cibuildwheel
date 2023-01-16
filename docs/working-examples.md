@@ -56,14 +56,14 @@ title: Working examples
 | [SimpleJSON][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | simplejson is a simple, fast, extensible JSON encoder/decoder for Python  |
 | [OpenColorIO][]                   | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A color management framework for visual effects and animation. |
 | [envd][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | 🏕️ Reproducible development environment for AI/ML |
-| [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
 | [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | QUIC and HTTP/3 implementation in Python |
+| [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
 | [OpenTimelineIO][]                | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Open Source API and interchange format for editorial timeline information. |
 | [ruptures][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Extensive Cython + NumPy [pyproject.toml](https://github.com/deepcharles/ruptures/blob/master/pyproject.toml) example. |
 | [Psycopg 3][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A modern implementation of a PostgreSQL adapter for Python |
+| [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
 | [DeepForest][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | An Efficient, Scalable and Optimized Python Framework for Deep Forest (2021.2.1) |
 | [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
-| [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
 | [AutoPy][]                        | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [H3-py][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for H3, a hierarchical hexagonal geospatial indexing system |
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS ¶ |
@@ -87,8 +87,8 @@ title: Working examples
 | [Tokenizer][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
 | [mosec][]                         | ![github icon][] | ![linux icon][] ![apple icon][] | A high-performance serving framework for ML models, offers dynamic batching and multi-stage pipeline to fully exploit your compute machine |
 | [PyGLM][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Fast OpenGL Mathematics (GLM) for Python |
-| [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
 | [TgCrypto][]                      | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
+| [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
 | [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [iDynTree][]                      | ![github icon][] | ![linux icon][] | Uses manylinux_2_24 |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M92 |
@@ -162,14 +162,14 @@ title: Working examples
 [SimpleJSON]: https://github.com/simplejson/simplejson
 [OpenColorIO]: https://github.com/AcademySoftwareFoundation/OpenColorIO
 [envd]: https://github.com/tensorchord/envd
-[PyTables]: https://github.com/PyTables/PyTables
 [aioquic]: https://github.com/aiortc/aioquic
+[PyTables]: https://github.com/PyTables/PyTables
 [OpenTimelineIO]: https://github.com/PixarAnimationStudios/OpenTimelineIO
 [ruptures]: https://github.com/deepcharles/ruptures
 [Psycopg 3]: https://github.com/psycopg/psycopg
+[Parselmouth]: https://github.com/YannickJadoul/Parselmouth
 [DeepForest]: https://github.com/LAMDA-NJU/Deep-Forest
 [google neuroglancer]: https://github.com/google/neuroglancer
-[Parselmouth]: https://github.com/YannickJadoul/Parselmouth
 [AutoPy]: https://github.com/autopilot-rs/autopy
 [H3-py]: https://github.com/uber/h3-py
 [Rtree]: https://github.com/Toblerity/rtree
@@ -193,8 +193,8 @@ title: Working examples
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
 [mosec]: https://github.com/mosecorg/mosec
 [PyGLM]: https://github.com/Zuzu-Typ/PyGLM
-[bx-python]: https://github.com/bxlab/bx-python
 [TgCrypto]: https://github.com/pyrogram/tgcrypto
+[bx-python]: https://github.com/bxlab/bx-python
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [iDynTree]: https://github.com/robotology/idyntree
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc

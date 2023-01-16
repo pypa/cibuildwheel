@@ -12,13 +12,13 @@ filelock==3.9.0
     # via virtualenv
 importlib-metadata==6.0.0
     # via virtualenv
-packaging==22.0
+packaging==23.0
     # via delocate
 pip==22.3.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==2.6.2
     # via virtualenv
-setuptools==65.6.3
+setuptools==66.0.0
     # via -r cibuildwheel/resources/constraints.in
 typing-extensions==4.4.0
     # via
