@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v2.12.0
+
+_16 Jan 2023_
+
+- ✨ Adds support for PyPy arm64 wheels. This means that you can build PyPy wheels for Apple Silicon machines. Cross-compilation is not supported for these wheels, so you'll have to build on an Apple Silicon machine. (#1372)
+- 🛠 Pinned version updates, including PyPy to v7.3.11 and setuptools to 66.0.0.
+
 ### v2.11.4
 
 _24 Dec 2022_
