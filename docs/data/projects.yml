@@ -401,9 +401,9 @@
 - name: pillow-heif
   gh: bigcat88/pillow_heif
   pypi: pillow-heif
-  ci: [github]
-  os: [apple, linux]
-  notes: Python CFFI binding to libheif library with third party dependencies like `libde265`, `x265`, `libaom` with test & publishing on PyPi.
+  ci: [github, cirrusci]
+  os: [apple, linux, windows]
+  notes: Bindings to libheif library with third party dependencies. Fully automated CI for tests and publishing including Apple Silicon builds.
 
 - name: clang-format
   gh: ssciwr/clang-format-wheel
