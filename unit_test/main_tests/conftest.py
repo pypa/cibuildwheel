@@ -47,7 +47,7 @@ def mock_protection(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def fake_package_dir_autouse(fake_package_dir):
+def fake_package_dir_autouse(fake_package_dir):  # noqa: ARG001
     pass
 
 
@@ -60,9 +60,9 @@ def disable_print_wheels(monkeypatch):
     monkeypatch.setattr(util, "print_new_wheels", empty_cm)
 
 
-@pytest.fixture
-def allow_empty(request, monkeypatch, fake_package_dir):
-    monkeypatch.setattr(sys, "argv", fake_package_dir + ["--allow-empty"])
+@pytest.fixture()
+def allow_empty(monkeypatch, fake_package_dir):
+    monkeypatch.setattr(sys, "argv", [*fake_package_dir, "--allow-empty"])
 
 
 @pytest.fixture(params=["linux", "macos", "windows"])
@@ -81,7 +81,7 @@ def platform(request, monkeypatch):
     return platform_value
 
 
-@pytest.fixture
+@pytest.fixture()
 def intercepted_build_args(monkeypatch):
     intercepted = ArgsInterceptor()
 

@@ -606,7 +606,7 @@ def virtualenv(
     else:
         paths = [str(venv_path / "bin")]
     env = os.environ.copy()
-    env["PATH"] = os.pathsep.join(paths + [env["PATH"]])
+    env["PATH"] = os.pathsep.join([*paths, env["PATH"]])
     return env
 
 
@@ -648,7 +648,7 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
                     continue
             else:
                 # Windows should exactly match
-                if not tag.platform == platform:
+                if tag.platform != platform:
                     continue
 
             # If all the filters above pass, then the wheel is a previously built compatible wheel.

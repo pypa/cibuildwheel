@@ -280,9 +280,8 @@ class AllVersions:
                 config_update = self.windows_64.update_version_windows(spec)
             elif identifier.startswith("pp"):
                 config_update = self.windows_pypy_64.update_version_windows(spec)
-        elif "win_arm64" in identifier:
-            if identifier.startswith("cp"):
-                config_update = self.windows_arm64.update_version_windows(spec)
+        elif "win_arm64" in identifier and identifier.startswith("cp"):
+            config_update = self.windows_arm64.update_version_windows(spec)
 
         assert config_update is not None, f"{identifier} not found!"
         config.update(**config_update)

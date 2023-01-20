@@ -23,10 +23,9 @@ def test_printout_wheels(tmp_path, capsys):
 
 def test_no_printout_on_error(tmp_path, capsys):
     tmp_path.joinpath("example.0").touch()
-    with pytest.raises(RuntimeError):
-        with print_new_wheels("TEST_MSG: {n}", tmp_path):
-            tmp_path.joinpath("example.1").touch()
-            raise RuntimeError()
+    with pytest.raises(RuntimeError), print_new_wheels("TEST_MSG: {n}", tmp_path):  # noqa: PT012
+        tmp_path.joinpath("example.1").touch()
+        raise RuntimeError()
 
     captured = capsys.readouterr()  # type: ignore[unreachable]
     assert captured.err == ""

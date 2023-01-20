@@ -37,13 +37,14 @@ class Analyzer(ast.NodeVisitor):
 
     def visit_keyword(self, node: ast.keyword) -> None:
         self.generic_visit(node)
-        if node.arg == "python_requires":
-            # Must not be nested in an if or other structure
-            # This will be Module -> Expr -> Call -> keyword
-            if not hasattr(node.parent.parent.parent, "parent") and isinstance(  # type: ignore[attr-defined]
-                node.value, Constant
-            ):
-                self.requires_python = get_constant(node.value)
+        # Must not be nested in an if or other structure
+        # This will be Module -> Expr -> Call -> keyword
+        if (
+            node.arg == "python_requires"
+            and not hasattr(node.parent.parent.parent, "parent")  # type: ignore[attr-defined]
+            and isinstance(node.value, Constant)
+        ):
+            self.requires_python = get_constant(node.value)
 
 
 def setup_py_python_requires(content: str) -> str | None:
@@ -73,8 +74,8 @@ def get_requires_python_str(package_dir: Path) -> str | None:
         with contextlib.suppress(KeyError, IndexError, TypeError):
             return str(config["options"]["python_requires"])
 
-    with contextlib.suppress(FileNotFoundError):
-        with (package_dir / "setup.py").open(encoding="utf8") as f2:
-            return setup_py_python_requires(f2.read())
+    setup_py = package_dir / "setup.py"
+    with contextlib.suppress(FileNotFoundError), setup_py.open(encoding="utf8") as f2:
+        return setup_py_python_requires(f2.read())
 
     return None

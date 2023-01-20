@@ -19,7 +19,8 @@ from cibuildwheel.util import BuildSelector, resources_dir, split_config_setting
 # CIBW_PLATFORM is tested in main_platform_test.py
 
 
-def test_output_dir(platform, intercepted_build_args, monkeypatch):
+@pytest.mark.usefixtures("platform")
+def test_output_dir(intercepted_build_args, monkeypatch):
     OUTPUT_DIR = Path("some_output_dir")
 
     monkeypatch.setenv("CIBW_OUTPUT_DIR", str(OUTPUT_DIR))
@@ -29,17 +30,19 @@ def test_output_dir(platform, intercepted_build_args, monkeypatch):
     assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR.resolve()
 
 
-def test_output_dir_default(platform, intercepted_build_args, monkeypatch):
+@pytest.mark.usefixtures("platform")
+def test_output_dir_default(intercepted_build_args):
     main()
 
     assert intercepted_build_args.args[0].globals.output_dir == Path("wheelhouse").resolve()
 
 
+@pytest.mark.usefixtures("platform")
 @pytest.mark.parametrize("also_set_environment", [False, True])
-def test_output_dir_argument(also_set_environment, platform, intercepted_build_args, monkeypatch):
+def test_output_dir_argument(also_set_environment, intercepted_build_args, monkeypatch):
     OUTPUT_DIR = Path("some_output_dir")
 
-    monkeypatch.setattr(sys, "argv", sys.argv + ["--output-dir", str(OUTPUT_DIR)])
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--output-dir", str(OUTPUT_DIR)])
     if also_set_environment:
         monkeypatch.setenv("CIBW_OUTPUT_DIR", "not_this_output_dir")
 
@@ -48,7 +51,8 @@ def test_output_dir_argument(also_set_environment, platform, intercepted_build_a
     assert intercepted_build_args.args[0].globals.output_dir == OUTPUT_DIR.resolve()
 
 
-def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_empty):
+@pytest.mark.usefixtures("platform", "allow_empty")
+def test_build_selector(intercepted_build_args, monkeypatch):
     BUILD = "some build* *-selector"
     SKIP = "some skip* *-selector"
 
@@ -65,7 +69,8 @@ def test_build_selector(platform, intercepted_build_args, monkeypatch, allow_emp
     # Unit tests for BuildSelector are in build_selector_test.py
 
 
-def test_empty_selector(platform, intercepted_build_args, monkeypatch):
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_empty_selector(monkeypatch):
     monkeypatch.setenv("CIBW_SKIP", "*")
 
     with pytest.raises(SystemExit) as e:
@@ -75,7 +80,7 @@ def test_empty_selector(platform, intercepted_build_args, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "architecture, image, full_image",
+    ("architecture", "image", "full_image"),
     [
         ("x86_64", None, "quay.io/pypa/manylinux2014_x86_64:*"),
         ("x86_64", "manylinux1", "quay.io/pypa/manylinux1_x86_64:*"),
@@ -303,9 +308,8 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
         "?p35*",
     ],
 )
-def test_build_selector_deprecated_error(
-    monkeypatch, platform, intercepted_build_args, selector, pattern, allow_empty, capsys
-):
+@pytest.mark.usefixtures("platform", "intercepted_build_args", "allow_empty")
+def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys):
     monkeypatch.setenv(selector, pattern)
 
     if selector == "CIBW_BUILD":

@@ -116,7 +116,8 @@ def install_cpython(version: str, arch: str) -> Path:
 
 
 def install_pypy(tmp: Path, arch: str, url: str) -> Path:
-    assert arch == "64" and "win64" in url
+    assert arch == "64"
+    assert "win64" in url
     # Inside the PyPy zip file is a directory with the same name
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
@@ -178,12 +179,11 @@ def setup_setuptools_cross_compile(
     env["SETUPTOOLS_USE_DISTUTILS"] = "local"
 
 
-# these cross-compile setup functions have the same signature by design
-# pylint: disable=unused-argument
+# These cross-compile setup functions have the same signature by design
 def setup_rust_cross_compile(
-    tmp: Path,
+    tmp: Path,  # noqa: ARG001
     python_configuration: PythonConfiguration,
-    python_libs_base: Path,
+    python_libs_base: Path,  # noqa: ARG001
     env: dict[str, str],
 ) -> None:
     # Assume that MSVC will be used, because we already know that we are

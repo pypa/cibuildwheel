@@ -71,7 +71,7 @@ def test_simple_settings(tmp_path, platform, fname):
         options_reader.get("test-extras", table={"item": '{k}="{v}"', "sep": " "})
 
 
-def test_envvar_override(tmp_path, platform, monkeypatch):
+def test_envvar_override(tmp_path, platform):
     config_file_path: Path = tmp_path / "pyproject.toml"
     config_file_path.write_text(PYPROJECT_1)
 
@@ -112,14 +112,14 @@ repair-wheel-command = "repair-project-global"
     assert options_reader.get("repair-wheel-command") == "repair-project-global"
 
 
-def test_env_global_override_default_platform(tmp_path, platform, monkeypatch):
+def test_env_global_override_default_platform(platform):
     options_reader = OptionsReader(
         platform=platform, env={"CIBW_REPAIR_WHEEL_COMMAND": "repair-env-global"}
     )
     assert options_reader.get("repair-wheel-command") == "repair-env-global"
 
 
-def test_env_global_override_project_platform(tmp_path, platform, monkeypatch):
+def test_env_global_override_project_platform(tmp_path, platform):
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -215,7 +215,7 @@ build = ["1", "2"]
     )
     options_reader = OptionsReader(pyproject_toml, platform="linux", env={})
 
-    assert "1, 2" == options_reader.get("build", sep=", ")
+    assert options_reader.get("build", sep=", ") == "1, 2"
     with pytest.raises(ConfigOptionError):
         options_reader.get("build")
 
@@ -234,7 +234,7 @@ manylinux-x86_64-image = "manylinux1"
         OptionsReader(pyproject_toml, platform="windows", disallow=disallow, env={})
 
 
-def test_environment_override_empty(tmp_path, monkeypatch):
+def test_environment_override_empty(tmp_path):
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -262,7 +262,7 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
 
 
-@pytest.mark.parametrize("ignore_empty", (True, False))
+@pytest.mark.parametrize("ignore_empty", [True, False])
 def test_dig_first(ignore_empty):
     d1 = {"random": "thing"}
     d2 = {"this": "that", "empty": ""}

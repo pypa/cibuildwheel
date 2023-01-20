@@ -16,7 +16,7 @@ from cibuildwheel.__main__ import main
 ALL_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "cp311", "pp37", "pp38", "pp39"}
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_build_container(monkeypatch):
     def fail_on_call(*args, **kwargs):
         msg = "This should never be called"
@@ -46,8 +46,9 @@ def mock_build_container(monkeypatch):
     monkeypatch.setattr("cibuildwheel.util.print_new_wheels", ignore_context_call)
 
 
-def test_build_default_launches(mock_build_container, fake_package_dir, monkeypatch):
-    monkeypatch.setattr(sys, "argv", sys.argv + ["--platform=linux"])
+@pytest.mark.usefixtures("mock_build_container", "fake_package_dir")
+def test_build_default_launches(monkeypatch):
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--platform=linux"])
 
     main()
 
@@ -91,7 +92,8 @@ def test_build_default_launches(mock_build_container, fake_package_dir, monkeypa
     assert identifiers == {f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x}
 
 
-def test_build_with_override_launches(mock_build_container, monkeypatch, tmp_path):
+@pytest.mark.usefixtures("mock_build_container")
+def test_build_with_override_launches(monkeypatch, tmp_path):
     pkg_dir = tmp_path / "cibw_package"
     pkg_dir.mkdir()
 
