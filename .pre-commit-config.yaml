@@ -22,7 +22,7 @@ repos:
 
 # Autoremoves unused imports
 - repo: https://github.com/hadialqattan/pycln
-  rev: v2.1.2
+  rev: v2.1.3
   hooks:
   - id: pycln
     args: [--all]
@@ -89,7 +89,7 @@ repos:
     additional_dependencies: *flake8-dependencies
 
 - repo: https://github.com/pre-commit/pygrep-hooks
-  rev: v1.9.0
+  rev: v1.10.0
   hooks:
   - id: python-check-blanket-noqa
     stages: [manual]
