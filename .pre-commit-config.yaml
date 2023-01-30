@@ -13,32 +13,16 @@ repos:
   - id: mixed-line-ending
   - id: trailing-whitespace
 
-- repo: https://github.com/asottile/pyupgrade
-  rev: v3.3.1
-  hooks:
-  - id: pyupgrade
-    args: ["--py37-plus"]
-    exclude: ^cibuildwheel/resources/.*py$
-
-# Autoremoves unused imports
-- repo: https://github.com/hadialqattan/pycln
-  rev: v2.1.2
-  hooks:
-  - id: pycln
-    args: [--all]
-    stages: [manual]
-
-- repo: https://github.com/PyCQA/isort
-  rev: 5.11.4
-  hooks:
-  - id: isort
-    args: ["-a", "from __future__ import annotations"]
-    exclude: ^cibuildwheel/resources/.*py$
-
 - repo: https://github.com/psf/black
   rev: 22.12.0
   hooks:
   - id: black
+
+- repo: https://github.com/charliermarsh/ruff-pre-commit
+  rev: v0.0.237
+  hooks:
+  - id: ruff
+    args: ["--fix"]
 
 - repo: https://github.com/asottile/setup-cfg-fmt
   rev: v2.2.0
@@ -73,29 +57,6 @@ repos:
     exclude: ^cibuildwheel/resources/.*py$
     args: ["--python-version=3.10"]
     additional_dependencies: *mypy-dependencies
-
-- repo: https://github.com/asottile/yesqa
-  rev: v1.4.0
-  hooks:
-  - id: yesqa
-    additional_dependencies: &flake8-dependencies
-    - flake8-bugbear
-
-- repo: https://github.com/PyCQA/flake8
-  rev: 6.0.0
-  hooks:
-  - id: flake8
-    exclude: ^cibuildwheel/resources/
-    additional_dependencies: *flake8-dependencies
-
-- repo: https://github.com/pre-commit/pygrep-hooks
-  rev: v1.9.0
-  hooks:
-  - id: python-check-blanket-noqa
-    stages: [manual]
-  - id: python-no-log-warn
-  - id: python-no-eval
-  - id: python-use-type-annotations
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
   rev: v0.9.0.2

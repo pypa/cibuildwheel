@@ -35,8 +35,7 @@ def test(tmp_path, capfd):
     pure_python_project.generate(project_dir)
 
     with pytest.raises(subprocess.CalledProcessError):
-        actual_wheels = utils.cibuildwheel_run(project_dir)
-        print("produced wheels:", actual_wheels)
+        print("produced wheels:", utils.cibuildwheel_run(project_dir))
 
     captured = capfd.readouterr()
     print("out", captured.out)

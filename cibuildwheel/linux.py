@@ -373,7 +373,7 @@ def build_in_container(
     log.step_end()
 
 
-def build(options: Options, tmp_path: Path) -> None:  # pylint: disable=unused-argument
+def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
     try:
         # check the container engine is installed
         subprocess.run(

@@ -140,7 +140,7 @@ xfail_env_parse = pytest.mark.xfail(
         pytest.param("a trailing backslash \\", marks=[xfail_env_parse]),
     ],
 )
-def test_toml_environment_evil(tmp_path, monkeypatch, env_var_value):
+def test_toml_environment_evil(tmp_path, env_var_value):
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -159,7 +159,7 @@ def test_toml_environment_evil(tmp_path, monkeypatch, env_var_value):
 
 
 @pytest.mark.parametrize(
-    "toml_assignment,result_value",
+    ("toml_assignment", "result_value"),
     [
         ('TEST_VAR="simple_value"', "simple_value"),
         # spaces

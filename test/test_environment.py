@@ -65,8 +65,8 @@ def test_overridden_path(tmp_path, capfd):
     output_dir.mkdir()
 
     # mess up PATH, somehow
-    with pytest.raises(subprocess.CalledProcessError):
-        if utils.platform == "linux":
+    if utils.platform == "linux":
+        with pytest.raises(subprocess.CalledProcessError):
             utils.cibuildwheel_run(
                 project_dir,
                 output_dir=output_dir,
@@ -75,11 +75,12 @@ def test_overridden_path(tmp_path, capfd):
                     "CIBW_ENVIRONMENT": '''PATH="$(pwd)/new_path:$PATH"''',
                 },
             )
-        else:
-            new_path = tmp_path / "another_bin"
-            new_path.mkdir()
-            (new_path / "python").touch(mode=0o777)
+    else:
+        new_path = tmp_path / "another_bin"
+        new_path.mkdir()
+        (new_path / "python").touch(mode=0o777)
 
+        with pytest.raises(subprocess.CalledProcessError):
             utils.cibuildwheel_run(
                 project_dir,
                 output_dir=output_dir,

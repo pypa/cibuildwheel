@@ -2,17 +2,12 @@
 requires = [
     "setuptools>=42",
 ]
-
 build-backend = "setuptools.build_meta"
 
 
 [tool.black]
 line-length = 100
 target-version = ['py37', 'py38', 'py39', 'py310']
-
-
-[tool.isort]
-profile = "black"
 
 
 [tool.pytest.ini_options]
@@ -119,4 +114,35 @@ messages_control.disable = [
   "too-many-statements",
   "unsubscriptable-object",
   "wrong-import-position",
+  "unused-argument",  # Handled by Ruff
 ]
+
+[tool.ruff]
+select = [
+  "E", "F", "W",  # flake8
+  "B",  "B904",  # flake8-bugbear
+  "I",  # isort
+  "ARG",  # flake8-unused-arguments
+  "C4",  # flake8-comprehensions
+  "EM",  # flake8-errmsg
+  "ICN",  # flake8-import-conventions
+  "ISC",  # flake8-implicit-str-concat
+  "PGH",  # pygrep-hooks
+  "PIE",  # flake8-pie
+  "PLC", "PLE", "PLR", "PLW",  # pylint
+  "PT",  # flake8-pytest-style
+  "RET",  # flake8-return
+  "RUF",  # Ruff-specific
+  "SIM",  # flake8-simplify
+  "UP",  # pyupgrade
+  "YTT",  # flake8-2020
+]
+ignore = [
+  "PLR2004", "E501",
+  "RET504", "RET505", "RET508",  # else after control flow
+  "PT004",  # Rename suggested for returnless fixtures
+  "PT007",  # False positive (fixed upstream)
+]
+target-version = "py37"
+typing-modules = ["cibuildwheel.typing"]
+flake8-unused-arguments.ignore-variadic-names = true

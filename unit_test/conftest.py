@@ -19,7 +19,7 @@ def pytest_addoption(parser):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def fake_package_dir(tmp_path, monkeypatch):
     """
     Monkey-patch enough for the main() function to run

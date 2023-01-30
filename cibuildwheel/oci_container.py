@@ -108,7 +108,8 @@ class OCIContainer:
             stdout=subprocess.PIPE,
         )
 
-        assert self.process.stdin and self.process.stdout
+        assert self.process.stdin
+        assert self.process.stdout
         self.bash_stdin = self.process.stdin
         self.bash_stdout = self.process.stdout
 
