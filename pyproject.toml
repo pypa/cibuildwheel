@@ -129,7 +129,7 @@ select = [
   "ISC",  # flake8-implicit-str-concat
   "PGH",  # pygrep-hooks
   "PIE",  # flake8-pie
-  "PLC", "PLE", "PLR", "PLW",  # pylint
+  "PLC", "PLE", "PLW",  # pylint
   "PT",  # flake8-pytest-style
   "RET",  # flake8-return
   "RUF",  # Ruff-specific
@@ -137,7 +137,7 @@ select = [
   "UP",  # pyupgrade
   "YTT",  # flake8-2020
 ]
-ignore = [
+extend-ignore = [
   "PLR2004", "E501",
   "RET504", "RET505", "RET508",  # else after control flow
   "PT004",  # Rename suggested for returnless fixtures
