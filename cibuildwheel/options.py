@@ -44,7 +44,7 @@ from .util import (
 
 @dataclasses.dataclass
 class CommandLineArguments:
-    platform: Literal["auto", "linux", "macos", "windows"] | None  # noqa: F821
+    platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
     output_dir: Path
     only: str | None

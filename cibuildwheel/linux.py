@@ -48,7 +48,6 @@ def get_python_configurations(
     build_selector: BuildSelector,
     architectures: set[Architecture],
 ) -> list[PythonConfiguration]:
-
     full_python_configs = read_python_configs("linux")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
@@ -224,7 +223,6 @@ def build_in_container(
             )
             repaired_wheels = [compatible_wheel]
         else:
-
             if build_options.before_build:
                 log.step("Running before_build...")
                 before_build_prepared = prepare_command(
@@ -421,7 +419,6 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                 cwd=container_project_path,
                 engine=options.globals.container_engine,
             ) as container:
-
                 build_in_container(
                     options=options,
                     platform_configs=build_step.platform_configs,
@@ -446,7 +443,6 @@ def _matches_prepared_command(error_cmd: list[str], command_template: str) -> bo
 
 
 def troubleshoot(options: Options, error: Exception) -> None:
-
     if isinstance(error, subprocess.CalledProcessError) and (
         error.cmd[0:4] == ["python", "-m", "pip", "wheel"]
         or error.cmd[0:3] == ["python", "-m", "build"]

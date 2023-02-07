@@ -75,7 +75,6 @@ def test_platform_environment(intercepted_build_args):
 
 
 def test_archs_default(platform, intercepted_build_args):
-
     main()
     options = intercepted_build_args.args[0]
 
@@ -89,7 +88,6 @@ def test_archs_default(platform, intercepted_build_args):
 
 @pytest.mark.parametrize("use_env_var", [False, True])
 def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_var):
-
     if use_env_var:
         monkeypatch.setenv("CIBW_ARCHS", "ppc64le")
     else:

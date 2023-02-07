@@ -68,7 +68,6 @@ class OCIContainer:
         self.engine = engine
 
     def __enter__(self) -> OCIContainer:
-
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
         # work-around for Travis-CI PPC64le Docker runs since 2021:
@@ -130,7 +129,6 @@ class OCIContainer:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-
         self.bash_stdin.write(b"exit 0\n")
         self.bash_stdin.flush()
         self.process.wait(timeout=30)
@@ -244,7 +242,6 @@ class OCIContainer:
         capture_output: bool = False,
         cwd: PathOrStr | None = None,
     ) -> str:
-
         if cwd is None:
             # Podman does not start the a container in a specific working dir
             # so we always need to specify it when making calls.

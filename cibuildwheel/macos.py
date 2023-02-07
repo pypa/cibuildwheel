@@ -71,7 +71,6 @@ class PythonConfiguration:
 def get_python_configurations(
     build_selector: BuildSelector, architectures: set[Architecture]
 ) -> list[PythonConfiguration]:
-
     full_python_configs = read_python_configs("macos")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
@@ -460,7 +459,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     env=env,
                     capture_stdout=True,
                 ).strip()
-                testing_archs: list[Literal["x86_64", "arm64"]]  # noqa: F821
+                testing_archs: list[Literal["x86_64", "arm64"]]
 
                 if config_is_arm64:
                     testing_archs = ["arm64"]

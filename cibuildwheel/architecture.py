@@ -134,7 +134,6 @@ def allowed_architectures_check(
     platform: PlatformName,
     architectures: set[Architecture],
 ) -> None:
-
     allowed_architectures = Architecture.all_archs(platform)
 
     msg = f"{PRETTY_NAMES[platform]} only supports {sorted(allowed_architectures)} at the moment."

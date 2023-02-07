@@ -65,7 +65,6 @@ AnyConfig = Union[ConfigWinCP, ConfigWinPP, ConfigMacOS]
 
 class WindowsVersions:
     def __init__(self, arch_str: ArchStr) -> None:
-
         response = requests.get("https://api.nuget.org/v3/index.json")
         response.raise_for_status()
         api_info = response.json()
@@ -88,7 +87,6 @@ class WindowsVersions:
         self.version_dict = {Version(v): v for v in cp_info["versions"]}
 
     def update_version_windows(self, spec: Specifier) -> ConfigWinCP | None:
-
         # Specifier.filter selects all non pre-releases that match the spec,
         # unless there are only pre-releases, then it selects pre-releases
         # instead (like pip)
@@ -111,7 +109,6 @@ class WindowsVersions:
 
 class PyPyVersions:
     def __init__(self, arch_str: ArchStr):
-
         response = requests.get("https://downloads.python.org/pypy/versions.json")
         response.raise_for_status()
 
@@ -191,7 +188,6 @@ class PyPyVersions:
 
 class CPythonVersions:
     def __init__(self) -> None:
-
         response = requests.get(
             "https://www.python.org/api/v2/downloads/release/?is_published=true"
         )
@@ -210,7 +206,6 @@ class CPythonVersions:
     def update_version_macos(
         self, identifier: str, version: Version, spec: Specifier
     ) -> ConfigMacOS | None:
-
         # see note above on Specifier.filter
         unsorted_versions = spec.filter(self.versions_dict)
         sorted_versions = sorted(unsorted_versions, reverse=True)
@@ -296,7 +291,6 @@ class AllVersions:
     "--level", default="INFO", type=click.Choice(["WARNING", "INFO", "DEBUG"], case_sensitive=False)
 )
 def update_pythons(force: bool, level: str) -> None:
-
     logging.basicConfig(
         level="INFO",
         format="%(message)s",
