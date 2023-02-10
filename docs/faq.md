@@ -23,7 +23,7 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 `cibuildwheel` supports cross-compiling `universal2` and `arm64` wheels on `x86_64` runners.
 
 !!! note
-    Currently it is impossible to cross-compiling project that are using Poetry as a build backend.
+    Currently it is impossible to cross-compile project that uses Poetry as a build backend.
     Reladed  issue [here](https://github.com/python-poetry/poetry/issues/7107)
 
 With the introduction of Apple Silicon, you now have several choices for wheels for Python 3.8+:
