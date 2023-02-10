@@ -72,7 +72,6 @@ def git_ls_remote_versions(url) -> list[VersionTuple]:
     "--level", default="INFO", type=click.Choice(["WARNING", "INFO", "DEBUG"], case_sensitive=False)
 )
 def update_virtualenv(force: bool, level: str) -> None:
-
     logging.basicConfig(
         level="INFO",
         format="%(message)s",

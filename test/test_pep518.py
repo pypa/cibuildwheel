@@ -35,7 +35,6 @@ build-backend = "setuptools.build_meta"
 
 
 def test_pep518(tmp_path, build_frontend_env):
-
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 

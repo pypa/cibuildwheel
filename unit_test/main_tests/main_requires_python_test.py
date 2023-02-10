@@ -27,7 +27,6 @@ def fake_package_dir(monkeypatch, tmp_path):
 
 @pytest.mark.usefixtures("platform")
 def test_no_override(intercepted_build_args):
-
     main()
 
     options = intercepted_build_args.args[0]
@@ -56,7 +55,6 @@ def test_override_env(monkeypatch, intercepted_build_args):
 
 @pytest.mark.usefixtures("platform")
 def test_override_setup_cfg(intercepted_build_args, fake_package_dir):
-
     fake_package_dir.joinpath("setup.cfg").write_text(
         textwrap.dedent(
             """
@@ -79,7 +77,6 @@ def test_override_setup_cfg(intercepted_build_args, fake_package_dir):
 
 @pytest.mark.usefixtures("platform")
 def test_override_pyproject_toml(intercepted_build_args, fake_package_dir):
-
     fake_package_dir.joinpath("pyproject.toml").write_text(
         textwrap.dedent(
             """
@@ -102,7 +99,6 @@ def test_override_pyproject_toml(intercepted_build_args, fake_package_dir):
 
 @pytest.mark.usefixtures("platform")
 def test_override_setup_py_simple(intercepted_build_args, fake_package_dir):
-
     fake_package_dir.joinpath("setup.py").write_text(
         textwrap.dedent(
             """

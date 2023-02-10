@@ -73,7 +73,6 @@ def get_python_configurations(
     build_selector: BuildSelector,
     architectures: set[Architecture],
 ) -> list[PythonConfiguration]:
-
     full_python_configs = read_python_configs("windows")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
