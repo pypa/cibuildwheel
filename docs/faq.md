@@ -24,8 +24,8 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 
 !!! note
     Currently it is not fully supported to cross-compile project that uses Poetry as a build backend.
-    Reladed  issue [here](https://github.com/python-poetry/poetry/issues/7107).
-    Some packages can be built with arm64 wheels, but their file names will be incorrect,
+    Related issue [here](https://github.com/python-poetry/poetry/issues/7107).
+    Some packages can be built with arm64 wheels, but their tags will be incorrect,
     with the platform tag showing `x86_64` instead of `arm64`.
     As a workaround, the file can be renamed before running delocate to repair the wheel.
     For further details, please refer to this (https://github.com/pypa/cibuildwheel/pull/1416#discussion_r1105217074)."
