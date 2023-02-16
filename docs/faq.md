@@ -27,8 +27,7 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
     Related issue [here](https://github.com/python-poetry/poetry/issues/7107).
     Some packages can be built with arm64 wheels, but their tags will be incorrect,
     with the platform tag showing `x86_64` instead of `arm64`.
-    As a workaround, the file can be renamed before running delocate to repair the wheel.
-    For further details, please refer to this (https://github.com/pypa/cibuildwheel/pull/1416#discussion_r1105217074)."
+    As a workaround, the tag should be fixed before running delocate to repair the wheel.
 
 
 With the introduction of Apple Silicon, you now have several choices for wheels for Python 3.8+:
