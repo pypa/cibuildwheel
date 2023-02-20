@@ -17,7 +17,7 @@ title: Working examples
 | [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
-| [pydantic][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Data parsing and validation using Python type hints |
+| [pydantic][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Data validation using Python type hints |
 | [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
 | [uvloop][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | Ultra fast asyncio event loop. |
 | [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
@@ -28,8 +28,8 @@ title: Working examples
 | [asyncpg][]                       | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A fast PostgreSQL Database Client Library for Python/asyncio. |
 | [PyGame][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | 🐍🎮 pygame (the library) is a Free and Open Source python programming language library for making multimedia applications like games built on top of the excellent SDL library. C, Python, Native, OpenGL. |
 | [cmake][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
-| [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
 | [Triton][]                        | ![github icon][] | ![linux icon][] | Self hosted runners |
+| [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
 | [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
 | [PyOxidizer][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A modern Python application packaging and distribution tool |
 | [websockets][]                    | ![travisci icon][] | ![apple icon][] ![linux icon][] | Library for building WebSocket servers and clients. Mostly written in Python, with a small C 'speedups' extension module.  |
@@ -57,8 +57,8 @@ title: Working examples
 | [envd][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | 🏕️ Reproducible development environment for AI/ML |
 | [OpenColorIO][]                   | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A color management framework for visual effects and animation. |
 | [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | QUIC and HTTP/3 implementation in Python |
-| [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
 | [OpenTimelineIO][]                | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Open Source API and interchange format for editorial timeline information. |
+| [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
 | [ruptures][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Extensive Cython + NumPy [pyproject.toml](https://github.com/deepcharles/ruptures/blob/master/pyproject.toml) example. |
 | [Psycopg 3][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A modern implementation of a PostgreSQL adapter for Python |
 | [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
@@ -71,9 +71,9 @@ title: Working examples
 | [Picologging][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A high-performance logging library for Python. |
 | [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
+| [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
-| [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
 | [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
@@ -96,16 +96,16 @@ title: Working examples
 | [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [pillow-heif][]                   | ![github icon][] ![cirrusci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Bindings to libheif library with third party dependencies. Fully automated CI for tests and publishing including Apple Silicon builds. |
-| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
-| [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
+| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
+| [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
 | [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
-| [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
 | [ninja][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
+| [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
 | [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
 | [ril][]                           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels. |
 | [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
@@ -134,8 +134,8 @@ title: Working examples
 [asyncpg]: https://github.com/MagicStack/asyncpg
 [PyGame]: https://github.com/pygame/pygame
 [cmake]: https://github.com/scikit-build/cmake-python-distributions
-[scikit-image]: https://github.com/scikit-image/scikit-image
 [Triton]: https://github.com/openai/triton
+[scikit-image]: https://github.com/scikit-image/scikit-image
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
 [PyOxidizer]: https://github.com/indygreg/PyOxidizer
 [websockets]: https://github.com/aaugustin/websockets
@@ -163,8 +163,8 @@ title: Working examples
 [envd]: https://github.com/tensorchord/envd
 [OpenColorIO]: https://github.com/AcademySoftwareFoundation/OpenColorIO
 [aioquic]: https://github.com/aiortc/aioquic
-[PyTables]: https://github.com/PyTables/PyTables
 [OpenTimelineIO]: https://github.com/PixarAnimationStudios/OpenTimelineIO
+[PyTables]: https://github.com/PyTables/PyTables
 [ruptures]: https://github.com/deepcharles/ruptures
 [Psycopg 3]: https://github.com/psycopg/psycopg
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
@@ -177,9 +177,9 @@ title: Working examples
 [Picologging]: https://github.com/microsoft/picologging
 [pybind11 cmake_example]: https://github.com/pybind/cmake_example
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
+[CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [python-snappy]: https://github.com/andrix/python-snappy
 [KDEpy]: https://github.com/tommyod/KDEpy
-[CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [tgcalls]: https://github.com/MarshalX/tgcalls
 [time-machine]: https://github.com/adamchainz/time-machine
 [pybind11 python_example]: https://github.com/pybind/python_example
@@ -202,16 +202,16 @@ title: Working examples
 [Arbor]: https://github.com/arbor-sim/arbor
 [fathon]: https://github.com/stfbnc/fathon
 [pillow-heif]: https://github.com/bigcat88/pillow_heif
-[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [polaroid]: https://github.com/daggy1234/polaroid
-[etebase-py]: https://github.com/etesync/etebase-py
+[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [power-grid-model]: https://github.com/alliander-opensource/power-grid-model
+[etebase-py]: https://github.com/etesync/etebase-py
 [cf-units]: https://github.com/SciTools/cf-units
 [clang-format]: https://github.com/ssciwr/clang-format-wheel
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [numpythia]: https://github.com/scikit-hep/numpythia
-[pyjet]: https://github.com/scikit-hep/pyjet
 [ninja]: https://github.com/scikit-build/ninja-python-distributions
+[pyjet]: https://github.com/scikit-hep/pyjet
 [GSD]: https://github.com/glotzerlab/gsd
 [ril]: https://github.com/Cryptex-github/ril-py
 [SiPM]: https://github.com/EdoPro98/SimSiPM
