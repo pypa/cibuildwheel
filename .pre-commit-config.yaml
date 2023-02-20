@@ -19,7 +19,7 @@ repos:
   - id: black
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.0.246
+  rev: v0.0.249
   hooks:
   - id: ruff
     args: ["--fix"]
@@ -31,7 +31,7 @@ repos:
     args: [--include-version-classifiers, --max-py-version=3.11]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.0.0
+  rev: v1.0.1
   hooks:
   - id: mypy
     name: mypy 3.7 on cibuildwheel/
