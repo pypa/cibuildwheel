@@ -543,8 +543,8 @@ def _parse_constraints_for_virtualenv(
         constraint_path = Path(dependency_constraint_flags[1])
         assert constraint_path.exists()
         with constraint_path.open(encoding="utf-8") as constraint_file:
-            for line in constraint_file:
-                line = line.strip()
+            for line_ in constraint_file:
+                line = line_.strip()
                 if not line:
                     continue
                 if line.startswith("#"):
