@@ -117,7 +117,7 @@ class ParsedEnvironment:
         prev_environment: Mapping[str, str],
         executor: bashlex_eval.EnvironmentExecutor | None = None,
     ) -> dict[str, str]:
-        environment = dict(**prev_environment)
+        environment = {**prev_environment}
 
         for assignment in self.assignments:
             value = assignment.evaluated_value(environment=environment, executor=executor)
