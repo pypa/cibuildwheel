@@ -25,11 +25,11 @@ virtualenv==20.19.0
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.38.4
     # via -r cibuildwheel/resources/constraints.in
-zipp==3.14.0
+zipp==3.15.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==23.0.1
     # via -r cibuildwheel/resources/constraints.in
-setuptools==67.3.2
+setuptools==67.4.0
     # via -r cibuildwheel/resources/constraints.in
