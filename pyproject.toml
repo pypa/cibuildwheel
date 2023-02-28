@@ -115,6 +115,7 @@ messages_control.disable = [
   "unsubscriptable-object",
   "wrong-import-position",
   "unused-argument",  # Handled by Ruff
+  "broad-exception-raised",  # Could be improved eventually
 ]
 
 [tool.ruff]
