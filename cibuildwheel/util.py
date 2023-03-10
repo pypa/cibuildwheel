@@ -208,9 +208,9 @@ def get_build_verbosity_extra_flags(level: int) -> list[str]:
         return []
 
 
-def split_config_settings(config_settings: str, *, plural: bool) -> list[str]:
+def split_config_settings(config_settings: str, frontend: Literal["pip", "build"]) -> list[str]:
     config_settings_list = shlex.split(config_settings)
-    s = "s" if plural else ""
+    s = "s" if frontend == "pip" else ""
     return [f"--config-setting{s}={setting}" for setting in config_settings_list]
 
 
