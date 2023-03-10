@@ -1,18 +1,18 @@
 environment:
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-      APPVEYOR_JOB_NAME: "python37-x64-ubuntu"
+      APPVEYOR_JOB_NAME: "python38-x64-ubuntu"
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      APPVEYOR_JOB_NAME: "python37-x64-vs2015"
+      APPVEYOR_JOB_NAME: "python38-x64-vs2015"
     - APPVEYOR_BUILD_WORKER_IMAGE: macos
-      APPVEYOR_JOB_NAME: "python37-x64-macos"
+      APPVEYOR_JOB_NAME: "python38-x64-macos"
 
-stack: python 3.7
+stack: python 3.8
 
 build: off
 
 init:
-- cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
+- cmd: set PATH=C:\Python38;C:\Python38\Scripts;%PATH%
 - ps: |
       $BRANCH = if ($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) { $env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH } else { $env:APPVEYOR_REPO_BRANCH }
       if (-not ($BRANCH -eq 'main' -or $BRANCH.ToLower().StartsWith('appveyor-'))) {
