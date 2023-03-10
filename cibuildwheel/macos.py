@@ -374,7 +374,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel_dir.mkdir()
 
                 verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-                extra_flags = split_config_settings(build_options.config_settings)
+                extra_flags = split_config_settings(
+                    build_options.config_settings, plural=build_options.build_frontend == "pip"
+                )
 
                 if build_options.build_frontend == "pip":
                     extra_flags += verbosity_flags
