@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.12.1
+
+_11 March 2023_
+
+- 🐛 Fix a bug that prevented the use of CIBW_CONFIG_SETTINGS with the 'pip' build backend. (#1430)
+
 ### v2.12.0
 
 _16 Jan 2023_
