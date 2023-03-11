@@ -208,9 +208,10 @@ def get_build_verbosity_extra_flags(level: int) -> list[str]:
         return []
 
 
-def split_config_settings(config_settings: str) -> list[str]:
+def split_config_settings(config_settings: str, frontend: Literal["pip", "build"]) -> list[str]:
     config_settings_list = shlex.split(config_settings)
-    return [f"--config-setting={setting}" for setting in config_settings_list]
+    s = "s" if frontend == "pip" else ""
+    return [f"--config-setting{s}={setting}" for setting in config_settings_list]
 
 
 def read_python_configs(config: PlatformName) -> list[dict[str, str]]:

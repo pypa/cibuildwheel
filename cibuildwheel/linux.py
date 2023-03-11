@@ -240,7 +240,9 @@ def build_in_container(
             container.call(["mkdir", "-p", built_wheel_dir])
 
             verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-            extra_flags = split_config_settings(build_options.config_settings)
+            extra_flags = split_config_settings(
+                build_options.config_settings, build_options.build_frontend
+            )
 
             if build_options.build_frontend == "pip":
                 extra_flags += verbosity_flags
