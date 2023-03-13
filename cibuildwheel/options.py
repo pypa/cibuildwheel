@@ -161,7 +161,7 @@ def _dig_first(*pairs: tuple[Mapping[str, Setting], str], ignore_empty: bool = F
         if key in dict_like:
             value = dict_like[key]
 
-            if ignore_empty and value == "":
+            if ignore_empty and value == "":  # noqa: PLC1901
                 continue
 
             return value
