@@ -124,7 +124,7 @@ select = [
   "B",  "B904",  # flake8-bugbear
   "I",  # isort
   "ARG",  # flake8-unused-arguments
-  "C40",  # flake8-comprehensions
+  "C4",  # flake8-comprehensions
   "EM",  # flake8-errmsg
   "ICN",  # flake8-import-conventions
   "ISC",  # flake8-implicit-str-concat
