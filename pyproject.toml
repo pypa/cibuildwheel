@@ -147,3 +147,7 @@ extend-ignore = [
 target-version = "py37"
 typing-modules = ["cibuildwheel.typing"]
 flake8-unused-arguments.ignore-variadic-names = true
+
+
+[tool.ruff.per-file-ignores]
+"unit_test/*" = ["PLC1901"]
