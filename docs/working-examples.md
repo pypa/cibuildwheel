@@ -66,16 +66,16 @@ title: Working examples
 | [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
 | [AutoPy][]                        | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [H3-py][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for H3, a hierarchical hexagonal geospatial indexing system |
+| [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS ¶ |
 | [markupsafe][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Safely add untrusted strings to HTML/XML markup. |
-| [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
 | [Picologging][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A high-performance logging library for Python. |
 | [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
-| [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
+| [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
 | [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
@@ -93,16 +93,16 @@ title: Working examples
 | [iDynTree][]                      | ![github icon][] | ![linux icon][] | Uses manylinux_2_24 |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M92 |
 | [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
-| [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
 | [pillow-heif][]                   | ![github icon][] ![cirrusci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Bindings to libheif library with third party dependencies. Fully automated CI for tests and publishing including Apple Silicon builds. |
+| [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
-| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
+| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
-| [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
+| [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [ninja][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
 | [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
@@ -172,16 +172,16 @@ title: Working examples
 [google neuroglancer]: https://github.com/google/neuroglancer
 [AutoPy]: https://github.com/autopilot-rs/autopy
 [H3-py]: https://github.com/uber/h3-py
+[CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [Rtree]: https://github.com/Toblerity/rtree
 [markupsafe]: https://github.com/pallets/markupsafe
-[CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [Picologging]: https://github.com/microsoft/picologging
 [pybind11 cmake_example]: https://github.com/pybind/cmake_example
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [python-snappy]: https://github.com/andrix/python-snappy
 [KDEpy]: https://github.com/tommyod/KDEpy
-[time-machine]: https://github.com/adamchainz/time-machine
 [tgcalls]: https://github.com/MarshalX/tgcalls
+[time-machine]: https://github.com/adamchainz/time-machine
 [pybind11 python_example]: https://github.com/pybind/python_example
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
 [sourmash]: https://github.com/dib-lab/sourmash
@@ -199,16 +199,16 @@ title: Working examples
 [iDynTree]: https://github.com/robotology/idyntree
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
 [pybase64]: https://github.com/mayeut/pybase64
-[Arbor]: https://github.com/arbor-sim/arbor
 [pillow-heif]: https://github.com/bigcat88/pillow_heif
+[Arbor]: https://github.com/arbor-sim/arbor
 [fathon]: https://github.com/stfbnc/fathon
-[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [polaroid]: https://github.com/daggy1234/polaroid
+[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [power-grid-model]: https://github.com/alliander-opensource/power-grid-model
 [etebase-py]: https://github.com/etesync/etebase-py
 [cf-units]: https://github.com/SciTools/cf-units
-[clang-format]: https://github.com/ssciwr/clang-format-wheel
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
+[clang-format]: https://github.com/ssciwr/clang-format-wheel
 [numpythia]: https://github.com/scikit-hep/numpythia
 [ninja]: https://github.com/scikit-build/ninja-python-distributions
 [pyjet]: https://github.com/scikit-hep/pyjet
