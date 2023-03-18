@@ -13,8 +13,9 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Sequence, cast
 
-from cibuildwheel.util import CIProvider, detect_ci_provider
+from cibuildwheel.util import CIProvider, detect_ci_provider, unwrap
 
+from .logger import log
 from .typing import Literal, PathOrStr, PopenBytes
 
 ContainerEngine = Literal["docker", "podman"]
@@ -66,6 +67,22 @@ class OCIContainer:
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
+        self.tar = "tar"
+        if sys.platform.startswith("darwin"):
+            candidate = shutil.which("gtar")
+            if candidate is None:
+                log.warning(
+                    unwrap(
+                        """
+                        GNU tar (gtar) not found in PATH.
+                        Fallink back to default 'tar' which is BSD tar on macOS.
+                        It is recommended to use GNU tar to avoid incompatibilities.
+                        You can install it with: brew install gnu-tar
+                        """
+                    )
+                )
+            else:
+                self.tar = str(candidate)
 
     def __enter__(self) -> OCIContainer:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
@@ -160,7 +177,7 @@ class OCIContainer:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f"tar cf - . | {self.engine} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
+                f"{self.tar} cf - . | {self.engine} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
@@ -209,7 +226,7 @@ class OCIContainer:
         elif self.engine == "docker":
             # There is a bug in docker that prevents a simple 'cp' invocation
             # from working https://github.com/moby/moby/issues/38995
-            command = f"{self.engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
+            command = f"{self.engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | {self.tar} -xf -"
             subprocess.run(
                 command,
                 shell=True,

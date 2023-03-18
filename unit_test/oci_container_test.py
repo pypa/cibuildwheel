@@ -5,6 +5,7 @@ import platform
 import random
 import shutil
 import subprocess
+import sys
 import textwrap
 from pathlib import Path, PurePath, PurePosixPath
 
@@ -12,6 +13,7 @@ import pytest
 import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
+from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainer
 
 # Test utilities
@@ -21,7 +23,7 @@ from cibuildwheel.oci_container import OCIContainer
 pm = platform.machine()
 if pm == "x86_64":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
-elif pm == "aarch64":
+elif pm == "aarch64" or pm == "arm64":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
 elif pm == "ppc64le":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
@@ -296,3 +298,30 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     # as UID 0. The reason why permission errors occur on podman is documented
     # in https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
+
+
+@pytest.mark.parametrize("available", [True, False])
+def test_macos_gnu_tar(available, monkeypatch):
+    def _which(cmd: str) -> str | None:
+        assert cmd == "gtar"
+        if available:
+            return "this_is_gnu_tar"
+        return None
+
+    warning_called = False
+
+    def _warning(message: str) -> None:
+        nonlocal warning_called
+        warning_called = True
+        assert "brew install gnu-tar" in message
+
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(shutil, "which", _which)
+    monkeypatch.setattr(log, "warning", _warning)
+    container = OCIContainer(image=DEFAULT_IMAGE)
+    if available:
+        assert not warning_called
+        assert container.tar == "this_is_gnu_tar"
+    else:
+        assert warning_called
+        assert container.tar == "tar"
