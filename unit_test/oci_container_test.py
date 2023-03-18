@@ -20,10 +20,10 @@ from cibuildwheel.oci_container import OCIContainer
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
-pm = platform.machine()
-if pm == "x86_64":
+pm = platform.machine().lower()
+if pm in {"x86_64", "amd64"}:
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
-elif pm == "aarch64" or pm == "arm64":
+elif pm in {"aarch64", "arm64"}:
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
 elif pm == "ppc64le":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
