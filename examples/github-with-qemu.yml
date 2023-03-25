@@ -1,5 +1,6 @@
 name: Build
 
+# you probably want to restrict this in a separate workflow
 on: [push, pull_request]
 
 jobs:
@@ -8,23 +9,26 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        include:
+          - os: ubuntu-20.04
+            cibw_archs: "native"
+          - os: ubuntu-20.04
+            cibw_archs: "aarch64"
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up QEMU
-        if: runner.os == 'Linux'
+        if: matrix.cibw_archs == 'aarch64'
         uses: docker/setup-qemu-action@v2
         with:
-          platforms: all
+          platforms: arm64
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.1
         env:
-          # configure cibuildwheel to build native archs ('auto'), and some
-          # emulated ones
-          CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
+          # configure cibuildwheel to build native and aarch64 archs
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
 
       - uses: actions/upload-artifact@v3
         with:
