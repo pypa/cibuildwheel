@@ -19,14 +19,14 @@ title: Working examples
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
 | [pydantic][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Data validation using Python type hints |
 | [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
+| [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an in-process SQL OLAP Database Management System |
 | [uvloop][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | Ultra fast asyncio event loop. |
 | [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
-| [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an in-process SQL OLAP Database Management System |
 | [vaex][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Out-of-Core hybrid Apache Arrow/NumPy DataFrame for Python, ML, visualization and exploration of big tabular data at a billion rows per second 🚀 |
 | [Google Benchmark][]              | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A microbenchmark support library |
 | [Apache Beam][]                   | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Apache Beam is a unified programming model for Batch and Streaming data processing. |
-| [asyncpg][]                       | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A fast PostgreSQL Database Client Library for Python/asyncio. |
 | [Triton][]                        | ![github icon][] | ![linux icon][] | Self hosted runners |
+| [asyncpg][]                       | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A fast PostgreSQL Database Client Library for Python/asyncio. |
 | [PyGame][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | 🐍🎮 pygame (the library) is a Free and Open Source python programming language library for making multimedia applications like games built on top of the excellent SDL library. C, Python, Native, OpenGL. |
 | [cmake][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
 | [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
@@ -37,8 +37,8 @@ title: Working examples
 | [River][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | 🌊 Online machine learning in Python |
 | [UltraJSON][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Ultra fast JSON decoder and encoder written in C with Python bindings |
 | [OpenSpiel][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | OpenSpiel is a collection of environments and algorithms for research in general reinforcement learning and search/planning in games. |
-| [pyzmq][]                         | ![github icon][] ![circleci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython on CPython and CFFI on PyPy. ARM wheels for linux are built natively on CircleCI.  |
 | [aiortc][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | WebRTC and ORTC implementation for Python using asyncio. |
+| [pyzmq][]                         | ![github icon][] ![circleci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython on CPython and CFFI on PyPy. ARM wheels for linux are built natively on CircleCI.  |
 | [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
 | [Implicit][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes GPU support for linux wheels |
 | [vispy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Main repository for Vispy |
@@ -96,8 +96,8 @@ title: Working examples
 | [pillow-heif][]                   | ![github icon][] ![cirrusci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Bindings to libheif library with third party dependencies. Fully automated CI for tests and publishing including Apple Silicon builds. |
 | [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
-| [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
 | [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
+| [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
@@ -125,14 +125,14 @@ title: Working examples
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
 [pydantic]: https://github.com/samuelcolvin/pydantic
 [MemRay]: https://github.com/bloomberg/memray
+[duckdb]: https://github.com/duckdb/duckdb
 [uvloop]: https://github.com/MagicStack/uvloop
 [psutil]: https://github.com/giampaolo/psutil
-[duckdb]: https://github.com/duckdb/duckdb
 [vaex]: https://github.com/vaexio/vaex
 [Google Benchmark]: https://github.com/google/benchmark
 [Apache Beam]: https://github.com/apache/beam
-[asyncpg]: https://github.com/MagicStack/asyncpg
 [Triton]: https://github.com/openai/triton
+[asyncpg]: https://github.com/MagicStack/asyncpg
 [PyGame]: https://github.com/pygame/pygame
 [cmake]: https://github.com/scikit-build/cmake-python-distributions
 [scikit-image]: https://github.com/scikit-image/scikit-image
@@ -143,8 +143,8 @@ title: Working examples
 [River]: https://github.com/online-ml/river
 [UltraJSON]: https://github.com/ultrajson/ultrajson
 [OpenSpiel]: https://github.com/deepmind/open_spiel
-[pyzmq]: https://github.com/zeromq/pyzmq
 [aiortc]: https://github.com/aiortc/aiortc
+[pyzmq]: https://github.com/zeromq/pyzmq
 [Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
 [Implicit]: https://github.com/benfred/implicit
 [vispy]: https://github.com/vispy/vispy
@@ -202,8 +202,8 @@ title: Working examples
 [pillow-heif]: https://github.com/bigcat88/pillow_heif
 [Arbor]: https://github.com/arbor-sim/arbor
 [fathon]: https://github.com/stfbnc/fathon
-[polaroid]: https://github.com/daggy1234/polaroid
 [Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
+[polaroid]: https://github.com/daggy1234/polaroid
 [power-grid-model]: https://github.com/alliander-opensource/power-grid-model
 [etebase-py]: https://github.com/etesync/etebase-py
 [cf-units]: https://github.com/SciTools/cf-units
