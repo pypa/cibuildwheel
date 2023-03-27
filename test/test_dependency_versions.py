@@ -45,9 +45,7 @@ VERSION_REGEX = r"([\w-]+)==([^\s]+)"
 def get_versions_from_constraint_file(constraint_file):
     constraint_file_text = constraint_file.read_text(encoding="utf8")
 
-    return {
-        package: version for package, version in re.findall(VERSION_REGEX, constraint_file_text)
-    }
+    return dict(re.findall(VERSION_REGEX, constraint_file_text))
 
 
 @pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.9"])
