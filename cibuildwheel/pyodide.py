@@ -1,40 +1,36 @@
 import contextlib
-from filelock import FileLock
-from typing import Sequence, Tuple, cast
-from pathlib import Path
-from .architecture import Architecture
-from dataclasses import dataclass
-from .options import Options
 import os
-from .typing import Literal, PathOrStr, assert_never
-from .environment import ParsedEnvironment
-import sys
 import shutil
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Sequence
 
+from filelock import FileLock
+
+from .architecture import Architecture
+from .environment import ParsedEnvironment
+from .logger import log
+from .options import Options
+from .typing import PathOrStr, assert_never
 from .util import (
     CIBW_CACHE_PATH,
-    AlreadyBuiltWheelError,
     BuildFrontend,
     BuildSelector,
-    extract_zip,
     NonPlatformWheelError,
     call,
-    detect_ci_provider,
     download,
+    extract_zip,
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
-    install_certifi_script,
-    pyodide_build_script,
     prepare_command,
     read_python_configs,
     shell,
     split_config_settings,
     test_fail_cwd_file,
-    unwrap,
     virtualenv,
 )
-from .logger import log
 
 
 @dataclass(frozen=True)
@@ -139,14 +135,8 @@ def setup_python(
 
     log.step("Installing emscripten...")
     emcc_path = install_emscripten(tmp, python_configuration.emscripten_version)
-    import sys
-    
-    env["PATH"] = os.pathsep.join(
-        [
-            env["PATH"],
-            str(emcc_path.parent)
-        ]
-    )
+
+    env["PATH"] = os.pathsep.join([env["PATH"], str(emcc_path.parent)])
 
     # log.step("Installing xbuildenv")
     # cache_dir = CIBW_CACHE_PATH / ("emsdk-" + python_configuration.emscripten_version)
@@ -280,12 +270,8 @@ def build(options: Options, tmp_path: Path) -> None:
                 if built_wheel.name.endswith("none-any.whl"):
                     raise NonPlatformWheelError()
 
-
             if build_options.test_command and build_options.test_selector(config.identifier):
-
-                log.step(
-                    "Testing wheel..."
-                )
+                log.step("Testing wheel...")
 
                 venv_dir = identifier_tmp_dir / "venv-test"
                 # set up a virtual environment to install and test from, to make sure
@@ -293,7 +279,6 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 # --no-download??
                 call("pyodide", "venv", venv_dir, env=env)
-
 
                 virtualenv_env = env.copy()
                 virtualenv_env["PATH"] = os.pathsep.join(
@@ -324,9 +309,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 # test the wheel
                 if build_options.test_requires:
-                    call(
-                        "pip", "install", *build_options.test_requires, env=virtualenv_env
-                    )
+                    call("pip", "install", *build_options.test_requires, env=virtualenv_env)
 
                 # run the tests from a temp dir, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel

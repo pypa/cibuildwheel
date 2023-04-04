@@ -13,9 +13,9 @@ from tempfile import mkdtemp
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
+import cibuildwheel.pyodide
 import cibuildwheel.util
 import cibuildwheel.windows
-import cibuildwheel.pyodide
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options

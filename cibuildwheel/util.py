@@ -17,7 +17,6 @@ from enum import Enum
 from functools import lru_cache
 from pathlib import Path, PurePath
 from time import sleep
-from zipfile import ZipFile
 from typing import (
     Any,
     ClassVar,
@@ -29,6 +28,7 @@ from typing import (
     cast,
     overload,
 )
+from zipfile import ZipFile
 
 import bracex
 import certifi
@@ -338,6 +338,7 @@ def download(url: str, dest: Path) -> None:
             if i == repeat_num - 1:
                 raise
             sleep(3)
+
 
 def extract_zip(zip_src: Path, dest: Path) -> None:
     with ZipFile(zip_src) as zip_:

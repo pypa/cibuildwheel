@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-import subprocess
 import textwrap
 
 import pytest
@@ -13,7 +11,6 @@ basic_project = test_projects.new_c_project()
 
 @pytest.mark.parametrize("use_pyproject_toml", [True, False])
 def test_emscripten_build(tmp_path, use_pyproject_toml):
-
     if use_pyproject_toml:
         basic_project.files["pyproject.toml"] = textwrap.dedent(
             """
@@ -34,7 +31,7 @@ def test_emscripten_build(tmp_path, use_pyproject_toml):
 
     # check that the expected wheels are produced
     expected_wheels = [
-        'spam-0.1.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
+        "spam-0.1.0-cp310-cp310-emscripten_3_1_27_wasm32.whl",
     ]
 
     print("actual_wheels", actual_wheels)

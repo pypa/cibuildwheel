@@ -8,7 +8,12 @@ from enum import Enum
 
 from .typing import Final, Literal, PlatformName, assert_never
 
-PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows", "pyodide": "Pyodide"}
+PRETTY_NAMES: Final = {
+    "linux": "Linux",
+    "macos": "macOS",
+    "windows": "Windows",
+    "pyodide": "Pyodide",
+}
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
     {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64", "pyodide": "wasm32"},
@@ -116,7 +121,7 @@ class Architecture(Enum):
             },
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
-            "pyodide": {Architecture.wasm32}
+            "pyodide": {Architecture.wasm32},
         }
         return all_archs_map[platform]
 
