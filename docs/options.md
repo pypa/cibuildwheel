@@ -1214,6 +1214,13 @@ Platform-specific environment variables are also available:<br/>
 
     In configuration files, you can use an array, and the items will be joined with `&&`.
 
+!!! note
+
+    It's isn't recommended to `cd` to your project directory before running tests,
+    because Python might resolve `import yourpackage` relative to the working dir,
+    and we want to test the wheel you just built. However, if you're sure that's not
+    an issue for you and your workflow requires it, on Windows you should do `cd /d`,
+    because the CWD and project dir might be on different drives.
 
 ### `CIBW_BEFORE_TEST` {: #before-test}
 > Execute a shell command before testing each wheel
