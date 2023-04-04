@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Sequence
-from zipfile import ZipFile
 
 from filelock import FileLock
 from packaging.version import Version
@@ -28,6 +27,7 @@ from .util import (
     NonPlatformWheelError,
     call,
     download,
+    extract_zip,
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
@@ -87,11 +87,6 @@ def get_python_configurations(
     ]
 
     return python_configurations
-
-
-def extract_zip(zip_src: Path, dest: Path) -> None:
-    with ZipFile(zip_src) as zip_:
-        zip_.extractall(dest)
 
 
 @lru_cache(maxsize=None)

@@ -48,8 +48,7 @@ from setuptools import setup, Extension
 {{ setup_py_add }}
 
 libraries = []
-if sys.platform.startswith('linux'):
-    libraries.extend(['m', 'c'])
+
 
 setup(
     ext_modules=[Extension(

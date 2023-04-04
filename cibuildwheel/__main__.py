@@ -15,6 +15,7 @@ import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
+import cibuildwheel.pyodide
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
@@ -42,7 +43,7 @@ def main() -> None:
 
     parser.add_argument(
         "--platform",
-        choices=["auto", "linux", "macos", "windows"],
+        choices=["auto", "linux", "macos", "windows", "pyodide"],
         default=None,
         help="""
             Platform to build for. Use this option to override the
@@ -295,6 +296,8 @@ def build_in_directory(args: CommandLineArguments) -> None:
                 cibuildwheel.windows.build(options, tmp_path)
             elif platform == "macos":
                 cibuildwheel.macos.build(options, tmp_path)
+            elif platform == "pyodide":
+                cibuildwheel.pyodide.build(options, tmp_path)
             else:
                 assert_never(platform)
     finally:
@@ -357,6 +360,10 @@ def get_build_identifiers(
         )
     elif platform == "macos":
         python_configurations = cibuildwheel.macos.get_python_configurations(
+            build_selector, architectures
+        )
+    elif platform == "pyodide":
+        python_configurations = cibuildwheel.pyodide.get_python_configurations(
             build_selector, architectures
         )
     else:

@@ -8,12 +8,12 @@ from enum import Enum
 
 from .typing import Final, Literal, PlatformName, assert_never
 
-PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
+PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows", "pyodide": "Pyodide"}
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
-    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64"},
-    {"linux": "i686", "macos": None, "windows": "x86"},
-    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64"},
+    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64", "pyodide": "wasm32"},
+    {"linux": "i686", "macos": None, "windows": "x86", "pyodide": "wasm32"},
+    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64", "pyodide": "wasm32"},
 ]
 
 
@@ -38,6 +38,9 @@ class Architecture(Enum):
     x86 = "x86"
     AMD64 = "AMD64"
     ARM64 = "ARM64"
+
+    # WebAssembly
+    wasm32 = "wasm32"
 
     # Allow this to be sorted
     def __lt__(self, other: Architecture) -> bool:
@@ -113,6 +116,7 @@ class Architecture(Enum):
             },
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
+            "pyodide": {Architecture.wasm32}
         }
         return all_archs_map[platform]
 

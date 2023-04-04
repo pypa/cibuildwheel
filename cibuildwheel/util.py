@@ -17,6 +17,7 @@ from enum import Enum
 from functools import lru_cache
 from pathlib import Path, PurePath
 from time import sleep
+from zipfile import ZipFile
 from typing import (
     Any,
     ClassVar,
@@ -66,6 +67,7 @@ __all__ = [
 resources_dir: Final[Path] = Path(__file__).parent / "resources"
 
 install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
+pyodide_build_script: Final[Path] = resources_dir / "pyodide_build_script.py"
 
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
@@ -336,6 +338,10 @@ def download(url: str, dest: Path) -> None:
             if i == repeat_num - 1:
                 raise
             sleep(3)
+
+def extract_zip(zip_src: Path, dest: Path) -> None:
+    with ZipFile(zip_src) as zip_:
+        zip_.extractall(dest)
 
 
 class DependencyConstraints:

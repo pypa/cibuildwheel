@@ -115,3 +115,9 @@ python_configurations = [
   { identifier = "pp38-win_amd64", version = "3.8", arch = "64", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.11-win64.zip" },
   { identifier = "pp39-win_amd64", version = "3.9", arch = "64", url = "https://downloads.python.org/pypy/pypy3.9-v7.3.11-win64.zip" },
 ]
+
+[pyodide]
+python_configurations = [
+  { identifier = "cp310-emscripten_3_1_27", version = "3.10.2", pyodide_version = "0.22.1", emscripten_version = "3.1.27" },
+  # { identifier = "cp311-emscripten_3_1_32", version = "3.11.2", pyodide_version = "0.23.0", emscripten_version = "3.1.32" },
+]
