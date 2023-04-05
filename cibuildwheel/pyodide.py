@@ -12,7 +12,7 @@ from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import Options
-from .typing import PathOrStr, assert_never
+from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     BuildFrontend,
@@ -228,42 +228,26 @@ def build(options: Options, tmp_path: Path) -> None:
                 #     pass  # Nope
                 # elif build_options.build_frontend == "build":
 
-                if True:
-                    verbosity_setting = " ".join(verbosity_flags)
-                    extra_flags += (f"--config-setting={verbosity_setting}",)
-                    build_env = env.copy()
-                    if build_options.dependency_constraints:
-                        constraints_path = (
-                            build_options.dependency_constraints.get_for_python_version(
-                                config.version
-                            )
-                        )
-                        # Bug in pip <= 21.1.3 - we can't have a space in the
-                        # constraints file, and pip doesn't support drive letters
-                        # in uhi.  After probably pip 21.2, we can use uri. For
-                        # now, use a temporary file.
-                        if " " in str(constraints_path):
-                            assert " " not in str(identifier_tmp_dir)
-                            tmp_file = identifier_tmp_dir / "constraints.txt"
-                            tmp_file.write_bytes(constraints_path.read_bytes())
-                            constraints_path = tmp_file
-
-                        build_env["PIP_CONSTRAINT"] = str(constraints_path)
-                        build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-                        print("build_options.package_dir", build_options.package_dir)
-                        print(built_wheel_dir)
-                        call(
-                            "pyodide",
-                            "build",
-                            build_options.package_dir,
-                            extra_flags,
-                            env=build_env,
-                        )
-                        output = next((build_options.package_dir / "dist").glob("*.whl"))
-                        shutil.move(output, built_wheel_dir)
-
-                else:
-                    assert_never(build_options.build_frontend)
+                verbosity_setting = " ".join(verbosity_flags)
+                extra_flags += (f"--config-setting={verbosity_setting}",)
+                build_env = env.copy()
+                if build_options.dependency_constraints:
+                    constraints_path = build_options.dependency_constraints.get_for_python_version(
+                        config.version
+                    )
+                    build_env["PIP_CONSTRAINT"] = str(constraints_path)
+                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                print("build_options.package_dir", build_options.package_dir)
+                print(built_wheel_dir)
+                call(
+                    "pyodide",
+                    "build",
+                    build_options.package_dir,
+                    extra_flags,
+                    env=build_env,
+                )
+                output = next((build_options.package_dir / "dist").glob("*.whl"))
+                shutil.move(output, built_wheel_dir)
 
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
