@@ -42,3 +42,9 @@ else:
 
 PlatformName = Literal["linux", "macos", "windows", "pyodide"]
 PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows", "pyodide"}
+
+
+class GenericPythonConfiguration(Protocol):
+    @property
+    def identifier(self) -> str:
+        pass
