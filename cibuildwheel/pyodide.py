@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import contextlib
 import os
 import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Sequence
+from typing import Sequence
 
 from filelock import FileLock
 
@@ -81,7 +83,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     _build_frontend: BuildFrontend,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     base_python = get_base_python(python_configuration.identifier)
 
     log.step("Setting up build environment...")
@@ -253,11 +255,11 @@ def build(options: Options, tmp_path: Path) -> None:
                     "pyodide",
                     "build",
                     build_options.package_dir,
-                    extra_flags,
+                    *extra_flags,
                     env=build_env,
                 )
                 output = next((build_options.package_dir / "dist").glob("*.whl"))
-                shutil.move(output, built_wheel_dir)
+                shutil.move(str(output), built_wheel_dir)
 
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
