@@ -7,9 +7,9 @@ import sys
 import tarfile
 import textwrap
 import typing
+from collections.abc import Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
-from collections.abc import Sequence, Set
 
 import cibuildwheel
 import cibuildwheel.linux
