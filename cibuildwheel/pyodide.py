@@ -4,7 +4,7 @@ import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Dict, Sequence
 
 from filelock import FileLock
 
@@ -60,20 +60,29 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
+def get_base_python(identifier: str) -> Path:
+    implementation_id = identifier.split("-")[0]
+    majorminor = implementation_id[len("cp") :]
+    major_minor = f"{majorminor[0]}.{majorminor[1:]}"
+    python_name = f"python{major_minor}"
+    which_python = shutil.which(python_name)
+    if which_python is None:
+        print(
+            f"Error: CPython {major_minor} is not installed.",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+    return Path(which_python)
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
-    build_frontend: BuildFrontend,
-) -> dict[str, str]:
-    implementation_id = python_configuration.identifier.split("-")[0]
-    log.step(f"Installing Python {implementation_id}...")
-    # TODO?
-
-    python_version = implementation_id.removeprefix("cp")
-    python_name = f"python{python_version[0]}.{python_version[1:]}"
-    base_python = Path(shutil.which(python_name))
+    _build_frontend: BuildFrontend,
+) -> Dict[str, str]:
+    base_python = get_base_python(python_configuration.identifier)
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -149,6 +158,7 @@ def setup_python(
 def get_python_configurations(
     build_selector: BuildSelector, architectures: set[Architecture]
 ) -> list[PythonConfiguration]:
+    assert architectures == {Architecture.wasm32}
     full_python_configs = read_python_configs("pyodide")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]

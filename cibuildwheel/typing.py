@@ -40,5 +40,5 @@ else:
     PathOrStr = Union[str, "os.PathLike[str]"]
 
 
-PlatformName = Literal["linux", "macos", "windows"]
+PlatformName = Literal["linux", "macos", "windows", "pyodide"]
 PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows", "pyodide"}
