@@ -9,6 +9,7 @@ import textwrap
 import typing
 from pathlib import Path
 from tempfile import mkdtemp
+from collections.abc import Sequence, Set
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -344,9 +345,9 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
 
 
 def get_build_identifiers(
-    platform: PlatformName, build_selector: BuildSelector, architectures: set[Architecture]
+    platform: PlatformName, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[str]:
-    python_configurations: typing.Sequence[GenericPythonConfiguration]
+    python_configurations: Sequence[GenericPythonConfiguration]
 
     if platform == "linux":
         python_configurations = cibuildwheel.linux.get_python_configurations(
