@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import shutil
 import sys
 import tarfile
 import textwrap
@@ -168,7 +167,7 @@ def main() -> None:
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
-        shutil.rmtree(temp_dir, ignore_errors=sys.platform.startswith("win"))
+        # shutil.rmtree(temp_dir, ignore_errors=sys.platform.startswith("win"))
         if temp_dir.exists():
             log.warning(f"Can't delete temporary folder '{temp_dir}'")
 
@@ -184,6 +183,8 @@ def build_in_directory(args: CommandLineArguments) -> None:
             platform = "macos"
         elif "win_" in args.only or "win32" in args.only:
             platform = "windows"
+        elif "emscripten_" in args.only:
+            platform = "pyodide"
         else:
             print(
                 f"Invalid --only='{args.only}', must be a build selector with a known platform",
@@ -308,7 +309,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
-        shutil.rmtree(tmp_path, ignore_errors=sys.platform.startswith("win"))
+        # shutil.rmtree(tmp_path, ignore_errors=sys.platform.startswith("win"))
         if tmp_path.exists():
             log.warning(f"Can't delete temporary folder '{tmp_path}'")
 

@@ -27,6 +27,7 @@ from .util import (
     get_build_verbosity_extra_flags,
     get_pip_version,
     prepare_command,
+    pyodide_python_script,
     read_python_configs,
     shell,
     split_config_settings,
@@ -84,6 +85,7 @@ def setup_python(
     environment: ParsedEnvironment,
     _build_frontend: BuildFrontend,
 ) -> dict[str, str]:
+    pyodide_version = python_configuration.pyodide_version
     base_python = get_base_python(python_configuration.identifier)
 
     log.step("Setting up build environment...")
@@ -139,7 +141,7 @@ def setup_python(
         "--upgrade",
         "auditwheel-emscripten",
         "build[virtualenv]",
-        f"pyodide-build=={python_configuration.pyodide_version}",
+        f"pyodide-build=={pyodide_version}",
         *dependency_constraint_flags,
         env=env,
     )
@@ -148,6 +150,29 @@ def setup_python(
     emcc_path = install_emscripten(tmp, python_configuration.emscripten_version)
 
     env["PATH"] = os.pathsep.join([env["PATH"], str(emcc_path.parent)])
+    env.pop("PYODIDE_ROOT", None)
+
+    log.step("Installing Pyodide xbuildenv...")
+
+    # There will be a command to install the xbuildenv directly soon...
+    # for now, pyodide config does it as a side effect.
+    call("pyodide", "config", "list", env=env, cwd=tmp)
+
+    pyodide_root = tmp / ".pyodide-xbuildenv/xbuildenv/pyodide-root/"
+    env["PYODIDE_ROOT"] = str(pyodide_root)
+
+    pyodide_version_tuple = tuple(int(x) for x in pyodide_version.split("."))
+    if pyodide_version_tuple < (0, 23, 1):
+        shutil.copy(pyodide_python_script, pyodide_root / "dist/python")
+
+    if pyodide_version_tuple == (0, 23, 0):
+        # Oops we forgot this one...
+        download(
+            f"https://cdn.jsdelivr.net/pyodide/v{pyodide_version}/full/python_stdlib.zip",
+            pyodide_root / "dist/python_stdlib.zip",
+        )
+
+    env["_PYODIDE_EXTRA_MOUNTS"] = str(tmp)
 
     # log.step("Installing xbuildenv")
     # cache_dir = CIBW_CACHE_PATH / ("emsdk-" + python_configuration.emscripten_version)
