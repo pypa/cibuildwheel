@@ -110,6 +110,9 @@ def setup_python(
     )
 
     env = environment.as_dictionary(prev_environment=env)
+    if "HOME" not in env:
+        # Workaround for https://github.com/pyodide/pyodide/pull/3744
+        env["HOME"] = ""
 
     # check what pip version we're on
     assert (venv_bin_path / "pip").exists()
@@ -173,11 +176,6 @@ def setup_python(
         )
 
     env["_PYODIDE_EXTRA_MOUNTS"] = str(tmp)
-
-    # log.step("Installing xbuildenv")
-    # cache_dir = CIBW_CACHE_PATH / ("emsdk-" + python_configuration.emscripten_version)
-    # call("pyodide", "xbuildenv", "install", "--download", cwd=cache_dir, env=env)
-    # env["PYODIDE_ROOT"] = cache_dir / ".pyodide-xbuildenv/xbuildenv/pyodide-root/"
 
     return env
 
