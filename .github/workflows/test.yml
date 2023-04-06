@@ -106,3 +106,36 @@ jobs:
     - name: Run the emulation tests
       run: |
         pytest --run-emulation test/test_emulation.py
+
+  test-emscripten:
+    name: Test building emscripten wheels
+    needs: lint
+    runs-on: ubuntu-20.04
+    timeout-minutes: 180
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      name: Install Python ${{ matrix.python_version }}
+      with:
+        python-version: '3.10'
+    - uses: actions/setup-python@v4
+      name: Install Python ${{ matrix.python_version }}
+      with:
+        python-version: '3.11'
+
+
+    - name: Install dependencies
+      run: |
+        python -m pip install ".[test]"
+
+    - name: Generate a sample project
+      run: |
+        python -m test.test_projects test.test_0_basic.basic_project sample_proj    
+
+    - name: Run a sample build (GitHub Action)
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse
+      env:
+        CIBW_PLATFORM: pyodide
