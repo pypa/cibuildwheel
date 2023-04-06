@@ -153,15 +153,30 @@ def setup_python(
     emcc_path = install_emscripten(tmp, python_configuration.emscripten_version)
 
     env["PATH"] = os.pathsep.join([env["PATH"], str(emcc_path.parent)])
-    env.pop("PYODIDE_ROOT", None)
-
-    log.step("Installing Pyodide xbuildenv...")
 
     # There will be a command to install the xbuildenv directly soon...
     # for now, pyodide config does it as a side effect.
-    call("pyodide", "config", "list", env=env, cwd=tmp)
+    log.step("Installing Pyodide xbuildenv...")
+    xbuildenv_cache_dir = CIBW_CACHE_PATH / (
+        "pyodide-xbuildenv-" + python_configuration.pyodide_version
+    )
+    xbuildenv_cache_dir.mkdir(exist_ok=True)
+    env.pop("PYODIDE_ROOT", None)
+    stdout = call(
+        "python",
+        "-c",
+        "from pyodide_build.out_of_tree.utils import initialize_pyodide_root ; "
+        "import os ; "
+        "initialize_pyodide_root() ; "
+        'print("PYODIDE_ROOT:") ; '
+        'print(os.environ["PYODIDE_ROOT"]) ;',
+        env=env,
+        cwd=xbuildenv_cache_dir,
+        capture_stdout=True,
+    )
+    print(stdout)
 
-    pyodide_root = tmp / ".pyodide-xbuildenv/xbuildenv/pyodide-root/"
+    pyodide_root = xbuildenv_cache_dir / Path(stdout.split("\n")[-2])
     env["PYODIDE_ROOT"] = str(pyodide_root)
 
     pyodide_version_tuple = tuple(int(x) for x in pyodide_version.split("."))
