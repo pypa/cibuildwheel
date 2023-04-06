@@ -4,6 +4,7 @@ import contextlib
 import os
 import shutil
 import sys
+from collections.abc import Set
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
@@ -196,7 +197,7 @@ def setup_python(
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: set[Architecture]
+    build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[PythonConfiguration]:
     assert architectures == {Architecture.wasm32}
     full_python_configs = read_python_configs("pyodide")

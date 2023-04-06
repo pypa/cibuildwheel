@@ -130,7 +130,7 @@ jobs:
 
     - name: Generate a sample project
       run: |
-        python -m test.test_projects test.test_0_basic.basic_project sample_proj    
+        python -m test.test_projects test.test_0_basic.basic_project sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
