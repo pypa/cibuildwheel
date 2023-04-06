@@ -1,4 +1,5 @@
 from __future__ import annotations
+import platform
 
 import textwrap
 
@@ -11,6 +12,9 @@ basic_project = test_projects.new_c_project()
 
 @pytest.mark.parametrize("use_pyproject_toml", [True, False])
 def test_emscripten_build(tmp_path, use_pyproject_toml):
+    if platform.machine() == "arm64":
+        pytest.skip("emsdk doesn't work correctly on arm64")
+
     if use_pyproject_toml:
         basic_project.files["pyproject.toml"] = textwrap.dedent(
             """
