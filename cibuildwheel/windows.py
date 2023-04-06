@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from collections.abc import Set
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -71,7 +72,7 @@ class PythonConfiguration:
 
 def get_python_configurations(
     build_selector: BuildSelector,
-    architectures: set[Architecture],
+    architectures: Set[Architecture],
 ) -> list[PythonConfiguration]:
     full_python_configs = read_python_configs("windows")
 

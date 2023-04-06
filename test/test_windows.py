@@ -12,9 +12,9 @@ basic_project = test_projects.new_c_project()
 
 
 def skip_if_no_msvc(arm64=False):
-    programfiles = os.getenv("ProgramFiles(x86)", "") or os.getenv("ProgramFiles", "")
+    programfiles = os.getenv("PROGRAMFILES(X86)", "") or os.getenv("PROGRAMFILES", "")
     if not programfiles:
-        pytest.skip("Requires %ProgramFiles(x86)% variable to be set")
+        pytest.skip("Requires %PROGRAMFILES(X86)% variable to be set")
 
     vswhere = os.path.join(programfiles, "Microsoft Visual Studio", "Installer", "vswhere.exe")
     if not os.path.isfile(vswhere):

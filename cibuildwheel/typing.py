@@ -47,4 +47,4 @@ PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows", "pyodide"}
 class GenericPythonConfiguration(Protocol):
     @property
     def identifier(self) -> str:
-        pass
+        ...
