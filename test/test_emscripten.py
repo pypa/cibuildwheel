@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import platform
+import shutil
 import textwrap
 
 import pytest
-import shutil
 
 from . import test_projects, utils
 
