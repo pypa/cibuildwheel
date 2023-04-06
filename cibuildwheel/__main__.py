@@ -7,6 +7,7 @@ import sys
 import tarfile
 import textwrap
 import typing
+from collections.abc import Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
 
@@ -18,7 +19,12 @@ import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
-from cibuildwheel.typing import PLATFORMS, PlatformName, assert_never
+from cibuildwheel.typing import (
+    PLATFORMS,
+    GenericPythonConfiguration,
+    PlatformName,
+    assert_never,
+)
 from cibuildwheel.util import (
     CIBW_CACHE_PATH,
     BuildSelector,
@@ -339,13 +345,9 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
 
 
 def get_build_identifiers(
-    platform: PlatformName, build_selector: BuildSelector, architectures: set[Architecture]
+    platform: PlatformName, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[str]:
-    python_configurations: (
-        list[cibuildwheel.linux.PythonConfiguration]
-        | list[cibuildwheel.windows.PythonConfiguration]
-        | list[cibuildwheel.macos.PythonConfiguration]
-    )
+    python_configurations: Sequence[GenericPythonConfiguration]
 
     if platform == "linux":
         python_configurations = cibuildwheel.linux.get_python_configurations(

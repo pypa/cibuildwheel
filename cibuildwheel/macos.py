@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Set
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence, Tuple, cast
@@ -69,7 +70,7 @@ class PythonConfiguration:
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: set[Architecture]
+    build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[PythonConfiguration]:
     full_python_configs = read_python_configs("macos")
 
