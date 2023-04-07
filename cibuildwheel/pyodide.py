@@ -190,8 +190,6 @@ def setup_python(
             pyodide_root / "dist/python_stdlib.zip",
         )
 
-    env["_PYODIDE_EXTRA_MOUNTS"] = str(tmp)
-
     return env
 
 
@@ -249,6 +247,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 dependency_constraint_flags,
                 build_options.environment,
             )
+            env["_PYODIDE_EXTRA_MOUNTS"] = str(identifier_tmp_dir)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
