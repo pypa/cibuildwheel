@@ -26,6 +26,7 @@ from .util import (
     BuildFrontend,
     BuildSelector,
     NonPlatformWheelError,
+    build_frontend_or_default,
     call,
     detect_ci_provider,
     download,
@@ -331,6 +332,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
+            build_frontend = build_frontend_or_default(build_options.build_frontend, "pip")
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -353,7 +355,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 config,
                 dependency_constraint_flags,
                 build_options.environment,
-                build_options.build_frontend,
+                build_frontend,
             )
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
@@ -375,11 +377,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel_dir.mkdir()
 
                 verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-                extra_flags = split_config_settings(
-                    build_options.config_settings, build_options.build_frontend
-                )
+                extra_flags = split_config_settings(build_options.config_settings, build_frontend)
 
-                if build_options.build_frontend == "pip":
+                if build_frontend == "pip":
                     extra_flags += verbosity_flags
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
@@ -394,7 +394,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         *extra_flags,
                         env=env,
                     )
-                elif build_options.build_frontend == "build":
+                elif build_frontend == "build":
                     verbosity_setting = " ".join(verbosity_flags)
                     extra_flags += (f"--config-setting={verbosity_setting}",)
                     build_env = env.copy()
@@ -417,7 +417,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=build_env,
                     )
                 else:
-                    assert_never(build_options.build_frontend)
+                    assert_never(build_frontend)
 
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
