@@ -281,8 +281,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 if build_options.dependency_constraints:
                     build_env["PIP_CONSTRAINT"] = str(constraints_path)
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-                print("build_options.package_dir", build_options.package_dir)
-                print(built_wheel_dir)
                 call(
                     "pyodide",
                     "build",
