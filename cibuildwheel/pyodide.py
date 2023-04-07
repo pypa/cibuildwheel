@@ -18,7 +18,6 @@ from .options import Options
 from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
-    BuildFrontend,
     BuildSelector,
     NonPlatformWheelError,
     call,
@@ -270,9 +269,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel_dir.mkdir()
 
                 verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
-                extra_flags = split_config_settings(
-                    build_options.config_settings, build_options.build_frontend
-                )
+                extra_flags = split_config_settings(build_options.config_settings, "build")
 
                 verbosity_setting = " ".join(verbosity_flags)
                 extra_flags += (f"--config-setting={verbosity_setting}",)
