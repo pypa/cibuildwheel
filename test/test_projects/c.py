@@ -43,11 +43,16 @@ PyMODINIT_FUNC PyInit_spam(void)
 
 SETUP_PY_TEMPLATE = r"""
 import sys
+import os
+
 from setuptools import setup, Extension
 
 {{ setup_py_add }}
 
 libraries = []
+# Emscripten used to have a bug if you pass -lc, but it is fixed as of 3.1.32
+# if sys.platform.startswith('linux') and os.environ.get("_PYTHON_HOST_PLATFORM") != "emscripten_3_1_27_wasm32":
+#     libraries.extend(['m', 'c'])
 
 
 setup(

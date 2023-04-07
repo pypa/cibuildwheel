@@ -298,7 +298,10 @@ def build(options: Options, tmp_path: Path) -> None:
                     env=build_env,
                     cwd=identifier_tmp_dir / "build",
                 )
-                output = next((identifier_tmp_dir / "build/dist").glob("*.whl"))
+                output = next((identifier_tmp_dir / "build/dist").glob("*.whl"), None)
+                if output is None:
+                    output = next((build_options.package_dir / "dist").glob("*.whl"), None)
+
                 shutil.move(str(output), built_wheel_dir)
 
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
