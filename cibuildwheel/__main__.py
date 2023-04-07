@@ -173,7 +173,7 @@ def main() -> None:
             log.warning(f"Can't delete temporary folder '{temp_dir}'")
 
 
-def _compute_platform_only(only: str) -> str:
+def _compute_platform_only(only: str) -> PlatformName:
     if "linux_" in only:
         return "linux"
     if "macosx_" in only:
@@ -187,7 +187,7 @@ def _compute_platform_only(only: str) -> str:
     sys.exit(2)
 
 
-def _compute_platform_ci() -> str:
+def _compute_platform_ci() -> PlatformName:
     if detect_ci_provider() is None:
         print(
             textwrap.dedent(
@@ -203,16 +203,17 @@ def _compute_platform_ci() -> str:
         sys.exit(2)
     if sys.platform.startswith("linux"):
         return "linux"
-    if sys.platform == "darwin":
+    elif sys.platform == "darwin":
         return "macos"
     elif sys.platform == "win32":
         return "windows"
-    print(
-        'cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
-        "cibuildwheel using the --platform argument. Check --help output for more information.",
-        file=sys.stderr,
-    )
-    sys.exit(2)
+    else:
+        print(
+            'cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
+            "cibuildwheel using the --platform argument. Check --help output for more information.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
 
 
 def _compute_platform(args: CommandLineArguments) -> PlatformName:
@@ -235,14 +236,12 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
         print(f"cibuildwheel: Unsupported platform: {platform_option_value}", file=sys.stderr)
         sys.exit(2)
 
-
     if args.only:
         return _compute_platform_only(args.only)
     elif platform_option_value != "auto":
         return typing.cast(PlatformName, platform_option_value)
-    
-    return _compute_platform_ci()
 
+    return _compute_platform_ci()
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
