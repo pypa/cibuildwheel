@@ -30,6 +30,7 @@ from .util import (
     prepare_command,
     pyodide_python_script,
     read_python_configs,
+    resources_dir,
     shell,
     split_config_settings,
     test_fail_cwd_file,
@@ -239,10 +240,9 @@ def build(options: Options, tmp_path: Path) -> None:
 
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
-                dependency_constraint_flags = [
-                    "-c",
-                    build_options.dependency_constraints.get_for_python_version(config.version),
-                ]
+                vesion_str = config.pyodide_version.rpartition(".")[0].replace(".", "_")
+                constraints_path = resources_dir / f"constraints-pyodide-{vesion_str}.txt"
+                dependency_constraint_flags = ["-c", constraints_path]
 
             env = setup_python(
                 identifier_tmp_dir / "build",
@@ -275,17 +275,10 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_options.config_settings, build_options.build_frontend
                 )
 
-                # if build_options.build_frontend == "pip":
-                #     pass  # Nope
-                # elif build_options.build_frontend == "build":
-
                 verbosity_setting = " ".join(verbosity_flags)
                 extra_flags += (f"--config-setting={verbosity_setting}",)
                 build_env = env.copy()
                 if build_options.dependency_constraints:
-                    constraints_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
-                    )
                     build_env["PIP_CONSTRAINT"] = str(constraints_path)
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 print("build_options.package_dir", build_options.package_dir)
