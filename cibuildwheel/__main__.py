@@ -7,7 +7,7 @@ import sys
 import tarfile
 import textwrap
 import typing
-from collections.abc import Sequence, Set
+from collections.abc import Set
 from pathlib import Path
 from tempfile import mkdtemp
 
@@ -19,9 +19,9 @@ import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
+from cibuildwheel.platform_interface import PlatformInterface
 from cibuildwheel.typing import (
     PLATFORMS,
-    GenericPythonConfiguration,
     PlatformName,
     assert_never,
 )
@@ -244,6 +244,16 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     return _compute_platform_ci()
 
 
+def get_platform_interface(platform: PlatformName) -> PlatformInterface:
+    if platform == "linux":  # noqa: SIM116
+        return cibuildwheel.linux.interface
+    elif platform == "windows":
+        return cibuildwheel.windows.interface
+    elif platform == "macos":
+        return cibuildwheel.macos.interface
+    assert_never(platform)
+
+
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
     options = compute_options(platform=platform, command_line_arguments=args, env=os.environ)
@@ -257,8 +267,9 @@ def build_in_directory(args: CommandLineArguments) -> None:
         print(msg, file=sys.stderr)
         sys.exit(2)
 
+    interface = get_platform_interface(platform)
     identifiers = get_build_identifiers(
-        platform=platform,
+        interface=interface,
         build_selector=options.globals.build_selector,
         architectures=options.globals.architectures,
     )
@@ -304,14 +315,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
         with cibuildwheel.util.print_new_wheels(
             "\n{n} wheels produced in {m:.0f} minutes:", output_dir
         ):
-            if platform == "linux":
-                cibuildwheel.linux.build(options, tmp_path)
-            elif platform == "windows":
-                cibuildwheel.windows.build(options, tmp_path)
-            elif platform == "macos":
-                cibuildwheel.macos.build(options, tmp_path)
-            else:
-                assert_never(platform)
+            interface.build(options, tmp_path)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
@@ -354,25 +358,9 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
 
 
 def get_build_identifiers(
-    platform: PlatformName, build_selector: BuildSelector, architectures: Set[Architecture]
+    interface: PlatformInterface, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[str]:
-    python_configurations: Sequence[GenericPythonConfiguration]
-
-    if platform == "linux":
-        python_configurations = cibuildwheel.linux.get_python_configurations(
-            build_selector, architectures
-        )
-    elif platform == "windows":
-        python_configurations = cibuildwheel.windows.get_python_configurations(
-            build_selector, architectures
-        )
-    elif platform == "macos":
-        python_configurations = cibuildwheel.macos.get_python_configurations(
-            build_selector, architectures
-        )
-    else:
-        assert_never(platform)
-
+    python_configurations = interface.get_python_configurations(build_selector, architectures)
     return [config.identifier for config in python_configurations]
 
 

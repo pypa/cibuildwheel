@@ -12,6 +12,7 @@ from .architecture import Architecture
 from .logger import log
 from .oci_container import OCIContainer
 from .options import Options
+from .platform_interface import PlatformInterface
 from .typing import OrderedDict, PathOrStr, assert_never
 from .util import (
     AlreadyBuiltWheelError,
@@ -483,3 +484,6 @@ def troubleshoot(options: Options, error: Exception) -> None:
             print("  Files detected:")
             print("\n".join(f"    {f}" for f in so_files))
             print()
+
+
+interface = PlatformInterface(get_python_configurations=get_python_configurations, build=build)

@@ -85,9 +85,9 @@ def platform(request, monkeypatch):
 def intercepted_build_args(monkeypatch):
     intercepted = ArgsInterceptor()
 
-    monkeypatch.setattr(linux, "build", intercepted)
-    monkeypatch.setattr(macos, "build", intercepted)
-    monkeypatch.setattr(windows, "build", intercepted)
+    monkeypatch.setattr(linux.interface, "build", intercepted)
+    monkeypatch.setattr(macos.interface, "build", intercepted)
+    monkeypatch.setattr(windows.interface, "build", intercepted)
 
     yield intercepted
 
