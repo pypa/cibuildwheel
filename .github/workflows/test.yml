@@ -139,10 +139,7 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
-        CIBW_DEPENDENCY_VERSIONS: latest
 
     - name: Run the emulation tests
       run: |
         pytest test/test_emscripten.py
-      env:
-        CIBW_DEPENDENCY_VERSIONS: latest
