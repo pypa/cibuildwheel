@@ -85,7 +85,6 @@ def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
-    _build_frontend: BuildFrontend,
 ) -> dict[str, str]:
     pyodide_version = python_configuration.pyodide_version
     base_python = get_base_python(python_configuration.identifier)
@@ -229,9 +228,10 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
+
             if build_options.build_frontend == "pip":
-                print("Don't support pip frontend", file=sys.stderr)
-                # sys.exit(1)
+                print("The pyodide platform doesn't support pip frontend", file=sys.stderr)
+                sys.exit(1)
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -249,7 +249,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 config,
                 dependency_constraint_flags,
                 build_options.environment,
-                build_options.build_frontend,
             )
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
