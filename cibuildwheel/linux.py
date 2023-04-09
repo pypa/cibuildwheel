@@ -176,7 +176,7 @@ def build_in_container(
     for config in platform_configs:
         log.build_start(config.identifier)
         build_options = options.build_options(config.identifier)
-        build_frontend = build_frontend_or_default(build_options.build_frontend, "pip")
+        build_frontend = build_frontend_or_default(build_options.build_frontend)
 
         dependency_constraint_flags: list[PathOrStr] = []
 

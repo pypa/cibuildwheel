@@ -368,7 +368,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_frontend_or_default(build_options.build_frontend, "pip")
+            build_frontend = build_frontend_or_default(build_options.build_frontend)
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier

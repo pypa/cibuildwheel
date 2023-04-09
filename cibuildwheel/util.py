@@ -73,7 +73,7 @@ BuildFrontend = Literal["pip", "build"]
 
 
 def build_frontend_or_default(
-    setting: BuildFrontend | Literal["default"], default: BuildFrontend
+    setting: BuildFrontend | Literal["default"], default: BuildFrontend = "pip"
 ) -> BuildFrontend:
     if setting == "default":
         return default
