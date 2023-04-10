@@ -8,7 +8,7 @@ delocate==0.10.4
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.6
     # via virtualenv
-filelock==3.10.7
+filelock==3.11.0
     # via virtualenv
 packaging==23.0
     # via delocate
