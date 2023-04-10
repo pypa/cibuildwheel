@@ -7,7 +7,7 @@ import sys
 import tarfile
 import textwrap
 import typing
-from collections.abc import Set
+from collections.abc import Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
 
@@ -19,9 +19,9 @@ import cibuildwheel.windows
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
-from cibuildwheel.platform_interface import PlatformInterface
 from cibuildwheel.typing import (
     PLATFORMS,
+    GenericPythonConfiguration,
     PlatformName,
     assert_never,
 )
@@ -244,13 +244,25 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     return _compute_platform_ci()
 
 
-def get_platform_interface(platform: PlatformName) -> PlatformInterface:
+class PlatformModule(typing.Protocol):
+    # note that as per PEP544, the self argument is ignored when the protocol
+    # is applied to a module
+    def get_python_configurations(
+        self, build_selector: BuildSelector, architectures: Set[Architecture]
+    ) -> Sequence[GenericPythonConfiguration]:
+        ...
+
+    def build(self, options: Options, tmp_path: Path) -> None:
+        ...
+
+
+def get_platform_module(platform: PlatformName) -> PlatformModule:
     if platform == "linux":  # noqa: SIM116
-        return cibuildwheel.linux.interface
+        return cibuildwheel.linux
     elif platform == "windows":
-        return cibuildwheel.windows.interface
+        return cibuildwheel.windows
     elif platform == "macos":
-        return cibuildwheel.macos.interface
+        return cibuildwheel.macos
     assert_never(platform)
 
 
@@ -267,9 +279,9 @@ def build_in_directory(args: CommandLineArguments) -> None:
         print(msg, file=sys.stderr)
         sys.exit(2)
 
-    interface = get_platform_interface(platform)
+    platform_module = get_platform_module(platform)
     identifiers = get_build_identifiers(
-        interface=interface,
+        platform_module=platform_module,
         build_selector=options.globals.build_selector,
         architectures=options.globals.architectures,
     )
@@ -315,7 +327,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
         with cibuildwheel.util.print_new_wheels(
             "\n{n} wheels produced in {m:.0f} minutes:", output_dir
         ):
-            interface.build(options, tmp_path)
+            platform_module.build(options, tmp_path)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
@@ -358,9 +370,9 @@ def print_preamble(platform: str, options: Options, identifiers: list[str]) -> N
 
 
 def get_build_identifiers(
-    interface: PlatformInterface, build_selector: BuildSelector, architectures: Set[Architecture]
+    platform_module: PlatformModule, build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[str]:
-    python_configurations = interface.get_python_configurations(build_selector, architectures)
+    python_configurations = platform_module.get_python_configurations(build_selector, architectures)
     return [config.identifier for config in python_configurations]
 
 

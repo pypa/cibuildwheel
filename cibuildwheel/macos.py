@@ -19,7 +19,6 @@ from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import Options
-from .platform_interface import PlatformInterface
 from .typing import Literal, PathOrStr, assert_never
 from .util import (
     CIBW_CACHE_PATH,
@@ -623,6 +622,3 @@ def build(options: Options, tmp_path: Path) -> None:
             f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
         )
         sys.exit(1)
-
-
-interface = PlatformInterface(get_python_configurations=get_python_configurations, build=build)
