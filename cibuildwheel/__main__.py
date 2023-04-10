@@ -173,70 +173,79 @@ def main() -> None:
             log.warning(f"Can't delete temporary folder '{temp_dir}'")
 
 
-def build_in_directory(args: CommandLineArguments) -> None:
+def _compute_platform_only(only: str) -> PlatformName:
+    if "linux_" in only:
+        return "linux"
+    if "macosx_" in only:
+        return "macos"
+    if "win_" in only or "win32" in only:
+        return "windows"
+    print(
+        f"Invalid --only='{only}', must be a build selector with a known platform",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
+
+def _compute_platform_ci() -> PlatformName:
+    if detect_ci_provider() is None:
+        print(
+            textwrap.dedent(
+                """
+                cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server;
+                Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, Gitlab, and Cirrus CI
+                are supported. You can run on your development machine or other CI providers
+                using the --platform argument. Check --help output for more information.
+                """
+            ),
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    if sys.platform.startswith("linux"):
+        return "linux"
+    elif sys.platform == "darwin":
+        return "macos"
+    elif sys.platform == "win32":
+        return "windows"
+    else:
+        print(
+            'cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
+            "cibuildwheel using the --platform argument. Check --help output for more information.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
+def _compute_platform(args: CommandLineArguments) -> PlatformName:
     platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
-    platform: PlatformName
+
+    if args.only and args.platform is not None:
+        print(
+            "--platform cannot be specified with --only, it is computed from --only",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    if args.only and args.archs is not None:
+        print(
+            "--arch cannot be specified with --only, it is computed from --only",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+    if platform_option_value not in PLATFORMS | {"auto"}:
+        print(f"cibuildwheel: Unsupported platform: {platform_option_value}", file=sys.stderr)
+        sys.exit(2)
 
     if args.only:
-        if "linux_" in args.only:
-            platform = "linux"
-        elif "macosx_" in args.only:
-            platform = "macos"
-        elif "win_" in args.only or "win32" in args.only:
-            platform = "windows"
-        else:
-            print(
-                f"Invalid --only='{args.only}', must be a build selector with a known platform",
-                file=sys.stderr,
-            )
-            sys.exit(2)
-        if args.platform is not None:
-            print(
-                "--platform cannot be specified with --only, it is computed from --only",
-                file=sys.stderr,
-            )
-            sys.exit(2)
-        if args.archs is not None:
-            print(
-                "--arch cannot be specified with --only, it is computed from --only",
-                file=sys.stderr,
-            )
-            sys.exit(2)
+        return _compute_platform_only(args.only)
     elif platform_option_value != "auto":
-        if platform_option_value not in PLATFORMS:
-            print(f"cibuildwheel: Unsupported platform: {platform_option_value}", file=sys.stderr)
-            sys.exit(2)
+        return typing.cast(PlatformName, platform_option_value)
 
-        platform = typing.cast(PlatformName, platform_option_value)
-    else:
-        ci_provider = detect_ci_provider()
-        if ci_provider is None:
-            print(
-                textwrap.dedent(
-                    """
-                    cibuildwheel: Unable to detect platform. cibuildwheel should run on your CI server;
-                    Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, Gitlab, and Cirrus CI
-                    are supported. You can run on your development machine or other CI providers
-                    using the --platform argument. Check --help output for more information.
-                    """
-                ),
-                file=sys.stderr,
-            )
-            sys.exit(2)
-        if sys.platform.startswith("linux"):
-            platform = "linux"
-        elif sys.platform == "darwin":
-            platform = "macos"
-        elif sys.platform == "win32":
-            platform = "windows"
-        else:
-            print(
-                'cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
-                "cibuildwheel using the --platform argument. Check --help output for more information.",
-                file=sys.stderr,
-            )
-            sys.exit(2)
+    return _compute_platform_ci()
 
+
+def build_in_directory(args: CommandLineArguments) -> None:
+    platform: PlatformName = _compute_platform(args)
     options = compute_options(platform=platform, command_line_arguments=args, env=os.environ)
 
     package_dir = options.globals.package_dir
