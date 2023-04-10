@@ -257,13 +257,13 @@ class PlatformModule(typing.Protocol):
 
 
 def get_platform_module(platform: PlatformName) -> PlatformModule:
-    if platform == "linux":  # noqa: SIM116
+    if platform == "linux":
         return cibuildwheel.linux
-    elif platform == "windows":
+    if platform == "windows":
         return cibuildwheel.windows
-    elif platform == "macos":
+    if platform == "macos":
         return cibuildwheel.macos
-    assert_never(platform)
+    assert_never(platform)  # noqa: RET503
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
