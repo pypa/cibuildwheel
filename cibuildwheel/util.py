@@ -71,6 +71,15 @@ test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
 BuildFrontend = Literal["pip", "build"]
 
+
+def build_frontend_or_default(
+    setting: BuildFrontend | Literal["default"], default: BuildFrontend = "pip"
+) -> BuildFrontend:
+    if setting == "default":
+        return default
+    return setting
+
+
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
     "i686",

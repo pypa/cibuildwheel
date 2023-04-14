@@ -94,7 +94,7 @@ class BuildOptions:
     test_requires: list[str]
     test_extras: str
     build_verbosity: int
-    build_frontend: BuildFrontend
+    build_frontend: BuildFrontend | Literal["default"]
     config_settings: str
 
     @property
@@ -499,11 +499,13 @@ class Options:
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
 
-            build_frontend: BuildFrontend
+            build_frontend: BuildFrontend | Literal["default"]
             if build_frontend_str == "build":
                 build_frontend = "build"
             elif build_frontend_str == "pip":
                 build_frontend = "pip"
+            elif build_frontend_str == "default":
+                build_frontend = "default"
             else:
                 msg = f"cibuildwheel: Unrecognised build frontend {build_frontend_str!r}, only 'pip' and 'build' are supported"
                 print(msg, file=sys.stderr)
