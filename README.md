@@ -166,7 +166,6 @@ Here are some repos that use cibuildwheel.
 | [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
-| [pydantic][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Data validation using Python type hints |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [NumPy]: https://github.com/numpy/numpy
@@ -177,7 +176,6 @@ Here are some repos that use cibuildwheel.
 [Kivy]: https://github.com/kivy/kivy
 [Prophet]: https://github.com/facebook/prophet
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
-[pydantic]: https://github.com/samuelcolvin/pydantic
 
 [appveyor icon]: docs/data/readme_icons/appveyor.svg
 [github icon]: docs/data/readme_icons/github.svg
