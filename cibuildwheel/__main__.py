@@ -256,6 +256,7 @@ class PlatformModule(typing.Protocol):
         ...
 
 
+# pylint: disable-next=inconsistent-return-statements
 def get_platform_module(platform: PlatformName) -> PlatformModule:
     if platform == "linux":
         return cibuildwheel.linux
