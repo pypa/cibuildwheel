@@ -242,11 +242,10 @@ def build_in_container(
             container.call(["rm", "-rf", built_wheel_dir])
             container.call(["mkdir", "-p", built_wheel_dir])
 
-            verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
             extra_flags = split_config_settings(build_options.config_settings, build_frontend)
 
             if build_frontend == "pip":
-                extra_flags += verbosity_flags
+                extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                 container.call(
                     [
                         "python",
@@ -261,8 +260,9 @@ def build_in_container(
                     env=env,
                 )
             elif build_frontend == "build":
-                verbosity_setting = " ".join(verbosity_flags)
-                extra_flags += (f"--config-setting={verbosity_setting}",)
+                if not 0 <= build_options.build_verbosity < 2:
+                    msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
+                    log.warning(msg)
                 container.call(
                     [
                         "python",
