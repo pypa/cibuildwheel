@@ -22,7 +22,7 @@ repos:
   rev: v0.0.261
   hooks:
   - id: ruff
-    args: ["--fix"]
+    args: ["--fix", "--show-fixes"]
 
 - repo: https://github.com/asottile/setup-cfg-fmt
   rev: v2.2.0

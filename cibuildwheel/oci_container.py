@@ -166,6 +166,7 @@ class OCIContainer:
                 cwd=from_path,
             )
         else:
+            exec_process: subprocess.Popen[bytes]
             with subprocess.Popen(
                 [
                     self.engine,
@@ -178,10 +179,10 @@ class OCIContainer:
                 ],
                 stdin=subprocess.PIPE,
             ) as exec_process:
-                exec_process.stdin = cast(IO[bytes], exec_process.stdin)
-
+                assert exec_process.stdin
                 with open(from_path, "rb") as from_file:
-                    shutil.copyfileobj(from_file, exec_process.stdin)
+                    # Bug in mypy, https://github.com/python/mypy/issues/15031
+                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
 
                 exec_process.stdin.close()
                 exec_process.wait()
