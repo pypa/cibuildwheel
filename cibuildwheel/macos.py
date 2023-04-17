@@ -376,11 +376,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
 
-                verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
                 extra_flags = split_config_settings(build_options.config_settings, build_frontend)
 
                 if build_frontend == "pip":
-                    extra_flags += verbosity_flags
+                    extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
                     call(
@@ -395,8 +394,9 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=env,
                     )
                 elif build_frontend == "build":
-                    verbosity_setting = " ".join(verbosity_flags)
-                    extra_flags += (f"--config-setting={verbosity_setting}",)
+                    if not 0 <= build_options.build_verbosity < 2:
+                        msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
+                        log.warning(msg)
                     build_env = env.copy()
                     if build_options.dependency_constraints:
                         constraint_path = (

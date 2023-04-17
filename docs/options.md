@@ -1393,7 +1393,7 @@ This option is not supported in the overrides section in `pyproject.toml`.
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
 > Increase/decrease the output of pip wheel
 
-An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
+An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
