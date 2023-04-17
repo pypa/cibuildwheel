@@ -19,10 +19,10 @@ repos:
   - id: black
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.0.260
+  rev: v0.0.261
   hooks:
   - id: ruff
-    args: ["--fix"]
+    args: ["--fix", "--show-fixes"]
 
 - repo: https://github.com/asottile/setup-cfg-fmt
   rev: v2.2.0
@@ -31,7 +31,7 @@ repos:
     args: [--include-version-classifiers, --max-py-version=3.11]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.1.1
+  rev: v1.2.0
   hooks:
   - id: mypy
     name: mypy 3.7 on cibuildwheel/
