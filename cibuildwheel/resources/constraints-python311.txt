@@ -10,7 +10,7 @@ distlib==0.3.6
     # via virtualenv
 filelock==3.11.0
     # via virtualenv
-packaging==23.0
+packaging==23.1
     # via delocate
 platformdirs==3.2.0
     # via virtualenv
@@ -22,7 +22,7 @@ wheel==0.40.0
     # via -r cibuildwheel/resources/constraints.in
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.0.1
+pip==23.1
     # via -r cibuildwheel/resources/constraints.in
 setuptools==67.6.1
     # via -r cibuildwheel/resources/constraints.in
