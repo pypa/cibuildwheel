@@ -7,6 +7,7 @@ import subprocess
 import sys
 import textwrap
 from collections.abc import Set
+from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -560,6 +561,9 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (remove if already exists)
             if compatible_wheel is None:
+                with suppress(FileNotFoundError):
+                    (build_options.output_dir / repaired_wheel.name).unlink()
+
                 shutil.move(str(repaired_wheel), build_options.output_dir)
                 built_wheels.append(build_options.output_dir / repaired_wheel.name)
 
