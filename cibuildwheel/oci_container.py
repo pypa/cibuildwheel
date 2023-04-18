@@ -10,7 +10,7 @@ import subprocess
 import sys
 import typing
 import uuid
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict
@@ -241,7 +241,7 @@ class OCIContainer:
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: dict[str, str] | None = None,
+        env: Mapping[str, str] | None = None,
         capture_output: bool = False,
         cwd: PathOrStr | None = None,
     ) -> str:
@@ -333,7 +333,7 @@ class OCIContainer:
         )
         return typing.cast(Dict[str, str], env)
 
-    def environment_executor(self, command: list[str], environment: dict[str, str]) -> str:
+    def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
         return self.call(command, env=environment, capture_output=True)
 

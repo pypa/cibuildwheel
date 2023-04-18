@@ -13,7 +13,7 @@ import textwrap
 import time
 import typing
 import urllib.request
-from collections.abc import Generator, Iterable, Sequence
+from collections.abc import Generator, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
@@ -102,7 +102,7 @@ IS_WIN: Final[bool] = sys.platform.startswith("win")
 @typing.overload
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[False] = ...,
 ) -> None:
@@ -112,7 +112,7 @@ def call(
 @typing.overload
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[True],
 ) -> str:
@@ -121,7 +121,7 @@ def call(
 
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: bool = False,
 ) -> str | None:
@@ -144,7 +144,9 @@ def call(
     return typing.cast(str, result.stdout)
 
 
-def shell(*commands: str, env: dict[str, str] | None = None, cwd: PathOrStr | None = None) -> None:
+def shell(
+    *commands: str, env: Mapping[str, str] | None = None, cwd: PathOrStr | None = None
+) -> None:
     command = " ".join(commands)
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
@@ -499,7 +501,7 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     )
 
 
-def get_pip_version(env: dict[str, str]) -> str:
+def get_pip_version(env: Mapping[str, str]) -> str:
     versions_output_text = call(
         "python", "-m", "pip", "freeze", "--all", capture_stdout=True, env=env
     )

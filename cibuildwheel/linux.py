@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 import sys
 import textwrap
-from collections.abc import Iterator, Set
+from collections.abc import Iterable, Iterator, Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import Tuple
@@ -113,7 +113,7 @@ def get_build_steps(
 
 
 def check_all_python_exist(
-    *, platform_configs: list[PythonConfiguration], container: OCIContainer
+    *, platform_configs: Iterable[PythonConfiguration], container: OCIContainer
 ) -> None:
     exist = True
     messages = []
@@ -138,7 +138,7 @@ def check_all_python_exist(
 def build_in_container(
     *,
     options: Options,
-    platform_configs: list[PythonConfiguration],
+    platform_configs: Sequence[PythonConfiguration],
     container: OCIContainer,
     container_project_path: PurePath,
     container_package_dir: PurePath,
@@ -438,7 +438,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
             sys.exit(1)
 
 
-def _matches_prepared_command(error_cmd: list[str], command_template: str) -> bool:
+def _matches_prepared_command(error_cmd: Sequence[str], command_template: str) -> bool:
     if len(error_cmd) < 3 or error_cmd[0:2] != ["sh", "-c"]:
         return False
     command_prefix = command_template.split("{", maxsplit=1)[0].strip()

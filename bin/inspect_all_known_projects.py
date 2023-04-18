@@ -15,7 +15,7 @@ the results without the `--online` setting.
 from __future__ import annotations
 
 import ast
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 
 import click
@@ -97,7 +97,7 @@ class MaybeRemote:
         with open(filename, "w") as f:
             yaml.safe_dump(self.contents, f, default_flow_style=False)
 
-    def on_each(self, repos: list[str]) -> Iterator[tuple[str, str, str | None]]:
+    def on_each(self, repos: Iterable[str]) -> Iterator[tuple[str, str, str | None]]:
         for repo in repos:
             print(f"[bold]{repo}:")
             for filename in sorted(self.contents, reverse=True):

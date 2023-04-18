@@ -6,6 +6,7 @@ import copy
 import difflib
 import logging
 import sys
+from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Union
 
@@ -124,7 +125,7 @@ class PyPyVersions:
         ]
         self.arch = arch_str
 
-    def get_arch_file(self, release: dict[str, Any]) -> str:
+    def get_arch_file(self, release: Mapping[str, Any]) -> str:
         urls: list[str] = [
             rf["download_url"]
             for rf in release["files"]
@@ -250,7 +251,7 @@ class AllVersions:
         self.macos_pypy = PyPyVersions("64")
         self.macos_pypy_arm64 = PyPyVersions("ARM64")
 
-    def update_config(self, config: dict[str, str]) -> None:
+    def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]
         version = Version(config["version"])
         spec = Specifier(f"=={version.major}.{version.minor}.*")

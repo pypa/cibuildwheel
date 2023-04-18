@@ -55,7 +55,7 @@ class EnvironmentAssignment(Protocol):
     def evaluated_value(
         self,
         *,
-        environment: dict[str, str],
+        environment: Mapping[str, str],
         executor: bashlex_eval.EnvironmentExecutor | None = None,
     ) -> str:
         """Returns the value of this assignment, as evaluated in the environment"""
@@ -92,7 +92,7 @@ class EnvironmentAssignmentBash:
 
     def evaluated_value(
         self,
-        environment: dict[str, str],
+        environment: Mapping[str, str],
         executor: bashlex_eval.EnvironmentExecutor | None = None,
     ) -> str:
         return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
