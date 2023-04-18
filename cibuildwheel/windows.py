@@ -6,12 +6,11 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Set
+from collections.abc import MutableMapping, Sequence, Set
 from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Sequence
 from zipfile import ZipFile
 
 from filelock import FileLock
@@ -138,7 +137,7 @@ def setup_setuptools_cross_compile(
     tmp: Path,
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
-    env: dict[str, str],
+    env: MutableMapping[str, str],
 ) -> None:
     distutils_cfg = tmp / "extra-setup.cfg"
     env["DIST_EXTRA_CONFIG"] = str(distutils_cfg)
@@ -186,7 +185,7 @@ def setup_rust_cross_compile(
     tmp: Path,  # noqa: ARG001
     python_configuration: PythonConfiguration,
     python_libs_base: Path,  # noqa: ARG001
-    env: dict[str, str],
+    env: MutableMapping[str, str],
 ) -> None:
     # Assume that MSVC will be used, because we already know that we are
     # cross-compiling. MinGW users can set CARGO_BUILD_TARGET themselves

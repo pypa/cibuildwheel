@@ -54,14 +54,14 @@ def git_ls_remote_versions(url) -> list[VersionTuple]:
         try:
             version = Version(version_string)
             if version.is_devrelease:
-                log.info(f"Ignoring development release '{version}'")
+                log.info("Ignoring development release %r", str(version))
                 continue
             if version.is_prerelease:
-                log.info(f"Ignoring pre-release '{version}'")
+                log.info("Ignoring pre-release %r", str(version))
                 continue
             versions.append(VersionTuple(version, version_string))
         except InvalidVersion:
-            log.warning(f"Ignoring ref '{ref}'")
+            log.warning("Ignoring ref %r", ref)
     versions.sort(reverse=True)
     return versions
 

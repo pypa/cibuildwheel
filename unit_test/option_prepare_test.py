@@ -3,9 +3,9 @@ from __future__ import annotations
 import platform as platform_module
 import subprocess
 import sys
+import typing
 from contextlib import contextmanager
 from pathlib import PurePosixPath
-from typing import cast
 from unittest import mock
 
 import pytest
@@ -52,7 +52,7 @@ def test_build_default_launches(monkeypatch):
 
     main()
 
-    build_in_container = cast(mock.Mock, linux.build_in_container)
+    build_in_container = typing.cast(mock.Mock, linux.build_in_container)
 
     assert build_in_container.call_count == 4
 
@@ -120,7 +120,7 @@ before-all = "true"
 
     main()
 
-    build_in_container = cast(mock.Mock, linux.build_in_container)
+    build_in_container = typing.cast(mock.Mock, linux.build_in_container)
 
     assert build_in_container.call_count == 6
 

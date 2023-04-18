@@ -4,6 +4,7 @@ import functools
 import platform as platform_module
 import re
 import sys
+from collections.abc import Set
 from enum import Enum
 
 from .typing import Final, Literal, PlatformName, assert_never
@@ -132,7 +133,7 @@ class Architecture(Enum):
 
 def allowed_architectures_check(
     platform: PlatformName,
-    architectures: set[Architecture],
+    architectures: Set[Architecture],
 ) -> None:
     allowed_architectures = Architecture.all_archs(platform)
 

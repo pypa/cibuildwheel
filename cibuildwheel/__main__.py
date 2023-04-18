@@ -7,7 +7,7 @@ import sys
 import tarfile
 import textwrap
 import typing
-from collections.abc import Sequence, Set
+from collections.abc import Iterable, Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
 
@@ -337,7 +337,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
             log.warning(f"Can't delete temporary folder '{tmp_path}'")
 
 
-def print_preamble(platform: str, options: Options, identifiers: list[str]) -> None:
+def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) -> None:
     print(
         textwrap.dedent(
             """
@@ -377,7 +377,7 @@ def get_build_identifiers(
     return [config.identifier for config in python_configurations]
 
 
-def detect_warnings(*, options: Options, identifiers: list[str]) -> list[str]:
+def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str]:
     warnings = []
 
     # warn about deprecated {python} and {pip}

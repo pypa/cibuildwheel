@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import bashlex
 import bashlex.errors
@@ -54,7 +55,7 @@ class EnvironmentAssignment(Protocol):
     def evaluated_value(
         self,
         *,
-        environment: dict[str, str],
+        environment: Mapping[str, str],
         executor: bashlex_eval.EnvironmentExecutor | None = None,
     ) -> str:
         """Returns the value of this assignment, as evaluated in the environment"""
@@ -91,7 +92,7 @@ class EnvironmentAssignmentBash:
 
     def evaluated_value(
         self,
-        environment: dict[str, str],
+        environment: Mapping[str, str],
         executor: bashlex_eval.EnvironmentExecutor | None = None,
     ) -> str:
         return bashlex_eval.evaluate(self.value, environment=environment, executor=executor)
