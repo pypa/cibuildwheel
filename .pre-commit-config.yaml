@@ -46,16 +46,14 @@ repos:
       - tomli_w
       - types-certifi
       - types-click
-      - types-dataclasses
       - types-jinja2
       - types-pyyaml
       - types-requests
       - bracex
-      - dataclasses
   - id: mypy
-    name: mypy 3.10
+    name: mypy 3.11
     exclude: ^cibuildwheel/resources/.*py$
-    args: ["--python-version=3.10"]
+    args: ["--python-version=3.11"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
