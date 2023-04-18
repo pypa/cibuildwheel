@@ -4,6 +4,14 @@ title: Changelog
 
 # Changelog
 
+### v2.12.2
+
+_18 April 2023_
+
+- 🐛 Fix a bug that caused an extra empty config-setting to be passed to the backend when CIBW_BUILD_FRONTEND is set to `build`. (#1474)
+- 🐛 Fix a crash that occurred when overwriting an existing wheel on Windows. (#1464)
+- 🛠 Pinned version updates, including CPython 3.10.11, 3.11.3, pip 23.1 and wheel 0.40.0.
+
 ### v2.12.1
 
 _11 March 2023_
