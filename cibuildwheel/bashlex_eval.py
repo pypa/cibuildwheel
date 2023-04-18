@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Sequence
+from typing import Callable, Dict, List  # noqa: TID251
 
 import bashlex
 

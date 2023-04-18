@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import bashlex
 import bashlex.errors

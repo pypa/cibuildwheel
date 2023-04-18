@@ -8,10 +8,12 @@ import shlex
 import shutil
 import subprocess
 import sys
+import typing
 import uuid
+from collections.abc import Sequence
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, Sequence, cast
+from typing import IO, Dict
 
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
@@ -329,7 +331,7 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return cast(Dict[str, str], env)
+        return typing.cast(Dict[str, str], env)
 
     def environment_executor(self, command: list[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output

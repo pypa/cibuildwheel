@@ -6,12 +6,11 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Set
+from collections.abc import Sequence, Set
 from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Sequence
 from zipfile import ZipFile
 
 from filelock import FileLock

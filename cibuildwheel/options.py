@@ -10,8 +10,10 @@ import shlex
 import sys
 import textwrap
 import traceback
+import typing
+from collections.abc import Callable, Generator, Iterator, Mapping, Set
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Iterator, List, Mapping, Union, cast
+from typing import Any, Dict, List, Union
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -193,7 +195,7 @@ class OptionsReader:
         *,
         platform: PlatformName,
         env: Mapping[str, str],
-        disallow: dict[str, set[str]] | None = None,
+        disallow: Mapping[str, Set[str]] | None = None,
     ) -> None:
         self.platform = platform
         self.env = env
@@ -462,7 +464,7 @@ class Options:
             print(msg, file=sys.stderr)
             sys.exit(2)
 
-        container_engine = cast(ContainerEngine, container_engine_str)
+        container_engine = typing.cast(ContainerEngine, container_engine_str)
 
         return GlobalOptions(
             package_dir=package_dir,

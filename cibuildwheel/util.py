@@ -11,23 +11,15 @@ import subprocess
 import sys
 import textwrap
 import time
+import typing
 import urllib.request
+from collections.abc import Generator, Iterable, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path, PurePath
 from time import sleep
-from typing import (
-    Any,
-    ClassVar,
-    Generator,
-    Iterable,
-    Sequence,
-    TextIO,
-    TypeVar,
-    cast,
-    overload,
-)
+from typing import Any, ClassVar, TextIO, TypeVar
 
 import bracex
 import certifi
@@ -107,7 +99,7 @@ CIBW_CACHE_PATH: Final[Path] = Path(
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
-@overload
+@typing.overload
 def call(
     *args: PathOrStr,
     env: dict[str, str] | None = None,
@@ -117,7 +109,7 @@ def call(
     ...
 
 
-@overload
+@typing.overload
 def call(
     *args: PathOrStr,
     env: dict[str, str] | None = None,
@@ -149,7 +141,7 @@ def call(
     result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
     if not capture_stdout:
         return None
-    return cast(str, result.stdout)
+    return typing.cast(str, result.stdout)
 
 
 def shell(*commands: str, env: dict[str, str] | None = None, cwd: PathOrStr | None = None) -> None:

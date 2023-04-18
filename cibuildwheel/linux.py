@@ -3,10 +3,10 @@ from __future__ import annotations
 import subprocess
 import sys
 import textwrap
-from collections.abc import Set
+from collections.abc import Iterator, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Iterator, Tuple
+from typing import Tuple
 
 from .architecture import Architecture
 from .logger import log

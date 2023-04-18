@@ -8,10 +8,11 @@ import re
 import shutil
 import subprocess
 import sys
-from collections.abc import Set
+import typing
+from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, Tuple, cast
+from typing import Tuple
 
 from filelock import FileLock
 
@@ -55,7 +56,7 @@ def get_macos_version() -> tuple[int, int]:
     """
     version_str, _, _ = platform.mac_ver()
     version = tuple(map(int, version_str.split(".")[:2]))
-    return cast(Tuple[int, int], version)
+    return typing.cast(Tuple[int, int], version)
 
 
 def get_macos_sdks() -> list[str]:
