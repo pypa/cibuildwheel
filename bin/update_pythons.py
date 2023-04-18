@@ -93,7 +93,7 @@ class WindowsVersions:
         unsorted_versions = spec.filter(self.version_dict)
         versions = sorted(unsorted_versions, reverse=True)
 
-        log.debug(f"Windows {self.arch} {spec} has {', '.join(str(v) for v in versions)}")
+        log.debug("Windows %s %s has %s", self.arch, spec, ", ".join(str(v) for v in versions))
 
         if not versions:
             return None
@@ -254,7 +254,7 @@ class AllVersions:
         identifier = config["identifier"]
         version = Version(config["version"])
         spec = Specifier(f"=={version.major}.{version.minor}.*")
-        log.info(f"Reading in '{identifier}' -> {spec} @ {version}")
+        log.info("Reading in %r -> %s @ %s", str(identifier), spec, version)
         orig_config = copy.copy(config)
         config_update: AnyConfig | None = None
 
@@ -282,7 +282,7 @@ class AllVersions:
         config.update(**config_update)
 
         if config != orig_config:
-            log.info(f"  Updated {orig_config} to {config}")
+            log.info("  Updated %s to %s", orig_config, config)
 
 
 @click.command()
