@@ -92,8 +92,8 @@ Options have the same names as the environment variable overrides, but are
 placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
 common [TOML][] practice. Anything placed in subsections `linux`, `windows`,
 or `macos` will only affect those platforms. Lists can be used instead of
-strings for items that are natually a list. Multiline strings also work just
-like in in the environment variables. Environment variables will take
+strings for items that are naturally a list. Multiline strings also work just
+like in the environment variables. Environment variables will take
 precedence if defined.
 
 The example above using environment variables could have been written like this:
@@ -237,7 +237,7 @@ For CPython, the minimally supported macOS version is 10.9; for PyPy 3.7, macOS 
 
 Windows arm64 platform support is experimental.
 
-See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end of life versions of Python, and PyPy2.7.
+See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
 
 #### Examples
 
@@ -314,7 +314,7 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 
     It is generally recommended to set `CIBW_BUILD` as an environment variable, though `skip`
     tends to be useful in a config file; you can statically declare that you don't
-    support pypy, for example.
+    support PyPy, for example.
 
 <style>
   .build-id-table-marker + table {
@@ -658,7 +658,7 @@ Platform-specific environment variables are also available:<br/>
 ### `CIBW_ENVIRONMENT_PASS_LINUX` {: #environment-pass}
 > Set environment variables on the host to pass-through to the container during the build.
 
-A list of environment variables to pass into the linux container during the build. It has no affect on the other platforms, which can already access all environment variables directly.
+A list of environment variables to pass into the linux container during the build. It has no effect on the other platforms, which can already access all environment variables directly.
 
 To specify more than one environment variable, separate the variable names by spaces.
 
@@ -1216,7 +1216,7 @@ Platform-specific environment variables are also available:<br/>
 
 !!! note
 
-    It's isn't recommended to `cd` to your project directory before running tests,
+    It isn't recommended to `cd` to your project directory before running tests,
     because Python might resolve `import yourpackage` relative to the working dir,
     and we want to test the wheel you just built. However, if you're sure that's not
     an issue for you and your workflow requires it, on Windows you should do `cd /d`,
@@ -1393,7 +1393,7 @@ This option is not supported in the overrides section in `pyproject.toml`.
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
 > Increase/decrease the output of pip wheel
 
-An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
+A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
