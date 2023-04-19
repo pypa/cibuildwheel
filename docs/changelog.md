@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.12.3
+
+_19 April 2023_
+
+- 🐛 Fix an import error when running on Python 3.7. (#1479)
+
 ### v2.12.2
 
 _18 April 2023_
