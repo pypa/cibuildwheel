@@ -16,15 +16,16 @@ import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
-from cibuildwheel.architecture import Architecture, allowed_architectures_check
-from cibuildwheel.logger import log
-from cibuildwheel.options import CommandLineArguments, Options, compute_options
-from cibuildwheel.typing import (
+from cibuildwheel._compat.typing import (
     PLATFORMS,
     GenericPythonConfiguration,
     PlatformName,
+    Protocol,
     assert_never,
 )
+from cibuildwheel.architecture import Architecture, allowed_architectures_check
+from cibuildwheel.logger import log
+from cibuildwheel.options import CommandLineArguments, Options, compute_options
 from cibuildwheel.util import (
     CIBW_CACHE_PATH,
     BuildSelector,
@@ -244,7 +245,7 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     return _compute_platform_ci()
 
 
-class PlatformModule(typing.Protocol):
+class PlatformModule(Protocol):
     # note that as per PEP544, the self argument is ignored when the protocol
     # is applied to a module
     def get_python_configurations(

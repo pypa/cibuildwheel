@@ -17,7 +17,7 @@ from typing import IO, Dict
 
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
-from .typing import Literal, PathOrStr, PopenBytes
+from ._compat.typing import Literal, PathOrStr, PopenBytes
 
 ContainerEngine = Literal["docker", "podman"]
 

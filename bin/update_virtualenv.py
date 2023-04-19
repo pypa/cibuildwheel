@@ -21,7 +21,7 @@ from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel.typing import Final
+from cibuildwheel._compat.typing import Final
 
 log = logging.getLogger("cibw")
 

@@ -7,8 +7,8 @@ import sys
 import time
 from typing import IO, AnyStr
 
-from cibuildwheel.typing import Final
-from cibuildwheel.util import CIProvider, detect_ci_provider
+from ._compat.typing import Final
+from .util import CIProvider, detect_ci_provider
 
 DEFAULT_FOLD_PATTERN: Final = ("{name}", "")
 FOLD_PATTERNS: Final = {

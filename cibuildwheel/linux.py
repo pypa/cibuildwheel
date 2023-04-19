@@ -8,11 +8,11 @@ from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import Tuple
 
+from ._compat.typing import OrderedDict, PathOrStr, assert_never
 from .architecture import Architecture
 from .logger import log
 from .oci_container import OCIContainer
 from .options import Options
-from .typing import OrderedDict, PathOrStr, assert_never
 from .util import (
     AlreadyBuiltWheelError,
     BuildSelector,

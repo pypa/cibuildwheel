@@ -24,8 +24,8 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
+from cibuildwheel._compat.typing import Final, Literal, TypedDict
 from cibuildwheel.extra import dump_python_configurations
-from cibuildwheel.typing import Final, Literal, TypedDict
 
 log = logging.getLogger("cibw")
 

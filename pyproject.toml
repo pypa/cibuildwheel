@@ -149,7 +149,7 @@ extend-ignore = [
   "PT007",  # False positive (fixed upstream)
 ]
 target-version = "py37"
-typing-modules = ["cibuildwheel.typing"]
+typing-modules = ["cibuildwheel._compat.typing"]
 flake8-unused-arguments.ignore-variadic-names = true
 
 [tool.ruff.flake8-tidy-imports.banned-api]
@@ -158,6 +158,13 @@ flake8-unused-arguments.ignore-variadic-names = true
 "typing.Iterator".msg = "Use collections.abc.Iterator instead."
 "typing.Sequence".msg = "Use collections.abc.Sequence instead."
 "typing.Set".msg = "Use collections.abc.Set instead."
+"typing.Protocol".msg = "Use cibuildwheel._compat.typing.Protocol instead."
+"typing.Final".msg = "Use cibuildwheel._compat.typing.Final instead."
+"typing.Literal".msg = "Use cibuildwheel._compat.typing.Literal instead."
+"typing.OrderedDict".msg = "Use cibuildwheel._compat.typing.OrderedDict instead."
+"typing.TypedDict".msg = "Use cibuildwheel._compat.typing.TypedDict instead."
+"typing.NotRequired".msg = "Use cibuildwheel._compat.typing.NotRequired instead."
+"typing.assert_never".msg = "Use cibuildwhee._compat.typing.assert_never instead."
 
 [tool.ruff.per-file-ignores]
 "unit_test/*" = ["PLC1901"]
