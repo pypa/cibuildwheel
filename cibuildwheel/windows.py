@@ -16,11 +16,12 @@ from zipfile import ZipFile
 from filelock import FileLock
 from packaging.version import Version
 
+from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import Options
-from .typing import PathOrStr, assert_never
+from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     AlreadyBuiltWheelError,

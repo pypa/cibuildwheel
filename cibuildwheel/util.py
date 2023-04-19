@@ -23,12 +23,6 @@ from typing import Any, ClassVar, TextIO, TypeVar
 
 import bracex
 import certifi
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
@@ -36,7 +30,10 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
+from ._compat import tomllib
+from ._compat.functools import cached_property
+from ._compat.typing import Final, Literal
+from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "resources_dir",
@@ -659,12 +656,6 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             return wheel
 
     return None
-
-
-if sys.version_info >= (3, 8):
-    from functools import cached_property
-else:
-    from .functools_cached_property_38 import cached_property
 
 
 # Can be replaced by contextlib.chdir in Python 3.11

@@ -15,19 +15,16 @@ from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Se
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from packaging.specifiers import SpecifierSet
 
+from ._compat import tomllib
+from ._compat.typing import Literal, NotRequired, TypedDict
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
 from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
-from .typing import PLATFORMS, Literal, NotRequired, PlatformName, TypedDict
+from .typing import PLATFORMS, PlatformName
 from .util import (
     MANYLINUX_ARCHS,
     MUSLLINUX_ARCHS,

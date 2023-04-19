@@ -7,9 +7,8 @@ from typing import Any
 import bashlex
 import bashlex.errors
 
-from cibuildwheel.typing import Protocol
-
 from . import bashlex_eval
+from ._compat.typing import Protocol
 
 
 class EnvironmentParseError(Exception):

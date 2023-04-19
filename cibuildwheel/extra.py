@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from io import StringIO
 
-from .typing import Protocol
+from ._compat.typing import Protocol
 
 __all__ = ("Printable", "dump_python_configurations")
 
