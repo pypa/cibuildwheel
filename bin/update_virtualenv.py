@@ -5,22 +5,16 @@ from __future__ import annotations
 import difflib
 import logging
 import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 import click
 import rich
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
+from cibuildwheel._compat import tomllib
 from cibuildwheel._compat.typing import Final
 
 log = logging.getLogger("cibw")

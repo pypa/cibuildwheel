@@ -23,12 +23,6 @@ from typing import Any, ClassVar, TextIO, TypeVar
 
 import bracex
 import certifi
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
@@ -36,6 +30,7 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
+from ._compat import tomllib
 from ._compat.functools import cached_property
 from ._compat.typing import Final, Literal
 from .typing import PathOrStr, PlatformName

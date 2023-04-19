@@ -164,7 +164,9 @@ flake8-unused-arguments.ignore-variadic-names = true
 "typing.OrderedDict".msg = "Use cibuildwheel._compat.typing.OrderedDict instead."
 "typing.TypedDict".msg = "Use cibuildwheel._compat.typing.TypedDict instead."
 "typing.NotRequired".msg = "Use cibuildwheel._compat.typing.NotRequired instead."
-"typing.assert_never".msg = "Use cibuildwhee._compat.typing.assert_never instead."
+"typing.assert_never".msg = "Use cibuildwheel._compat.typing.assert_never instead."
+"tomllib".msg = "Use cibuildwheel._compat.tomllib instead."
+"tomli".msg = "Use cibuildwheel._compat.tomllib instead."
 
 [tool.ruff.per-file-ignores]
 "unit_test/*" = ["PLC1901"]
