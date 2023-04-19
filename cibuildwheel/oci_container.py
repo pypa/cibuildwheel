@@ -15,9 +15,9 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict
 
-from cibuildwheel.util import CIProvider, detect_ci_provider
-
-from ._compat.typing import Literal, PathOrStr, PopenBytes
+from ._compat.typing import Literal
+from .typing import PathOrStr, PopenBytes
+from .util import CIProvider, detect_ci_provider
 
 ContainerEngine = Literal["docker", "podman"]
 

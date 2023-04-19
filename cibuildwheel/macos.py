@@ -16,11 +16,12 @@ from typing import Tuple
 
 from filelock import FileLock
 
-from ._compat.typing import Literal, PathOrStr, assert_never
+from ._compat.typing import Literal, assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import Options
+from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     AlreadyBuiltWheelError,

@@ -16,16 +16,11 @@ import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.util
 import cibuildwheel.windows
-from cibuildwheel._compat.typing import (
-    PLATFORMS,
-    GenericPythonConfiguration,
-    PlatformName,
-    Protocol,
-    assert_never,
-)
+from cibuildwheel._compat.typing import Protocol, assert_never
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
+from cibuildwheel.typing import PLATFORMS, GenericPythonConfiguration, PlatformName
 from cibuildwheel.util import (
     CIBW_CACHE_PATH,
     BuildSelector,

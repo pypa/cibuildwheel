@@ -7,7 +7,8 @@ import sys
 from collections.abc import Set
 from enum import Enum
 
-from ._compat.typing import Final, Literal, PlatformName, assert_never
+from ._compat.typing import Final, Literal, assert_never
+from .typing import PlatformName
 
 PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
 

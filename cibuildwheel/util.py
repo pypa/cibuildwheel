@@ -37,7 +37,8 @@ from packaging.version import Version
 from platformdirs import user_cache_path
 
 from ._compat.functools import cached_property
-from ._compat.typing import Final, Literal, PathOrStr, PlatformName
+from ._compat.typing import Final, Literal
+from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "resources_dir",
