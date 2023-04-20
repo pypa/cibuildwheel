@@ -260,7 +260,7 @@ def get_platform_module(platform: PlatformName) -> PlatformModule:
         return cibuildwheel.windows
     if platform == "macos":
         return cibuildwheel.macos
-    assert_never(platform)  # noqa: RET503
+    assert_never(platform)
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
