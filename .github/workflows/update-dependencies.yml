@@ -24,7 +24,7 @@ jobs:
 
     - uses: wntrblm/nox@2023.04.22
       with:
-        python-versions: "3.6, 3.7, 3.8, 3.9, 3.10, 3.11"
+        python-versions: "3.7, 3.8, 3.9, 3.10, 3.11"
 
     - name: "Run update: dependencies"
       run: nox --force-color -s update_constraints
