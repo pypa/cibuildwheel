@@ -9,7 +9,7 @@ import nox
 
 nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
 
-PYTHON_ALL_VERSIONS = ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+PYTHON_ALL_VERSIONS = ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
 DIR = Path(__file__).parent.resolve()
 
