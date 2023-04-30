@@ -8,18 +8,20 @@ import re
 import shutil
 import subprocess
 import sys
-from collections.abc import Set
+import typing
+from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, Tuple, cast
+from typing import Tuple
 
 from filelock import FileLock
 
+from ._compat.typing import Literal, assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import Options
-from .typing import Literal, PathOrStr, assert_never
+from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     AlreadyBuiltWheelError,
@@ -55,7 +57,7 @@ def get_macos_version() -> tuple[int, int]:
     """
     version_str, _, _ = platform.mac_ver()
     version = tuple(map(int, version_str.split(".")[:2]))
-    return cast(Tuple[int, int], version)
+    return typing.cast(Tuple[int, int], version)
 
 
 def get_macos_sdks() -> list[str]:
@@ -332,7 +334,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_frontend_or_default(build_options.build_frontend, "pip")
+            build_frontend = build_frontend_or_default(build_options.build_frontend)
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -376,11 +378,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
 
-                verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
                 extra_flags = split_config_settings(build_options.config_settings, build_frontend)
 
                 if build_frontend == "pip":
-                    extra_flags += verbosity_flags
+                    extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
                     call(
@@ -395,8 +396,9 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=env,
                     )
                 elif build_frontend == "build":
-                    verbosity_setting = " ".join(verbosity_flags)
-                    extra_flags += (f"--config-setting={verbosity_setting}",)
+                    if not 0 <= build_options.build_verbosity < 2:
+                        msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
+                        log.warning(msg)
                     build_env = env.copy()
                     if build_options.dependency_constraints:
                         constraint_path = (

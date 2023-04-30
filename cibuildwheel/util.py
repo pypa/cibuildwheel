@@ -11,7 +11,9 @@ import subprocess
 import sys
 import textwrap
 import time
+import typing
 import urllib.request
+from collections.abc import Generator, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
@@ -25,19 +27,12 @@ from typing import (
     Sequence,
     TextIO,
     TypeVar,
-    cast,
-    overload,
 )
 from zipfile import ZipFile
+from typing import Any, ClassVar, TextIO, TypeVar
 
 import bracex
 import certifi
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
@@ -45,7 +40,10 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
+from ._compat import tomllib
+from ._compat.functools import cached_property
+from ._compat.typing import Final, Literal
+from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "resources_dir",
@@ -75,7 +73,7 @@ BuildFrontend = Literal["pip", "build"]
 
 
 def build_frontend_or_default(
-    setting: BuildFrontend | Literal["default"], default: BuildFrontend
+    setting: BuildFrontend | Literal["default"], default: BuildFrontend = "pip"
 ) -> BuildFrontend:
     if setting == "default":
         return default
@@ -109,20 +107,20 @@ CIBW_CACHE_PATH: Final[Path] = Path(
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
-@overload
+@typing.overload
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[False] = ...,
 ) -> None:
     ...
 
 
-@overload
+@typing.overload
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[True],
 ) -> str:
@@ -131,7 +129,7 @@ def call(
 
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: bool = False,
 ) -> str | None:
@@ -151,10 +149,12 @@ def call(
     result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
     if not capture_stdout:
         return None
-    return cast(str, result.stdout)
+    return typing.cast(str, result.stdout)
 
 
-def shell(*commands: str, env: dict[str, str] | None = None, cwd: PathOrStr | None = None) -> None:
+def shell(
+    *commands: str, env: Mapping[str, str] | None = None, cwd: PathOrStr | None = None
+) -> None:
     command = " ".join(commands)
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
@@ -514,7 +514,7 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     )
 
 
-def get_pip_version(env: dict[str, str]) -> str:
+def get_pip_version(env: Mapping[str, str]) -> str:
     versions_output_text = call(
         "python", "-m", "pip", "freeze", "--all", capture_stdout=True, env=env
     )
@@ -672,12 +672,6 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             return wheel
 
     return None
-
-
-if sys.version_info >= (3, 8):
-    from functools import cached_property
-else:
-    from .functools_cached_property_38 import cached_property
 
 
 # Can be replaced by contextlib.chdir in Python 3.11

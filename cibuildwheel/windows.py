@@ -6,7 +6,8 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Set
+from collections.abc import MutableMapping, Sequence, Set
+from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -15,11 +16,12 @@ from typing import Sequence
 from filelock import FileLock
 from packaging.version import Version
 
+from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
 from .options import Options
-from .typing import PathOrStr, assert_never
+from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     AlreadyBuiltWheelError,
@@ -132,7 +134,7 @@ def setup_setuptools_cross_compile(
     tmp: Path,
     python_configuration: PythonConfiguration,
     python_libs_base: Path,
-    env: dict[str, str],
+    env: MutableMapping[str, str],
 ) -> None:
     distutils_cfg = tmp / "extra-setup.cfg"
     env["DIST_EXTRA_CONFIG"] = str(distutils_cfg)
@@ -180,7 +182,7 @@ def setup_rust_cross_compile(
     tmp: Path,  # noqa: ARG001
     python_configuration: PythonConfiguration,
     python_libs_base: Path,  # noqa: ARG001
-    env: dict[str, str],
+    env: MutableMapping[str, str],
 ) -> None:
     # Assume that MSVC will be used, because we already know that we are
     # cross-compiling. MinGW users can set CARGO_BUILD_TARGET themselves
@@ -363,7 +365,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_frontend_or_default(build_options.build_frontend, "pip")
+            build_frontend = build_frontend_or_default(build_options.build_frontend)
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -408,11 +410,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
 
-                verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
                 extra_flags = split_config_settings(build_options.config_settings, build_frontend)
 
                 if build_frontend == "pip":
-                    extra_flags += verbosity_flags
+                    extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
                     call(
@@ -427,8 +428,9 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=env,
                     )
                 elif build_frontend == "build":
-                    verbosity_setting = " ".join(verbosity_flags)
-                    extra_flags += (f"--config-setting={verbosity_setting}",)
+                    if not 0 <= build_options.build_verbosity < 2:
+                        msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
+                        log.warning(msg)
                     build_env = env.copy()
                     if build_options.dependency_constraints:
                         constraints_path = (
@@ -555,6 +557,9 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (remove if already exists)
             if compatible_wheel is None:
+                with suppress(FileNotFoundError):
+                    (build_options.output_dir / repaired_wheel.name).unlink()
+
                 shutil.move(str(repaired_wheel), build_options.output_dir)
                 built_wheels.append(build_options.output_dir / repaired_wheel.name)
 

@@ -5,26 +5,21 @@ from __future__ import annotations
 import copy
 import difflib
 import logging
-import sys
+from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Union
 
 import click
 import requests
 import rich
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
+from cibuildwheel._compat import tomllib
+from cibuildwheel._compat.typing import Final, Literal, TypedDict
 from cibuildwheel.extra import dump_python_configurations
-from cibuildwheel.typing import Final, Literal, TypedDict
 
 log = logging.getLogger("cibw")
 
@@ -93,7 +88,7 @@ class WindowsVersions:
         unsorted_versions = spec.filter(self.version_dict)
         versions = sorted(unsorted_versions, reverse=True)
 
-        log.debug(f"Windows {self.arch} {spec} has {', '.join(str(v) for v in versions)}")
+        log.debug("Windows %s %s has %s", self.arch, spec, ", ".join(str(v) for v in versions))
 
         if not versions:
             return None
@@ -124,7 +119,7 @@ class PyPyVersions:
         ]
         self.arch = arch_str
 
-    def get_arch_file(self, release: dict[str, Any]) -> str:
+    def get_arch_file(self, release: Mapping[str, Any]) -> str:
         urls: list[str] = [
             rf["download_url"]
             for rf in release["files"]
@@ -250,11 +245,11 @@ class AllVersions:
         self.macos_pypy = PyPyVersions("64")
         self.macos_pypy_arm64 = PyPyVersions("ARM64")
 
-    def update_config(self, config: dict[str, str]) -> None:
+    def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]
         version = Version(config["version"])
         spec = Specifier(f"=={version.major}.{version.minor}.*")
-        log.info(f"Reading in '{identifier}' -> {spec} @ {version}")
+        log.info("Reading in %r -> %s @ %s", str(identifier), spec, version)
         orig_config = copy.copy(config)
         config_update: AnyConfig | None = None
 
@@ -282,7 +277,7 @@ class AllVersions:
         config.update(**config_update)
 
         if config != orig_config:
-            log.info(f"  Updated {orig_config} to {config}")
+            log.info("  Updated %s to %s", orig_config, config)
 
 
 @click.command()

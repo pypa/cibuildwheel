@@ -4,9 +4,11 @@ import functools
 import platform as platform_module
 import re
 import sys
+from collections.abc import Set
 from enum import Enum
 
-from .typing import Final, Literal, PlatformName, assert_never
+from ._compat.typing import Final, Literal, assert_never
+from .typing import PlatformName
 
 PRETTY_NAMES: Final = {
     "linux": "Linux",
@@ -141,7 +143,7 @@ class Architecture(Enum):
 
 def allowed_architectures_check(
     platform: PlatformName,
-    architectures: set[Architecture],
+    architectures: Set[Architecture],
 ) -> None:
     allowed_architectures = Architecture.all_archs(platform)
 

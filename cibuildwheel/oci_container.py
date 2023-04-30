@@ -8,14 +8,16 @@ import shlex
 import shutil
 import subprocess
 import sys
+import typing
 import uuid
+from collections.abc import Mapping, Sequence
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, Sequence, cast
+from typing import IO, Dict
 
-from cibuildwheel.util import CIProvider, detect_ci_provider
-
-from .typing import Literal, PathOrStr, PopenBytes
+from ._compat.typing import Literal
+from .typing import PathOrStr, PopenBytes
+from .util import CIProvider, detect_ci_provider
 
 ContainerEngine = Literal["docker", "podman"]
 
@@ -166,6 +168,7 @@ class OCIContainer:
                 cwd=from_path,
             )
         else:
+            exec_process: subprocess.Popen[bytes]
             with subprocess.Popen(
                 [
                     self.engine,
@@ -178,10 +181,10 @@ class OCIContainer:
                 ],
                 stdin=subprocess.PIPE,
             ) as exec_process:
-                exec_process.stdin = cast(IO[bytes], exec_process.stdin)
-
+                assert exec_process.stdin
                 with open(from_path, "rb") as from_file:
-                    shutil.copyfileobj(from_file, exec_process.stdin)
+                    # Bug in mypy, https://github.com/python/mypy/issues/15031
+                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
 
                 exec_process.stdin.close()
                 exec_process.wait()
@@ -238,7 +241,7 @@ class OCIContainer:
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: dict[str, str] | None = None,
+        env: Mapping[str, str] | None = None,
         capture_output: bool = False,
         cwd: PathOrStr | None = None,
     ) -> str:
@@ -328,9 +331,9 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return cast(Dict[str, str], env)
+        return typing.cast(Dict[str, str], env)
 
-    def environment_executor(self, command: list[str], environment: dict[str, str]) -> str:
+    def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
         return self.call(command, env=environment, capture_output=True)
 

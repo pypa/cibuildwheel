@@ -10,22 +10,21 @@ import shlex
 import sys
 import textwrap
 import traceback
+import typing
+from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Set
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Iterator, List, Mapping, Union, cast
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
+from typing import Any, Dict, List, Union
 
 from packaging.specifiers import SpecifierSet
 
+from ._compat import tomllib
+from ._compat.typing import Literal, NotRequired, TypedDict
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
 from .oci_container import ContainerEngine
 from .projectfiles import get_requires_python_str
-from .typing import PLATFORMS, Literal, NotRequired, PlatformName, TypedDict
+from .typing import PLATFORMS, PlatformName
 from .util import (
     MANYLINUX_ARCHS,
     MUSLLINUX_ARCHS,
@@ -193,7 +192,7 @@ class OptionsReader:
         *,
         platform: PlatformName,
         env: Mapping[str, str],
-        disallow: dict[str, set[str]] | None = None,
+        disallow: Mapping[str, Set[str]] | None = None,
     ) -> None:
         self.platform = platform
         self.env = env
@@ -462,7 +461,7 @@ class Options:
             print(msg, file=sys.stderr)
             sys.exit(2)
 
-        container_engine = cast(ContainerEngine, container_engine_str)
+        container_engine = typing.cast(ContainerEngine, container_engine_str)
 
         return GlobalOptions(
             package_dir=package_dir,
@@ -599,7 +598,7 @@ class Options:
                 config_settings=config_settings,
             )
 
-    def check_for_invalid_configuration(self, identifiers: list[str]) -> None:
+    def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:
         if self.platform in {"macos", "windows"}:
             before_all_values = {self.build_options(i).before_all for i in identifiers}
 
@@ -631,7 +630,7 @@ class Options:
             read_config_file=False,
         )
 
-    def summary(self, identifiers: list[str]) -> str:
+    def summary(self, identifiers: Iterable[str]) -> str:
         lines = []
         global_option_names = sorted(f.name for f in dataclasses.fields(self.globals))
 
@@ -669,7 +668,7 @@ class Options:
         option_name: str,
         option_value: Any,
         default_value: Any,
-        overrides: dict[str, Any] | None = None,
+        overrides: Mapping[str, Any] | None = None,
     ) -> str:
         """
         Return a summary of the option value, including any overrides, with

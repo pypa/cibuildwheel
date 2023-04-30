@@ -4,9 +4,10 @@ These are utilities for the `/bin` scripts, not for the `cibuildwheel` program.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from io import StringIO
 
-from .typing import Protocol
+from ._compat.typing import Protocol
 
 __all__ = ("Printable", "dump_python_configurations")
 
@@ -16,7 +17,9 @@ class Printable(Protocol):
         ...
 
 
-def dump_python_configurations(inp: dict[str, dict[str, list[dict[str, Printable]]]]) -> str:
+def dump_python_configurations(
+    inp: Mapping[str, Mapping[str, Sequence[Mapping[str, Printable]]]]
+) -> str:
     output = StringIO()
     for header, values in inp.items():
         output.write(f"[{header}]\n")

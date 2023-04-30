@@ -3,16 +3,17 @@ from __future__ import annotations
 import subprocess
 import sys
 import textwrap
-from collections.abc import Set
+from collections.abc import Iterable, Iterator, Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Iterator, Tuple
+from typing import Tuple
 
+from ._compat.typing import OrderedDict, assert_never
 from .architecture import Architecture
 from .logger import log
 from .oci_container import OCIContainer
 from .options import Options
-from .typing import OrderedDict, PathOrStr, assert_never
+from .typing import PathOrStr
 from .util import (
     AlreadyBuiltWheelError,
     BuildSelector,
@@ -113,7 +114,7 @@ def get_build_steps(
 
 
 def check_all_python_exist(
-    *, platform_configs: list[PythonConfiguration], container: OCIContainer
+    *, platform_configs: Iterable[PythonConfiguration], container: OCIContainer
 ) -> None:
     exist = True
     messages = []
@@ -138,7 +139,7 @@ def check_all_python_exist(
 def build_in_container(
     *,
     options: Options,
-    platform_configs: list[PythonConfiguration],
+    platform_configs: Sequence[PythonConfiguration],
     container: OCIContainer,
     container_project_path: PurePath,
     container_package_dir: PurePath,
@@ -176,7 +177,7 @@ def build_in_container(
     for config in platform_configs:
         log.build_start(config.identifier)
         build_options = options.build_options(config.identifier)
-        build_frontend = build_frontend_or_default(build_options.build_frontend, "pip")
+        build_frontend = build_frontend_or_default(build_options.build_frontend)
 
         dependency_constraint_flags: list[PathOrStr] = []
 
@@ -242,11 +243,10 @@ def build_in_container(
             container.call(["rm", "-rf", built_wheel_dir])
             container.call(["mkdir", "-p", built_wheel_dir])
 
-            verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
             extra_flags = split_config_settings(build_options.config_settings, build_frontend)
 
             if build_frontend == "pip":
-                extra_flags += verbosity_flags
+                extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                 container.call(
                     [
                         "python",
@@ -261,8 +261,9 @@ def build_in_container(
                     env=env,
                 )
             elif build_frontend == "build":
-                verbosity_setting = " ".join(verbosity_flags)
-                extra_flags += (f"--config-setting={verbosity_setting}",)
+                if not 0 <= build_options.build_verbosity < 2:
+                    msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
+                    log.warning(msg)
                 container.call(
                     [
                         "python",
@@ -438,7 +439,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
             sys.exit(1)
 
 
-def _matches_prepared_command(error_cmd: list[str], command_template: str) -> bool:
+def _matches_prepared_command(error_cmd: Sequence[str], command_template: str) -> bool:
     if len(error_cmd) < 3 or error_cmd[0:2] != ["sh", "-c"]:
         return False
     command_prefix = command_template.split("{", maxsplit=1)[0].strip()

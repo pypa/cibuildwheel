@@ -39,6 +39,9 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-latest, macos-11]
         python_version: ['3.11']
+        include:
+        - os: ubuntu-22.04
+          python_version: '3.7'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v3

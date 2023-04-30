@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Sequence
+from typing import Callable, Dict, List  # noqa: TID251
 
 import bashlex
 
@@ -10,7 +11,7 @@ import bashlex
 EnvironmentExecutor = Callable[[List[str], Dict[str, str]], str]
 
 
-def local_environment_executor(command: list[str], env: dict[str, str]) -> str:
+def local_environment_executor(command: Sequence[str], env: Mapping[str, str]) -> str:
     return subprocess.run(command, env=env, text=True, stdout=subprocess.PIPE, check=True).stdout
 
 
@@ -22,7 +23,7 @@ class NodeExecutionContext:
 
 
 def evaluate(
-    value: str, environment: dict[str, str], executor: EnvironmentExecutor | None = None
+    value: str, environment: Mapping[str, str], executor: EnvironmentExecutor | None = None
 ) -> str:
     if not value:
         # empty string evaluates to empty string
@@ -40,7 +41,9 @@ def evaluate(
     return evaluate_node(
         value_word_node,
         context=NodeExecutionContext(
-            environment=environment, input=value, executor=executor or local_environment_executor
+            environment=dict(environment),
+            input=value,
+            executor=executor or local_environment_executor,
         ),
     )
 
@@ -105,7 +108,7 @@ def evaluate_nodes_as_compound_command(
 
 
 def evaluate_nodes_as_simple_command(
-    nodes: list[bashlex.ast.node], context: NodeExecutionContext
+    nodes: Iterable[bashlex.ast.node], context: NodeExecutionContext
 ) -> str:
     command = [evaluate_node(part, context=context) for part in nodes]
     return context.executor(command, context.environment)

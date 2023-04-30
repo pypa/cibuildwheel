@@ -431,11 +431,6 @@
   ci: [github]
   os: [apple, linux, windows]
 
-- name: pydantic
-  gh: samuelcolvin/pydantic
-  ci: [github]
-  os: [apple, linux, windows]
-
 - name: vaex
   gh: vaexio/vaex
   ci: [github]

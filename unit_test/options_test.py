@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel.__main__ import get_build_identifiers
+from cibuildwheel.__main__ import get_build_identifiers, get_platform_module
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.environment import parse_environment
 from cibuildwheel.options import (
@@ -49,8 +49,9 @@ def test_options_1(tmp_path, monkeypatch):
 
     options = Options(platform="linux", command_line_arguments=args, env={})
 
+    module = get_platform_module("linux")
     identifiers = get_build_identifiers(
-        platform="linux",
+        platform_module=module,
         build_selector=options.globals.build_selector,
         architectures=options.globals.architectures,
     )
