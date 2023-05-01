@@ -313,11 +313,15 @@ def build_in_container(
             )
 
             testing_temp_dir = PurePosixPath(
-                container.call(["mktemp", "-d"], capture_output=True).strip()
+                container.call(["mktemp", "-d"], capture_output=True, cwd="/").strip()
             )
             venv_dir = testing_temp_dir / "venv"
 
-            container.call(["python", "-m", "virtualenv", "--no-download", venv_dir], env=env)
+            container.call(
+                ["python", "-m", "virtualenv", "--no-download", venv_dir],
+                env=env,
+                cwd="/",
+            )
 
             virtualenv_env = env.copy()
             virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
@@ -338,8 +342,9 @@ def build_in_container(
             # Let's just pick the first one.
             wheel_to_test = repaired_wheels[0]
             container.call(
-                ["pip", "install", str(wheel_to_test) + build_options.test_extras],
+                ["pip", "install", f"{wheel_to_test}{build_options.test_extras}"],
                 env=virtualenv_env,
+                cwd="/",
             )
 
             # Install any requirements to run the tests

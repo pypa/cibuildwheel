@@ -539,8 +539,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 call(
                     "pip",
                     "install",
-                    str(repaired_wheel) + build_options.test_extras,
+                    f"{repaired_wheel.resolve()}{build_options.test_extras}",
                     env=virtualenv_env,
+                    cwd="/",
                 )
 
                 # test the wheel

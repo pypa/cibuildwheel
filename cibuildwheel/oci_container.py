@@ -230,7 +230,7 @@ class OCIContainer:
                 [
                     self.UTILITY_PYTHON,
                     "-c",
-                    f"import sys, json, glob; json.dump(glob.glob({str(glob_pattern)!r}), sys.stdout)",
+                    f"import os, sys, json, glob; json.dump([os.path.abspath(x) for x in glob.glob({str(glob_pattern)!r})], sys.stdout)",
                 ],
                 capture_output=True,
             )

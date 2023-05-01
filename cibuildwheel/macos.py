@@ -591,8 +591,9 @@ def build(options: Options, tmp_path: Path) -> None:
                     call_with_arch(
                         "pip",
                         "install",
-                        f"{repaired_wheel}{build_options.test_extras}",
+                        f"{repaired_wheel.resolve()}{build_options.test_extras}",
                         env=virtualenv_env,
+                        cwd="/",
                     )
 
                     # test the wheel
