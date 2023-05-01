@@ -308,7 +308,9 @@ def build_in_container(
 
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            container.call(["pip", "install", "virtualenv", *dependency_constraint_flags], env=env)
+            container.call(
+                ["pip", "install", "virtualenv", *dependency_constraint_flags], env=env, cwd="/"
+            )
 
             testing_temp_dir = PurePosixPath(
                 container.call(["mktemp", "-d"], capture_output=True).strip()

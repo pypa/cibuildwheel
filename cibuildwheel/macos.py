@@ -292,6 +292,7 @@ def setup_python(
             "delocate",
             *dependency_constraint_flags,
             env=env,
+            cwd="/",
         )
     elif build_frontend == "build":
         call(
@@ -302,6 +303,7 @@ def setup_python(
             "build[virtualenv]",
             *dependency_constraint_flags,
             env=env,
+            cwd="/",
         )
     else:
         assert_never(build_frontend)
@@ -538,7 +540,14 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     # set up a virtual environment to install and test from, to make sure
                     # there are no dependencies that were pulled in at build time.
-                    call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
+                    call(
+                        "pip",
+                        "install",
+                        "virtualenv",
+                        *dependency_constraint_flags,
+                        env=env,
+                        cwd="/",
+                    )
 
                     venv_dir = identifier_tmp_dir / "venv-test"
 
