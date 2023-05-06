@@ -61,6 +61,27 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
+def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> None:
+    xbuildenv_cache_dir = CIBW_CACHE_PATH / f"pyodide-xbuildenv-{pyodide_version}"
+    pyodide_root = xbuildenv_cache_dir / ".pyodide-xbuildenv/xbuildenv/pyodide-root/"
+    if pyodide_root.exists():
+        env["PYODIDE_ROOT"] = str(pyodide_root)
+        return
+
+    xbuildenv_cache_dir.mkdir(exist_ok=True)
+    env.pop("PYODIDE_ROOT", None)
+    call(
+        "pyodide",
+        "xbuildenv",
+        "install",
+        "--download",
+        env=env,
+        cwd=xbuildenv_cache_dir,
+    )
+    env["PYODIDE_ROOT"] = str(pyodide_root)
+
+
+
 def get_base_python(identifier: str) -> Path:
     implementation_id = identifier.split("-")[0]
     majorminor = implementation_id[len("cp") :]
@@ -152,24 +173,7 @@ def setup_python(
     env["PATH"] = os.pathsep.join([env["PATH"], str(emcc_path.parent)])
 
     log.step("Installing Pyodide xbuildenv...")
-    xbuildenv_cache_dir = CIBW_CACHE_PATH / (
-        "pyodide-xbuildenv-" + python_configuration.pyodide_version
-    )
-    xbuildenv_cache_dir.mkdir(exist_ok=True)
-    env.pop("PYODIDE_ROOT", None)
-    stdout = call(
-        "pyodide",
-        "xbuildenv",
-        "install",
-        "--download",
-        env=env,
-        cwd=xbuildenv_cache_dir,
-        capture_stdout=True,
-    )
-    print(stdout)
-
-    pyodide_root = xbuildenv_cache_dir / Path(stdout.split("\n")[-2])
-    env["PYODIDE_ROOT"] = str(pyodide_root)
+    install_xbuildenv(env, python_configuration.pyodide_version)
 
     return env
 
