@@ -29,7 +29,6 @@ from typing import (
     TypeVar,
 )
 from zipfile import ZipFile
-from typing import Any, ClassVar, TextIO, TypeVar
 
 import bracex
 import certifi
