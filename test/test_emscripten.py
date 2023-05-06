@@ -42,7 +42,6 @@ def test_emscripten_build(tmp_path, use_pyproject_toml):
 
     # check that the expected wheels are produced
     expected_wheels = [
-        "spam-0.1.0-cp310-cp310-emscripten_3_1_27_wasm32.whl",
         "spam-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl",
     ]
 
