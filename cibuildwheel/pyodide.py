@@ -81,7 +81,6 @@ def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> None:
     env["PYODIDE_ROOT"] = str(pyodide_root)
 
 
-
 def get_base_python(identifier: str) -> Path:
     implementation_id = identifier.split("-")[0]
     majorminor = implementation_id[len("cp") :]
