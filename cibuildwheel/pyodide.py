@@ -220,8 +220,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
-                vesion_str = config.pyodide_version.rpartition(".")[0].replace(".", "_")
-                constraints_path = resources_dir / f"constraints-pyodide-{vesion_str}.txt"
+                constraints_path = build_options.dependency_constraints.get_for_python_version(config.version),
                 dependency_constraint_flags = ["-c", constraints_path]
 
             env = setup_python(
