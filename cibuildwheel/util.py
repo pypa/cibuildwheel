@@ -22,9 +22,6 @@ from time import sleep
 from typing import (
     Any,
     ClassVar,
-    Generator,
-    Iterable,
-    Sequence,
     TextIO,
     TypeVar,
 )

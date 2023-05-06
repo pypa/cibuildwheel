@@ -4,10 +4,9 @@ import contextlib
 import os
 import shutil
 import sys
-from collections.abc import Set
+from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 from filelock import FileLock
 
@@ -28,7 +27,6 @@ from .util import (
     get_pip_version,
     prepare_command,
     read_python_configs,
-    resources_dir,
     shell,
     split_config_settings,
     test_fail_cwd_file,
@@ -220,7 +218,9 @@ def build(options: Options, tmp_path: Path) -> None:
 
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
-                constraints_path = build_options.dependency_constraints.get_for_python_version(config.version),
+                constraints_path = build_options.dependency_constraints.get_for_python_version(
+                    config.version
+                )
                 dependency_constraint_flags = ["-c", constraints_path]
 
             env = setup_python(

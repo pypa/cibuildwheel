@@ -11,7 +11,6 @@ from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Sequence
 
 from filelock import FileLock
 from packaging.version import Version
