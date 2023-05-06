@@ -27,7 +27,6 @@ from .util import (
     get_build_verbosity_extra_flags,
     get_pip_version,
     prepare_command,
-    pyodide_python_script,
     read_python_configs,
     resources_dir,
     shell,
@@ -154,8 +153,6 @@ def setup_python(
 
     env["PATH"] = os.pathsep.join([env["PATH"], str(emcc_path.parent)])
 
-    # There will be a command to install the xbuildenv directly soon...
-    # for now, pyodide config does it as a side effect.
     log.step("Installing Pyodide xbuildenv...")
     xbuildenv_cache_dir = CIBW_CACHE_PATH / (
         "pyodide-xbuildenv-" + python_configuration.pyodide_version
@@ -163,13 +160,10 @@ def setup_python(
     xbuildenv_cache_dir.mkdir(exist_ok=True)
     env.pop("PYODIDE_ROOT", None)
     stdout = call(
-        "python",
-        "-c",
-        "from pyodide_build.out_of_tree.utils import initialize_pyodide_root ; "
-        "import os ; "
-        "initialize_pyodide_root() ; "
-        'print("PYODIDE_ROOT:") ; '
-        'print(os.environ["PYODIDE_ROOT"]) ;',
+        "pyodide",
+        "xbuildenv",
+        "install",
+        "--download",
         env=env,
         cwd=xbuildenv_cache_dir,
         capture_stdout=True,
@@ -178,17 +172,6 @@ def setup_python(
 
     pyodide_root = xbuildenv_cache_dir / Path(stdout.split("\n")[-2])
     env["PYODIDE_ROOT"] = str(pyodide_root)
-
-    pyodide_version_tuple = tuple(int(x) for x in pyodide_version.split("."))
-    if pyodide_version_tuple < (0, 23, 1):
-        shutil.copy(pyodide_python_script, pyodide_root / "dist/python")
-
-    if pyodide_version_tuple == (0, 23, 0):
-        # Oops we forgot this one...
-        download(
-            f"https://cdn.jsdelivr.net/pyodide/v{pyodide_version}/full/python_stdlib.zip",
-            pyodide_root / "dist/python_stdlib.zip",
-        )
 
     return env
 
@@ -280,16 +263,11 @@ def build(options: Options, tmp_path: Path) -> None:
                     "pyodide",
                     "build",
                     build_options.package_dir,
+                    f"--outdir={built_wheel_dir}",
                     *extra_flags,
                     env=build_env,
                     cwd=identifier_tmp_dir / "build",
                 )
-                output = next((identifier_tmp_dir / "build/dist").glob("*.whl"), None)
-                if output is None:
-                    output = next((build_options.package_dir / "dist").glob("*.whl"), None)
-
-                shutil.move(str(output), built_wheel_dir)
-
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
                 if built_wheel.name.endswith("none-any.whl"):

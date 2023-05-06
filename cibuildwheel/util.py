@@ -65,7 +65,6 @@ __all__ = [
 resources_dir: Final[Path] = Path(__file__).parent / "resources"
 
 install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
-pyodide_python_script: Final[Path] = resources_dir / "pyodide_python.sh"
 
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
