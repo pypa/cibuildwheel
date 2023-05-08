@@ -10,7 +10,11 @@ from enum import Enum
 from ._compat.typing import Final, Literal, assert_never
 from .typing import PlatformName
 
-PRETTY_NAMES: Final = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
+PRETTY_NAMES: Final[dict[PlatformName, str]] = {
+    "linux": "Linux",
+    "macos": "macOS",
+    "windows": "Windows",
+}
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
     {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64"},
