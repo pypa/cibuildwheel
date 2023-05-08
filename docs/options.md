@@ -1050,7 +1050,7 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
 ### `CIBW_CONTAINER_ENGINE` {: #container-engine}
 > Specify which container engine to use when building Linux wheels
 
-Options: `docker` `podman`
+Options: `docker[;create_args: ...]` `podman[;create_args: ...]`
 
 Default: `docker`
 
@@ -1058,6 +1058,12 @@ Set the container engine to use. Docker is the default, or you can switch to
 [Podman](https://podman.io/). To use Docker, you need to have a Docker daemon
 running and `docker` available on PATH. To use Podman, it needs to be
 installed and `podman` available on PATH.
+
+Arguments can be supplied to the container engine. Currently, the only option
+that's customisable is 'create_args'. Parameters to create_args are
+space-separated strings, which are passed to the container engine on the
+command line when it's creating the container. If you want to include spaces
+inside a parameter, use shell-style quoting.
 
 !!! tip
 
@@ -1073,14 +1079,22 @@ installed and `podman` available on PATH.
 !!! tab examples "Environment variables"
 
     ```yaml
+    # use podman instead of docker
     CIBW_CONTAINER_ENGINE: podman
+
+    # pass command line options to 'docker create'
+    CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
     ```
 
 !!! tab examples "pyproject.toml"
 
     ```toml
     [tool.cibuildwheel]
+    # use podman instead of docker
     container-engine = "podman"
+
+    # pass command line options to 'docker create'
+    container-engine = { name = "docker", create_args = ["--gpus", "all"]}
     ```
 
 
