@@ -22,7 +22,7 @@ from ._compat.typing import Literal, NotRequired, TypedDict
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
-from .oci_container import ContainerEngine
+from .oci_container import OCIContainerEngineConfig
 from .projectfiles import get_requires_python_str
 from .typing import PLATFORMS, PlatformName
 from .util import (
@@ -75,7 +75,7 @@ class GlobalOptions:
     build_selector: BuildSelector
     test_selector: TestSelector
     architectures: set[Architecture]
-    container_engine: ContainerEngine
+    container_engine: OCIContainerEngineConfig
 
 
 @dataclasses.dataclass(frozen=True)

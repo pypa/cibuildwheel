@@ -12,7 +12,7 @@ import pytest
 import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
-from cibuildwheel.oci_container import OCIContainer
+from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
 
 # Test utilities
 
@@ -21,7 +21,7 @@ from cibuildwheel.oci_container import OCIContainer
 pm = platform.machine()
 if pm == "x86_64":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
-elif pm == "aarch64":
+elif pm in ["aarch64", "arm64"]:
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
 elif pm == "ppc64le":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
@@ -37,7 +37,7 @@ def container_engine(request):
         pytest.skip("need --run-docker option to run")
     if request.param == "podman" and not request.config.getoption("--run-podman"):
         pytest.skip("need --run-podman option to run")
-    return request.param
+    return OCIContainerEngineConfig(name=request.param)
 
 
 # Tests
@@ -296,3 +296,18 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     # as UID 0. The reason why permission errors occur on podman is documented
     # in https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
+
+
+def test_create_args(tmp_path: Path):
+    test_mount_dir = tmp_path / "test_mount"
+    test_mount_dir.mkdir()
+    (test_mount_dir / "test_file.txt").write_text("1234")
+    container_engine = OCIContainerEngineConfig(
+        name="docker", create_args=[f"--volume={test_mount_dir}:/test_mount"]
+    )
+
+    with OCIContainer(
+        engine=container_engine,
+        image=DEFAULT_IMAGE,
+    ) as container:
+        assert container.call(["cat", "/test_mount/test_file.txt"], capture_output=True) == "1234"
