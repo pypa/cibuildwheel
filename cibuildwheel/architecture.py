@@ -10,7 +10,7 @@ from enum import Enum
 from ._compat.typing import Final, Literal, assert_never
 from .typing import PlatformName
 
-PRETTY_NAMES: Final = {
+PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "linux": "Linux",
     "macos": "macOS",
     "windows": "Windows",

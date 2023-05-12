@@ -5,19 +5,20 @@ import os
 import re
 import sys
 import time
-from typing import IO, AnyStr
+from typing import IO, AnyStr, Tuple
 
 from ._compat.typing import Final
 from .util import CIProvider, detect_ci_provider
 
-DEFAULT_FOLD_PATTERN: Final = ("{name}", "")
-FOLD_PATTERNS: Final = {
+FoldPattern = Tuple[str, str]
+DEFAULT_FOLD_PATTERN: Final[FoldPattern] = ("{name}", "")
+FOLD_PATTERNS: Final[dict[str, FoldPattern]] = {
     "azure": ("##[group]{name}", "##[endgroup]"),
     "travis": ("travis_fold:start:{identifier}\n{name}", "travis_fold:end:{identifier}"),
     "github": ("::group::{name}", "::endgroup::{name}"),
 }
 
-PLATFORM_IDENTIFIER_DESCRIPTIONS: Final = {
+PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
     "manylinux_x86_64": "manylinux x86_64",
     "manylinux_i686": "manylinux i686",
     "manylinux_aarch64": "manylinux aarch64",
