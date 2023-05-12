@@ -18,7 +18,7 @@ from typing import IO, Dict
 
 from ._compat.typing import Literal
 from .typing import PathOrStr, PopenBytes
-from .util import CIProvider, detect_ci_provider
+from .util import CIProvider, detect_ci_provider, parse_key_value_string
 
 ContainerEngineName = Literal["docker", "podman"]
 
@@ -27,6 +27,25 @@ ContainerEngineName = Literal["docker", "podman"]
 class OCIContainerEngineConfig:
     name: ContainerEngineName
     create_args: Sequence[str] = ()
+
+    @staticmethod
+    def from_config_string(config_string: str) -> OCIContainerEngineConfig:
+        config_dict = parse_key_value_string(config_string, ["name"])
+        name = " ".join(config_dict["name"])
+        if name not in ["docker", "podman"]:
+            msg = f"unknown container engine {name}"
+            raise ValueError(msg)
+
+        name = typing.cast(ContainerEngineName, name)
+        # some flexibility in the option name to cope with TOML conventions
+        create_args = config_dict.get("create_args") or config_dict.get("create-args") or []
+        return OCIContainerEngineConfig(name=name, create_args=create_args)
+
+    def options_summary(self) -> str | dict[str, str]:
+        if not self.create_args:
+            return self.name
+        else:
+            return {"name": self.name, "create_args": repr(self.create_args)}
 
 
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")

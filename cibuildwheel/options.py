@@ -10,7 +10,6 @@ import shlex
 import sys
 import textwrap
 import traceback
-import typing
 from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Set
 from pathlib import Path
 from typing import Any, Dict, List, Union
@@ -136,8 +135,14 @@ DISALLOWED_OPTIONS = {
 
 
 class TableFmt(TypedDict):
+    # a format string, used with '.format', with `k` and `v` parameters
+    # e.g. "{k}={v}"
     item: str
+    # the string that is inserted between items
+    # e.g. " "
     sep: str
+    # a quoting function that, if supplied, is called to quote each value
+    # e.g. shlex.quote
     quote: NotRequired[Callable[[str], str]]
 
 
@@ -454,14 +459,16 @@ class Options:
         )
         test_selector = TestSelector(skip_config=test_skip)
 
-        container_engine_str = self.reader.get("container-engine")
+        container_engine_str = self.reader.get(
+            "container-engine", table={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote}
+        )
 
-        if container_engine_str not in ["docker", "podman"]:
-            msg = f"cibuildwheel: Unrecognised container_engine {container_engine_str!r}, only 'docker' and 'podman' are supported"
+        try:
+            container_engine = OCIContainerEngineConfig.from_config_string(container_engine_str)
+        except ValueError as e:
+            msg = f"cibuildwheel: Failed to parse container config. {e}"
             print(msg, file=sys.stderr)
             sys.exit(2)
-
-        container_engine = typing.cast(ContainerEngine, container_engine_str)
 
         return GlobalOptions(
             package_dir=package_dir,

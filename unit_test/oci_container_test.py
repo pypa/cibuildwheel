@@ -30,6 +30,8 @@ elif pm == "s390x":
 else:
     DEFAULT_IMAGE = ""
 
+PODMAN = OCIContainerEngineConfig(name="podman")
+
 
 @pytest.fixture(params=["docker", "podman"])
 def container_engine(request):
@@ -280,7 +282,7 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
     monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
 
-    with OCIContainer(engine="podman", image=DEFAULT_IMAGE) as container:
+    with OCIContainer(engine=PODMAN, image=DEFAULT_IMAGE) as container:
         # test running a command
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
@@ -311,3 +313,49 @@ def test_create_args(tmp_path: Path):
         image=DEFAULT_IMAGE,
     ) as container:
         assert container.call(["cat", "/test_mount/test_file.txt"], capture_output=True) == "1234"
+
+
+@pytest.mark.parametrize(
+    ("config", "name", "create_args"),
+    [
+        (
+            "docker",
+            "docker",
+            [],
+        ),
+        (
+            "docker;create_args:",
+            "docker",
+            [],
+        ),
+        (
+            "docker;create_args:--abc --def",
+            "docker",
+            ["--abc", "--def"],
+        ),
+        (
+            "docker; create_args: --abc --def",
+            "docker",
+            ["--abc", "--def"],
+        ),
+        (
+            "name:docker; create_args: --abc --def",
+            "docker",
+            ["--abc", "--def"],
+        ),
+        (
+            'docker; create_args: --some-option="value with spaces"',
+            "docker",
+            ["--some-option=value with spaces"],
+        ),
+        (
+            'docker; create_args: --some-option="value; with; semicolons" --another-option',
+            "docker",
+            ["--some-option=value; with; semicolons", "--another-option"],
+        ),
+    ],
+)
+def test_parse_engine_config(config, name, create_args):
+    engine_config = OCIContainerEngineConfig.from_config_string(config)
+    assert engine_config.name == name
+    assert engine_config.create_args == create_args
