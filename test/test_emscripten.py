@@ -16,9 +16,6 @@ def test_emscripten_build(tmp_path, use_pyproject_toml):
     if platform.machine() == "arm64":
         pytest.skip("emsdk doesn't work correctly on arm64")
 
-    if not shutil.which("python3.10"):
-        pytest.skip("Python 3.10 not installed")
-
     if not shutil.which("python3.11"):
         pytest.skip("Python 3.11 not installed")
 
