@@ -5,7 +5,9 @@ import sys
 
 import pytest
 
+from cibuildwheel import architecture
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.util import get_host_platform
 
 
 @pytest.fixture(
@@ -24,6 +26,7 @@ def platform_machine(request, monkeypatch):
     platform_name, platform_value, machine_value, machine_name = request.param
     monkeypatch.setattr(sys, "platform", platform_value)
     monkeypatch.setattr(platform_module, "machine", lambda: machine_value)
+    monkeypatch.setattr(architecture, "HOST_PLATFORM", get_host_platform())
     return platform_name, machine_name
 
 

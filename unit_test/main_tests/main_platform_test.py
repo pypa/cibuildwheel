@@ -6,6 +6,8 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.util import get_host_platform
+from cibuildwheel import __main__
 
 from ..conftest import MOCK_PACKAGE_DIR
 
@@ -35,6 +37,7 @@ def test_unknown_platform_on_ci(monkeypatch, capsys):
     monkeypatch.setenv("CI", "true")
     monkeypatch.setattr(sys, "platform", "nonexistent")
     monkeypatch.delenv("CIBW_PLATFORM", raising=False)
+    monkeypatch.setattr(__main__, "HOST_PLATFORM", get_host_platform())
 
     with pytest.raises(SystemExit) as exit:
         main()
