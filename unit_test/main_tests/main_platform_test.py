@@ -4,10 +4,10 @@ import sys
 
 import pytest
 
+from cibuildwheel import __main__
 from cibuildwheel.__main__ import main
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.util import get_host_platform
-from cibuildwheel import __main__
 
 from ..conftest import MOCK_PACKAGE_DIR
 
