@@ -139,6 +139,6 @@ jobs:
       env:
         CIBW_PLATFORM: pyodide
 
-    - name: Run the emulation tests
+    - name: Run the emscripten tests
       run: |
         pytest test/test_emscripten.py
