@@ -93,7 +93,24 @@ CIBW_CACHE_PATH: Final[Path] = Path(
     os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)
 ).resolve()
 
-IS_WIN: Final[bool] = sys.platform.startswith("win")
+
+def get_host_platform() -> PlatformName | None:
+    # Cross-platform support. Used for --print-build-identifiers or docker builds.
+    if sys.platform.startswith("linux"):
+        return "linux"
+    elif sys.platform.startswith("darwin"):
+        return "macos"
+    elif sys.platform.startswith("win"):
+        return "windows"
+    else:
+        return None
+
+
+HOST_PLATFORM: Final[PlatformName | None] = get_host_platform()
+
+HOST_IS_WINDOWS: Final[bool] = get_host_platform() == "windows"
+
+HOST_IS_WIN32: Final[bool] = sys.platform == "win32"
 
 
 @typing.overload
@@ -135,7 +152,7 @@ def call(
     if capture_stdout:
         kwargs["universal_newlines"] = True
         kwargs["stdout"] = subprocess.PIPE
-    result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
+    result = subprocess.run(args_, check=True, shell=HOST_IS_WINDOWS, env=env, cwd=cwd, **kwargs)
     if not capture_stdout:
         return None
     return typing.cast(str, result.stdout)
@@ -585,7 +602,7 @@ def virtualenv(
     # version of pip that will end-up installed.
     # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
     if (
-        not IS_WIN
+        not HOST_IS_WINDOWS
         and constraints["pip"] != "embed"
         and Version(constraints["pip"]) >= Version("19.3")
     ):
@@ -602,7 +619,7 @@ def virtualenv(
         python,
         venv_path,
     )
-    if IS_WIN:
+    if HOST_IS_WINDOWS:
         paths = [str(venv_path), str(venv_path / "Scripts")]
     else:
         paths = [str(venv_path / "bin")]

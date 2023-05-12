@@ -8,7 +8,7 @@ import time
 from typing import IO, AnyStr, Tuple
 
 from ._compat.typing import Final
-from .util import CIProvider, detect_ci_provider
+from .util import HOST_IS_WIN32, CIProvider, detect_ci_provider
 
 FoldPattern = Tuple[str, str]
 DEFAULT_FOLD_PATTERN: Final[FoldPattern] = ("{name}", "")
@@ -48,7 +48,7 @@ class Logger:
     active_fold_group_name: str | None = None
 
     def __init__(self) -> None:
-        if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+        if HOST_IS_WIN32 and hasattr(sys.stdout, "reconfigure"):
             # the encoding on Windows can be a 1-byte charmap, but all CIs
             # support utf8, so we hardcode that
             sys.stdout.reconfigure(encoding="utf8")
@@ -253,8 +253,7 @@ def file_supports_color(file_obj: IO[AnyStr]) -> bool:
     """
     Returns True if the running system's terminal supports color.
     """
-    plat = sys.platform
-    supported_platform = plat != "win32" or "ANSICON" in os.environ
+    supported_platform = HOST_IS_WIN32 or "ANSICON" in os.environ
 
     is_a_tty = file_is_a_tty(file_obj)
 

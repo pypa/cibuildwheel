@@ -23,6 +23,8 @@ from cibuildwheel.options import CommandLineArguments, Options, compute_options
 from cibuildwheel.typing import PLATFORMS, GenericPythonConfiguration, PlatformName
 from cibuildwheel.util import (
     CIBW_CACHE_PATH,
+    HOST_IS_WINDOWS,
+    HOST_PLATFORM,
     BuildSelector,
     CIProvider,
     Unbuffered,
@@ -164,7 +166,7 @@ def main() -> None:
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
-        shutil.rmtree(temp_dir, ignore_errors=sys.platform.startswith("win"))
+        shutil.rmtree(temp_dir, ignore_errors=HOST_IS_WINDOWS)
         if temp_dir.exists():
             log.warning(f"Can't delete temporary folder '{temp_dir}'")
 
@@ -197,19 +199,15 @@ def _compute_platform_ci() -> PlatformName:
             file=sys.stderr,
         )
         sys.exit(2)
-    if sys.platform.startswith("linux"):
-        return "linux"
-    elif sys.platform == "darwin":
-        return "macos"
-    elif sys.platform == "win32":
-        return "windows"
-    else:
-        print(
-            'cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
-            "cibuildwheel using the --platform argument. Check --help output for more information.",
-            file=sys.stderr,
-        )
-        sys.exit(2)
+    if HOST_PLATFORM:
+        return HOST_PLATFORM
+
+    print(
+        'cibuildwheel: Unable to detect platform from "sys.platform" in a CI environment. You can run '
+        "cibuildwheel using the --platform argument. Check --help output for more information.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 
 def _compute_platform(args: CommandLineArguments) -> PlatformName:
@@ -328,7 +326,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
-        shutil.rmtree(tmp_path, ignore_errors=sys.platform.startswith("win"))
+        shutil.rmtree(tmp_path, ignore_errors=HOST_IS_WINDOWS)
         if tmp_path.exists():
             log.warning(f"Can't delete temporary folder '{tmp_path}'")
 

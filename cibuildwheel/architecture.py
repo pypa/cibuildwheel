@@ -3,12 +3,12 @@ from __future__ import annotations
 import functools
 import platform as platform_module
 import re
-import sys
 from collections.abc import Set
 from enum import Enum
 
 from ._compat.typing import Final, Literal, assert_never
 from .typing import PlatformName
+from .util import HOST_PLATFORM
 
 PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "linux": "Linux",
@@ -74,20 +74,14 @@ class Architecture(Enum):
     def auto_archs(platform: PlatformName) -> set[Architecture]:
         native_machine = platform_module.machine()
 
-        # Cross-platform support. Used for --print-build-identifiers or docker builds.
-        host_platform: PlatformName = (
-            "windows"
-            if sys.platform.startswith("win")
-            else ("macos" if sys.platform.startswith("darwin") else "linux")
-        )
-
+        assert HOST_PLATFORM
         native_architecture = Architecture(native_machine)
 
         # we might need to rename the native arch to the machine we're running
         # on, as the same arch can have different names on different platforms
-        if host_platform != platform:
+        if platform != HOST_PLATFORM:
             for arch_synonym in ARCH_SYNONYMS:
-                if native_machine == arch_synonym.get(host_platform):
+                if native_machine == arch_synonym.get(HOST_PLATFORM):
                     synonym = arch_synonym[platform]
 
                     if synonym is None:
