@@ -188,6 +188,11 @@ def expected_wheels(
 
     wheels = []
 
+    if platform == "pyodide":
+        python_abi_tag = "cp311-cp311"
+        platform_tag = "emscripten_3_1_32_wasm32"
+        return f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
+
     for python_abi_tag in python_abi_tags:
         platform_tags = []
 
@@ -234,7 +239,6 @@ def expected_wheels(
                 platform_tags.append(
                     f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
                 )
-
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
