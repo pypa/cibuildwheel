@@ -54,7 +54,6 @@ def install_emscripten(tmp: Path, version: str) -> Path:
         download(url, emsdk_zip)
         installation_path.mkdir()
         extract_zip(emsdk_zip, installation_path)
-        os.chmod(emsdk_path, 0o777)
         call(emsdk_path, "install", version)
         call(emsdk_path, "activate", version)
 

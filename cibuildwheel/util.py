@@ -346,7 +346,17 @@ def download(url: str, dest: Path) -> None:
 
 def extract_zip(zip_src: Path, dest: Path) -> None:
     with ZipFile(zip_src) as zip_:
-        zip_.extractall(dest)
+        for zinfo in zip_.filelist:
+            zip_.extract(zinfo, dest)
+
+            # Set permissions to the same values as they were set in the archive
+            # We have to do this manually due to
+            # https://github.com/python/cpython/issues/59999
+            # But some files in the zipfile seem to have external_attr with 0
+            # permissions. In that case just use the default value???
+            permissions = (zinfo.external_attr >> 16) & 0o777
+            if permissions != 0:
+                dest.joinpath(zinfo.filename).chmod(permissions)
 
 
 class DependencyConstraints:
