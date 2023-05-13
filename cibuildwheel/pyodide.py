@@ -269,7 +269,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     f"--outdir={built_wheel_dir}",
                     *extra_flags,
                     env=build_env,
-                    cwd=identifier_tmp_dir / "build",
                 )
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
