@@ -139,7 +139,7 @@ def setup_python(
     which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
     if which_pip != str(venv_bin_path / "pip"):
         print(
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
+            "cibuildwheel: pip available on PATH doesn't match our venv instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -150,7 +150,7 @@ def setup_python(
     which_python = call("which", "python", env=env, capture_stdout=True).strip()
     if which_python != str(venv_bin_path / "python"):
         print(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
+            "cibuildwheel: python available on PATH doesn't match our venv instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
             file=sys.stderr,
         )
         sys.exit(1)
