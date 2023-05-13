@@ -60,14 +60,16 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
-def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> None:
+def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
     xbuildenv_cache_dir = CIBW_CACHE_PATH / f"pyodide-xbuildenv-{pyodide_version}"
     pyodide_root = xbuildenv_cache_dir / ".pyodide-xbuildenv/xbuildenv/pyodide-root/"
     if pyodide_root.exists():
-        env["PYODIDE_ROOT"] = str(pyodide_root)
-        return
+        return str(pyodide_root)
 
     xbuildenv_cache_dir.mkdir(exist_ok=True)
+    # We don't want to mutate env but we need to delete any existing
+    # PYODIDE_ROOT so copy it first.
+    env = dict(env)
     env.pop("PYODIDE_ROOT", None)
     call(
         "pyodide",
@@ -77,7 +79,7 @@ def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> None:
         env=env,
         cwd=xbuildenv_cache_dir,
     )
-    env["PYODIDE_ROOT"] = str(pyodide_root)
+    return str(pyodide_root)
 
 
 def get_base_python(identifier: str) -> Path:
@@ -171,7 +173,7 @@ def setup_python(
     env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
 
     log.step("Installing Pyodide xbuildenv...")
-    install_xbuildenv(env, python_configuration.pyodide_version)
+    env["PYODIDE_ROOT"] = install_xbuildenv(env, python_configuration.pyodide_version)
 
     return env
 
