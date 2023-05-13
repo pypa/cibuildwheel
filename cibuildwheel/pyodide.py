@@ -194,6 +194,9 @@ def build(options: Options, tmp_path: Path) -> None:
         options.globals.build_selector, options.globals.architectures
     )
 
+    if not python_configurations:
+        return
+
     try:
         before_all_options_identifier = python_configurations[0].identifier
         before_all_options = options.build_options(before_all_options_identifier)
