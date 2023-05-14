@@ -1048,9 +1048,12 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
 
 
 ### `CIBW_CONTAINER_ENGINE` {: #container-engine}
-> Specify which container engine to use when building Linux wheels
+> Specify the container engine to use when building Linux wheels
 
-Options: `docker[;create_args: ...]` `podman[;create_args: ...]`
+Options:
+
+- `docker[;create_args: ...]`
+- `podman[;create_args: ...]`
 
 Default: `docker`
 
@@ -1094,7 +1097,7 @@ inside a parameter, use shell-style quoting.
     container-engine = "podman"
 
     # pass command line options to 'docker create'
-    container-engine = { name = "docker", create_args = ["--gpus", "all"]}
+    container-engine = { name = "docker", create-args = ["--gpus", "all"]}
     ```
 
 
