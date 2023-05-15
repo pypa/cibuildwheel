@@ -17,6 +17,7 @@ from .options import Options
 from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
+    AlreadyBuiltWheelError,
     BuildSelector,
     NonPlatformWheelError,
     call,
@@ -221,6 +222,7 @@ def build(options: Options, tmp_path: Path) -> None:
             identifier_tmp_dir = tmp_path / config.identifier
             identifier_tmp_dir.mkdir()
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
+            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
 
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
@@ -288,6 +290,23 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if built_wheel.name.endswith("none-any.whl"):
                     raise NonPlatformWheelError()
+
+                if build_options.repair_command:
+                    log.step("Repairing wheel...")
+
+                    repair_command_prepared = prepare_command(
+                        build_options.repair_command,
+                        wheel=built_wheel,
+                        dest_dir=repaired_wheel_dir,
+                    )
+                    shell(repair_command_prepared, env=env)
+                else:
+                    shutil.move(str(built_wheel), repaired_wheel_dir)
+
+                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise AlreadyBuiltWheelError(repaired_wheel.name)
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 log.step("Testing wheel...")
