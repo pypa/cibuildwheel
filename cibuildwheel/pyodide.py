@@ -236,6 +236,15 @@ def build(options: Options, tmp_path: Path) -> None:
                 dependency_constraint_flags,
                 build_options.environment,
             )
+            # The Pyodide command line runner mounts all directories in the host
+            # filesystem into the Pyodide file system, except for the custom
+            # file systems /dev, /lib, /proc, and /tmp. Mounting the mount
+            # points for alternate file systems causes some mysterious failure
+            # of the process (it just quits without any clear error).
+            #
+            # Because of this, by default Pyodide can't see anything under /tmp.
+            # This environment variable tells it also to mount our temp
+            # directory.
             env["_PYODIDE_EXTRA_MOUNTS"] = str(identifier_tmp_dir)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
