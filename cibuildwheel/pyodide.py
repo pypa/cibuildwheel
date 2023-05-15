@@ -179,9 +179,8 @@ def setup_python(
 
 
 def get_python_configurations(
-    build_selector: BuildSelector, architectures: Set[Architecture]
+    build_selector: BuildSelector, architectures: Set[Architecture]  # noqa: ARG001
 ) -> list[PythonConfiguration]:
-    assert architectures == {Architecture.wasm32}
     full_python_configs = read_python_configs("pyodide")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
@@ -245,7 +244,10 @@ def build(options: Options, tmp_path: Path) -> None:
             # Because of this, by default Pyodide can't see anything under /tmp.
             # This environment variable tells it also to mount our temp
             # directory.
-            env["_PYODIDE_EXTRA_MOUNTS"] = str(identifier_tmp_dir)
+            oldmounts = ""
+            if "_PYODIDE_EXTRA_MOUNTS" in env:
+                oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
+            env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + str(identifier_tmp_dir)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:

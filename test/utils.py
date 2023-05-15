@@ -12,6 +12,8 @@ import subprocess
 import sys
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from cibuildwheel.util import CIBW_CACHE_PATH
 
 platform: str
@@ -259,3 +261,7 @@ def get_macos_version():
     """
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))
+
+
+def skip_if_pyodide(reason):
+    return pytest.mark.skipif(platform == "pyodide", reason=reason)
