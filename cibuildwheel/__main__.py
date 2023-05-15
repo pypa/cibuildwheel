@@ -177,7 +177,7 @@ def _compute_platform_only(only: str) -> PlatformName:
         return "macos"
     if "win_" in only or "win32" in only:
         return "windows"
-    if "emscripten_" in only or "pyodide" in only:
+    if "emscripten_" in only:
         return "pyodide"
     print(
         f"Invalid --only='{only}', must be a build selector with a known platform",
