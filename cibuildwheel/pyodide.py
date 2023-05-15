@@ -220,9 +220,11 @@ def build(options: Options, tmp_path: Path) -> None:
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
-            identifier_tmp_dir.mkdir()
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
             repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
+            identifier_tmp_dir.mkdir()
+            built_wheel_dir.mkdir()
+            repaired_wheel_dir.mkdir()
 
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
@@ -267,7 +269,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     shell(before_build_prepared, env=env)
 
                 log.step("Building wheel...")
-                built_wheel_dir.mkdir()
 
                 verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
                 extra_flags = split_config_settings(build_options.config_settings, "build")
