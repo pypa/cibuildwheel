@@ -304,6 +304,9 @@ def test_create_args(tmp_path: Path, request):
     if not request.config.getoption("--run-docker"):
         pytest.skip("need --run-docker option to run")
 
+    if "CIRCLECI" in os.environ:
+        pytest.skip("Skipping test on CircleCI because docker there does not support --volume")
+
     test_mount_dir = tmp_path / "test_mount"
     test_mount_dir.mkdir()
     (test_mount_dir / "test_file.txt").write_text("1234")
