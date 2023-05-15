@@ -83,7 +83,7 @@ def test_cwd(container_engine):
 def test_container_removed(container_engine):
     with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         docker_containers_listing = subprocess.run(
-            f"{container.engine} container ls",
+            f"{container.engine.name} container ls",
             shell=True,
             check=True,
             stdout=subprocess.PIPE,
@@ -94,7 +94,7 @@ def test_container_removed(container_engine):
         old_container_name = container.name
 
     docker_containers_listing = subprocess.run(
-        f"{container.engine} container ls",
+        f"{container.engine.name} container ls",
         shell=True,
         check=True,
         stdout=subprocess.PIPE,
