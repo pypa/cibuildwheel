@@ -53,6 +53,10 @@ def git_ls_remote_versions(url) -> list[VersionTuple]:
             if version.is_prerelease:
                 log.info("Ignoring pre-release %r", str(version))
                 continue
+            # Do not upgrade past 20.22.0 to keep python 3.6 compat
+            if version >= Version("20.22.0"):
+                log.info("Ignoring %r which is not compatible with python 3.6", str(version))
+                continue
             versions.append(VersionTuple(version, version_string))
         except InvalidVersion:
             log.warning("Ignoring ref %r", ref)
