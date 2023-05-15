@@ -300,7 +300,10 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
 
 
-def test_create_args(tmp_path: Path):
+def test_create_args(tmp_path: Path, request):
+    if not request.config.getoption("--run-docker"):
+        pytest.skip("need --run-docker option to run")
+
     test_mount_dir = tmp_path / "test_mount"
     test_mount_dir.mkdir()
     (test_mount_dir / "test_file.txt").write_text("1234")
