@@ -300,12 +300,14 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
 
 
-def test_create_args(tmp_path: Path, request):
+def test_create_args_volume(tmp_path: Path, request):
     if not request.config.getoption("--run-docker"):
         pytest.skip("need --run-docker option to run")
 
-    if "CIRCLECI" in os.environ:
-        pytest.skip("Skipping test on CircleCI because docker there does not support --volume")
+    if "CIRCLECI" in os.environ or "GITLAB_CI" in os.environ:
+        pytest.skip(
+            "Skipping test on CircleCI/GitLab because docker there does not support --volume"
+        )
 
     test_mount_dir = tmp_path / "test_mount"
     test_mount_dir.mkdir()
