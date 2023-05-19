@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import subprocess
 from test import test_projects
+from contextlib import nullcontext as does_not_raise
+import pytest
 
 from . import utils
 
@@ -33,15 +35,18 @@ def test(tmp_path, capfd):
 
     num_builds = len(utils.cibuildwheel_get_build_identifiers(project_dir))
     err = None
-    try:
-        utils.cibuildwheel_run(
+    if num_builds > 1:
+        expectation = pytest.raises(subprocess.CalledProcessError)
+    else:
+        expectation = does_not_raise()
+
+    with expectation:
+        result = utils.cibuildwheel_run(
             project_dir,
             add_env={
                 "CIBW_REPAIR_WHEEL_COMMAND": "python repair.py {wheel} {dest_dir}",
             },
         )
-    except subprocess.CalledProcessError as e:
-        err = e
 
     captured = capfd.readouterr()
 
@@ -57,3 +62,4 @@ def test(tmp_path, capfd):
         # error is raised
         assert err is None
         assert "spam-0.1.0-py2-none-emscripten" in captured.out
+        assert result[0].startswith("spam-0.1.0-py2-none-")

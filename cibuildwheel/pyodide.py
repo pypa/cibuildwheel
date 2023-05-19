@@ -249,9 +249,13 @@ def build(options: Options, tmp_path: Path) -> None:
             # This environment variable tells it also to mount our temp
             # directory.
             oldmounts = ""
+            extra_mounts = [str(identifier_tmp_dir)]
+            if Path(".").resolve().is_relative_to("/tmp"):
+                extra_mounts.append(str(Path(".").resolve()))
+
             if "_PYODIDE_EXTRA_MOUNTS" in env:
                 oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
-            env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + str(identifier_tmp_dir)
+            env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + ":".join(extra_mounts)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:

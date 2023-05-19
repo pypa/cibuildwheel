@@ -53,7 +53,6 @@ def test(capfd, tmp_path):
             "CIBW_TEST_COMMAND": "python {package}/test/run_tests.py",
             # this shouldn't depend on the version of python, so build only CPython 3.11
             "CIBW_BUILD": "cp311-*",
-            "_PYODIDE_EXTRA_MOUNTS": str(tmp_path),
         },
     )
 

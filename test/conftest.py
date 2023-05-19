@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
-
 import pytest
+
+from . import utils
 
 
 def pytest_addoption(parser) -> None:
@@ -22,6 +22,6 @@ def pytest_addoption(parser) -> None:
     params=[{"CIBW_BUILD_FRONTEND": "pip"}, {"CIBW_BUILD_FRONTEND": "build"}], ids=["pip", "build"]
 )
 def build_frontend_env(request) -> dict[str, str]:
-    if os.environ.get("CIBW_PLATFORM", None) == "pyodide":
+    if utils.platform == "pyodide":
         pytest.skip("Can't use pip as build frontend for pyodide platform")
     return request.param  # type: ignore[no-any-return]

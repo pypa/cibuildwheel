@@ -85,7 +85,6 @@ def test(tmp_path):
             # mac/linux.
             "CIBW_TEST_COMMAND": "false || pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
-            "_PYODIDE_EXTRA_MOUNTS": str(tmp_path),
         },
     )
 
@@ -107,7 +106,6 @@ def test_extras_require(tmp_path):
             # mac/linux.
             "CIBW_TEST_COMMAND": "false || pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
-            "_PYODIDE_EXTRA_MOUNTS": str(tmp_path),
         },
     )
 

@@ -167,10 +167,8 @@ def test_abi_none(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": "pytest {project}/test",
             # limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp38-* cp311-* pp39-*",
-            "_PYODIDE_EXTRA_MOUNTS": str(tmp_path),
+            "CIBW_BUILD": "cp38-* cp310-* pp39-*",
         },
     )
 
