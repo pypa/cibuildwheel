@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import subprocess
-from test import test_projects
 from contextlib import nullcontext as does_not_raise
+from test import test_projects
+
 import pytest
 
 from . import utils
