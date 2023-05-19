@@ -110,8 +110,8 @@ jobs:
       run: |
         pytest --run-emulation test/test_emulation.py
 
-  test-emscripten:
-    name: Test building emscripten wheels
+  test-pyodide:
+    name: Test cibuildwheel building pyodide wheels
     needs: lint
     runs-on: ubuntu-20.04
     timeout-minutes: 180
