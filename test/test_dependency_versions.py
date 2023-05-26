@@ -161,6 +161,6 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     )
 
     # also check that we got the right wheels
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "-cp36" not in w]
 
-    assert set(actual_wheels) == {w for w in expected_wheels if not w.startswith("cp36-")}
+    assert set(actual_wheels) == set(expected_wheels)
