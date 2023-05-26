@@ -120,10 +120,10 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
-        "pip": "20.0.2",
-        "setuptools": "53.0.0",
+        "pip": "21.3.1",
+        "setuptools": "58.5.3",
         "wheel": "0.36.2",
-        "virtualenv": "20.11.2",
+        "virtualenv": "20.21.1",
     }
 
     constraints_file = tmp_path / "constraints file.txt"
