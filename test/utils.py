@@ -170,6 +170,7 @@ def expected_wheels(
             "cp39-cp39",
             "cp310-cp310",
             "cp311-cp311",
+            "cp312-cp312",
         ]
 
         if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
@@ -182,6 +183,7 @@ def expected_wheels(
                 "cp39-cp39",
                 "cp310-cp310",
                 "cp311-cp311",
+                "cp312-cp312",
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
             ]
