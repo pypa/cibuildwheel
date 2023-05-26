@@ -13,6 +13,7 @@ import textwrap
 import time
 import typing
 import urllib.request
+from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
@@ -697,3 +698,40 @@ def fix_ansi_codes_for_github_actions(text: str) -> str:
                     ansi_codes.append(code)
 
     return output
+
+
+def parse_key_value_string(
+    key_value_string: str, positional_arg_names: list[str] | None = None
+) -> dict[str, list[str]]:
+    """
+    Parses a string like "docker; create_args: --some-option=value another-option"
+    """
+    if positional_arg_names is None:
+        positional_arg_names = []
+
+    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";:")
+    shlexer.commenters = ""
+    parts = list(shlexer)
+    # parts now looks like
+    # ['docker', ';', 'create_args',':', '--some-option=value', 'another-option']
+
+    # split by semicolon
+    fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
+
+    result: dict[str, list[str]] = defaultdict(list)
+    for field_i, field in enumerate(fields):
+        if len(field) > 1 and field[1] == ":":
+            field_name = field[0]
+            values = field[2:]
+        else:
+            try:
+                field_name = positional_arg_names[field_i]
+            except IndexError:
+                msg = f"Failed to parse {key_value_string!r}. Too many positional arguments - expected a maximum of {len(positional_arg_names)}"
+                raise ValueError(msg) from None
+
+            values = field
+
+        result[field_name] += values
+
+    return result
