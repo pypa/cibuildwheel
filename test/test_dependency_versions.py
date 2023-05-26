@@ -120,10 +120,10 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
-        "pip": "21.3.1",
-        "setuptools": "58.5.3",
-        "wheel": "0.36.2",
-        "virtualenv": "20.21.1",
+        "pip": "23.1.1",
+        "setuptools": "67.7.2",
+        "wheel": "0.38.3",
+        "virtualenv": "20.23.0",
     }
 
     constraints_file = tmp_path / "constraints file.txt"
@@ -155,6 +155,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
         add_env={
             "CIBW_ENVIRONMENT": cibw_environment_option,
             "CIBW_DEPENDENCY_VERSIONS": str(constraints_file),
+            "CIBW_SKIP": "cp36-*",
             **build_frontend_env,
         },
     )
@@ -162,4 +163,4 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
 
-    assert set(actual_wheels) == set(expected_wheels)
+    assert set(actual_wheels) == {w for w in expected_wheels if not w.startswith("cp36-")}
