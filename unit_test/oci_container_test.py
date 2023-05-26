@@ -21,7 +21,7 @@ from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
 pm = platform.machine()
 if pm == "x86_64":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
-elif pm in ["aarch64", "arm64"]:
+elif pm in {"aarch64", "arm64"}:
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
 elif pm == "ppc64le":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
