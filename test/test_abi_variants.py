@@ -47,7 +47,7 @@ def test_abi3(tmp_path):
     expected_wheels = [
         w.replace("cp38-cp38", "cp38-abi3")
         for w in utils.expected_wheels("spam", "0.1.0")
-        if "-pp" not in w and "-cp39" not in w and "-cp310" not in w and "-cp311" not in w
+        if "-pp" not in w and "-cp39" not in w and "-cp31" not in w
     ]
     assert set(actual_wheels) == set(expected_wheels)
 

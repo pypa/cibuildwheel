@@ -252,7 +252,7 @@ class BuildSelector:
     requires_python: SpecifierSet | None = None
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = ""
+    PRERELEASE_SKIP: ClassVar[str] = "cp312-*"
     prerelease_pythons: bool = False
 
     def __call__(self, build_id: str) -> bool:
