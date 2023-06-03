@@ -36,7 +36,7 @@ def test(tmp_path, capfd):
 
     num_builds = len(utils.cibuildwheel_get_build_identifiers(project_dir))
     if num_builds > 1:
-        expectation = pytest.raises(subprocess.CalledProcessError, match="Build failed because a wheel named")
+        expectation = pytest.raises(subprocess.CalledProcessError)
     else:
         expectation = does_not_raise()
 
@@ -48,14 +48,15 @@ def test(tmp_path, capfd):
             },
         )
 
-
-    if num_builds == 1:        
+    captured = capfd.readouterr()
+    if num_builds > 1:
+        assert "Build failed because a wheel named" in captured.err
+    else:
         # We only produced one wheel (currently Pyodide)
         # check that it has the right name
         #
         # As far as I can tell, this is the only full test coverage for
         # CIBW_REPAIR_WHEEL_COMMAND so this is useful even in the case when no
         # error is raised
-        captured = capfd.readouterr()
         assert "spam-0.1.0-py2-none-emscripten" in captured.out
         assert result[0].startswith("spam-0.1.0-py2-none-")
