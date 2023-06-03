@@ -51,12 +51,14 @@ def test(tmp_path):
         path = r"C:\\"
     else:
         path = "/tmp/my-tmp-dir/"
-        Path(path).mkdir(exist_ok=True)
 
     before_test_steps = [
         f"""python -c "import sys; open('{path}pythonversion.txt', 'w').write(sys.version)" """,
         f"""python -c "import sys; open('{path}pythonprefix.txt', 'w').write(sys.prefix)" """,
     ]
+    if not sys.platform.startswith("win"):
+        before_test_steps.insert(0, f"mkdir -p {path}")
+
     if utils.platform == "pyodide":
         before_test_steps.extend(
             ["pyodide build {project}/dependency", "pip install --find-links dist/ spam"]
