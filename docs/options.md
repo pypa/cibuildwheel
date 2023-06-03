@@ -227,6 +227,7 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.9   | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64    | cp39-win_amd64<br/>cp39-win32<br/>cp39-win_arm64    | cp39-manylinux_x86_64<br/>cp39-manylinux_i686<br/>cp39-musllinux_x86_64<br/>cp39-musllinux_i686     | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x<br/>cp39-musllinux_aarch64<br/>cp39-musllinux_ppc64le<br/>cp39-musllinux_s390x       |
 | Python 3.10  | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x |
 | Python 3.11  | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x |
+| Python 3.12  | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x |
 | PyPy3.7 v7.3 | pp37-macosx_x86_64                                                     | pp37-win_amd64                                      | pp37-manylinux_x86_64<br/>pp37-manylinux_i686                                                       | pp37-manylinux_aarch64                                                                                                                                          |
 | PyPy3.8 v7.3 | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                          |
 | PyPy3.9 v7.3 | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                          |
@@ -1051,9 +1052,12 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
 
 
 ### `CIBW_CONTAINER_ENGINE` {: #container-engine}
-> Specify which container engine to use when building Linux wheels
+> Specify the container engine to use when building Linux wheels
 
-Options: `docker` `podman`
+Options:
+
+- `docker[;create_args: ...]`
+- `podman[;create_args: ...]`
 
 Default: `docker`
 
@@ -1061,6 +1065,12 @@ Set the container engine to use. Docker is the default, or you can switch to
 [Podman](https://podman.io/). To use Docker, you need to have a Docker daemon
 running and `docker` available on PATH. To use Podman, it needs to be
 installed and `podman` available on PATH.
+
+Arguments can be supplied to the container engine. Currently, the only option
+that's customisable is 'create_args'. Parameters to create_args are
+space-separated strings, which are passed to the container engine on the
+command line when it's creating the container. If you want to include spaces
+inside a parameter, use shell-style quoting.
 
 !!! tip
 
@@ -1076,14 +1086,22 @@ installed and `podman` available on PATH.
 !!! tab examples "Environment variables"
 
     ```yaml
+    # use podman instead of docker
     CIBW_CONTAINER_ENGINE: podman
+
+    # pass command line options to 'docker create'
+    CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
     ```
 
 !!! tab examples "pyproject.toml"
 
     ```toml
     [tool.cibuildwheel]
+    # use podman instead of docker
     container-engine = "podman"
+
+    # pass command line options to 'docker create'
+    container-engine = { name = "docker", create-args = ["--gpus", "all"]}
     ```
 
 

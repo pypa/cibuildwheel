@@ -27,6 +27,9 @@ jobs:
     needs: [dist]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
+    environment: pypi
+    permissions:
+      id-token: write
 
     steps:
     - uses: actions/download-artifact@v3
@@ -35,6 +38,3 @@ jobs:
         path: dist
 
     - uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}

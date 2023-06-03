@@ -12,7 +12,7 @@ import pytest
 import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
-from cibuildwheel.oci_container import OCIContainer
+from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
 
 # Test utilities
 
@@ -21,7 +21,7 @@ from cibuildwheel.oci_container import OCIContainer
 pm = platform.machine()
 if pm == "x86_64":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
-elif pm == "aarch64":
+elif pm in {"aarch64", "arm64"}:
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
 elif pm == "ppc64le":
     DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
@@ -30,6 +30,8 @@ elif pm == "s390x":
 else:
     DEFAULT_IMAGE = ""
 
+PODMAN = OCIContainerEngineConfig(name="podman")
+
 
 @pytest.fixture(params=["docker", "podman"])
 def container_engine(request):
@@ -37,7 +39,7 @@ def container_engine(request):
         pytest.skip("need --run-docker option to run")
     if request.param == "podman" and not request.config.getoption("--run-podman"):
         pytest.skip("need --run-podman option to run")
-    return request.param
+    return OCIContainerEngineConfig(name=request.param)
 
 
 # Tests
@@ -81,7 +83,7 @@ def test_cwd(container_engine):
 def test_container_removed(container_engine):
     with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
         docker_containers_listing = subprocess.run(
-            f"{container.engine} container ls",
+            f"{container.engine.name} container ls",
             shell=True,
             check=True,
             stdout=subprocess.PIPE,
@@ -92,7 +94,7 @@ def test_container_removed(container_engine):
         old_container_name = container.name
 
     docker_containers_listing = subprocess.run(
-        f"{container.engine} container ls",
+        f"{container.engine.name} container ls",
         shell=True,
         check=True,
         stdout=subprocess.PIPE,
@@ -280,7 +282,7 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
     monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
 
-    with OCIContainer(engine="podman", image=DEFAULT_IMAGE) as container:
+    with OCIContainer(engine=PODMAN, image=DEFAULT_IMAGE) as container:
         # test running a command
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
@@ -296,3 +298,72 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     # as UID 0. The reason why permission errors occur on podman is documented
     # in https://podman.io/blogs/2018/10/03/podman-remove-content-homedir.html
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
+
+
+def test_create_args_volume(tmp_path: Path, request):
+    if not request.config.getoption("--run-docker"):
+        pytest.skip("need --run-docker option to run")
+
+    if "CIRCLECI" in os.environ or "GITLAB_CI" in os.environ:
+        pytest.skip(
+            "Skipping test on CircleCI/GitLab because docker there does not support --volume"
+        )
+
+    test_mount_dir = tmp_path / "test_mount"
+    test_mount_dir.mkdir()
+    (test_mount_dir / "test_file.txt").write_text("1234")
+    container_engine = OCIContainerEngineConfig(
+        name="docker", create_args=[f"--volume={test_mount_dir}:/test_mount"]
+    )
+
+    with OCIContainer(
+        engine=container_engine,
+        image=DEFAULT_IMAGE,
+    ) as container:
+        assert container.call(["cat", "/test_mount/test_file.txt"], capture_output=True) == "1234"
+
+
+@pytest.mark.parametrize(
+    ("config", "name", "create_args"),
+    [
+        (
+            "docker",
+            "docker",
+            [],
+        ),
+        (
+            "docker;create_args:",
+            "docker",
+            [],
+        ),
+        (
+            "docker;create_args:--abc --def",
+            "docker",
+            ["--abc", "--def"],
+        ),
+        (
+            "docker; create_args: --abc --def",
+            "docker",
+            ["--abc", "--def"],
+        ),
+        (
+            "name:docker; create_args: --abc --def",
+            "docker",
+            ["--abc", "--def"],
+        ),
+        (
+            'docker; create_args: --some-option="value with spaces"',
+            "docker",
+            ["--some-option=value with spaces"],
+        ),
+        (
+            'docker; create_args: --some-option="value; with; semicolons" --another-option',
+            "docker",
+            ["--some-option=value; with; semicolons", "--another-option"],
+        ),
+    ],
+)
+def test_parse_engine_config(config, name, create_args):
+    engine_config = OCIContainerEngineConfig.from_config_string(config)
+    assert engine_config.name == name
+    assert engine_config.create_args == create_args

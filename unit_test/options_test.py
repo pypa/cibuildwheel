@@ -198,3 +198,58 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value)
     )
 
     assert environment_values["TEST_VAR"] == result_value
+
+
+@pytest.mark.parametrize(
+    ("toml_assignment", "result_name", "result_create_args"),
+    [
+        (
+            'container-engine = "podman"',
+            "podman",
+            [],
+        ),
+        (
+            'container-engine = {name = "podman"}',
+            "podman",
+            [],
+        ),
+        (
+            'container-engine = "docker; create_args: --some-option"',
+            "docker",
+            ["--some-option"],
+        ),
+        (
+            'container-engine = {name = "docker", create-args = ["--some-option"]}',
+            "docker",
+            ["--some-option"],
+        ),
+        (
+            'container-engine = {name = "docker", create-args = ["--some-option", "value that contains spaces"]}',
+            "docker",
+            ["--some-option", "value that contains spaces"],
+        ),
+        (
+            'container-engine = {name = "docker", create-args = ["--some-option", "value;that;contains;semicolons"]}',
+            "docker",
+            ["--some-option", "value;that;contains;semicolons"],
+        ),
+    ],
+)
+def test_container_engine_option(tmp_path: Path, toml_assignment, result_name, result_create_args):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {toml_assignment}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    parsed_container_engine = options.globals.container_engine
+
+    assert parsed_container_engine.name == result_name
+    assert parsed_container_engine.create_args == result_create_args

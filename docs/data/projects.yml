@@ -623,3 +623,10 @@
   os: [windows, apple, linux]
   pypi: picologging
   notes: A high-performance logging library for Python.
+
+- name: aalink
+  gh: artfwo/aalink
+  ci: [github]
+  os: [windows, apple, linux]
+  pypi: aalink
+  notes: Async Python interface for Ableton Link.

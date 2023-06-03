@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from . import test_projects, utils
-from pathlib import Path
 import sys
+from pathlib import Path
+
+from . import test_projects, utils
 
 before_test_project = test_projects.new_c_project()
 before_test_project.files[
@@ -49,7 +50,7 @@ def test(tmp_path):
     if sys.platform.startswith("win"):
         path = r"C:\\"
     else:
-        path = '/tmp/my-tmp-dir/'
+        path = "/tmp/my-tmp-dir/"
         Path(path).mkdir(exist_ok=True)
 
     before_test_steps = [
@@ -58,14 +59,10 @@ def test(tmp_path):
     ]
     if utils.platform == "pyodide":
         before_test_steps.extend(
-            [
-                """pyodide build {project}/dependency""",
-                """pip install --find-links dist/ spam"""
-            ]
+            ["pyodide build {project}/dependency", "pip install --find-links dist/ spam"]
         )
 
     before_test = " && ".join(before_test_steps)
-
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(

@@ -4,6 +4,16 @@ title: Changelog
 
 # Changelog
 
+### v2.13.0
+
+_28 May 2023_
+
+- ✨ Adds CPython 3.12 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.12.0b1.
+
+    While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.12 will be available in cibuildwheel without the flag. (#1507)
+
+- ✨ Adds the ability to pass arguments to the container engine when the container is created, using the [CIBW_CONTAINER_ENGINE](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#1499)
+
 ### v2.12.3
 
 _19 April 2023_

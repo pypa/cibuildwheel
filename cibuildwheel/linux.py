@@ -379,7 +379,9 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
     try:
         # check the container engine is installed
         subprocess.run(
-            [options.globals.container_engine, "--version"], check=True, stdout=subprocess.DEVNULL
+            [options.globals.container_engine.name, "--version"],
+            check=True,
+            stdout=subprocess.DEVNULL,
         )
     except subprocess.CalledProcessError:
         print(
