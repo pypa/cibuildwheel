@@ -14,7 +14,7 @@ packaging==23.1
     # via delocate
 platformdirs==3.5.1
     # via virtualenv
-typing-extensions==4.6.2
+typing-extensions==4.6.3
     # via delocate
 virtualenv==20.23.0
     # via -r cibuildwheel/resources/constraints.in
