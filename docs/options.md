@@ -550,7 +550,7 @@ a table of items, including arrays.
     single values.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX`
 
 
 #### Examples
