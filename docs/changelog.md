@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v2.13.1
+
+_10 June 2023_
+
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b2. (#1516)
+- 🛠 Adds a moving `v<major>.<minor>` tag for use in GitHub Actions workflow files. If you use this, you'll get the latest patch release within a minor version. Additionally, Dependabot won't send you PRs for patch releases. (#1517)
+
 ### v2.13.0
 
 _28 May 2023_
