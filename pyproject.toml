@@ -7,10 +7,10 @@ description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 long_description = "README.md"
 long_description_content_type = "text/markdown"
-license_files = LICENSE
+license_files = "LICENSE"
 requires-python = ">=3.7"
-include_package_data = True
-zip_safe = False
+include_package_data = true
+zip_safe = false
 keywords = [
   "ci",
   "wheel",
@@ -23,7 +23,7 @@ keywords = [
   "windows",
 ]
 license = {text = "BSD-2-Clause"}
-url = https://github.com/pypa/cibuildwheel
+url = "https://github.com/pypa/cibuildwheel"
 project_urls = {
     Changelog = "https://github.com/pypa/cibuildwheel#changelog"
     Documentation = "https://cibuildwheel.readthedocs.io/"
@@ -56,7 +56,7 @@ dependencies = [
 dynamic = ["version"]
 
 [console_scripts]
-cibuildwheel = cibuildwheel.__main__:main
+cibuildwheel = "cibuildwheel.__main__:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "cibuildwheel.__version__"}
