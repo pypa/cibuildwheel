@@ -1,3 +1,72 @@
+[project]
+name = "cibuildwheel"
+authors = [
+    {name = "Joe Rickerby", email = "joerick@mac.com"},
+]
+description = "Build Python wheels on CI with minimal configuration."
+readme = "README.md"
+long_description = README.md
+long_description_content_type = text/markdown
+license_files = LICENSE
+requires-python = ">=3.7"
+include_package_data = True
+zip_safe = False
+keywords = [
+  "ci",
+  "wheel",
+  "packaging",
+  "pypi",
+  "travis",
+  "appveyor",
+  "macos",
+  "linux",
+  "windows",
+]
+license = {text = "BSD-2-Clause"}
+url = https://github.com/pypa/cibuildwheel
+project_urls =
+    Changelog = https://github.com/pypa/cibuildwheel#changelog
+    Documentation = https://cibuildwheel.readthedocs.io/
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Build Tools",
+]
+dependencies = [
+    "bashlex!=0.13",
+    "bracex",
+    "certifi",
+    "filelock",
+    "packaging>=20.9",
+    "platformdirs",
+    "tomli;python_version < '3.11'",
+    "typing-extensions>=4.1.0;python_version < '3.11'",
+]
+dynamic = ["version"]
+
+[console_scripts]
+cibuildwheel = cibuildwheel.__main__:main
+
+[tool.setuptools.dynamic]
+version = {attr = "cibuildwheel.__version__"}
+
+[tool.setuptools.packages.find]
+# where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["cibuildwheel*"]  # package names should match these glob patterns (["*"] by default)
+
+[tool.setuptools.package-data]
+cibuildwheel = ["resources/*"]
+
 [build-system]
 requires = [
     "setuptools>=42",
