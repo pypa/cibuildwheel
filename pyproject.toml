@@ -24,10 +24,6 @@ keywords = [
 ]
 license = {text = "BSD-2-Clause"}
 url = "https://github.com/pypa/cibuildwheel"
-project_urls = {
-    Changelog = "https://github.com/pypa/cibuildwheel#changelog"
-    Documentation = "https://cibuildwheel.readthedocs.io/"
-}
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -54,6 +50,10 @@ dependencies = [
     "typing-extensions>=4.1.0;python_version < '3.11'",
 ]
 dynamic = ["version"]
+
+[project.urls]
+Changelog = "https://github.com/pypa/cibuildwheel#changelog"
+Documentation = "https://cibuildwheel.readthedocs.io/"
 
 [console_scripts]
 cibuildwheel = "cibuildwheel.__main__:main"
