@@ -5,8 +5,8 @@ authors = [
 ]
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
-long_description = README.md
-long_description_content_type = text/markdown
+long_description = "README.md"
+long_description_content_type = "text/markdown"
 license_files = LICENSE
 requires-python = ">=3.7"
 include_package_data = True
@@ -24,9 +24,10 @@ keywords = [
 ]
 license = {text = "BSD-2-Clause"}
 url = https://github.com/pypa/cibuildwheel
-project_urls =
-    Changelog = https://github.com/pypa/cibuildwheel#changelog
-    Documentation = https://cibuildwheel.readthedocs.io/
+project_urls = {
+    Changelog = "https://github.com/pypa/cibuildwheel#changelog"
+    Documentation = "https://cibuildwheel.readthedocs.io/"
+}
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
