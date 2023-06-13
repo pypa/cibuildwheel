@@ -34,9 +34,9 @@ repos:
   rev: v1.4.1
   hooks:
   - id: mypy
-    name: mypy 3.7 on cibuildwheel/
+    name: mypy 3.8 on cibuildwheel/
     exclude: ^cibuildwheel/resources/.*py$
-    args: ["--python-version=3.7"]
+    args: ["--python-version=3.8"]
     additional_dependencies: &mypy-dependencies
       - nox
       - packaging

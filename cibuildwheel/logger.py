@@ -5,9 +5,8 @@ import os
 import re
 import sys
 import time
-from typing import IO, AnyStr, Tuple
+from typing import IO, AnyStr, Final, Tuple
 
-from ._compat.typing import Final
 from .util import CIProvider, detect_ci_provider
 
 FoldPattern = Tuple[str, str]

@@ -7,7 +7,7 @@ import difflib
 import logging
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Final, Literal, TypedDict, Union
 
 import click
 import requests
@@ -18,7 +18,6 @@ from rich.logging import RichHandler
 from rich.syntax import Syntax
 
 from cibuildwheel._compat import tomllib
-from cibuildwheel._compat.typing import Final, Literal, TypedDict
 from cibuildwheel.extra import dump_python_configurations
 
 log = logging.getLogger("cibw")

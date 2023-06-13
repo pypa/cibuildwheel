@@ -12,11 +12,11 @@ import typing
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
+from typing import Literal, Tuple
 
 from filelock import FileLock
 
-from ._compat.typing import Literal, assert_never
+from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
