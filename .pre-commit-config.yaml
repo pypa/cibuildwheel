@@ -50,6 +50,7 @@ repos:
       - types-pyyaml
       - types-requests
       - bracex
+      - markdown-it-py<3
   - id: mypy
     name: mypy 3.11
     exclude: ^cibuildwheel/resources/.*py$
