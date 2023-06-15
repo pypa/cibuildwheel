@@ -19,7 +19,7 @@ repos:
   - id: black
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.0.270
+  rev: v0.0.272
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
@@ -50,6 +50,7 @@ repos:
       - types-pyyaml
       - types-requests
       - bracex
+      - markdown-it-py<3
   - id: mypy
     name: mypy 3.11
     exclude: ^cibuildwheel/resources/.*py$
