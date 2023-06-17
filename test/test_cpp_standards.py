@@ -118,7 +118,7 @@ def test_cpp17(tmp_path):
 
     # Pypy's distutils sets the default compiler to 'msvc9compiler', which
     # is too old to support cpp17.
-    add_env = {"CIBW_SKIP": "pp??-*"}
+    add_env = {"CIBW_SKIP": "pp*"}
 
     if utils.platform == "macos":
         add_env["MACOSX_DEPLOYMENT_TARGET"] = "10.13"
