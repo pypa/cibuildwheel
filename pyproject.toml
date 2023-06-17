@@ -144,7 +144,7 @@ extend-ignore = [
   "PT004",  # Rename suggested for returnless fixtures
   "PT007",  # False positive (fixed upstream)
 ]
-target-version = "py37"
+target-version = "py38"
 typing-modules = ["cibuildwheel._compat.typing"]
 flake8-unused-arguments.ignore-variadic-names = true
 
