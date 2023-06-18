@@ -23,12 +23,9 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 `cibuildwheel` supports cross-compiling `universal2` and `arm64` wheels on `x86_64` runners.
 
 !!! note
-    Currently it is not fully supported to cross-compile project that uses **Poetry** as a build backend. Related issue [here](https://github.com/python-poetry/poetry/issues/7107).
+    If your project uses **Poetry** as a build backend, cross-compiling on macOS [does not currently work](https://github.com/python-poetry/poetry/issues/7107). In some cases arm64 wheels can be built but their tags will be incorrect, with the platform tag showing `x86_64` instead of `arm64`.
 
-    Some packages can be built with arm64 wheels, but their tags will be incorrect, with the platform tag showing `x86_64` instead of `arm64`.
-
-    As a workaround, the tag should be fixed before running delocate to repair the wheel. The [`wheel tags`](https://wheel.readthedocs.io/en/stable/reference/wheel_tags.html) command is ideal for this. See [this workflow](https://gist.github.com/anderssonjohan/49f07e33fc5cb2420515a8ac76dc0c95#file-build-pendulum-wheels-yml-L39-L53) for an example usage.
-
+    As a workaround, the tag can be fixed before running delocate to repair the wheel. The [`wheel tags`](https://wheel.readthedocs.io/en/stable/reference/wheel_tags.html) command is ideal for this. See [this workflow](https://gist.github.com/anderssonjohan/49f07e33fc5cb2420515a8ac76dc0c95#file-build-pendulum-wheels-yml-L39-L53) for an example usage of `wheel tags`.
 
 With the introduction of Apple Silicon, you now have several choices for wheels for Python 3.8+:
 
