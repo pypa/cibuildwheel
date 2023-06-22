@@ -24,7 +24,6 @@ from .util import (
     download,
     extract_zip,
     find_compatible_wheel,
-    get_build_verbosity_extra_flags,
     get_pip_version,
     prepare_command,
     read_python_configs,
@@ -274,11 +273,12 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 log.step("Building wheel...")
 
-                verbosity_flags = get_build_verbosity_extra_flags(build_options.build_verbosity)
                 extra_flags = split_config_settings(build_options.config_settings, "build")
 
-                verbosity_setting = " ".join(verbosity_flags)
-                extra_flags += (f"--config-setting={verbosity_setting}",)
+                if not 0 <= build_options.build_verbosity < 2:
+                    msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
+                    log.warning(msg)
+
                 build_env = env.copy()
                 if build_options.dependency_constraints:
                     build_env["PIP_CONSTRAINT"] = str(constraints_path)
