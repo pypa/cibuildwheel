@@ -14,10 +14,6 @@ target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
 minversion = "6.0"
 addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 junit_family = "xunit2"
-testpaths = [
-    "test",
-    "unit_test",
-]
 xfail_strict = true
 filterwarnings = ["error"]
 log_cli_level = "info"

@@ -151,7 +151,7 @@ before-all = "true"
     assert not kwargs["container"]["simulate_32_bit"]
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-manylinux_x86_64" for x in {"cp310", "cp311", "pp37", "pp38", "pp39"}
+        f"{x}-manylinux_x86_64" for x in ["cp310", "cp311", "pp37", "pp38", "pp39"]
     }
 
     kwargs = build_in_container.call_args_list[3][1]

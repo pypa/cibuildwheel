@@ -37,8 +37,6 @@ jobs:
       language: shell
       before_install:
         - choco upgrade python3 -y --version 3.7.9 --limit-output
-        # Update root certificates to fix SSL error; see http://www.chawn.com/RootCerts.htm
-        - powershell "md C:\temp\certs; CertUtil -generateSSTFromWU C:\temp\certs\RootStore.sst; Get-ChildItem -Path C:\\temp\certs\Rootstore.sst | Import-Certificate -CertStoreLocation Cert:\\LocalMachine\\Root\\ | out-null"
       env:
         - PYTHON=C:\\Python37\\python
 
