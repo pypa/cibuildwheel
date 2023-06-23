@@ -33,7 +33,7 @@ class TestProject:
 
             with file_path.open("w", encoding="utf8") as f:
                 if isinstance(content, jinja2.Template):
-                    content = content.render(self.template_context)
+                    content = content.render(self.template_context)  # noqa: PLW2901
 
                 f.write(content)
 

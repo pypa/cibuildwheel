@@ -6,12 +6,8 @@ from pathlib import Path
 
 import pytest
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from cibuildwheel.__main__ import main
+from cibuildwheel._compat import tomllib
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.util import BuildSelector, resources_dir, split_config_settings
@@ -283,10 +279,16 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
 
     assert build_options.config_settings == config_settings
 
-    assert split_config_settings(config_settings) == [
+    assert split_config_settings(config_settings, "build") == [
         "--config-setting=setting=value",
         "--config-setting=setting=value2",
         "--config-setting=other=something else",
+    ]
+
+    assert split_config_settings(config_settings, "pip") == [
+        "--config-settings=setting=value",
+        "--config-settings=setting=value2",
+        "--config-settings=other=something else",
     ]
 
 

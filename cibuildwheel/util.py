@@ -11,32 +11,19 @@ import subprocess
 import sys
 import textwrap
 import time
+import typing
 import urllib.request
+from collections import defaultdict
+from collections.abc import Generator, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path, PurePath
 from time import sleep
-from typing import (
-    Any,
-    ClassVar,
-    Generator,
-    Iterable,
-    Sequence,
-    TextIO,
-    TypeVar,
-    cast,
-    overload,
-)
+from typing import Any, ClassVar, TextIO, TypeVar
 
 import bracex
 import certifi
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
@@ -44,7 +31,10 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from cibuildwheel.typing import Final, Literal, PathOrStr, PlatformName
+from ._compat import tomllib
+from ._compat.functools import cached_property
+from ._compat.typing import Final, Literal
+from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "resources_dir",
@@ -70,6 +60,15 @@ install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
 BuildFrontend = Literal["pip", "build"]
+
+
+def build_frontend_or_default(
+    setting: BuildFrontend | Literal["default"], default: BuildFrontend = "pip"
+) -> BuildFrontend:
+    if setting == "default":
+        return default
+    return setting
+
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
@@ -98,20 +97,20 @@ CIBW_CACHE_PATH: Final[Path] = Path(
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
-@overload
+@typing.overload
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[False] = ...,
 ) -> None:
     ...
 
 
-@overload
+@typing.overload
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[True],
 ) -> str:
@@ -120,7 +119,7 @@ def call(
 
 def call(
     *args: PathOrStr,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: bool = False,
 ) -> str | None:
@@ -140,10 +139,12 @@ def call(
     result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
     if not capture_stdout:
         return None
-    return cast(str, result.stdout)
+    return typing.cast(str, result.stdout)
 
 
-def shell(*commands: str, env: dict[str, str] | None = None, cwd: PathOrStr | None = None) -> None:
+def shell(
+    *commands: str, env: Mapping[str, str] | None = None, cwd: PathOrStr | None = None
+) -> None:
     command = " ".join(commands)
     print(f"+ {command}")
     subprocess.run(command, env=env, cwd=cwd, shell=True, check=True)
@@ -208,9 +209,10 @@ def get_build_verbosity_extra_flags(level: int) -> list[str]:
         return []
 
 
-def split_config_settings(config_settings: str) -> list[str]:
+def split_config_settings(config_settings: str, frontend: Literal["pip", "build"]) -> list[str]:
     config_settings_list = shlex.split(config_settings)
-    return [f"--config-setting={setting}" for setting in config_settings_list]
+    s = "s" if frontend == "pip" else ""
+    return [f"--config-setting{s}={setting}" for setting in config_settings_list]
 
 
 def read_python_configs(config: PlatformName) -> list[dict[str, str]]:
@@ -250,7 +252,7 @@ class BuildSelector:
     requires_python: SpecifierSet | None = None
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = ""
+    PRERELEASE_SKIP: ClassVar[str] = "cp312-*"
     prerelease_pythons: bool = False
 
     def __call__(self, build_id: str) -> bool:
@@ -497,7 +499,7 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     )
 
 
-def get_pip_version(env: dict[str, str]) -> str:
+def get_pip_version(env: Mapping[str, str]) -> str:
     versions_output_text = call(
         "python", "-m", "pip", "freeze", "--all", capture_stdout=True, env=env
     )
@@ -543,8 +545,8 @@ def _parse_constraints_for_virtualenv(
         constraint_path = Path(dependency_constraint_flags[1])
         assert constraint_path.exists()
         with constraint_path.open(encoding="utf-8") as constraint_file:
-            for line in constraint_file:
-                line = line.strip()
+            for line_ in constraint_file:
+                line = line_.strip()
                 if not line:
                     continue
                 if line.startswith("#"):
@@ -657,12 +659,6 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     return None
 
 
-if sys.version_info >= (3, 8):
-    from functools import cached_property
-else:
-    from .functools_cached_property_38 import cached_property
-
-
 # Can be replaced by contextlib.chdir in Python 3.11
 @contextlib.contextmanager
 def chdir(new_path: Path | str) -> Generator[None, None, None]:
@@ -702,3 +698,40 @@ def fix_ansi_codes_for_github_actions(text: str) -> str:
                     ansi_codes.append(code)
 
     return output
+
+
+def parse_key_value_string(
+    key_value_string: str, positional_arg_names: list[str] | None = None
+) -> dict[str, list[str]]:
+    """
+    Parses a string like "docker; create_args: --some-option=value another-option"
+    """
+    if positional_arg_names is None:
+        positional_arg_names = []
+
+    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";:")
+    shlexer.commenters = ""
+    parts = list(shlexer)
+    # parts now looks like
+    # ['docker', ';', 'create_args',':', '--some-option=value', 'another-option']
+
+    # split by semicolon
+    fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
+
+    result: dict[str, list[str]] = defaultdict(list)
+    for field_i, field in enumerate(fields):
+        if len(field) > 1 and field[1] == ":":
+            field_name = field[0]
+            values = field[2:]
+        else:
+            try:
+                field_name = positional_arg_names[field_i]
+            except IndexError:
+                msg = f"Failed to parse {key_value_string!r}. Too many positional arguments - expected a maximum of {len(positional_arg_names)}"
+                raise ValueError(msg) from None
+
+            values = field
+
+        result[field_name] += values
+
+    return result

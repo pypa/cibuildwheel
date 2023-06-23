@@ -92,8 +92,8 @@ Options have the same names as the environment variable overrides, but are
 placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
 common [TOML][] practice. Anything placed in subsections `linux`, `windows`,
 or `macos` will only affect those platforms. Lists can be used instead of
-strings for items that are natually a list. Multiline strings also work just
-like in in the environment variables. Environment variables will take
+strings for items that are naturally a list. Multiline strings also work just
+like in the environment variables. Environment variables will take
 precedence if defined.
 
 The example above using environment variables could have been written like this:
@@ -226,6 +226,7 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.9   | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64    | cp39-win_amd64<br/>cp39-win32<br/>cp39-win_arm64    | cp39-manylinux_x86_64<br/>cp39-manylinux_i686<br/>cp39-musllinux_x86_64<br/>cp39-musllinux_i686     | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x<br/>cp39-musllinux_aarch64<br/>cp39-musllinux_ppc64le<br/>cp39-musllinux_s390x       |
 | Python 3.10  | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x |
 | Python 3.11  | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x |
+| Python 3.12  | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x |
 | PyPy3.7 v7.3 | pp37-macosx_x86_64                                                     | pp37-win_amd64                                      | pp37-manylinux_x86_64<br/>pp37-manylinux_i686                                                       | pp37-manylinux_aarch64                                                                                                                                          |
 | PyPy3.8 v7.3 | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                          |
 | PyPy3.9 v7.3 | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                          |
@@ -237,7 +238,7 @@ For CPython, the minimally supported macOS version is 10.9; for PyPy 3.7, macOS 
 
 Windows arm64 platform support is experimental.
 
-See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end of life versions of Python, and PyPy2.7.
+See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
 
 #### Examples
 
@@ -314,7 +315,7 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 
     It is generally recommended to set `CIBW_BUILD` as an environment variable, though `skip`
     tends to be useful in a config file; you can statically declare that you don't
-    support pypy, for example.
+    support PyPy, for example.
 
 <style>
   .build-id-table-marker + table {
@@ -549,7 +550,7 @@ a table of items, including arrays.
     single values.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX`
 
 
 #### Examples
@@ -658,7 +659,7 @@ Platform-specific environment variables are also available:<br/>
 ### `CIBW_ENVIRONMENT_PASS_LINUX` {: #environment-pass}
 > Set environment variables on the host to pass-through to the container during the build.
 
-A list of environment variables to pass into the linux container during the build. It has no affect on the other platforms, which can already access all environment variables directly.
+A list of environment variables to pass into the linux container during the build. It has no effect on the other platforms, which can already access all environment variables directly.
 
 To specify more than one environment variable, separate the variable names by spaces.
 
@@ -1048,9 +1049,12 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
 
 
 ### `CIBW_CONTAINER_ENGINE` {: #container-engine}
-> Specify which container engine to use when building Linux wheels
+> Specify the container engine to use when building Linux wheels
 
-Options: `docker` `podman`
+Options:
+
+- `docker[;create_args: ...]`
+- `podman[;create_args: ...]`
 
 Default: `docker`
 
@@ -1058,6 +1062,12 @@ Set the container engine to use. Docker is the default, or you can switch to
 [Podman](https://podman.io/). To use Docker, you need to have a Docker daemon
 running and `docker` available on PATH. To use Podman, it needs to be
 installed and `podman` available on PATH.
+
+Arguments can be supplied to the container engine. Currently, the only option
+that's customisable is 'create_args'. Parameters to create_args are
+space-separated strings, which are passed to the container engine on the
+command line when it's creating the container. If you want to include spaces
+inside a parameter, use shell-style quoting.
 
 !!! tip
 
@@ -1073,14 +1083,22 @@ installed and `podman` available on PATH.
 !!! tab examples "Environment variables"
 
     ```yaml
+    # use podman instead of docker
     CIBW_CONTAINER_ENGINE: podman
+
+    # pass command line options to 'docker create'
+    CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
     ```
 
 !!! tab examples "pyproject.toml"
 
     ```toml
     [tool.cibuildwheel]
+    # use podman instead of docker
     container-engine = "podman"
+
+    # pass command line options to 'docker create'
+    container-engine = { name = "docker", create-args = ["--gpus", "all"]}
     ```
 
 
@@ -1214,6 +1232,13 @@ Platform-specific environment variables are also available:<br/>
 
     In configuration files, you can use an array, and the items will be joined with `&&`.
 
+!!! note
+
+    It isn't recommended to `cd` to your project directory before running tests,
+    because Python might resolve `import yourpackage` relative to the working dir,
+    and we want to test the wheel you just built. However, if you're sure that's not
+    an issue for you and your workflow requires it, on Windows you should do `cd /d`,
+    because the CWD and project dir might be on different drives.
 
 ### `CIBW_BEFORE_TEST` {: #before-test}
 > Execute a shell command before testing each wheel
@@ -1386,7 +1411,7 @@ This option is not supported in the overrides section in `pyproject.toml`.
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
 > Increase/decrease the output of pip wheel
 
-An number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required.
+A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`

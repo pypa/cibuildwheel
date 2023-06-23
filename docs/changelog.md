@@ -4,6 +4,43 @@ title: Changelog
 
 # Changelog
 
+### v2.13.1
+
+_10 June 2023_
+
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b2. (#1516)
+- 🛠 Adds a moving `v<major>.<minor>` tag for use in GitHub Actions workflow files. If you use this, you'll get the latest patch release within a minor version. Additionally, Dependabot won't send you PRs for patch releases. (#1517)
+
+### v2.13.0
+
+_28 May 2023_
+
+- ✨ Adds CPython 3.12 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.12.0b1.
+
+    While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.12 will be available in cibuildwheel without the flag. (#1507)
+
+- ✨ Adds the ability to pass arguments to the container engine when the container is created, using the [CIBW_CONTAINER_ENGINE](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#1499)
+
+### v2.12.3
+
+_19 April 2023_
+
+- 🐛 Fix an import error when running on Python 3.7. (#1479)
+
+### v2.12.2
+
+_18 April 2023_
+
+- 🐛 Fix a bug that caused an extra empty config-setting to be passed to the backend when CIBW_BUILD_FRONTEND is set to `build`. (#1474)
+- 🐛 Fix a crash that occurred when overwriting an existing wheel on Windows. (#1464)
+- 🛠 Pinned version updates, including CPython 3.10.11, 3.11.3, pip 23.1 and wheel 0.40.0.
+
+### v2.12.1
+
+_11 March 2023_
+
+- 🐛 Fix a bug that prevented the use of CIBW_CONFIG_SETTINGS with the 'pip' build backend. (#1430)
+
 ### v2.12.0
 
 _16 Jan 2023_

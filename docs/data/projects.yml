@@ -431,11 +431,6 @@
   ci: [github]
   os: [apple, linux, windows]
 
-- name: pydantic
-  gh: samuelcolvin/pydantic
-  ci: [github]
-  os: [apple, linux, windows]
-
 - name: vaex
   gh: vaexio/vaex
   ci: [github]
@@ -628,3 +623,10 @@
   os: [windows, apple, linux]
   pypi: picologging
   notes: A high-performance logging library for Python.
+
+- name: aalink
+  gh: artfwo/aalink
+  ci: [github]
+  os: [windows, apple, linux]
+  pypi: aalink
+  notes: Async Python interface for Ableton Link.

@@ -45,9 +45,7 @@ VERSION_REGEX = r"([\w-]+)==([^\s]+)"
 def get_versions_from_constraint_file(constraint_file):
     constraint_file_text = constraint_file.read_text(encoding="utf8")
 
-    return {
-        package: version for package, version in re.findall(VERSION_REGEX, constraint_file_text)
-    }
+    return dict(re.findall(VERSION_REGEX, constraint_file_text))
 
 
 @pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.9"])
@@ -122,10 +120,10 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
-        "pip": "20.0.2",
-        "setuptools": "53.0.0",
-        "wheel": "0.36.2",
-        "virtualenv": "20.11.2",
+        "pip": "23.1.2",
+        "setuptools": "67.7.2",
+        "wheel": "0.38.3",
+        "virtualenv": "20.23.0",
     }
 
     constraints_file = tmp_path / "constraints file.txt"
@@ -157,11 +155,12 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
         add_env={
             "CIBW_ENVIRONMENT": cibw_environment_option,
             "CIBW_DEPENDENCY_VERSIONS": str(constraints_file),
+            "CIBW_SKIP": "cp36-*",
             **build_frontend_env,
         },
     )
 
     # also check that we got the right wheels
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "-cp36" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)

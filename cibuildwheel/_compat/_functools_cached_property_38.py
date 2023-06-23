@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import typing
+from collections.abc import Callable
 from threading import RLock
-from typing import Any, Callable, Generic, TypeVar, overload
+from typing import Any, Generic, TypeVar
 
 __all__ = ["cached_property"]
 
@@ -24,11 +26,11 @@ class cached_property(Generic[_T]):
             msg = f"Cannot assign the same cached_property to two different names ({self.attrname!r} and {name!r})."
             raise TypeError(msg)
 
-    @overload
+    @typing.overload
     def __get__(self, instance: None, owner: type[Any] | None = ...) -> cached_property[_T]:
         ...
 
-    @overload
+    @typing.overload
     def __get__(self, instance: object, owner: type[Any] | None = ...) -> _T:
         ...
 

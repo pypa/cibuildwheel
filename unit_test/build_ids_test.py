@@ -1,14 +1,8 @@
 from __future__ import annotations
 
-import sys
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from packaging.version import Version
 
+from cibuildwheel._compat import tomllib
 from cibuildwheel.extra import Printable, dump_python_configurations
 from cibuildwheel.util import resources_dir
 

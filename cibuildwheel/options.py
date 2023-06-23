@@ -10,22 +10,20 @@ import shlex
 import sys
 import textwrap
 import traceback
+from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Set
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Iterator, List, Mapping, Union, cast
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
+from typing import Any, Dict, List, Union
 
 from packaging.specifiers import SpecifierSet
 
+from ._compat import tomllib
+from ._compat.typing import Literal, NotRequired, TypedDict
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
-from .oci_container import ContainerEngine
+from .oci_container import OCIContainerEngineConfig
 from .projectfiles import get_requires_python_str
-from .typing import PLATFORMS, Literal, NotRequired, PlatformName, TypedDict
+from .typing import PLATFORMS, PlatformName
 from .util import (
     MANYLINUX_ARCHS,
     MUSLLINUX_ARCHS,
@@ -76,7 +74,7 @@ class GlobalOptions:
     build_selector: BuildSelector
     test_selector: TestSelector
     architectures: set[Architecture]
-    container_engine: ContainerEngine
+    container_engine: OCIContainerEngineConfig
 
 
 @dataclasses.dataclass(frozen=True)
@@ -94,7 +92,7 @@ class BuildOptions:
     test_requires: list[str]
     test_extras: str
     build_verbosity: int
-    build_frontend: BuildFrontend
+    build_frontend: BuildFrontend | Literal["default"]
     config_settings: str
 
     @property
@@ -137,8 +135,14 @@ DISALLOWED_OPTIONS = {
 
 
 class TableFmt(TypedDict):
+    # a format string, used with '.format', with `k` and `v` parameters
+    # e.g. "{k}={v}"
     item: str
+    # the string that is inserted between items
+    # e.g. " "
     sep: str
+    # a quoting function that, if supplied, is called to quote each value
+    # e.g. shlex.quote
     quote: NotRequired[Callable[[str], str]]
 
 
@@ -161,7 +165,7 @@ def _dig_first(*pairs: tuple[Mapping[str, Setting], str], ignore_empty: bool = F
         if key in dict_like:
             value = dict_like[key]
 
-            if ignore_empty and value == "":
+            if ignore_empty and value == "":  # noqa: PLC1901
                 continue
 
             return value
@@ -193,7 +197,7 @@ class OptionsReader:
         *,
         platform: PlatformName,
         env: Mapping[str, str],
-        disallow: dict[str, set[str]] | None = None,
+        disallow: Mapping[str, Set[str]] | None = None,
     ) -> None:
         self.platform = platform
         self.env = env
@@ -455,14 +459,16 @@ class Options:
         )
         test_selector = TestSelector(skip_config=test_skip)
 
-        container_engine_str = self.reader.get("container-engine")
+        container_engine_str = self.reader.get(
+            "container-engine", table={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote}
+        )
 
-        if container_engine_str not in ["docker", "podman"]:
-            msg = f"cibuildwheel: Unrecognised container_engine {container_engine_str!r}, only 'docker' and 'podman' are supported"
+        try:
+            container_engine = OCIContainerEngineConfig.from_config_string(container_engine_str)
+        except ValueError as e:
+            msg = f"cibuildwheel: Failed to parse container config. {e}"
             print(msg, file=sys.stderr)
             sys.exit(2)
-
-        container_engine = cast(ContainerEngine, container_engine_str)
 
         return GlobalOptions(
             package_dir=package_dir,
@@ -499,11 +505,13 @@ class Options:
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
 
-            build_frontend: BuildFrontend
+            build_frontend: BuildFrontend | Literal["default"]
             if build_frontend_str == "build":
                 build_frontend = "build"
             elif build_frontend_str == "pip":
                 build_frontend = "pip"
+            elif build_frontend_str == "default":
+                build_frontend = "default"
             else:
                 msg = f"cibuildwheel: Unrecognised build frontend {build_frontend_str!r}, only 'pip' and 'build' are supported"
                 print(msg, file=sys.stderr)
@@ -597,7 +605,7 @@ class Options:
                 config_settings=config_settings,
             )
 
-    def check_for_invalid_configuration(self, identifiers: list[str]) -> None:
+    def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:
         if self.platform in {"macos", "windows"}:
             before_all_values = {self.build_options(i).before_all for i in identifiers}
 
@@ -629,7 +637,7 @@ class Options:
             read_config_file=False,
         )
 
-    def summary(self, identifiers: list[str]) -> str:
+    def summary(self, identifiers: Iterable[str]) -> str:
         lines = []
         global_option_names = sorted(f.name for f in dataclasses.fields(self.globals))
 
@@ -667,7 +675,7 @@ class Options:
         option_name: str,
         option_value: Any,
         default_value: Any,
-        overrides: dict[str, Any] | None = None,
+        overrides: Mapping[str, Any] | None = None,
     ) -> str:
         """
         Return a summary of the option value, including any overrides, with

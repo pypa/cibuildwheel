@@ -1,0 +1,30 @@
+name: Update the vX.Y tag
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      TAG_NAME:
+        description: 'Tag name that the major.minor tag will point to'
+        required: true
+
+env:
+  TAG_NAME: ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }}
+
+jobs:
+  update_tag:
+    name: Update the major.minor tag to include the ${{ github.event.inputs.TAG_NAME || github.event.release.tag_name }} changes
+    environment:
+      name: releaseNewActionVersion
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Update the ${{ env.TAG_NAME }} tag
+        id: update-major-minor-tag
+        uses: joerick/update-vX.Y-tag-action@v1.0
+        with:
+          source-tag: ${{ env.TAG_NAME }}

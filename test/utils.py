@@ -170,6 +170,7 @@ def expected_wheels(
             "cp39-cp39",
             "cp310-cp310",
             "cp311-cp311",
+            "cp312-cp312",
         ]
 
         if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
@@ -182,6 +183,7 @@ def expected_wheels(
                 "cp39-cp39",
                 "cp310-cp310",
                 "cp311-cp311",
+                "cp312-cp312",
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
             ]
@@ -192,7 +194,7 @@ def expected_wheels(
         platform_tags = []
 
         if platform == "linux":
-            architectures = [machine_arch]
+            architectures = [arch_name_for_linux(machine_arch)]
 
             if machine_arch == "x86_64":
                 architectures.append("i686")
@@ -255,3 +257,14 @@ def get_macos_version():
     """
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))
+
+
+def arch_name_for_linux(arch: str):
+    """
+    Archs have different names on different platforms, but it's useful to be
+    able to run linux tests on dev machines. This function translates between
+    the different names.
+    """
+    if arch == "arm64":
+        return "aarch64"
+    return arch

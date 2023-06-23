@@ -16,6 +16,7 @@ import functools
 import textwrap
 import urllib.request
 import xml.dom.minidom
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -42,7 +43,7 @@ ICONS = (
 class Project:
     NAME: int = 0
 
-    def __init__(self, config: dict[str, Any], github: Github | None = None):
+    def __init__(self, config: Mapping[str, Any], github: Github | None = None):
         try:
             self.name: str = config["name"]
             self.gh: str = config["gh"]
@@ -149,7 +150,7 @@ def path_for_icon(icon_name: str, relative_to: Path | None = None) -> Path:
 
 
 def get_projects(
-    config: list[dict[str, Any]],
+    config: Iterable[Mapping[str, Any]],
     *,
     online: bool = True,
     auth: str | None = None,
@@ -163,7 +164,7 @@ def get_projects(
     return sorted((Project(item, github) for item in config), reverse=online)
 
 
-def render_projects(projects: list[Project], *, dest_path: Path, include_info: bool = True):
+def render_projects(projects: Sequence[Project], *, dest_path: Path, include_info: bool = True):
     io = StringIO()
     print = functools.partial(builtins.print, file=io)
 
@@ -191,7 +192,7 @@ def render_projects(projects: list[Project], *, dest_path: Path, include_info: b
 def insert_projects_table(
     file: Path,
     *,
-    projects: list[Project],
+    projects: Sequence[Project],
     input_filename: str,
     include_info: bool = True,
 ):

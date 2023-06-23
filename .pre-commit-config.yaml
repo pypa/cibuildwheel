@@ -14,24 +14,24 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/psf/black
-  rev: 23.1.0
+  rev: 23.3.0
   hooks:
   - id: black
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.0.243
+  rev: v0.0.272
   hooks:
   - id: ruff
-    args: ["--fix"]
+    args: ["--fix", "--show-fixes"]
 
 - repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v2.2.0
+  rev: v2.3.0
   hooks:
   - id: setup-cfg-fmt
     args: [--include-version-classifiers, --max-py-version=3.11]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.0.0
+  rev: v1.3.0
   hooks:
   - id: mypy
     name: mypy 3.7 on cibuildwheel/
@@ -46,20 +46,19 @@ repos:
       - tomli_w
       - types-certifi
       - types-click
-      - types-dataclasses
       - types-jinja2
       - types-pyyaml
       - types-requests
       - bracex
-      - dataclasses
+      - markdown-it-py<3
   - id: mypy
-    name: mypy 3.10
+    name: mypy 3.11
     exclude: ^cibuildwheel/resources/.*py$
-    args: ["--python-version=3.10"]
+    args: ["--python-version=3.11"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
-  rev: v0.9.0.2
+  rev: v0.9.0.5
   hooks:
   - id: shellcheck
 
@@ -79,7 +78,7 @@ repos:
     files: ^docs/changelog.md$
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.2.2
+  rev: v2.2.5
   hooks:
   - id: codespell
     args: ["-L", "sur"]

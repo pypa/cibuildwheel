@@ -8,16 +8,47 @@ import shlex
 import shutil
 import subprocess
 import sys
+import typing
 import uuid
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, Sequence, cast
+from typing import IO, Dict
 
-from cibuildwheel.util import CIProvider, detect_ci_provider
+from ._compat.typing import Literal
+from .typing import PathOrStr, PopenBytes
+from .util import CIProvider, detect_ci_provider, parse_key_value_string
 
-from .typing import Literal, PathOrStr, PopenBytes
+ContainerEngineName = Literal["docker", "podman"]
 
-ContainerEngine = Literal["docker", "podman"]
+
+@dataclass(frozen=True)
+class OCIContainerEngineConfig:
+    name: ContainerEngineName
+    create_args: Sequence[str] = ()
+
+    @staticmethod
+    def from_config_string(config_string: str) -> OCIContainerEngineConfig:
+        config_dict = parse_key_value_string(config_string, ["name"])
+        name = " ".join(config_dict["name"])
+        if name not in {"docker", "podman"}:
+            msg = f"unknown container engine {name}"
+            raise ValueError(msg)
+
+        name = typing.cast(ContainerEngineName, name)
+        # some flexibility in the option name to cope with TOML conventions
+        create_args = config_dict.get("create_args") or config_dict.get("create-args") or []
+        return OCIContainerEngineConfig(name=name, create_args=create_args)
+
+    def options_summary(self) -> str | dict[str, str]:
+        if not self.create_args:
+            return self.name
+        else:
+            return {"name": self.name, "create_args": repr(self.create_args)}
+
+
+DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 
 
 class OCIContainer:
@@ -55,7 +86,7 @@ class OCIContainer:
         image: str,
         simulate_32_bit: bool = False,
         cwd: PathOrStr | None = None,
-        engine: ContainerEngine = "docker",
+        engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
     ):
         if not image:
             msg = "Must have a non-empty image to run."
@@ -82,13 +113,14 @@ class OCIContainer:
 
         subprocess.run(
             [
-                self.engine,
+                self.engine.name,
                 "create",
                 "--env=CIBUILDWHEEL",
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
                 *network_args,
+                *self.engine.create_args,
                 self.image,
                 *shell_args,
             ],
@@ -97,7 +129,7 @@ class OCIContainer:
 
         self.process = subprocess.Popen(
             [
-                self.engine,
+                self.engine.name,
                 "start",
                 "--attach",
                 "--interactive",
@@ -135,7 +167,7 @@ class OCIContainer:
         self.bash_stdin.close()
         self.bash_stdout.close()
 
-        if self.engine == "podman":
+        if self.engine.name == "podman":
             # This works around what seems to be a race condition in the podman
             # backend. The full reason is not understood. See PR #966 for a
             # discussion on possible causes and attempts to remove this line.
@@ -145,7 +177,7 @@ class OCIContainer:
         assert isinstance(self.name, str)
 
         subprocess.run(
-            [self.engine, "rm", "--force", "-v", self.name],
+            [self.engine.name, "rm", "--force", "-v", self.name],
             stdout=subprocess.DEVNULL,
             check=False,
         )
@@ -160,15 +192,16 @@ class OCIContainer:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f"tar cf - . | {self.engine} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
+                f"tar cf - . | {self.engine.name} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
             )
         else:
+            exec_process: subprocess.Popen[bytes]
             with subprocess.Popen(
                 [
-                    self.engine,
+                    self.engine.name,
                     "exec",
                     "-i",
                     str(self.name),
@@ -178,10 +211,10 @@ class OCIContainer:
                 ],
                 stdin=subprocess.PIPE,
             ) as exec_process:
-                exec_process.stdin = cast(IO[bytes], exec_process.stdin)
-
+                assert exec_process.stdin
                 with open(from_path, "rb") as from_file:
-                    shutil.copyfileobj(from_file, exec_process.stdin)
+                    # Bug in mypy, https://github.com/python/mypy/issues/15031
+                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
 
                 exec_process.stdin.close()
                 exec_process.wait()
@@ -195,10 +228,10 @@ class OCIContainer:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
 
-        if self.engine == "podman":
+        if self.engine.name == "podman":
             subprocess.run(
                 [
-                    self.engine,
+                    self.engine.name,
                     "cp",
                     f"{self.name}:{from_path}/.",
                     str(to_path),
@@ -206,10 +239,10 @@ class OCIContainer:
                 check=True,
                 cwd=to_path,
             )
-        elif self.engine == "docker":
+        elif self.engine.name == "docker":
             # There is a bug in docker that prevents a simple 'cp' invocation
             # from working https://github.com/moby/moby/issues/38995
-            command = f"{self.engine} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
+            command = f"{self.engine.name} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
             subprocess.run(
                 command,
                 shell=True,
@@ -217,7 +250,7 @@ class OCIContainer:
                 cwd=to_path,
             )
         else:
-            raise KeyError(self.engine)
+            raise KeyError(self.engine.name)
 
     def glob(self, path: PurePosixPath, pattern: str) -> list[PurePosixPath]:
         glob_pattern = path.joinpath(pattern)
@@ -238,7 +271,7 @@ class OCIContainer:
     def call(
         self,
         args: Sequence[PathOrStr],
-        env: dict[str, str] | None = None,
+        env: Mapping[str, str] | None = None,
         capture_output: bool = False,
         cwd: PathOrStr | None = None,
     ) -> str:
@@ -328,17 +361,17 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return cast(Dict[str, str], env)
+        return typing.cast(Dict[str, str], env)
 
-    def environment_executor(self, command: list[str], environment: dict[str, str]) -> str:
+    def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
         return self.call(command, env=environment, capture_output=True)
 
     def debug_info(self) -> str:
-        if self.engine == "podman":
-            command = f"{self.engine} info --debug"
+        if self.engine.name == "podman":
+            command = f"{self.engine.name} info --debug"
         else:
-            command = f"{self.engine} info"
+            command = f"{self.engine.name} info"
         completed = subprocess.run(
             command,
             shell=True,

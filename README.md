@@ -31,6 +31,7 @@ What does it do?
 | CPython 3.9   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅³ | ✅ | ✅ | ✅  | ✅  |
 | CPython 3.10  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.11  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.12⁵ | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
 | PyPy 3.7 v7.3 | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
 | PyPy 3.8 v7.3 | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
 | PyPy 3.9 v7.3 | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
@@ -39,6 +40,7 @@ What does it do?
 <sup>² Windows arm64 support is experimental.</sup><br>
 <sup>³ Alpine 3.14 and very briefly 3.15's default python3 [was not able to load](https://github.com/pypa/cibuildwheel/issues/934) musllinux wheels. This has been fixed; please upgrade the python package if using Alpine from before the fix.</sup><br>
 <sup>⁴ Cross-compilation not supported with PyPy - to build these wheels you need to run cibuildwheel on an Apple Silicon machine.</sup><br>
+<sup>⁵ CPython 3.12 is available using the [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons) option.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
@@ -94,7 +96,7 @@ jobs:
       - uses: actions/setup-python@v3
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.12.0
+        run: python -m pip install cibuildwheel==2.13.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -158,26 +160,26 @@ Here are some repos that use cibuildwheel.
 | Name                              | CI | OS | Notes |
 |-----------------------------------|----|----|:------|
 | [scikit-learn][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The machine learning library. A complex but clean config using many of cibuildwheel's features to build a large project with Cython and C++ extensions.  |
+| [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NumPy][]                         | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The fundamental package for scientific computing with Python. |
 | [Tornado][]                       | ![travisci icon][] | ![apple icon][] ![linux icon][] | Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed. |
-| [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
-| [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
+| [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
-| [pydantic][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Data parsing and validation using Python type hints |
+| [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
+[pytorch-fairseq]: https://github.com/pytorch/fairseq
 [NumPy]: https://github.com/numpy/numpy
 [Tornado]: https://github.com/tornadoweb/tornado
-[pytorch-fairseq]: https://github.com/pytorch/fairseq
 [Matplotlib]: https://github.com/matplotlib/matplotlib
 [NCNN]: https://github.com/Tencent/ncnn
-[Kivy]: https://github.com/kivy/kivy
 [Prophet]: https://github.com/facebook/prophet
+[Kivy]: https://github.com/kivy/kivy
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
-[pydantic]: https://github.com/samuelcolvin/pydantic
+[MemRay]: https://github.com/bloomberg/memray
 
 [appveyor icon]: docs/data/readme_icons/appveyor.svg
 [github icon]: docs/data/readme_icons/github.svg
@@ -210,47 +212,42 @@ Changelog
 
 <!-- this section was generated by bin/update_readme_changelog.py -- do not edit manually -->
 
-### v2.12.0
+### v2.13.1
 
-_16 Jan 2023_
+_10 June 2023_
 
-- ✨ Adds support for PyPy arm64 wheels. This means that you can build PyPy wheels for Apple Silicon machines. Cross-compilation is not supported for these wheels, so you'll have to build on an Apple Silicon machine. (#1372)
-- 🛠 Pinned version updates, including PyPy to v7.3.11 and setuptools to 66.0.0.
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b2. (#1516)
+- 🛠 Adds a moving `v<major>.<minor>` tag for use in GitHub Actions workflow files. If you use this, you'll get the latest patch release within a minor version. Additionally, Dependabot won't send you PRs for patch releases. (#1517)
 
-### v2.11.4
+### v2.13.0
 
-_24 Dec 2022_
+_28 May 2023_
 
-- 🐛 Fix a bug that caused missing wheels on Windows when a test was skipped using CIBW_TEST_SKIP (#1377)
-- 🛠 Updates CPython 3.11 to 3.11.1 (#1371)
-- 🛠 Updates PyPy to 7.3.10, except on macOS which remains on 7.3.9 due to a bug on that platform. (#1371)
-- 📚 Added a reference to abi3audit to the docs (#1347)
+- ✨ Adds CPython 3.12 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.12.0b1.
 
-### v2.11.3
+    While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.12 will be available in cibuildwheel without the flag. (#1507)
 
-_5 Dec 2022_
+- ✨ Adds the ability to pass arguments to the container engine when the container is created, using the [CIBW_CONTAINER_ENGINE](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#1499)
 
-- ✨ Improves the 'build options' log output that's printed at the start of each run (#1352)
-- ✨ Added a friendly error message to a common misconfiguration of the `CIBW_TEST_COMMAND` option - not specifying path using the `{project}` placeholder (#1336)
-- 🛠 The GitHub Action now uses Powershell on Windows to avoid occasional incompabilities with bash (#1346)
+### v2.12.3
 
-### v2.11.2
+_19 April 2023_
 
-_26 October 2022_
+- 🐛 Fix an import error when running on Python 3.7. (#1479)
 
-- 🛠 Updates CPython 3.11 to 3.11.0 - final release (#1327)
-- 🛠 Simplify the default macOS repair command (#1322)
-- 🛠 Fix the default `MACOSX_DEPLOYMENT_TARGET` on arm64 (#1312)
-- 🛠 Hide irrelevant pip warnings on linux (#1311)
-- 🐛 Fix a bug that caused the stdout and stderr of commands in containers to be in the wrong order Previously, stdout could appear after stderr. (#1324)
-- 📚 Added [a FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#macos-building-cpython-38-wheels-on-arm64) describing how to perform native builds of CPython 3.8 wheels on Apple Silicon. (#1323)
-- 📚 Other docs improvements
+### v2.12.2
 
-### v2.11.1
+_18 April 2023_
 
-_13 October 2022_
+- 🐛 Fix a bug that caused an extra empty config-setting to be passed to the backend when CIBW_BUILD_FRONTEND is set to `build`. (#1474)
+- 🐛 Fix a crash that occurred when overwriting an existing wheel on Windows. (#1464)
+- 🛠 Pinned version updates, including CPython 3.10.11, 3.11.3, pip 23.1 and wheel 0.40.0.
 
-- 🛠 Updates to the latest manylinux images, and updates CPython 3.10 to 3.10.8.
+### v2.12.1
+
+_11 March 2023_
+
+- 🐛 Fix a bug that prevented the use of CIBW_CONFIG_SETTINGS with the 'pip' build backend. (#1430)
 
 <!-- END bin/update_readme_changelog.py -->
 

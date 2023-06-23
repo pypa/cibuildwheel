@@ -5,23 +5,17 @@ from __future__ import annotations
 import difflib
 import logging
 import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 import click
 import rich
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel.typing import Final
+from cibuildwheel._compat import tomllib
+from cibuildwheel._compat.typing import Final
 
 log = logging.getLogger("cibw")
 
@@ -54,14 +48,18 @@ def git_ls_remote_versions(url) -> list[VersionTuple]:
         try:
             version = Version(version_string)
             if version.is_devrelease:
-                log.info(f"Ignoring development release '{version}'")
+                log.info("Ignoring development release %r", str(version))
                 continue
             if version.is_prerelease:
-                log.info(f"Ignoring pre-release '{version}'")
+                log.info("Ignoring pre-release %r", str(version))
+                continue
+            # Do not upgrade past 20.22.0 to keep python 3.6 compat
+            if version >= Version("20.22.0"):
+                log.info("Ignoring %r which is not compatible with python 3.6", str(version))
                 continue
             versions.append(VersionTuple(version, version_string))
         except InvalidVersion:
-            log.warning(f"Ignoring ref '{ref}'")
+            log.warning("Ignoring ref %r", ref)
     versions.sort(reverse=True)
     return versions
 
