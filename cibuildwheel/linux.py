@@ -349,6 +349,7 @@ def build_in_container(
                 build_options.test_command,
                 project=container_project_path,
                 package=container_package_dir,
+                wheel=wheel_to_test,
             )
             test_cwd = testing_temp_dir / "test_cwd"
             container.call(["mkdir", "-p", test_cwd])

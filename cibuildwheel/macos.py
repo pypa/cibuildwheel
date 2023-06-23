@@ -599,6 +599,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.test_command,
                         project=Path(".").resolve(),
                         package=build_options.package_dir.resolve(),
+                        wheel=repaired_wheel,
                     )
 
                     test_cwd = identifier_tmp_dir / "test_cwd"
