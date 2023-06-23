@@ -8,15 +8,15 @@ delocate==0.10.4
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.6
     # via virtualenv
-filelock==3.12.1
+filelock==3.12.2
     # via virtualenv
 packaging==23.1
     # via delocate
-platformdirs==3.5.3
+platformdirs==3.8.0
     # via virtualenv
 typing-extensions==4.6.3
     # via delocate
-virtualenv==20.23.0
+virtualenv==20.23.1
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.40.0
     # via -r cibuildwheel/resources/constraints.in
@@ -24,5 +24,5 @@ wheel==0.40.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==23.1.2
     # via -r cibuildwheel/resources/constraints.in
-setuptools==67.8.0
+setuptools==68.0.0
     # via -r cibuildwheel/resources/constraints.in
