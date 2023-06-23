@@ -169,7 +169,7 @@ Here are some repos that use cibuildwheel.
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
 | [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
-| [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
+| [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an in-process SQL OLAP Database Management System |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [pytorch-fairseq]: https://github.com/pytorch/fairseq
@@ -180,7 +180,7 @@ Here are some repos that use cibuildwheel.
 [Prophet]: https://github.com/facebook/prophet
 [Kivy]: https://github.com/kivy/kivy
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
-[MemRay]: https://github.com/bloomberg/memray
+[duckdb]: https://github.com/duckdb/duckdb
 
 [appveyor icon]: docs/data/readme_icons/appveyor.svg
 [github icon]: docs/data/readme_icons/github.svg
