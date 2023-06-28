@@ -253,6 +253,10 @@ def _expected_wheels(
                 "pp310-pypy310_pp73",
                 "pp311-pypy311_pp73",
             ]
+        if machine_arch in ["x86_64", "AMD64", "aarch64", "arm64"]:
+            python_abi_tags += [
+                "graalpy311-graalpy242_311_native",
+            ]
 
     if single_python:
         python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
@@ -283,7 +287,7 @@ def _expected_wheels(
                         for manylinux_version in manylinux_versions
                     )
                 ]
-            if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
+            if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp", "graalpy"):
                 platform_tags.append(
                     ".".join(
                         f"{musllinux_version}_{machine_arch}"
