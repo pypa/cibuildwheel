@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import Tuple
 
+from filelock import FileLock
+
 from ._compat.typing import OrderedDict, assert_never
 from .architecture import Architecture
 from .logger import log
@@ -15,10 +17,13 @@ from .oci_container import OCIContainer
 from .options import Options
 from .typing import PathOrStr
 from .util import (
+    CIBW_CACHE_PATH,
     AlreadyBuiltWheelError,
     BuildSelector,
     NonPlatformWheelError,
     build_frontend_or_default,
+    call,
+    download,
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     prepare_command,
@@ -34,6 +39,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     path_str: str
+    url: str = ""
 
     @property
     def path(self) -> PurePosixPath:
@@ -113,6 +119,36 @@ def get_build_steps(
     yield from steps.values()
 
 
+def install_python(container: OCIContainer, config: PythonConfiguration) -> bool:
+    url = config.url
+    if not url:
+        return False
+    archive = url.rsplit("/", 1)[-1]
+    parts = archive.rsplit(".", 2)
+    if parts[-1] == "zip":
+        extension = ".zip"
+    elif parts[-1] == "gz":
+        extension = ".tar.gz"
+    else:
+        extension = ".tar.bz2"
+    assert archive.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / archive[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            downloaded_archive = CIBW_CACHE_PATH / archive
+            download(url, downloaded_archive)
+            installation_path.parent.mkdir(parents=True, exist_ok=True)
+            call("tar", "-C", installation_path.parent, "-xzf", downloaded_archive)
+            downloaded_archive.unlink()
+    container.copy_into(installation_path, config.path)
+    try:
+        container.call(["test", "-x", config.path / "bin" / "python"])
+    except subprocess.CalledProcessError:
+        return False
+    else:
+        return True
+
+
 def check_all_python_exist(
     *, platform_configs: Iterable[PythonConfiguration], container: OCIContainer
 ) -> None:
@@ -123,6 +159,8 @@ def check_all_python_exist(
         try:
             container.call(["test", "-x", python_path])
         except subprocess.CalledProcessError:
+            if install_python(container, config):
+                continue
             messages.append(
                 f"  '{python_path}' executable doesn't exist in image '{container.image}' to build '{config.identifier}'."
             )

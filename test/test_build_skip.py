@@ -7,7 +7,7 @@ from . import test_projects, utils
 project_with_skip_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         r"""
-        # explode if run on PyPyor Python 3.7 (these should be skipped)
+        # explode if run on PyPy or Python 3.7 (these should be skipped)
         if sys.implementation.name != "cpython":
             raise Exception("Only CPython shall be built")
         if sys.version_info[0:2] == (3, 7):

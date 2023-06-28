@@ -181,6 +181,14 @@ def expected_wheels(
                 "pp310-pypy310_pp73",
             ]
 
+        # GraalPy encodes compilation platform and arch in the tag
+        if machine_arch == "x86_64" and platform == "linux":
+            python_abi_tags += ["graalpy230_310_native_x86_64_linux"]
+        elif machine_arch == "aarch64" and platform == "linux":
+            python_abi_tags += ["graalpy230_310_native_aarch64_linux"]
+        elif machine_arch == "AMD64" and platform == "macos":
+            python_abi_tags += ["graalpy230_310_native_x86_64_darwin"]
+
         if platform == "macos" and machine_arch == "arm64":
             # arm64 macs are only supported by cp38+
             python_abi_tags = [
@@ -192,6 +200,7 @@ def expected_wheels(
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
+                "graalpy230_310_native_aarch64_darwin",
             ]
 
     wheels = []

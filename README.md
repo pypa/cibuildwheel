@@ -36,11 +36,12 @@ What does it do?
 | PyPy 3.8 v7.3  | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
 | PyPy 3.9 v7.3  | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
 | PyPy 3.10 v7.3 | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
+| GraalPy 23.0  | ✅ | ✅⁴ | N/A | N/A | N/A | ✅¹ | N/A | ✅¹ | N/A | N/A |
 
-<sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
+<sup>¹ PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
 <sup>³ Alpine 3.14 and very briefly 3.15's default python3 [was not able to load](https://github.com/pypa/cibuildwheel/issues/934) musllinux wheels. This has been fixed; please upgrade the python package if using Alpine from before the fix.</sup><br>
-<sup>⁴ Cross-compilation not supported with PyPy - to build these wheels you need to run cibuildwheel on an Apple Silicon machine.</sup><br>
+<sup>⁴ Cross-compilation not supported with PyPy & GraalPy - to build these wheels you need to run cibuildwheel on an Apple Silicon machine.</sup><br>
 <sup>⁵ CPython 3.12 is available using the [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons) option.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy

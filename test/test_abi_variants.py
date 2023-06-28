@@ -39,7 +39,7 @@ def test_abi3(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_SKIP": "pp* ",  # PyPy does not have a Py_LIMITED_API equivalent
+            "CIBW_SKIP": "pp* gp*",  # PyPy and GraalPy do not have a Py_LIMITED_API equivalent
         },
     )
 
