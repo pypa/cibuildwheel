@@ -41,9 +41,9 @@ def test_abi3(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            # free_threaded and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
+            # free_threaded, GraalPy, and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
             # also limit the number of builds for test performance reasons
-            "CIBW_BUILD": f"cp39-* cp310-* pp310-* {single_python_tag}-* cp313t-*"
+            "CIBW_BUILD": f"cp39-* cp310-* pp310-* gp242-* {single_python_tag}-* cp313t-*"
         },
     )
 
@@ -59,7 +59,11 @@ def test_abi3(tmp_path):
         expected_wheels = [
             w.replace("cp310-cp310", "cp310-abi3")
             for w in expected_wheels
-            if "-cp39" in w or "-cp310" in w or "-pp310" in w or "-cp313t" in w
+            if "-cp39" in w
+            or "-cp310" in w
+            or "-pp310" in w
+            or "-graalpy242" in w
+            or "-cp313t" in w
         ]
     assert set(actual_wheels) == set(expected_wheels)
 
