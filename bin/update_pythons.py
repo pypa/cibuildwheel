@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import difflib
 import logging
+import re
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Final, Literal, TypedDict, Union
@@ -44,13 +45,19 @@ class ConfigWinPP(TypedDict):
     url: str
 
 
+class ConfigWinGP(TypedDict):
+    identifier: str
+    version: str
+    url: str
+
+
 class ConfigMacOS(TypedDict):
     identifier: str
     version: str
     url: str
 
 
-AnyConfig = Union[ConfigWinCP, ConfigWinPP, ConfigMacOS]
+AnyConfig = Union[ConfigWinCP, ConfigWinPP, ConfigWinGP, ConfigMacOS]
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to
@@ -103,6 +110,72 @@ class WindowsVersions:
             identifier=identifier,
             version=self.version_dict[version],
             arch=self.arch_str,
+        )
+
+
+class GraalPyVersions:
+    def __init__(self):
+        response = requests.get("https://api.github.com/repos/oracle/graalpython/releases")
+        response.raise_for_status()
+
+        releases = response.json()
+        gp_version_re = re.compile(r"-(\d+\.\d+\.\d+)$")
+        cp_version_re = re.compile(r"Python (\d+\.\d+(?:\.\d+)?)")
+        for release in releases:
+            m = gp_version_re.search(release["tag_name"])
+            if m:
+                release["graalpy_version"] = Version(m.group(1))
+            m = cp_version_re.search(release["body"])
+            if m:
+                release["python_version"] = Version(m.group(1))
+
+        self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
+
+    def update_version(self, identifier: str, spec: Specifier) -> AnyConfig:
+        if "x86_64" in identifier or "amd64" in identifier:
+            arch = "x86_64"
+        elif "arm64" in identifier or "aarch64" in identifier:
+            arch = "aarch64"
+        else:
+            msg = f"{identifier} not supported yet on GraalPy"
+            raise RuntimeError(msg)
+
+        releases = [r for r in self.releases if spec.contains(r["python_version"])]
+        releases = sorted(releases, key=lambda r: r["graalpy_version"])
+
+        if not releases:
+            msg = f"GraalPy {arch} not found for {spec}!"
+            raise RuntimeError(msg)
+
+        release = releases[-1]
+        version = release["python_version"]
+        gpversion = release["graalpy_version"]
+
+        if "macosx" in identifier:
+            arch = "x86_64" if "x86_64" in identifier else "arm64"
+            config = ConfigMacOS
+            platform = "macos"
+        elif "win" in identifier:
+            arch = "aarch64" if "arm64" in identifier else "x86_64"
+            config = ConfigWinGP
+            platform = "windows"
+        else:
+            msg = "GraalPy provides downloads for macOS and Windows and is included for manylinux"
+            raise RuntimeError(msg)
+
+        arch = "amd64" if arch == "x86_64" else "aarch64"
+        ext = "zip" if "win" in identifier else "tar.gz"
+        (url,) = (
+            rf["browser_download_url"]
+            for rf in release["assets"]
+            if rf["name"].endswith(f"{platform}-{arch}.{ext}")
+            and rf["name"].startswith(f"graalpy-{gpversion.major}")
+        )
+
+        return config(
+            identifier=identifier,
+            version=f"{version.major}.{version.minor}",
+            url=url,
         )
 
 
@@ -250,6 +323,8 @@ class AllVersions:
         self.macos_pypy = PyPyVersions("64")
         self.macos_pypy_arm64 = PyPyVersions("ARM64")
 
+        self.graalpy = GraalPyVersions()
+
     def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]
         version = Version(config["version"])
@@ -267,6 +342,8 @@ class AllVersions:
                     config_update = self.macos_pypy.update_version_macos(spec)
                 elif "macosx_arm64" in identifier:
                     config_update = self.macos_pypy_arm64.update_version_macos(spec)
+            elif identifier.startswith("gp"):
+                config_update = self.graalpy.update_version(identifier, spec)
         elif "t-win32" in identifier and identifier.startswith("cp"):
             config_update = self.windows_t_32.update_version_windows(spec)
         elif "win32" in identifier and identifier.startswith("cp"):
@@ -278,6 +355,8 @@ class AllVersions:
                 config_update = self.windows_64.update_version_windows(spec)
             elif identifier.startswith("pp"):
                 config_update = self.windows_pypy_64.update_version_windows(spec)
+            elif identifier.startswith("gp"):
+                config_update = self.graalpy.update_version(identifier, spec)
         elif "t-win_arm64" in identifier and identifier.startswith("cp"):
             config_update = self.windows_t_arm64.update_version_windows(spec)
         elif "win_arm64" in identifier and identifier.startswith("cp"):

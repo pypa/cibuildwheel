@@ -512,7 +512,7 @@ class Options:
         package_dir = args.package_dir
         output_dir = args.output_dir
 
-        build_config = self.reader.get("build", env_plat=False, list_sep=" ") or "*"
+        build_config = self.reader.get("build", env_plat=False, list_sep=" ") or "[!g]*"
         skip_config = self.reader.get("skip", env_plat=False, list_sep=" ")
         test_skip = self.reader.get("test-skip", env_plat=False, list_sep=" ")
 

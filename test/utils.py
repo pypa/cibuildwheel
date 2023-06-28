@@ -205,6 +205,7 @@ def expected_wheels(
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
+                "graalpy310-graalpy240_310_native",
             ]
 
         if platform == "macos" and machine_arch == "arm64":
@@ -220,6 +221,7 @@ def expected_wheels(
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
+                "graalpy310-graalpy240_310_native",
             ]
 
     if single_python:
@@ -246,7 +248,11 @@ def expected_wheels(
         if platform == "linux":
             architectures = [arch_name_for_linux(machine_arch)]
 
-            if machine_arch == "x86_64" and not single_arch:
+            if (
+                machine_arch == "x86_64"
+                and not single_arch
+                and not python_abi_tag.startswith("graalpy")
+            ):
                 architectures.append("i686")
 
             if len(manylinux_versions) > 0:
@@ -257,7 +263,7 @@ def expected_wheels(
                     )
                     for architecture in architectures
                 ]
-            if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
+            if len(musllinux_versions) > 0 and not python_abi_tag.startswith(("pp", "graalpy")):
                 platform_tags.extend(
                     [
                         ".".join(
