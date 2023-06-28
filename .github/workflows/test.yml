@@ -80,7 +80,7 @@ jobs:
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: 'build[uv]'
-        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
+        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy graalpy"
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
