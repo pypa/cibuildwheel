@@ -595,7 +595,7 @@ class Options:
         output_dir = args.output_dir
 
         build_config = (
-            self.reader.get("build", env_plat=False, option_format=ListFormat(sep=" ")) or "*"
+            self.reader.get("build", env_plat=False, option_format=ListFormat(sep=" ")) or "[!g]*"
         )
         skip_config = self.reader.get("skip", env_plat=False, option_format=ListFormat(sep=" "))
         test_skip = self.reader.get("test-skip", env_plat=False, option_format=ListFormat(sep=" "))

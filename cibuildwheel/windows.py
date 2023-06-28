@@ -138,6 +138,20 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     return installation_path / "python.exe"
 
 
+def install_graalpy(tmp: Path, url: str) -> Path:
+    zip_filename = url.rsplit("/", 1)[-1]
+    extension = ".zip"
+    assert zip_filename.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / zip_filename[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            graalpy_zip = tmp / zip_filename
+            download(url, graalpy_zip)
+            # Extract to the parent directory because the zip file still contains a directory
+            extract_zip(graalpy_zip, installation_path.parent)
+    return installation_path / "bin" / "graalpy.exe"
+
+
 def setup_setuptools_cross_compile(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -257,6 +271,8 @@ def setup_python(
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
+    elif implementation_id.startswith("gp"):
+        base_python = install_graalpy(tmp, python_configuration.url or "")
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)

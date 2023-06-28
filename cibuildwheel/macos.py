@@ -198,6 +198,22 @@ def can_use_uv(python_configuration: PythonConfiguration) -> bool:
     return all(conditions)
 
 
+def install_graalpy(tmp: Path, url: str) -> Path:
+    graalpy_archive = url.rsplit("/", 1)[-1]
+    extension = ".tar.gz"
+    assert graalpy_archive.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / graalpy_archive[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            downloaded_archive = tmp / graalpy_archive
+            download(url, downloaded_archive)
+            installation_path.mkdir(parents=True)
+            # GraalPy top-folder name is inconsistent with archive name
+            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
+            downloaded_archive.unlink()
+    return installation_path / "bin" / "graalpy"
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -222,6 +238,8 @@ def setup_python(
 
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
+    elif implementation_id.startswith("gp"):
+        base_python = install_graalpy(tmp, python_configuration.url)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)

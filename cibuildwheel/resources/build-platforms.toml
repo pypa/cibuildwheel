@@ -22,6 +22,7 @@ python_configurations = [
   { identifier = "pp38-manylinux_x86_64", version = "3.8", path_str = "/opt/python/pp38-pypy38_pp73" },
   { identifier = "pp39-manylinux_x86_64", version = "3.9", path_str = "/opt/python/pp39-pypy39_pp73" },
   { identifier = "pp310-manylinux_x86_64", version = "3.10", path_str = "/opt/python/pp310-pypy310_pp73" },
+  { identifier = "gp241-manylinux_x86_64", version = "3.11", path_str = "/opt/python/graalpy311-graalpy241_311_native" },
   { identifier = "cp36-manylinux_aarch64", version = "3.6", path_str = "/opt/python/cp36-cp36m" },
   { identifier = "cp37-manylinux_aarch64", version = "3.7", path_str = "/opt/python/cp37-cp37m" },
   { identifier = "cp38-manylinux_aarch64", version = "3.8", path_str = "/opt/python/cp38-cp38" },
@@ -53,6 +54,7 @@ python_configurations = [
   { identifier = "pp38-manylinux_aarch64", version = "3.8", path_str = "/opt/python/pp38-pypy38_pp73" },
   { identifier = "pp39-manylinux_aarch64", version = "3.9", path_str = "/opt/python/pp39-pypy39_pp73" },
   { identifier = "pp310-manylinux_aarch64", version = "3.10", path_str = "/opt/python/pp310-pypy310_pp73" },
+  { identifier = "gp241-manylinux_aarch64", version = "3.11", path_str = "/opt/python/graalpy311-graalpy241_311_native" },
   { identifier = "pp37-manylinux_i686", version = "3.7", path_str = "/opt/python/pp37-pypy37_pp73" },
   { identifier = "pp38-manylinux_i686", version = "3.8", path_str = "/opt/python/pp38-pypy38_pp73" },
   { identifier = "pp39-manylinux_i686", version = "3.9", path_str = "/opt/python/pp39-pypy39_pp73" },
@@ -136,6 +138,8 @@ python_configurations = [
   { identifier = "pp39-macosx_arm64", version = "3.9", url = "https://downloads.python.org/pypy/pypy3.9-v7.3.16-macos_arm64.tar.bz2" },
   { identifier = "pp310-macosx_x86_64", version = "3.10", url = "https://downloads.python.org/pypy/pypy3.10-v7.3.17-macos_x86_64.tar.bz2" },
   { identifier = "pp310-macosx_arm64", version = "3.10", url = "https://downloads.python.org/pypy/pypy3.10-v7.3.17-macos_arm64.tar.bz2" },
+  { identifier = "gp241-macosx_x86_64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.1.0/graalpy-24.1.0-macos-amd64.tar.gz" },
+  { identifier = "gp241-macosx_arm64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.1.0/graalpy-24.1.0-macos-aarch64.tar.gz" },
 ]
 
 [windows]
@@ -168,6 +172,7 @@ python_configurations = [
   { identifier = "pp38-win_amd64", version = "3.8", arch = "64", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.11-win64.zip" },
   { identifier = "pp39-win_amd64", version = "3.9", arch = "64", url = "https://downloads.python.org/pypy/pypy3.9-v7.3.16-win64.zip" },
   { identifier = "pp310-win_amd64", version = "3.10", arch = "64", url = "https://downloads.python.org/pypy/pypy3.10-v7.3.17-win64.zip" },
+  { identifier = "gp241-win_amd64", version = "3.11", arch = "64", url = "https://github.com/oracle/graalpython/releases/download/graal-24.1.0/graalpy-24.1.0-windows-amd64.zip" },
 ]
 
 [pyodide]
