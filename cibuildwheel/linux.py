@@ -142,6 +142,12 @@ def install_python(container: OCIContainer, config: PythonConfiguration) -> bool
             # name is inconsistent with the archive name
             call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
             downloaded_archive.unlink()
+            # make sure pip and wheel are available
+            bin_path = installation_path / "bin"
+            call(bin_path / "python", "-s", "-m", "ensurepip")
+            if not (bin_path / "pip").exists():
+                call("cp", bin_path / "pip3", bin_path / "pip")
+            call(bin_path / "python", "-s", "-m", "pip", "install", "wheel")
     container.copy_into(installation_path, config.path)
     try:
         container.call(["test", "-x", config.path / "bin" / "python"])
