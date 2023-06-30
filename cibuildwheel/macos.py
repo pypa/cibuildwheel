@@ -169,8 +169,9 @@ def install_graalpy(tmp: Path, url: str) -> Path:
         if not installation_path.exists():
             downloaded_archive = tmp / graalpy_archive
             download(url, downloaded_archive)
-            installation_path.parent.mkdir(parents=True, exist_ok=True)
-            call("tar", "-C", installation_path.parent, "-xzf", downloaded_archive)
+            installation_path.mkdir(parents=True)
+            # GraalPy top-folder name is inconsistent with archive name
+            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
             downloaded_archive.unlink()
     return installation_path / "bin" / "graalpy"
 
