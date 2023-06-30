@@ -137,8 +137,10 @@ def install_python(container: OCIContainer, config: PythonConfiguration) -> bool
         if not installation_path.exists():
             downloaded_archive = CIBW_CACHE_PATH / archive
             download(url, downloaded_archive)
-            installation_path.parent.mkdir(parents=True, exist_ok=True)
-            call("tar", "-C", installation_path.parent, "-xzf", downloaded_archive)
+            installation_path.mkdir(parents=True)
+            # strip the top level component, in case the top-level directory
+            # name is inconsistent with the archive name
+            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
             downloaded_archive.unlink()
     container.copy_into(installation_path, config.path)
     try:
