@@ -126,7 +126,7 @@ python_configurations = [
   { identifier = "cp310-win_amd64", version = "3.10.11", arch = "64" },
   { identifier = "cp311-win32", version = "3.11.4", arch = "32" },
   { identifier = "cp311-win_amd64", version = "3.11.4", arch = "64" },
-  { identifier = "cp312-win32", version = "3.12.0-b2", arch = "32" },
+  { identifier = "cp312-win32", version = "3.12.0-b3", arch = "32" },
   { identifier = "cp312-win_amd64", version = "3.12.0-b3", arch = "64" },
   { identifier = "cp39-win_arm64", version = "3.9.10", arch = "ARM64" },
   { identifier = "cp310-win_arm64", version = "3.10.11", arch = "ARM64" },
