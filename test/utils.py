@@ -181,6 +181,17 @@ def expected_wheels(
                 "pp310-pypy310_pp73",
             ]
 
+        # GraalPy encodes compilation platform and arch in the tag, because it
+        # can execute native extensions compiled for different platforms
+        if machine_arch in ["x86_64", "AMD64"]:
+            if platform == "linux":
+                python_abi_tags += ["graalpy310-graalpy230_310_native_x86_64_linux-linux_i686"]
+            elif platform == "macos":
+                python_abi_tags += ["graalpy310-graalpy230_310_native_x86_64_darwin-darwin_i686"]
+
+        if machine_arch == "aarch64" and platform == "linux":
+            python_abi_tags += ["graalpy310-graalpy230_310_native_aarch64_linux-linux-aarch64"]
+
         if platform == "macos" and machine_arch == "arm64":
             # arm64 macs are only supported by cp38+
             python_abi_tags = [
@@ -192,6 +203,7 @@ def expected_wheels(
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
+                "graalpy310-graalpy230_310_native_x86_64_linux-linux_i686",
             ]
 
     wheels = []
@@ -202,7 +214,7 @@ def expected_wheels(
         if platform == "linux":
             architectures = [arch_name_for_linux(machine_arch)]
 
-            if machine_arch == "x86_64":
+            if machine_arch == "x86_64" and not python_abi_tag.startswith("graalpy"):
                 architectures.append("i686")
 
             platform_tags = [
@@ -212,7 +224,7 @@ def expected_wheels(
                 )
                 for architecture in architectures
             ]
-            if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
+            if len(musllinux_versions) > 0 and not python_abi_tag.startswith(("pp", "graalpy")):
                 platform_tags.extend(
                     [
                         ".".join(
