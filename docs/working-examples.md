@@ -62,8 +62,8 @@ title: Working examples
 | [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
 | [Psycopg 3][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A modern implementation of a PostgreSQL adapter for Python |
 | [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
-| [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
 | [DeepForest][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | An Efficient, Scalable and Optimized Python Framework for Deep Forest (2021.2.1) |
+| [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
 | [AutoPy][]                        | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [H3-py][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for H3, a hierarchical hexagonal geospatial indexing system |
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS ¶ |
@@ -102,8 +102,8 @@ title: Working examples
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
-| [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [ninja][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
+| [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
 | [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
 | [ril][]                           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels. |
@@ -168,8 +168,8 @@ title: Working examples
 [CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [Psycopg 3]: https://github.com/psycopg/psycopg
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
-[google neuroglancer]: https://github.com/google/neuroglancer
 [DeepForest]: https://github.com/LAMDA-NJU/Deep-Forest
+[google neuroglancer]: https://github.com/google/neuroglancer
 [AutoPy]: https://github.com/autopilot-rs/autopy
 [H3-py]: https://github.com/uber/h3-py
 [Rtree]: https://github.com/Toblerity/rtree
@@ -208,8 +208,8 @@ title: Working examples
 [cf-units]: https://github.com/SciTools/cf-units
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [clang-format]: https://github.com/ssciwr/clang-format-wheel
-[numpythia]: https://github.com/scikit-hep/numpythia
 [ninja]: https://github.com/scikit-build/ninja-python-distributions
+[numpythia]: https://github.com/scikit-hep/numpythia
 [pyjet]: https://github.com/scikit-hep/pyjet
 [GSD]: https://github.com/glotzerlab/gsd
 [ril]: https://github.com/Cryptex-github/ril-py

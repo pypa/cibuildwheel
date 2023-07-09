@@ -14,9 +14,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict
+from typing import IO, Dict, Literal
 
-from ._compat.typing import Literal
 from .typing import PathOrStr, PopenBytes
 from .util import CIProvider, detect_ci_provider, parse_key_value_string
 

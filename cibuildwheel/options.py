@@ -12,12 +12,12 @@ import textwrap
 import traceback
 from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Set
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Literal, TypedDict, Union
 
 from packaging.specifiers import SpecifierSet
 
 from ._compat import tomllib
-from ._compat.typing import Literal, NotRequired, TypedDict
+from ._compat.typing import NotRequired
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
