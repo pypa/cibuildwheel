@@ -3,23 +3,9 @@ from __future__ import annotations
 import ast
 import configparser
 import contextlib
-import sys
 from pathlib import Path
-from typing import Any
 
 from ._compat import tomllib
-
-if sys.version_info < (3, 8):
-    Constant = ast.Str
-
-    def get_constant(x: ast.Str) -> str:
-        return x.s
-
-else:
-    Constant = ast.Constant
-
-    def get_constant(x: ast.Constant) -> Any:
-        return x.value
 
 
 class Analyzer(ast.NodeVisitor):
@@ -39,9 +25,9 @@ class Analyzer(ast.NodeVisitor):
         if (
             node.arg == "python_requires"
             and not hasattr(node.parent.parent.parent, "parent")  # type: ignore[attr-defined]
-            and isinstance(node.value, Constant)
+            and isinstance(node.value, ast.Constant)
         ):
-            self.requires_python = get_constant(node.value)
+            self.requires_python = node.value.value
 
 
 def setup_py_python_requires(content: str) -> str | None:

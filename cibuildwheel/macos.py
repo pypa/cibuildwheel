@@ -12,11 +12,11 @@ import typing
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
+from typing import Literal, Tuple
 
 from filelock import FileLock
 
-from ._compat.typing import Literal, assert_never
+from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
@@ -599,6 +599,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.test_command,
                         project=Path(".").resolve(),
                         package=build_options.package_dir.resolve(),
+                        wheel=repaired_wheel,
                     )
 
                     test_cwd = identifier_tmp_dir / "test_cwd"

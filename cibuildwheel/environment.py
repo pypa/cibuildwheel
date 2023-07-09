@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import dataclasses
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, Protocol
 
 import bashlex
 import bashlex.errors
 
 from . import bashlex_eval
-from ._compat.typing import Protocol
 
 
 class EnvironmentParseError(Exception):

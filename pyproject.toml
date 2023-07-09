@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 100
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+target-version = ['py38', 'py39', 'py310', 'py311']
 
 
 [tool.pytest.ini_options]
@@ -20,7 +20,7 @@ log_cli_level = "info"
 
 
 [tool.mypy]
-python_version = 3.7
+python_version = 3.8
 files = [
     "cibuildwheel/*.py",
     "test/**/*.py",
@@ -79,7 +79,7 @@ ignore = [
 ]
 
 [tool.pylint]
-py-version = "3.7"
+py-version = "3.8"
 jobs = "0"
 fail-on = ["E", "F"]
 fail-under = "9.8"
@@ -144,7 +144,7 @@ extend-ignore = [
   "PT004",  # Rename suggested for returnless fixtures
   "PT007",  # False positive (fixed upstream)
 ]
-target-version = "py37"
+target-version = "py38"
 typing-modules = ["cibuildwheel._compat.typing"]
 flake8-unused-arguments.ignore-variadic-names = true
 
@@ -154,11 +154,6 @@ flake8-unused-arguments.ignore-variadic-names = true
 "typing.Iterator".msg = "Use collections.abc.Iterator instead."
 "typing.Sequence".msg = "Use collections.abc.Sequence instead."
 "typing.Set".msg = "Use collections.abc.Set instead."
-"typing.Protocol".msg = "Use cibuildwheel._compat.typing.Protocol instead."
-"typing.Final".msg = "Use cibuildwheel._compat.typing.Final instead."
-"typing.Literal".msg = "Use cibuildwheel._compat.typing.Literal instead."
-"typing.OrderedDict".msg = "Use cibuildwheel._compat.typing.OrderedDict instead."
-"typing.TypedDict".msg = "Use cibuildwheel._compat.typing.TypedDict instead."
 "typing.NotRequired".msg = "Use cibuildwheel._compat.typing.NotRequired instead."
 "typing.assert_never".msg = "Use cibuildwheel._compat.typing.assert_never instead."
 "tomllib".msg = "Use cibuildwheel._compat.tomllib instead."

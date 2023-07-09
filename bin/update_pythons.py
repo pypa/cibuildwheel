@@ -7,7 +7,7 @@ import difflib
 import logging
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Final, Literal, TypedDict, Union
 
 import click
 import requests
@@ -18,7 +18,6 @@ from rich.logging import RichHandler
 from rich.syntax import Syntax
 
 from cibuildwheel._compat import tomllib
-from cibuildwheel._compat.typing import Final, Literal, TypedDict
 from cibuildwheel.extra import dump_python_configurations
 
 log = logging.getLogger("cibw")
@@ -129,7 +128,7 @@ class PyPyVersions:
 
     def update_version_windows(self, spec: Specifier) -> ConfigWinCP:
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
-        releases = sorted(releases, key=lambda r: r["pypy_version"])  # type: ignore[no-any-return]
+        releases = sorted(releases, key=lambda r: r["pypy_version"])
         releases = [r for r in releases if self.get_arch_file(r)]
 
         if not releases:
@@ -156,7 +155,7 @@ class PyPyVersions:
             raise RuntimeError(msg)
 
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
-        releases = sorted(releases, key=lambda r: r["pypy_version"])  # type: ignore[no-any-return]
+        releases = sorted(releases, key=lambda r: r["pypy_version"])
 
         if not releases:
             msg = f"PyPy macOS {self.arch} not found for {spec}!"

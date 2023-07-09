@@ -17,15 +17,10 @@ from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from pathlib import Path, PurePath
 from time import sleep
-from typing import (
-    Any,
-    ClassVar,
-    TextIO,
-    TypeVar,
-)
+from typing import Any, ClassVar, Final, Literal, TextIO, TypeVar
 from zipfile import ZipFile
 
 import bracex
@@ -38,8 +33,6 @@ from packaging.version import Version
 from platformdirs import user_cache_path
 
 from ._compat import tomllib
-from ._compat.functools import cached_property
-from ._compat.typing import Final, Literal
 from .typing import PathOrStr, PlatformName
 
 __all__ = [

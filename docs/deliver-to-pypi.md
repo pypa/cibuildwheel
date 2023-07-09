@@ -61,13 +61,16 @@ well as several useful actions. Alongside your existing job(s) that runs cibuild
         path: dist/*.tar.gz
 ```
 
-Then, you need to publish the artifacts that the previous jobs have built. This final job should run only on release or tag, depending on your preference. It gathers the artifacts from the sdist and wheel jobs and uploads them to PyPI.
+Then, you need to publish the artifacts that the previous jobs have built. This final job should run only on release or tag, depending on your preference. It gathers the artifacts from the sdist and wheel jobs and uploads them to PyPI. The release environment (`pypi` in the example below) will be created the first time this workflow runs.
 
-This requires a [PyPI upload token](https://pypi.org/manage/account/token/), stored in your [GitHub repo's secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) as `pypi_password`.
+This requires setting this GitHub workflow in your project's PyPI settings (for a [new project](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc)/[existing project](https://docs.pypi.org/trusted-publishers/adding-a-publisher)).
 
 ```yaml
   upload_all:
     needs: [build_wheels, make_sdist]
+    environment: pypi
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
@@ -76,10 +79,7 @@ This requires a [PyPI upload token](https://pypi.org/manage/account/token/), sto
         name: artifact
         path: dist
 
-    - uses: pypa/gh-action-pypi-publish@v1.5.0
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+    - uses: pypa/gh-action-pypi-publish@release/v1
 ```
 
 You should use Dependabot to keep the publish action up to date. In the above

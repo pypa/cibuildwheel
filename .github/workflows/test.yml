@@ -41,7 +41,7 @@ jobs:
         python_version: ['3.11']
         include:
         - os: ubuntu-22.04
-          python_version: '3.7'
+          python_version: '3.8'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v3

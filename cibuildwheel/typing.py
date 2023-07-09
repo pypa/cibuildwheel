@@ -3,9 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import typing
-from typing import Union
-
-from ._compat.typing import Final, Literal, Protocol
+from typing import Final, Literal, Protocol, Union
 
 __all__ = (
     "PLATFORMS",

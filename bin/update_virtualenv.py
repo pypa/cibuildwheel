@@ -7,6 +7,7 @@ import logging
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Final
 
 import click
 import rich
@@ -15,7 +16,6 @@ from rich.logging import RichHandler
 from rich.syntax import Syntax
 
 from cibuildwheel._compat import tomllib
-from cibuildwheel._compat.typing import Final
 
 log = logging.getLogger("cibw")
 

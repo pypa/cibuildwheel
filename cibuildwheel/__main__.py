@@ -10,6 +10,7 @@ import typing
 from collections.abc import Iterable, Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
+from typing import Protocol
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -17,7 +18,7 @@ import cibuildwheel.macos
 import cibuildwheel.pyodide
 import cibuildwheel.util
 import cibuildwheel.windows
-from cibuildwheel._compat.typing import Protocol, assert_never
+from cibuildwheel._compat.typing import assert_never
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options

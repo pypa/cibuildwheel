@@ -6,9 +6,9 @@ import textwrap
 from collections.abc import Iterable, Iterator, Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Tuple
+from typing import OrderedDict, Tuple
 
-from ._compat.typing import OrderedDict, assert_never
+from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
 from .oci_container import OCIContainer
@@ -349,6 +349,7 @@ def build_in_container(
                 build_options.test_command,
                 project=container_project_path,
                 package=container_package_dir,
+                wheel=wheel_to_test,
             )
             test_cwd = testing_temp_dir / "test_cwd"
             container.call(["mkdir", "-p", test_cwd])
