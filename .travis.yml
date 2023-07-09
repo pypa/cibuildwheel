@@ -8,21 +8,21 @@ branches:
 
 jobs:
   include:
-    - name: Linux | x86_64 + i686 | Python 3.7
-      python: 3.7
+    - name: Linux | x86_64 + i686 | Python 3.9
+      python: 3.9
       services: docker
       env: PYTHON=python
 
-    - name: Linux | arm64 | Python 3.7
-      python: 3.7
+    - name: Linux | arm64 | Python 3.9
+      python: 3.9
       services: docker
       arch: arm64-graviton2
       group: edge
       virt: vm
       env: PYTHON=python
 
-    - name: Linux | ppc64le | Python 3.7
-      python: 3.7
+    - name: Linux | ppc64le | Python 3.9
+      python: 3.9
       services: docker
       arch: ppc64le
       allow_failure: True
@@ -32,16 +32,16 @@ jobs:
         # c.f. https://travis-ci.community/t/running-out-of-disk-space-quota-when-using-docker-on-ppc64le/11634
         - PYTEST_ADDOPTS='-k "not test_manylinuxXXXX_only"'
 
-    - name: Windows | x86_64 | Python 3.7
+    - name: Windows | x86_64 | Python 3.9
       os: windows
       language: shell
       before_install:
-        - choco upgrade python3 -y --version 3.7.9 --limit-output
+        - choco upgrade python3 -y --version 3.9.13 --limit-output --params "/InstallDir:C:\\Python39"
       env:
-        - PYTHON=C:\\Python37\\python
+        - PYTHON=C:\\Python39\\python
 
-    - name: Linux | s390x | Python 3.7
-      python: 3.7
+    - name: Linux | s390x | Python 3.9
+      python: 3.9
       services: docker
       arch: s390x
       env: PYTHON=python
