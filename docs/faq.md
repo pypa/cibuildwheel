@@ -87,9 +87,7 @@ With the exception of Cirrus CI, macOS CI runners are still Intel-based, and App
 
     As a workaround, the tag can be fixed before running delocate to repair the wheel. The [`wheel tags`](https://wheel.readthedocs.io/en/stable/reference/wheel_tags.html) command is ideal for this. See [this workflow](https://gist.github.com/anderssonjohan/49f07e33fc5cb2420515a8ac76dc0c95#file-build-pendulum-wheels-yml-L39-L53) for an example usage of `wheel tags`.
 
-Hopefully, cross-compilation is a temporary situation. Once we have widely
-available Apple Silicon CI runners, we can build and test `arm64` and
-`universal2` wheels natively. That's why `universal2`/`arm64` wheels require opt-in by setting `CIBW_ARCHS_MACOS`.
+Hopefully, cross-compilation is a temporary situation. Once we have widely available Apple Silicon CI runners, we can build `arm64` wheels natively. Until then, cross-compiling `arm64` or `universal2` wheels requires opt-in by setting `CIBW_ARCHS_MACOS` on Intel runners.
 
 Here's an example GitHub Actions workflow with a job that builds for Apple Silicon:
 
