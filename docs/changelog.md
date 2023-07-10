@@ -4,6 +4,16 @@ title: Changelog
 
 # Changelog
 
+### v2.14.0
+
+_10 July 2023_
+
+- ✨ Adds support for building PyPy 3.10 wheels. (#1525)
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b3.
+- ✨ Allow the use of the `{wheel}` placeholder in CIBW_TEST_COMMAND (#1533)
+- 📚 Docs & examples updates (#1532, #1416)
+- ⚠️ Removed support for running cibuildwheel in Python 3.7. Python 3.7 is EOL. However, cibuildwheel continues to build Python 3.7 wheels for the moment. (#1175)
+
 ### v2.13.1
 
 _10 June 2023_
