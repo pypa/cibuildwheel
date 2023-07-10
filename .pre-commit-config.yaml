@@ -19,16 +19,16 @@ repos:
   - id: black
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.0.275
+  rev: v0.0.276
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
 
 - repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v2.3.0
+  rev: v2.4.0
   hooks:
   - id: setup-cfg-fmt
-    args: [--include-version-classifiers, --max-py-version=3.11]
+    args: [--include-version-classifiers, --min-py-version=3.8, --max-py-version=3.11]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v1.4.1
