@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
 # /// script
-# dependencies = ["click", "packaging"]
+# dependencies = ["click", "packaging", "tomli; python_version<'3.11'"]
 # ///
 
 
 from __future__ import annotations
 
-import configparser
 import glob
 import os
 import subprocess
@@ -18,6 +17,11 @@ from pathlib import Path
 import click
 from packaging.version import InvalidVersion, Version
 
+if sys.version_info < (3, 11):
+    import tomli as tomllib
+else:
+    import tomllib
+
 config = [
     # file path, version find/replace format
     ("README.md", "cibuildwheel=={}"),
@@ -27,7 +31,6 @@ config = [
     ("docs/setup.md", "cibuildwheel=={}"),
     ("examples/*", "cibuildwheel=={}"),
     ("examples/*", "cibuildwheel@v{}"),
-    ("setup.cfg", "version = {}"),
 ]
 
 RED = "\u001b[31m"
@@ -37,10 +40,8 @@ OFF = "\u001b[0m"
 
 @click.command()
 def bump_version() -> None:
-    # Update if moving setup.cfg to pyproject.toml
-    cfg = configparser.ConfigParser()
-    cfg.read("setup.cfg")
-    current_version = cfg["metadata"]["version"]
+    with open("pyproject.toml", "rb") as f:
+        current_version = tomllib.load(f)["project"]["version"]
 
     try:
         commit_date_str = subprocess.run(
