@@ -2,6 +2,7 @@ pr:
   paths:
     exclude:
       - docs/*
+      - .pre-commit-config.yaml
 
 jobs:
 - job: linux_38
