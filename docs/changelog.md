@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.14.1
+
+_15 July 2023_
+
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b4 (#1550)
+
 ### v2.14.0
 
 _10 July 2023_
