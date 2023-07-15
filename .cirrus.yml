@@ -1,4 +1,4 @@
-skip: changesIncludeOnly('docs/*') || changesIncludeOnly('.pre-commit-config.yaml')
+skip: changesIncludeOnly('docs/*', '.pre-commit-config.yaml')
 
 run_tests: &RUN_TESTS
   install_cibuildwheel_script:
