@@ -210,6 +210,109 @@ def setup_rust_cross_compile(
             f"Unable to configure Rust cross-compilation for architecture {python_configuration.arch}"
         )
 
+def setup_py_build_cmake_cross_compile(
+    tmp: Path,
+    python_configuration: PythonConfiguration,
+    python_libs_base: Path,  # noqa: ARG001
+    env: MutableMapping[str, str],  # noqa: ARG001
+) -> None:
+    implementation_id = python_configuration.identifier.split("-")[0]
+
+    map_plat = {"32": "x86", "64": "x64", "ARM": "ARM", "ARM64": "ARM64"}
+    plat_name = map_plat[python_configuration.arch]
+
+    native_arch = platform_module.machine()
+    if native_arch == 'AMD64':
+        native_arch = 'Hostx64'
+    elif native_arch == 'x86':
+        native_arch = 'Hostx86'
+    elif native_arch == 'ARM64':
+        native_arch = 'arm64'
+    elif native_arch == 'ARM':
+        native_arch = 'arm'
+    else:
+        log.warning(f'Unrecognized host machine architecture')
+
+    cross_toml = tmp / "py-build-cmake.cross.toml"
+    toolchain_cmake = tmp / f"{plat_name.lower()}-win.cmake"
+
+    # Search for CMake compiler
+    # Example: C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.28.29333/bin/Hostx64/arm/cl.exe
+    if 'Microsoft Visual Studio' in os.listdir('C:/Program Files'):
+        cmake_compiler = Path('C:/Program Files/Microsoft Visual Studio')
+    elif 'Microsoft Visual Studio' in os.listdir('C:/Program Files (x86)'):
+        cmake_compiler = Path('C:/Program Files (x86)/Microsoft Visual Studio')
+    else:
+        log.warning(f'Unable to find CMake compiler for cross compiling')
+    
+    for folder in os.listdir(cmake_compiler):
+        if folder.isdigit():
+            cmake_compiler = cmake_compiler / folder
+    
+    # https://learn.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170
+    # Community, Professional, Enterprise, BuildTools, or another nickname you supplied
+    success = False
+    for edition in os.listdir(cmake_compiler):
+        test = cmake_compiler / f'{edition}/VC/Tools/MSVC'
+        if test.exists():
+            cmake_compiler = test
+            success = True
+            break
+    
+    if not success:
+        log.warning(f'Unable to find CMake compiler for cross compiling')
+
+    success = False
+    for ver_num in os.listdir(cmake_compiler):
+        test = cmake_compiler / f'{ver_num}/bin/{native_arch}/{plat_name.lower()}/cl.exe'
+        if test.exists():
+            cmake_compiler = test.as_posix()
+            success = True
+            break
+
+    if not success:
+        log.warning(f'Unable to find CMake compiler for cross compiling')
+
+    log.notice(f'Found CMake compiler for cross compiling: {cmake_compiler}')
+
+    if cross_toml.is_file():
+        log.notice("Skip generating py-build-cmake.cross.toml for cross-compilation as it already exists")
+    else:
+        log.notice("Generating py-build-cmake.cross.toml for cross-compilation")
+        env["PY_BUILD_CMAKE_EXTRA_FLAGS"] = '-C--cross=' + str(tmp / "py-build-cmake.cross.toml")
+        cross_toml.write_text(
+            textwrap.dedent(
+                f"""\
+                implementation = '{implementation_id[:2]}'
+                version = '{implementation_id[2:]}'
+                abi = '{implementation_id}'
+                arch = 'win_{plat_name.lower()}'
+                toolchain_file = '{str(tmp)}/{plat_name.lower()}-win.cmake'
+                """
+            )
+        )
+
+    if toolchain_cmake.is_file():
+        log.notice(f"Skip generating {plat_name.lower()}-win.cmake for cross-compilation as it already exists")
+    else:
+        log.notice(f"Generating {plat_name.lower()}-win.cmake for cross-compilation")
+        toolchain_cmake.write_text(
+            textwrap.dedent(
+                f"""\
+                set(CMAKE_CROSSCOMPILING 1)
+                set(CMAKE_SYSTEM_NAME Windows)
+                set(CMAKE_SYSTEM_PROCESSOR ARM64)
+                set(CMAKE_SYSTEM_VERSION 10.0)
+
+                set(CMAKE_C_COMPILER "{cmake_compiler}")
+                set(CMAKE_CXX_COMPILER "{cmake_compiler}")
+                set(CMAKE_ASM_COMPILER "{cmake_compiler}")
+
+                set(CMAKE_GENERATOR_PLATFORM {plat_name} CACHE INTERNAL "")
+                """
+            )
+        )
+
 
 def setup_python(
     tmp: Path,
@@ -341,6 +444,7 @@ def setup_python(
         # Set up the environment for various backends to enable cross-compilation
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
+        setup_py_build_cmake_cross_compile(tmp, python_configuration, python_libs_base, env)
 
     return env
 
@@ -415,6 +519,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel_dir.mkdir()
 
                 extra_flags = split_config_settings(build_options.config_settings, build_frontend)
+
+                # Dirty hack for py-build-cmake cross-compiling
+                if env.get('PY_BUILD_CMAKE_EXTRA_FLAGS'):
+                    extra_flags.append(env['PY_BUILD_CMAKE_EXTRA_FLAGS'])
 
                 if build_frontend == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
