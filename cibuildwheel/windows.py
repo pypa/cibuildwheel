@@ -274,7 +274,7 @@ def setup_py_build_cmake_cross_compile(
     if not success:
         log.warning("Unable to find CMake compiler for cross compiling")
 
-    log.notice(f'Found CMake compiler for cross compiling: {cmake_compiler.as_posix()}')
+    log.notice(f"Found CMake compiler for cross compiling: {cmake_compiler.as_posix()}")
 
     if cross_toml.is_file():
         log.notice(
