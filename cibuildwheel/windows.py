@@ -266,14 +266,14 @@ def setup_py_build_cmake_cross_compile(
     for ver_num in os.listdir(cmake_compiler):
         test = cmake_compiler / f'{ver_num}/bin/{native_arch}/{plat_name.lower()}/cl.exe'
         if test.exists():
-            cmake_compiler = test.as_posix()
+            cmake_compiler = test
             success = True
             break
 
     if not success:
         log.warning(f'Unable to find CMake compiler for cross compiling')
 
-    log.notice(f'Found CMake compiler for cross compiling: {cmake_compiler}')
+    log.notice(f'Found CMake compiler for cross compiling: {cmake_compiler.as_posix()}')
 
     if cross_toml.is_file():
         log.notice("Skip generating py-build-cmake.cross.toml for cross-compilation as it already exists")
@@ -304,9 +304,9 @@ def setup_py_build_cmake_cross_compile(
                 set(CMAKE_SYSTEM_PROCESSOR ARM64)
                 set(CMAKE_SYSTEM_VERSION 10.0)
 
-                set(CMAKE_C_COMPILER "{cmake_compiler}")
-                set(CMAKE_CXX_COMPILER "{cmake_compiler}")
-                set(CMAKE_ASM_COMPILER "{cmake_compiler}")
+                set(CMAKE_C_COMPILER "{cmake_compiler.as_posix()}")
+                set(CMAKE_CXX_COMPILER "{cmake_compiler.as_posix()}")
+                set(CMAKE_ASM_COMPILER "{cmake_compiler.as_posix()}")
 
                 set(CMAKE_GENERATOR_PLATFORM {plat_name} CACHE INTERNAL "")
                 """
