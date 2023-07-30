@@ -28,6 +28,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
     "musllinux_image",
     ["musllinux_1_1", "musllinux_1_2"],
 )
+@pytest.mark.usefixtures("docker_cleanup")
 def test(musllinux_image, tmp_path):
     if utils.platform != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
