@@ -13,7 +13,19 @@ import pytest
 from cibuildwheel import linux, util
 from cibuildwheel.__main__ import main
 
-ALL_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "cp311", "pp37", "pp38", "pp39", "pp310"}
+ALL_IDS = {
+    "cp36",
+    "cp37",
+    "cp38",
+    "cp39",
+    "cp310",
+    "cp311",
+    "cp312",
+    "pp37",
+    "pp38",
+    "pp39",
+    "pp310",
+}
 
 
 @pytest.fixture()
@@ -143,7 +155,7 @@ before-all = "true"
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
         f"{x}-manylinux_x86_64"
-        for x in ALL_IDS - {"cp36", "cp310", "cp311", "pp37", "pp38", "pp39", "pp310"}
+        for x in ALL_IDS - {"cp36", "cp310", "cp311", "cp312", "pp37", "pp38", "pp39", "pp310"}
     }
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
@@ -153,7 +165,8 @@ before-all = "true"
     assert not kwargs["container"]["simulate_32_bit"]
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-manylinux_x86_64" for x in ["cp310", "cp311", "pp37", "pp38", "pp39", "pp310"]
+        f"{x}-manylinux_x86_64"
+        for x in ["cp310", "cp311", "cp312", "pp37", "pp38", "pp39", "pp310"]
     }
 
     kwargs = build_in_container.call_args_list[3][1]
