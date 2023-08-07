@@ -450,6 +450,7 @@ class Options:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
+            prerelease_pythons = True
 
         build_selector = BuildSelector(
             build_config=build_config,
