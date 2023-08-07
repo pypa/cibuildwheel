@@ -23,6 +23,7 @@ dockcross_only_project = test_projects.new_c_project(
 )
 
 
+@pytest.mark.usefixtures("docker_cleanup")
 def test(tmp_path):
     if utils.platform != "linux":
         pytest.skip("the test is only relevant to the linux build")

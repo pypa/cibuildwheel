@@ -1,6 +1,14 @@
 from __future__ import annotations
 
+import json
+import subprocess
+from typing import Generator
+
 import pytest
+
+from cibuildwheel.util import detect_ci_provider
+
+from .utils import platform
 
 
 def pytest_addoption(parser) -> None:
@@ -21,3 +29,29 @@ def pytest_addoption(parser) -> None:
 )
 def build_frontend_env(request) -> dict[str, str]:
     return request.param  # type: ignore[no-any-return]
+
+
+@pytest.fixture()
+def docker_cleanup() -> Generator[None, None, None]:
+    def get_images() -> set[str]:
+        images = subprocess.run(
+            ["docker", "image", "ls", "--format", "{{json .ID}}"],
+            text=True,
+            check=True,
+            stdout=subprocess.PIPE,
+        ).stdout
+        return {json.loads(image.strip()) for image in images.splitlines() if image.strip()}
+
+    if detect_ci_provider() is None or platform != "linux":
+        try:
+            yield
+        finally:
+            pass
+        return
+    images_before = get_images()
+    try:
+        yield
+    finally:
+        images_after = get_images()
+        for image in images_after - images_before:
+            subprocess.run(["docker", "rmi", image], check=False)

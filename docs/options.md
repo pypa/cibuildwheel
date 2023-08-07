@@ -981,7 +981,7 @@ Set an alternative Docker image to be used for building [manylinux / musllinux](
 For `CIBW_MANYLINUX_*_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
 than x86 (x86\_64 and i686) `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`. `manylinux_2_28` is not supported for `i686` architecture.
 
-For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `musllinux_1_1` to use a pinned version of the [official musllinux images](https://github.com/pypa/musllinux). Alternatively, set these options to any other valid Docker image name.
+For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `musllinux_1_1` or `musllinux_1_2` to use a pinned version of the [official musllinux images](https://github.com/pypa/musllinux). Alternatively, set these options to any other valid Docker image name.
 
 If this option is blank, it will fall though to the next available definition (environment variable -> pyproject.toml -> default).
 

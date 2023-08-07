@@ -205,13 +205,14 @@ def expected_wheels(
             if machine_arch == "x86_64":
                 architectures.append("i686")
 
-            platform_tags = [
-                ".".join(
-                    f"{manylinux_version}_{architecture}"
-                    for manylinux_version in manylinux_versions
-                )
-                for architecture in architectures
-            ]
+            if len(manylinux_versions) > 0:
+                platform_tags = [
+                    ".".join(
+                        f"{manylinux_version}_{architecture}"
+                        for manylinux_version in manylinux_versions
+                    )
+                    for architecture in architectures
+                ]
             if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
                 platform_tags.extend(
                     [

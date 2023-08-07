@@ -53,6 +53,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
     "manylinux_image",
     ["manylinux1", "manylinux2010", "manylinux2014", "manylinux_2_24", "manylinux_2_28"],
 )
+@pytest.mark.usefixtures("docker_cleanup")
 def test(manylinux_image, tmp_path):
     if utils.platform != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
