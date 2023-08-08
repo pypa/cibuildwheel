@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v2.15.0
+
+_8 August 2023_
+
+- 🌟 CPython 3.12 wheels are now built by default - without the CIBW_PRERELEASE_PYTHONS flag. It's time to build and upload these wheels to PyPI! This release includes CPython 3.12.0rc1, which is guaranteed to be ABI compatible with the final release. (#1565)
+- ✨ Adds musllinux_1_2 support - this allows packagers to build for musl-based Linux distributions on a more recent Alpine image, and a newer musl libc. (#1561)
+
 ### v2.14.1
 
 _15 July 2023_
