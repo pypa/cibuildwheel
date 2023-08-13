@@ -185,7 +185,7 @@ def build_in_container(
             constraints_file = build_options.dependency_constraints.get_for_python_version(
                 config.version
             )
-            container_constraints_file = PurePath("/constraints.txt")
+            container_constraints_file = PurePosixPath("/constraints.txt")
 
             container.copy_into(constraints_file, container_constraints_file)
             dependency_constraint_flags = ["-c", container_constraints_file]
