@@ -214,6 +214,7 @@ def test_only_argument(intercepted_build_args, monkeypatch, only, plat):
     assert options.globals.build_selector.skip_config == ""
     assert options.platform == plat
     assert options.globals.architectures == Architecture.all_archs(plat)
+    assert options.globals.build_selector.prerelease_pythons is True
 
 
 @pytest.mark.parametrize("only", ("cp311-manylxinux_x86_64", "some_linux_thing"))
