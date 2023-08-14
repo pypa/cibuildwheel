@@ -413,8 +413,9 @@
 
 - name: Tornado
   gh: tornadoweb/tornado
-  ci: [travisci]
-  os: [apple, linux]
+  ci: [github]
+  os: [linux, apple, windows]
+  notes: Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension.
 
 - name: pytorch-fairseq
   gh: pytorch/fairseq
