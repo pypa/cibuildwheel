@@ -16,7 +16,7 @@ platformdirs==3.10.0
     # via virtualenv
 typing-extensions==4.7.1
     # via delocate
-virtualenv==20.24.2
+virtualenv==20.24.3
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.41.1
     # via -r cibuildwheel/resources/constraints.in
