@@ -19,7 +19,7 @@ repos:
   - id: black
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.0.284
+  rev: v0.0.285
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
@@ -31,7 +31,7 @@ repos:
     args: [--include-version-classifiers, --min-py-version=3.8, --max-py-version=3.11]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.5.0
+  rev: v1.5.1
   hooks:
   - id: mypy
     name: mypy 3.8 on cibuildwheel/
