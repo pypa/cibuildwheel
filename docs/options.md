@@ -1345,11 +1345,11 @@ Platform-specific environment variables are also available:<br/>
 > Install your wheel for testing using `extras_require`
 
 List of
-[extras_require](https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies)
+[extras_require](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#declaring-required-dependency)
 options that should be included when installing the wheel prior to running the
 tests. This can be used to avoid having to redefine test dependencies in
-`CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
-`setup.cfg`.
+`CIBW_TEST_REQUIRES` if they are already defined in `pyproject.toml`,
+`setup.cfg` or `setup.py`.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
