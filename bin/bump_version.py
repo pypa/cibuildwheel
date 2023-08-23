@@ -143,7 +143,7 @@ def bump_version() -> None:
             "run",
             "--files=docs/changelog.md",
         ],
-        check=True,
+        check=False,
     )
 
     # run pre-commit to check that no errors occurred on the second run
