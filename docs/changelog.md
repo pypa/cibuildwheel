@@ -4,6 +4,29 @@ title: Changelog
 
 # Changelog
 
+### v2.15.0
+
+_8 August 2023_
+
+- 🌟 CPython 3.12 wheels are now built by default - without the CIBW_PRERELEASE_PYTHONS flag. It's time to build and upload these wheels to PyPI! This release includes CPython 3.12.0rc1, which is guaranteed to be ABI compatible with the final release. (#1565)
+- ✨ Adds musllinux_1_2 support - this allows packagers to build for musl-based Linux distributions on a more recent Alpine image, and a newer musl libc. (#1561)
+
+### v2.14.1
+
+_15 July 2023_
+
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b4 (#1550)
+
+### v2.14.0
+
+_10 July 2023_
+
+- ✨ Adds support for building PyPy 3.10 wheels. (#1525)
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b3.
+- ✨ Allow the use of the `{wheel}` placeholder in CIBW_TEST_COMMAND (#1533)
+- 📚 Docs & examples updates (#1532, #1416)
+- ⚠️ Removed support for running cibuildwheel in Python 3.7. Python 3.7 is EOL. However, cibuildwheel continues to build Python 3.7 wheels for the moment. (#1175)
+
 ### v2.13.1
 
 _10 June 2023_

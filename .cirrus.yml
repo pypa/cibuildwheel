@@ -1,3 +1,5 @@
+skip: changesIncludeOnly('docs/*', '.pre-commit-config.yaml')
+
 run_tests: &RUN_TESTS
   install_cibuildwheel_script:
     - python -m pip install -e ".[dev]" pytest-custom-exit-code

@@ -60,7 +60,7 @@ def bump_version() -> None:
         print(e)
         print("Failed to get previous version tag information.")
 
-    git_changes_result = subprocess.run(["git diff-index --quiet HEAD --"], shell=True)
+    git_changes_result = subprocess.run(["git diff-index --quiet HEAD --"], shell=True, check=False)
     repo_has_uncommitted_changes = git_changes_result.returncode != 0
 
     if repo_has_uncommitted_changes:
@@ -142,7 +142,8 @@ def bump_version() -> None:
             "pre-commit",
             "run",
             "--files=docs/changelog.md",
-        ]
+        ],
+        check=False,
     )
 
     # run pre-commit to check that no errors occurred on the second run

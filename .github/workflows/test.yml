@@ -7,6 +7,7 @@ on:
   pull_request:
     paths-ignore:
       - 'docs/**'
+      - .pre-commit-config.yaml
   workflow_dispatch:
     # allow manual runs on branches without a PR
 
