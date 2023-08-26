@@ -27,7 +27,7 @@ from .typing import PLATFORMS, PlatformName
 from .util import (
     MANYLINUX_ARCHS,
     MUSLLINUX_ARCHS,
-    BuildFrontend,
+    BuildFrontendConfig,
     BuildSelector,
     DependencyConstraints,
     TestSelector,
@@ -92,7 +92,7 @@ class BuildOptions:
     test_requires: list[str]
     test_extras: str
     build_verbosity: int
-    build_frontend: BuildFrontend | Literal["default"]
+    build_frontend: BuildFrontendConfig | None
     config_settings: str
 
     @property
@@ -488,7 +488,6 @@ class Options:
         with self.reader.identifier(identifier):
             before_all = self.reader.get("before-all", sep=" && ")
 
-            build_frontend_str = self.reader.get("build-frontend", env_plat=False)
             environment_config = self.reader.get(
                 "environment", table={"item": '{k}="{v}"', "sep": " "}
             )
@@ -506,17 +505,16 @@ class Options:
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
 
-            build_frontend: BuildFrontend | Literal["default"]
-            if build_frontend_str == "build":
-                build_frontend = "build"
-            elif build_frontend_str == "pip":
-                build_frontend = "pip"
-            elif build_frontend_str == "default":
-                build_frontend = "default"
+            build_frontend_str = self.reader.get("build-frontend", env_plat=False)
+            build_frontend: BuildFrontendConfig | None
+            if not build_frontend_str or build_frontend_str == "default":
+                build_frontend = None
             else:
-                msg = f"cibuildwheel: Unrecognised build frontend {build_frontend_str!r}, only 'pip' and 'build' are supported"
-                print(msg, file=sys.stderr)
-                sys.exit(2)
+                try:
+                    build_frontend = BuildFrontendConfig.from_config_string(build_frontend_str)
+                except ValueError as e:
+                    print(f"cibuildwheel: {e}", file=sys.stderr)
+                    sys.exit(2)
 
             try:
                 environment = parse_environment(environment_config)
