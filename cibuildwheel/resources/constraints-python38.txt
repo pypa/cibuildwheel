@@ -18,7 +18,7 @@ typing-extensions==4.7.1
     # via delocate
 virtualenv==20.24.3
     # via -r cibuildwheel/resources/constraints.in
-wheel==0.41.1
+wheel==0.41.2
     # via -r cibuildwheel/resources/constraints.in
 
 # The following packages are considered to be unsafe in a requirements file:
