@@ -505,7 +505,11 @@ class Options:
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
 
-            build_frontend_str = self.reader.get("build-frontend", env_plat=False)
+            build_frontend_str = self.reader.get(
+                "build-frontend",
+                env_plat=False,
+                table={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
+            )
             build_frontend: BuildFrontendConfig | None
             if not build_frontend_str or build_frontend_str == "default":
                 build_frontend = None
