@@ -31,8 +31,8 @@ title: Working examples
 | [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
 | [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
 | [PyOxidizer][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A modern Python application packaging and distribution tool |
-| [websockets][]                    | ![travisci icon][] | ![apple icon][] ![linux icon][] | Library for building WebSocket servers and clients. Mostly written in Python, with a small C 'speedups' extension module.  |
 | [cvxpy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A Python-embedded modeling language for convex optimization problems. |
+| [websockets][]                    | ![travisci icon][] | ![apple icon][] ![linux icon][] | Library for building WebSocket servers and clients. Mostly written in Python, with a small C 'speedups' extension module.  |
 | [River][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | 🌊 Online machine learning in Python |
 | [UltraJSON][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Ultra fast JSON decoder and encoder written in C with Python bindings |
 | [OpenSpiel][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | OpenSpiel is a collection of environments and algorithms for research in general reinforcement learning and search/planning in games. |
@@ -52,7 +52,7 @@ title: Working examples
 | [h5py][]                          | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | HDF5 for Python -- The h5py package is a Pythonic interface to the HDF5 binary data format. |
 | [Wrapt][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python module for decorators, wrappers and monkey patching. |
 | [pikepdf][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python library for reading and writing PDF, powered by QPDF |
-| [envd][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | 🏕️ Reproducible development environment for AI/ML (LLMOps) |
+| [envd][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | 🏕️ Reproducible development environment |
 | [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
 | [SimpleJSON][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | simplejson is a simple, fast, extensible JSON encoder/decoder for Python  |
 | [OpenColorIO][]                   | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A color management framework for visual effects and animation. |
@@ -137,8 +137,8 @@ title: Working examples
 [scikit-image]: https://github.com/scikit-image/scikit-image
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
 [PyOxidizer]: https://github.com/indygreg/PyOxidizer
-[websockets]: https://github.com/aaugustin/websockets
 [cvxpy]: https://github.com/cvxpy/cvxpy
+[websockets]: https://github.com/aaugustin/websockets
 [River]: https://github.com/online-ml/river
 [UltraJSON]: https://github.com/ultrajson/ultrajson
 [OpenSpiel]: https://github.com/deepmind/open_spiel
