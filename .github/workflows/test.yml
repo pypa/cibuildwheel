@@ -20,7 +20,7 @@ jobs:
     name: Linters (mypy, flake8, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: "3.x"
@@ -45,7 +45,7 @@ jobs:
           python_version: '3.8'
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       name: Install Python ${{ matrix.python_version }}
       with:
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: "3.x"
