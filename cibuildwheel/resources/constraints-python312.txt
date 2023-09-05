@@ -8,7 +8,7 @@ delocate==0.10.4
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.7
     # via virtualenv
-filelock==3.12.2
+filelock==3.12.3
     # via virtualenv
 packaging==23.1
     # via delocate
@@ -16,7 +16,7 @@ platformdirs==3.10.0
     # via virtualenv
 typing-extensions==4.7.1
     # via delocate
-virtualenv==20.24.3
+virtualenv==20.24.4
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.41.2
     # via -r cibuildwheel/resources/constraints.in
