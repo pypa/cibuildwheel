@@ -91,7 +91,7 @@ jobs:
         os: [ubuntu-20.04, windows-2019, macOS-11]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Used to host cibuildwheel
       - uses: actions/setup-python@v3
