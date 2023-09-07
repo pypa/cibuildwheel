@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import platform
 import random
@@ -18,15 +19,12 @@ from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
+DEFAULT_IMAGE_TEMPLATE = "quay.io/pypa/manylinux2014_{machine}:2023-09-04-0828984"
 pm = platform.machine()
-if pm == "x86_64":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
+if pm in {"x86_64", "ppc64le", "s390x"}:
+    DEFAULT_IMAGE = DEFAULT_IMAGE_TEMPLATE.format(machine=pm)
 elif pm in {"aarch64", "arm64"}:
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
-elif pm == "ppc64le":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
-elif pm == "s390x":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_s390x:2020-05-17-2f8ac3b"
+    DEFAULT_IMAGE = DEFAULT_IMAGE_TEMPLATE.format(machine="aarch64")
 else:
     DEFAULT_IMAGE = ""
 
@@ -378,3 +376,24 @@ def test_parse_engine_config(config, name, create_args):
     engine_config = OCIContainerEngineConfig.from_config_string(config)
     assert engine_config.name == name
     assert engine_config.create_args == create_args
+
+
+@pytest.mark.skipif(pm != "x86_64", reason="Only runs on x86_64")
+@pytest.mark.parametrize(
+    ("image", "shell_args"),
+    [
+        (DEFAULT_IMAGE_TEMPLATE.format(machine="i686"), ["/bin/bash"]),
+        (DEFAULT_IMAGE_TEMPLATE.format(machine="x86_64"), ["linux32", "/bin/bash"]),
+    ],
+)
+def test_enforce_32_bit(container_engine, image, shell_args):
+    with OCIContainer(engine=container_engine, image=image, enforce_32_bit=True) as container:
+        assert container.call(["uname", "-m"], capture_output=True).strip() == "i686"
+        container_args = subprocess.run(
+            f"{container.engine.name} inspect -f '{{{{json .Args }}}}' {container.name}",
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout
+        assert json.loads(container_args) == shell_args
