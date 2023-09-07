@@ -111,13 +111,14 @@ class OCIContainer:
             network_args = ["--network=host"]
 
         simulate_32_bit = self.enforce_32_bit
-        container_machine = call(
-            self.engine.name, "run", "--rm", self.image, "uname", "-m", capture_stdout=True
-        ).strip()
-        if container_machine not in {"x86_64", "aarch64"}:
-            # either the architecture running the image is already the right one
-            # or the image entrypoint took care of this
-            simulate_32_bit = False
+        if self.enforce_32_bit:
+            # If the architecture running the image is already the right one
+            # or the image entrypoint takes care of enforcing this, then we don't need to
+            # simulate this
+            container_machine = call(
+                self.engine.name, "run", "--rm", self.image, "uname", "-m", capture_stdout=True
+            ).strip()
+            simulate_32_bit = container_machine != "i686"
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
 
