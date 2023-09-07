@@ -85,7 +85,7 @@ class OCIContainer:
         self,
         *,
         image: str,
-        simulate_32_bit: bool = False,
+        enforce_32_bit: bool = False,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
     ):
@@ -94,7 +94,7 @@ class OCIContainer:
             raise ValueError(msg)
 
         self.image = image
-        self.simulate_32_bit = simulate_32_bit
+        self.enforce_32_bit = enforce_32_bit
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
@@ -110,7 +110,7 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
-        simulate_32_bit = self.simulate_32_bit
+        simulate_32_bit = self.enforce_32_bit
         container_machine = call(
             self.engine.name, "run", "--rm", self.image, "uname", "-m", capture_stdout=True
         ).strip()
