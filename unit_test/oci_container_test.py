@@ -14,6 +14,7 @@ import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
+from cibuildwheel.util import detect_ci_provider
 
 # Test utilities
 
@@ -31,13 +32,31 @@ else:
 PODMAN = OCIContainerEngineConfig(name="podman")
 
 
-@pytest.fixture(params=["docker", "podman"])
+@pytest.fixture(params=["docker", "podman"], scope="module")
 def container_engine(request):
     if request.param == "docker" and not request.config.getoption("--run-docker"):
         pytest.skip("need --run-docker option to run")
     if request.param == "podman" and not request.config.getoption("--run-podman"):
         pytest.skip("need --run-podman option to run")
-    return OCIContainerEngineConfig(name=request.param)
+
+    def get_images() -> set[str]:
+        if detect_ci_provider() is None:
+            return set()
+        images = subprocess.run(
+            [request.param, "image", "ls", "--format", "{{json .ID}}"],
+            text=True,
+            check=True,
+            stdout=subprocess.PIPE,
+        ).stdout
+        return {json.loads(image.strip()) for image in images.splitlines() if image.strip()}
+
+    images_before = get_images()
+    try:
+        yield OCIContainerEngineConfig(name=request.param)
+    finally:
+        images_after = get_images()
+        for image in images_after - images_before:
+            subprocess.run([request.param, "rmi", image], check=False)
 
 
 # Tests
@@ -230,10 +249,9 @@ def test_environment_executor(container_engine):
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
 
 
-def test_podman_vfs(tmp_path: Path, monkeypatch, request):
-    # Tests podman VFS, for the podman in docker use-case
-    if not request.config.getoption("--run-podman"):
-        pytest.skip("need --run-podman option to run")
+def test_podman_vfs(tmp_path: Path, monkeypatch, container_engine):
+    if container_engine.name != "podman":
+        pytest.skip("only runs with podman")
 
     # create the VFS configuration
     vfs_path = tmp_path / "podman_vfs"
@@ -309,9 +327,9 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
 
 
-def test_create_args_volume(tmp_path: Path, request):
-    if not request.config.getoption("--run-docker"):
-        pytest.skip("need --run-docker option to run")
+def test_create_args_volume(tmp_path: Path, container_engine):
+    if container_engine.name != "docker":
+        pytest.skip("only runs with docker")
 
     if "CIRCLECI" in os.environ or "GITLAB_CI" in os.environ:
         pytest.skip(
