@@ -3,8 +3,8 @@ from __future__ import annotations
 import sys
 
 if sys.version_info >= (3, 11):
-    from tomllib import load  # noqa: TID251
+    from tomllib import load
 else:
-    from tomli import load  # noqa: TID251
+    from tomli import load
 
 __all__ = ("load",)
