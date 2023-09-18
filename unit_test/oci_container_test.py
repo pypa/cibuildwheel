@@ -72,6 +72,17 @@ def test_environment(container_engine):
         )
 
 
+def test_environment_pass(container_engine, monkeypatch):
+    monkeypatch.setenv("CIBUILDWHEEL", "1")
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1489957071")
+    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+        assert container.call(["sh", "-c", "echo $CIBUILDWHEEL"], capture_output=True) == "1\n"
+        assert (
+            container.call(["sh", "-c", "echo $SOURCE_DATE_EPOCH"], capture_output=True)
+            == "1489957071\n"
+        )
+
+
 def test_cwd(container_engine):
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory"

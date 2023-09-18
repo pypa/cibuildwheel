@@ -680,6 +680,9 @@ A list of environment variables to pass into the linux container during the buil
 
 To specify more than one environment variable, separate the variable names by spaces.
 
+!!! note
+    cibuildwheel automatically passes the environment variable [`SOURCE_DATE_EPOCH`](https://reproducible-builds.org/docs/source-date-epoch/) if defined.
+
 #### Examples
 
 !!! tab examples "Environment passthrough"

@@ -117,6 +117,7 @@ class OCIContainer:
                 self.engine.name,
                 "create",
                 "--env=CIBUILDWHEEL",
+                "--env=SOURCE_DATE_EPOCH",
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
