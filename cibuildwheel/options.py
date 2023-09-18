@@ -530,9 +530,9 @@ class Options:
 
             # Pass through environment variables
             if self.platform == "linux":
-                for env_var_name in environment_pass:
+                for env_var_name in reversed(environment_pass):
                     with contextlib.suppress(KeyError):
-                        environment.add(env_var_name, self.env[env_var_name])
+                        environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
             if dependency_versions == "pinned":
                 dependency_constraints: None | (
