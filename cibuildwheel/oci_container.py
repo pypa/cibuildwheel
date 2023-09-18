@@ -110,7 +110,7 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
-        simulate_32_bit = self.enforce_32_bit
+        simulate_32_bit = False
         if self.enforce_32_bit:
             # If the architecture running the image is already the right one
             # or the image entrypoint takes care of enforcing this, then we don't need to
