@@ -161,3 +161,4 @@ flake8-unused-arguments.ignore-variadic-names = true
 
 [tool.ruff.per-file-ignores]
 "unit_test/*" = ["PLC1901"]
+"cibuildwheel/_compat/**.py" = ["TID251"]
