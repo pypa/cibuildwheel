@@ -57,16 +57,6 @@ install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
-BuildFrontend = Literal["pip", "build"]
-
-
-def build_frontend_or_default(
-    setting: BuildFrontend | Literal["default"], default: BuildFrontend = "pip"
-) -> BuildFrontend:
-    if setting == "default":
-        return default
-    return setting
-
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
@@ -374,6 +364,34 @@ class DependencyConstraints:
             return "pinned"
         else:
             return self.base_file_path.name
+
+
+BuildFrontendName = Literal["pip", "build"]
+
+
+@dataclass(frozen=True)
+class BuildFrontendConfig:
+    name: BuildFrontendName
+    args: Sequence[str] = ()
+
+    @staticmethod
+    def from_config_string(config_string: str) -> BuildFrontendConfig:
+        config_dict = parse_key_value_string(config_string, ["name"], ["args"])
+        name = " ".join(config_dict["name"])
+        if name not in {"pip", "build"}:
+            msg = f"Unrecognised build frontend {name}, only 'pip' and 'build' are supported"
+            raise ValueError(msg)
+
+        name = typing.cast(BuildFrontendName, name)
+
+        args = config_dict.get("args") or []
+        return BuildFrontendConfig(name=name, args=args)
+
+    def options_summary(self) -> str | dict[str, str]:
+        if not self.args:
+            return self.name
+        else:
+            return {"name": self.name, "args": repr(self.args)}
 
 
 class NonPlatformWheelError(Exception):
@@ -699,13 +717,19 @@ def fix_ansi_codes_for_github_actions(text: str) -> str:
 
 
 def parse_key_value_string(
-    key_value_string: str, positional_arg_names: list[str] | None = None
+    key_value_string: str,
+    positional_arg_names: Sequence[str] | None = None,
+    kw_arg_names: Sequence[str] | None = None,
 ) -> dict[str, list[str]]:
     """
     Parses a string like "docker; create_args: --some-option=value another-option"
     """
     if positional_arg_names is None:
         positional_arg_names = []
+    if kw_arg_names is None:
+        kw_arg_names = []
+
+    all_field_names = [*positional_arg_names, *kw_arg_names]
 
     shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";:")
     shlexer.commenters = ""
@@ -721,6 +745,9 @@ def parse_key_value_string(
         if len(field) > 1 and field[1] == ":":
             field_name = field[0]
             values = field[2:]
+            if field_name not in all_field_names:
+                msg = f"Failed to parse {key_value_string!r}. Unknown field name {field_name!r}"
+                raise ValueError(msg)
         else:
             try:
                 field_name = positional_arg_names[field_i]

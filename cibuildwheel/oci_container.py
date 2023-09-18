@@ -29,7 +29,9 @@ class OCIContainerEngineConfig:
 
     @staticmethod
     def from_config_string(config_string: str) -> OCIContainerEngineConfig:
-        config_dict = parse_key_value_string(config_string, ["name"])
+        config_dict = parse_key_value_string(
+            config_string, ["name"], ["create_args", "create-args"]
+        )
         name = " ".join(config_dict["name"])
         if name not in {"docker", "podman"}:
             msg = f"unknown container engine {name}"

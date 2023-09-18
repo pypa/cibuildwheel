@@ -504,8 +504,18 @@ This option can also be set using the [command-line option](#command-line) `--pr
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
 > Set the tool to use to build, either "pip" (default for now) or "build"
 
-Choose which build backend to use. Can either be "pip", which will run
+Options:
+
+- `pip[;args: ...]`
+- `build[;args: ...]`
+
+Default: `pip`
+
+Choose which build frontend to use. Can either be "pip", which will run
 `python -m pip wheel`, or "build", which will run `python -m build --wheel`.
+
+You can specify extra arguments to pass to `pip wheel` or `build` using the
+optional `args` option.
 
 !!! tip
     Until v2.0.0, [pip] was the only way to build wheels, and is still the
@@ -526,6 +536,9 @@ Choose which build backend to use. Can either be "pip", which will run
 
     # Ensure pip is used even if the default changes in the future
     CIBW_BUILD_FRONTEND: "pip"
+
+    # supply an extra argument to 'pip wheel'
+    CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
     ```
 
 !!! tab examples "pyproject.toml"
@@ -537,6 +550,9 @@ Choose which build backend to use. Can either be "pip", which will run
 
     # Ensure pip is used even if the default changes in the future
     build-frontend = "pip"
+
+    # supply an extra argument to 'pip wheel'
+    build-frontend = { name = "pip", args = ["--no-build-isolation"] }
     ```
 
 ### `CIBW_CONFIG_SETTINGS` {: #config-settings}

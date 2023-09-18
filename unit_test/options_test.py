@@ -253,3 +253,57 @@ def test_container_engine_option(tmp_path: Path, toml_assignment, result_name, r
 
     assert parsed_container_engine.name == result_name
     assert parsed_container_engine.create_args == result_create_args
+
+
+@pytest.mark.parametrize(
+    ("toml_assignment", "result_name", "result_args"),
+    [
+        (
+            "",
+            None,
+            None,
+        ),
+        (
+            'build-frontend = "build"',
+            "build",
+            [],
+        ),
+        (
+            'build-frontend = {name = "build"}',
+            "build",
+            [],
+        ),
+        (
+            'build-frontend = "pip; args: --some-option"',
+            "pip",
+            ["--some-option"],
+        ),
+        (
+            'build-frontend = {name = "pip", args = ["--some-option"]}',
+            "pip",
+            ["--some-option"],
+        ),
+    ],
+)
+def test_build_frontend_option(tmp_path: Path, toml_assignment, result_name, result_args):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {toml_assignment}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    parsed_build_frontend = options.build_options(identifier=None).build_frontend
+
+    if toml_assignment:
+        assert parsed_build_frontend is not None
+        assert parsed_build_frontend.name == result_name
+        assert parsed_build_frontend.args == result_args
+    else:
+        assert parsed_build_frontend is None
