@@ -62,6 +62,13 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install podman
 
+    # free some space to prevent reaching GHA disk space limits
+    - name: Clean docker images
+      if: runner.os == 'Linux'
+      run: |
+        docker system prune -a -f
+        df -h
+
     - name: Install dependencies
       run: |
         python -m pip install ".[test]"

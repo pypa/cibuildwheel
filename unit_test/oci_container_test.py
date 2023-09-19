@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import platform
 import random
@@ -13,33 +14,49 @@ import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
+from cibuildwheel.util import detect_ci_provider
 
 # Test utilities
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
+DEFAULT_IMAGE_TEMPLATE = "quay.io/pypa/manylinux2014_{machine}:2023-09-04-0828984"
 pm = platform.machine()
-if pm == "x86_64":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_x86_64:2020-05-17-2f8ac3b"
+if pm in {"x86_64", "ppc64le", "s390x"}:
+    DEFAULT_IMAGE = DEFAULT_IMAGE_TEMPLATE.format(machine=pm)
 elif pm in {"aarch64", "arm64"}:
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_aarch64:2020-05-17-2f8ac3b"
-elif pm == "ppc64le":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_ppc64le:2020-05-17-2f8ac3b"
-elif pm == "s390x":
-    DEFAULT_IMAGE = "quay.io/pypa/manylinux2014_s390x:2020-05-17-2f8ac3b"
+    DEFAULT_IMAGE = DEFAULT_IMAGE_TEMPLATE.format(machine="aarch64")
 else:
     DEFAULT_IMAGE = ""
 
 PODMAN = OCIContainerEngineConfig(name="podman")
 
 
-@pytest.fixture(params=["docker", "podman"])
+@pytest.fixture(params=["docker", "podman"], scope="module")
 def container_engine(request):
     if request.param == "docker" and not request.config.getoption("--run-docker"):
         pytest.skip("need --run-docker option to run")
     if request.param == "podman" and not request.config.getoption("--run-podman"):
         pytest.skip("need --run-podman option to run")
-    return OCIContainerEngineConfig(name=request.param)
+
+    def get_images() -> set[str]:
+        if detect_ci_provider() is None:
+            return set()
+        images = subprocess.run(
+            [request.param, "image", "ls", "--format", "{{json .ID}}"],
+            text=True,
+            check=True,
+            stdout=subprocess.PIPE,
+        ).stdout
+        return {json.loads(image.strip()) for image in images.splitlines() if image.strip()}
+
+    images_before = get_images()
+    try:
+        yield OCIContainerEngineConfig(name=request.param)
+    finally:
+        images_after = get_images()
+        for image in images_after - images_before:
+            subprocess.run([request.param, "rmi", image], check=False)
 
 
 # Tests
@@ -232,10 +249,9 @@ def test_environment_executor(container_engine):
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
 
 
-def test_podman_vfs(tmp_path: Path, monkeypatch, request):
-    # Tests podman VFS, for the podman in docker use-case
-    if not request.config.getoption("--run-podman"):
-        pytest.skip("need --run-podman option to run")
+def test_podman_vfs(tmp_path: Path, monkeypatch, container_engine):
+    if container_engine.name != "podman":
+        pytest.skip("only runs with podman")
 
     # create the VFS configuration
     vfs_path = tmp_path / "podman_vfs"
@@ -311,9 +327,9 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, request):
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
 
 
-def test_create_args_volume(tmp_path: Path, request):
-    if not request.config.getoption("--run-docker"):
-        pytest.skip("need --run-docker option to run")
+def test_create_args_volume(tmp_path: Path, container_engine):
+    if container_engine.name != "docker":
+        pytest.skip("only runs with docker")
 
     if "CIRCLECI" in os.environ or "GITLAB_CI" in os.environ:
         pytest.skip(
@@ -378,3 +394,24 @@ def test_parse_engine_config(config, name, create_args):
     engine_config = OCIContainerEngineConfig.from_config_string(config)
     assert engine_config.name == name
     assert engine_config.create_args == create_args
+
+
+@pytest.mark.skipif(pm != "x86_64", reason="Only runs on x86_64")
+@pytest.mark.parametrize(
+    ("image", "shell_args"),
+    [
+        (DEFAULT_IMAGE_TEMPLATE.format(machine="i686"), ["/bin/bash"]),
+        (DEFAULT_IMAGE_TEMPLATE.format(machine="x86_64"), ["linux32", "/bin/bash"]),
+    ],
+)
+def test_enforce_32_bit(container_engine, image, shell_args):
+    with OCIContainer(engine=container_engine, image=image, enforce_32_bit=True) as container:
+        assert container.call(["uname", "-m"], capture_output=True).strip() == "i686"
+        container_args = subprocess.run(
+            f"{container.engine.name} inspect -f '{{{{json .Args }}}}' {container.name}",
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout
+        assert json.loads(container_args) == shell_args

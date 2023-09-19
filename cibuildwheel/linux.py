@@ -423,7 +423,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
 
             with OCIContainer(
                 image=build_step.container_image,
-                simulate_32_bit=build_step.platform_tag.endswith("i686"),
+                enforce_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
                 engine=options.globals.container_engine,
             ) as container:
