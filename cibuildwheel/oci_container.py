@@ -17,7 +17,7 @@ from types import TracebackType
 from typing import IO, Dict, Literal
 
 from .typing import PathOrStr, PopenBytes
-from .util import CIProvider, detect_ci_provider, parse_key_value_string
+from .util import CIProvider, call, detect_ci_provider, parse_key_value_string
 
 ContainerEngineName = Literal["docker", "podman"]
 
@@ -85,7 +85,7 @@ class OCIContainer:
         self,
         *,
         image: str,
-        simulate_32_bit: bool = False,
+        enforce_32_bit: bool = False,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
     ):
@@ -94,7 +94,7 @@ class OCIContainer:
             raise ValueError(msg)
 
         self.image = image
-        self.simulate_32_bit = simulate_32_bit
+        self.enforce_32_bit = enforce_32_bit
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
@@ -110,7 +110,17 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
-        shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
+        simulate_32_bit = False
+        if self.enforce_32_bit:
+            # If the architecture running the image is already the right one
+            # or the image entrypoint takes care of enforcing this, then we don't need to
+            # simulate this
+            container_machine = call(
+                self.engine.name, "run", "--rm", self.image, "uname", "-m", capture_stdout=True
+            ).strip()
+            simulate_32_bit = container_machine != "i686"
+
+        shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
 
         subprocess.run(
             [
