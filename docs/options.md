@@ -1426,6 +1426,38 @@ This option is not supported in the overrides section in `pyproject.toml`.
     test-skip = "*-macosx_arm64 *-macosx_universal2:arm64"
     ```
 
+## Debugging
+
+### `CIBW_DEBUG_KEEP_CONTAINER`
+
+Enable this flag to keep the container around for inspection after a build. This
+option is provided for debugging purposes only.
+
+Default: Off (0).
+
+!!! caution
+    This option can only be set as environment variable on the host machine
+
+#### Examples
+
+!!! tab examples "Linux"
+
+    ```shell
+    export CIBW_DEBUG_KEEP_CONTAINER=TRUE
+    ```
+
+!!! tab examples "Windows"
+
+    ```shell
+    set CIBW_DEBUG_KEEP_CONTAINER=TRUE
+    ```
+
+!!! tab examples "MacOS"
+
+    ```shell
+    export CIBW_DEBUG_KEEP_CONTAINER=TRUE
+    ```
+
 ## Other
 
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
