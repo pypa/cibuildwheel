@@ -18,6 +18,7 @@ from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     AlreadyBuiltWheelError,
+    BuildFrontendConfig,
     BuildSelector,
     NonPlatformWheelError,
     call,
@@ -212,8 +213,9 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
+            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
 
-            if build_options.build_frontend == "pip":
+            if build_frontend.name == "pip":
                 print("The pyodide platform doesn't support pip frontend", file=sys.stderr)
                 sys.exit(1)
             log.build_start(config.identifier)
@@ -274,6 +276,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
 
                 extra_flags = split_config_settings(build_options.config_settings, "build")
+                extra_flags += build_frontend.args
 
                 if not 0 <= build_options.build_verbosity < 2:
                     msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
