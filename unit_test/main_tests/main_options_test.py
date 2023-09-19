@@ -365,7 +365,7 @@ def test_defaults(platform, intercepted_build_args):
     if isinstance(repair_wheel_default, list):
         repair_wheel_default = " && ".join(repair_wheel_default)
     assert build_options.repair_command == repair_wheel_default
-    assert build_options.build_frontend == defaults["build-frontend"]
+    assert build_options.build_frontend is None
 
     if platform == "linux":
         assert build_options.manylinux_images

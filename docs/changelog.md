@@ -4,6 +4,18 @@ title: Changelog
 
 # Changelog
 
+### v2.16.0
+
+_18 September 2023_
+
+- ✨ Add the ability to pass additional flags to a build frontend through the [CIBW_BUILD_FRONTEND](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend) option (#1588).
+- ✨ The environment variable SOURCE_DATE_EPOCH is now automatically passed through to container Linux builds (useful for [reproducible builds](https://reproducible-builds.org/docs/source-date-epoch/)!) (#1589)
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0rc2 (#1604)
+- 🐛 Fix `requires_python` auto-detection from setup.py when the call to `setup()` is within an `if __name__ == "__main__" block (#1613)
+- 🐛 Fix a bug that prevented building Linux wheels in Docker on a Windows host (#1573)
+- 🐛 `--only` can now select prerelease-pythons (#1564)
+- 📚 Docs & examples updates (#1582, #1593, #1598, #1615)
+
 ### v2.15.0
 
 _8 August 2023_

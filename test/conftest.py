@@ -36,6 +36,8 @@ def build_frontend_env(request) -> dict[str, str]:
 @pytest.fixture()
 def docker_cleanup() -> Generator[None, None, None]:
     def get_images() -> set[str]:
+        if detect_ci_provider() is None or platform != "linux":
+            return set()
         images = subprocess.run(
             ["docker", "image", "ls", "--format", "{{json .ID}}"],
             text=True,
@@ -44,12 +46,6 @@ def docker_cleanup() -> Generator[None, None, None]:
         ).stdout
         return {json.loads(image.strip()) for image in images.splitlines() if image.strip()}
 
-    if detect_ci_provider() is None or platform != "linux":
-        try:
-            yield
-        finally:
-            pass
-        return
     images_before = get_images()
     try:
         yield
