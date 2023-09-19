@@ -35,7 +35,7 @@ repos:
   hooks:
   - id: mypy
     name: mypy 3.8 on cibuildwheel/
-    exclude: ^cibuildwheel/resources/.*py$
+    exclude: ^cibuildwheel/resources/.*py|bin/generate_schema.py$
     args: ["--python-version=3.8"]
     additional_dependencies: &mypy-dependencies
       - nox

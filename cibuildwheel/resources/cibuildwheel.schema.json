@@ -1,0 +1,1568 @@
+{
+  "$id": "https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/toml_schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "additionalProperties": false,
+  "description": "cibulidwheel's settings.",
+  "type": "object",
+  "properties": {
+    "archs": {
+      "description": "Change the architectures built on your machine by default.",
+      "title": "CIBW_ARCHS",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "before-all": {
+      "description": "Execute a shell command on the build system before any wheels are built.",
+      "title": "CIBW_BEFORE_ALL",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "before-build": {
+      "description": "Execute a shell command preparing each wheel's build.",
+      "title": "CIBW_BEFORE_BUILD",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "before-test": {
+      "description": "Execute a shell command before testing each wheel.",
+      "title": "CIBW_BEFORE_TEST",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "build": {
+      "default": [
+        "*"
+      ],
+      "description": "Choose the Python versions to build.",
+      "title": "CIBW_BUILD",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "build-frontend": {
+      "default": "default",
+      "description": "Set the tool to use to build, either \"pip\" (default for now) or \"build\"",
+      "oneOf": [
+        {
+          "enum": [
+            "pip",
+            "build",
+            "default"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^pip; ?args:"
+        },
+        {
+          "type": "string",
+          "pattern": "^build; ?args:"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "enum": [
+                "pip",
+                "build"
+              ]
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "title": "CIBW_BUILD_FRONTEND"
+    },
+    "build-verbosity": {
+      "type": "integer",
+      "minimum": -3,
+      "maximum": 3,
+      "default": 0,
+      "description": "Increase/decrease the output of pip wheel.",
+      "title": "CIBW_BUILD_VERBOSITY"
+    },
+    "config-settings": {
+      "description": "Specify config-settings for the build backend.",
+      "title": "CIBW_CONFIG_SETTINGS",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "patternProperties": {
+            ".+": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "container-engine": {
+      "oneOf": [
+        {
+          "enum": [
+            "docker",
+            "podman"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^docker; ?create_args:"
+        },
+        {
+          "type": "string",
+          "pattern": "^podman; ?create_args:"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "enum": [
+                "docker",
+                "podman"
+              ]
+            },
+            "create-args": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "title": "CIBW_CONTAINER_ENGINE"
+    },
+    "dependency-versions": {
+      "default": "pinned",
+      "description": "Specify how cibuildwheel controls the versions of the tools it uses",
+      "type": "string",
+      "title": "CIBW_DEPENDENCY_VERSIONS"
+    },
+    "environment": {
+      "description": "Set environment variables needed during the build.",
+      "title": "CIBW_ENVIRONMENT",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "patternProperties": {
+            ".+": [
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "environment-pass": {
+      "description": "Set environment variables on the host to pass-through to the container during the build.",
+      "title": "CIBW_ENVIRONMENT_PASS",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "manylinux-aarch64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_AARCH64_IMAGE"
+    },
+    "manylinux-i686-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_I686_IMAGE"
+    },
+    "manylinux-ppc64le-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_PPC64LE_IMAGE"
+    },
+    "manylinux-pypy_aarch64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE"
+    },
+    "manylinux-pypy_i686-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_PYPY_I686_IMAGE"
+    },
+    "manylinux-pypy_x86_64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_PYPY_X86_64_IMAGE"
+    },
+    "manylinux-s390x-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_S390X_IMAGE"
+    },
+    "manylinux-x86_64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_X86_64_IMAGE"
+    },
+    "musllinux-aarch64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MUSLLINUX_AARCH64_IMAGE"
+    },
+    "musllinux-i686-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MUSLLINUX_I686_IMAGE"
+    },
+    "musllinux-ppc64le-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MUSLLINUX_PPC64LE_IMAGE"
+    },
+    "musllinux-s390x-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MUSLLINUX_S390X_IMAGE"
+    },
+    "musllinux-x86_64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MUSLLINUX_X86_64_IMAGE"
+    },
+    "repair-wheel-command": {
+      "description": "Execute a shell command to repair each built wheel.",
+      "title": "CIBW_REPAIR_WHEEL_COMMAND",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+    },
+    "skip": {
+      "description": "Choose the Python versions to skip.",
+      "title": "CIBW_SKIP",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "test-command": {
+      "description": "Execute a shell command to test each built wheel.",
+      "title": "CIBW_TEST_COMMAND",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "test-extras": {
+      "description": "Install your wheel for testing using `extras_require`",
+      "title": "CIBW_TEST_EXTRAS",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "test-requires": {
+      "description": "Install Python dependencies before running the tests",
+      "title": "CIBW_TEST_REQUIRES",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "test-skip": {
+      "description": "Skip running tests on some builds.",
+      "title": "CIBW_TEST_SKIP",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "overrides": {
+      "type": "array",
+      "description": "An overrides array",
+      "items": {
+        "type": "object",
+        "required": [
+          "select"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "select": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "archs": {
+            "description": "Change the architectures built on your machine by default.",
+            "title": "CIBW_ARCHS",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "before-all": {
+            "description": "Execute a shell command on the build system before any wheels are built.",
+            "title": "CIBW_BEFORE_ALL",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "before-build": {
+            "description": "Execute a shell command preparing each wheel's build.",
+            "title": "CIBW_BEFORE_BUILD",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "before-test": {
+            "description": "Execute a shell command before testing each wheel.",
+            "title": "CIBW_BEFORE_TEST",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "build-frontend": {
+            "default": "default",
+            "description": "Set the tool to use to build, either \"pip\" (default for now) or \"build\"",
+            "oneOf": [
+              {
+                "enum": [
+                  "pip",
+                  "build",
+                  "default"
+                ]
+              },
+              {
+                "type": "string",
+                "pattern": "^pip; ?args:"
+              },
+              {
+                "type": "string",
+                "pattern": "^build; ?args:"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "enum": [
+                      "pip",
+                      "build"
+                    ]
+                  },
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ],
+            "title": "CIBW_BUILD_FRONTEND"
+          },
+          "build-verbosity": {
+            "type": "integer",
+            "minimum": -3,
+            "maximum": 3,
+            "default": 0,
+            "description": "Increase/decrease the output of pip wheel.",
+            "title": "CIBW_BUILD_VERBOSITY"
+          },
+          "config-settings": {
+            "description": "Specify config-settings for the build backend.",
+            "title": "CIBW_CONFIG_SETTINGS",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "patternProperties": {
+                  ".+": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "container-engine": {
+            "oneOf": [
+              {
+                "enum": [
+                  "docker",
+                  "podman"
+                ]
+              },
+              {
+                "type": "string",
+                "pattern": "^docker; ?create_args:"
+              },
+              {
+                "type": "string",
+                "pattern": "^podman; ?create_args:"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "enum": [
+                      "docker",
+                      "podman"
+                    ]
+                  },
+                  "create-args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ],
+            "title": "CIBW_CONTAINER_ENGINE"
+          },
+          "dependency-versions": {
+            "default": "pinned",
+            "description": "Specify how cibuildwheel controls the versions of the tools it uses",
+            "type": "string",
+            "title": "CIBW_DEPENDENCY_VERSIONS"
+          },
+          "environment": {
+            "description": "Set environment variables needed during the build.",
+            "title": "CIBW_ENVIRONMENT",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "patternProperties": {
+                  ".+": [
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "environment-pass": {
+            "description": "Set environment variables on the host to pass-through to the container during the build.",
+            "title": "CIBW_ENVIRONMENT_PASS",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "manylinux-aarch64-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_AARCH64_IMAGE"
+          },
+          "manylinux-i686-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_I686_IMAGE"
+          },
+          "manylinux-ppc64le-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_PPC64LE_IMAGE"
+          },
+          "manylinux-pypy_aarch64-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE"
+          },
+          "manylinux-pypy_i686-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_PYPY_I686_IMAGE"
+          },
+          "manylinux-pypy_x86_64-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_PYPY_X86_64_IMAGE"
+          },
+          "manylinux-s390x-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_S390X_IMAGE"
+          },
+          "manylinux-x86_64-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MANYLINUX_X86_64_IMAGE"
+          },
+          "musllinux-aarch64-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MUSLLINUX_AARCH64_IMAGE"
+          },
+          "musllinux-i686-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MUSLLINUX_I686_IMAGE"
+          },
+          "musllinux-ppc64le-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MUSLLINUX_PPC64LE_IMAGE"
+          },
+          "musllinux-s390x-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MUSLLINUX_S390X_IMAGE"
+          },
+          "musllinux-x86_64-image": {
+            "type": "string",
+            "description": "Specify alternative manylinux / musllinux container images",
+            "title": "CIBW_MUSLLINUX_X86_64_IMAGE"
+          },
+          "repair-wheel-command": {
+            "description": "Execute a shell command to repair each built wheel.",
+            "title": "CIBW_REPAIR_WHEEL_COMMAND",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ],
+            "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+          },
+          "test-command": {
+            "description": "Execute a shell command to test each built wheel.",
+            "title": "CIBW_TEST_COMMAND",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "test-extras": {
+            "description": "Install your wheel for testing using `extras_require`",
+            "title": "CIBW_TEST_EXTRAS",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "test-requires": {
+            "description": "Install Python dependencies before running the tests",
+            "title": "CIBW_TEST_REQUIRES",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "test-skip": {
+            "description": "Skip running tests on some builds.",
+            "title": "CIBW_TEST_SKIP",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "linux": {
+      "before-all": {
+        "description": "Execute a shell command on the build system before any wheels are built.",
+        "title": "CIBW_BEFORE_ALL",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "before-build": {
+        "description": "Execute a shell command preparing each wheel's build.",
+        "title": "CIBW_BEFORE_BUILD",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "before-test": {
+        "description": "Execute a shell command before testing each wheel.",
+        "title": "CIBW_BEFORE_TEST",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "build-frontend": {
+        "default": "default",
+        "description": "Set the tool to use to build, either \"pip\" (default for now) or \"build\"",
+        "oneOf": [
+          {
+            "enum": [
+              "pip",
+              "build",
+              "default"
+            ]
+          },
+          {
+            "type": "string",
+            "pattern": "^pip; ?args:"
+          },
+          {
+            "type": "string",
+            "pattern": "^build; ?args:"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "enum": [
+                  "pip",
+                  "build"
+                ]
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "title": "CIBW_BUILD_FRONTEND"
+      },
+      "build-verbosity": {
+        "type": "integer",
+        "minimum": -3,
+        "maximum": 3,
+        "default": 0,
+        "description": "Increase/decrease the output of pip wheel.",
+        "title": "CIBW_BUILD_VERBOSITY"
+      },
+      "config-settings": {
+        "description": "Specify config-settings for the build backend.",
+        "title": "CIBW_CONFIG_SETTINGS",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "patternProperties": {
+              ".+": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "container-engine": {
+        "oneOf": [
+          {
+            "enum": [
+              "docker",
+              "podman"
+            ]
+          },
+          {
+            "type": "string",
+            "pattern": "^docker; ?create_args:"
+          },
+          {
+            "type": "string",
+            "pattern": "^podman; ?create_args:"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "enum": [
+                  "docker",
+                  "podman"
+                ]
+              },
+              "create-args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "title": "CIBW_CONTAINER_ENGINE"
+      },
+      "environment": {
+        "description": "Set environment variables needed during the build.",
+        "title": "CIBW_ENVIRONMENT",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "patternProperties": {
+              ".+": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "environment-pass": {
+        "description": "Set environment variables on the host to pass-through to the container during the build.",
+        "title": "CIBW_ENVIRONMENT_PASS",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "manylinux-aarch64-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_AARCH64_IMAGE"
+      },
+      "manylinux-i686-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_I686_IMAGE"
+      },
+      "manylinux-ppc64le-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_PPC64LE_IMAGE"
+      },
+      "manylinux-pypy_aarch64-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE"
+      },
+      "manylinux-pypy_i686-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_PYPY_I686_IMAGE"
+      },
+      "manylinux-pypy_x86_64-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_PYPY_X86_64_IMAGE"
+      },
+      "manylinux-s390x-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_S390X_IMAGE"
+      },
+      "manylinux-x86_64-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MANYLINUX_X86_64_IMAGE"
+      },
+      "musllinux-aarch64-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MUSLLINUX_AARCH64_IMAGE"
+      },
+      "musllinux-i686-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MUSLLINUX_I686_IMAGE"
+      },
+      "musllinux-ppc64le-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MUSLLINUX_PPC64LE_IMAGE"
+      },
+      "musllinux-s390x-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MUSLLINUX_S390X_IMAGE"
+      },
+      "musllinux-x86_64-image": {
+        "type": "string",
+        "description": "Specify alternative manylinux / musllinux container images",
+        "title": "CIBW_MUSLLINUX_X86_64_IMAGE"
+      },
+      "repair-wheel-command": {
+        "description": "Execute a shell command to repair each built wheel.",
+        "title": "CIBW_REPAIR_WHEEL_COMMAND",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ],
+        "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+      },
+      "test-command": {
+        "description": "Execute a shell command to test each built wheel.",
+        "title": "CIBW_TEST_COMMAND",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-extras": {
+        "description": "Install your wheel for testing using `extras_require`",
+        "title": "CIBW_TEST_EXTRAS",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-requires": {
+        "description": "Install Python dependencies before running the tests",
+        "title": "CIBW_TEST_REQUIRES",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-skip": {
+        "description": "Skip running tests on some builds.",
+        "title": "CIBW_TEST_SKIP",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "windows": {
+      "before-all": {
+        "description": "Execute a shell command on the build system before any wheels are built.",
+        "title": "CIBW_BEFORE_ALL",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "before-build": {
+        "description": "Execute a shell command preparing each wheel's build.",
+        "title": "CIBW_BEFORE_BUILD",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "before-test": {
+        "description": "Execute a shell command before testing each wheel.",
+        "title": "CIBW_BEFORE_TEST",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "build-frontend": {
+        "default": "default",
+        "description": "Set the tool to use to build, either \"pip\" (default for now) or \"build\"",
+        "oneOf": [
+          {
+            "enum": [
+              "pip",
+              "build",
+              "default"
+            ]
+          },
+          {
+            "type": "string",
+            "pattern": "^pip; ?args:"
+          },
+          {
+            "type": "string",
+            "pattern": "^build; ?args:"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "enum": [
+                  "pip",
+                  "build"
+                ]
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "title": "CIBW_BUILD_FRONTEND"
+      },
+      "build-verbosity": {
+        "type": "integer",
+        "minimum": -3,
+        "maximum": 3,
+        "default": 0,
+        "description": "Increase/decrease the output of pip wheel.",
+        "title": "CIBW_BUILD_VERBOSITY"
+      },
+      "config-settings": {
+        "description": "Specify config-settings for the build backend.",
+        "title": "CIBW_CONFIG_SETTINGS",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "patternProperties": {
+              ".+": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "dependency-versions": {
+        "default": "pinned",
+        "description": "Specify how cibuildwheel controls the versions of the tools it uses",
+        "type": "string",
+        "title": "CIBW_DEPENDENCY_VERSIONS"
+      },
+      "environment": {
+        "description": "Set environment variables needed during the build.",
+        "title": "CIBW_ENVIRONMENT",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "patternProperties": {
+              ".+": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "repair-wheel-command": {
+        "description": "Execute a shell command to repair each built wheel.",
+        "title": "CIBW_REPAIR_WHEEL_COMMAND",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ],
+        "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+      },
+      "test-command": {
+        "description": "Execute a shell command to test each built wheel.",
+        "title": "CIBW_TEST_COMMAND",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-extras": {
+        "description": "Install your wheel for testing using `extras_require`",
+        "title": "CIBW_TEST_EXTRAS",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-requires": {
+        "description": "Install Python dependencies before running the tests",
+        "title": "CIBW_TEST_REQUIRES",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-skip": {
+        "description": "Skip running tests on some builds.",
+        "title": "CIBW_TEST_SKIP",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "macos": {
+      "before-all": {
+        "description": "Execute a shell command on the build system before any wheels are built.",
+        "title": "CIBW_BEFORE_ALL",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "before-build": {
+        "description": "Execute a shell command preparing each wheel's build.",
+        "title": "CIBW_BEFORE_BUILD",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "before-test": {
+        "description": "Execute a shell command before testing each wheel.",
+        "title": "CIBW_BEFORE_TEST",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "build-frontend": {
+        "default": "default",
+        "description": "Set the tool to use to build, either \"pip\" (default for now) or \"build\"",
+        "oneOf": [
+          {
+            "enum": [
+              "pip",
+              "build",
+              "default"
+            ]
+          },
+          {
+            "type": "string",
+            "pattern": "^pip; ?args:"
+          },
+          {
+            "type": "string",
+            "pattern": "^build; ?args:"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "enum": [
+                  "pip",
+                  "build"
+                ]
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "title": "CIBW_BUILD_FRONTEND"
+      },
+      "build-verbosity": {
+        "type": "integer",
+        "minimum": -3,
+        "maximum": 3,
+        "default": 0,
+        "description": "Increase/decrease the output of pip wheel.",
+        "title": "CIBW_BUILD_VERBOSITY"
+      },
+      "config-settings": {
+        "description": "Specify config-settings for the build backend.",
+        "title": "CIBW_CONFIG_SETTINGS",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "patternProperties": {
+              ".+": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "dependency-versions": {
+        "default": "pinned",
+        "description": "Specify how cibuildwheel controls the versions of the tools it uses",
+        "type": "string",
+        "title": "CIBW_DEPENDENCY_VERSIONS"
+      },
+      "environment": {
+        "description": "Set environment variables needed during the build.",
+        "title": "CIBW_ENVIRONMENT",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "patternProperties": {
+              ".+": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "repair-wheel-command": {
+        "description": "Execute a shell command to repair each built wheel.",
+        "title": "CIBW_REPAIR_WHEEL_COMMAND",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ],
+        "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+      },
+      "test-command": {
+        "description": "Execute a shell command to test each built wheel.",
+        "title": "CIBW_TEST_COMMAND",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-extras": {
+        "description": "Install your wheel for testing using `extras_require`",
+        "title": "CIBW_TEST_EXTRAS",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-requires": {
+        "description": "Install Python dependencies before running the tests",
+        "title": "CIBW_TEST_REQUIRES",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "test-skip": {
+        "description": "Skip running tests on some builds.",
+        "title": "CIBW_TEST_SKIP",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
