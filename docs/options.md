@@ -1440,25 +1440,9 @@ Default: Off (0).
 
 #### Examples
 
-!!! tab examples "Linux"
-
-    ```shell
-    export CIBW_DEBUG_KEEP_CONTAINER=TRUE
-    ```
-
-!!! tab examples "Windows"
-
-    ```shell
-    set CIBW_DEBUG_KEEP_CONTAINER=TRUE
-    ```
-
-!!! tab examples "MacOS"
-
-    ```shell
-    export CIBW_DEBUG_KEEP_CONTAINER=TRUE
-    ```
-
-## Other
+```shell
+export CIBW_DEBUG_KEEP_CONTAINER=TRUE
+```
 
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
 > Increase/decrease the output of pip wheel
