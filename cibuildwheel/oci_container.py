@@ -17,7 +17,13 @@ from types import TracebackType
 from typing import IO, Dict, Literal
 
 from .typing import PathOrStr, PopenBytes
-from .util import CIProvider, call, detect_ci_provider, parse_key_value_string, strtobool
+from .util import (
+    CIProvider,
+    call,
+    detect_ci_provider,
+    parse_key_value_string,
+    strtobool,
+)
 
 ContainerEngineName = Literal["docker", "podman"]
 
