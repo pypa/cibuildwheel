@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+from typing import Any
 
 import yaml
 
@@ -201,31 +202,46 @@ items:
 """
 )
 
-limited = schema["properties"].copy()
-del limited["build"]
-del limited["skip"]
+non_global_options = schema["properties"].copy()
+del non_global_options["build"]
+del non_global_options["skip"]
+del non_global_options["container-engine"]
+del non_global_options["test-skip"]
+del non_global_options["archs"]
 
 overrides["items"]["properties"]["select"]["oneOf"] = string_array
-overrides["items"]["properties"] |= limited.copy()
+overrides["items"]["properties"] |= non_global_options.copy()
 
-del limited["archs"]
-
-not_linux = limited.copy()
+not_linux = non_global_options.copy()
 
 del not_linux["environment-pass"]
-del not_linux["container-engine"]
 for key in list(not_linux):
     if "linux-" in key:
         del not_linux[key]
 
-oses = {"linux": limited.copy(), "windows": not_linux.copy(), "macos": not_linux.copy()}
 
-oses["linux"]["repair-wheel-command"]["default"] = "auditwheel repair -w {dest_dir} {wheel}"
-oses["macos"]["repair-wheel-command"][
+def as_object(d: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": d.copy(),
+    }
+
+
+oses = {
+    "linux": as_object(non_global_options),
+    "windows": as_object(not_linux),
+    "macos": as_object(not_linux),
+}
+
+oses["linux"]["properties"]["repair-wheel-command"][
+    "default"
+] = "auditwheel repair -w {dest_dir} {wheel}"
+oses["macos"]["properties"]["repair-wheel-command"][
     "default"
 ] = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
 
-del oses["linux"]["dependency-versions"]
+del oses["linux"]["properties"]["dependency-versions"]
 
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
