@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import copy
 import json
 from typing import Any
 
@@ -9,7 +10,7 @@ starter = """
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
 $schema: http://json-schema.org/draft-07/schema
 additionalProperties: false
-description: cibulidwheel's settings.
+description: cibuildwheel's settings.
 type: object
 properties:
   archs:
@@ -180,8 +181,7 @@ string_table = yaml.safe_load(
 """
 )
 
-for key, value in schema["properties"].items():
-    value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
+for value in schema["properties"].values():
     match value:
         case {"type": "string_array"}:
             del value["type"]
@@ -206,7 +206,7 @@ items:
 """
 )
 
-non_global_options = schema["properties"].copy()
+non_global_options = copy.deepcopy(schema["properties"])
 del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["container-engine"]
@@ -229,7 +229,7 @@ def as_object(d: dict[str, Any]) -> dict[str, Any]:
     return {
         "type": "object",
         "additionalProperties": False,
-        "properties": d.copy(),
+        "properties": copy.deepcopy(d),
     }
 
 
@@ -250,5 +250,14 @@ del oses["linux"]["properties"]["dependency-versions"]
 
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
+
+for key, value in schema["properties"].items():
+    value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
+for key, value in schema["properties"]["linux"]["properties"].items():
+    value["title"] = f'CIBW_{key.replace("-", "_").upper()}_LINUX'
+for key, value in schema["properties"]["macos"]["properties"].items():
+    value["title"] = f'CIBW_{key.replace("-", "_").upper()}_MACOS'
+for key, value in schema["properties"]["windows"]["properties"].items():
+    value["title"] = f'CIBW_{key.replace("-", "_").upper()}_WINDOWS'
 
 print(json.dumps(schema, indent=2))
