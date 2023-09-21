@@ -142,6 +142,8 @@
           "type": "string"
         },
         {
+          "type": "object",
+          "additionalProperties": false,
           "patternProperties": {
             ".+": {
               "oneOf": [
@@ -214,6 +216,8 @@
           "type": "string"
         },
         {
+          "type": "object",
+          "additionalProperties": false,
           "patternProperties": {
             ".+": [
               {
@@ -522,6 +526,8 @@
                 "type": "string"
               },
               {
+                "type": "object",
+                "additionalProperties": false,
                 "patternProperties": {
                   ".+": {
                     "oneOf": [
@@ -554,6 +560,8 @@
                 "type": "string"
               },
               {
+                "type": "object",
+                "additionalProperties": false,
                 "patternProperties": {
                   ".+": [
                     {
@@ -712,6 +720,21 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "archs": {
+          "description": "Change the architectures built on your machine by default.",
+          "title": "CIBW_ARCHS",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
         "before-all": {
           "description": "Execute a shell command on the build system before any wheels are built.",
           "title": "CIBW_BEFORE_ALL",
@@ -816,6 +839,8 @@
               "type": "string"
             },
             {
+              "type": "object",
+              "additionalProperties": false,
               "patternProperties": {
                 ".+": {
                   "oneOf": [
@@ -842,6 +867,8 @@
               "type": "string"
             },
             {
+              "type": "object",
+              "additionalProperties": false,
               "patternProperties": {
                 ".+": [
                   {
@@ -999,6 +1026,21 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "archs": {
+          "description": "Change the architectures built on your machine by default.",
+          "title": "CIBW_ARCHS",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
         "before-all": {
           "description": "Execute a shell command on the build system before any wheels are built.",
           "title": "CIBW_BEFORE_ALL",
@@ -1103,6 +1145,8 @@
               "type": "string"
             },
             {
+              "type": "object",
+              "additionalProperties": false,
               "patternProperties": {
                 ".+": {
                   "oneOf": [
@@ -1135,6 +1179,8 @@
               "type": "string"
             },
             {
+              "type": "object",
+              "additionalProperties": false,
               "patternProperties": {
                 ".+": [
                   {
@@ -1212,6 +1258,21 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "archs": {
+          "description": "Change the architectures built on your machine by default.",
+          "title": "CIBW_ARCHS",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
         "before-all": {
           "description": "Execute a shell command on the build system before any wheels are built.",
           "title": "CIBW_BEFORE_ALL",
@@ -1316,6 +1377,8 @@
               "type": "string"
             },
             {
+              "type": "object",
+              "additionalProperties": false,
               "patternProperties": {
                 ".+": {
                   "oneOf": [
@@ -1348,6 +1411,8 @@
               "type": "string"
             },
             {
+              "type": "object",
+              "additionalProperties": false,
               "patternProperties": {
                 ".+": [
                   {

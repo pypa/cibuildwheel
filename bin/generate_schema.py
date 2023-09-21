@@ -157,7 +157,9 @@ string_array = yaml.safe_load(
 string_table_array = yaml.safe_load(
     """
 - type: string
-- patternProperties:
+- type: object
+  additionalProperties: false
+  patternProperties:
     .+:
       oneOf:
         - type: string
@@ -170,7 +172,9 @@ string_table_array = yaml.safe_load(
 string_table = yaml.safe_load(
     """
 - type: string
-- patternProperties:
+- type: object
+  additionalProperties: false
+  patternProperties:
     .+:
       - type: string
 """
@@ -207,10 +211,11 @@ del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["container-engine"]
 del non_global_options["test-skip"]
-del non_global_options["archs"]
 
 overrides["items"]["properties"]["select"]["oneOf"] = string_array
 overrides["items"]["properties"] |= non_global_options.copy()
+
+del overrides["items"]["properties"]["archs"]
 
 not_linux = non_global_options.copy()
 
