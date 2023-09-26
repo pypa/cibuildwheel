@@ -9,7 +9,7 @@ config-settings = {}
 dependency-versions = "pinned"
 environment = {}
 environment-pass = []
-build-verbosity = ""
+build-verbosity = 0
 
 before-all = ""
 before-build = ""

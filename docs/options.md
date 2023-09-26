@@ -917,9 +917,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_REPAIR_WHEEL_COMMAND: >
       python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
       python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
-    ```
 
-    ```yaml
     # Use abi3audit to catch issues with Limited API wheels
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
       auditwheel repair -w {dest_dir} {wheel} &&
@@ -953,9 +951,7 @@ Platform-specific environment variables are also available:<br/>
       'python scripts/repair_wheel.py -w {dest_dir} {wheel}',
       'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
     ]
-    ```
 
-    ```toml
     # Use abi3audit to catch issues with Limited API wheels
     [tool.cibuildwheel.linux]
     repair-wheel-command = [

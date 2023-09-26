@@ -113,6 +113,14 @@ def update_proj(session: nox.Session) -> None:
     )
 
 
+@nox.session(reuse_venv=True)
+def generate_schema(session: nox.Session) -> None:
+    session.install("pyyaml")
+    output = session.run("python", "bin/generate_schema.py", silent=True)
+    assert isinstance(output, str)
+    DIR.joinpath("cibuildwheel/resources/cibuildwheel.schema.json").write_text(output)
+
+
 @nox.session(python="3.9")
 def docs(session: nox.Session) -> None:
     """

@@ -35,9 +35,10 @@ repos:
   hooks:
   - id: mypy
     name: mypy 3.8 on cibuildwheel/
-    exclude: ^cibuildwheel/resources/.*py$
+    exclude: ^cibuildwheel/resources/.*py|bin/generate_schema.py$
     args: ["--python-version=3.8"]
     additional_dependencies: &mypy-dependencies
+      - bracex
       - nox
       - packaging
       - pygithub
@@ -49,7 +50,7 @@ repos:
       - types-jinja2
       - types-pyyaml
       - types-requests
-      - bracex
+      - validate-pyproject
   - id: mypy
     name: mypy 3.11
     exclude: ^cibuildwheel/resources/.*py$
