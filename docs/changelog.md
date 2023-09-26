@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v2.16.1
+
+_26 September 2023_
+
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0rc3 (#1625)
+- 🛠 Only calls `linux32` in containers when necessary (#1599)
+
 ### v2.16.0
 
 _18 September 2023_
