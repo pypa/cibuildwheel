@@ -200,6 +200,7 @@ description: An overrides array
 items:
   type: object
   required: ["select"]
+  minProperties: 2
   additionalProperties: false
   properties:
     select: {}
