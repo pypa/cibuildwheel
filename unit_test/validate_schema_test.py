@@ -59,6 +59,19 @@ def test_overrides_no_select():
         validator(example)
 
 
+def test_overrides_only_select():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        select = "somestring"
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
 def test_docs_examples():
     """
     Parse out all the configuration examples, build valid TOML out of them, and
