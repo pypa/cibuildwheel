@@ -206,7 +206,10 @@ items:
 """
 )
 
-non_global_options = copy.deepcopy(schema["properties"])
+for key, value in schema["properties"].items():
+    value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
+
+non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["container-engine"]
@@ -239,25 +242,18 @@ oses = {
     "macos": as_object(not_linux),
 }
 
-oses["linux"]["properties"]["repair-wheel-command"][
-    "default"
-] = "auditwheel repair -w {dest_dir} {wheel}"
-oses["macos"]["properties"]["repair-wheel-command"][
-    "default"
-] = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+oses["linux"]["properties"]["repair-wheel-command"] = {
+    **schema["properties"]["repair-wheel-command"],
+    "default": "auditwheel repair -w {dest_dir} {wheel}",
+}
+oses["macos"]["properties"]["repair-wheel-command"] = {
+    **schema["properties"]["repair-wheel-command"],
+    "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
+}
 
 del oses["linux"]["properties"]["dependency-versions"]
 
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
-
-for key, value in schema["properties"].items():
-    value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
-for key, value in schema["properties"]["linux"]["properties"].items():
-    value["title"] = f'CIBW_{key.replace("-", "_").upper()}_LINUX'
-for key, value in schema["properties"]["macos"]["properties"].items():
-    value["title"] = f'CIBW_{key.replace("-", "_").upper()}_MACOS'
-for key, value in schema["properties"]["windows"]["properties"].items():
-    value["title"] = f'CIBW_{key.replace("-", "_").upper()}_WINDOWS'
 
 print(json.dumps(schema, indent=2))
