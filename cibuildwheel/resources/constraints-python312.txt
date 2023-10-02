@@ -10,7 +10,7 @@ distlib==0.3.7
     # via virtualenv
 filelock==3.12.4
     # via virtualenv
-packaging==23.1
+packaging==23.2
     # via delocate
 platformdirs==3.10.0
     # via virtualenv
