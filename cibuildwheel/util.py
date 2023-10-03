@@ -731,23 +731,26 @@ def parse_key_value_string(
 
     all_field_names = [*positional_arg_names, *kw_arg_names]
 
-    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";:")
+    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
     shlexer.commenters = ""
+    shlexer.whitespace_split = True
     parts = list(shlexer)
     # parts now looks like
-    # ['docker', ';', 'create_args',':', '--some-option=value', 'another-option']
+    # ['docker', ';', 'create_args:', '--some-option=value', 'another-option']
 
     # split by semicolon
     fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
 
     result: dict[str, list[str]] = defaultdict(list)
     for field_i, field in enumerate(fields):
-        if len(field) > 1 and field[1] == ":":
-            field_name = field[0]
-            values = field[2:]
+        # check to see if the option name is specified
+        field_name, sep, first_value = field[0].partition(":")
+        if sep:
             if field_name not in all_field_names:
                 msg = f"Failed to parse {key_value_string!r}. Unknown field name {field_name!r}"
                 raise ValueError(msg)
+
+            values = ([first_value] if first_value else []) + field[1:]
         else:
             try:
                 field_name = positional_arg_names[field_i]
