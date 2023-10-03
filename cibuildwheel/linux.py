@@ -117,10 +117,20 @@ def check_all_python_exist(
     *, platform_configs: Iterable[PythonConfiguration], container: OCIContainer
 ) -> None:
     exist = True
+    has_manylinux_interpreters = True
     messages = []
+
+    try:
+        # use capture_output to keep quiet
+        container.call(["manylinux-interpreters", "--help"], capture_output=True)
+    except subprocess.CalledProcessError:
+        has_manylinux_interpreters = False
+
     for config in platform_configs:
         python_path = config.path / "bin" / "python"
         try:
+            if has_manylinux_interpreters:
+                container.call(["manylinux-interpreters", "ensure", config.path.name])
             container.call(["test", "-x", python_path])
         except subprocess.CalledProcessError:
             messages.append(
