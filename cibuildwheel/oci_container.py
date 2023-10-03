@@ -17,7 +17,13 @@ from types import TracebackType
 from typing import IO, Dict, Literal
 
 from .typing import PathOrStr, PopenBytes
-from .util import CIProvider, call, detect_ci_provider, parse_key_value_string
+from .util import (
+    CIProvider,
+    call,
+    detect_ci_provider,
+    parse_key_value_string,
+    strtobool,
+)
 
 ContainerEngineName = Literal["docker", "podman"]
 
@@ -188,12 +194,14 @@ class OCIContainer:
 
         assert isinstance(self.name, str)
 
-        subprocess.run(
-            [self.engine.name, "rm", "--force", "-v", self.name],
-            stdout=subprocess.DEVNULL,
-            check=False,
-        )
-        self.name = None
+        keep_container = strtobool(os.environ.get("CIBW_DEBUG_KEEP_CONTAINER", ""))
+        if not keep_container:
+            subprocess.run(
+                [self.engine.name, "rm", "--force", "-v", self.name],
+                stdout=subprocess.DEVNULL,
+                check=False,
+            )
+            self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         # `docker cp` causes 'no space left on device' error when
