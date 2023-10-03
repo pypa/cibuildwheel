@@ -255,6 +255,25 @@ def test_container_engine_option(tmp_path: Path, toml_assignment, result_name, r
     assert parsed_container_engine.create_args == result_create_args
 
 
+def test_environment_pass_references():
+    options = Options(
+        platform="linux",
+        command_line_arguments=CommandLineArguments.defaults(),
+        env={
+            "CIBW_ENVIRONMENT_PASS_LINUX": "STARTER MAIN_COURSE",
+            "STARTER": "green eggs",
+            "MAIN_COURSE": "ham",
+            "CIBW_ENVIRONMENT": 'MEAL="$STARTER and $MAIN_COURSE"',
+        },
+    )
+    parsed_environment = options.build_options(identifier=None).environment
+    assert parsed_environment.as_dictionary(prev_environment={}) == {
+        "MEAL": "green eggs and ham",
+        "STARTER": "green eggs",
+        "MAIN_COURSE": "ham",
+    }
+
+
 @pytest.mark.parametrize(
     ("toml_assignment", "result_name", "result_args"),
     [
