@@ -14,7 +14,7 @@ importlib-metadata==6.7.0
     # via virtualenv
 packaging==23.2
     # via delocate
-platformdirs==3.10.0
+platformdirs==3.11.0
     # via virtualenv
 typing-extensions==4.7.1
     # via

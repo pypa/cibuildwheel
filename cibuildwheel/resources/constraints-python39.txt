@@ -12,7 +12,7 @@ filelock==3.12.4
     # via virtualenv
 packaging==23.2
     # via delocate
-platformdirs==3.10.0
+platformdirs==3.11.0
     # via virtualenv
 typing-extensions==4.8.0
     # via delocate
