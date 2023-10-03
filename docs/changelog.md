@@ -4,6 +4,17 @@ title: Changelog
 
 # Changelog
 
+### v2.16.2
+
+_3 October 2023_
+
+- 🛠 Updates CPython 3.12 version to 3.12.0, final release (#1635)
+- ✨ Adds a debug option [`CIBW_DEBUG_KEEP_CONTAINER`](https://cibuildwheel.readthedocs.io/en/stable/options/#cibw_debug_keep_container) to stop cibuildwheel deleting build containers after the build finishes. (#1620)
+- 📚 Adds support for `[tool.cibuildwheel]` checking by adding a schema compatible with the [validate-pyproject](https://github.com/abravalheri/validate-pyproject/) tool (#1622, #1628, #1629)
+- 🐛 Fix parsing of `CIBW_CONTAINER_ENGINE` and `CIBW_BUILD_FRONTEND` options to not break arguments on `:` characters (#1621)
+- 🐛 Fix the evaluation order of `CIBW_ENVIRONMENT` and `CIBW_ENVIRONMENT_PASS` so that `CIBW_ENVIRONMENT` assignments can reference environment variables passed through from the host machine. (#1617)
+- 🛠 Supports manylinux images' deferred installation of interpreters through the `manylinux-interpreters` tool (#1630)
+
 ### v2.16.1
 
 _26 September 2023_
