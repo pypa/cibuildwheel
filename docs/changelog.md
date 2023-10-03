@@ -288,7 +288,7 @@ _22 October 2021_
 
 - 🛠 Added support for building PyPy wheels on macOS 11 CI runners. (#875)
 
-- 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matricies. (#829)
+- 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matrices. (#829)
 
 - 🛠 Support for TOML 1.0 when reading config files, via the `tomli` package. (#876)
 
