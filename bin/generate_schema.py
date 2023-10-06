@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
+import argparse
 import copy
 import json
 from typing import Any
 
 import yaml
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
+args = parser.parse_args()
 
 starter = """
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
@@ -177,7 +182,7 @@ string_table = yaml.safe_load(
   additionalProperties: false
   patternProperties:
     .+:
-      - type: string
+      type: string
 """
 )
 
@@ -210,7 +215,13 @@ items:
 for key, value in schema["properties"].items():
     value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
 
-non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
+if args.schemastore:
+    non_global_options = {
+        k: {"$ref": f"#/properties/tool/properties/cibuildwheel/properties/{k}"}
+        for k in schema["properties"]
+    }
+else:
+    non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["container-engine"]
@@ -257,4 +268,27 @@ del oses["linux"]["properties"]["dependency-versions"]
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
 
-print(json.dumps(schema, indent=2))
+if not args.schemastore:
+    print(json.dumps(schema, indent=2))
+    raise SystemExit(0)
+
+schema_store_txt = """
+$id: https://json.schemastore.org/cibuildwheel.json
+$schema: http://json-schema.org/draft-07/schema#
+additionalProperties: false
+description: cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel.
+type: object
+properties:
+    tool:
+        type: object
+        properties:
+            cibuildwheel:
+                type: object
+"""
+schema_store = yaml.safe_load(schema_store_txt)
+
+schema_store["properties"]["tool"]["properties"]["cibuildwheel"]["properties"] = schema[
+    "properties"
+]
+
+print(json.dumps(schema_store, indent=2))
