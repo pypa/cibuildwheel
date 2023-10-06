@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 starter = """
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
-$schema: http://json-schema.org/draft-07/schema#
+$schema: http://json-schema.org/draft-07/schema
 additionalProperties: false
 description: cibuildwheel's settings.
 type: object
@@ -150,6 +150,9 @@ properties:
 """
 
 schema = yaml.safe_load(starter)
+
+if args.schemastore:
+    schema["$id"] += "#"
 
 string_array = yaml.safe_load(
     """
