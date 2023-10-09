@@ -115,6 +115,9 @@ def update_proj(session: nox.Session) -> None:
 
 @nox.session(reuse_venv=True)
 def generate_schema(session: nox.Session) -> None:
+    """
+    Generate the cibuildwheel.schema.json file.
+    """
     session.install("pyyaml")
     output = session.run("python", "bin/generate_schema.py", silent=True)
     assert isinstance(output, str)

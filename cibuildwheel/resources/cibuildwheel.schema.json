@@ -218,11 +218,9 @@
           "type": "object",
           "additionalProperties": false,
           "patternProperties": {
-            ".+": [
-              {
-                "type": "string"
-              }
-            ]
+            ".+": {
+              "type": "string"
+            }
           }
         }
       ],
