@@ -49,8 +49,8 @@ title: Working examples
 | [Line Profiler][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Line-by-line profiling for Python |
 | [numexpr][]                       | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast numerical array expression evaluator for Python, NumPy, PyTables, pandas, bcolz and more |
 | [PyAV][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Pythonic bindings for FFmpeg's libraries. |
-| [h5py][]                          | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | HDF5 for Python -- The h5py package is a Pythonic interface to the HDF5 binary data format. |
 | [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
+| [h5py][]                          | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | HDF5 for Python -- The h5py package is a Pythonic interface to the HDF5 binary data format. |
 | [Wrapt][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python module for decorators, wrappers and monkey patching. |
 | [pikepdf][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python library for reading and writing PDF, powered by QPDF |
 | [envd][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | 🏕️ Reproducible development environment |
@@ -97,8 +97,8 @@ title: Working examples
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
 | [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
-| [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
+| [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
 | [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
@@ -155,8 +155,8 @@ title: Working examples
 [Line Profiler]: https://github.com/pyutils/line_profiler
 [numexpr]: https://github.com/pydata/numexpr
 [PyAV]: https://github.com/PyAV-Org/PyAV
-[h5py]: https://github.com/h5py/h5py
 [CTranslate2]: https://github.com/OpenNMT/CTranslate2
+[h5py]: https://github.com/h5py/h5py
 [Wrapt]: https://github.com/GrahamDumpleton/wrapt
 [pikepdf]: https://github.com/pikepdf/pikepdf
 [envd]: https://github.com/tensorchord/envd
@@ -203,8 +203,8 @@ title: Working examples
 [fathon]: https://github.com/stfbnc/fathon
 [power-grid-model]: https://github.com/alliander-opensource/power-grid-model
 [Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
-[polaroid]: https://github.com/daggy1234/polaroid
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
+[polaroid]: https://github.com/daggy1234/polaroid
 [etebase-py]: https://github.com/etesync/etebase-py
 [cf-units]: https://github.com/SciTools/cf-units
 [clang-format]: https://github.com/ssciwr/clang-format-wheel
