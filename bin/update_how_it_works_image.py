@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 try:
-    from html2image import Html2Image  # type: ignore[import]
+    from html2image import Html2Image  # type: ignore[import-not-found]
 except ImportError:
     sys.exit(
         """
