@@ -12,6 +12,8 @@ import subprocess
 import sys
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from cibuildwheel.util import CIBW_CACHE_PATH
 
 platform: str
@@ -196,6 +198,11 @@ def expected_wheels(
 
     wheels = []
 
+    if platform == "pyodide":
+        python_abi_tag = "cp311-cp311"
+        platform_tag = "emscripten_3_1_32_wasm32"
+        return [f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"]
+
     for python_abi_tag in python_abi_tags:
         platform_tags = []
 
@@ -243,7 +250,6 @@ def expected_wheels(
                 platform_tags.append(
                     f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
                 )
-
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
@@ -264,6 +270,10 @@ def get_macos_version():
     """
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))
+
+
+def skip_if_pyodide(reason):
+    return pytest.mark.skipif(platform == "pyodide", reason=reason)
 
 
 def arch_name_for_linux(arch: str):

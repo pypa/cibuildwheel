@@ -64,11 +64,11 @@ def test_simple(tmp_path):
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
+        add_env={"CIBW_BUILD": "cp311-*"},
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp311" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -94,12 +94,12 @@ def test_external_config_file_argument(tmp_path, capfd):
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
+        add_env={"CIBW_BUILD": "cp311-*"},
         config_file=str(config_file),
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp311" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
     # check that before-all was run
@@ -125,11 +125,11 @@ def test_config_in_pyproject_toml(tmp_path, capfd):
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
+        add_env={"CIBW_BUILD": "cp311-*"},
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp311" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
     # check that before-build was run
@@ -162,12 +162,12 @@ def test_internal_config_file_argument(tmp_path, capfd):
     # build the wheels from sdist, referencing the config file inside
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
+        add_env={"CIBW_BUILD": "cp311-*"},
         config_file="{package}/wheel_build_config.toml",
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp311" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
     # check that before-all was run

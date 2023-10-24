@@ -91,9 +91,9 @@ You can configure cibuildwheel with a config file, such as `pyproject.toml`.
 Options have the same names as the environment variable overrides, but are
 placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
 common [TOML][] practice. Anything placed in subsections `linux`, `windows`,
-or `macos` will only affect those platforms. Lists can be used instead of
-strings for items that are naturally a list. Multiline strings also work just
-like in the environment variables. Environment variables will take
+`macos`, or `pyodide` will only affect those platforms. Lists can be used
+instead of strings for items that are naturally a list. Multiline strings also
+work just like in the environment variables. Environment variables will take
 precedence if defined.
 
 The example above using environment variables could have been written like this:
@@ -180,7 +180,7 @@ wheels on manylinux2010, and manylinux2014 wheels for any newer Python
 
 > Override the auto-detected target platform
 
-Options: `auto` `linux` `macos` `windows`
+Options: `auto` `linux` `macos` `windows` `pyodide`
 
 Default: `auto`
 
@@ -188,6 +188,7 @@ Default: `auto`
 
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
+- For `pyodide` you need to be on an x86-64 linux runner and run cibuildwheel from Python 3.11.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
@@ -357,6 +358,7 @@ Options:
 - Linux: `x86_64` `i686` `aarch64` `ppc64le` `s390x`
 - macOS: `x86_64` `arm64` `universal2`
 - Windows: `AMD64` `x86` `ARM64`
+- Pyodide: `wasm32`
 - `auto`: The default archs for your machine - see the table below.
     - `auto64`: Just the 64-bit auto archs
     - `auto32`: Just the 32-bit auto archs
@@ -567,7 +569,7 @@ a table of items, including arrays.
     single values.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX`
+`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX` | `CIBW_CONFIG_SETTINGS_PYODIDE`
 
 
 #### Examples
@@ -598,7 +600,7 @@ You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to 
 To specify more than one environment variable, separate the assignments by spaces.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
+`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX` | `CIBW_ENVIRONMENT_PYODIDE`
 
 #### Examples
 
@@ -727,7 +729,7 @@ On linux, overriding it triggers a new container launch. It cannot be overridden
 on macOS and Windows.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX` | `CIBW_BEFORE_ALL_PYODIDE`
 
 !!! note
 
@@ -792,7 +794,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
- `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
+ `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX` | `CIBW_BEFORE_BUILD_PYODIDE`
 
 #### Examples
 
@@ -874,6 +876,7 @@ Default:
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
 - on Windows: `''`
+- on Pyodide: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
 The command is run on each built wheel (except for pure Python ones) before testing it.
@@ -887,7 +890,7 @@ The following placeholders must be used inside the command and will be replaced 
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
+`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
 !!! tip
     cibuildwheel doesn't yet ship a default repair command for Windows.
@@ -1146,7 +1149,7 @@ here and it will be used instead.
     `./constraints.txt` if that's not found.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS`
+`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_PYODIDE`
 
 !!! note
     This option does not affect the tools used on the Linux build - those versions
@@ -1204,7 +1207,7 @@ not be installed after building.
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
+`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_PYODIDE`
 
 #### Examples
 
@@ -1267,7 +1270,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
- `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
+ `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX` | `CIBW_BEFORE_TEST_PYODIDE`
 
 #### Examples
 
@@ -1327,7 +1330,7 @@ Platform-specific environment variables are also available:<br/>
 Space-separated list of dependencies required for running the tests.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
+`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX` | `CIBW_TEST_REQUIRES_PYODIDE`
 
 #### Examples
 
@@ -1367,7 +1370,7 @@ tests. This can be used to avoid having to redefine test dependencies in
 `setup.cfg` or `setup.py`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
+`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX` | `CIBW_TEST_EXTRAS_PYODIDE`
 
 #### Examples
 
@@ -1446,7 +1449,7 @@ export CIBW_DEBUG_KEEP_CONTAINER=TRUE
 A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
+`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_PYODIDE`
 
 #### Examples
 

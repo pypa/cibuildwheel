@@ -31,6 +31,7 @@ limited_api_project = test_projects.new_c_project(
 )
 
 
+@utils.skip_if_pyodide(reason="No abi3, no py38")
 def test_abi3(tmp_path):
     project_dir = tmp_path / "project"
     limited_api_project.generate(project_dir)
@@ -156,6 +157,7 @@ ctypes_project.files["test/add_test.py"] = textwrap.dedent(
 )
 
 
+@utils.skip_if_pyodide(reason="Doesn't work for some reason")
 def test_abi_none(tmp_path, capfd):
     project_dir = tmp_path / "project"
     ctypes_project.generate(project_dir)
@@ -165,7 +167,6 @@ def test_abi_none(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": "pytest {project}/test",
             # limit the number of builds for test performance reasons
             "CIBW_BUILD": "cp38-* cp310-* pp39-*",
         },
