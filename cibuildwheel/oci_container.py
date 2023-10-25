@@ -16,6 +16,7 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
 
+from ._compat.typing import Self
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
@@ -105,7 +106,7 @@ class OCIContainer:
         self.name: str | None = None
         self.engine = engine
 
-    def __enter__(self) -> OCIContainer:
+    def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
         # work-around for Travis-CI PPC64le Docker runs since 2021:
