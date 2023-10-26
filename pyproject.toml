@@ -144,7 +144,7 @@ ignore = [
   "PT004",  # Rename suggested for returnless fixtures
   "PT007",  # False positive
   "PYI025", # Set as AbstractSet
-  "ISC001", # Conflicts with formatter (in 0.1.2)
+  "ISC001", # Conflicts with formatter
 ]
 typing-modules = ["cibuildwheel._compat.typing"]
 flake8-unused-arguments.ignore-variadic-names = true
