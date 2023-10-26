@@ -18,9 +18,7 @@ project_with_a_test = test_projects.new_c_project(
     )
 )
 
-project_with_a_test.files[
-    "test/spam_test.py"
-] = r'''
+project_with_a_test.files["test/spam_test.py"] = r'''
 import os
 import platform
 import sys
@@ -115,9 +113,7 @@ def test_extras_require(tmp_path):
 
 
 project_with_a_failing_test = test_projects.new_c_project()
-project_with_a_failing_test.files[
-    "test/spam_test.py"
-] = r"""
+project_with_a_failing_test.files["test/spam_test.py"] = r"""
 from unittest import TestCase
 
 class TestSpam(TestCase):

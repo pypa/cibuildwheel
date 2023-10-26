@@ -8,9 +8,7 @@ from . import test_projects, utils
 
 project_with_a_test = test_projects.new_c_project()
 
-project_with_a_test.files[
-    "test/spam_test.py"
-] = r"""
+project_with_a_test.files["test/spam_test.py"] = r"""
 import spam
 
 def test_spam():
