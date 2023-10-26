@@ -204,7 +204,7 @@ class CPythonVersions:
         unsorted_versions = spec.filter(self.versions_dict)
         sorted_versions = sorted(unsorted_versions, reverse=True)
 
-        macver = "10.9" if version <= Version("3.8.9999") else "11"
+        macver = "x10.9" if version <= Version("3.8.9999") else "11"
         file_ident = f"macosx{macver}.pkg"
 
         for new_version in sorted_versions:
