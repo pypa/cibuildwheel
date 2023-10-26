@@ -7,7 +7,7 @@ import shutil
 import sys
 import textwrap
 import time
-from collections import namedtuple
+import typing
 from glob import glob
 from pathlib import Path
 from subprocess import run
@@ -34,7 +34,12 @@ def generate_basic_project(path):
     project.generate(path)
 
 
-CIService = namedtuple("CIService", "name dst_config_path badge_md")
+class CIService(typing.NamedTuple):
+    name: str
+    dst_config_path: str
+    badge_md: str
+
+
 services = [
     CIService(
         name="appveyor",
