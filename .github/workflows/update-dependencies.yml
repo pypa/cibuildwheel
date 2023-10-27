@@ -18,13 +18,13 @@ jobs:
   update-dependencies:
     name: Update dependencies
     if: github.repository_owner == 'pypa' || github.event_name != 'schedule'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
 
     - uses: wntrblm/nox@2023.04.22
       with:
-        python-versions: "3.7, 3.8, 3.9, 3.10, 3.11, 3.12-dev"
+        python-versions: "3.7, 3.8, 3.9, 3.10, 3.11, 3.12"
 
     - name: "Run update: dependencies"
       run: nox --force-color -s update_constraints
