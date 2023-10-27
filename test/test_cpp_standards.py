@@ -99,9 +99,7 @@ cpp17_project = cpp_test_project.copy()
 cpp17_project.template_context["extra_compile_args"] = [
     "/std:c++17" if utils.platform == "windows" else "-std=c++17"
 ]
-cpp17_project.template_context[
-    "spam_cpp_top_level_add"
-] = r"""
+cpp17_project.template_context["spam_cpp_top_level_add"] = r"""
 #include <utility>
 auto a = std::pair(5.0, false);
 """

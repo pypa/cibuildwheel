@@ -19,9 +19,7 @@ basic_project = test_projects.new_c_project(
     )
 )
 
-basic_project.files[
-    "pyproject.toml"
-] = """
+basic_project.files["pyproject.toml"] = """
 [build-system]
 requires = [
     "setuptools >= 42",

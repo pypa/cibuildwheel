@@ -619,10 +619,7 @@ def virtualenv(
         python,
         venv_path,
     )
-    if IS_WIN:
-        paths = [str(venv_path), str(venv_path / "Scripts")]
-    else:
-        paths = [str(venv_path / "bin")]
+    paths = [str(venv_path), str(venv_path / "Scripts")] if IS_WIN else [str(venv_path / "bin")]
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join([*paths, env["PATH"]])
     return env

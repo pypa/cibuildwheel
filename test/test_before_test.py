@@ -3,9 +3,7 @@ from __future__ import annotations
 from . import test_projects, utils
 
 before_test_project = test_projects.new_c_project()
-before_test_project.files[
-    "test/spam_test.py"
-] = r"""
+before_test_project.files["test/spam_test.py"] = r"""
 import sys
 import os
 from unittest import TestCase
