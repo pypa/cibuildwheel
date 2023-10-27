@@ -24,7 +24,7 @@ repos:
   rev: v2.5.0
   hooks:
   - id: setup-cfg-fmt
-    args: [--include-version-classifiers, --min-py-version=3.8, --max-py-version=3.11]
+    args: [--include-version-classifiers, --min-py-version=3.8, --max-py-version=3.12]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v1.6.1
@@ -48,9 +48,9 @@ repos:
       - types-requests
       - validate-pyproject
   - id: mypy
-    name: mypy 3.11
+    name: mypy 3.12
     exclude: ^cibuildwheel/resources/.*py$
-    args: ["--python-version=3.11"]
+    args: ["--python-version=3.12"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
