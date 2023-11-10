@@ -23,7 +23,7 @@ typing-extensions==4.7.1
     #   platformdirs
 virtualenv==20.24.6
     # via -r cibuildwheel/resources/constraints.in
-wheel==0.41.2
+wheel==0.41.3
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.15.0
     # via importlib-metadata

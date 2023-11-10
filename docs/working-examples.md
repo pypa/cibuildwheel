@@ -97,8 +97,8 @@ title: Working examples
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
 | [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
-| [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
+| [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
@@ -203,8 +203,8 @@ title: Working examples
 [fathon]: https://github.com/stfbnc/fathon
 [power-grid-model]: https://github.com/alliander-opensource/power-grid-model
 [Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
-[pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [polaroid]: https://github.com/daggy1234/polaroid
+[pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [etebase-py]: https://github.com/etesync/etebase-py
 [clang-format]: https://github.com/ssciwr/clang-format-wheel
 [cf-units]: https://github.com/SciTools/cf-units
