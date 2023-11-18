@@ -75,7 +75,7 @@ With the exception of Cirrus CI, macOS CI runners are still Intel-based, and App
 !!! important
     When cross-compiling on Intel, it is not possible to test `arm64` and the `arm64` part of a `universal2` wheel.
 
-    `cibuildwheel` will raise a warning to notify you of this - these warnings be be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: *_arm64 *_universal2:arm64`.
+    `cibuildwheel` will raise a warning to notify you of this - these warnings be be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: "*_arm64 *_universal2:arm64"`.
 
 !!! note
     Your runner needs Xcode Command Line Tools 12.2 or later to build `universal2` or `arm64`.
@@ -395,7 +395,7 @@ To investigate the dependencies of a C extension (i.e., the `.pyd` file, a DLL i
 
 ### Windows ARM64 builds {: #windows-arm64}
 
-`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native ARM64 runner is required for testing. On non-native runners, tests for ARM64 wheels will be automatically skipped with a warning. Add `*-win_arm64` to your `CIBW_TEST_SKIP` setting to suppress the warning.
+`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native ARM64 runner is required for testing. On non-native runners, tests for ARM64 wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `CIBW_TEST_SKIP` setting to suppress the warning.
 
 Cross-compilation on Windows relies on a supported build backend. Supported backends use an environment variable to specify their target platform (the one they are compiling native modules for, as opposed to the one they are running on), which is set in [cibuildwheels/windows.py](https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/windows.py) before building. Currently, `setuptools>=65.4.1` and `setuptools_rust` are the only supported backends.
 

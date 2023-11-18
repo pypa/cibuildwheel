@@ -491,7 +491,7 @@ def build(options: Options, tmp_path: Path) -> None:
                                     tested. The ability to test the arm64 wheels will be added in a
                                     future release of cibuildwheel, once Apple Silicon CI runners
                                     are widely available. To silence this warning, set
-                                    `CIBW_TEST_SKIP: *-macosx_arm64`.
+                                    `CIBW_TEST_SKIP: "*-macosx_arm64"`.
                                     """
                                 )
                             )
@@ -504,7 +504,7 @@ def build(options: Options, tmp_path: Path) -> None:
                                     arm64 part of a universal2 wheel will be added in a future
                                     release of cibuildwheel, once Apple Silicon CI runners are
                                     widely available. To silence this warning, set
-                                    `CIBW_TEST_SKIP: *-macosx_universal2:arm64`.
+                                    `CIBW_TEST_SKIP: "*-macosx_universal2:arm64"`.
                                     """
                                 )
                             )
@@ -525,7 +525,7 @@ def build(options: Options, tmp_path: Path) -> None:
                                 Silicon machine. This is because we use the x86_64 installer of
                                 CPython 3.8. See the discussion in
                                 https://github.com/pypa/cibuildwheel/pull/1169 for the details. To
-                                silence this warning, set `CIBW_TEST_SKIP: cp38-macosx_*:arm64`.
+                                silence this warning, set `CIBW_TEST_SKIP: "cp38-macosx_*:arm64"`.
                                 """
                             )
                         )
