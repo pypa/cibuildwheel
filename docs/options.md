@@ -587,7 +587,7 @@ Platform-specific environment variables also available:<br/>
 
 
 ### `CIBW_ENVIRONMENT` {: #environment}
-> Set environment variables 
+> Set environment variables
 
 A list of environment variables to set during the build and test phases. Bash syntax should be used, even on Windows.
 
