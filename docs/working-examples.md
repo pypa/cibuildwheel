@@ -37,8 +37,8 @@ title: Working examples
 | [UltraJSON][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Ultra fast JSON decoder and encoder written in C with Python bindings |
 | [OpenSpiel][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | OpenSpiel is a collection of environments and algorithms for research in general reinforcement learning and search/planning in games. |
 | [aiortc][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | WebRTC and ORTC implementation for Python using asyncio. |
-| [pyzmq][]                         | ![github icon][] ![circleci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython on CPython and CFFI on PyPy. ARM wheels for linux are built natively on CircleCI.  |
 | [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
+| [pyzmq][]                         | ![github icon][] ![circleci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython on CPython and CFFI on PyPy. ARM wheels for linux are built natively on CircleCI.  |
 | [Implicit][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes GPU support for linux wheels |
 | [Dependency Injector][]           | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Dependency injection framework for Python, uses Windows TravisCI |
 | [vispy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Main repository for Vispy |
@@ -51,8 +51,8 @@ title: Working examples
 | [PyAV][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Pythonic bindings for FFmpeg's libraries. |
 | [numexpr][]                       | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast numerical array expression evaluator for Python, NumPy, PyTables, pandas, bcolz and more |
 | [h5py][]                          | ![azurepipelines icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | HDF5 for Python -- The h5py package is a Pythonic interface to the HDF5 binary data format. |
-| [Wrapt][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python module for decorators, wrappers and monkey patching. |
 | [pikepdf][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python library for reading and writing PDF, powered by QPDF |
+| [Wrapt][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python module for decorators, wrappers and monkey patching. |
 | [envd][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | 🏕️ Reproducible development environment |
 | [OpenColorIO][]                   | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A color management framework for visual effects and animation. |
 | [SimpleJSON][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | simplejson is a simple, fast, extensible JSON encoder/decoder for Python  |
@@ -143,8 +143,8 @@ title: Working examples
 [UltraJSON]: https://github.com/ultrajson/ultrajson
 [OpenSpiel]: https://github.com/deepmind/open_spiel
 [aiortc]: https://github.com/aiortc/aiortc
-[pyzmq]: https://github.com/zeromq/pyzmq
 [Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
+[pyzmq]: https://github.com/zeromq/pyzmq
 [Implicit]: https://github.com/benfred/implicit
 [Dependency Injector]: https://github.com/ets-labs/python-dependency-injector
 [vispy]: https://github.com/vispy/vispy
@@ -157,8 +157,8 @@ title: Working examples
 [PyAV]: https://github.com/PyAV-Org/PyAV
 [numexpr]: https://github.com/pydata/numexpr
 [h5py]: https://github.com/h5py/h5py
-[Wrapt]: https://github.com/GrahamDumpleton/wrapt
 [pikepdf]: https://github.com/pikepdf/pikepdf
+[Wrapt]: https://github.com/GrahamDumpleton/wrapt
 [envd]: https://github.com/tensorchord/envd
 [OpenColorIO]: https://github.com/AcademySoftwareFoundation/OpenColorIO
 [SimpleJSON]: https://github.com/simplejson/simplejson

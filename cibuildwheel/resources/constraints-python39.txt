@@ -4,7 +4,7 @@
 #
 #    nox -s update_constraints-3.9
 #
-delocate==0.10.4
+delocate==0.10.5
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.7
     # via virtualenv
