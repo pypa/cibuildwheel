@@ -61,9 +61,9 @@ properties:
     oneOf:
       - enum: [docker, podman]
       - type: string
-        pattern: '^docker; ?create_args:'
+        pattern: '^docker; ?(create_args|disable_host_mount):'
       - type: string
-        pattern: '^podman; ?create_args:'
+        pattern: '^podman; ?(create_args|disable_host_mount):'
       - type: object
         additionalProperties: false
         required: [name]
@@ -74,6 +74,8 @@ properties:
             type: array
             items:
               type: string
+          disable-host-mount:
+            type: boolean
   dependency-versions:
     default: pinned
     description: Specify how cibuildwheel controls the versions of the tools it uses

@@ -32,11 +32,14 @@ ContainerEngineName = Literal["docker", "podman"]
 class OCIContainerEngineConfig:
     name: ContainerEngineName
     create_args: Sequence[str] = ()
+    disable_host_mount: bool = False
 
     @staticmethod
     def from_config_string(config_string: str) -> OCIContainerEngineConfig:
         config_dict = parse_key_value_string(
-            config_string, ["name"], ["create_args", "create-args"]
+            config_string,
+            ["name"],
+            ["create_args", "create-args", "disable_host_mount", "disable-host-mount"],
         )
         name = " ".join(config_dict["name"])
         if name not in {"docker", "podman"}:
@@ -44,15 +47,28 @@ class OCIContainerEngineConfig:
             raise ValueError(msg)
 
         name = typing.cast(ContainerEngineName, name)
-        # some flexibility in the option name to cope with TOML conventions
+        # some flexibility in the option names to cope with TOML conventions
         create_args = config_dict.get("create_args") or config_dict.get("create-args") or []
-        return OCIContainerEngineConfig(name=name, create_args=create_args)
+        disable_host_mount_options = (
+            config_dict.get("disable_host_mount") or config_dict.get("disable-host-mount") or []
+        )
+        disable_host_mount = (
+            strtobool(disable_host_mount_options[-1]) if disable_host_mount_options else False
+        )
+
+        return OCIContainerEngineConfig(
+            name=name, create_args=create_args, disable_host_mount=disable_host_mount
+        )
 
     def options_summary(self) -> str | dict[str, str]:
         if not self.create_args:
             return self.name
         else:
-            return {"name": self.name, "create_args": repr(self.create_args)}
+            return {
+                "name": self.name,
+                "create_args": repr(self.create_args),
+                "disable_host_mount": str(self.disable_host_mount),
+            }
 
 
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
@@ -136,7 +152,7 @@ class OCIContainer:
                 "--env=SOURCE_DATE_EPOCH",
                 f"--name={self.name}",
                 "--interactive",
-                "--volume=/:/host",  # ignored on CircleCI
+                *(["--volume=/:/host"] if not self.engine.disable_host_mount else []),
                 *network_args,
                 *self.engine.create_args,
                 self.image,

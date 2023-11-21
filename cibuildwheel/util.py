@@ -741,7 +741,7 @@ def parse_key_value_string(
     # split by semicolon
     fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
 
-    result: dict[str, list[str]] = defaultdict(list)
+    result: defaultdict[str, list[str]] = defaultdict(list)
     for field_i, field in enumerate(fields):
         # check to see if the option name is specified
         field_name, sep, first_value = field[0].partition(":")
@@ -762,4 +762,4 @@ def parse_key_value_string(
 
         result[field_name] += values
 
-    return result
+    return dict(result)
