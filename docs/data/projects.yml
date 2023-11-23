@@ -638,4 +638,4 @@
   os: [windows, linux, apple]
   pypi: werpy
   notes: An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER).
-  
+
