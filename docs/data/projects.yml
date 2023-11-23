@@ -631,3 +631,10 @@
   os: [windows, apple, linux]
   pypi: aalink
   notes: Async Python interface for Ableton Link.
+
+- name: werpy
+  gh: analyticsinmotion/werpy
+  ci: [github]
+  os: [windows, linux, apple]
+  pypi: werpy
+  notes: An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER).
