@@ -409,7 +409,9 @@ def build(options: Options, tmp_path: Path) -> None:
                                 config.version
                             )
                         )
-                        build_env["PIP_CONSTRAINT"] = constraint_path.as_uri()
+                        build_env["PIP_CONSTRAINT"] = (
+                            constraint_path.as_uri() + " " + build_env.get("PIP_CONSTRAINT", "")
+                        )
                     build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                     call(
                         "python",
