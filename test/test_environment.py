@@ -97,6 +97,11 @@ def test_overridden_path(tmp_path, capfd):
 
 @pytest.mark.parametrize("build_frontend", ["pip", "build"])
 def test_overridden_pip_constraint(tmp_path, build_frontend):
+    """
+    Verify that users can use PIP_CONSTRAINT to specify a specific version of
+    a build-system.requires dependency, by asserting the version of pytz in the
+    setup.py.
+    """
     project_dir = tmp_path / "project"
 
     project = test_projects.new_c_project(
@@ -116,7 +121,13 @@ def test_overridden_pip_constraint(tmp_path, build_frontend):
     )
     project.generate(project_dir)
 
-    constraints_file = tmp_path / "constraints.txt"
+    if utils.platform == "linux":
+        # put the constraints file in the project directory, so it's available
+        # in the docker container
+        constraints_file = project_dir / "constraints.txt"
+    else:
+        constraints_file = tmp_path / "constraints.txt"
+
     constraints_file.write_text("pytz==2022.4")
 
     actual_wheels = utils.cibuildwheel_run(
@@ -125,6 +136,7 @@ def test_overridden_pip_constraint(tmp_path, build_frontend):
             "CIBW_BUILD": "cp312-*",
             "CIBW_BUILD_FRONTEND": build_frontend,
             "CIBW_ENVIRONMENT": f"PIP_CONSTRAINT={constraints_file}",
+            "CIBW_ENVIRONMENT_LINUX": "PIP_CONSTRAINT=./constraints.txt",
         },
     )
 
