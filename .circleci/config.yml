@@ -1,12 +1,11 @@
 version: 2
 
 jobs:
-  osx-python3.9:
+  macos-python3.9:
     macos:
-      xcode: 12.5.1
-    environment:
-      PYTHON: python3
-    steps:
+      xcode: 15.1.0
+      resource_class: medium
+    steps: &macos-steps
       - checkout
 
       - run:
@@ -17,11 +16,16 @@ jobs:
           command: venv/bin/python ./bin/run_tests.py
           no_output_timeout: 30m
 
+  macos-arm-python3.9:
+    macos:
+      xcode: 15.1.0
+      resource_class: arm.medium
+    steps: *macos-steps
+
   linux-python3.9:
     docker:
       - image: circleci/python:3.9
     environment:
-      PYTHON: python3
       # Temporarily restrict the tests that are run on CircleCI to prevent
       # test timeouts.
       PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
@@ -42,7 +46,6 @@ jobs:
        image: ubuntu-2004:2022.04.1
     resource_class: arm.medium
     environment:
-      PYTHON: python3
       # Temporarily restrict the tests that are run on CircleCI to prevent
       # test timeouts.
       PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
@@ -61,6 +64,7 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      - osx-python3.9
+      - macos-python3.9
+      - macos-arm-python3.9
       - linux-python3.9
       - linux-aarch64
