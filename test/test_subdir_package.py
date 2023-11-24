@@ -14,9 +14,7 @@ subdir_package_project.files["src/spam/spam.c"] = jinja2.Template(SPAM_C_TEMPLAT
 subdir_package_project.template_context["spam_c_top_level_add"] = ""
 subdir_package_project.template_context["spam_c_function_add"] = ""
 
-subdir_package_project.files[
-    "src/spam/setup.py"
-] = r"""
+subdir_package_project.files["src/spam/setup.py"] = r"""
 from setuptools import Extension, setup
 
 setup(
@@ -26,15 +24,11 @@ setup(
 )
 """
 
-subdir_package_project.files[
-    "src/spam/test/run_tests.py"
-] = r"""
+subdir_package_project.files["src/spam/test/run_tests.py"] = r"""
 print('run_tests.py executed!')
 """
 
-subdir_package_project.files[
-    "bin/before_build.py"
-] = r"""
+subdir_package_project.files["bin/before_build.py"] = r"""
 print('before_build.py executed!')
 """
 

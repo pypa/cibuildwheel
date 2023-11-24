@@ -16,9 +16,9 @@ from .options import Options
 from .typing import PathOrStr
 from .util import (
     AlreadyBuiltWheelError,
+    BuildFrontendConfig,
     BuildSelector,
     NonPlatformWheelError,
-    build_frontend_or_default,
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     prepare_command,
@@ -117,10 +117,20 @@ def check_all_python_exist(
     *, platform_configs: Iterable[PythonConfiguration], container: OCIContainer
 ) -> None:
     exist = True
+    has_manylinux_interpreters = True
     messages = []
+
+    try:
+        # use capture_output to keep quiet
+        container.call(["manylinux-interpreters", "--help"], capture_output=True)
+    except subprocess.CalledProcessError:
+        has_manylinux_interpreters = False
+
     for config in platform_configs:
         python_path = config.path / "bin" / "python"
         try:
+            if has_manylinux_interpreters:
+                container.call(["manylinux-interpreters", "ensure", config.path.name])
             container.call(["test", "-x", python_path])
         except subprocess.CalledProcessError:
             messages.append(
@@ -177,7 +187,7 @@ def build_in_container(
     for config in platform_configs:
         log.build_start(config.identifier)
         build_options = options.build_options(config.identifier)
-        build_frontend = build_frontend_or_default(build_options.build_frontend)
+        build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
 
         dependency_constraint_flags: list[PathOrStr] = []
 
@@ -243,9 +253,10 @@ def build_in_container(
             container.call(["rm", "-rf", built_wheel_dir])
             container.call(["mkdir", "-p", built_wheel_dir])
 
-            extra_flags = split_config_settings(build_options.config_settings, build_frontend)
+            extra_flags = split_config_settings(build_options.config_settings, build_frontend.name)
+            extra_flags += build_frontend.args
 
-            if build_frontend == "pip":
+            if build_frontend.name == "pip":
                 extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                 container.call(
                     [
@@ -260,7 +271,7 @@ def build_in_container(
                     ],
                     env=env,
                 )
-            elif build_frontend == "build":
+            elif build_frontend.name == "build":
                 if not 0 <= build_options.build_verbosity < 2:
                     msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                     log.warning(msg)
@@ -422,7 +433,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
 
             with OCIContainer(
                 image=build_step.container_image,
-                simulate_32_bit=build_step.platform_tag.endswith("i686"),
+                enforce_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
                 engine=options.globals.container_engine,
             ) as container:

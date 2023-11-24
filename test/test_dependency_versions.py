@@ -135,9 +135,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
             wheel=={wheel}
             virtualenv=={virtualenv}
             importlib-metadata<3,>=0.12; python_version < "3.8"
-            """.format(
-                **tool_versions
-            )
+            """.format(**tool_versions)
         )
     )
 

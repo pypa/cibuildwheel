@@ -124,8 +124,12 @@ class ParsedEnvironment:
 
         return environment
 
-    def add(self, name: str, value: str) -> None:
-        self.assignments.append(EnvironmentAssignmentRaw(name=name, value=value))
+    def add(self, name: str, value: str, prepend: bool = False) -> None:
+        assignment = EnvironmentAssignmentRaw(name=name, value=value)
+        if prepend:
+            self.assignments.insert(0, assignment)
+        else:
+            self.assignments.append(assignment)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({[repr(a) for a in self.assignments]!r})"

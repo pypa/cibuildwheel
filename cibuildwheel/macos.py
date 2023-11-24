@@ -25,10 +25,10 @@ from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
     AlreadyBuiltWheelError,
-    BuildFrontend,
+    BuildFrontendConfig,
+    BuildFrontendName,
     BuildSelector,
     NonPlatformWheelError,
-    build_frontend_or_default,
     call,
     detect_ci_provider,
     download,
@@ -165,7 +165,7 @@ def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
-    build_frontend: BuildFrontend,
+    build_frontend: BuildFrontendName,
 ) -> dict[str, str]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
@@ -334,7 +334,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_frontend_or_default(build_options.build_frontend)
+            build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -357,7 +357,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 config,
                 dependency_constraint_flags,
                 build_options.environment,
-                build_frontend,
+                build_frontend.name,
             )
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
@@ -378,9 +378,12 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
 
-                extra_flags = split_config_settings(build_options.config_settings, build_frontend)
+                extra_flags = split_config_settings(
+                    build_options.config_settings, build_frontend.name
+                )
+                extra_flags += build_frontend.args
 
-                if build_frontend == "pip":
+                if build_frontend.name == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
@@ -395,7 +398,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         *extra_flags,
                         env=env,
                     )
-                elif build_frontend == "build":
+                elif build_frontend.name == "build":
                     if not 0 <= build_options.build_verbosity < 2:
                         msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                         log.warning(msg)

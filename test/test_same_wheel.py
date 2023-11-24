@@ -8,9 +8,7 @@ import pytest
 from . import utils
 
 basic_project = test_projects.new_c_project()
-basic_project.files[
-    "repair.py"
-] = """
+basic_project.files["repair.py"] = """
 import shutil
 import sys
 from pathlib import Path

@@ -8,9 +8,7 @@ import pytest
 from . import utils
 
 pure_python_project = test_projects.TestProject()
-pure_python_project.files[
-    "setup.py"
-] = """
+pure_python_project.files["setup.py"] = """
 from setuptools import Extension, setup
 
 setup(
@@ -20,9 +18,7 @@ setup(
 )
 """
 
-pure_python_project.files[
-    "spam.py"
-] = """
+pure_python_project.files["spam.py"] = """
 def a_function():
     pass
 """

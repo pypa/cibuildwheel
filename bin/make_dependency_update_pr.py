@@ -12,13 +12,13 @@ from subprocess import run
 import click
 
 
-def shell(cmd, **kwargs):
-    return run([cmd], shell=True, **kwargs)
+def shell(cmd, *, check: bool, **kwargs):
+    return run([cmd], shell=True, check=check, **kwargs)
 
 
 def git_repo_has_changes():
-    unstaged_changes = shell("git diff-index --quiet HEAD --").returncode != 0
-    staged_changes = shell("git diff-index --quiet --cached HEAD --").returncode != 0
+    unstaged_changes = shell("git diff-index --quiet HEAD --", check=False).returncode != 0
+    staged_changes = shell("git diff-index --quiet --cached HEAD --", check=False).returncode != 0
     return unstaged_changes or staged_changes
 
 
@@ -73,7 +73,7 @@ def main():
         print("Done.")
     finally:
         # remove any local changes
-        shell("git checkout -- .")
+        shell("git checkout -- .", check=True)
         shell(f"git checkout {previous_branch}", check=True)
         shell(f"git branch -D --force {branch_name}", check=True)
 

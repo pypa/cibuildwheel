@@ -9,6 +9,7 @@ from cibuildwheel.util import (
     find_compatible_wheel,
     fix_ansi_codes_for_github_actions,
     format_safe,
+    parse_key_value_string,
     prepare_command,
 )
 
@@ -124,3 +125,84 @@ def test_fix_ansi_codes_for_github_actions():
     output = fix_ansi_codes_for_github_actions(input)
 
     assert output == expected
+
+
+def test_parse_key_value_string():
+    assert parse_key_value_string("bar", positional_arg_names=["foo"]) == {"foo": ["bar"]}
+    assert parse_key_value_string("foo:bar", kw_arg_names=["foo"]) == {"foo": ["bar"]}
+    with pytest.raises(ValueError, match="Too many positional arguments"):
+        parse_key_value_string("bar")
+    with pytest.raises(ValueError, match="Unknown field name"):
+        parse_key_value_string("foo:bar")
+    assert parse_key_value_string("foo:bar", kw_arg_names=["foo"]) == {"foo": ["bar"]}
+    assert parse_key_value_string("foo:bar", positional_arg_names=["foo"]) == {"foo": ["bar"]}
+    assert parse_key_value_string("foo: bar", kw_arg_names=["foo"]) == {"foo": ["bar"]}
+    assert parse_key_value_string("foo: bar", kw_arg_names=["foo"]) == {"foo": ["bar"]}
+    assert parse_key_value_string("foo: bar; baz: qux", kw_arg_names=["foo", "baz"]) == {
+        "foo": ["bar"],
+        "baz": ["qux"],
+    }
+
+    # some common options
+    assert parse_key_value_string(
+        "docker; create_args: --some-option --another-option=foo",
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": ["--some-option", "--another-option=foo"],
+    }
+    # semicolon in value
+    assert parse_key_value_string(
+        "docker; create_args: --some-option='this; that'",
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": ["--some-option=this; that"],
+    }
+    # colon in value
+    assert parse_key_value_string(
+        "docker; create_args: --mount a:b",
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": ["--mount", "a:b"],
+    }
+    assert parse_key_value_string(
+        "docker;create_args:--mount a:b",
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": ["--mount", "a:b"],
+    }
+    # quoted value with spaces
+    assert parse_key_value_string(
+        "docker;create_args:'some string with spaces'",
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": ["some string with spaces"],
+    }
+
+    # colon in positional value
+    assert parse_key_value_string(
+        "docker; --mount a:b",
+        positional_arg_names=["name", "create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": ["--mount", "a:b"],
+    }
+
+    # empty option gives empty array
+    assert parse_key_value_string(
+        "docker;create_args:",
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": [],
+    }

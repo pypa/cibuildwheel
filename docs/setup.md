@@ -181,10 +181,10 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
             os: [ubuntu-20.04, windows-2019, macos-11]
 
         steps:
-          - uses: actions/checkout@v3
+          - uses: actions/checkout@v4
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.15.0
+            run: pipx run cibuildwheel==2.16.2
 
           - uses: actions/upload-artifact@v3
             with:
@@ -213,13 +213,13 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
             os: [ubuntu-20.04, windows-2019, macos-11]
 
         steps:
-          - uses: actions/checkout@v3
+          - uses: actions/checkout@v4
 
           # Used to host cibuildwheel
           - uses: actions/setup-python@v3
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.15.0
+            run: python -m pip install cibuildwheel==2.16.2
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse

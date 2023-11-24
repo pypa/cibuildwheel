@@ -17,6 +17,7 @@ extras = {
         "pytest-xdist",
         "build",
         "tomli_w",
+        "validate-pyproject",
     ],
     "bin": [
         "click",

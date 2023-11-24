@@ -4,6 +4,36 @@ title: Changelog
 
 # Changelog
 
+### v2.16.2
+
+_3 October 2023_
+
+- 🛠 Updates CPython 3.12 version to 3.12.0, final release (#1635)
+- ✨ Adds a debug option [`CIBW_DEBUG_KEEP_CONTAINER`](https://cibuildwheel.readthedocs.io/en/stable/options/#cibw_debug_keep_container) to stop cibuildwheel deleting build containers after the build finishes. (#1620)
+- 📚 Adds support for `[tool.cibuildwheel]` checking by adding a schema compatible with the [validate-pyproject](https://github.com/abravalheri/validate-pyproject/) tool (#1622, #1628, #1629)
+- 🐛 Fix parsing of `CIBW_CONTAINER_ENGINE` and `CIBW_BUILD_FRONTEND` options to not break arguments on `:` characters (#1621)
+- 🐛 Fix the evaluation order of `CIBW_ENVIRONMENT` and `CIBW_ENVIRONMENT_PASS` so that `CIBW_ENVIRONMENT` assignments can reference environment variables passed through from the host machine. (#1617)
+- 🛠 Supports manylinux images' deferred installation of interpreters through the `manylinux-interpreters` tool (#1630)
+
+### v2.16.1
+
+_26 September 2023_
+
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0rc3 (#1625)
+- 🛠 Only calls `linux32` in containers when necessary (#1599)
+
+### v2.16.0
+
+_18 September 2023_
+
+- ✨ Add the ability to pass additional flags to a build frontend through the [CIBW_BUILD_FRONTEND](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend) option (#1588).
+- ✨ The environment variable SOURCE_DATE_EPOCH is now automatically passed through to container Linux builds (useful for [reproducible builds](https://reproducible-builds.org/docs/source-date-epoch/)!) (#1589)
+- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0rc2 (#1604)
+- 🐛 Fix `requires_python` auto-detection from setup.py when the call to `setup()` is within an `if __name__ == "__main__"` block (#1613)
+- 🐛 Fix a bug that prevented building Linux wheels in Docker on a Windows host (#1573)
+- 🐛 `--only` can now select prerelease-pythons (#1564)
+- 📚 Docs & examples updates (#1582, #1593, #1598, #1615)
+
 ### v2.15.0
 
 _8 August 2023_
@@ -269,7 +299,7 @@ _22 October 2021_
 
 - 🛠 Added support for building PyPy wheels on macOS 11 CI runners. (#875)
 
-- 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matricies. (#829)
+- 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matrices. (#829)
 
 - 🛠 Support for TOML 1.0 when reading config files, via the `tomli` package. (#876)
 

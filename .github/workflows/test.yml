@@ -20,7 +20,7 @@ jobs:
     name: Linters (mypy, flake8, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: "3.x"
@@ -39,13 +39,13 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-latest, macos-11]
-        python_version: ['3.11']
+        python_version: ['3.12']
         include:
         - os: ubuntu-22.04
           python_version: '3.8'
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       name: Install Python ${{ matrix.python_version }}
       with:
@@ -61,6 +61,13 @@ jobs:
         curl -sSfL "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key" | sudo apt-key add -
         sudo apt-get update
         sudo apt-get -y install podman
+
+    # free some space to prevent reaching GHA disk space limits
+    - name: Clean docker images
+      if: runner.os == 'Linux'
+      run: |
+        docker system prune -a -f
+        df -h
 
     - name: Install dependencies
       run: |
@@ -93,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: "3.x"
@@ -103,7 +110,7 @@ jobs:
 
     - name: Set up QEMU
       id: qemu
-      uses: docker/setup-qemu-action@v2
+      uses: docker/setup-qemu-action@v3
       with:
         platforms: all
 

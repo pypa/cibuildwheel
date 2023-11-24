@@ -16,8 +16,15 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
 
+from ._compat.typing import Self
 from .typing import PathOrStr, PopenBytes
-from .util import CIProvider, detect_ci_provider, parse_key_value_string
+from .util import (
+    CIProvider,
+    call,
+    detect_ci_provider,
+    parse_key_value_string,
+    strtobool,
+)
 
 ContainerEngineName = Literal["docker", "podman"]
 
@@ -29,7 +36,9 @@ class OCIContainerEngineConfig:
 
     @staticmethod
     def from_config_string(config_string: str) -> OCIContainerEngineConfig:
-        config_dict = parse_key_value_string(config_string, ["name"])
+        config_dict = parse_key_value_string(
+            config_string, ["name"], ["create_args", "create-args"]
+        )
         name = " ".join(config_dict["name"])
         if name not in {"docker", "podman"}:
             msg = f"unknown container engine {name}"
@@ -83,7 +92,7 @@ class OCIContainer:
         self,
         *,
         image: str,
-        simulate_32_bit: bool = False,
+        enforce_32_bit: bool = False,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
     ):
@@ -92,12 +101,12 @@ class OCIContainer:
             raise ValueError(msg)
 
         self.image = image
-        self.simulate_32_bit = simulate_32_bit
+        self.enforce_32_bit = enforce_32_bit
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
 
-    def __enter__(self) -> OCIContainer:
+    def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
         # work-around for Travis-CI PPC64le Docker runs since 2021:
@@ -108,13 +117,24 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
-        shell_args = ["linux32", "/bin/bash"] if self.simulate_32_bit else ["/bin/bash"]
+        simulate_32_bit = False
+        if self.enforce_32_bit:
+            # If the architecture running the image is already the right one
+            # or the image entrypoint takes care of enforcing this, then we don't need to
+            # simulate this
+            container_machine = call(
+                self.engine.name, "run", "--rm", self.image, "uname", "-m", capture_stdout=True
+            ).strip()
+            simulate_32_bit = container_machine != "i686"
+
+        shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
 
         subprocess.run(
             [
                 self.engine.name,
                 "create",
                 "--env=CIBUILDWHEEL",
+                "--env=SOURCE_DATE_EPOCH",
                 f"--name={self.name}",
                 "--interactive",
                 "--volume=/:/host",  # ignored on CircleCI
@@ -175,12 +195,14 @@ class OCIContainer:
 
         assert isinstance(self.name, str)
 
-        subprocess.run(
-            [self.engine.name, "rm", "--force", "-v", self.name],
-            stdout=subprocess.DEVNULL,
-            check=False,
-        )
-        self.name = None
+        keep_container = strtobool(os.environ.get("CIBW_DEBUG_KEEP_CONTAINER", ""))
+        if not keep_container:
+            subprocess.run(
+                [self.engine.name, "rm", "--force", "-v", self.name],
+                stdout=subprocess.DEVNULL,
+                check=False,
+            )
+            self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         # `docker cp` causes 'no space left on device' error when

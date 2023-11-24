@@ -504,8 +504,18 @@ This option can also be set using the [command-line option](#command-line) `--pr
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
 > Set the tool to use to build, either "pip" (default for now) or "build"
 
-Choose which build backend to use. Can either be "pip", which will run
+Options:
+
+- `pip[;args: ...]`
+- `build[;args: ...]`
+
+Default: `pip`
+
+Choose which build frontend to use. Can either be "pip", which will run
 `python -m pip wheel`, or "build", which will run `python -m build --wheel`.
+
+You can specify extra arguments to pass to `pip wheel` or `build` using the
+optional `args` option.
 
 !!! tip
     Until v2.0.0, [pip] was the only way to build wheels, and is still the
@@ -526,6 +536,9 @@ Choose which build backend to use. Can either be "pip", which will run
 
     # Ensure pip is used even if the default changes in the future
     CIBW_BUILD_FRONTEND: "pip"
+
+    # supply an extra argument to 'pip wheel'
+    CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
     ```
 
 !!! tab examples "pyproject.toml"
@@ -537,6 +550,9 @@ Choose which build backend to use. Can either be "pip", which will run
 
     # Ensure pip is used even if the default changes in the future
     build-frontend = "pip"
+
+    # supply an extra argument to 'pip wheel'
+    build-frontend = { name = "pip", args = ["--no-build-isolation"] }
     ```
 
 ### `CIBW_CONFIG_SETTINGS` {: #config-settings}
@@ -663,6 +679,9 @@ Platform-specific environment variables are also available:<br/>
 A list of environment variables to pass into the linux container during the build. It has no effect on the other platforms, which can already access all environment variables directly.
 
 To specify more than one environment variable, separate the variable names by spaces.
+
+!!! note
+    cibuildwheel automatically passes the environment variable [`SOURCE_DATE_EPOCH`](https://reproducible-builds.org/docs/source-date-epoch/) if defined.
 
 #### Examples
 
@@ -898,9 +917,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_REPAIR_WHEEL_COMMAND: >
       python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
       python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
-    ```
 
-    ```yaml
     # Use abi3audit to catch issues with Limited API wheels
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
       auditwheel repair -w {dest_dir} {wheel} &&
@@ -934,9 +951,7 @@ Platform-specific environment variables are also available:<br/>
       'python scripts/repair_wheel.py -w {dest_dir} {wheel}',
       'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
     ]
-    ```
 
-    ```toml
     # Use abi3audit to catch issues with Limited API wheels
     [tool.cibuildwheel.linux]
     repair-wheel-command = [
@@ -1345,11 +1360,11 @@ Platform-specific environment variables are also available:<br/>
 > Install your wheel for testing using `extras_require`
 
 List of
-[extras_require](https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies)
+[extras_require](https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#declaring-required-dependency)
 options that should be included when installing the wheel prior to running the
 tests. This can be used to avoid having to redefine test dependencies in
-`CIBW_TEST_REQUIRES` if they are already defined in `setup.py` or
-`setup.cfg`.
+`CIBW_TEST_REQUIRES` if they are already defined in `pyproject.toml`,
+`setup.cfg` or `setup.py`.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
@@ -1407,7 +1422,23 @@ This option is not supported in the overrides section in `pyproject.toml`.
     test-skip = "*-macosx_arm64 *-macosx_universal2:arm64"
     ```
 
-## Other
+## Debugging
+
+### `CIBW_DEBUG_KEEP_CONTAINER`
+
+Enable this flag to keep the container around for inspection after a build. This
+option is provided for debugging purposes only.
+
+Default: Off (0).
+
+!!! caution
+    This option can only be set as environment variable on the host machine
+
+#### Examples
+
+```shell
+export CIBW_DEBUG_KEEP_CONTAINER=TRUE
+```
 
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
 > Increase/decrease the output of pip wheel

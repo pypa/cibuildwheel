@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 try:
-    from html2image import Html2Image  # type: ignore[import]
+    from html2image import Html2Image  # type: ignore[import-not-found]
 except ImportError:
     sys.exit(
         """
@@ -19,7 +19,7 @@ except ImportError:
 
 
 def main():
-    subprocess.run(["mkdocs", "build"])
+    subprocess.run(["mkdocs", "build"], check=True)
 
     hti = Html2Image(custom_flags=["--force-device-scale-factor=2"])
 

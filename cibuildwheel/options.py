@@ -27,7 +27,7 @@ from .typing import PLATFORMS, PlatformName
 from .util import (
     MANYLINUX_ARCHS,
     MUSLLINUX_ARCHS,
-    BuildFrontend,
+    BuildFrontendConfig,
     BuildSelector,
     DependencyConstraints,
     TestSelector,
@@ -92,7 +92,7 @@ class BuildOptions:
     test_requires: list[str]
     test_extras: str
     build_verbosity: int
-    build_frontend: BuildFrontend | Literal["default"]
+    build_frontend: BuildFrontendConfig | None
     config_settings: str
 
     @property
@@ -450,6 +450,7 @@ class Options:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
+            prerelease_pythons = True
 
         build_selector = BuildSelector(
             build_config=build_config,
@@ -487,7 +488,6 @@ class Options:
         with self.reader.identifier(identifier):
             before_all = self.reader.get("before-all", sep=" && ")
 
-            build_frontend_str = self.reader.get("build-frontend", env_plat=False)
             environment_config = self.reader.get(
                 "environment", table={"item": '{k}="{v}"', "sep": " "}
             )
@@ -505,17 +505,20 @@ class Options:
             test_extras = self.reader.get("test-extras", sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
 
-            build_frontend: BuildFrontend | Literal["default"]
-            if build_frontend_str == "build":
-                build_frontend = "build"
-            elif build_frontend_str == "pip":
-                build_frontend = "pip"
-            elif build_frontend_str == "default":
-                build_frontend = "default"
+            build_frontend_str = self.reader.get(
+                "build-frontend",
+                env_plat=False,
+                table={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
+            )
+            build_frontend: BuildFrontendConfig | None
+            if not build_frontend_str or build_frontend_str == "default":
+                build_frontend = None
             else:
-                msg = f"cibuildwheel: Unrecognised build frontend {build_frontend_str!r}, only 'pip' and 'build' are supported"
-                print(msg, file=sys.stderr)
-                sys.exit(2)
+                try:
+                    build_frontend = BuildFrontendConfig.from_config_string(build_frontend_str)
+                except ValueError as e:
+                    print(f"cibuildwheel: {e}", file=sys.stderr)
+                    sys.exit(2)
 
             try:
                 environment = parse_environment(environment_config)
@@ -529,9 +532,9 @@ class Options:
 
             # Pass through environment variables
             if self.platform == "linux":
-                for env_var_name in environment_pass:
+                for env_var_name in reversed(environment_pass):
                     with contextlib.suppress(KeyError):
-                        environment.add(env_var_name, self.env[env_var_name])
+                        environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
             if dependency_versions == "pinned":
                 dependency_constraints: None | (

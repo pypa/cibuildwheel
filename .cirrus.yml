@@ -1,4 +1,4 @@
-skip: changesIncludeOnly('docs/*', '.pre-commit-config.yaml')
+only_if: changesInclude('.cirrus.yml') || ($BRANCH == "main" && !changesIncludeOnly('docs/*', '.pre-commit-config.yaml'))
 
 run_tests: &RUN_TESTS
   install_cibuildwheel_script:

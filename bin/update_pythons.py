@@ -204,10 +204,8 @@ class CPythonVersions:
         unsorted_versions = spec.filter(self.versions_dict)
         sorted_versions = sorted(unsorted_versions, reverse=True)
 
-        if version <= Version("3.8.9999"):
-            file_ident = "macosx10.9.pkg"
-        else:
-            file_ident = "macos11.pkg"
+        macver = "x10.9" if version <= Version("3.8.9999") else "11"
+        file_ident = f"macos{macver}.pkg"
 
         for new_version in sorted_versions:
             # Find the first patch version that contains the requested file

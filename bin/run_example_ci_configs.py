@@ -7,7 +7,7 @@ import shutil
 import sys
 import textwrap
 import time
-from collections import namedtuple
+import typing
 from glob import glob
 from pathlib import Path
 from subprocess import run
@@ -16,13 +16,13 @@ from urllib.parse import quote
 import click
 
 
-def shell(cmd, **kwargs):
-    return run([cmd], shell=True, **kwargs)
+def shell(cmd, *, check: bool, **kwargs):
+    return run([cmd], shell=True, check=check, **kwargs)
 
 
 def git_repo_has_changes():
-    unstaged_changes = shell("git diff-index --quiet HEAD --").returncode != 0
-    staged_changes = shell("git diff-index --quiet --cached HEAD --").returncode != 0
+    unstaged_changes = shell("git diff-index --quiet HEAD --", check=False).returncode != 0
+    staged_changes = shell("git diff-index --quiet --cached HEAD --", check=False).returncode != 0
     return unstaged_changes or staged_changes
 
 
@@ -34,7 +34,12 @@ def generate_basic_project(path):
     project.generate(path)
 
 
-CIService = namedtuple("CIService", "name dst_config_path badge_md")
+class CIService(typing.NamedTuple):
+    name: str
+    dst_config_path: str
+    badge_md: str
+
+
 services = [
     CIService(
         name="appveyor",
@@ -163,7 +168,7 @@ def run_example_ci_configs(config_files=None):
     finally:
         # remove any local changes
         shutil.rmtree(example_project, ignore_errors=True)
-        shell("git checkout -- .")
+        shell("git checkout -- .", check=True)
         shell(f"git checkout {previous_branch}", check=True)
         shell(f"git branch -D --force {branch_name}", check=True)
 
