@@ -426,8 +426,8 @@ def test_enforce_32_bit(container_engine, image, shell_args):
     ],
 )
 def test_disable_host_mount(tmp_path: Path, container_engine, config, should_have_host_mount):
-    if detect_ci_provider() is CIProvider.circle_ci:
-        pytest.skip("Skipping test on CircleCI because docker there does not support --volume")
+    if detect_ci_provider() in {CIProvider.circle_ci, CIProvider.gitlab}:
+        pytest.skip("Skipping test because docker on this platform does not support host mounts")
 
     engine = OCIContainerEngineConfig.from_config_string(config.format(name=container_engine.name))
 
