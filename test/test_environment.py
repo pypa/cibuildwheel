@@ -135,7 +135,7 @@ def test_overridden_pip_constraint(tmp_path, build_frontend):
         add_env={
             "CIBW_BUILD": "cp312-*",
             "CIBW_BUILD_FRONTEND": build_frontend,
-            "CIBW_ENVIRONMENT": f"PIP_CONSTRAINT={constraints_file}",
+            "PIP_CONSTRAINT": str(constraints_file),
             "CIBW_ENVIRONMENT_LINUX": "PIP_CONSTRAINT=./constraints.txt",
         },
     )
