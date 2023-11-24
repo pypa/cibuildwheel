@@ -1,10 +1,10 @@
 version: 2
 
 jobs:
-  macos-python3.9:
+  macos-python3.11:
     macos:
       xcode: 15.1.0
-      resource_class: medium
+      resource_class: macos.x86.medium.gen2
     steps: &macos-steps
       - checkout
 
@@ -16,10 +16,10 @@ jobs:
           command: venv/bin/python ./bin/run_tests.py
           no_output_timeout: 30m
 
-  macos-arm-python3.9:
+  macos-arm-python3.11:
     macos:
       xcode: 15.1.0
-      resource_class: arm.medium
+      resource_class: macos.m1.medium.gen1
     steps: *macos-steps
 
   linux-python3.9:
@@ -64,7 +64,7 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      - macos-python3.9
-      - macos-arm-python3.9
+      - macos-python3.11
+      - macos-arm-python3.11
       - linux-python3.9
       - linux-aarch64
