@@ -846,7 +846,6 @@ Platform-specific environment variables are also available:<br/>
         [build-system]
         requires = [
             "setuptools>=42",
-            "wheel",
             "Cython",
             "numpy==1.13.3; python_version<'3.5'",
             "oldest-supported-numpy; python_version>='3.5'",
