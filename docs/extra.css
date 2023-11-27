@@ -315,3 +315,9 @@ h1, h2, h3, h4, h5, h6 {
 .wy-menu-vertical li.current a {
 
 }
+
+/* word wrap in table cells */
+.wy-table-responsive table td, .wy-table-responsive table th {
+  white-space: normal;
+  line-height: 1.4;
+}

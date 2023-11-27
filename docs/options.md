@@ -1084,7 +1084,7 @@ Options can be supplied after the name.
 | Option name | Description
 |---|---
 | `create_args` | Space-separated strings, which are passed to the container engine on the command line when it's creating the container. If you want to include spaces inside a parameter, use shell-style quoting.
-| `disable_host_mount` | By default, cibuildwheel will mount the root of the host filesystem as a volume at `/host` in the container. If this is undesirable, pass `true` to this option.
+| `disable_host_mount` | By default, cibuildwheel will mount the root of the host filesystem as a volume at `/host` in the container. To disable the host mount, pass `true` to this option.
 
 
 !!! tip
