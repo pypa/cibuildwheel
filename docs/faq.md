@@ -216,7 +216,6 @@ to build, your pyproject.toml might include a section like this:
 [build-system]
 requires = [
     "setuptools>=42",
-    "wheel",
     "Cython",
 ]
 
