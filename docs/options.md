@@ -587,11 +587,11 @@ Platform-specific environment variables also available:<br/>
 
 
 ### `CIBW_ENVIRONMENT` {: #environment}
-> Set environment variables needed during the build
+> Set environment variables
 
-A list of environment variables to set during the build. Bash syntax should be used, even on Windows.
+A list of environment variables to set during the build and test phases. Bash syntax should be used, even on Windows.
 
-You must set this variable to pass variables to Linux builds (since they execute in a container). It also works for the other platforms.
+You must use this variable to pass variables to Linux builds, since they execute in a container. It also works for the other platforms.
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 
@@ -673,10 +673,13 @@ Platform-specific environment variables are also available:<br/>
 !!! note
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
-### `CIBW_ENVIRONMENT_PASS_LINUX` {: #environment-pass}
-> Set environment variables on the host to pass-through to the container during the build.
+!!! note
+    To do its work, cibuildwheel internally sets the options `PIP_CONSTRAINT`, `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`. Your assignments to these options might be overridden.
 
-A list of environment variables to pass into the linux container during the build. It has no effect on the other platforms, which can already access all environment variables directly.
+### `CIBW_ENVIRONMENT_PASS_LINUX` {: #environment-pass}
+> Set environment variables on the host to pass-through to the container.
+
+A list of environment variables to pass into the linux container during each build and test. It has no effect on the other platforms, which can already access all environment variables directly.
 
 To specify more than one environment variable, separate the variable names by spaces.
 
