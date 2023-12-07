@@ -62,7 +62,7 @@ Please take into account the build is performed on a wide variety of linux distr
 
     ```sh
     # run a command to set up the build system
-    export CIBW_BEFORE_ALL='apt install libpng-dev'
+    export CIBW_BEFORE_ALL='uname -a'
 
     cibuildwheel --platform linux
     ```
@@ -70,7 +70,7 @@ Please take into account the build is performed on a wide variety of linux distr
     > CMD (Windows)
 
     ```bat
-    set CIBW_BEFORE_ALL='apt install libpng-dev'
+    set CIBW_BEFORE_ALL='uname -a'
 
     cibuildwheel --platform linux
     ```
@@ -83,7 +83,7 @@ Please take into account the build is performed on a wide variety of linux distr
 
     ```
     [tool.cibuildwheel]
-    before-all = "apt install libpng-dev"
+    before-all = "uname -a"
     ```
 
     Then invoke cibuildwheel, like:
