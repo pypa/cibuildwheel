@@ -52,6 +52,7 @@ Install cibuildwheel and run a build like this:
     ```
 
 You should see the builds taking place. You can experiment with options using environment variables or pyproject.toml.
+Please take into account the build is performed on a wide variety of linux distros with different package managers.
 
 !!! tab "Environment variables"
 
