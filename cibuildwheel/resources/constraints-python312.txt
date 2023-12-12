@@ -12,11 +12,11 @@ filelock==3.13.1
     # via virtualenv
 packaging==23.2
     # via delocate
-platformdirs==4.0.0
+platformdirs==4.1.0
     # via virtualenv
-typing-extensions==4.8.0
+typing-extensions==4.9.0
     # via delocate
-virtualenv==20.24.7
+virtualenv==20.25.0
     # via -r cibuildwheel/resources/constraints.in
 wheel==0.42.0
     # via -r cibuildwheel/resources/constraints.in
