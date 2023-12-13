@@ -12,8 +12,49 @@ If you have an idea for a modification or feature, it's probably best to raise a
 
 Everyone contributing to the cibuildwheel project is expected to follow the [PSF Code of Conduct](https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md).
 
-Design Goals
-------------
+## Running the tests
+
+When making a change to the codebase, you can run tests locally for quicker feedback than the CI runs on a PR.
+
+#### Setup
+
+To prepare a development environment, do:
+
+```console
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+```
+
+Alternatively, you can have `nox` handle the development environment for you.
+
+#### Unit tests
+
+To run the project's unit tests, do:
+
+```console
+pytest unit_test
+```
+
+There are a few custom options to enable different parts of the test suite - check `pytest unit_test --help` for details.
+
+#### Integration tests
+
+The integration test suite is big - it can take more than 30 minutes to run the whole thing. So normally you'd choose specific tests to run locally, and rely on the project's CI for the rest.
+
+To run them locally, you must pass the platform you want to test via the `CIBW_PLATFORM` environment variable. The `-k` pytest option can be used to select the specific tests. For example, you could do:
+
+```console
+CIBW_PLATFORM=linux pytest test -k before_build
+```
+
+A few notes on this-
+
+- Because they run inside a container, Linux tests can run on all platforms where Docker is installed, so they're convenient for running integration tests locally.
+
+- Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
+
+## Design Goals
 
 - `cibuildwheel` should wrap the complexity of wheel building.
 - The user interface to `cibuildwheel` is the build script (e.g. `.travis.yml`). Feature additions should not increase the complexity of this script.
@@ -33,8 +74,7 @@ We're not responsible for errors in those tools, for fixing errors/crashes there
 
 So, if we can, I'd like to improve the experience on errors as well. In [this](https://github.com/pypa/cibuildwheel/issues/139) case, it takes a bit of knowledge to understand that the Linux builds are happening in a different OS via Docker, that the linked symbols won't match, that auditwheel will fail because of this. A problem with how the tools fit together, instead of the tools themselves.
 
-Maintainer notes
-----------------
+## Maintainer notes
 
 ### Nox support
 
@@ -45,10 +85,10 @@ Install [nox](https://nox.thea.codes); homebrew is recommend on macOS, otherwise
 You can see a list of sessions by typing `nox -l`; here are a few common ones:
 
 ```console
-nox -s lint          # Run the linters (default)
-nox -s tests         # Run the tests   (default)
-nox -s docs -- serve # Build and serve the documentation
-nox -s build         # Make SDist and wheel
+nox -s lint                    # Run the linters (default)
+nox -s tests [-- PYTEST-ARGS]  # Run the tests   (default)
+nox -s docs -- serve           # Build and serve the documentation
+nox -s build                   # Make SDist and wheel
 ```
 
 More advanced users can run the update scripts. `update_pins` should work directly, but `update_constraints` needs all versions of Python installed. If you don't want to do that locally, a fast way to run it to use docker to run nox:
@@ -56,18 +96,6 @@ More advanced users can run the update scripts. `update_pins` should work direct
 ```console
 docker run --rm -itv $PWD:/src -w /src quay.io/pypa/manylinux_2_24_x86_64:latest pipx run nox -s update_constraints
 ```
-
-### Local testing
-
-You should run:
-
-```console
-python3 -m venv venv
-. venv/bin/activate
-pip install -e .[dev]
-```
-
-To prepare a development environment.
 
 ### Testing sample configs
 
