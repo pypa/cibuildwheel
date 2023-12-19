@@ -56,8 +56,9 @@ well as several useful actions. Alongside your existing job(s) that runs cibuild
     - name: Build SDist
       run: pipx run build --sdist
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
+        name: sdist
         path: dist/*.tar.gz
 ```
 
@@ -74,10 +75,10 @@ This requires setting this GitHub workflow in your project's PyPI settings (for 
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
-        name: artifact
         path: dist
+        merge-multiple: true
 
     - uses: pypa/gh-action-pypi-publish@release/v1
 ```
