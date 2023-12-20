@@ -188,7 +188,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
 
           - uses: actions/upload-artifact@v4
             with:
-              name: wheels-${{ matrix.os }}
+              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
               path: ./wheelhouse/*.whl
     ```
 
@@ -227,7 +227,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
 
           - uses: actions/upload-artifact@v4
             with:
-              name: wheels-${{ matrix.os }}
+              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
               path: ./wheelhouse/*.whl
     ```
 

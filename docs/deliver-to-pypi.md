@@ -58,7 +58,7 @@ well as several useful actions. Alongside your existing job(s) that runs cibuild
 
     - uses: actions/upload-artifact@v4
       with:
-        name: sdist
+        name: cibw-sdist
         path: dist/*.tar.gz
 ```
 
@@ -77,6 +77,7 @@ This requires setting this GitHub workflow in your project's PyPI settings (for 
     steps:
     - uses: actions/download-artifact@v4
       with:
+        pattern: cibw-*
         path: dist
         merge-multiple: true
 
