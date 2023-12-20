@@ -186,8 +186,9 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - name: Build wheels
             run: pipx run cibuildwheel==2.16.2
 
-          - uses: actions/upload-artifact@v3
+          - uses: actions/upload-artifact@v4
             with:
+              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
               path: ./wheelhouse/*.whl
     ```
 
@@ -224,8 +225,9 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse
 
-          - uses: actions/upload-artifact@v3
+          - uses: actions/upload-artifact@v4
             with:
+              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
               path: ./wheelhouse/*.whl
     ```
 

@@ -26,6 +26,7 @@ jobs:
           # emulated ones
           CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
