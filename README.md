@@ -105,8 +105,9 @@ jobs:
         # env:
         #   CIBW_SOME_OPTION: value
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 ```
 
