@@ -1442,6 +1442,20 @@ Default: Off (0).
 export CIBW_DEBUG_KEEP_CONTAINER=TRUE
 ```
 
+### `CIBW_DEBUG_TRACEBACK`
+> Print full traceback when errors occur.
+
+Print a full traceback for the cibuildwheel process when errors occur. This
+option is provided for debugging cibuildwheel.
+
+This option can also be set using the [command-line option](#command-line) `--debug-traceback`.
+
+#### Examples
+
+```shell
+export CIBW_DEBUG_TRACEBACK=TRUE
+```
+
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
 > Increase/decrease the output of pip wheel
 
@@ -1468,11 +1482,24 @@ Platform-specific environment variables are also available:<br/>
     ```
 
 
-## Command line options {: #command-line}
+## Command line {: #command-line}
+
+### Options
 
 ```text
 « subprocess_run("cibuildwheel", "--help") »
 ```
+
+### Return codes
+
+cibuildwheel exits 0 on success, or >0 if an error occurs.
+
+Specific error codes are defined:
+
+- 2 means a configuration error
+- 3 means no builds are selected (and --allow-empty wasn't passed)
+- 4 means you specified an option that has been deprecated.
+
 
 ## Placeholders
 

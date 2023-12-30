@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import OrderedDict, Tuple
 
+from . import errors
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
@@ -139,11 +140,7 @@ def check_all_python_exist(
             exist = False
     if not exist:
         message = "\n".join(messages)
-        print(
-            f"cibuildwheel:\n{message}",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        raise errors.FatalError(message)
 
 
 def build_in_container(
@@ -215,19 +212,15 @@ def build_in_container(
         # check config python is still on PATH
         which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
         if PurePosixPath(which_python) != python_bin / "python":
-            print(
-                "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-                file=sys.stderr,
+            raise errors.FatalError(
+                "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
             )
-            sys.exit(1)
 
         which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
         if PurePosixPath(which_pip) != python_bin / "pip":
-            print(
-                "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-                file=sys.stderr,
+            raise errors.FatalError(
+                "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
             )
-            sys.exit(1)
 
         compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
         if compatible_wheel:
@@ -395,8 +388,8 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
             check=True,
             stdout=subprocess.DEVNULL,
         )
-    except subprocess.CalledProcessError:
-        print(
+    except subprocess.CalledProcessError as e:
+        raise errors.ConfigurationError(
             unwrap(
                 f"""
                 cibuildwheel: {options.globals.container_engine} not found. An
@@ -407,9 +400,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                 If you're building on Cirrus CI, use `docker_builder` task.
                 """
             ),
-            file=sys.stderr,
-        )
-        sys.exit(2)
+        ) from e
 
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
@@ -446,11 +437,10 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                 )
 
         except subprocess.CalledProcessError as error:
-            log.step_end_with_error(
-                f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
-            )
             troubleshoot(options, error)
-            sys.exit(1)
+            raise errors.FatalError(
+                f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+            ) from error
 
 
 def _matches_prepared_command(error_cmd: Sequence[str], command_template: str) -> bool:
@@ -469,7 +459,6 @@ def troubleshoot(options: Options, error: Exception) -> None:
         )  # TODO allow matching of overrides too?
     ):
         # the wheel build step or the repair step failed
-        print("Checking for common errors...")
         so_files = list(options.globals.package_dir.glob("**/*.so"))
 
         if so_files:

@@ -4,7 +4,6 @@ import os
 import platform as platform_module
 import shutil
 import subprocess
-import sys
 import textwrap
 from collections.abc import MutableMapping, Sequence, Set
 from contextlib import suppress
@@ -16,6 +15,7 @@ from zipfile import ZipFile
 from filelock import FileLock
 from packaging.version import Version
 
+from . import errors
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
@@ -296,21 +296,17 @@ def setup_python(
     call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
     where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()
     if where_python != str(venv_path / "Scripts" / "python.exe"):
-        print(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
+        raise errors.FatalError(
+            "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
         )
-        sys.exit(1)
 
     # check what pip version we're on
     assert (venv_path / "Scripts" / "pip.exe").exists()
     where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
     if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
-        print(
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-            file=sys.stderr,
+        raise errors.FatalError(
+            "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
         )
-        sys.exit(1)
 
     call("pip", "--version", env=env)
 
@@ -578,7 +574,6 @@ def build(options: Options, tmp_path: Path) -> None:
 
             log.build_end()
     except subprocess.CalledProcessError as error:
-        log.step_end_with_error(
-            f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
-        )
-        sys.exit(1)
+        raise errors.FatalError(
+            f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+        ) from error

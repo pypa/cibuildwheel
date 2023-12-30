@@ -16,6 +16,7 @@ from typing import Literal, Tuple
 
 from filelock import FileLock
 
+from . import errors
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
@@ -218,22 +219,18 @@ def setup_python(
     call("pip", "--version", env=env)
     which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
     if which_pip != str(venv_bin_path / "pip"):
-        print(
+        raise errors.FatalError(
             "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-            file=sys.stderr,
         )
-        sys.exit(1)
 
     # check what Python version we're on
     call("which", "python", env=env)
     call("python", "--version", env=env)
     which_python = call("which", "python", env=env, capture_stdout=True).strip()
     if which_python != str(venv_bin_path / "python"):
-        print(
+        raise errors.FatalError(
             "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
         )
-        sys.exit(1)
 
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
@@ -624,7 +621,6 @@ def build(options: Options, tmp_path: Path) -> None:
 
             log.build_end()
     except subprocess.CalledProcessError as error:
-        log.step_end_with_error(
-            f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
-        )
-        sys.exit(1)
+        raise errors.FatalError(
+            f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+        ) from error
