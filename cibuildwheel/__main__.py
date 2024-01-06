@@ -169,7 +169,7 @@ def main_inner() -> None:
 
     args = CommandLineArguments(**vars(parser.parse_args()))
 
-    global print_traceback_on_error
+    global print_traceback_on_error  # noqa: PLW0603
     print_traceback_on_error = args.debug_traceback
 
     args.package_dir = args.package_dir.resolve()
