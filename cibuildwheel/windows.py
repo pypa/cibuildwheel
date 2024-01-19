@@ -296,17 +296,15 @@ def setup_python(
     call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
     where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()
     if where_python != str(venv_path / "Scripts" / "python.exe"):
-        raise errors.FatalError(
-            "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-        )
+        msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+        raise errors.FatalError(msg)
 
     # check what pip version we're on
     assert (venv_path / "Scripts" / "pip.exe").exists()
     where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
     if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
-        raise errors.FatalError(
-            "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-        )
+        msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+        raise errors.FatalError(msg)
 
     call("pip", "--version", env=env)
 

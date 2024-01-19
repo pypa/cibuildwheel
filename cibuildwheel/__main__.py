@@ -215,23 +215,21 @@ def _compute_platform_only(only: str) -> PlatformName:
         return "macos"
     if "win_" in only or "win32" in only:
         return "windows"
-    raise errors.ConfigurationError(
-        f"Invalid --only='{only}', must be a build selector with a known platform",
-    )
+    msg = f"Invalid --only='{only}', must be a build selector with a known platform"
+    raise errors.ConfigurationError(msg)
 
 
 def _compute_platform_ci() -> PlatformName:
     if detect_ci_provider() is None:
-        raise errors.ConfigurationError(
-            unwrap(
-                """
-                Unable to detect platform. cibuildwheel should run on your CI server;
-                Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, Gitlab, and Cirrus CI
-                are supported. You can run on your development machine or other CI providers
-                using the --platform argument. Check --help output for more information.
-                """
-            ),
+        msg = unwrap(
+            """
+            Unable to detect platform. cibuildwheel should run on your CI server;
+            Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, Gitlab, and Cirrus CI
+            are supported. You can run on your development machine or other CI providers
+            using the --platform argument. Check --help output for more information.
+            """
         )
+        raise errors.ConfigurationError(msg)
     if sys.platform.startswith("linux"):
         return "linux"
     elif sys.platform == "darwin":
@@ -239,28 +237,28 @@ def _compute_platform_ci() -> PlatformName:
     elif sys.platform == "win32":
         return "windows"
     else:
-        raise errors.ConfigurationError(
-            'Unable to detect platform from "sys.platform" in a CI environment. You can run '
-            "cibuildwheel using the --platform argument. Check --help output for more information.",
+        msg = unwrap(
+            """
+            Unable to detect platform from "sys.platform" in a CI environment. You can run
+            cibuildwheel using the --platform argument. Check --help output for more information.
+            """
         )
+        raise errors.ConfigurationError(msg)
 
 
 def _compute_platform(args: CommandLineArguments) -> PlatformName:
     platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
 
     if args.only and args.platform is not None:
-        raise errors.ConfigurationError(
-            "--platform cannot be specified with --only, it is computed from --only",
-        )
+        msg = "--platform cannot be specified with --only, it is computed from --only"
+        raise errors.ConfigurationError(msg)
     if args.only and args.archs is not None:
-        raise errors.ConfigurationError(
-            "--arch cannot be specified with --only, it is computed from --only",
-        )
+        msg = "--arch cannot be specified with --only, it is computed from --only"
+        raise errors.ConfigurationError(msg)
 
     if platform_option_value not in PLATFORMS | {"auto"}:
-        raise errors.ConfigurationError(
-            f"Unsupported platform: {platform_option_value}",
-        )
+        msg = f"Unsupported platform: {platform_option_value}"
+        raise errors.ConfigurationError(msg)
 
     if args.only:
         return _compute_platform_only(args.only)
@@ -302,7 +300,8 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     if not any(package_dir.joinpath(name).exists() for name in package_files):
         names = ", ".join(sorted(package_files, reverse=True))
-        raise errors.ConfigurationError(f"Could not find any of {{{names}}} at root of package")
+        msg = f"Could not find any of {{{names}}} at root of package"
+        raise errors.ConfigurationError(msg)
 
     platform_module = get_platform_module(platform)
     identifiers = get_build_identifiers(

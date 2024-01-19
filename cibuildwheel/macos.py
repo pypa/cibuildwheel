@@ -219,18 +219,16 @@ def setup_python(
     call("pip", "--version", env=env)
     which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
     if which_pip != str(venv_bin_path / "pip"):
-        raise errors.FatalError(
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-        )
+        msg = "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+        raise errors.FatalError(msg)
 
     # check what Python version we're on
     call("which", "python", env=env)
     call("python", "--version", env=env)
     which_python = call("which", "python", env=env, capture_stdout=True).strip()
     if which_python != str(venv_bin_path / "python"):
-        raise errors.FatalError(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-        )
+        msg = "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+        raise errors.FatalError(msg)
 
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
@@ -621,6 +619,5 @@ def build(options: Options, tmp_path: Path) -> None:
 
             log.build_end()
     except subprocess.CalledProcessError as error:
-        raise errors.FatalError(
-            f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
-        ) from error
+        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+        raise errors.FatalError(msg) from error

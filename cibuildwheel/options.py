@@ -469,7 +469,8 @@ class Options:
         try:
             container_engine = OCIContainerEngineConfig.from_config_string(container_engine_str)
         except ValueError as e:
-            raise errors.ConfigurationError(f"Failed to parse container config. {e}") from e
+            msg = f"Failed to parse container config. {e}"
+            raise errors.ConfigurationError(msg) from e
 
         return GlobalOptions(
             package_dir=package_dir,
@@ -517,14 +518,14 @@ class Options:
                 try:
                     build_frontend = BuildFrontendConfig.from_config_string(build_frontend_str)
                 except ValueError as e:
-                    raise errors.ConfigurationError(f"Failed to parse build frontend. {e}") from e
+                    msg = f"Failed to parse build frontend. {e}"
+                    raise errors.ConfigurationError(msg) from e
 
             try:
                 environment = parse_environment(environment_config)
             except (EnvironmentParseError, ValueError) as e:
-                raise errors.ConfigurationError(
-                    f"Malformed environment option {environment_config!r}",
-                ) from e
+                msg = f"Malformed environment option {environment_config!r}"
+                raise errors.ConfigurationError(msg) from e
 
             # Pass through environment variables
             if self.platform == "linux":
