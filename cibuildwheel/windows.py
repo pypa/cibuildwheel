@@ -574,6 +574,5 @@ def build(options: Options, tmp_path: Path) -> None:
 
             log.build_end()
     except subprocess.CalledProcessError as error:
-        raise errors.FatalError(
-            f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
-        ) from error
+        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+        raise errors.FatalError(msg) from error
