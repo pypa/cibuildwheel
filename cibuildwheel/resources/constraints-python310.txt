@@ -4,6 +4,8 @@
 #
 #    nox -s update_constraints-3.10
 #
+build==1.0.3
+    # via -r cibuildwheel/resources/constraints.in
 delocate==0.10.7
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.8
@@ -11,18 +13,22 @@ distlib==0.3.8
 filelock==3.13.1
     # via virtualenv
 packaging==23.2
-    # via delocate
+    # via
+    #   build
+    #   delocate
 platformdirs==4.1.0
     # via virtualenv
+pyproject-hooks==1.0.0
+    # via build
+tomli==2.0.1
+    # via
+    #   build
+    #   pyproject-hooks
 typing-extensions==4.9.0
     # via delocate
 virtualenv==20.25.0
     # via -r cibuildwheel/resources/constraints.in
-wheel==0.42.0
-    # via -r cibuildwheel/resources/constraints.in
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==23.3.2
-    # via -r cibuildwheel/resources/constraints.in
-setuptools==69.0.3
     # via -r cibuildwheel/resources/constraints.in

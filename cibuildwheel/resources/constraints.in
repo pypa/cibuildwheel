@@ -1,5 +1,4 @@
 pip
-setuptools
-wheel
+build
 delocate
 virtualenv

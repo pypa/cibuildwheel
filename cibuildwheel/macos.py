@@ -287,8 +287,6 @@ def setup_python(
             "pip",
             "install",
             "--upgrade",
-            "setuptools",
-            "wheel",
             "delocate",
             *dependency_constraint_flags,
             env=env,

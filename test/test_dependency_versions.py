@@ -27,7 +27,9 @@ project_with_expected_version_checks = test_projects.new_c_project(
 
         print('Gathered versions', versions)
 
-        for package_name in ['pip', 'setuptools', 'wheel']:
+        packages_to_test = ['pip']
+
+        for package_name in packages_to_test:
             env_name = 'EXPECTED_{}_VERSION'.format(package_name.upper())
             expected_version = os.environ[env_name]
 
@@ -48,7 +50,7 @@ def get_versions_from_constraint_file(constraint_file):
     return dict(re.findall(VERSION_REGEX, constraint_file_text))
 
 
-@pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.9"])
+@pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.10"])
 def test_pinned_versions(tmp_path, python_version, build_frontend_env):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
@@ -70,13 +72,13 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
         constraint_filename = "constraints-python38.txt"
         build_pattern = "[cp]p38-*"
     else:
-        constraint_filename = "constraints.txt"
-        build_pattern = "[cp]p39-*"
+        constraint_filename = "constraints-python310.txt"
+        build_pattern = "[cp]p310-*"
 
     constraint_file = cibuildwheel.util.resources_dir / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 
-    for package in ["pip", "setuptools", "wheel", "virtualenv"]:
+    for package in ["pip"]:
         env_name = f"EXPECTED_{package.upper()}_VERSION"
         build_environment[env_name] = constraint_versions[package]
 
@@ -101,9 +103,9 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
         expected_wheels = [
             w for w in utils.expected_wheels("spam", "0.1.0") if "-cp38" in w or "-pp38" in w
         ]
-    elif python_version == "3.9":
+    elif python_version == "3.10":
         expected_wheels = [
-            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp39" in w or "-pp39" in w
+            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp310" in w or "-pp310" in w
         ]
     else:
         msg = "unhandled python version"
@@ -121,9 +123,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
 
     tool_versions = {
         "pip": "23.1.2",
-        "setuptools": "67.7.2",
-        "wheel": "0.38.3",
-        "virtualenv": "20.23.0",
+        "delocate": "0.10.3",
     }
 
     constraints_file = tmp_path / "constraints file.txt"
@@ -131,9 +131,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
         textwrap.dedent(
             """
             pip=={pip}
-            setuptools=={setuptools}
-            wheel=={wheel}
-            virtualenv=={virtualenv}
+            delocate=={delocate}
             importlib-metadata<3,>=0.12; python_version < "3.8"
             """.format(**tool_versions)
         )
