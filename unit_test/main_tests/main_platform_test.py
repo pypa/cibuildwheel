@@ -10,25 +10,26 @@ from cibuildwheel.architecture import Architecture
 from ..conftest import MOCK_PACKAGE_DIR
 
 
-def test_unknown_platform_non_ci(monkeypatch, capsys):
-    monkeypatch.delenv("CI", raising=False)
-    monkeypatch.delenv("BITRISE_BUILD_NUMBER", raising=False)
-    monkeypatch.delenv("AZURE_HTTP_USER_AGENT", raising=False)
-    monkeypatch.delenv("TRAVIS", raising=False)
-    monkeypatch.delenv("APPVEYOR", raising=False)
-    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
-    monkeypatch.delenv("GITLAB_CI", raising=False)
-    monkeypatch.delenv("CIRCLECI", raising=False)
-    monkeypatch.delenv("CIRRUS_CI", raising=False)
-    monkeypatch.delenv("CIBW_PLATFORM", raising=False)
+@pytest.mark.parametrize("option_value", [None, "auto"])
+def test_platform_unset_or_auto(monkeypatch, intercepted_build_args, option_value):
+    if option_value is None:
+        monkeypatch.delenv("CIBW_PLATFORM", raising=False)
+    else:
+        monkeypatch.setenv("CIBW_PLATFORM", option_value)
 
-    with pytest.raises(SystemExit) as exit:
-        main()
-    assert exit.value.code == 2
-    _, err = capsys.readouterr()
+    main()
 
-    assert "cibuildwheel: Unable to detect platform." in err
-    assert "cibuildwheel should run on your CI server" in err
+    options = intercepted_build_args.args[0]
+
+    # check that the platform was auto detected to build for the current system
+    if sys.platform.startswith("linux"):
+        assert options.platform == "linux"
+    elif sys.platform == "darwin":
+        assert options.platform == "macos"
+    elif sys.platform == "win32":
+        assert options.platform == "windows"
+    else:
+        pytest.fail(f"Unknown platform: {sys.platform}")
 
 
 def test_unknown_platform_on_ci(monkeypatch, capsys):

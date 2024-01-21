@@ -11,45 +11,14 @@ locally to quickly iterate and track down issues without even touching CI.
 
 Install cibuildwheel and run a build like this:
 
-!!! tab "Linux"
+```sh
+# using pipx (https://github.com/pypa/pipx)
+pipx run cibuildwheel
 
-    Using [pipx](https://github.com/pypa/pipx):
-    ```sh
-    pipx run cibuildwheel --platform linux
-    ```
-
-    Or,
-    ```sh
-    pip install cibuildwheel
-    cibuildwheel --platform linux
-    ```
-
-!!! tab "macOS"
-
-    Using [pipx](https://github.com/pypa/pipx):
-    ```sh
-    pipx run cibuildwheel --platform macos
-    ```
-
-    Or,
-    ```sh
-    pip install cibuildwheel
-    cibuildwheel --platform macos
-    ```
-
-
-!!! tab "Windows"
-
-    Using [pipx](https://github.com/pypa/pipx):
-    ```bat
-    pipx run cibuildwheel --platform windows
-    ```
-
-    Or,
-    ```bat
-    pip install cibuildwheel
-    cibuildwheel --platform windows
-    ```
+# or,
+pip install cibuildwheel
+cibuildwheel
+```
 
 You should see the builds taking place. You can experiment with options using environment variables or pyproject.toml.
 
@@ -63,7 +32,7 @@ You should see the builds taking place. You can experiment with options using en
     # run a command to set up the build system
     export CIBW_BEFORE_ALL='apt install libpng-dev'
 
-    cibuildwheel --platform linux
+    cibuildwheel
     ```
 
     > CMD (Windows)
@@ -71,7 +40,7 @@ You should see the builds taking place. You can experiment with options using en
     ```bat
     set CIBW_BEFORE_ALL='apt install libpng-dev'
 
-    cibuildwheel --platform linux
+    cibuildwheel
     ```
 
 !!! tab "pyproject.toml"
@@ -88,7 +57,7 @@ You should see the builds taking place. You can experiment with options using en
     Then invoke cibuildwheel, like:
 
     ```console
-    cibuildwheel --platform linux
+    cibuildwheel
     ```
 
 ### Linux builds
