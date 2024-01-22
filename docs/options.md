@@ -135,6 +135,9 @@ trigger new containers, one per image. Some commands are not supported;
 `output-dir`, build/skip/test_skip selectors, and architectures cannot be
 overridden.
 
+You can specify a list of options in `inherit=[]`, any list or table in this
+list will inherit from previous overrides or the main configuration.
+
 ##### Examples:
 
 ```toml
@@ -169,6 +172,20 @@ This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
 wheels on manylinux2010, and manylinux2014 wheels for any newer Python
 (like 3.10).
 
+```toml
+[tool.cibuildwheel]
+environment = {FOO="BAR", "HAM"="EGGS"}
+test-command = ["pyproject"]
+
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+inherit = ["test-command", "environment"]
+test-command = ["pyproject-override"]
+environment = {FOO="BAZ", "PYTHON"="MONTY"}
+```
+
+This example will provide the command `["pyproject", "pyproject-override"]` on
+Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"="EGGS"}`.
 
 ## Options summary
 

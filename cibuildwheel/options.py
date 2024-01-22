@@ -10,9 +10,9 @@ import shlex
 import sys
 import textwrap
 import traceback
-from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Set
+from collections.abc import Callable, Generator, Iterable, Iterator, Set
 from pathlib import Path
-from typing import Any, Dict, List, Literal, TypedDict, Union
+from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TID251
 
 from packaging.specifiers import SpecifierSet
 
@@ -116,13 +116,14 @@ class BuildOptions:
         return self.globals.architectures
 
 
-Setting = Union[Dict[str, str], List[str], str, int]
+Setting = Union[Mapping[str, str], Sequence[str], str, int]
 
 
 @dataclasses.dataclass(frozen=True)
 class Override:
     select_pattern: str
     options: dict[str, Setting]
+    inherit: list[str]
 
 
 MANYLINUX_OPTIONS = {f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS}
@@ -150,25 +151,43 @@ class ConfigOptionError(KeyError):
     pass
 
 
-def _dig_first(*pairs: tuple[Mapping[str, Setting], str], ignore_empty: bool = False) -> Setting:
+def _dig_first(
+    *pairs: tuple[Mapping[str, Setting], str, bool], ignore_empty: bool = False
+) -> Setting:
     """
-    Return the first dict item that matches from pairs of dicts and keys.
-    Will throw a KeyError if missing.
+    Return the dict items that match from pairs of dicts and keys. The third value (boolean) indicates if values should merge.
 
-    _dig_first((dict1, "key1"), (dict2, "key2"), ...)
+    The following idiom can be used to get the first matching value:
+
+        _dig_first((dict1, "key1", False), (dict2, "key2", False), ...)))
     """
     if not pairs:
         msg = "pairs cannot be empty"
         raise ValueError(msg)
 
-    for dict_like, key in pairs:
+    old_value: None | Setting = None
+
+    for dict_like, key, merge in pairs:
         if key in dict_like:
             value = dict_like[key]
-
             if ignore_empty and value == "":
                 continue
 
-            return value
+            if old_value is None:
+                old_value = value
+            elif isinstance(value, list) and isinstance(old_value, list):
+                old_value = value + old_value
+            elif isinstance(value, dict) and isinstance(old_value, dict):
+                old_value = {**value, **old_value}
+            else:
+                msg = f"Cannot merge {value!r} with {dict_like[key]!r}"
+                raise ValueError(msg)
+
+            if not merge:
+                return old_value
+
+    if old_value is not None:
+        return old_value
 
     last_key = pairs[-1][1]
     raise KeyError(last_key)
@@ -244,7 +263,12 @@ class OptionsReader:
                 if isinstance(select, list):
                     select = " ".join(select)
 
-                self.overrides.append(Override(select, config_override))
+                inherit = config_override.pop("inherit", [])
+                if not isinstance(inherit, list) or not all(isinstance(i, str) for i in inherit):
+                    msg = "'inherit' must be a list of strings"
+                    raise ConfigOptionError(msg)
+
+                self.overrides.append(Override(select, config_override, inherit))
 
     def _validate_global_option(self, name: str) -> None:
         """
@@ -341,17 +365,17 @@ class OptionsReader:
         # get the option from the environment, then the config file, then finally the default.
         # platform-specific options are preferred, if they're allowed.
         result = _dig_first(
-            (self.env if env_plat else {}, plat_envvar),
-            (self.env, envvar),
-            *[(o.options, name) for o in active_config_overrides],
-            (self.config_platform_options, name),
-            (self.config_options, name),
-            (self.default_platform_options, name),
-            (self.default_options, name),
+            (self.env if env_plat else {}, plat_envvar, False),
+            (self.env, envvar, False),
+            *[(o.options, name, name in o.inherit) for o in active_config_overrides],
+            (self.config_platform_options, name, False),
+            (self.config_options, name, False),
+            (self.default_platform_options, name, False),
+            (self.default_options, name, False),
             ignore_empty=ignore_empty,
         )
 
-        if isinstance(result, dict):
+        if isinstance(result, Mapping):
             if table is None:
                 msg = f"{name!r} does not accept a table"
                 raise ConfigOptionError(msg)
@@ -359,7 +383,7 @@ class OptionsReader:
                 item for k, v in result.items() for item in _inner_fmt(k, v, table)
             )
 
-        if isinstance(result, list):
+        if not isinstance(result, str) and isinstance(result, Sequence):
             if sep is None:
                 msg = f"{name!r} does not accept a list"
                 raise ConfigOptionError(msg)

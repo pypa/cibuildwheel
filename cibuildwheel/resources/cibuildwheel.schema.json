@@ -423,6 +423,25 @@
               }
             ]
           },
+          "inherit": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "before-all",
+                "before-build",
+                "before-test",
+                "config-settings",
+                "container-engine",
+                "environment",
+                "environment-pass",
+                "repair-wheel-command",
+                "test-command",
+                "test-extras",
+                "test-requires"
+              ],
+              "uniqueItems": true
+            }
+          },
           "before-all": {
             "$ref": "#/properties/before-all"
           },

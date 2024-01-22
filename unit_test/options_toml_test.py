@@ -270,39 +270,77 @@ def test_dig_first(ignore_empty):
     d4 = {"this": "d4", "empty": "not"}
 
     answer = _dig_first(
-        (d1, "empty"),
-        (d2, "empty"),
-        (d3, "empty"),
-        (d4, "empty"),
+        (d1, "empty", False),
+        (d2, "empty", False),
+        (d3, "empty", False),
+        (d4, "empty", False),
         ignore_empty=ignore_empty,
     )
     assert answer == ("not" if ignore_empty else "")
 
     answer = _dig_first(
-        (d1, "this"),
-        (d2, "this"),
-        (d3, "this"),
-        (d4, "this"),
+        (d1, "this", False),
+        (d2, "this", False),
+        (d3, "this", False),
+        (d4, "this", False),
         ignore_empty=ignore_empty,
     )
     assert answer == "that"
 
     with pytest.raises(KeyError):
         _dig_first(
-            (d1, "this"),
-            (d2, "other"),
-            (d3, "this"),
-            (d4, "other"),
+            (d1, "this", False),
+            (d2, "other", False),
+            (d3, "this", False),
+            (d4, "other", False),
             ignore_empty=ignore_empty,
         )
+
+
+@pytest.mark.parametrize("ignore_empty", [True, False])
+@pytest.mark.parametrize("end", [True, False])
+def test_dig_first_merge_list(ignore_empty, end):
+    d1 = {"random": ["thing"]}
+    d2 = {"this": ["that"], "empty": ""}
+    d3 = {"other": ["hi"]}
+    d4 = {"this": ["d4"], "empty": ["not"]}
+
+    answer = _dig_first(
+        (d1, "this", False),
+        (d2, "this", True),
+        (d3, "this", False),
+        (d4, "this", end),
+        ignore_empty=ignore_empty,
+    )
+
+    assert answer == ["d4", "that"]
+
+
+@pytest.mark.parametrize("ignore_empty", [True, False])
+@pytest.mark.parametrize("end", [True, False])
+def test_dig_first_merge_dict(ignore_empty, end):
+    d1 = {"random": {"a": "thing"}}
+    d2 = {"this": {"b": "that"}}
+    d3 = {"other": {"c": "ho"}}
+    d4 = {"this": {"d": "d4"}, "empty": {"d": "not"}}
+
+    answer = _dig_first(
+        (d1, "this", False),
+        (d2, "this", True),
+        (d3, "this", False),
+        (d4, "this", end),
+        ignore_empty=ignore_empty,
+    )
+
+    assert answer == {"b": "that", "d": "d4"}
 
 
 PYPROJECT_2 = """
 [tool.cibuildwheel]
 build = ["cp38*", "cp37*"]
-environment = {FOO="BAR"}
+environment = {FOO="BAR", "HAM"="EGGS"}
 
-test-command = "pyproject"
+test-command = ["pyproject"]
 
 manylinux-x86_64-image = "manylinux1"
 
@@ -311,8 +349,10 @@ test-requires = "else"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp37*"
-test-command = "pyproject-override"
+inherit = ["test-command", "environment"]
+test-command = ["pyproject-override"]
 manylinux-x86_64-image = "manylinux2014"
+environment = {FOO="BAZ", "PYTHON"="MONTY"}
 """
 
 
@@ -321,13 +361,17 @@ def test_pyproject_2(tmp_path, platform):
     pyproject_toml.write_text(PYPROJECT_2)
 
     options_reader = OptionsReader(config_file_path=pyproject_toml, platform=platform, env={})
-    assert options_reader.get("test-command") == "pyproject"
+    assert options_reader.get("test-command", sep=" && ") == "pyproject"
 
     with options_reader.identifier("random"):
-        assert options_reader.get("test-command") == "pyproject"
+        assert options_reader.get("test-command", sep=" && ") == "pyproject"
 
     with options_reader.identifier("cp37-something"):
-        assert options_reader.get("test-command") == "pyproject-override"
+        assert options_reader.get("test-command", sep=" && ") == "pyproject && pyproject-override"
+        assert (
+            options_reader.get("environment", table={"item": '{k}="{v}"', "sep": " "})
+            == 'FOO="BAZ" HAM="EGGS" PYTHON="MONTY"'
+        )
 
 
 def test_overrides_not_a_list(tmp_path, platform):
