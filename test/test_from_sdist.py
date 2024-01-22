@@ -61,10 +61,23 @@ def test_simple(tmp_path):
     sdist_dir.mkdir()
     sdist_path = make_sdist(basic_project, sdist_dir)
 
+    setup_py_assertion_snippet = textwrap.dedent(
+        """
+        import os
+
+        assert os.path.exists("setup.py")
+        assert os.path.exists("{package}/setup.py")
+        """,
+    )
+    setup_py_assertion_cmd = f"python3 -c '{setup_py_assertion_snippet !s}'"
+
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(
         sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
+        add_env={
+            "CIBW_BEFORE_BUILD": setup_py_assertion_cmd,
+            "CIBW_BUILD": "cp39-*",
+        },
     )
 
     # check that the expected wheels are produced
