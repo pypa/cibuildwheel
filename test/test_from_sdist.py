@@ -65,8 +65,8 @@ def test_simple(tmp_path):
         """
         import os
 
-        assert os.path.exists("setup.py")
-        assert os.path.exists("{package}/setup.py")
+        assert os.path.exists('setup.py')
+        assert os.path.exists('{package}/setup.py')
         """,
     )
     setup_py_assertion_cmd = f'python3 -c "{setup_py_assertion_snippet !s}"'
