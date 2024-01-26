@@ -61,7 +61,7 @@ You should see the builds taking place. You can experiment with options using en
 
     ```sh
     # run a command to set up the build system
-    export CIBW_BEFORE_ALL='apt install libpng-dev'
+    export CIBW_BEFORE_ALL='uname -a'
 
     cibuildwheel --platform linux
     ```
@@ -69,7 +69,7 @@ You should see the builds taking place. You can experiment with options using en
     > CMD (Windows)
 
     ```bat
-    set CIBW_BEFORE_ALL='apt install libpng-dev'
+    set CIBW_BEFORE_ALL='uname -a'
 
     cibuildwheel --platform linux
     ```
@@ -82,7 +82,7 @@ You should see the builds taking place. You can experiment with options using en
 
     ```
     [tool.cibuildwheel]
-    before-all = "apt install libpng-dev"
+    before-all = "uname -a"
     ```
 
     Then invoke cibuildwheel, like:
