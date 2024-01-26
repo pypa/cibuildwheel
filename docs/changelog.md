@@ -4,6 +4,14 @@ title: Changelog
 
 # Changelog
 
+### v2.16.3
+
+_26 January 2024_
+
+- 🐛 Fix a bug when building from sdist, where relative paths to files in the package didn't work because the working directory was wrong (#1687)
+- 🛠 Adds the ability to disable mounting the host filesystem in containers to `/host`, through the `disable_host_mount` suboption on [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine).
+- 📚 A lot of docs improvements! (#1708, #1705, #1686, #1679, #1667, #1665)
+
 ### v2.16.2
 
 _3 October 2023_
