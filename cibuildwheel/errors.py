@@ -1,3 +1,10 @@
+"""
+Errors that can cause the build to fail. Each subclass of FatalError has
+a different return code, by defining them all here, we can ensure that they're
+semantically clear and unique.
+"""
+
+
 class FatalError(SystemExit):
     """
     Raising an error of this type will cause the message to be printed to
