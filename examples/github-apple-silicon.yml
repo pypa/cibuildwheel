@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build_wheels_macos:
     name: Build wheels on macos-11
-    runs-on: macos-11
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
