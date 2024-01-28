@@ -114,7 +114,6 @@ title: Working examples
 | [pyinstrument_cext][]             | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A simple C extension, without external dependencies |
 | [werpy][]                         | ![github icon][] | ![windows icon][] ![linux icon][] ![apple icon][] | An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER). |
 | [pybind11 cross build example][]  | ![github icon][] ![gitlab icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Same as pybind11 cmake_example but used to demo Linux ARM + Windows + macOS builds on GitLab |
-| [keyvi][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime |
 
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
@@ -223,7 +222,6 @@ title: Working examples
 [pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
 [werpy]: https://github.com/analyticsinmotion/werpy
 [pybind11 cross build example]: https://github.com/wbarnha/pybind_cmake_example_crossbuild
-[keyvi]: https://github.com/KeyviDev/keyvi
 
 [appveyor icon]: data/readme_icons/appveyor.svg
 [github icon]: data/readme_icons/github.svg
