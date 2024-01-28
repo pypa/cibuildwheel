@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.16.4
+
+_28 January 2024_
+
+- 🛠 Update manylinux pins to upgrade from a problematic PyPy version. (#1737)
+
 ### v2.16.3
 
 _26 January 2024_
