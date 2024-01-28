@@ -638,3 +638,10 @@
   os: [windows, linux, apple]
   pypi: werpy
   notes: An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER).
+
+- name: keyvi
+  gh: KeyviDev/keyvi
+  ci: [github]
+  os: [linux, apple]
+  pypi: keyvi
+  notes: FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime
