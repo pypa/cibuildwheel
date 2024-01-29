@@ -135,8 +135,9 @@ trigger new containers, one per image. Some commands are not supported;
 `output-dir`, build/skip/test_skip selectors, and architectures cannot be
 overridden.
 
-You can specify a list of options in `inherit=[]`, any list or table in this
-list will inherit from previous overrides or the main configuration.
+You can specify a table of overrides in `inherit={}`, any list or table in this
+list will inherit from previous overrides or the main configuration. The valid
+options are `"none"` (the default), `"append"`, and `"prepend"`.
 
 ##### Examples:
 
@@ -179,13 +180,21 @@ test-command = ["pyproject"]
 
 [[tool.cibuildwheel.overrides]]
 select = "cp311*"
-inherit = ["test-command", "environment"]
-test-command = ["pyproject-override"]
+
+inherit.test-command="prepend"
+test-command = ["pyproject-before"]
+
+inherit.environment="append"
 environment = {FOO="BAZ", "PYTHON"="MONTY"}
+
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+inherit.test-command="append"
+test-command = ["pyproject-after"]
 ```
 
-This example will provide the command `["pyproject", "pyproject-override"]` on
-Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"="EGGS"}`.
+This example will provide the command `"pyproject-before && pyproject && pyproject-after"`
+on Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"="EGGS"}`.
 
 ## Options summary
 

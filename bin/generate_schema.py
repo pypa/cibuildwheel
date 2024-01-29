@@ -17,6 +17,14 @@ $schema: http://json-schema.org/draft-07/schema
 additionalProperties: false
 description: cibuildwheel's settings.
 type: object
+defines:
+  inherit:
+    enum:
+      - none
+      - prepend
+      - append
+    default: none
+    description: How to inherit the parent's value.
 properties:
   archs:
     description: Change the architectures built on your machine by default.
@@ -212,21 +220,20 @@ items:
   properties:
     select: {}
     inherit:
-      type: array
-      items:
-        enum:
-          - before-all
-          - before-build
-          - before-test
-          - config-settings
-          - container-engine
-          - environment
-          - environment-pass
-          - repair-wheel-command
-          - test-command
-          - test-extras
-          - test-requires
-        uniqueItems: true
+      type: object
+      additionalProperties: false
+      properties:
+        before-all: {"$ref": "#/defines/inherit"}
+        before-build: {"$ref": "#/defines/inherit"}
+        before-test: {"$ref": "#/defines/inherit"}
+        config-settings: {"$ref": "#/defines/inherit"}
+        container-engine: {"$ref": "#/defines/inherit"}
+        environment: {"$ref": "#/defines/inherit"}
+        environment-pass: {"$ref": "#/defines/inherit"}
+        repair-wheel-command: {"$ref": "#/defines/inherit"}
+        test-command: {"$ref": "#/defines/inherit"}
+        test-extras: {"$ref": "#/defines/inherit"}
+        test-requires: {"$ref": "#/defines/inherit"}
 """
 )
 

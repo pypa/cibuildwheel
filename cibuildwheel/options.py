@@ -5,6 +5,7 @@ import configparser
 import contextlib
 import dataclasses
 import difflib
+import enum
 import functools
 import shlex
 import sys
@@ -123,7 +124,7 @@ Setting = Union[Mapping[str, str], Sequence[str], str, int]
 class Override:
     select_pattern: str
     options: dict[str, Setting]
-    inherit: list[str]
+    inherit: dict[str, Inherit]
 
 
 MANYLINUX_OPTIONS = {f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS}
@@ -151,21 +152,28 @@ class ConfigOptionError(KeyError):
     pass
 
 
+class Inherit(enum.Enum):
+    NONE = enum.auto()
+    APPEND = enum.auto()
+    PREPEND = enum.auto()
+
+
 def _dig_first(
-    *pairs: tuple[Mapping[str, Setting], str, bool], ignore_empty: bool = False
+    *pairs: tuple[Mapping[str, Setting], str, Inherit], ignore_empty: bool = False
 ) -> Setting:
     """
-    Return the dict items that match from pairs of dicts and keys. The third value (boolean) indicates if values should merge.
+    Return the dict items that match from pairs of dicts and keys. The third
+    value (enum) indicates if values should merge.
 
     The following idiom can be used to get the first matching value:
 
-        _dig_first((dict1, "key1", False), (dict2, "key2", False), ...)))
+        _dig_first((dict1, "key1", Inherit.NONE), (dict2, "key2", Inherit.NONE), ...)))
     """
     if not pairs:
         msg = "pairs cannot be empty"
         raise ValueError(msg)
 
-    old_value: None | Setting = None
+    commands: list[tuple[Setting, Inherit]] = []
 
     for dict_like, key, merge in pairs:
         if key in dict_like:
@@ -173,21 +181,49 @@ def _dig_first(
             if ignore_empty and value == "":
                 continue
 
-            if old_value is None:
-                old_value = value
-            elif isinstance(value, list) and isinstance(old_value, list):
-                old_value = value + old_value
-            elif isinstance(value, dict) and isinstance(old_value, dict):
-                old_value = {**value, **old_value}
-            else:
-                msg = f"Cannot merge {value!r} with {dict_like[key]!r}"
-                raise ValueError(msg)
+            commands.append((value, merge))
+            if merge == Inherit.NONE:
+                break
 
-            if not merge:
-                return old_value
+    if len(commands) == 1:
+        return commands[0][0]
 
-    if old_value is not None:
-        return old_value
+    if len(commands) > 1:
+        if isinstance(commands[0][0], list):
+            retlist: list[str] = []
+            for c in commands:
+                if c[1] == Inherit.PREPEND:
+                    assert isinstance(c[0], list)
+                    retlist.extend(c[0])
+            for c in commands:
+                if c[1] == Inherit.NONE:
+                    assert isinstance(c[0], list)
+                    retlist.extend(c[0])
+            for c in commands[::-1]:
+                if c[1] == Inherit.APPEND:
+                    assert isinstance(c[0], list)
+                    retlist.extend(c[0])
+            return retlist
+
+        if isinstance(commands[0][0], dict):
+            retdict: dict[str, str] = {}
+            for c in commands:
+                if c[1] == Inherit.PREPEND:
+                    assert isinstance(c[0], dict)
+                    retdict.update(c[0])
+            for c in commands:
+                if c[1] == Inherit.NONE:
+                    assert isinstance(c[0], dict)
+                    retdict.update(c[0])
+            for c in commands[::-1]:
+                if c[1] == Inherit.APPEND:
+                    assert isinstance(c[0], dict)
+                    retdict.update(c[0])
+            return retdict
+
+        else:
+            msg = f"Must be list or dict, got {type(commands[0])}"
+            raise TypeError(msg)
 
     last_key = pairs[-1][1]
     raise KeyError(last_key)
@@ -263,12 +299,16 @@ class OptionsReader:
                 if isinstance(select, list):
                     select = " ".join(select)
 
-                inherit = config_override.pop("inherit", [])
-                if not isinstance(inherit, list) or not all(isinstance(i, str) for i in inherit):
-                    msg = "'inherit' must be a list of strings"
+                inherit = config_override.pop("inherit", {})
+                if not isinstance(inherit, dict) or not all(
+                    i in {"none", "append", "prepend"} for i in inherit.values()
+                ):
+                    msg = "'inherit' must be a dict containing only {'none', 'append', 'prepend'} values"
                     raise ConfigOptionError(msg)
 
-                self.overrides.append(Override(select, config_override, inherit))
+                inherit_enum = {k: Inherit[v.upper()] for k, v in inherit.items()}
+
+                self.overrides.append(Override(select, config_override, inherit_enum))
 
     def _validate_global_option(self, name: str) -> None:
         """
@@ -365,13 +405,16 @@ class OptionsReader:
         # get the option from the environment, then the config file, then finally the default.
         # platform-specific options are preferred, if they're allowed.
         result = _dig_first(
-            (self.env if env_plat else {}, plat_envvar, False),
-            (self.env, envvar, False),
-            *[(o.options, name, name in o.inherit) for o in active_config_overrides],
-            (self.config_platform_options, name, False),
-            (self.config_options, name, False),
-            (self.default_platform_options, name, False),
-            (self.default_options, name, False),
+            (self.env if env_plat else {}, plat_envvar, Inherit.NONE),
+            (self.env, envvar, Inherit.NONE),
+            *[
+                (o.options, name, o.inherit.get(name, Inherit.NONE))
+                for o in active_config_overrides
+            ],
+            (self.config_platform_options, name, Inherit.NONE),
+            (self.config_options, name, Inherit.NONE),
+            (self.default_platform_options, name, Inherit.NONE),
+            (self.default_options, name, Inherit.NONE),
             ignore_empty=ignore_empty,
         )
 

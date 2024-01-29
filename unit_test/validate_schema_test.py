@@ -76,7 +76,7 @@ def test_overrides_valid_inherit():
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
-        inherit = ["repair-wheel-command"]
+        inherit.repair-wheel-command = "append"
         select = "somestring"
         repair-wheel-command = ["something"]
         """
@@ -90,7 +90,22 @@ def test_overrides_invalid_inherit():
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
-        inherit = ["something"]
+        inherit.something = "append"
+        select = "somestring"
+        repair-wheel-command = "something"
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
+def test_overrides_invalid_inherit_value():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        inherit.repair-wheel-command = "nothing"
         select = "somestring"
         repair-wheel-command = "something"
         """

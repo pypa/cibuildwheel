@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel.options import ConfigOptionError, OptionsReader, _dig_first
+from cibuildwheel.options import ConfigOptionError, Inherit, OptionsReader, _dig_first
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -262,7 +262,7 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
 
 
-@pytest.mark.parametrize("ignore_empty", [True, False])
+@pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
 def test_dig_first(ignore_empty):
     d1 = {"random": "thing"}
     d2 = {"this": "that", "empty": ""}
@@ -270,54 +270,55 @@ def test_dig_first(ignore_empty):
     d4 = {"this": "d4", "empty": "not"}
 
     answer = _dig_first(
-        (d1, "empty", False),
-        (d2, "empty", False),
-        (d3, "empty", False),
-        (d4, "empty", False),
+        (d1, "empty", Inherit.NONE),
+        (d2, "empty", Inherit.NONE),
+        (d3, "empty", Inherit.NONE),
+        (d4, "empty", Inherit.NONE),
         ignore_empty=ignore_empty,
     )
     assert answer == ("not" if ignore_empty else "")
 
     answer = _dig_first(
-        (d1, "this", False),
-        (d2, "this", False),
-        (d3, "this", False),
-        (d4, "this", False),
+        (d1, "this", Inherit.NONE),
+        (d2, "this", Inherit.NONE),
+        (d3, "this", Inherit.NONE),
+        (d4, "this", Inherit.NONE),
         ignore_empty=ignore_empty,
     )
     assert answer == "that"
 
     with pytest.raises(KeyError):
         _dig_first(
-            (d1, "this", False),
-            (d2, "other", False),
-            (d3, "this", False),
-            (d4, "other", False),
+            (d1, "this", Inherit.NONE),
+            (d2, "other", Inherit.NONE),
+            (d3, "this", Inherit.NONE),
+            (d4, "other", Inherit.NONE),
             ignore_empty=ignore_empty,
         )
 
 
-@pytest.mark.parametrize("ignore_empty", [True, False])
-@pytest.mark.parametrize("end", [True, False])
-def test_dig_first_merge_list(ignore_empty, end):
+@pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
+@pytest.mark.parametrize("end", [Inherit.PREPEND, Inherit.NONE, Inherit.APPEND])
+@pytest.mark.parametrize("append", [True, False], ids=["append", "prepend"])
+def test_dig_first_merge_list(ignore_empty, end, append):
     d1 = {"random": ["thing"]}
-    d2 = {"this": ["that"], "empty": ""}
+    d2 = {"this": ["d2a", "d2b"], "empty": ""}
     d3 = {"other": ["hi"]}
-    d4 = {"this": ["d4"], "empty": ["not"]}
+    d4 = {"this": ["d4a", "d4b"], "empty": ["not"]}
 
     answer = _dig_first(
-        (d1, "this", False),
-        (d2, "this", True),
-        (d3, "this", False),
+        (d1, "this", Inherit.NONE),
+        (d2, "this", Inherit.APPEND if append else Inherit.PREPEND),
+        (d3, "this", Inherit.NONE),
         (d4, "this", end),
         ignore_empty=ignore_empty,
     )
 
-    assert answer == ["d4", "that"]
+    assert answer == (["d4a", "d4b", "d2a", "d2b"] if append else ["d2a", "d2b", "d4a", "d4b"])
 
 
-@pytest.mark.parametrize("ignore_empty", [True, False])
-@pytest.mark.parametrize("end", [True, False])
+@pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
+@pytest.mark.parametrize("end", [Inherit.PREPEND, Inherit.NONE, Inherit.APPEND])
 def test_dig_first_merge_dict(ignore_empty, end):
     d1 = {"random": {"a": "thing"}}
     d2 = {"this": {"b": "that"}}
@@ -325,9 +326,9 @@ def test_dig_first_merge_dict(ignore_empty, end):
     d4 = {"this": {"d": "d4"}, "empty": {"d": "not"}}
 
     answer = _dig_first(
-        (d1, "this", False),
-        (d2, "this", True),
-        (d3, "this", False),
+        (d1, "this", Inherit.NONE),
+        (d2, "this", Inherit.APPEND),
+        (d3, "this", Inherit.NONE),
         (d4, "this", end),
         ignore_empty=ignore_empty,
     )
@@ -349,10 +350,25 @@ test-requires = "else"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp37*"
-inherit = ["test-command", "environment"]
-test-command = ["pyproject-override"]
+inherit = {test-command="prepend", environment="append"}
+test-command = ["pyproject-override", "override2"]
 manylinux-x86_64-image = "manylinux2014"
 environment = {FOO="BAZ", "PYTHON"="MONTY"}
+
+[[tool.cibuildwheel.overrides]]
+select = "*-final"
+inherit = {test-command="append"}
+test-command = ["pyproject-finalize", "finalize2"]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-final"
+inherit = {test-command="append"}
+test-command = ["extra-finalize"]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-final"
+inherit = {test-command="prepend"}
+test-command = ["extra-prepend"]
 """
 
 
@@ -367,7 +383,20 @@ def test_pyproject_2(tmp_path, platform):
         assert options_reader.get("test-command", sep=" && ") == "pyproject"
 
     with options_reader.identifier("cp37-something"):
-        assert options_reader.get("test-command", sep=" && ") == "pyproject && pyproject-override"
+        assert (
+            options_reader.get("test-command", sep=" && ")
+            == "pyproject-override && override2 && pyproject"
+        )
+        assert (
+            options_reader.get("environment", table={"item": '{k}="{v}"', "sep": " "})
+            == 'FOO="BAZ" HAM="EGGS" PYTHON="MONTY"'
+        )
+
+    with options_reader.identifier("cp37-final"):
+        assert (
+            options_reader.get("test-command", sep=" && ")
+            == "extra-prepend && pyproject-override && override2 && pyproject && pyproject-finalize && finalize2 && extra-finalize"
+        )
         assert (
             options_reader.get("environment", table={"item": '{k}="{v}"', "sep": " "})
             == 'FOO="BAZ" HAM="EGGS" PYTHON="MONTY"'
