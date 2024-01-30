@@ -184,7 +184,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/checkout@v4
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.16.4
+            run: pipx run cibuildwheel==2.16.5
 
           - uses: actions/upload-artifact@v4
             with:
@@ -220,7 +220,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/setup-python@v3
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.16.4
+            run: python -m pip install cibuildwheel==2.16.5
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse

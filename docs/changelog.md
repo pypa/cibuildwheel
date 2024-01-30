@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v2.16.5
+
+_30 January 2024_
+
+- 🐛 Fix an incompatibility with the GitHub Action and new GitHub Runner images for Windows that bundle Powershell 7.3+ (#1741)
+- 🛠 Preliminary support for new `macos-14` arm64 runners (#1743)
+
 ### v2.16.4
 
 _28 January 2024_
