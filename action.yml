@@ -57,7 +57,7 @@ runs:
         if ($PSNativeCommandArgumentPassing) {
             $PSNativeCommandArgumentPassing = 'Legacy'
         };
-        ${{ steps.python.outputs.python-path }} -m pipx run
+        & "${{ steps.python.outputs.python-path }}" -m pipx run
         --spec "${{ github.action_path }}"
         cibuildwheel
         "${{ inputs.package-dir }}"
