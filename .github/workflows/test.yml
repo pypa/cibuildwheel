@@ -77,11 +77,6 @@ jobs:
       run: |
         python -m test.test_projects test.test_0_basic.basic_project sample_proj
 
-    - name: Add pipx if on macOS ARM (currently missing)
-      if: matrix.os == 'macos-14'
-      run: |
-        python -m pip install pipx
-
     - name: Run a sample build (GitHub Action)
       uses: ./
       with:
