@@ -51,7 +51,7 @@ runs:
 
     # Windows needs powershell to interact nicely with Meson
     - run: >
-        "${{ steps.python.outputs.python-path }}" -m pipx run
+        ${{ steps.python.outputs.python-path }} -m pipx run
         --spec "${{ github.action_path }}"
         cibuildwheel
         "${{ inputs.package-dir }}"
