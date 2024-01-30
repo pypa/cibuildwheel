@@ -33,12 +33,12 @@ runs:
 
     # macos-14 (M1) may be missing pipx (due to it not having CPython)
     - run: |
-        '${{ steps.python.outputs.python-path }}' -m pip install pipx
+        "${{ steps.python.outputs.python-path }}" -m pip install pipx
       shell: bash
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: >
-        '${{ steps.python.outputs.python-path }}' -m pipx run
+        "${{ steps.python.outputs.python-path }}" -m pipx run
         --spec '${{ github.action_path }}'
         cibuildwheel
         "${{ inputs.package-dir }}"
@@ -51,7 +51,7 @@ runs:
 
     # Windows needs powershell to interact nicely with Meson
     - run: >
-        '${{ steps.python.outputs.python-path }}' -m pipx run
+        "${{ steps.python.outputs.python-path }}" -m pipx run
         --spec "${{ github.action_path }}"
         cibuildwheel
         "${{ inputs.package-dir }}"
