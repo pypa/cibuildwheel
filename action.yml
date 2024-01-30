@@ -50,7 +50,13 @@ runs:
       if: runner.os != 'Windows'
 
     # Windows needs powershell to interact nicely with Meson
+    # $PSNativeCommandArgumentPassing was introduced in pwsh 7.3 and the
+    # legacy behaviour is needed for backwards compatibility with how this
+    # was called in the past.
     - run: >
+        if ($PSNativeCommandArgumentPassing) {
+            $PSNativeCommandArgumentPassing = 'Legacy'
+        };
         ${{ steps.python.outputs.python-path }} -m pipx run
         --spec "${{ github.action_path }}"
         cibuildwheel
