@@ -28,20 +28,17 @@ What does it do?
 | CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.7    | ✅ | N/A | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅³ | ✅ | ✅ | ✅  | ✅  |
+| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  |
 | CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.12⁵  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.12  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
 | PyPy 3.7 v7.3  | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
-| PyPy 3.8 v7.3  | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
-| PyPy 3.9 v7.3  | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
-| PyPy 3.10 v7.3 | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
+| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
+| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
+| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
-<sup>³ Alpine 3.14 and very briefly 3.15's default python3 [was not able to load](https://github.com/pypa/cibuildwheel/issues/934) musllinux wheels. This has been fixed; please upgrade the python package if using Alpine from before the fix.</sup><br>
-<sup>⁴ Cross-compilation not supported with PyPy - to build these wheels you need to run cibuildwheel on an Apple Silicon machine.</sup><br>
-<sup>⁵ CPython 3.12 is built by default using Python RCs, starting with cibuildwheel 2.15.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
@@ -57,18 +54,16 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹       | ✅²       | ✅⁴         |
-| Azure Pipelines | ✅    | ✅    | ✅      |           | ✅²       | ✅⁴         |
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅¹       | ✅        | ✅²         |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅²       | ✅⁴         |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅²       |             |
+| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |
+| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             |
 | Gitlab CI       | ✅    |       | ✅      | ✅¹       |           |             |
-| Cirrus CI       | ✅    | ✅³   | ✅      | ✅        | ✅        |             |
+| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
-<sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). It is not possible to test `arm64` and the `arm64` part of a `universal2` wheel on this CI platform.</sup><br>
-<sup>³ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). Thanks to Rosetta 2 emulation, it is possible to test `x86_64` and both parts of a `universal2` wheel on this CI platform.</sup><br>
-<sup>⁴ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
+<sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
 
 <!--intro-end-->
 
@@ -88,7 +83,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macOS-11]
+        os: [ubuntu-latest, windows-latest, macOS-12, macOS-14]
 
     steps:
       - uses: actions/checkout@v4
