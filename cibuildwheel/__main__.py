@@ -160,7 +160,7 @@ def main() -> None:
         # This is now the new package dir
         args.package_dir = project_dir.resolve()
 
-        with chdir(temp_dir):
+        with chdir(project_dir):
             build_in_directory(args)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing

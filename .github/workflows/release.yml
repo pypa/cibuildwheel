@@ -16,8 +16,9 @@ jobs:
     - name: Build SDist and wheel
       run: pipx run build
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
+        name: cibw-sdist
         path: dist/*
 
     - name: Check metadata
@@ -32,9 +33,10 @@ jobs:
       id-token: write
 
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
-        name: artifact
+        pattern: cibw-*
         path: dist
+        merge-multiple: true
 
     - uses: pypa/gh-action-pypi-publish@release/v1

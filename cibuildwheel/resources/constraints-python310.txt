@@ -4,9 +4,9 @@
 #
 #    nox -s update_constraints-3.10
 #
-delocate==0.10.6
+delocate==0.10.7
     # via -r cibuildwheel/resources/constraints.in
-distlib==0.3.7
+distlib==0.3.8
     # via virtualenv
 filelock==3.13.1
     # via virtualenv
@@ -22,7 +22,7 @@ wheel==0.42.0
     # via -r cibuildwheel/resources/constraints.in
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.3.1
+pip==23.3.2
     # via -r cibuildwheel/resources/constraints.in
-setuptools==69.0.2
+setuptools==69.0.3
     # via -r cibuildwheel/resources/constraints.in
