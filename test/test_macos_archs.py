@@ -83,7 +83,7 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         assert "running tests on arm64" not in captured.out
         if build_universal2:
             assert (
-                "While universal2 wheels can be built on x86_64, the arm64 part of them cannot currently be tested"
+                "While universal2 wheels can be built on x86_64, the arm64 part of the wheel cannot be tested"
                 in captured.err
             )
         else:
@@ -95,7 +95,7 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         assert "running tests on x86_64" in captured.out
         assert "running tests on arm64" in captured.out
         assert (
-            "While universal2 wheels can be built on x86_64, the arm64 part of them cannot currently be tested"
+            "While universal2 wheels can be built on x86_64, the arm64 part of the wheel cannot be tested"
             not in captured.err
         )
         assert (
@@ -162,7 +162,7 @@ def test_universal2_testing(tmp_path, capfd, skip_arm64_test):
         assert "running tests on x86_64" in captured.out
         assert "running tests on arm64" not in captured.out
 
-        warning_message = "While universal2 wheels can be built on x86_64, the arm64 part of them cannot currently be tested"
+        warning_message = "While universal2 wheels can be built on x86_64, the arm64 part of the wheel cannot be tested"
         if skip_arm64_test:
             assert warning_message not in captured.err
         else:
