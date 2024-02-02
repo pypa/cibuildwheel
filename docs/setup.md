@@ -178,7 +178,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-latest, windows-latest, macos-latest]
+            os: [ubuntu-latest, windows-latest, macos-12]
 
         steps:
           - uses: actions/checkout@v4
@@ -211,7 +211,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-latest, windows-latest, macos-latest]
+            os: [ubuntu-latest, windows-latest, macos-12]
 
         steps:
           - uses: actions/checkout@v4
