@@ -135,7 +135,7 @@ def test_deployment_target_warning_is_firing(tmp_path, capfd):
 
 
 @pytest.mark.parametrize("skip_arm64_test", [False, True])
-def test_universal2_testing(tmp_path, capfd, skip_arm64_test):
+def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
     if get_xcode_version() < (12, 2):
@@ -170,6 +170,35 @@ def test_universal2_testing(tmp_path, capfd, skip_arm64_test):
 
     expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" in w]
 
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_universal2_testing_on_arm64(tmp_path, capfd):
+    # cibuildwheel should test the universal2 wheel on both x86_64 and arm64, when run on arm64
+    if utils.platform != "macos":
+        pytest.skip("this test is only relevant to macos")
+    if platform.machine() != "arm64":
+        pytest.skip("this test only works on arm64")
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_BUILD": "cp39-*",
+            "CIBW_ARCHS": "universal2",
+            # check that a native dependency is correctly installed, once per each testing arch
+            "CIBW_TEST_REQUIRES": "numpy",
+            "CIBW_TEST_COMMAND": '''python -c "import numpy, platform; print(f'running tests on {platform.machine()} with numpy {numpy.__version__}')"''',
+        },
+    )
+
+    captured = capfd.readouterr()
+    assert "running tests on arm64" in captured.out
+    assert "running tests on x86_64" in captured.out
+
+    expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
 
