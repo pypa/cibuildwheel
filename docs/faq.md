@@ -14,7 +14,7 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 
     `cibuildwheel` supports this by providing the [`CIBW_ENVIRONMENT`](options.md#environment) and [`CIBW_BEFORE_ALL`](options.md#before-all) options to setup the build environment inside the running container.
 
--   The project directory is copied into the container as `/project`, the output directory for the wheels to be copied out is `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that `/host` is not available on CircleCI due to their Docker policies.
+-   The project directory is copied into the container as `/project`, the output directory for the wheels to be copied out is `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that `/host` is not available on CircleCI and GitLab CI due to their Docker policies.
 
 -   Alternative Docker images can be specified with the `CIBW_MANYLINUX_*_IMAGE`/`CIBW_MUSLLINUX_*_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#linux-image) for more details.
 
@@ -75,7 +75,7 @@ With the exception of Cirrus CI, macOS CI runners are still Intel-based, and App
 !!! important
     When cross-compiling on Intel, it is not possible to test `arm64` and the `arm64` part of a `universal2` wheel.
 
-    `cibuildwheel` will raise a warning to notify you of this - these warnings be be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: *_arm64 *_universal2:arm64`.
+    `cibuildwheel` will raise a warning to notify you of this - these warnings be be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: "*_arm64 *_universal2:arm64"`.
 
 !!! note
     Your runner needs Xcode Command Line Tools 12.2 or later to build `universal2` or `arm64`.
@@ -159,7 +159,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v2.16.2
+uses: pypa/cibuildwheel@v2.16.5
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -181,7 +181,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==2.16.2
+cibuildwheel==2.16.5
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -216,7 +216,6 @@ to build, your pyproject.toml might include a section like this:
 [build-system]
 requires = [
     "setuptools>=42",
-    "wheel",
     "Cython",
 ]
 
@@ -325,7 +324,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==2.16.2 --output-dir wheelhouse
+pipx run cibuildwheel==2.16.5 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 
@@ -395,7 +394,7 @@ To investigate the dependencies of a C extension (i.e., the `.pyd` file, a DLL i
 
 ### Windows ARM64 builds {: #windows-arm64}
 
-`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native ARM64 runner is required for testing. On non-native runners, tests for ARM64 wheels will be automatically skipped with a warning. Add `*-win_arm64` to your `CIBW_TEST_SKIP` setting to suppress the warning.
+`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native ARM64 runner is required for testing. On non-native runners, tests for ARM64 wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `CIBW_TEST_SKIP` setting to suppress the warning.
 
 Cross-compilation on Windows relies on a supported build backend. Supported backends use an environment variable to specify their target platform (the one they are compiling native modules for, as opposed to the one they are running on), which is set in [cibuildwheels/windows.py](https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/windows.py) before building. Currently, `setuptools>=65.4.1` and `setuptools_rust` are the only supported backends.
 

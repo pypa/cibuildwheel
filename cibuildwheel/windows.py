@@ -503,7 +503,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         """
                             While arm64 wheels can be built on other platforms, they cannot
                             be tested. An arm64 runner is required. To silence this warning,
-                            set `CIBW_TEST_SKIP: *-win_arm64`.
+                            set `CIBW_TEST_SKIP: "*-win_arm64"`.
                             """
                     )
                 )

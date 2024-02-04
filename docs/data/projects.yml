@@ -603,13 +603,13 @@
   gh: tensorchord/envd
   ci: [github]
   os: [apple, linux, windows]
-  note: A machine learning development environment build tool
+  notes: A machine learning development environment build tool
 
 - name: mosec
   gh: mosecorg/mosec
   ci: [github]
   os: [linux, apple]
-  note: A machine learning model serving framework powered by Rust
+  notes: A machine learning model serving framework powered by Rust
 
 - name: ril
   gh: Cryptex-github/ril-py
@@ -631,3 +631,17 @@
   os: [windows, apple, linux]
   pypi: aalink
   notes: Async Python interface for Ableton Link.
+
+- name: werpy
+  gh: analyticsinmotion/werpy
+  ci: [github]
+  os: [windows, linux, apple]
+  pypi: werpy
+  notes: An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER).
+
+- name: keyvi
+  gh: KeyviDev/keyvi
+  ci: [github]
+  os: [linux, apple]
+  pypi: keyvi
+  notes: FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime

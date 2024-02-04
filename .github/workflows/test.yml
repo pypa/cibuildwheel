@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
     - uses: pre-commit/action@v3.0.0
@@ -46,7 +46,7 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
@@ -85,10 +85,10 @@ jobs:
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: sample_wheels_action
-        path: wheelhouse
+        name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+        path: wheelhouse/*.whl
 
     - name: Test cibuildwheel
       run: |
@@ -101,7 +101,7 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
     - name: Install dependencies
