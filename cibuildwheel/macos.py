@@ -542,7 +542,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     # there are no dependencies that were pulled in at build time.
                     call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
 
-                    venv_dir = identifier_tmp_dir / "venv-test"
+                    venv_dir = identifier_tmp_dir / f"venv-test-{testing_arch}"
 
                     arch_prefix = []
                     if testing_arch != machine_arch:
