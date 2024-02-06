@@ -80,7 +80,7 @@ If your CI provider doesn't offer arm64 runners yet, or you want to create `univ
 
 Regarding testing,
 
-- On an arm64 runner, it is possible to test x86_64 wheels an and both parts of a universal2 wheel using Rosetta 2 emulation.
+- On an arm64 runner, it is possible to test x86_64 wheels and both parts of a universal2 wheel using Rosetta 2 emulation.
 - On an x86_64 runner, arm64 code can be compiled but it can't be tested. `cibuildwheel` will raise a warning to notify you of this - these warnings can be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: "*_arm64 *_universal2:arm64"`.
 
 !!! note
