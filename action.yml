@@ -31,10 +31,14 @@ runs:
         python-version: "3.8 - 3.12"
         update-environment: false
 
+    # macos-14 (M1) may be missing pipx (due to it not having CPython)
+    - run: |
+        "${{ steps.python.outputs.python-path }}" -m pip install pipx
+      shell: bash
+
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: >
-        pipx run
-        --python '${{ steps.python.outputs.python-path }}'
+        "${{ steps.python.outputs.python-path }}" -m pipx run
         --spec '${{ github.action_path }}'
         cibuildwheel
         "${{ inputs.package-dir }}"
@@ -46,9 +50,14 @@ runs:
       if: runner.os != 'Windows'
 
     # Windows needs powershell to interact nicely with Meson
+    # $PSNativeCommandArgumentPassing was introduced in pwsh 7.3 and the
+    # legacy behaviour is needed for backwards compatibility with how this
+    # was called in the past.
     - run: >
-        pipx run
-        --python "${{ steps.python.outputs.python-path }}"
+        if ($PSNativeCommandArgumentPassing) {
+            $PSNativeCommandArgumentPassing = 'Legacy'
+        };
+        & "${{ steps.python.outputs.python-path }}" -m pipx run
         --spec "${{ github.action_path }}"
         cibuildwheel
         "${{ inputs.package-dir }}"

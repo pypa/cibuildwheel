@@ -178,13 +178,14 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-latest, windows-latest, macos-12]
+            # macos-13 is an intel runner, macos-14 is apple silicon
+            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
         steps:
           - uses: actions/checkout@v4
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.16.3
+            run: pipx run cibuildwheel==2.16.5
 
           - uses: actions/upload-artifact@v4
             with:
@@ -211,7 +212,8 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-latest, windows-latest, macos-12]
+            # macos-13 is an intel runner, macos-14 is apple silicon
+            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
         steps:
           - uses: actions/checkout@v4
@@ -220,7 +222,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/setup-python@v3
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.16.3
+            run: python -m pip install cibuildwheel==2.16.5
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse

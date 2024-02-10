@@ -8,7 +8,6 @@ cibuildwheel
 [![Appveyor status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/main?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/main)
 [![CircleCI Status](https://img.shields.io/circleci/build/gh/pypa/cibuildwheel/main?logo=circleci)](https://circleci.com/gh/pypa/cibuildwheel)
 [![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName=main)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=4&branchName=main)
-[![Cirrus CI Status](https://img.shields.io/cirrus/github/pypa/cibuildwheel/main?logo=cirrusci)](https://cirrus-ci.com/github/pypa/cibuildwheel)
 
 
 [Documentation](https://cibuildwheel.readthedocs.org)
@@ -28,20 +27,17 @@ What does it do?
 | CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.7    | ✅ | N/A | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅³ | ✅ | ✅ | ✅  | ✅  |
+| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  |
 | CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
 | CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
-| CPython 3.12⁵  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
+| CPython 3.12  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  |
 | PyPy 3.7 v7.3  | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
-| PyPy 3.8 v7.3  | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
-| PyPy 3.9 v7.3  | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
-| PyPy 3.10 v7.3 | ✅ | ✅⁴ | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
+| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
+| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
+| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A |
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
-<sup>³ Alpine 3.14 and very briefly 3.15's default python3 [was not able to load](https://github.com/pypa/cibuildwheel/issues/934) musllinux wheels. This has been fixed; please upgrade the python package if using Alpine from before the fix.</sup><br>
-<sup>⁴ Cross-compilation not supported with PyPy - to build these wheels you need to run cibuildwheel on an Apple Silicon machine.</sup><br>
-<sup>⁵ CPython 3.12 is built by default using Python RCs, starting with cibuildwheel 2.15.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
@@ -57,18 +53,16 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|
-| GitHub Actions  | ✅    | ✅    | ✅      | ✅¹       | ✅²       | ✅⁴         |
-| Azure Pipelines | ✅    | ✅    | ✅      |           | ✅²       | ✅⁴         |
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅¹       | ✅        | ✅²         |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅²       | ✅⁴         |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅²       |             |
+| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |
+| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             |
 | Gitlab CI       | ✅    |       | ✅      | ✅¹       |           |             |
-| Cirrus CI       | ✅    | ✅³   | ✅      | ✅        | ✅        |             |
+| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
-<sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). It is not possible to test `arm64` and the `arm64` part of a `universal2` wheel on this CI platform.</sup><br>
-<sup>³ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2). Thanks to Rosetta 2 emulation, it is possible to test `x86_64` and both parts of a `universal2` wheel on this CI platform.</sup><br>
-<sup>⁴ [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
+<sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
 
 <!--intro-end-->
 
@@ -88,7 +82,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
@@ -97,7 +91,7 @@ jobs:
       - uses: actions/setup-python@v3
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.16.3
+        run: python -m pip install cibuildwheel==2.16.5
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -214,6 +208,19 @@ Changelog
 
 <!-- this section was generated by bin/update_readme_changelog.py -- do not edit manually -->
 
+### v2.16.5
+
+_30 January 2024_
+
+- 🐛 Fix an incompatibility with the GitHub Action and new GitHub Runner images for Windows that bundle Powershell 7.3+ (#1741)
+- 🛠 Preliminary support for new `macos-14` arm64 runners (#1743)
+
+### v2.16.4
+
+_28 January 2024_
+
+- 🛠 Update manylinux pins to upgrade from a problematic PyPy version. (#1737)
+
 ### v2.16.3
 
 _26 January 2024_
@@ -239,25 +246,6 @@ _26 September 2023_
 
 - 🛠 Updates the prerelease CPython 3.12 version to 3.12.0rc3 (#1625)
 - 🛠 Only calls `linux32` in containers when necessary (#1599)
-
-### v2.16.0
-
-_18 September 2023_
-
-- ✨ Add the ability to pass additional flags to a build frontend through the [CIBW_BUILD_FRONTEND](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend) option (#1588).
-- ✨ The environment variable SOURCE_DATE_EPOCH is now automatically passed through to container Linux builds (useful for [reproducible builds](https://reproducible-builds.org/docs/source-date-epoch/)!) (#1589)
-- 🛠 Updates the prerelease CPython 3.12 version to 3.12.0rc2 (#1604)
-- 🐛 Fix `requires_python` auto-detection from setup.py when the call to `setup()` is within an `if __name__ == "__main__"` block (#1613)
-- 🐛 Fix a bug that prevented building Linux wheels in Docker on a Windows host (#1573)
-- 🐛 `--only` can now select prerelease-pythons (#1564)
-- 📚 Docs & examples updates (#1582, #1593, #1598, #1615)
-
-### v2.15.0
-
-_8 August 2023_
-
-- 🌟 CPython 3.12 wheels are now built by default - without the CIBW_PRERELEASE_PYTHONS flag. It's time to build and upload these wheels to PyPI! This release includes CPython 3.12.0rc1, which is guaranteed to be ABI compatible with the final release. (#1565)
-- ✨ Adds musllinux_1_2 support - this allows packagers to build for musl-based Linux distributions on a more recent Alpine image, and a newer musl libc. (#1561)
 
 <!-- END bin/update_readme_changelog.py -->
 
