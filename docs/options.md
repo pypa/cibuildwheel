@@ -343,8 +343,8 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 
 A list of architectures to build.
 
-On macOS, this option can be used to cross-compile between `x86_64`,
-`universal2` and `arm64` for Apple Silicon support.
+On macOS, this option can be used to [cross-compile](faq.md#cross-compiling)
+between `x86_64`, `universal2` and `arm64`.
 
 On Linux, this option can be used to build non-native architectures under
 emulation. See [this guide](faq.md#emulation) for more information.

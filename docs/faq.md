@@ -20,11 +20,11 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 
 ### Building macOS wheels for Apple Silicon {: #apple-silicon}
 
-`cibuildwheel` supports cross-compiling `universal2` and `arm64` wheels on `x86_64` runners.
+`cibuildwheel` supports both native builds and cross-compiling between `arm64` (Apple Silicon) and `x86_64` (Intel) architectures, including the cross-compatible `universal2` format.
 
 #### Overview of Mac architectures
 
-With the introduction of Apple Silicon, you now have several choices for wheels for Python 3.8+:
+You have several choices for wheels for Python 3.8+:
 
 ##### `x86_64`
 
@@ -68,42 +68,25 @@ Opinions vary on which of arch-specific or `universal2` wheels are best - some p
 
 See [GitHub issue 1333](https://github.com/pypa/cibuildwheel/issues/1333) for more discussion.
 
-#### How to cross-compile
+#### How?
 
-With the exception of Cirrus CI, macOS CI runners are still Intel-based, and Apple Silicon wheels are not built by default on Intel runners. However, cross-compilation can be enabled by adding extra archs to the [`CIBW_ARCHS_MACOS` option](options.md#archs) - e.g. `x86_64 arm64`. Cross-compilation is provided by the Xcode toolchain.
+It's easiest to build `x86_64` wheels on `x86_64` runners, and `arm64` wheels on `arm64` runners.
 
-!!! important
-    When cross-compiling on Intel, it is not possible to test `arm64` and the `arm64` part of a `universal2` wheel.
+On GitHub Actions, `macos-14` runners are `arm64`, and `macos-13` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
 
-    `cibuildwheel` will raise a warning to notify you of this - these warnings be be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: "*_arm64 *_universal2:arm64"`.
+#### Cross-compiling
 
-!!! note
-    Your runner needs Xcode Command Line Tools 12.2 or later to build `universal2` or `arm64`.
+If your CI provider doesn't offer arm64 runners yet, or you want to create `universal2`, you'll have to cross-compile. Cross-compilation can be enabled by adding extra archs to the [`CIBW_ARCHS_MACOS` option](options.md#archs) - e.g. `CIBW_ARCHS_MACOS="x86_64 universal2"`. Cross-compilation is provided by Xcode toolchain v12.2+.
 
-    Only CPython 3.8 and newer support `universal2` and `arm64` wheels.
+Regarding testing,
+
+- On an arm64 runner, it is possible to test x86_64 wheels and both parts of a universal2 wheel using Rosetta 2 emulation.
+- On an x86_64 runner, arm64 code can be compiled but it can't be tested. `cibuildwheel` will raise a warning to notify you of this - these warnings can be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: "*_arm64 *_universal2:arm64"`.
 
 !!! note
     If your project uses **Poetry** as a build backend, cross-compiling on macOS [does not currently work](https://github.com/python-poetry/poetry/issues/7107). In some cases arm64 wheels can be built but their tags will be incorrect, with the platform tag showing `x86_64` instead of `arm64`.
 
     As a workaround, the tag can be fixed before running delocate to repair the wheel. The [`wheel tags`](https://wheel.readthedocs.io/en/stable/reference/wheel_tags.html) command is ideal for this. See [this workflow](https://gist.github.com/anderssonjohan/49f07e33fc5cb2420515a8ac76dc0c95#file-build-pendulum-wheels-yml-L39-L53) for an example usage of `wheel tags`.
-
-Hopefully, cross-compilation is a temporary situation. Once we have widely available Apple Silicon CI runners, we can build `arm64` wheels natively. Until then, cross-compiling `arm64` or `universal2` wheels requires opt-in by setting `CIBW_ARCHS_MACOS` on Intel runners.
-
-Here's an example GitHub Actions workflow with a job that builds for Apple Silicon:
-
-> .github/workflows/build_macos.yml
-
-```yml
-{% include "../examples/github-apple-silicon.yml" %}
-```
-
-Here's an example Cirrus CI workflow with a job that builds for macOS Intel through Rosetta 2 emulation and for Apple Silicon natively:
-
-> .cirrus.yml
-
-```yml
-{% include "../examples/cirrus-ci-intel-mac.yml" %}
-```
 
 ### Building Linux wheels for non-native archs using emulation  {: #emulation}
 
