@@ -42,27 +42,21 @@ runs:
         --spec '${{ github.action_path }}'
         cibuildwheel
         "${{ inputs.package-dir }}"
-        --output-dir "${{ inputs.output-dir }}"
-        --config-file "${{ inputs.config-file }}"
-        --only "${{ inputs.only }}"
+        ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
+        ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
+        ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
         2>&1
       shell: bash
       if: runner.os != 'Windows'
 
     # Windows needs powershell to interact nicely with Meson
-    # $PSNativeCommandArgumentPassing was introduced in pwsh 7.3 and the
-    # legacy behaviour is needed for backwards compatibility with how this
-    # was called in the past.
     - run: >
-        if ($PSNativeCommandArgumentPassing) {
-            $PSNativeCommandArgumentPassing = 'Legacy'
-        };
         & "${{ steps.python.outputs.python-path }}" -m pipx run
         --spec "${{ github.action_path }}"
         cibuildwheel
         "${{ inputs.package-dir }}"
-        --output-dir '"${{ inputs.output-dir }}"'
-        --config-file '"${{ inputs.config-file }}"'
-        --only '"${{ inputs.only }}"'
+        ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
+        ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
+        ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
       shell: pwsh
       if: runner.os == 'Windows'
