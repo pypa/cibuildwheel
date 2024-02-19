@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel.options import ConfigOptionError, Inherit, OptionsReader, _dig_first
+from cibuildwheel.options import ConfigOptionError, InheritRule, OptionsReader, _resolve_cascade
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -263,77 +263,72 @@ manylinux-x86_64-image = ""
 
 
 @pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
-def test_dig_first(ignore_empty):
-    d1 = {"random": "thing"}
-    d2 = {"this": "that", "empty": ""}
-    d3 = {"other": "hi"}
-    d4 = {"this": "d4", "empty": "not"}
-
-    answer = _dig_first(
-        (d1, "empty", Inherit.NONE),
-        (d2, "empty", Inherit.NONE),
-        (d3, "empty", Inherit.NONE),
-        (d4, "empty", Inherit.NONE),
+def test_resolve_cascade(ignore_empty):
+    answer = _resolve_cascade(
+        ("not", InheritRule.NONE),
+        (None, InheritRule.NONE),
+        ("", InheritRule.NONE),
+        (None, InheritRule.NONE),
         ignore_empty=ignore_empty,
     )
     assert answer == ("not" if ignore_empty else "")
 
-    answer = _dig_first(
-        (d1, "this", Inherit.NONE),
-        (d2, "this", Inherit.NONE),
-        (d3, "this", Inherit.NONE),
-        (d4, "this", Inherit.NONE),
+    answer = _resolve_cascade(
+        ("d4", InheritRule.NONE),
+        (None, InheritRule.NONE),
+        ("that", InheritRule.NONE),
+        (None, InheritRule.NONE),
         ignore_empty=ignore_empty,
     )
     assert answer == "that"
 
-    with pytest.raises(KeyError):
-        _dig_first(
-            (d1, "this", Inherit.NONE),
-            (d2, "other", Inherit.NONE),
-            (d3, "this", Inherit.NONE),
-            (d4, "other", Inherit.NONE),
+    with pytest.raises(ValueError, match="a setting should at least have a default value"):
+        _resolve_cascade(
+            (None, InheritRule.NONE),
+            (None, InheritRule.NONE),
+            (None, InheritRule.NONE),
+            (None, InheritRule.NONE),
             ignore_empty=ignore_empty,
         )
 
 
 @pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
-@pytest.mark.parametrize("end", [Inherit.PREPEND, Inherit.NONE, Inherit.APPEND])
-@pytest.mark.parametrize("append", [True, False], ids=["append", "prepend"])
-def test_dig_first_merge_list(ignore_empty, end, append):
-    d1 = {"random": ["thing"]}
-    d2 = {"this": ["d2a", "d2b"], "empty": ""}
-    d3 = {"other": ["hi"]}
-    d4 = {"this": ["d4a", "d4b"], "empty": ["not"]}
-
-    answer = _dig_first(
-        (d1, "this", Inherit.NONE),
-        (d2, "this", Inherit.APPEND if append else Inherit.PREPEND),
-        (d3, "this", Inherit.NONE),
-        (d4, "this", end),
+@pytest.mark.parametrize("rule", [InheritRule.PREPEND, InheritRule.NONE, InheritRule.APPEND])
+def test_resolve_cascade_merge_list(ignore_empty, rule):
+    answer = _resolve_cascade(
+        (["a1", "a2"], InheritRule.NONE),
+        ([], InheritRule.NONE),
+        (["b1", "b2"], rule),
+        (None, InheritRule.NONE),
         ignore_empty=ignore_empty,
     )
 
-    assert answer == (["d4a", "d4b", "d2a", "d2b"] if append else ["d2a", "d2b", "d4a", "d4b"])
+    if not ignore_empty:
+        assert answer == ["b1", "b2"]
+    else:
+        if rule == InheritRule.PREPEND:
+            assert answer == ["b1", "b2", "a1", "a2"]
+        elif rule == InheritRule.NONE:
+            assert answer == ["b1", "b2"]
+        elif rule == InheritRule.APPEND:
+            assert answer == ["a1", "a2", "b1", "b2"]
 
 
-@pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
-@pytest.mark.parametrize("end", [Inherit.PREPEND, Inherit.NONE, Inherit.APPEND])
-def test_dig_first_merge_dict(ignore_empty, end):
-    d1 = {"random": {"a": "thing"}}
-    d2 = {"this": {"b": "that"}}
-    d3 = {"other": {"c": "ho"}}
-    d4 = {"this": {"d": "d4"}, "empty": {"d": "not"}}
-
-    answer = _dig_first(
-        (d1, "this", Inherit.NONE),
-        (d2, "this", Inherit.APPEND),
-        (d3, "this", Inherit.NONE),
-        (d4, "this", end),
-        ignore_empty=ignore_empty,
+@pytest.mark.parametrize("rule", [InheritRule.PREPEND, InheritRule.NONE, InheritRule.APPEND])
+def test_resolve_cascade_merge_dict(rule):
+    answer = _resolve_cascade(
+        ({"value": "a1", "base": "b1"}, InheritRule.NONE),
+        (None, InheritRule.NONE),
+        ({"value": "override"}, rule),
+        (None, InheritRule.NONE),
     )
 
-    assert answer == {"b": "that", "d": "d4"}
+    if rule == InheritRule.PREPEND:
+        assert answer == {"value": "a1", "base": "b1"}
+    elif rule == InheritRule.NONE:
+        assert answer == {"value": "override"}
+    elif rule == InheritRule.APPEND:
+        assert answer == {"value": "override", "base": "b1"}
 
 
 PYPROJECT_2 = """

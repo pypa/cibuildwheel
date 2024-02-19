@@ -124,7 +124,7 @@ Setting = Union[Mapping[str, str], Sequence[str], str, int]
 class Override:
     select_pattern: str
     options: dict[str, Setting]
-    inherit: dict[str, Inherit]
+    inherit: dict[str, InheritRule]
 
 
 MANYLINUX_OPTIONS = {f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS}
@@ -152,81 +152,73 @@ class ConfigOptionError(KeyError):
     pass
 
 
-class Inherit(enum.Enum):
+class InheritRule(enum.Enum):
     NONE = enum.auto()
     APPEND = enum.auto()
     PREPEND = enum.auto()
 
 
-def _dig_first(
-    *pairs: tuple[Mapping[str, Setting], str, Inherit], ignore_empty: bool = False
+def _resolve_cascade(
+    *pairs: tuple[Setting | None, InheritRule], ignore_empty: bool = False
 ) -> Setting:
     """
-    Return the dict items that match from pairs of dicts and keys. The third
-    value (enum) indicates if values should merge.
+    Given a cascade of values with inherit rules, resolve them into a single
+    value.
+
+    'None' values mean that the option was not set at that level.
+
+    Values start with defaults, followed by more specific rules. If rules
+    are NONE, the last non-null value is returned. If a rule is APPEND or
+    PREPEND, the value is concatenated with the previous value, according to
+    the rules in _merge_values.
 
     The following idiom can be used to get the first matching value:
 
-        _dig_first((dict1, "key1", Inherit.NONE), (dict2, "key2", Inherit.NONE), ...)))
+        _resolve_cascade(("value1", Inherit.NONE), ("value2", Inherit.NONE), ...)))
     """
     if not pairs:
         msg = "pairs cannot be empty"
         raise ValueError(msg)
 
-    commands: list[tuple[Setting, Inherit]] = []
+    result: Setting | None = None
 
-    for dict_like, key, merge in pairs:
-        if key in dict_like:
-            value = dict_like[key]
-            if ignore_empty and value == "":
-                continue
+    for value, rule in pairs:
+        if value is None:
+            continue
 
-            commands.append((value, merge))
-            if merge == Inherit.NONE:
-                break
+        if ignore_empty and not value:
+            continue
 
-    if len(commands) == 1:
-        return commands[0][0]
-
-    if len(commands) > 1:
-        if isinstance(commands[0][0], list):
-            retlist: list[str] = []
-            for c in commands:
-                if c[1] == Inherit.PREPEND:
-                    assert isinstance(c[0], list)
-                    retlist.extend(c[0])
-            for c in commands:
-                if c[1] == Inherit.NONE:
-                    assert isinstance(c[0], list)
-                    retlist.extend(c[0])
-            for c in commands[::-1]:
-                if c[1] == Inherit.APPEND:
-                    assert isinstance(c[0], list)
-                    retlist.extend(c[0])
-            return retlist
-
-        if isinstance(commands[0][0], dict):
-            retdict: dict[str, str] = {}
-            for c in commands:
-                if c[1] == Inherit.PREPEND:
-                    assert isinstance(c[0], dict)
-                    retdict.update(c[0])
-            for c in commands:
-                if c[1] == Inherit.NONE:
-                    assert isinstance(c[0], dict)
-                    retdict.update(c[0])
-            for c in commands[::-1]:
-                if c[1] == Inherit.APPEND:
-                    assert isinstance(c[0], dict)
-                    retdict.update(c[0])
-            return retdict
-
+        if result is None:  # noqa: SIM108
+            result = value
         else:
-            msg = f"Must be list or dict, got {type(commands[0])}"
-            raise TypeError(msg)
+            result = _merge_values(result, value, rule)
 
-    last_key = pairs[-1][1]
-    raise KeyError(last_key)
+    if result is None:
+        msg = "a setting should at least have a default value"
+        raise ValueError(msg)
+
+    return result
+
+
+def _merge_values(before: Setting, after: Setting, rule: InheritRule) -> Setting:
+    if rule == InheritRule.NONE:
+        return after
+
+    if isinstance(before, list) and isinstance(after, list):
+        if rule == InheritRule.APPEND:
+            return before + after
+        else:
+            return after + before
+
+    if isinstance(before, dict) and isinstance(after, dict):
+        if rule == InheritRule.APPEND:
+            return {**before, **after}
+        else:
+            return {**after, **before}
+
+    msg = f"Cannot merge {type(before)} and {type(after)} with {rule}"
+    raise TypeError(msg)
 
 
 class OptionsReader:
@@ -306,7 +298,7 @@ class OptionsReader:
                     msg = "'inherit' must be a dict containing only {'none', 'append', 'prepend'} values"
                     raise ConfigOptionError(msg)
 
-                inherit_enum = {k: Inherit[v.upper()] for k, v in inherit.items()}
+                inherit_enum = {k: InheritRule[v.upper()] for k, v in inherit.items()}
 
                 self.overrides.append(Override(select, config_override, inherit_enum))
 
@@ -399,22 +391,19 @@ class OptionsReader:
         envvar = f"CIBW_{name.upper().replace('-', '_')}"
         plat_envvar = f"{envvar}_{self.platform.upper()}"
 
-        # later overrides take precedence over earlier ones, so reverse the list
-        active_config_overrides = reversed(self.active_config_overrides)
-
-        # get the option from the environment, then the config file, then finally the default.
+        # get the option from the default, then the config file, then finally the environment.
         # platform-specific options are preferred, if they're allowed.
-        result = _dig_first(
-            (self.env if env_plat else {}, plat_envvar, Inherit.NONE),
-            (self.env, envvar, Inherit.NONE),
+        result = _resolve_cascade(
+            (self.default_options.get(name), InheritRule.NONE),
+            (self.default_platform_options.get(name), InheritRule.NONE),
+            (self.config_options.get(name), InheritRule.NONE),
+            (self.config_platform_options.get(name), InheritRule.NONE),
             *[
-                (o.options, name, o.inherit.get(name, Inherit.NONE))
-                for o in active_config_overrides
+                (o.options.get(name), o.inherit.get(name, InheritRule.NONE))
+                for o in self.active_config_overrides
             ],
-            (self.config_platform_options, name, Inherit.NONE),
-            (self.config_options, name, Inherit.NONE),
-            (self.default_platform_options, name, Inherit.NONE),
-            (self.default_options, name, Inherit.NONE),
+            (self.env.get(envvar), InheritRule.NONE),
+            (self.env.get(plat_envvar) if env_plat else None, InheritRule.NONE),
             ignore_empty=ignore_empty,
         )
 
