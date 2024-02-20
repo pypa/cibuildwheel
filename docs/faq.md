@@ -355,6 +355,13 @@ sh "/Applications/Python 3.8/Install Certificates.command"
 
 Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
 
+### macOS: Library dependencies do not satisfy target MacOS
+
+Since delocate 0.10.8 there is added verification that the library binary dependencies match the target macOS version. This is to prevent the situation where a wheel platform tag is lower than the actual minimum macOS version required by the library. To resolve this error you need to build the library to the same macOS version as the target wheel (for example using `MACOSX_DEPLOYMENT_TARGET` environment variable).
+Alternatively, you could set a higher `MACOSX_DEPLOYMENT_TARGET` to drop support for older macOS versions.
+
+This error may happen when you install a library using a package manager like Homebrew, which compiles the library for the macOS version of the build machine. This is not suitable for wheels, as the library will only work on the same macOS version as the build machine. You should compile the library yourself, or use a precompiled binary that matches the target macOS version.
+
 ### Windows: 'ImportError: DLL load failed: The specific module could not be found'
 
 Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, the C parts of the runtime are included with Python, but the C++ components are not. When compiling modules using C++, it is possible users will run into problems on systems that do not have the full set of runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it.
