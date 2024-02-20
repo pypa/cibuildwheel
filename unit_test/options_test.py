@@ -347,3 +347,71 @@ def test_build_frontend_option(tmp_path: Path, toml_assignment, result_name, res
         assert parsed_build_frontend.args == result_args
     else:
         assert parsed_build_frontend is None
+
+
+def test_override_inherit_environment(tmp_path: Path):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            """\
+            [tool.cibuildwheel]
+            environment = {FOO="BAR", "HAM"="EGGS"}
+
+            [[tool.cibuildwheel.overrides]]
+            select = "cp37*"
+            inherit.environment = "append"
+            environment = {FOO="BAZ", "PYTHON"="MONTY"}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    parsed_environment = options.build_options(identifier=None).environment
+    assert parsed_environment.as_dictionary(prev_environment={}) == {
+        "FOO": "BAR",
+        "HAM": "EGGS",
+    }
+
+    assert options.build_options("cp37-manylinux_x86_64").environment.as_dictionary(
+        prev_environment={}
+    ) == {
+        "FOO": "BAZ",
+        "HAM": "EGGS",
+        "PYTHON": "MONTY",
+    }
+
+
+def test_override_inherit_environment_with_references(tmp_path: Path):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            """\
+            [tool.cibuildwheel]
+            environment = {PATH="/opt/bin:$PATH"}
+
+            [[tool.cibuildwheel.overrides]]
+            select = "cp37*"
+            inherit.environment = "append"
+            environment = {PATH="/opt/local/bin:$PATH"}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={"MONTY": "PYTHON"})
+    parsed_environment = options.build_options(identifier=None).environment
+    prev_environment = {"PATH": "/usr/bin:/bin"}
+    assert parsed_environment.as_dictionary(prev_environment=prev_environment) == {
+        "PATH": "/opt/bin:/usr/bin:/bin",
+    }
+
+    assert options.build_options("cp37-manylinux_x86_64").environment.as_dictionary(
+        prev_environment=prev_environment
+    ) == {
+        "PATH": "/opt/local/bin:/opt/bin:/usr/bin:/bin",
+    }

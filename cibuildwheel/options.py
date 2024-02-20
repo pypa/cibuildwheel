@@ -18,7 +18,7 @@ from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TI
 from packaging.specifiers import SpecifierSet
 
 from ._compat import tomllib
-from ._compat.typing import NotRequired
+from ._compat.typing import NotRequired, assert_never
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
@@ -159,18 +159,21 @@ class InheritRule(enum.Enum):
 
 
 def _resolve_cascade(
-    *pairs: tuple[Setting | None, InheritRule], ignore_empty: bool = False
-) -> Setting:
+    *pairs: tuple[Setting | None, InheritRule],
+    ignore_empty: bool = False,
+    list_sep: str | None = None,
+    table_format: TableFmt | None = None,
+) -> str:
     """
     Given a cascade of values with inherit rules, resolve them into a single
     value.
 
-    'None' values mean that the option was not set at that level.
+    'None' values mean that the option was not set at that level, and are
+    ignored. If `ignore_empty` is True, empty values are ignored too.
 
-    Values start with defaults, followed by more specific rules. If rules
-    are NONE, the last non-null value is returned. If a rule is APPEND or
-    PREPEND, the value is concatenated with the previous value, according to
-    the rules in _merge_values.
+    Values start with defaults, followed by more specific rules. If rules are
+    NONE, the last non-null value is returned. If a rule is APPEND or PREPEND,
+    the value is concatenated with the previous value.
 
     The following idiom can be used to get the first matching value:
 
@@ -180,7 +183,14 @@ def _resolve_cascade(
         msg = "pairs cannot be empty"
         raise ValueError(msg)
 
-    result: Setting | None = None
+    result: str | None = None
+
+    if table_format is not None:
+        merge_sep = table_format["sep"]
+    elif list_sep is not None:
+        merge_sep = list_sep
+    else:
+        merge_sep = None
 
     for value, rule in pairs:
         if value is None:
@@ -189,10 +199,14 @@ def _resolve_cascade(
         if ignore_empty and not value:
             continue
 
-        if result is None:  # noqa: SIM108
-            result = value
-        else:
-            result = _merge_values(result, value, rule)
+        value_string = _stringify_setting(value, list_sep, table_format)
+
+        result = _merge_values(
+            result,
+            value_string,
+            rule=rule,
+            merge_sep=merge_sep,
+        )
 
     if result is None:
         msg = "a setting should at least have a default value"
@@ -201,24 +215,52 @@ def _resolve_cascade(
     return result
 
 
-def _merge_values(before: Setting, after: Setting, rule: InheritRule) -> Setting:
+def _merge_values(before: str | None, after: str, rule: InheritRule, merge_sep: str | None) -> str:
     if rule == InheritRule.NONE:
         return after
 
-    if isinstance(before, list) and isinstance(after, list):
-        if rule == InheritRule.APPEND:
-            return before + after
-        else:
-            return after + before
+    if not before:
+        # if before is None, we can just return after
+        # if before is an empty string, we shouldn't add any separator
+        return after
 
-    if isinstance(before, dict) and isinstance(after, dict):
-        if rule == InheritRule.APPEND:
-            return {**before, **after}
-        else:
-            return {**after, **before}
+    if not after:
+        # if after is an empty string, we shouldn't add any separator
+        return before
 
-    msg = f"Cannot merge {type(before)} and {type(after)} with {rule}"
-    raise TypeError(msg)
+    if not merge_sep:
+        msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
+        raise ConfigOptionError(msg)
+
+    if rule == InheritRule.APPEND:
+        return f"{before}{merge_sep}{after}"
+    elif rule == InheritRule.PREPEND:
+        return f"{after}{merge_sep}{before}"
+    else:
+        assert_never(rule)
+
+
+def _stringify_setting(
+    setting: Setting, list_sep: str | None, table_format: TableFmt | None
+) -> str:
+    if isinstance(setting, Mapping):
+        if table_format is None:
+            msg = f"Error converting {setting!r} to a string: this setting doesn't accept a table"
+            raise ConfigOptionError(msg)
+        return table_format["sep"].join(
+            item for k, v in setting.items() for item in _inner_fmt(k, v, table_format)
+        )
+
+    if not isinstance(setting, str) and isinstance(setting, Sequence):
+        if list_sep is None:
+            msg = f"Error converting {setting!r} to a string: this setting doesn't accept a list"
+            raise ConfigOptionError(msg)
+        return list_sep.join(setting)
+
+    if isinstance(setting, int):
+        return str(setting)
+
+    return setting
 
 
 class OptionsReader:
@@ -368,8 +410,8 @@ class OptionsReader:
         name: str,
         *,
         env_plat: bool = True,
-        sep: str | None = None,
-        table: TableFmt | None = None,
+        list_sep: str | None = None,
+        table_format: TableFmt | None = None,
         ignore_empty: bool = False,
     ) -> str:
         """
@@ -393,7 +435,7 @@ class OptionsReader:
 
         # get the option from the default, then the config file, then finally the environment.
         # platform-specific options are preferred, if they're allowed.
-        result = _resolve_cascade(
+        return _resolve_cascade(
             (self.default_options.get(name), InheritRule.NONE),
             (self.default_platform_options.get(name), InheritRule.NONE),
             (self.config_options.get(name), InheritRule.NONE),
@@ -405,26 +447,9 @@ class OptionsReader:
             (self.env.get(envvar), InheritRule.NONE),
             (self.env.get(plat_envvar) if env_plat else None, InheritRule.NONE),
             ignore_empty=ignore_empty,
+            list_sep=list_sep,
+            table_format=table_format,
         )
-
-        if isinstance(result, Mapping):
-            if table is None:
-                msg = f"{name!r} does not accept a table"
-                raise ConfigOptionError(msg)
-            return table["sep"].join(
-                item for k, v in result.items() for item in _inner_fmt(k, v, table)
-            )
-
-        if not isinstance(result, str) and isinstance(result, Sequence):
-            if sep is None:
-                msg = f"{name!r} does not accept a list"
-                raise ConfigOptionError(msg)
-            return sep.join(result)
-
-        if isinstance(result, int):
-            return str(result)
-
-        return result
 
 
 def _inner_fmt(k: str, v: Any, table: TableFmt) -> Iterator[str]:
@@ -486,9 +511,9 @@ class Options:
         package_dir = args.package_dir
         output_dir = args.output_dir
 
-        build_config = self.reader.get("build", env_plat=False, sep=" ") or "*"
-        skip_config = self.reader.get("skip", env_plat=False, sep=" ")
-        test_skip = self.reader.get("test-skip", env_plat=False, sep=" ")
+        build_config = self.reader.get("build", env_plat=False, list_sep=" ") or "*"
+        skip_config = self.reader.get("skip", env_plat=False, list_sep=" ")
+        test_skip = self.reader.get("test-skip", env_plat=False, list_sep=" ")
 
         prerelease_pythons = args.prerelease_pythons or strtobool(
             self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
@@ -501,7 +526,7 @@ class Options:
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
-        archs_config_str = args.archs or self.reader.get("archs", sep=" ")
+        archs_config_str = args.archs or self.reader.get("archs", list_sep=" ")
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
         # Process `--only`
@@ -520,7 +545,8 @@ class Options:
         test_selector = TestSelector(skip_config=test_skip)
 
         container_engine_str = self.reader.get(
-            "container-engine", table={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote}
+            "container-engine",
+            table_format={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
         )
 
         try:
@@ -545,29 +571,30 @@ class Options:
         """
 
         with self.reader.identifier(identifier):
-            before_all = self.reader.get("before-all", sep=" && ")
+            before_all = self.reader.get("before-all", list_sep=" && ")
 
             environment_config = self.reader.get(
-                "environment", table={"item": '{k}="{v}"', "sep": " "}
+                "environment", table_format={"item": '{k}="{v}"', "sep": " "}
             )
-            environment_pass = self.reader.get("environment-pass", sep=" ").split()
-            before_build = self.reader.get("before-build", sep=" && ")
-            repair_command = self.reader.get("repair-wheel-command", sep=" && ")
+            environment_pass = self.reader.get("environment-pass", list_sep=" ").split()
+            before_build = self.reader.get("before-build", list_sep=" && ")
+            repair_command = self.reader.get("repair-wheel-command", list_sep=" && ")
             config_settings = self.reader.get(
-                "config-settings", table={"item": "{k}={v}", "sep": " ", "quote": shlex.quote}
+                "config-settings",
+                table_format={"item": "{k}={v}", "sep": " ", "quote": shlex.quote},
             )
 
             dependency_versions = self.reader.get("dependency-versions")
-            test_command = self.reader.get("test-command", sep=" && ")
-            before_test = self.reader.get("before-test", sep=" && ")
-            test_requires = self.reader.get("test-requires", sep=" ").split()
-            test_extras = self.reader.get("test-extras", sep=",")
+            test_command = self.reader.get("test-command", list_sep=" && ")
+            before_test = self.reader.get("before-test", list_sep=" && ")
+            test_requires = self.reader.get("test-requires", list_sep=" ").split()
+            test_extras = self.reader.get("test-extras", list_sep=",")
             build_verbosity_str = self.reader.get("build-verbosity")
 
             build_frontend_str = self.reader.get(
                 "build-frontend",
                 env_plat=False,
-                table={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
+                table_format={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
             )
             build_frontend: BuildFrontendConfig | None
             if not build_frontend_str or build_frontend_str == "default":
