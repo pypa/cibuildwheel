@@ -4,6 +4,27 @@ title: Changelog
 
 # Changelog
 
+### v2.16.5
+
+_30 January 2024_
+
+- 🐛 Fix an incompatibility with the GitHub Action and new GitHub Runner images for Windows that bundle Powershell 7.3+ (#1741)
+- 🛠 Preliminary support for new `macos-14` arm64 runners (#1743)
+
+### v2.16.4
+
+_28 January 2024_
+
+- 🛠 Update manylinux pins to upgrade from a problematic PyPy version. (#1737)
+
+### v2.16.3
+
+_26 January 2024_
+
+- 🐛 Fix a bug when building from sdist, where relative paths to files in the package didn't work because the working directory was wrong (#1687)
+- 🛠 Adds the ability to disable mounting the host filesystem in containers to `/host`, through the `disable_host_mount` suboption on [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine).
+- 📚 A lot of docs improvements! (#1708, #1705, #1686, #1679, #1667, #1665)
+
 ### v2.16.2
 
 _3 October 2023_

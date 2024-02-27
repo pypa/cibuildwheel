@@ -24,7 +24,7 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
-    - uses: pre-commit/action@v3.0.0
+    - uses: pre-commit/action@v3.0.1
     - name: Check manifest
       run: pipx run nox -s check_manifest
     - name: PyLint checks
@@ -38,7 +38,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-latest, macos-11]
+        os: [ubuntu-20.04, windows-latest, macos-13, macos-14]
         python_version: ['3.12']
         include:
         - os: ubuntu-22.04
@@ -84,6 +84,39 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+
+    - name: Run a sample build (GitHub Action, only)
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse_only
+        only: cp312-${{ runner.os == 'Linux' && 'manylinux_x86_64' || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
+
+    - name: Create custom configuration file
+      shell: bash
+      run: |
+        cat > sample_proj/cibw.toml <<EOF
+        [tool.cibuildwheel]
+        # Only build on CPython 3.12 on native arch
+        archs = ["native"]
+        build = "cp312-*"
+        # Skip musllinux
+        skip = "*-musllinux*"
+        EOF
+
+    - name: Run a sample build (GitHub Action, config-file)
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse_config_file
+        config-file: sample_proj/cibw.toml
+
+    - name: Check Action artefacts
+      shell: bash
+      run: |
+        test $(find wheelhouse -name '*.whl' | wc -l) -ge 1
+        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
+        test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
 
     - uses: actions/upload-artifact@v4
       with:

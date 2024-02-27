@@ -8,13 +8,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        # macos-13 is an intel runner, macos-14 is apple silicon
+        os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.16.5
         # env:
         #   CIBW_SOME_OPTION: value
         #    ...

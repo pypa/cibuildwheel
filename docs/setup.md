@@ -61,7 +61,7 @@ You should see the builds taking place. You can experiment with options using en
 
     ```sh
     # run a command to set up the build system
-    export CIBW_BEFORE_ALL='apt install libpng-dev'
+    export CIBW_BEFORE_ALL='uname -a'
 
     cibuildwheel --platform linux
     ```
@@ -69,7 +69,7 @@ You should see the builds taking place. You can experiment with options using en
     > CMD (Windows)
 
     ```bat
-    set CIBW_BEFORE_ALL='apt install libpng-dev'
+    set CIBW_BEFORE_ALL='uname -a'
 
     cibuildwheel --platform linux
     ```
@@ -82,7 +82,7 @@ You should see the builds taking place. You can experiment with options using en
 
     ```
     [tool.cibuildwheel]
-    before-all = "apt install libpng-dev"
+    before-all = "uname -a"
     ```
 
     Then invoke cibuildwheel, like:
@@ -178,13 +178,14 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-20.04, windows-2019, macos-11]
+            # macos-13 is an intel runner, macos-14 is apple silicon
+            os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
 
         steps:
           - uses: actions/checkout@v4
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.16.2
+            run: pipx run cibuildwheel==2.16.5
 
           - uses: actions/upload-artifact@v4
             with:
@@ -211,7 +212,8 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-20.04, windows-2019, macos-11]
+            # macos-13 is an intel runner, macos-14 is apple silicon
+            os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
 
         steps:
           - uses: actions/checkout@v4
@@ -220,7 +222,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/setup-python@v3
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.16.2
+            run: python -m pip install cibuildwheel==2.16.5
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse

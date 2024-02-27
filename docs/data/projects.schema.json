@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/docs/data/projects.schema.json",
+  "type": "array",
+  "description": "The projects file for cibuildwheel",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": { "type": "string" },
+      "gh": { "type": "string", "pattern": "[^/]*/[^/]*" },
+      "stars": { "$ref": "#/items/properties/gh" },
+      "pypi": { "type": "string" },
+      "notes": { "type": "string" },
+      "ci": {
+        "type": "array",
+        "items": {
+          "enum": [
+            "github",
+            "travisci",
+            "appveyor",
+            "circleci",
+            "gitlab",
+            "cirrusci",
+            "azurepipelines"
+          ]
+        }
+      },
+      "ci_config": { "type": "string" },
+      "os": {
+        "type": "array",
+        "items": { "enum": ["windows", "apple", "linux"] }
+      }
+    },
+    "required": ["name", "gh", "ci", "os"]
+  }
+}

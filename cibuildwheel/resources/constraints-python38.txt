@@ -15,10 +15,8 @@ filelock==3.13.1
 importlib-metadata==7.0.1
     # via build
 packaging==23.2
-    # via
-    #   build
-    #   delocate
-platformdirs==4.1.0
+    # via delocate
+platformdirs==4.2.0
     # via virtualenv
 pyproject-hooks==1.0.0
     # via build
@@ -34,5 +32,7 @@ zipp==3.17.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.3.2
+pip==24.0
+    # via -r cibuildwheel/resources/constraints.in
+setuptools==69.1.0
     # via -r cibuildwheel/resources/constraints.in

@@ -343,8 +343,8 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
 
 A list of architectures to build.
 
-On macOS, this option can be used to cross-compile between `x86_64`,
-`universal2` and `arm64` for Apple Silicon support.
+On macOS, this option can be used to [cross-compile](faq.md#cross-compiling)
+between `x86_64`, `universal2` and `arm64`.
 
 On Linux, this option can be used to build non-native architectures under
 emulation. See [this guide](faq.md#emulation) for more information.
@@ -1071,8 +1071,8 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
 
 Options:
 
-- `docker[;create_args: ...]`
-- `podman[;create_args: ...]`
+- `docker[;create_args: ...][;disable_host_mount: true/false]`
+- `podman[;create_args: ...][;disable_host_mount: true/false]`
 
 Default: `docker`
 
@@ -1081,11 +1081,13 @@ Set the container engine to use. Docker is the default, or you can switch to
 running and `docker` available on PATH. To use Podman, it needs to be
 installed and `podman` available on PATH.
 
-Arguments can be supplied to the container engine. Currently, the only option
-that's customisable is 'create_args'. Parameters to create_args are
-space-separated strings, which are passed to the container engine on the
-command line when it's creating the container. If you want to include spaces
-inside a parameter, use shell-style quoting.
+Options can be supplied after the name.
+
+| Option name | Description
+|---|---
+| `create_args` | Space-separated strings, which are passed to the container engine on the command line when it's creating the container. If you want to include spaces inside a parameter, use shell-style quoting.
+| `disable_host_mount` | By default, cibuildwheel will mount the root of the host filesystem as a volume at `/host` in the container. To disable the host mount, pass `true` to this option.
+
 
 !!! tip
 
@@ -1106,6 +1108,9 @@ inside a parameter, use shell-style quoting.
 
     # pass command line options to 'docker create'
     CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
+
+    # disable the /host mount
+    CIBW_CONTAINER_ENGINE: "docker; disable_host_mount: true"
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1117,6 +1122,9 @@ inside a parameter, use shell-style quoting.
 
     # pass command line options to 'docker create'
     container-engine = { name = "docker", create-args = ["--gpus", "all"]}
+
+    # disable the /host mount
+    container-engine = { name = "docker", disable-host-mount = true }
     ```
 
 
