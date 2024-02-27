@@ -27,15 +27,11 @@ project_with_expected_version_checks = test_projects.new_c_project(
 
         print('Gathered versions', versions)
 
-        packages_to_test = ['pip']
+        expected_version = os.environ['EXPECTED_PIP_VERSION']
 
-        for package_name in packages_to_test:
-            env_name = 'EXPECTED_{}_VERSION'.format(package_name.upper())
-            expected_version = os.environ[env_name]
-
-            assert '{}=={}'.format(package_name, expected_version) in versions, (
-                'error: {} version should equal {}'.format(package_name, expected_version)
-            )
+        assert f'pip=={expected_version}' in versions, (
+            f'error: pip version should equal {expected_version}'
+        )
         """
     )
 )
@@ -78,9 +74,7 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
     constraint_file = cibuildwheel.util.resources_dir / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 
-    for package in ["pip"]:
-        env_name = f"EXPECTED_{package.upper()}_VERSION"
-        build_environment[env_name] = constraint_versions[package]
+    build_environment["EXPECTED_PIP_VERSION"] = constraint_versions["pip"]
 
     cibw_environment_option = " ".join(f"{k}={v}" for k, v in build_environment.items())
 
