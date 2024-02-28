@@ -578,15 +578,24 @@ def build(options: Options, tmp_path: Path) -> None:
                         )
                         shell_with_arch(before_test_prepared, env=virtualenv_env)
 
-                    # setting virtualenv_env used for pip install wheel
-                    # set SYSTEM_VERSION_COMPAT=0 to ensure x86_64 cp38 python on
-                    # arm64 runner can get correct macos version and allow installation
-                    # of wheels with MACOSX_DEPLOYMENT_TARGET >= 11.0
-                    # https://github.com/pypa/cibuildwheel/issues/1767
-                    virtualenv_env_install_wheel = virtualenv_env.copy()
-                    virtualenv_env_install_wheel["SYSTEM_VERSION_COMPAT"] = "0"
-
                     # install the wheel
+                    if testing_arch == "x86_64" and is_cp38 and python_arch == "x86_64":
+                        virtualenv_env_install_wheel = virtualenv_env.copy()
+                        virtualenv_env_install_wheel["SYSTEM_VERSION_COMPAT"] = "0"
+                        log.notice(
+                            unwrap(
+                                """
+                                Setting SYSTEM_VERSION_COMPAT=0 to ensure x86_64 CPython 3.8 on
+                                arm64 runner can get correct macOS version and allow installation
+                                of wheels with MACOSX_DEPLOYMENT_TARGET >= 11.0.
+                                See https://github.com/pypa/cibuildwheel/issues/1767
+                                for the details.
+                                """
+                            )
+                        )
+                    else:
+                        virtualenv_env_install_wheel = virtualenv_env
+
                     call_with_arch(
                         "pip",
                         "install",
