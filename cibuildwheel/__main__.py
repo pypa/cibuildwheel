@@ -192,7 +192,9 @@ def _compute_platform_auto() -> PlatformName:
         return "windows"
     else:
         print(
-            'cibuildwheel: Unable to detect platform from "sys.platform". cibuildwheel doesn\'t support building wheels for this platform. You might be able to build for a different platform using the --platform argument. Check --help output for more information.',
+            'cibuildwheel: Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
+            "support building wheels for this platform. You might be able to build for a different "
+            "platform using the --platform argument. Check --help output for more information.",
             file=sys.stderr,
         )
         sys.exit(2)
@@ -277,7 +279,9 @@ def build_in_directory(args: CommandLineArguments) -> None:
     # Add CIBUILDWHEEL environment variable
     os.environ["CIBUILDWHEEL"] = "1"
 
-    # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
+    # Python is buffering by default when running on the CI platforms, giving
+    # problems interleaving subprocess call output with unflushed calls to
+    # 'print'
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore[assignment]
 
     # create the cache dir before it gets printed & builds performed
