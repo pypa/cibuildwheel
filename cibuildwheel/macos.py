@@ -577,19 +577,30 @@ def build(options: Options, tmp_path: Path) -> None:
                             package=build_options.package_dir,
                         )
                         shell_with_arch(before_test_prepared, env=virtualenv_env)
+                    
+                    # setting virtualenv_env used for pip install wheel
+                    # set SYSTEM_VERSION_COMPAT=0 to ensure x86_64 cp38 python on
+                    # arm64 runner can get correct macos version and allow installation
+                    # of wheels with MACOSX_DEPLOYMENT_TARGET >= 11.0
+                    # https://github.com/pypa/cibuildwheel/issues/1767
+                    virtualenv_env_install_wheel = virtualenv_env.copy()
+                    virtualenv_env_install_wheel["SYSTEM_VERSION_COMPAT"] = "0"
 
                     # install the wheel
                     call_with_arch(
                         "pip",
                         "install",
                         f"{repaired_wheel}{build_options.test_extras}",
-                        env=virtualenv_env,
+                        env=virtualenv_env_install_wheel,
                     )
 
                     # test the wheel
                     if build_options.test_requires:
                         call_with_arch(
-                            "pip", "install", *build_options.test_requires, env=virtualenv_env
+                            "pip",
+                            "install",
+                            *build_options.test_requires,
+                            env=virtualenv_env_install_wheel,
                         )
 
                     # run the tests from a temp dir, with an absolute path in the command
