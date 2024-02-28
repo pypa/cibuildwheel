@@ -184,7 +184,7 @@ Options: `auto` `linux` `macos` `windows`
 
 Default: `auto`
 
-`auto` will auto-detect platform using environment variables, such as `TRAVIS_OS_NAME`/`APPVEYOR`/`CIRCLECI`.
+`auto` will build wheels for the current platform.
 
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
@@ -192,13 +192,15 @@ Default: `auto`
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
 !!! tip
-    You can use this option to locally debug your cibuildwheel config, instead of pushing to CI to test every change. For example:
+    You can use this option to locally debug your cibuildwheel config on Linux, instead of pushing to CI to test every change. For example:
 
     ```bash
     export CIBW_BUILD='cp37-*'
     export CIBW_TEST_COMMAND='pytest {package}/tests'
     cibuildwheel --platform linux .
     ```
+
+    Linux builds are the easiest to test locally, because all the build tools are supplied in the container, and they run exactly the same locally as in CI.
 
     This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](#configuration-file).
 
