@@ -577,7 +577,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             package=build_options.package_dir,
                         )
                         shell_with_arch(before_test_prepared, env=virtualenv_env)
-                    
+
                     # setting virtualenv_env used for pip install wheel
                     # set SYSTEM_VERSION_COMPAT=0 to ensure x86_64 cp38 python on
                     # arm64 runner can get correct macos version and allow installation
