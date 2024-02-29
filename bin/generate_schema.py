@@ -289,7 +289,7 @@ schema["properties"] |= oses
 
 if args.schemastore:
     schema["$id"] = "https://json.schemastore.org/partial-cibuildwheel.json"
-    schema["$id"] = "http://json-schema.org/draft-07/schema#"
+    schema["$schema"] = "http://json-schema.org/draft-07/schema#"
     schema[
         "description"
     ] = "cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel."
