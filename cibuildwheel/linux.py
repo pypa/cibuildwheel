@@ -441,12 +441,16 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                         this_build_platform = docker_platform
                         break
                 else:
-                    raise ValueError(f"Unexpected build platform ’{build_step.platform_tag}'.")
+                    msg = f"Unexpected build platform: {build_step.platform_tag}."
+                    raise ValueError(msg)
 
                 container_engine_config = OCIContainerEngineConfig(
                     name=options.globals.container_engine.name,
-                    create_args=tuple(options.globals.container_engine.create_args)
-                    + ("--platform", this_build_platform),
+                    create_args=(
+                        *options.globals.container_engine.create_args,
+                        "--platform",
+                        this_build_platform,
+                    ),
                     disable_host_mount=options.globals.container_engine.disable_host_mount,
                 )
             else:
