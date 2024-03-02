@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from cibuildwheel import errors
 from cibuildwheel.__main__ import get_build_identifiers, get_platform_module
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.environment import parse_environment
@@ -127,7 +128,8 @@ def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):
 
 
 xfail_env_parse = pytest.mark.xfail(
-    raises=SystemExit, reason="until we can figure out the right way to quote these values"
+    raises=errors.ConfigurationError,
+    reason="until we can figure out the right way to quote these values",
 )
 
 

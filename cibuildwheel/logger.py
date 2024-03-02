@@ -151,6 +151,10 @@ class Logger:
             c = self.colors
             print(f"{c.bright_red}Error{c.end}: {error}\n", file=sys.stderr)
 
+    @property
+    def step_active(self) -> bool:
+        return self.step_start_time is not None
+
     def _start_fold_group(self, name: str) -> None:
         self._end_fold_group()
         self.active_fold_group_name = name
