@@ -12,70 +12,6 @@ If you have an idea for a modification or feature, it's probably best to raise a
 
 Everyone contributing to the cibuildwheel project is expected to follow the [PSF Code of Conduct](https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md).
 
-## Running the tests
-
-When making a change to the codebase, you can run tests locally for quicker feedback than the CI runs on a PR. You can [run them directly](#making-a-venv), but the easiest way to run tests is using [nox](https://nox.thea.codes/).
-
-You can run all the tests locally by doing:
-
-```bash
-nox -s tests
-```
-
-However, because this takes a while, you might prefer to be more specific.
-
-### Unit tests
-
-To run the project's unit tests, do:
-
-```bash
-nox -s tests -- unit_test
-```
-
-There are a few custom options to enable different parts of the test suite - check `nox -s tests -- unit_test --help` for details.
-
-If you're calling this a lot, you might consider using the `-r` or `-R` arguments to nox to make it a bit faster. This calls pytest under the hood, so to target a specific test, use pytest's `-k` option after the `--` above to select a specific test.
-
-### Integration tests
-
-The integration test suite is big - it can take more than 30 minutes to run the whole thing.
-
-```bash
-nox -s tests -- test
-```
-
-Because it takes such a long time, normally you'd choose specific tests to run locally, and rely on the project's CI for the rest. Use pytest's `-k` option to choose specific tests. You can pass a test name or a filename, it'll run everything that matches.
-
-```bash
-nox -s tests -- test -k <test_name_or_filename>
-# e.g.
-nox -s tests -- test -k before_build
-```
-
-A few notes-
-
-- Because they run inside a container, Linux tests can run on all platforms where Docker is installed, so they're convenient for running integration tests locally. Set CIBW_PLATFORM to do this: `CIBW_PLATFORM=linux nox -s tests -- test`.
-
-- Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
-
-### Making a venv
-
-More advanced users might prefer to invoke pytest directly-
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .[dev]
-# run the unit tests
-pytest unit_test
-# run the whole integration test suite
-pytest test
-# run a specific integration test
-pytest test -k test_build_frontend_args
-# run a specific integration test on a different platform
-CIBW_PLATFORM=linux pytest test -k test_build_frontend_args
-```
-
 ## Design Goals
 
 - `cibuildwheel` should wrap the complexity of wheel building.
@@ -96,13 +32,77 @@ We're not responsible for errors in those tools, for fixing errors/crashes there
 
 So, if we can, I'd like to improve the experience on errors as well. In [this](https://github.com/pypa/cibuildwheel/issues/139) case, it takes a bit of knowledge to understand that the Linux builds are happening in a different OS via Docker, that the linked symbols won't match, that auditwheel will fail because of this. A problem with how the tools fit together, instead of the tools themselves.
 
-## Maintainer notes
+## Development
 
-### Nox support
+### Running the tests
+
+When making a change to the codebase, you can run tests locally for quicker feedback than the CI runs on a PR. You can [run them directly](#making-a-venv), but the easiest way to run tests is using [nox](https://nox.thea.codes/).
+
+You can run all the tests locally by doing:
+
+```bash
+nox -s tests
+```
+
+However, because this takes a while, you might prefer to be more specific.
+
+#### Unit tests
+
+To run the project's unit tests, do:
+
+```bash
+nox -s tests -- unit_test
+```
+
+There are a few custom options to enable different parts of the test suite - check `nox -s tests -- unit_test --help` for details.
+
+If you're calling this a lot, you might consider using the `-r` or `-R` arguments to nox to make it a bit faster. This calls pytest under the hood, so to target a specific test, use pytest's `-k` option after the `--` above to select a specific test.
+
+#### Integration tests
+
+To run the project's integration tests, do:
+
+```bash
+nox -s tests -- test
+```
+
+The integration test suite is big - it can take more than 30 minutes to run the whole thing.
+
+Because it takes such a long time, normally you'd choose specific tests to run locally, and rely on the project's CI for the rest. Use pytest's `-k` option to choose specific tests. You can pass a test name or a filename, it'll run everything that matches.
+
+```bash
+nox -s tests -- test -k <test_name_or_filename>
+# e.g.
+nox -s tests -- test -k before_build
+```
+
+A few notes-
+
+- Because they run inside a container, Linux tests can run on all platforms where Docker is installed, so they're convenient for running integration tests locally. Set CIBW_PLATFORM to do this: `CIBW_PLATFORM=linux nox -s tests -- test`.
+
+- Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
+
+#### Making a venv
+
+More advanced users might prefer to invoke pytest directly-
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+# run the unit tests
+pytest unit_test
+# run the whole integration test suite
+pytest test
+# run a specific integration test
+pytest test -k test_build_frontend_args
+# run a specific integration test on a different platform
+CIBW_PLATFORM=linux pytest test -k test_build_frontend_args
+```
+
+### Linting, docs
 
 Most developer tasks have a nox interface. This allows you to very simply run tasks without worrying about setting up a development environment (as shown below). This is a slower than setting up a development environment and reusing it, but has the (important) benefit of being highly reproducible; an earlier run does not affect a current run, or anything else on your machine.
-
-Install [nox](https://nox.thea.codes); homebrew is recommend on macOS, otherwise, pipx is a great choice - in fact, you can use `pipx run nox` and avoid installing completely.
 
 You can see a list of sessions by typing `nox -l`; here are a few common ones:
 
@@ -118,6 +118,8 @@ More advanced users can run the update scripts. `update_pins` should work direct
 ```console
 docker run --rm -itv $PWD:/src -w /src quay.io/pypa/manylinux_2_24_x86_64:latest pipx run nox -s update_constraints
 ```
+
+## Maintainer notes
 
 ### Testing sample configs
 
