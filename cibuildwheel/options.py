@@ -380,6 +380,9 @@ def _inner_fmt(k: str, v: Any, table: TableFmt) -> Iterator[str]:
         for inner_v in v:
             qv = quote_function(inner_v)
             yield table["item"].format(k=k, v=qv)
+    elif isinstance(v, bool):
+        qv = quote_function(str(v))
+        yield table["item"].format(k=k, v=qv)
     else:
         qv = quote_function(v)
         yield table["item"].format(k=k, v=qv)

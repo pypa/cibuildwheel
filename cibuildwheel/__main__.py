@@ -33,7 +33,6 @@ from cibuildwheel.util import (
     detect_ci_provider,
     fix_ansi_codes_for_github_actions,
     strtobool,
-    unwrap,
 )
 
 # a global variable that decides what happens when errors are hit.
@@ -77,10 +76,9 @@ def main_inner() -> None:
         default=None,
         help="""
             Platform to build for. Use this option to override the
-            auto-detected platform or to run cibuildwheel on your development
-            machine. Specifying "macos" or "windows" only works on that
-            operating system, but "linux" works on all three, as long as
-            Docker/Podman is installed. Default: auto.
+            auto-detected platform. Specifying "macos" or "windows" only works
+            on that operating system, but "linux" works on all three, as long
+            as Docker/Podman is installed. Default: auto.
         """,
     )
 
@@ -198,7 +196,7 @@ def main_inner() -> None:
         # This is now the new package dir
         args.package_dir = project_dir.resolve()
 
-        with chdir(temp_dir):
+        with chdir(project_dir):
             build_in_directory(args)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
@@ -219,17 +217,7 @@ def _compute_platform_only(only: str) -> PlatformName:
     raise errors.ConfigurationError(msg)
 
 
-def _compute_platform_ci() -> PlatformName:
-    if detect_ci_provider() is None:
-        msg = unwrap(
-            """
-            Unable to detect platform. cibuildwheel should run on your CI server;
-            Travis CI, AppVeyor, Azure Pipelines, GitHub Actions, CircleCI, Gitlab, and Cirrus CI
-            are supported. You can run on your development machine or other CI providers
-            using the --platform argument. Check --help output for more information.
-            """
-        )
-        raise errors.ConfigurationError(msg)
+def _compute_platform_auto() -> PlatformName:
     if sys.platform.startswith("linux"):
         return "linux"
     elif sys.platform == "darwin":
@@ -237,11 +225,10 @@ def _compute_platform_ci() -> PlatformName:
     elif sys.platform == "win32":
         return "windows"
     else:
-        msg = unwrap(
-            """
-            Unable to detect platform from "sys.platform" in a CI environment. You can run
-            cibuildwheel using the --platform argument. Check --help output for more information.
-            """
+        msg = (
+            'cibuildwheel: Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
+            "support building wheels for this platform. You might be able to build for a different "
+            "platform using the --platform argument. Check --help output for more information."
         )
         raise errors.ConfigurationError(msg)
 
@@ -265,7 +252,7 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     elif platform_option_value != "auto":
         return typing.cast(PlatformName, platform_option_value)
 
-    return _compute_platform_ci()
+    return _compute_platform_auto()
 
 
 class PlatformModule(Protocol):
@@ -318,7 +305,9 @@ def build_in_directory(args: CommandLineArguments) -> None:
     # Add CIBUILDWHEEL environment variable
     os.environ["CIBUILDWHEEL"] = "1"
 
-    # Python is buffering by default when running on the CI platforms, giving problems interleaving subprocess call output with unflushed calls to 'print'
+    # Python is buffering by default when running on the CI platforms, giving
+    # problems interleaving subprocess call output with unflushed calls to
+    # 'print'
     sys.stdout = Unbuffered(sys.stdout)  # type: ignore[assignment]
 
     # create the cache dir before it gets printed & builds performed

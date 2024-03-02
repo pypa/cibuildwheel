@@ -11,45 +11,14 @@ locally to quickly iterate and track down issues without even touching CI.
 
 Install cibuildwheel and run a build like this:
 
-!!! tab "Linux"
+```sh
+# using pipx (https://github.com/pypa/pipx)
+pipx run cibuildwheel
 
-    Using [pipx](https://github.com/pypa/pipx):
-    ```sh
-    pipx run cibuildwheel --platform linux
-    ```
-
-    Or,
-    ```sh
-    pip install cibuildwheel
-    cibuildwheel --platform linux
-    ```
-
-!!! tab "macOS"
-
-    Using [pipx](https://github.com/pypa/pipx):
-    ```sh
-    pipx run cibuildwheel --platform macos
-    ```
-
-    Or,
-    ```sh
-    pip install cibuildwheel
-    cibuildwheel --platform macos
-    ```
-
-
-!!! tab "Windows"
-
-    Using [pipx](https://github.com/pypa/pipx):
-    ```bat
-    pipx run cibuildwheel --platform windows
-    ```
-
-    Or,
-    ```bat
-    pip install cibuildwheel
-    cibuildwheel --platform windows
-    ```
+# or,
+pip install cibuildwheel
+cibuildwheel
+```
 
 You should see the builds taking place. You can experiment with options using environment variables or pyproject.toml.
 
@@ -61,17 +30,17 @@ You should see the builds taking place. You can experiment with options using en
 
     ```sh
     # run a command to set up the build system
-    export CIBW_BEFORE_ALL='apt install libpng-dev'
+    export CIBW_BEFORE_ALL='uname -a'
 
-    cibuildwheel --platform linux
+    cibuildwheel
     ```
 
     > CMD (Windows)
 
     ```bat
-    set CIBW_BEFORE_ALL='apt install libpng-dev'
+    set CIBW_BEFORE_ALL='uname -a'
 
-    cibuildwheel --platform linux
+    cibuildwheel
     ```
 
 !!! tab "pyproject.toml"
@@ -82,13 +51,13 @@ You should see the builds taking place. You can experiment with options using en
 
     ```
     [tool.cibuildwheel]
-    before-all = "apt install libpng-dev"
+    before-all = "uname -a"
     ```
 
     Then invoke cibuildwheel, like:
 
     ```console
-    cibuildwheel --platform linux
+    cibuildwheel
     ```
 
 ### Linux builds
@@ -178,16 +147,18 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-20.04, windows-2019, macos-11]
+            # macos-13 is an intel runner, macos-14 is apple silicon
+            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
         steps:
           - uses: actions/checkout@v4
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.16.2
+            run: pipx run cibuildwheel==2.16.5
 
-          - uses: actions/upload-artifact@v3
+          - uses: actions/upload-artifact@v4
             with:
+              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
               path: ./wheelhouse/*.whl
     ```
 
@@ -210,7 +181,8 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-20.04, windows-2019, macos-11]
+            # macos-13 is an intel runner, macos-14 is apple silicon
+            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
         steps:
           - uses: actions/checkout@v4
@@ -219,13 +191,14 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/setup-python@v3
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.16.2
+            run: python -m pip install cibuildwheel==2.16.5
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse
 
-          - uses: actions/upload-artifact@v3
+          - uses: actions/upload-artifact@v4
             with:
+              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
               path: ./wheelhouse/*.whl
     ```
 

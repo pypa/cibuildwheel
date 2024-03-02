@@ -309,17 +309,7 @@ def setup_python(
     call("pip", "--version", env=env)
 
     log.step("Installing build tools...")
-    if build_frontend == "pip":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "setuptools",
-            "wheel",
-            *dependency_constraint_flags,
-            env=env,
-        )
-    elif build_frontend == "build":
+    if build_frontend == "build":
         call(
             "pip",
             "install",
@@ -328,8 +318,6 @@ def setup_python(
             *dependency_constraint_flags,
             env=env,
         )
-    else:
-        assert_never(build_frontend)
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation

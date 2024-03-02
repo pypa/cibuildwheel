@@ -14,7 +14,7 @@ import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
-from cibuildwheel.util import detect_ci_provider
+from cibuildwheel.util import CIProvider, detect_ci_provider
 
 # Test utilities
 
@@ -415,3 +415,29 @@ def test_enforce_32_bit(container_engine, image, shell_args):
             text=True,
         ).stdout
         assert json.loads(container_args) == shell_args
+
+
+@pytest.mark.parametrize(
+    ("config", "should_have_host_mount"),
+    [
+        ("{name}", True),
+        ("{name}; disable_host_mount: false", True),
+        ("{name}; disable_host_mount: true", False),
+    ],
+)
+def test_disable_host_mount(tmp_path: Path, container_engine, config, should_have_host_mount):
+    if detect_ci_provider() in {CIProvider.circle_ci, CIProvider.gitlab}:
+        pytest.skip("Skipping test because docker on this platform does not support host mounts")
+
+    engine = OCIContainerEngineConfig.from_config_string(config.format(name=container_engine.name))
+
+    sentinel_file = tmp_path / "sentinel"
+    sentinel_file.write_text("12345")
+
+    with OCIContainer(engine=engine, image=DEFAULT_IMAGE) as container:
+        host_mount_path = "/host" + str(sentinel_file)
+        if should_have_host_mount:
+            assert container.call(["cat", host_mount_path], capture_output=True) == "12345"
+        else:
+            with pytest.raises(subprocess.CalledProcessError):
+                container.call(["cat", host_mount_path], capture_output=True)

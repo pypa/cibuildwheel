@@ -9,9 +9,16 @@ import sys
 from pathlib import Path
 
 if __name__ == "__main__":
+    default_cpu_count = os.cpu_count() or 2
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--run-podman", action="store_true", default=False, help="run podman tests (linux only)"
+    )
+    parser.add_argument(
+        "--num-processes",
+        action="store",
+        default=default_cpu_count,
+        help="number of processes to use for testing",
     )
     args = parser.parse_args()
 
@@ -35,7 +42,7 @@ if __name__ == "__main__":
         sys.executable,
         "-m",
         "pytest",
-        "--numprocesses=2",
+        f"--numprocesses={args.num_processes}",
         "-x",
         "--durations",
         "0",

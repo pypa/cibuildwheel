@@ -282,8 +282,6 @@ def setup_python(
             "pip",
             "install",
             "--upgrade",
-            "setuptools",
-            "wheel",
             "delocate",
             *dependency_constraint_flags,
             env=env,
@@ -483,9 +481,8 @@ def build(options: Options, tmp_path: Path) -> None:
                                 unwrap(
                                     """
                                     While arm64 wheels can be built on x86_64, they cannot be
-                                    tested. The ability to test the arm64 wheels will be added in a
-                                    future release of cibuildwheel, once Apple Silicon CI runners
-                                    are widely available. To silence this warning, set
+                                    tested. Consider building arm64 wheels natively, if your CI
+                                    provider offers this. To silence this warning, set
                                     `CIBW_TEST_SKIP: "*-macosx_arm64"`.
                                     """
                                 )
@@ -495,11 +492,11 @@ def build(options: Options, tmp_path: Path) -> None:
                                 unwrap(
                                     """
                                     While universal2 wheels can be built on x86_64, the arm64 part
-                                    of them cannot currently be tested. The ability to test the
-                                    arm64 part of a universal2 wheel will be added in a future
-                                    release of cibuildwheel, once Apple Silicon CI runners are
-                                    widely available. To silence this warning, set
-                                    `CIBW_TEST_SKIP: "*-macosx_universal2:arm64"`.
+                                    of the wheel cannot be tested on x86_64. Consider building
+                                    universal2 wheels on an arm64 runner, if your CI provider offers
+                                    this. Notably, an arm64 runner can also test the x86_64 part of
+                                    the wheel, through Rosetta emulation. To silence this warning,
+                                    set `CIBW_TEST_SKIP: "*-macosx_universal2:arm64"`.
                                     """
                                 )
                             )
@@ -538,7 +535,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     # there are no dependencies that were pulled in at build time.
                     call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
 
-                    venv_dir = identifier_tmp_dir / "venv-test"
+                    venv_dir = identifier_tmp_dir / f"venv-test-{testing_arch}"
 
                     arch_prefix = []
                     if testing_arch != machine_arch:

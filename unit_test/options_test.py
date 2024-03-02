@@ -203,41 +203,61 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value)
 
 
 @pytest.mark.parametrize(
-    ("toml_assignment", "result_name", "result_create_args"),
+    ("toml_assignment", "result_name", "result_create_args", "result_disable_host_mount"),
     [
         (
             'container-engine = "podman"',
             "podman",
             [],
+            False,
         ),
         (
             'container-engine = {name = "podman"}',
             "podman",
             [],
+            False,
         ),
         (
             'container-engine = "docker; create_args: --some-option"',
             "docker",
             ["--some-option"],
+            False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option"]}',
             "docker",
             ["--some-option"],
+            False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option", "value that contains spaces"]}',
             "docker",
             ["--some-option", "value that contains spaces"],
+            False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option", "value;that;contains;semicolons"]}',
             "docker",
             ["--some-option", "value;that;contains;semicolons"],
+            False,
+        ),
+        (
+            'container-engine = {name = "docker", disable-host-mount = true}',
+            "docker",
+            [],
+            True,
+        ),
+        (
+            'container-engine = {name = "docker", disable_host_mount = true}',
+            "docker",
+            [],
+            True,
         ),
     ],
 )
-def test_container_engine_option(tmp_path: Path, toml_assignment, result_name, result_create_args):
+def test_container_engine_option(
+    tmp_path: Path, toml_assignment, result_name, result_create_args, result_disable_host_mount
+):
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -255,6 +275,7 @@ def test_container_engine_option(tmp_path: Path, toml_assignment, result_name, r
 
     assert parsed_container_engine.name == result_name
     assert parsed_container_engine.create_args == result_create_args
+    assert parsed_container_engine.disable_host_mount == result_disable_host_mount
 
 
 def test_environment_pass_references():

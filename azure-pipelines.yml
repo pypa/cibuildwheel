@@ -24,7 +24,7 @@ jobs:
         versionSpec: '3.8'
     - bash: |
         python -m pip install -e ".[dev]"
-        python ./bin/run_tests.py
+        python ./bin/run_tests.py --num-processes 2
 
 - job: windows_38
   pool: {vmImage: 'windows-2019'}
