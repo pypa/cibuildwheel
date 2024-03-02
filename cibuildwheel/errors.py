@@ -5,7 +5,7 @@ semantically clear and unique.
 """
 
 
-class FatalError(SystemExit):
+class FatalError(Exception):
     """
     Raising an error of this type will cause the message to be printed to
     stderr and the process to be terminated. Within cibuildwheel, raising this
