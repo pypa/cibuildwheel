@@ -181,7 +181,7 @@ test-command = ["pyproject"]
 [[tool.cibuildwheel.overrides]]
 select = "cp311*"
 
-inherit.test-command="prepend"
+inherit.test-command = "prepend"
 test-command = ["pyproject-before"]
 
 inherit.environment="append"
@@ -189,7 +189,7 @@ environment = {FOO="BAZ", "PYTHON"="MONTY"}
 
 [[tool.cibuildwheel.overrides]]
 select = "cp311*"
-inherit.test-command="append"
+inherit.test-command = "append"
 test-command = ["pyproject-after"]
 ```
 
