@@ -39,7 +39,7 @@ jobs:
 
   linux-aarch64:
     machine:
-       image: ubuntu-2004:2022.04.1
+       image: default
     resource_class: arm.medium
     environment:
       PYTHON: python3

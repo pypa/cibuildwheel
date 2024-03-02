@@ -56,5 +56,5 @@ script: |
   (while true; do echo "travis_keep_alive"; sleep 300; done) &
   SPINNER_PID=$!
   disown
-  $PYTHON ./bin/run_tests.py
+  $PYTHON ./bin/run_tests.py --num-processes 2
   kill -9 ${SPINNER_PID}

@@ -18,7 +18,7 @@ jobs:
   update-dependencies:
     name: Update dependencies
     if: github.repository_owner == 'pypa' || github.event_name != 'schedule'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
 
@@ -44,7 +44,7 @@ jobs:
 
     - name: Create Pull Request
       if: github.ref == 'refs/heads/main' && github.repository == 'pypa/cibuildwheel'
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v6
       with:
         commit-message: Update dependencies
         title: '[Bot] Update dependencies'

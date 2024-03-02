@@ -17,7 +17,7 @@ class Printable(Protocol):
 
 
 def dump_python_configurations(
-    inp: Mapping[str, Mapping[str, Sequence[Mapping[str, Printable]]]]
+    inp: Mapping[str, Mapping[str, Sequence[Mapping[str, Printable]]]],
 ) -> str:
     output = StringIO()
     for header, values in inp.items():

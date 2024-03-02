@@ -15,7 +15,7 @@ log_cli_level = "info"
 
 
 [tool.mypy]
-python_version = 3.8
+python_version = "3.8"
 files = [
     "cibuildwheel/*.py",
     "test/**/*.py",
@@ -24,7 +24,6 @@ files = [
     "noxfile.py",
 ]
 warn_unused_configs = true
-show_error_codes = true
 
 warn_redundant_casts = true
 no_implicit_reexport = true
@@ -163,3 +162,6 @@ flake8-unused-arguments.ignore-variadic-names = true
 [tool.ruff.lint.per-file-ignores]
 "unit_test/*" = ["PLC1901"]
 "cibuildwheel/_compat/**.py" = ["TID251"]
+
+[tool.repo-review]
+ignore = ["PC170", "PP303"]

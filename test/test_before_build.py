@@ -12,9 +12,9 @@ project_with_before_build_asserts = test_projects.new_c_project(
         r"""
         import os
 
-        # assert that the Python version as written to pythonversion.txt in the CIBW_BEFORE_BUILD step
+        # assert that the Python version as written to pythonversion_bb.txt in the CIBW_BEFORE_BUILD step
         # is the same one as is currently running.
-        version_file = 'c:\\pythonversion.txt' if sys.platform == 'win32' else '/tmp/pythonversion.txt'
+        version_file = 'c:\\pythonversion_bb.txt' if sys.platform == 'win32' else '/tmp/pythonversion_bb.txt'
         with open(version_file) as f:
             stored_version = f.read()
         print('stored_version', stored_version)
@@ -22,7 +22,7 @@ project_with_before_build_asserts = test_projects.new_c_project(
         assert stored_version == sys.version
 
         # check that the executable also was written
-        executable_file = 'c:\\pythonexecutable.txt' if sys.platform == 'win32' else '/tmp/pythonexecutable.txt'
+        executable_file = 'c:\\pythonexecutable_bb.txt' if sys.platform == 'win32' else '/tmp/pythonexecutable_bb.txt'
         with open(executable_file) as f:
             stored_executable = f.read()
         print('stored_executable', stored_executable)
@@ -44,8 +44,8 @@ def test(tmp_path):
     project_with_before_build_asserts.generate(project_dir)
 
     before_build = (
-        """python -c "import sys; open('{output_dir}pythonversion.txt', 'w').write(sys.version)" && """
-        '''python -c "import sys; open('{output_dir}pythonexecutable.txt', 'w').write(sys.executable)"'''
+        """python -c "import sys; open('{output_dir}pythonversion_bb.txt', 'w').write(sys.version)" && """
+        '''python -c "import sys; open('{output_dir}pythonexecutable_bb.txt', 'w').write(sys.executable)"'''
     )
 
     # build the wheels
