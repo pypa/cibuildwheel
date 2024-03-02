@@ -455,9 +455,12 @@ def build(options: Options, tmp_path: Path) -> None:
                             tmp_file.write_bytes(constraints_path.read_bytes())
                             constraints_path = tmp_file
 
-                        build_env["PIP_CONSTRAINT"] = (
-                            str(constraints_path) + " " + build_env.get("PIP_CONSTRAINT", "")
+                        our_constraints = str(constraints_path)
+                        user_constraints = build_env.get("PIP_CONSTRAINT")
+                        build_env["PIP_CONSTRAINT"] = " ".join(
+                            c for c in [our_constraints, user_constraints] if c
                         )
+
                         build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                         call(
                             "python",
