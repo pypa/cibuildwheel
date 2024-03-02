@@ -445,8 +445,9 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
 
                 container_engine_config = OCIContainerEngineConfig(
                     name=options.globals.container_engine.name,
-                    create_args=tuple(options.globals.container_engine.create_args) + ("--platform", this_build_platform),
-                    disable_host_mount=options.globals.container_engine.disable_host_mount
+                    create_args=tuple(options.globals.container_engine.create_args)
+                    + ("--platform", this_build_platform),
+                    disable_host_mount=options.globals.container_engine.disable_host_mount,
                 )
             else:
                 container_engine_config = options.globals.container_engine
