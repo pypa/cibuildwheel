@@ -11,7 +11,7 @@ from typing import OrderedDict, Tuple
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
-from .oci_container import OCIContainer
+from .oci_container import OCIContainer, OCIContainerEngineConfig
 from .options import Options
 from .typing import PathOrStr
 from .util import (
@@ -431,11 +431,31 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
 
             print(f"info: This container will host the build for {', '.join(ids_to_build)}...")
 
+            if "CIBW_EXPLICIT_QEMU_MODE" in options.env:
+                docker_platform_map = {
+                    "x86_64": "linux/amd64",
+                    "aarch64": "linux/arm64/v8",
+                }
+                for wheel_platform, docker_platform in docker_platform_map.items():
+                    if build_step.platform_tag.endswith(wheel_platform):
+                        this_build_platform = docker_platform
+                        break
+                else:
+                    raise ValueError(f"Unexpected build platform ’{build_step.platform_tag}'.")
+
+                container_engine_config = OCIContainerEngineConfig(
+                    name=options.globals.container_engine.name,
+                    create_args=tuple(options.globals.container_engine.create_args) + ("--platform", this_build_platform),
+                    disable_host_mount=options.globals.container_engine.disable_host_mount
+                )
+            else:
+                container_engine_config = options.globals.container_engine
+
             with OCIContainer(
                 image=build_step.container_image,
                 enforce_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
-                engine=options.globals.container_engine,
+                engine=container_engine_config,
             ) as container:
                 build_in_container(
                     options=options,
