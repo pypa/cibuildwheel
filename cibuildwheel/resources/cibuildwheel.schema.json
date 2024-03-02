@@ -4,6 +4,17 @@
   "additionalProperties": false,
   "description": "cibuildwheel's settings.",
   "type": "object",
+  "defines": {
+    "inherit": {
+      "enum": [
+        "none",
+        "prepend",
+        "append"
+      ],
+      "default": "none",
+      "description": "How to inherit the parent's value."
+    }
+  },
   "properties": {
     "archs": {
       "description": "Change the architectures built on your machine by default.",
@@ -422,6 +433,45 @@
                 }
               }
             ]
+          },
+          "inherit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "before-all": {
+                "$ref": "#/defines/inherit"
+              },
+              "before-build": {
+                "$ref": "#/defines/inherit"
+              },
+              "before-test": {
+                "$ref": "#/defines/inherit"
+              },
+              "config-settings": {
+                "$ref": "#/defines/inherit"
+              },
+              "container-engine": {
+                "$ref": "#/defines/inherit"
+              },
+              "environment": {
+                "$ref": "#/defines/inherit"
+              },
+              "environment-pass": {
+                "$ref": "#/defines/inherit"
+              },
+              "repair-wheel-command": {
+                "$ref": "#/defines/inherit"
+              },
+              "test-command": {
+                "$ref": "#/defines/inherit"
+              },
+              "test-extras": {
+                "$ref": "#/defines/inherit"
+              },
+              "test-requires": {
+                "$ref": "#/defines/inherit"
+              }
+            }
           },
           "before-all": {
             "$ref": "#/properties/before-all"

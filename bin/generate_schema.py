@@ -17,6 +17,14 @@ $schema: http://json-schema.org/draft-07/schema
 additionalProperties: false
 description: cibuildwheel's settings.
 type: object
+defines:
+  inherit:
+    enum:
+      - none
+      - prepend
+      - append
+    default: none
+    description: How to inherit the parent's value.
 properties:
   archs:
     description: Change the architectures built on your machine by default.
@@ -153,9 +161,6 @@ properties:
 
 schema = yaml.safe_load(starter)
 
-if args.schemastore:
-    schema["$id"] += "#"
-
 string_array = yaml.safe_load(
     """
 - type: string
@@ -214,19 +219,28 @@ items:
   additionalProperties: false
   properties:
     select: {}
+    inherit:
+      type: object
+      additionalProperties: false
+      properties:
+        before-all: {"$ref": "#/defines/inherit"}
+        before-build: {"$ref": "#/defines/inherit"}
+        before-test: {"$ref": "#/defines/inherit"}
+        config-settings: {"$ref": "#/defines/inherit"}
+        container-engine: {"$ref": "#/defines/inherit"}
+        environment: {"$ref": "#/defines/inherit"}
+        environment-pass: {"$ref": "#/defines/inherit"}
+        repair-wheel-command: {"$ref": "#/defines/inherit"}
+        test-command: {"$ref": "#/defines/inherit"}
+        test-extras: {"$ref": "#/defines/inherit"}
+        test-requires: {"$ref": "#/defines/inherit"}
 """
 )
 
 for key, value in schema["properties"].items():
     value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
 
-if args.schemastore:
-    non_global_options = {
-        k: {"$ref": f"#/properties/tool/properties/cibuildwheel/properties/{k}"}
-        for k in schema["properties"]
-    }
-else:
-    non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
+non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["container-engine"]
@@ -273,27 +287,11 @@ del oses["linux"]["properties"]["dependency-versions"]
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
 
-if not args.schemastore:
-    print(json.dumps(schema, indent=2))
-    raise SystemExit(0)
+if args.schemastore:
+    schema["$id"] = "https://json.schemastore.org/partial-cibuildwheel.json"
+    schema["$schema"] = "http://json-schema.org/draft-07/schema#"
+    schema[
+        "description"
+    ] = "cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel."
 
-schema_store_txt = """
-$id: https://json.schemastore.org/cibuildwheel.json
-$schema: http://json-schema.org/draft-07/schema#
-additionalProperties: false
-description: cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel.
-type: object
-properties:
-    tool:
-        type: object
-        properties:
-            cibuildwheel:
-                type: object
-"""
-schema_store = yaml.safe_load(schema_store_txt)
-
-schema_store["properties"]["tool"]["properties"]["cibuildwheel"]["properties"] = schema[
-    "properties"
-]
-
-print(json.dumps(schema_store, indent=2))
+print(json.dumps(schema, indent=2))

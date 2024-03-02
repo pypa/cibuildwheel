@@ -135,6 +135,10 @@ trigger new containers, one per image. Some commands are not supported;
 `output-dir`, build/skip/test_skip selectors, and architectures cannot be
 overridden.
 
+You can specify a table of overrides in `inherit={}`, any list or table in this
+list will inherit from previous overrides or the main configuration. The valid
+options are `"none"` (the default), `"append"`, and `"prepend"`.
+
 ##### Examples:
 
 ```toml
@@ -169,6 +173,69 @@ This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
 wheels on manylinux2010, and manylinux2014 wheels for any newer Python
 (like 3.10).
 
+```toml
+[tool.cibuildwheel]
+environment = {FOO="BAR", "HAM"="EGGS"}
+test-command = ["pyproject"]
+
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+
+inherit.test-command = "prepend"
+test-command = ["pyproject-before"]
+
+inherit.environment="append"
+environment = {FOO="BAZ", "PYTHON"="MONTY"}
+
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+inherit.test-command = "append"
+test-command = ["pyproject-after"]
+```
+
+This example will provide the command `"pyproject-before && pyproject && pyproject-after"`
+on Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"="EGGS"}`.
+
+
+### Extending existing options {: #inherit }
+
+In the TOML configuration, you can choose how tables and lists are inherited.
+By default, all values are overridden completely (`"none"`) but sometimes you'd
+rather `"append"` or `"prepend"` to an existing list or table. You can do this
+with the `inherit` table in overrides.  For example, if you want to add an environment
+variable for CPython 3.11, without `inherit` you'd have to repeat all the
+original environment variables in the override. With `inherit`, it's just:
+
+```toml
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+inherit.environment = "append"
+environment.NEWVAR = "Added!"
+```
+
+For a table, `"append"` will replace a key if it exists, while `"prepend"` will
+only add a new key, older keys take precedence.
+
+Lists are also supported (and keep in mind that commands are lists). For
+example, you can print a message before and after a wheel is repaired:
+
+```toml
+[[tool.cibuildwheel.overrides]]
+select = "*"
+inherit.repair-wheel-command = "prepend"
+repair-wheel-command = "echo 'Before repair'"
+
+[[tool.cibuildwheel.overrides]]
+select = "*"
+inherit.repair-wheel-command = "append"
+repair-wheel-command = "echo 'After repair'"
+```
+
+As seen in this example, you can have multiple overrides match - they match top
+to bottom, with the config being accumulated. If you need platform-specific
+inheritance, you can use `select = "*-????linux_*"` for Linux, `select =
+"*-win_*"` for Windows, and `select = "*-macosx_*"` for macOS. As always,
+environment variables will completely override any TOML configuration.
 
 ## Options summary
 

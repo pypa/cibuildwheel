@@ -72,6 +72,50 @@ def test_overrides_only_select():
         validator(example)
 
 
+def test_overrides_valid_inherit():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        inherit.repair-wheel-command = "append"
+        select = "somestring"
+        repair-wheel-command = ["something"]
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    assert validator(example) is not None
+
+
+def test_overrides_invalid_inherit():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        inherit.something = "append"
+        select = "somestring"
+        repair-wheel-command = "something"
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
+def test_overrides_invalid_inherit_value():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        inherit.repair-wheel-command = "nothing"
+        select = "somestring"
+        repair-wheel-command = "something"
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
 def test_docs_examples():
     """
     Parse out all the configuration examples, build valid TOML out of them, and
