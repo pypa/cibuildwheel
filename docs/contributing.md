@@ -14,45 +14,67 @@ Everyone contributing to the cibuildwheel project is expected to follow the [PSF
 
 ## Running the tests
 
-When making a change to the codebase, you can run tests locally for quicker feedback than the CI runs on a PR.
+When making a change to the codebase, you can run tests locally for quicker feedback than the CI runs on a PR. You can [run them directly](#making-a-venv), but the easiest way to run tests is using [nox](https://nox.thea.codes/).
 
-#### Setup
+You can run all the tests locally by doing:
 
-To prepare a development environment, do:
-
-```console
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .[dev]
+```bash
+nox -s tests
 ```
 
-Alternatively, you can have `nox` handle the development environment for you.
+However, because this takes a while, you might prefer to be more specific.
 
-#### Unit tests
+### Unit tests
 
 To run the project's unit tests, do:
 
-```console
-pytest unit_test
+```bash
+nox -s tests -- unit_test
 ```
 
-There are a few custom options to enable different parts of the test suite - check `pytest unit_test --help` for details.
+There are a few custom options to enable different parts of the test suite - check `nox -s tests -- unit_test --help` for details.
 
-#### Integration tests
+If you're calling this a lot, you might consider using the `-r` or `-R` arguments to nox to make it a bit faster. This calls pytest under the hood, so to target a specific test, use pytest's `-k` option after the `--` above to select a specific test.
 
-The integration test suite is big - it can take more than 30 minutes to run the whole thing. So normally you'd choose specific tests to run locally, and rely on the project's CI for the rest.
+### Integration tests
 
-To run them locally, you must pass the platform you want to test via the `CIBW_PLATFORM` environment variable. The `-k` pytest option can be used to select the specific tests. For example, you could do:
+The integration test suite is big - it can take more than 30 minutes to run the whole thing.
 
-```console
-CIBW_PLATFORM=linux pytest test -k before_build
+```bash
+nox -s tests -- test
 ```
 
-A few notes on this-
+Because it takes such a long time, normally you'd choose specific tests to run locally, and rely on the project's CI for the rest. Use pytest's `-k` option to choose specific tests. You can pass a test name or a filename, it'll run everything that matches.
 
-- Because they run inside a container, Linux tests can run on all platforms where Docker is installed, so they're convenient for running integration tests locally.
+```bash
+nox -s tests -- test -k <test_name_or_filename>
+# e.g.
+nox -s tests -- test -k before_build
+```
+
+A few notes-
+
+- Because they run inside a container, Linux tests can run on all platforms where Docker is installed, so they're convenient for running integration tests locally. Set CIBW_PLATFORM to do this: `CIBW_PLATFORM=linux nox -s tests -- test`.
 
 - Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
+
+### Making a venv
+
+More advanced users might prefer to invoke pytest directly-
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+# run the unit tests
+pytest unit_test
+# run the whole integration test suite
+pytest test
+# run a specific integration test
+pytest test -k test_build_frontend_args
+# run a specific integration test on a different platform
+CIBW_PLATFORM=linux pytest test -k test_build_frontend_args
+```
 
 ## Design Goals
 
