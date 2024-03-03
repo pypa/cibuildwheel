@@ -120,7 +120,7 @@ class OCIContainer:
         enforce_32_bit: bool = False,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
-        oci_platform: OCIPlatform = OCIPlatform.AMD64
+        oci_platform: OCIPlatform = OCIPlatform.AMD64,
     ):
         if not image:
             msg = "Must have a non-empty image to run."
