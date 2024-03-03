@@ -579,11 +579,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         shell_with_arch(before_test_prepared, env=virtualenv_env)
 
                     # install the wheel
-                    if (
-                        sys.version_info <= (3, 8)
-                        and testing_arch == "x86_64"
-                        and python_arch == "x86_64"
-                    ):
+                    if is_cp38 and python_arch == "x86_64":
                         virtualenv_env_install_wheel = virtualenv_env.copy()
                         virtualenv_env_install_wheel["SYSTEM_VERSION_COMPAT"] = "0"
                         log.notice(
