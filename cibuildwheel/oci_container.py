@@ -12,6 +12,7 @@ import typing
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
@@ -27,6 +28,14 @@ from .util import (
 )
 
 ContainerEngineName = Literal["docker", "podman"]
+
+
+class OCIPlatform(Enum):
+    AMD64 = "linux/amd64"
+    i386 = "linux/386"
+    ARM64 = "linux/arm64"
+    PPC64LE = "linux/ppc64le"
+    S390X = "linux/s390x"
 
 
 @dataclass(frozen=True)
@@ -111,6 +120,7 @@ class OCIContainer:
         enforce_32_bit: bool = False,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
+        oci_platform: OCIPlatform = OCIPlatform.AMD64
     ):
         if not image:
             msg = "Must have a non-empty image to run."
@@ -121,6 +131,7 @@ class OCIContainer:
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
+        self.oci_platform = oci_platform
 
     def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
@@ -149,6 +160,7 @@ class OCIContainer:
             [
                 self.engine.name,
                 "create",
+                f"--platform={self.oci_platform.value}",
                 "--env=CIBUILDWHEEL",
                 "--env=SOURCE_DATE_EPOCH",
                 f"--name={self.name}",
