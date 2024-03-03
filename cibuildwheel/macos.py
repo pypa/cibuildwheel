@@ -585,11 +585,11 @@ def build(options: Options, tmp_path: Path) -> None:
                         log.notice(
                             unwrap(
                                 """
-                                Setting SYSTEM_VERSION_COMPAT=0 to ensure x86_64 CPython <= 3.8 on
-                                arm64 runner can get correct macOS version and allow installation
-                                of wheels with MACOSX_DEPLOYMENT_TARGET >= 11.0.
-                                See https://github.com/pypa/cibuildwheel/issues/1767
-                                for the details.
+                                Setting SYSTEM_VERSION_COMPAT=0 to ensure CPython 3.8 can get 
+                                correct macOS version and allow installation of wheels with 
+                                MACOSX_DEPLOYMENT_TARGET >= 11.0. 
+                                See https://github.com/pypa/cibuildwheel/issues/1767 for the 
+                                details.
                                 """
                             )
                         )
