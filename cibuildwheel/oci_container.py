@@ -120,7 +120,7 @@ class OCIContainer:
         enforce_32_bit: bool = False,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
-        oci_platform: OCIPlatform = OCIPlatform.AMD64,
+        oci_platform: OCIPlatform | None = None,
     ):
         if not image:
             msg = "Must have a non-empty image to run."
@@ -160,7 +160,7 @@ class OCIContainer:
             [
                 self.engine.name,
                 "create",
-                f"--platform={self.oci_platform.value}",
+                f"--platform={self.oci_platform.value}" if self.oci_platform else "",
                 "--env=CIBUILDWHEEL",
                 "--env=SOURCE_DATE_EPOCH",
                 f"--name={self.name}",
