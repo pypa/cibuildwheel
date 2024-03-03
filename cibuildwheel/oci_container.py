@@ -160,7 +160,7 @@ class OCIContainer:
             [
                 self.engine.name,
                 "create",
-                f"--platform={self.oci_platform.value}" if self.oci_platform else "",
+                *((f"--platform={self.oci_platform.value}",) if self.oci_platform else ()),
                 "--env=CIBUILDWHEEL",
                 "--env=SOURCE_DATE_EPOCH",
                 f"--name={self.name}",
