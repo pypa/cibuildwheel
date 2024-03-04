@@ -2,7 +2,7 @@ cibuildwheel
 ============
 
 [![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel)
-[![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.readthedocs.io/en/stable/?badge=stable)
+[![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.pypa.io/en/stable/?badge=stable)
 [![Actions Status](https://github.com/pypa/cibuildwheel/workflows/Test/badge.svg)](https://github.com/pypa/cibuildwheel/actions)
 [![Travis Status](https://img.shields.io/travis/com/pypa/cibuildwheel/main?logo=travis)](https://travis-ci.com/pypa/cibuildwheel)
 [![Appveyor status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/main?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/main)
@@ -10,7 +10,7 @@ cibuildwheel
 [![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName=main)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=4&branchName=main)
 
 
-[Documentation](https://cibuildwheel.readthedocs.org)
+[Documentation](https://cibuildwheel.pypa.io)
 
 <!--intro-start-->
 
@@ -44,7 +44,7 @@ What does it do?
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
 
-See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) if you need to build unsupported versions of Python, such as Python 2.
+See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) if you need to build unsupported versions of Python, such as Python 2.
 
 Usage
 -----
@@ -61,8 +61,8 @@ Usage
 | Gitlab CI       | ✅    |       | ✅      | ✅¹       |           |             |
 | Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |
 
-<sup>¹ [Requires emulation](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
-<sup>² [Uses cross-compilation](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
+<sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
+<sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
 
 <!--intro-end-->
 
@@ -105,7 +105,7 @@ jobs:
           path: ./wheelhouse/*.whl
 ```
 
-For more information, including PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.readthedocs.org) and the [examples](https://github.com/pypa/cibuildwheel/tree/main/examples).
+For more information, including PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.pypa.io) and the [examples](https://github.com/pypa/cibuildwheel/tree/main/examples).
 
 How it works
 ------------
@@ -114,35 +114,35 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 
 ![](docs/data/how-it-works.png)
 
-<sup>Explore an interactive version of this diagram [in the docs](https://cibuildwheel.readthedocs.io/en/stable/#how-it-works).</sup>
+<sup>Explore an interactive version of this diagram [in the docs](https://cibuildwheel.pypa.io/en/stable/#how-it-works).</sup>
 
 Options
 -------
 
 |   | Option | Description |
 |---|--------|-------------|
-| **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.readthedocs.io/en/stable/options/#platform)  | Override the auto-detected target platform |
-|   | [`CIBW_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  <br> [`CIBW_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
-|   | [`CIBW_ARCHS`](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)  | Change the architectures built on your machine by default. |
-|   | [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python)  | Manually set the Python compatibility of your project |
-|   | [`CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons)  | Enable building with pre-release versions of Python if available |
-| **Build customization** | [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend)  | Set the tool to use to build, either "pip" (default for now) or "build" |
-|   | [`CIBW_ENVIRONMENT`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment)  | Set environment variables needed during the build |
-|   | [`CIBW_ENVIRONMENT_PASS_LINUX`](https://cibuildwheel.readthedocs.io/en/stable/options/#environment-pass)  | Set environment variables on the host to pass-through to the container during the build. |
-|   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
-|   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
-|   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each built wheel |
-|   | [`CIBW_MANYLINUX_*_IMAGE`<br/>`CIBW_MUSLLINUX_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image)  | Specify alternative manylinux / musllinux Docker images |
-|   | [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine)  | Specify which container engine to use when building Linux wheels |
-|   | [`CIBW_DEPENDENCY_VERSIONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)  | Specify how cibuildwheel controls the versions of the tools it uses |
-| **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
-|   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-test)  | Execute a shell command before testing each wheel |
-|   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
-|   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
-|   | [`CIBW_TEST_SKIP`](https://cibuildwheel.readthedocs.io/en/stable/options/#test-skip)  | Skip running tests on some builds |
-| **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-verbosity)  | Increase/decrease the output of pip wheel |
+| **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.pypa.io/en/stable/options/#platform)  | Override the auto-detected target platform |
+|   | [`CIBW_BUILD`](https://cibuildwheel.pypa.io/en/stable/options/#build-skip)  <br> [`CIBW_SKIP`](https://cibuildwheel.pypa.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
+|   | [`CIBW_ARCHS`](https://cibuildwheel.pypa.io/en/stable/options/#archs)  | Change the architectures built on your machine by default. |
+|   | [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.pypa.io/en/stable/options/#requires-python)  | Manually set the Python compatibility of your project |
+|   | [`CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons)  | Enable building with pre-release versions of Python if available |
+| **Build customization** | [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend)  | Set the tool to use to build, either "pip" (default for now) or "build" |
+|   | [`CIBW_ENVIRONMENT`](https://cibuildwheel.pypa.io/en/stable/options/#environment)  | Set environment variables needed during the build |
+|   | [`CIBW_ENVIRONMENT_PASS_LINUX`](https://cibuildwheel.pypa.io/en/stable/options/#environment-pass)  | Set environment variables on the host to pass-through to the container during the build. |
+|   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.pypa.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
+|   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.pypa.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
+|   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each built wheel |
+|   | [`CIBW_MANYLINUX_*_IMAGE`<br/>`CIBW_MUSLLINUX_*_IMAGE`](https://cibuildwheel.pypa.io/en/stable/options/#linux-image)  | Specify alternative manylinux / musllinux Docker images |
+|   | [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine)  | Specify which container engine to use when building Linux wheels |
+|   | [`CIBW_DEPENDENCY_VERSIONS`](https://cibuildwheel.pypa.io/en/stable/options/#dependency-versions)  | Specify how cibuildwheel controls the versions of the tools it uses |
+| **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.pypa.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
+|   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.pypa.io/en/stable/options/#before-test)  | Execute a shell command before testing each wheel |
+|   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.pypa.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
+|   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.pypa.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
+|   | [`CIBW_TEST_SKIP`](https://cibuildwheel.pypa.io/en/stable/options/#test-skip)  | Skip running tests on some builds |
+| **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity)  | Increase/decrease the output of pip wheel |
 
-These options can be specified in a pyproject.toml file, as well; see [configuration](https://cibuildwheel.readthedocs.io/en/stable/options/#configuration).
+These options can be specified in a pyproject.toml file, as well; see [configuration](https://cibuildwheel.pypa.io/en/stable/options/#configuration).
 
 Working examples
 ----------------
@@ -190,7 +190,7 @@ Here are some repos that use cibuildwheel.
 
 <!-- END bin/projects.py -->
 
-> ℹ️ That's just a handful, there are many more! Check out the [Working Examples](https://cibuildwheel.readthedocs.io/en/stable/working-examples) page in the docs.
+> ℹ️ That's just a handful, there are many more! Check out the [Working Examples](https://cibuildwheel.pypa.io/en/stable/working-examples) page in the docs.
 
 Legal note
 ----------
@@ -226,7 +226,7 @@ _28 January 2024_
 _26 January 2024_
 
 - 🐛 Fix a bug when building from sdist, where relative paths to files in the package didn't work because the working directory was wrong (#1687)
-- 🛠 Adds the ability to disable mounting the host filesystem in containers to `/host`, through the `disable_host_mount` suboption on [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine).
+- 🛠 Adds the ability to disable mounting the host filesystem in containers to `/host`, through the `disable_host_mount` suboption on [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine).
 - 📚 A lot of docs improvements! (#1708, #1705, #1686, #1679, #1667, #1665)
 
 ### v2.16.2
@@ -234,7 +234,7 @@ _26 January 2024_
 _3 October 2023_
 
 - 🛠 Updates CPython 3.12 version to 3.12.0, final release (#1635)
-- ✨ Adds a debug option [`CIBW_DEBUG_KEEP_CONTAINER`](https://cibuildwheel.readthedocs.io/en/stable/options/#cibw_debug_keep_container) to stop cibuildwheel deleting build containers after the build finishes. (#1620)
+- ✨ Adds a debug option [`CIBW_DEBUG_KEEP_CONTAINER`](https://cibuildwheel.pypa.io/en/stable/options/#cibw_debug_keep_container) to stop cibuildwheel deleting build containers after the build finishes. (#1620)
 - 📚 Adds support for `[tool.cibuildwheel]` checking by adding a schema compatible with the [validate-pyproject](https://github.com/abravalheri/validate-pyproject/) tool (#1622, #1628, #1629)
 - 🐛 Fix parsing of `CIBW_CONTAINER_ENGINE` and `CIBW_BUILD_FRONTEND` options to not break arguments on `:` characters (#1621)
 - 🐛 Fix the evaluation order of `CIBW_ENVIRONMENT` and `CIBW_ENVIRONMENT_PASS` so that `CIBW_ENVIRONMENT` assignments can reference environment variables passed through from the host machine. (#1617)
@@ -253,14 +253,14 @@ _26 September 2023_
 
 That's the last few versions.
 
-ℹ️ **Want more changelog? Head over to [the changelog page in the docs](https://cibuildwheel.readthedocs.io/en/stable/changelog/).**
+ℹ️ **Want more changelog? Head over to [the changelog page in the docs](https://cibuildwheel.pypa.io/en/stable/changelog/).**
 
 ---
 
 Contributing
 ============
 
-For more info on how to contribute to cibuildwheel, see the [docs](https://cibuildwheel.readthedocs.io/en/latest/contributing/).
+For more info on how to contribute to cibuildwheel, see the [docs](https://cibuildwheel.pypa.io/en/latest/contributing/).
 
 Everyone interacting with the cibuildwheel project via codebase, issue tracker, chat rooms, or otherwise is expected to follow the [PSF Code of Conduct](https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md).
 

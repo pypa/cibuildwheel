@@ -22,7 +22,7 @@ _28 January 2024_
 _26 January 2024_
 
 - 🐛 Fix a bug when building from sdist, where relative paths to files in the package didn't work because the working directory was wrong (#1687)
-- 🛠 Adds the ability to disable mounting the host filesystem in containers to `/host`, through the `disable_host_mount` suboption on [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine).
+- 🛠 Adds the ability to disable mounting the host filesystem in containers to `/host`, through the `disable_host_mount` suboption on [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine).
 - 📚 A lot of docs improvements! (#1708, #1705, #1686, #1679, #1667, #1665)
 
 ### v2.16.2
@@ -30,7 +30,7 @@ _26 January 2024_
 _3 October 2023_
 
 - 🛠 Updates CPython 3.12 version to 3.12.0, final release (#1635)
-- ✨ Adds a debug option [`CIBW_DEBUG_KEEP_CONTAINER`](https://cibuildwheel.readthedocs.io/en/stable/options/#cibw_debug_keep_container) to stop cibuildwheel deleting build containers after the build finishes. (#1620)
+- ✨ Adds a debug option [`CIBW_DEBUG_KEEP_CONTAINER`](https://cibuildwheel.pypa.io/en/stable/options/#cibw_debug_keep_container) to stop cibuildwheel deleting build containers after the build finishes. (#1620)
 - 📚 Adds support for `[tool.cibuildwheel]` checking by adding a schema compatible with the [validate-pyproject](https://github.com/abravalheri/validate-pyproject/) tool (#1622, #1628, #1629)
 - 🐛 Fix parsing of `CIBW_CONTAINER_ENGINE` and `CIBW_BUILD_FRONTEND` options to not break arguments on `:` characters (#1621)
 - 🐛 Fix the evaluation order of `CIBW_ENVIRONMENT` and `CIBW_ENVIRONMENT_PASS` so that `CIBW_ENVIRONMENT` assignments can reference environment variables passed through from the host machine. (#1617)
@@ -47,7 +47,7 @@ _26 September 2023_
 
 _18 September 2023_
 
-- ✨ Add the ability to pass additional flags to a build frontend through the [CIBW_BUILD_FRONTEND](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend) option (#1588).
+- ✨ Add the ability to pass additional flags to a build frontend through the [CIBW_BUILD_FRONTEND](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) option (#1588).
 - ✨ The environment variable SOURCE_DATE_EPOCH is now automatically passed through to container Linux builds (useful for [reproducible builds](https://reproducible-builds.org/docs/source-date-epoch/)!) (#1589)
 - 🛠 Updates the prerelease CPython 3.12 version to 3.12.0rc2 (#1604)
 - 🐛 Fix `requires_python` auto-detection from setup.py when the call to `setup()` is within an `if __name__ == "__main__"` block (#1613)
@@ -89,11 +89,11 @@ _10 June 2023_
 
 _28 May 2023_
 
-- ✨ Adds CPython 3.12 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.12.0b1.
+- ✨ Adds CPython 3.12 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.12.0b1.
 
     While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.12 will be available in cibuildwheel without the flag. (#1507)
 
-- ✨ Adds the ability to pass arguments to the container engine when the container is created, using the [CIBW_CONTAINER_ENGINE](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#1499)
+- ✨ Adds the ability to pass arguments to the container engine when the container is created, using the [CIBW_CONTAINER_ENGINE](https://cibuildwheel.pypa.io/en/stable/options/#container-engine) option. (#1499)
 
 ### v2.12.3
 
@@ -148,7 +148,7 @@ _26 October 2022_
 - 🛠 Fix the default `MACOSX_DEPLOYMENT_TARGET` on arm64 (#1312)
 - 🛠 Hide irrelevant pip warnings on linux (#1311)
 - 🐛 Fix a bug that caused the stdout and stderr of commands in containers to be in the wrong order Previously, stdout could appear after stderr. (#1324)
-- 📚 Added [a FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#macos-building-cpython-38-wheels-on-arm64) describing how to perform native builds of CPython 3.8 wheels on Apple Silicon. (#1323)
+- 📚 Added [a FAQ entry](https://cibuildwheel.pypa.io/en/stable/faq/#macos-building-cpython-38-wheels-on-arm64) describing how to perform native builds of CPython 3.8 wheels on Apple Silicon. (#1323)
 - 📚 Other docs improvements
 
 ### v2.11.1
@@ -161,7 +161,7 @@ _13 October 2022_
 
 _13 October 2022_
 
-- 🌟 Adds support for cross-compiling Windows ARM64 wheels. To use this feature, add `ARM64` to the [CIBW_ARCHS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs) option on a Windows Intel runner. (#1144)
+- 🌟 Adds support for cross-compiling Windows ARM64 wheels. To use this feature, add `ARM64` to the [CIBW_ARCHS](https://cibuildwheel.pypa.io/en/stable/options/#archs) option on a Windows Intel runner. (#1144)
 - ✨ Adds support for building Linux aarch64 wheels on Circle CI. (#1307)
 - ✨ Adds support for building Windows wheels on Gitlab CI. (#1295)
 - ✨ Adds support for building Linux aarch64 wheels under emulation on Gitlab CI. (#1295)
@@ -188,10 +188,10 @@ _18 September 2022_
 
 _13 September 2022_
 
-- 🌟 Adds support for [building wheels on Cirrus CI](https://cibuildwheel.readthedocs.io/en/stable/setup/#cirrus-ci). This is exciting for us, as it's the first public CI platform that natively supports macOS Apple Silicon (aka. M1, `arm64`) runners. As such, it's the first platform that you can natively build _and test_ macOS `arm64` wheels. It also has native Linux ARM (aarch64) runners, for fast, native builds there. (#1191)
+- 🌟 Adds support for [building wheels on Cirrus CI](https://cibuildwheel.pypa.io/en/stable/setup/#cirrus-ci). This is exciting for us, as it's the first public CI platform that natively supports macOS Apple Silicon (aka. M1, `arm64`) runners. As such, it's the first platform that you can natively build _and test_ macOS `arm64` wheels. It also has native Linux ARM (aarch64) runners, for fast, native builds there. (#1191)
 - 🌟 Adds support for running cibuildwheel on Apple Silicon machines. For a while, we've supported cross-compilation of Apple Silicon wheels on `x86_64`, but now that we have Cirrus CI we can run our test suite and officially support running cibuildwheel on `arm64`. (#1191)
-- ✨ Adds the `--only` [command line option](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line), to specify a single build to run. Previously, it could be cumbersome to set all the build selection options to target a specific build - for example, you might have to run something like `CIBW_BUILD=cp39-manylinux_x86_64 cibuildwheel --platform linux --archs x86_64`. The new `--only` option overrides all the build selection options to simplify running a single build, which now looks like `cibuildwheel --only cp39-manylinux_x86_64`. (#1098)
-- ✨ Adds the [`CIBW_CONFIG_SETTINGS`](https://cibuildwheel.readthedocs.io/en/stable/options/#config-settings) option, so you can pass arguments to your package's build backend (#1244)
+- ✨ Adds the `--only` [command line option](https://cibuildwheel.pypa.io/en/stable/options/#command-line), to specify a single build to run. Previously, it could be cumbersome to set all the build selection options to target a specific build - for example, you might have to run something like `CIBW_BUILD=cp39-manylinux_x86_64 cibuildwheel --platform linux --archs x86_64`. The new `--only` option overrides all the build selection options to simplify running a single build, which now looks like `cibuildwheel --only cp39-manylinux_x86_64`. (#1098)
+- ✨ Adds the [`CIBW_CONFIG_SETTINGS`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) option, so you can pass arguments to your package's build backend (#1244)
 - 🛠 Updates the CPython 3.11 version to the latest release candidate - v3.11.0rc2. (#1265)
 - 🐛 Fix a bug that can cause a RecursionError on Windows when building from an sdist. (#1253)
 - 🛠 Add support for the s390x architecture on manylinux_2_28 (#1255)
@@ -218,7 +218,7 @@ _18 July 2022_
 
 _5 July 2022_
 
-- ✨ You can now run cibuildwheel on Podman, as an alternate container engine to Docker (which remains the default). This is useful in environments where a Docker daemon isn't available, for example, it can be run inside a Docker container, or without root access. To use Podman, set the [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.readthedocs.io/en/stable/options/#container-engine) option. (#966)
+- ✨ You can now run cibuildwheel on Podman, as an alternate container engine to Docker (which remains the default). This is useful in environments where a Docker daemon isn't available, for example, it can be run inside a Docker container, or without root access. To use Podman, set the [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine) option. (#966)
 - ✨ Adds support for building `py3-none-{platform}` wheels. This works the same as ABI3 - wheels won't be rebuilt, but tests will still be run across all selected versions of Python.
 
     These wheels contain native extension code, but don't use the Python APIs. Typically, they're bridged to Python using a FFI module like [ctypes](https://docs.python.org/3/library/ctypes.html) or [cffi](https://cffi.readthedocs.io/en/latest/). Because they don't use Python ABI, the wheels are more compatible - they work across many Python versions.
@@ -232,7 +232,7 @@ _5 July 2022_
 
 _17 June 2022_
 
-- 🌟 Added support for the new `manylinux_2_28` images. These new images are based on AlmaLinux, the community-driven successor to CentOS, unlike manylinux_2_24, which was based on Debian. To build on these images, set your [`CIBW_MANYLINUX_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image) option to `manylinux_2_28`. (#1026)
+- 🌟 Added support for the new `manylinux_2_28` images. These new images are based on AlmaLinux, the community-driven successor to CentOS, unlike manylinux_2_24, which was based on Debian. To build on these images, set your [`CIBW_MANYLINUX_*_IMAGE`](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) option to `manylinux_2_28`. (#1026)
 - 🐛 Fix a bug where tests were not being run on CPython 3.11 (when CIBW_PRERELEASE_PYTHONS was set) (#1138)
 - ✨ You can now build Linux wheels on Windows, as long as you have Docker installed and set to 'Linux containers' (#1117)
 - 🐛 Fix a bug on macOS that caused cibuildwheel to crash trying to overwrite a previously-built wheel of the same name. (#1129)
@@ -247,15 +247,15 @@ _7 June 2022_
 
 _25 May 2022_
 
-- 🌟 Added the ability to test building wheels on CPython 3.11! Because CPython 3.11 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons) to test. This version of cibuildwheel includes CPython 3.11.0b1. (#1109)
-- 📚 Added an interactive diagram showing how cibuildwheel works to the [docs](https://cibuildwheel.readthedocs.io/en/stable/#how-it-works) (#1100)
+- 🌟 Added the ability to test building wheels on CPython 3.11! Because CPython 3.11 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons) to test. This version of cibuildwheel includes CPython 3.11.0b1. (#1109)
+- 📚 Added an interactive diagram showing how cibuildwheel works to the [docs](https://cibuildwheel.pypa.io/en/stable/#how-it-works) (#1100)
 
 ### v2.5.0
 
 _29 April 2022_
 
-- ✨ Added support for building ABI3 wheels. cibuildwheel will now recognise when an ABI3 wheel was produced, and skip subsequent build steps where the previously built wheel is compatible. Tests still will run on all selected versions of Python, using the ABI3 wheel. Check [this entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#abi3) in the docs for more info. (#1091)
-- ✨ You can now build wheels directly from sdist archives, in addition to source directories. Just call cibuildwheel with an sdist argument on the command line, like `cibuildwheel mypackage-1.0.0.tar.gz`. For more details, check the [`--help` output](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line) (#1096)
+- ✨ Added support for building ABI3 wheels. cibuildwheel will now recognise when an ABI3 wheel was produced, and skip subsequent build steps where the previously built wheel is compatible. Tests still will run on all selected versions of Python, using the ABI3 wheel. Check [this entry](https://cibuildwheel.pypa.io/en/stable/faq/#abi3) in the docs for more info. (#1091)
+- ✨ You can now build wheels directly from sdist archives, in addition to source directories. Just call cibuildwheel with an sdist argument on the command line, like `cibuildwheel mypackage-1.0.0.tar.gz`. For more details, check the [`--help` output](https://cibuildwheel.pypa.io/en/stable/options/#command-line) (#1096)
 - 🐛 Fix a bug where cibuildwheel would crash when no builds are selected and `--allow-empty` is passed (#1086)
 - 🐛 Workaround a permissions issue on Linux relating to newer versions of git and setuptools_scm (#1095)
 - 📚 Minor docs improvements
@@ -264,7 +264,7 @@ _29 April 2022_
 
 _2 April 2022_
 
-- ✨ cibuildwheel now supports running locally on Windows and macOS (as well as Linux). On macOS, you'll have to install the versions of Pythons that you want to use from Python.org, and cibuildwheel will use them. On Windows, cibuildwheel will install it's own versions of Python. Check out [the documentation](https://cibuildwheel.readthedocs.io/en/stable/setup/#local) for instructions. (#974)
+- ✨ cibuildwheel now supports running locally on Windows and macOS (as well as Linux). On macOS, you'll have to install the versions of Pythons that you want to use from Python.org, and cibuildwheel will use them. On Windows, cibuildwheel will install it's own versions of Python. Check out [the documentation](https://cibuildwheel.pypa.io/en/stable/setup/#local) for instructions. (#974)
 - ✨ Added support for building PyPy 3.9 wheels. (#1031)
 - ✨ Listing at the end of the build now displays the size of each wheel (#975)
 - 🐛 Workaround a connection timeout bug on Travis CI ppc64le runners (#906)
@@ -284,12 +284,12 @@ _14 December 2021_
 
 _26 November 2021_
 
-- 📈 cibuildwheel now defaults to manylinux2014 image for linux builds, rather than manylinux2010. If you want to stick with manylinux2010, it's simple to set this using [the image options](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image). (#926)
-- ✨ You can now pass environment variables from the host machine into the Docker container during a Linux build. Check out [the docs for `CIBW_ENVIRONMENT_PASS_LINUX `](https://cibuildwheel.readthedocs.io/en/latest/options/#environment-pass) for the details. (#914)
+- 📈 cibuildwheel now defaults to manylinux2014 image for linux builds, rather than manylinux2010. If you want to stick with manylinux2010, it's simple to set this using [the image options](https://cibuildwheel.pypa.io/en/stable/options/#linux-image). (#926)
+- ✨ You can now pass environment variables from the host machine into the Docker container during a Linux build. Check out [the docs for `CIBW_ENVIRONMENT_PASS_LINUX `](https://cibuildwheel.pypa.io/en/latest/options/#environment-pass) for the details. (#914)
 - ✨ Added support for building PyPy 3.8 wheels. (#881)
 - ✨ Added support for building Windows arm64 CPython wheels on a Windows arm64 runner. We can't test this in CI yet, so for now, this is experimental. (#920)
 - 📚 Improved the deployment documentation (#911)
-- 🛠 Changed the escaping behaviour inside cibuildwheel's  option placeholders e.g. `{project}` in `before_build` or `{dest_dir}` in `repair_wheel_command`. This allows bash syntax like `${SOME_VAR}` to passthrough without being interpreted as a placeholder by cibuildwheel. See [this section](https://cibuildwheel.readthedocs.io/en/stable/options/#placeholders) in the docs for more info. (#889)
+- 🛠 Changed the escaping behaviour inside cibuildwheel's  option placeholders e.g. `{project}` in `before_build` or `{dest_dir}` in `repair_wheel_command`. This allows bash syntax like `${SOME_VAR}` to passthrough without being interpreted as a placeholder by cibuildwheel. See [this section](https://cibuildwheel.pypa.io/en/stable/options/#placeholders) in the docs for more info. (#889)
 - 🛠 Pip updated to 21.3, meaning it now defaults to in-tree builds again. If this causes an issue with your project, setting environment variable `PIP_USE_DEPRECATED=out-of-tree-build` is available as a temporary flag to restore the old behaviour. However, be aware that this flag will probably be removed soon. (#881)
 - 🐛 You can now access the current Python interpreter using `python3` within a build on Windows (#917)
 
@@ -312,15 +312,15 @@ _22 October 2021_
 
 - 🌟 Added support for [musllinux](https://www.python.org/dev/peps/pep-0656/). Support for this new wheel format lets projects build wheels for Linux distributions that use [musl libc](https://musl.libc.org/), notably, [Alpine](https://alpinelinux.org/) Docker containers. (#768)
 
-  Musllinux builds are enabled by default. If you're not ready to build musllinux, add `*-musllinux_*` to your [`CIBW_SKIP`/`skip`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip) option. Or, you might have to make some changes to your options - to simplify that process, you can use...
+  Musllinux builds are enabled by default. If you're not ready to build musllinux, add `*-musllinux_*` to your [`CIBW_SKIP`/`skip`](https://cibuildwheel.pypa.io/en/stable/options/#build-skip) option. Or, you might have to make some changes to your options - to simplify that process, you can use...
 
 - 🌟 TOML option overrides! This provides much greater flexibility in configuration via pyproject.toml. (#854)
 
-  You can now set build options for any subset of your builds using a match pattern. So, for example, you can customise CPython 3.8 builds with an override on `cp38-*` or musllinux builds by selecting `*musllinux*`. Check out [the docs](https://cibuildwheel.readthedocs.io/en/latest/options/#overrides) for more info on the specifics.
+  You can now set build options for any subset of your builds using a match pattern. So, for example, you can customise CPython 3.8 builds with an override on `cp38-*` or musllinux builds by selecting `*musllinux*`. Check out [the docs](https://cibuildwheel.pypa.io/en/latest/options/#overrides) for more info on the specifics.
 
 - 🛠 Added support for building PyPy wheels on macOS 11 CI runners. (#875)
 
-- 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.readthedocs.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matrices. (#829)
+- 🛠 Setting an empty string for the [`CIBW_*_IMAGE`](https://cibuildwheel.pypa.io/en/stable/options/#manylinux-image) option will now fallthrough to the config file or cibuildwheel's default, rather than causing an error. This makes the option easier to use in CI build matrices. (#829)
 
 - 🛠 Support for TOML 1.0 when reading config files, via the `tomli` package. (#876)
 
@@ -359,9 +359,9 @@ _25 July 2021_
 
 _16 July 2021_
 
-- 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.readthedocs.io/en/stable/options/#setting-options) for more info.
-- 🌟 Added support for building wheels with [build](https://github.com/pypa/build), as well as pip. This feature is controlled with the [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.readthedocs.io/en/stable/options/#build-frontend) option.
-- 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.readthedocs.io/en/stable/options/#prerelease-pythons) to test. (#675) This version of cibuildwheel includes CPython 3.10.0b4.
+- 🌟 You can now configure cibuildwheel options inside your project's `pyproject.toml`! Environment variables still work of course. Check out the [documentation](https://cibuildwheel.pypa.io/en/stable/options/#setting-options) for more info.
+- 🌟 Added support for building wheels with [build](https://github.com/pypa/build), as well as pip. This feature is controlled with the [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) option.
+- 🌟 Added the ability to test building wheels on CPython 3.10! Because CPython 3.10 is in beta, these wheels should not be distributed, because they might not be compatible with the final release, but it's available to build for testing purposes. Use the flag [`--prerelease-pythons` or `CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons) to test. (#675) This version of cibuildwheel includes CPython 3.10.0b4.
 - ⚠️ **Removed support for building Python 2.7 and Python 3.5 wheels**, for both CPython and PyPy. If you still need to build on these versions, please use the latest v1.x version. (#596)
 - ✨ Added the ability to build CPython 3.8 wheels for Apple Silicon. (#704)
 - 🛠 Update to the latest build dependencies, including Auditwheel 4. (#633)
@@ -388,7 +388,7 @@ _1 May 2021_
 
 - 📚 Lots of docs improvements! (#650, #623, #616, #609, #606)
 - 🐛 Fix nuget "Package is not found" error on Windows. (#653)
-- ⚠️ cibuildwheel will no longer build Windows 2.7 wheels, unless you specify a custom toolchain using `DISTUTILS_USE_SDK=1` and `MSSdk=1`. This is because Microsoft have stopped distributing Visual C++ Compiler for Python 2.7. See [this FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#windows-and-python-27) for more details. (#649)
+- ⚠️ cibuildwheel will no longer build Windows 2.7 wheels, unless you specify a custom toolchain using `DISTUTILS_USE_SDK=1` and `MSSdk=1`. This is because Microsoft have stopped distributing Visual C++ Compiler for Python 2.7. See [this FAQ entry](https://cibuildwheel.pypa.io/en/stable/faq/#windows-and-python-27) for more details. (#649)
 - 🐛 Fix crash on Windows due to missing `which` command (#641).
 
 ### v1.10.0
@@ -396,7 +396,7 @@ _1 May 2021_
 _22 Feb 2021_
 
 - ✨ Added `manylinux_2_24` support. To use these new Debian-based manylinux
-  images, set your [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image)
+  images, set your [manylinux image](https://cibuildwheel.pypa.io/en/stable/options/#linux-image)
   options to `manylinux_2_24`.
 - 🛠 On macOS, we now set `MACOSX_DEPLOYMENT_TARGET` in before running
   `CIBW_BEFORE_ALL`. This is useful when using `CIBW_BEFORE_ALL` to build a
@@ -413,10 +413,10 @@ _5 February 2021_
 - 🌟 Added support for Apple Silicon wheels on macOS! You can now
   cross-compile `universal2` and `arm64` wheels on your existing macOS Intel
   runners, by setting
-  [CIBW_ARCHS_MACOS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs).
+  [CIBW_ARCHS_MACOS](https://cibuildwheel.pypa.io/en/stable/options/#archs).
   Xcode 12.2 or later is required, but you don't need macOS 11.0 - you can
   still build on macOS 10.15. See
-  [this FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#apple-silicon)
+  [this FAQ entry](https://cibuildwheel.pypa.io/en/stable/faq/#apple-silicon)
   for more information. (#484)
 - 🌟 Added auto-detection of your package's Python compatibility, via declared
    [`requires-python`](https://www.python.org/dev/peps/pep-0621/#requires-python)
@@ -426,7 +426,7 @@ _5 February 2021_
   will automatically skip builds on versions of Python that your package
   doesn't support. Hopefully this makes the first-run experience of
   cibuildwheel a bit easier. If you need to override this for any reason,
-  look at [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python).
+  look at [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.pypa.io/en/stable/options/#requires-python).
   (#536)
 - 🌟 cibuildwheel can now be invoked as a native GitHub Action! You can now
   invoke cibuildwheel in a GHA build step like:
@@ -441,10 +441,10 @@ _5 February 2021_
   ```
 
   This saves a bit of boilerplate, and you can [use Dependabot to keep the
-  pinned version up-to-date](https://cibuildwheel.readthedocs.io/en/stable/faq/#automatic-updates).
+  pinned version up-to-date](https://cibuildwheel.pypa.io/en/stable/faq/#automatic-updates).
 
 - ✨ Added `auto64` and `auto32` shortcuts to the
-  [CIBW_ARCHS](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)
+  [CIBW_ARCHS](https://cibuildwheel.pypa.io/en/stable/options/#archs)
   option. (#553)
 - ✨ cibuildwheel now prints a list of the wheels built at the end of each
   run. (#570)
@@ -457,9 +457,9 @@ _22 January 2021_
 - 🌟 Added support for emulated builds! You can now build manylinux wheels on
   ARM64`aarch64`, as well as `ppc64le` and 's390x'. To build under emulation,
   register QEMU via binfmt_misc and set the
-  [`CIBW_ARCHS_LINUX`](https://cibuildwheel.readthedocs.io/en/stable/options/#archs)
+  [`CIBW_ARCHS_LINUX`](https://cibuildwheel.pypa.io/en/stable/options/#archs)
   option to the architectures you want to run. See
-  [this FAQ entry](https://cibuildwheel.readthedocs.io/en/stable/faq/#emulation)
+  [this FAQ entry](https://cibuildwheel.pypa.io/en/stable/faq/#emulation)
   for more information. (#482)
 - ✨ Added `CIBW_TEST_SKIP` option. This allows you to choose certain builds
   whose tests you'd like to skip. This might be useful when running a slow
@@ -485,7 +485,7 @@ _1 January 2021_
   in a virtualenv. (#502)
 - 🛠 Some preparatory work towards using cibuildwheel as a GitHub Action.
   Check out
-  [the FAQ](https://cibuildwheel.readthedocs.io/en/stable/faq/#option-1-github-action)
+  [the FAQ](https://cibuildwheel.pypa.io/en/stable/faq/#option-1-github-action)
   for information on how to use it. We'll be fully updating the docs to this
   approach in a subsequent release (#494)
 
@@ -607,7 +607,7 @@ _25 June 2020_
 
 _24 June 2020_
 
-- 🌟 Add [`CIBW_BEFORE_ALL`](https://cibuildwheel.readthedocs.io/en/stable/options/#before-all)
+- 🌟 Add [`CIBW_BEFORE_ALL`](https://cibuildwheel.pypa.io/en/stable/options/#before-all)
   option, which lets you run a command on the build machine before any wheels
   are built. This is especially useful when building on Linux, to `make`
   something external to Python, or to `yum install` a dependency. (#342)
@@ -650,15 +650,15 @@ _2 May 2020_
   environment on macOS and Windows, where the version of Xcode and Visual
   Studio can still effect things.
 
-  This can be controlled using the [CIBW_DEPENDENCY_VERSIONS](https://cibuildwheel.readthedocs.io/en/stable/options/#dependency-versions)
-  and [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image)
+  This can be controlled using the [CIBW_DEPENDENCY_VERSIONS](https://cibuildwheel.pypa.io/en/stable/options/#dependency-versions)
+  and [manylinux image](https://cibuildwheel.pypa.io/en/stable/options/#linux-image)
   options - if you always want to use the latest toolchain, you can still do
   that, or you can specify your own pip constraints file and manylinux image.
   (#256)
 
 - ✨ Added `package_dir` command line option, meaning we now support building
   a package that lives in a subdirectory and pulls in files from the wider
-  project. See [the `package_dir` option help](https://cibuildwheel.readthedocs.io/en/stable/options/#command-line-options)
+  project. See [the `package_dir` option help](https://cibuildwheel.pypa.io/en/stable/options/#command-line-options)
   for more information.
 
   Note that this change makes the working directory (where you call
@@ -676,7 +676,7 @@ _2 May 2020_
 _12 March 2020_
 
 - 🌟 Add support for building on GitHub Actions! Check out the
-  [docs](https://cibuildwheel.readthedocs.io/en/stable/setup/#github-actions)
+  [docs](https://cibuildwheel.pypa.io/en/stable/setup/#github-actions)
   for information on how to set it up. (#194)
 - ✨ Add the `CIBW_BEFORE_TEST` option, which lets you run a command to
   prepare the environment before your tests are run. (#242)
@@ -726,9 +726,9 @@ _10 November 2019_
   build using the manylinux2010 images by default. If your project is still
   manylinux1 compatible, you should get both manylinux1 and manylinux2010
   wheels - you can upload both to PyPI. If you always require manylinux1 wheels, you can
-  build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.readthedocs.io/en/stable/options/#linux-image) option.
+  build using the old manylinux1 image using the [manylinux image](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) option.
   (#155)
-- 📚 Documentation is now on its [own mini-site](https://cibuildwheel.readthedocs.io),
+- 📚 Documentation is now on its [own mini-site](https://cibuildwheel.pypa.io),
    rather than on the README (#169)
 - ✨ Add support for building Windows wheels on Travis CI. (#160)
 - 🛠 If you set `CIBW_TEST_COMMAND`, your tests now run in a virtualenv. (#164)
