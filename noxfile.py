@@ -9,8 +9,6 @@ import nox
 
 nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
 
-PYTHON_ALL_VERSIONS = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
-
 DIR = Path(__file__).parent.resolve()
 
 if os.environ.get("CI", None):
@@ -60,32 +58,33 @@ def check_manifest(session: nox.Session) -> None:
     session.run("check-manifest", *session.posargs)
 
 
-@nox.session(python=PYTHON_ALL_VERSIONS)
+@nox.session
 def update_constraints(session: nox.Session) -> None:
     """
     Update the dependencies inplace.
     """
-    session.install("pip-tools")
-    assert isinstance(session.python, str)
-    python_version = session.python.replace(".", "")
-    env = os.environ.copy()
-    # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
-    # regenerate the constraints files
-    env["CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
-    session.run(
-        "pip-compile",
-        "--allow-unsafe",
-        "--upgrade",
-        "cibuildwheel/resources/constraints.in",
-        f"--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
-        env=env,
-    )
-    if session.python == PYTHON_ALL_VERSIONS[-1]:
-        RESOURCES = DIR / "cibuildwheel" / "resources"
-        shutil.copyfile(
-            RESOURCES / f"constraints-python{python_version}.txt",
-            RESOURCES / "constraints.txt",
+    session.install("uv")
+    for minor_version in range(7, 13):
+        python_version = f"3.{minor_version}"
+        env = os.environ.copy()
+        # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+        # regenerate the constraints files
+        env["CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+        session.run(
+            "uv",
+            "pip",
+            "compile",
+            f"--python-version={python_version}",
+            "--upgrade",
+            "cibuildwheel/resources/constraints.in",
+            f"--output-file=cibuildwheel/resources/constraints-python{python_version.replace('.', '')}.txt",
+            env=env,
         )
+    RESOURCES = DIR / "cibuildwheel" / "resources"
+    shutil.copyfile(
+        RESOURCES / "constraints-python312.txt",
+        RESOURCES / "constraints.txt",
+    )
 
 
 @nox.session
