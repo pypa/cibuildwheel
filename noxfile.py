@@ -21,7 +21,7 @@ def tests(session: nox.Session) -> None:
     Run the unit and regular tests.
     """
     unit_test_args = ["--run-docker"] if sys.platform.startswith("linux") else []
-    session.install("-e", ".[test]")
+    session.install("-e.[test]")
     if session.posargs:
         session.run("pytest", *session.posargs)
     else:
@@ -44,7 +44,8 @@ def pylint(session: nox.Session) -> None:
     Run pylint.
     """
 
-    session.install("pylint", ".")
+    name = "cibuildwheel @ ." if getattr(session.virtualenv, "venv_backend", "") != "uv" else "."
+    session.install("pylint", name)
     session.run("pylint", "cibuildwheel", *session.posargs)
 
 
@@ -63,7 +64,10 @@ def update_constraints(session: nox.Session) -> None:
     """
     Update the dependencies inplace.
     """
-    session.install("uv")
+
+    if getattr(session.virtualenv, "venv_backend", "") != "uv":
+        session.install("uv")
+
     for minor_version in range(7, 13):
         python_version = f"3.{minor_version}"
         env = os.environ.copy()
@@ -103,7 +107,7 @@ def update_proj(session: nox.Session) -> None:
     """
     Update the README inplace.
     """
-    session.install("-e", ".[bin]")
+    session.install("-e.[bin]")
     session.run(
         "python",
         "bin/projects.py",
@@ -126,18 +130,10 @@ def generate_schema(session: nox.Session) -> None:
 @nox.session(python="3.9")
 def docs(session: nox.Session) -> None:
     """
-    Build the docs.
+    Build the docs. Will serve unless --non-interactive
     """
-    session.install("-e", ".[docs]")
-    session.run("pip", "list")
-
-    if session.posargs:
-        if "serve" in session.posargs:
-            session.run("mkdocs", "serve")
-        else:
-            session.error("Unrecognized args, use 'serve'")
-    else:
-        session.run("mkdocs", "build")
+    session.install("-e.[docs]")
+    session.run("mkdocs", "serve" if session.interactive else "build")
 
 
 @nox.session
