@@ -645,3 +645,15 @@
   os: [linux, apple]
   pypi: keyvi
   notes: FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime
+
+- name: pedalboard
+  gh: spotify/pedalboard
+  ci: [github]
+  os: [windows, linux, apple]
+  pypi: pedalboard
+  notes: >
+      A Python library for working with audio data and audio plugins
+      by wrapping the [JUCE](https://github.com/juce-framework/JUCE/
+      C++ framework. Uses cibuildwheel to deploy on as many operating
+      systems and Python versions as possible with only one dependency
+      (any NumPy).
