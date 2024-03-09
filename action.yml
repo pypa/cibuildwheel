@@ -31,16 +31,48 @@ runs:
         python-version: "3.8 - 3.12"
         update-environment: false
 
-    # macos-14 (M1) may be missing pipx (due to it not having CPython)
-    - run: |
-        "${{ steps.python.outputs.python-path }}" -m pip install pipx
+    - id: cibw
+      run: |
+        # Install cibuildwheel
+        "${{ steps.python.outputs.python-path }}" -u << "EOF"
+        import os
+        import shutil
+        import sys
+        import venv
+
+        from pathlib import Path
+        from subprocess import run
+
+
+        class EnvBuilder(venv.EnvBuilder):
+            def __init__(self):
+                super().__init__()
+
+            def setup_scripts(self, context):
+                pass
+
+            def post_setup(self, context):
+                super().post_setup(context)
+                self.bin_path = Path(context.env_exe).parent
+                run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", r"${{ github.action_path }}"], check=True)
+
+
+        print("::group::Install cibuildwheel")
+        venv_path = Path(r"${{ runner.temp }}") / "cibw"
+        if venv_path.exists():
+            shutil.rmtree(venv_path)
+        builder = EnvBuilder()
+        builder.create(venv_path)
+        cibw_path = [path for path in builder.bin_path.glob("cibuildwheel*") if path.stem == "cibuildwheel"][0]
+        with open(os.environ["GITHUB_OUTPUT"], "at") as f:
+            f.write(f"cibw-path={cibw_path}\n")
+        print("::endgroup::")
+        EOF
       shell: bash
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: >
-        "${{ steps.python.outputs.python-path }}" -m pipx run
-        --spec '${{ github.action_path }}'
-        cibuildwheel
+        "${{ steps.cibw.outputs.cibw-path }}"
         "${{ inputs.package-dir }}"
         ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
         ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
@@ -51,9 +83,7 @@ runs:
 
     # Windows needs powershell to interact nicely with Meson
     - run: >
-        & "${{ steps.python.outputs.python-path }}" -m pipx run
-        --spec "${{ github.action_path }}"
-        cibuildwheel
+        & "${{ steps.cibw.outputs.cibw-path }}"
         "${{ inputs.package-dir }}"
         ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
         ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
