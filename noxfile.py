@@ -44,7 +44,7 @@ def pylint(session: nox.Session) -> None:
     Run pylint.
     """
 
-    name = "cibuildwheel @ ." if getattr(session.virtualenv, "venv_backend", "") != "uv" else "."
+    name = "cibuildwheel @ ." if getattr(session.virtualenv, "venv_backend", "") == "uv" else "."
     session.install("pylint", name)
     session.run("pylint", "cibuildwheel", *session.posargs)
 
