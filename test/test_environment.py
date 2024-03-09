@@ -93,3 +93,52 @@ def test_overridden_path(tmp_path, capfd):
     assert len(os.listdir(output_dir)) == 0
     captured = capfd.readouterr()
     assert "python available on PATH doesn't match our installed instance" in captured.err
+
+
+@pytest.mark.parametrize("build_frontend", ["pip", "build"])
+def test_overridden_pip_constraint(tmp_path, build_frontend):
+    """
+    Verify that users can use PIP_CONSTRAINT to specify a specific version of
+    a build-system.requires dependency, by asserting the version of pytz in the
+    setup.py.
+    """
+    project_dir = tmp_path / "project"
+
+    project = test_projects.new_c_project(
+        setup_py_add=textwrap.dedent(
+            """
+            import pytz
+            assert pytz.__version__ == "2022.4"
+        """
+        )
+    )
+    project.files["pyproject.toml"] = textwrap.dedent(
+        """
+        [build-system]
+        requires = ["setuptools", "pytz"]
+        build-backend = "setuptools.build_meta"
+    """
+    )
+    project.generate(project_dir)
+
+    if utils.platform == "linux":
+        # put the constraints file in the project directory, so it's available
+        # in the docker container
+        constraints_file = project_dir / "constraints.txt"
+    else:
+        constraints_file = tmp_path / "constraints.txt"
+
+    constraints_file.write_text("pytz==2022.4")
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_BUILD": "cp312-*",
+            "CIBW_BUILD_FRONTEND": build_frontend,
+            "PIP_CONSTRAINT": str(constraints_file),
+            "CIBW_ENVIRONMENT_LINUX": "PIP_CONSTRAINT=./constraints.txt",
+        },
+    )
+
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp312" in w]
+    assert set(actual_wheels) == set(expected_wheels)
