@@ -4,7 +4,7 @@
 #
 #    nox -s update_constraints-3.12
 #
-build==1.0.3
+build==1.1.1
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.10.7
     # via -r cibuildwheel/resources/constraints.in
