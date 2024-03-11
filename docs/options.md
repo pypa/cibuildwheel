@@ -308,7 +308,7 @@ For CPython, the minimally supported macOS version is 10.9; for PyPy 3.7, macOS 
 
 Windows arm64 platform support is experimental.
 
-See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
+See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
 
 #### Examples
 
@@ -1666,7 +1666,7 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         }
 
         var optionNames = option.name.trim().split(', ')
-        var url = 'https://cibuildwheel.readthedocs.io/en/stable/options/#'+option.id;
+        var url = 'https://cibuildwheel.pypa.io/en/stable/options/#'+option.id;
         var namesMarkdown = $.map(optionNames, function(n) {
           return '[`'+n+'`]('+url+') '
         }).join(' <br> ')

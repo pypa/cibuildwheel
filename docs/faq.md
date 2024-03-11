@@ -249,7 +249,7 @@ Consider incorporating these into your package, for example, in `setup.py` using
 
 ### Python 2.7 / PyPy2 wheels
 
-See the [cibuildwheel version 1 docs](https://cibuildwheel.readthedocs.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
+See the [cibuildwheel version 1 docs](https://cibuildwheel.pypa.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
 
 ## Troubleshooting
 
@@ -315,7 +315,7 @@ pipx run twine upload wheelhouse/*.whl
 
 macOS has built-in [System Integrity protections](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) which limits the use of `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH` so that it does not automatically pass to children processes. This means if you set `DYLD_LIBRARY_PATH` before running cibuildwheel, or even set it in `CIBW_ENVIRONMENT`, it will be stripped out of the environment before delocate is called.
 
-To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`CIBW_REPAIR_WHEEL_COMMAND_MACOS`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command), like this:
+To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`CIBW_REPAIR_WHEEL_COMMAND_MACOS`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), like this:
 
 !!! tab examples "Environment variables"
 
