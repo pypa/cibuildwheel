@@ -4,7 +4,7 @@
 #
 #    nox -s update_constraints-3.8
 #
-build==1.0.3
+build==1.1.1
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.10.7
     # via -r cibuildwheel/resources/constraints.in
@@ -12,7 +12,7 @@ distlib==0.3.8
     # via virtualenv
 filelock==3.13.1
     # via virtualenv
-importlib-metadata==7.0.1
+importlib-metadata==7.0.2
     # via build
 packaging==23.2
     # via
