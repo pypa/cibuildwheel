@@ -14,7 +14,7 @@ filelock==3.13.1
     # via virtualenv
 importlib-metadata==7.0.2
     # via build
-packaging==23.2
+packaging==24.0
     # via
     #   build
     #   delocate
