@@ -21,7 +21,7 @@ class Image:
 
 images = [
     # manylinux1 images
-    Image("manylinux1", "x86_64", "quay.io/pypa/manylinux1_x86_64", "2024-02-17-6f383ed"),
+    Image("manylinux1", "x86_64", "quay.io/pypa/manylinux1_x86_64", None),
     Image("manylinux1", "i686", "quay.io/pypa/manylinux1_i686", None),
     # manylinux2010 images
     Image("manylinux2010", "x86_64", "quay.io/pypa/manylinux2010_x86_64", None),
