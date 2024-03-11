@@ -583,17 +583,37 @@ def build(options: Options, tmp_path: Path) -> None:
                         shell_with_arch(before_test_prepared, env=virtualenv_env)
 
                     # install the wheel
+                    if is_cp38 and python_arch == "x86_64":
+                        virtualenv_env_install_wheel = virtualenv_env.copy()
+                        virtualenv_env_install_wheel["SYSTEM_VERSION_COMPAT"] = "0"
+                        log.notice(
+                            unwrap(
+                                """
+                                Setting SYSTEM_VERSION_COMPAT=0 to ensure CPython 3.8 can get
+                                correct macOS version and allow installation of wheels with
+                                MACOSX_DEPLOYMENT_TARGET >= 11.0.
+                                See https://github.com/pypa/cibuildwheel/issues/1767 for the
+                                details.
+                                """
+                            )
+                        )
+                    else:
+                        virtualenv_env_install_wheel = virtualenv_env
+
                     call_with_arch(
                         "pip",
                         "install",
                         f"{repaired_wheel}{build_options.test_extras}",
-                        env=virtualenv_env,
+                        env=virtualenv_env_install_wheel,
                     )
 
                     # test the wheel
                     if build_options.test_requires:
                         call_with_arch(
-                            "pip", "install", *build_options.test_requires, env=virtualenv_env
+                            "pip",
+                            "install",
+                            *build_options.test_requires,
+                            env=virtualenv_env_install_wheel,
                         )
 
                     # run the tests from a temp dir, with an absolute path in the command
