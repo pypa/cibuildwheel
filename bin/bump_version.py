@@ -181,7 +181,7 @@ def bump_version() -> None:
     print()
 
     print("Push the new version to GitHub with:")
-    print("    git push && git push --tags")
+    print(f"    git push && git push origin v{new_version}")
     print()
 
     release_url = "https://github.com/pypa/cibuildwheel/releases/new?" + urllib.parse.urlencode(
