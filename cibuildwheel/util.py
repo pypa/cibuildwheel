@@ -91,8 +91,7 @@ def call(
     env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[False] = ...,
-) -> None:
-    ...
+) -> None: ...
 
 
 @typing.overload
@@ -101,8 +100,7 @@ def call(
     env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[True],
-) -> str:
-    ...
+) -> str: ...
 
 
 def call(
