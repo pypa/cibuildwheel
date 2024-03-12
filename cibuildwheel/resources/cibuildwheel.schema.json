@@ -1,10 +1,7 @@
 {
-  "$id": "https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema",
-  "additionalProperties": false,
-  "description": "cibuildwheel's settings.",
-  "type": "object",
-  "defines": {
+  "$id": "https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json",
+  "$defs": {
     "inherit": {
       "enum": [
         "none",
@@ -15,6 +12,9 @@
       "description": "How to inherit the parent's value."
     }
   },
+  "additionalProperties": false,
+  "description": "cibuildwheel's settings.",
+  "type": "object",
   "properties": {
     "archs": {
       "description": "Change the architectures built on your machine by default.",
@@ -439,37 +439,37 @@
             "additionalProperties": false,
             "properties": {
               "before-all": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "before-build": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "before-test": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "config-settings": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "container-engine": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "environment": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "environment-pass": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "repair-wheel-command": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "test-command": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "test-extras": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               },
               "test-requires": {
-                "$ref": "#/defines/inherit"
+                "$ref": "#/$defs/inherit"
               }
             }
           },

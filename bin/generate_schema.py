@@ -12,12 +12,9 @@ parser.add_argument("--schemastore", action="store_true", help="Generate schema_
 args = parser.parse_args()
 
 starter = """
-$id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
 $schema: http://json-schema.org/draft-07/schema
-additionalProperties: false
-description: cibuildwheel's settings.
-type: object
-defines:
+$id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
+$defs:
   inherit:
     enum:
       - none
@@ -25,6 +22,9 @@ defines:
       - append
     default: none
     description: How to inherit the parent's value.
+additionalProperties: false
+description: cibuildwheel's settings.
+type: object
 properties:
   archs:
     description: Change the architectures built on your machine by default.
@@ -223,17 +223,17 @@ items:
       type: object
       additionalProperties: false
       properties:
-        before-all: {"$ref": "#/defines/inherit"}
-        before-build: {"$ref": "#/defines/inherit"}
-        before-test: {"$ref": "#/defines/inherit"}
-        config-settings: {"$ref": "#/defines/inherit"}
-        container-engine: {"$ref": "#/defines/inherit"}
-        environment: {"$ref": "#/defines/inherit"}
-        environment-pass: {"$ref": "#/defines/inherit"}
-        repair-wheel-command: {"$ref": "#/defines/inherit"}
-        test-command: {"$ref": "#/defines/inherit"}
-        test-extras: {"$ref": "#/defines/inherit"}
-        test-requires: {"$ref": "#/defines/inherit"}
+        before-all: {"$ref": "#/$defs/inherit"}
+        before-build: {"$ref": "#/$defs/inherit"}
+        before-test: {"$ref": "#/$defs/inherit"}
+        config-settings: {"$ref": "#/$defs/inherit"}
+        container-engine: {"$ref": "#/$defs/inherit"}
+        environment: {"$ref": "#/$defs/inherit"}
+        environment-pass: {"$ref": "#/$defs/inherit"}
+        repair-wheel-command: {"$ref": "#/$defs/inherit"}
+        test-command: {"$ref": "#/$defs/inherit"}
+        test-extras: {"$ref": "#/$defs/inherit"}
+        test-requires: {"$ref": "#/$defs/inherit"}
 """
 )
 
