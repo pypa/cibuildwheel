@@ -14,7 +14,7 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.2.2
+  rev: v0.3.2
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
@@ -27,7 +27,7 @@ repos:
     args: [--include-version-classifiers, --min-py-version=3.8, --max-py-version=3.12]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.8.0
+  rev: v1.9.0
   hooks:
   - id: mypy
     name: mypy 3.8 on cibuildwheel/
