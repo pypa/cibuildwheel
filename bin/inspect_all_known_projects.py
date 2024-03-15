@@ -11,7 +11,6 @@ This will cache the results to all_known_setup.yaml; you can reprint
 the results without the `--online` setting.
 """
 
-
 from __future__ import annotations
 
 import ast

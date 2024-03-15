@@ -12,8 +12,7 @@ __all__ = ("Printable", "dump_python_configurations")
 
 
 class Printable(Protocol):
-    def __str__(self) -> str:
-        ...
+    def __str__(self) -> str: ...
 
 
 def dump_python_configurations(

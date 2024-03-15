@@ -233,11 +233,9 @@ class PlatformModule(Protocol):
     # is applied to a module
     def get_python_configurations(
         self, build_selector: BuildSelector, architectures: Set[Architecture]
-    ) -> Sequence[GenericPythonConfiguration]:
-        ...
+    ) -> Sequence[GenericPythonConfiguration]: ...
 
-    def build(self, options: Options, tmp_path: Path) -> None:
-        ...
+    def build(self, options: Options, tmp_path: Path) -> None: ...
 
 
 # pylint: disable-next=inconsistent-return-statements
