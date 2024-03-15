@@ -11,8 +11,8 @@ from typing import OrderedDict, Tuple
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
-from .oci_container import OCIContainer
-from .options import Options
+from .oci_container import OCIContainer, OCIContainerEngineConfig
+from .options import BuildOptions, Options
 from .typing import PathOrStr
 from .util import (
     AlreadyBuiltWheelError,
@@ -44,6 +44,7 @@ class PythonConfiguration:
 class BuildStep:
     platform_configs: list[PythonConfiguration]
     platform_tag: str
+    container_engine: OCIContainerEngineConfig
     container_image: str
 
 
@@ -65,8 +66,9 @@ def get_python_configurations(
     ]
 
 
-def container_image_for_python_configuration(config: PythonConfiguration, options: Options) -> str:
-    build_options = options.build_options(config.identifier)
+def container_image_for_python_configuration(
+    config: PythonConfiguration, build_options: BuildOptions
+) -> str:
     # e.g
     # identifier is 'cp310-manylinux_x86_64'
     # platform_tag is 'manylinux_x86_64'
@@ -91,15 +93,18 @@ def get_build_steps(
     Groups PythonConfigurations into BuildSteps. Each BuildStep represents a
     separate container instance.
     """
-    steps = OrderedDict[Tuple[str, str, str], BuildStep]()
+    steps = OrderedDict[Tuple[str, str, str, OCIContainerEngineConfig], BuildStep]()
 
     for config in python_configurations:
         _, platform_tag = config.identifier.split("-", 1)
 
-        before_all = options.build_options(config.identifier).before_all
-        container_image = container_image_for_python_configuration(config, options)
+        build_options = options.build_options(config.identifier)
 
-        step_key = (platform_tag, container_image, before_all)
+        before_all = build_options.before_all
+        container_image = container_image_for_python_configuration(config, build_options)
+        container_engine = build_options.container_engine
+
+        step_key = (platform_tag, container_image, before_all, container_engine)
 
         if step_key in steps:
             steps[step_key].platform_configs.append(config)
@@ -107,6 +112,7 @@ def get_build_steps(
             steps[step_key] = BuildStep(
                 platform_configs=[config],
                 platform_tag=platform_tag,
+                container_engine=container_engine,
                 container_image=container_image,
             )
 
@@ -388,29 +394,6 @@ def build_in_container(
 
 
 def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
-    try:
-        # check the container engine is installed
-        subprocess.run(
-            [options.globals.container_engine.name, "--version"],
-            check=True,
-            stdout=subprocess.DEVNULL,
-        )
-    except subprocess.CalledProcessError:
-        print(
-            unwrap(
-                f"""
-                cibuildwheel: {options.globals.container_engine} not found. An
-                OCI exe like Docker or Podman is required to run Linux builds.
-                If you're building on Travis CI, add `services: [docker]` to
-                your .travis.yml. If you're building on Circle CI in Linux,
-                add a `setup_remote_docker` step to your .circleci/config.yml.
-                If you're building on Cirrus CI, use `docker_builder` task.
-                """
-            ),
-            file=sys.stderr,
-        )
-        sys.exit(2)
-
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
@@ -426,6 +409,29 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
 
     for build_step in get_build_steps(options, python_configurations):
         try:
+            # check the container engine is installed
+            subprocess.run(
+                [build_step.container_engine.name, "--version"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError:
+            print(
+                unwrap(
+                    f"""
+                    cibuildwheel: {build_step.container_engine.name} not found. An
+                    OCI exe like Docker or Podman is required to run Linux builds.
+                    If you're building on Travis CI, add `services: [docker]` to
+                    your .travis.yml. If you're building on Circle CI in Linux,
+                    add a `setup_remote_docker` step to your .circleci/config.yml.
+                    If you're building on Cirrus CI, use `docker_builder` task.
+                    """
+                ),
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        try:
             ids_to_build = [x.identifier for x in build_step.platform_configs]
             log.step(f"Starting container image {build_step.container_image}...")
 
@@ -435,7 +441,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                 image=build_step.container_image,
                 enforce_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
-                engine=options.globals.container_engine,
+                engine=build_step.container_engine,
             ) as container:
                 build_in_container(
                     options=options,
