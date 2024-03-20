@@ -11,7 +11,7 @@ from typing import OrderedDict, Tuple
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
-from .oci_container import OCIContainer
+from .oci_container import OCIContainer, OCIPlatform
 from .options import Options
 from .typing import PathOrStr
 from .util import (
@@ -27,6 +27,14 @@ from .util import (
     test_fail_cwd_file,
     unwrap,
 )
+
+ArchitectureOCIPlatformMap = {
+    Architecture.x86_64: OCIPlatform.AMD64,
+    Architecture.i686: OCIPlatform.i386,
+    Architecture.aarch64: OCIPlatform.ARM64,
+    Architecture.ppc64le: OCIPlatform.PPC64LE,
+    Architecture.s390x: OCIPlatform.S390X,
+}
 
 
 @dataclass(frozen=True)
@@ -431,11 +439,20 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
 
             print(f"info: This container will host the build for {', '.join(ids_to_build)}...")
 
+            for wheel_platform, oci_platform in ArchitectureOCIPlatformMap.items():
+                if build_step.platform_tag.endswith(wheel_platform.name):
+                    this_build_platform = oci_platform
+                    break
+            else:
+                msg = f"Unexpected build platform: {build_step.platform_tag}."
+                raise ValueError(msg)
+
             with OCIContainer(
                 image=build_step.container_image,
                 enforce_32_bit=build_step.platform_tag.endswith("i686"),
                 cwd=container_project_path,
                 engine=options.globals.container_engine,
+                oci_platform=this_build_platform,
             ) as container:
                 build_in_container(
                     options=options,
