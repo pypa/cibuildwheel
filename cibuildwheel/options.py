@@ -215,6 +215,7 @@ def _resolve_cascade(
     return result
 
 
+# pylint: disable-next=inconsistent-return-statements
 def _merge_values(before: str | None, after: str, rule: InheritRule, merge_sep: str | None) -> str:
     if rule == InheritRule.NONE:
         return after

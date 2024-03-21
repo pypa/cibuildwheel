@@ -9,8 +9,6 @@ import nox
 
 nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
 
-PYTHON_ALL_VERSIONS = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
-
 DIR = Path(__file__).parent.resolve()
 
 if os.environ.get("CI", None):
@@ -23,7 +21,7 @@ def tests(session: nox.Session) -> None:
     Run the unit and regular tests.
     """
     unit_test_args = ["--run-docker"] if sys.platform.startswith("linux") else []
-    session.install("-e", ".[test]")
+    session.install("-e.[test]")
     if session.posargs:
         session.run("pytest", *session.posargs)
     else:
@@ -46,7 +44,8 @@ def pylint(session: nox.Session) -> None:
     Run pylint.
     """
 
-    session.install("pylint", ".")
+    name = "cibuildwheel @ ." if getattr(session.virtualenv, "venv_backend", "") == "uv" else "."
+    session.install("pylint", name)
     session.run("pylint", "cibuildwheel", *session.posargs)
 
 
@@ -60,32 +59,36 @@ def check_manifest(session: nox.Session) -> None:
     session.run("check-manifest", *session.posargs)
 
 
-@nox.session(python=PYTHON_ALL_VERSIONS)
+@nox.session
 def update_constraints(session: nox.Session) -> None:
     """
     Update the dependencies inplace.
     """
-    session.install("pip-tools")
-    assert isinstance(session.python, str)
-    python_version = session.python.replace(".", "")
-    env = os.environ.copy()
-    # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
-    # regenerate the constraints files
-    env["CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
-    session.run(
-        "pip-compile",
-        "--allow-unsafe",
-        "--upgrade",
-        "cibuildwheel/resources/constraints.in",
-        f"--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
-        env=env,
-    )
-    if session.python == PYTHON_ALL_VERSIONS[-1]:
-        RESOURCES = DIR / "cibuildwheel" / "resources"
-        shutil.copyfile(
-            RESOURCES / f"constraints-python{python_version}.txt",
-            RESOURCES / "constraints.txt",
+
+    if getattr(session.virtualenv, "venv_backend", "") != "uv":
+        session.install("uv>=0.1.23")
+
+    for minor_version in range(7, 13):
+        python_version = f"3.{minor_version}"
+        env = os.environ.copy()
+        # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+        # regenerate the constraints files
+        env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+        session.run(
+            "uv",
+            "pip",
+            "compile",
+            f"--python-version={python_version}",
+            "--upgrade",
+            "cibuildwheel/resources/constraints.in",
+            f"--output-file=cibuildwheel/resources/constraints-python{python_version.replace('.', '')}.txt",
+            env=env,
         )
+    RESOURCES = DIR / "cibuildwheel" / "resources"
+    shutil.copyfile(
+        RESOURCES / "constraints-python312.txt",
+        RESOURCES / "constraints.txt",
+    )
 
 
 @nox.session
@@ -104,7 +107,7 @@ def update_proj(session: nox.Session) -> None:
     """
     Update the README inplace.
     """
-    session.install("-e", ".[bin]")
+    session.install("-e.[bin]")
     session.run(
         "python",
         "bin/projects.py",
@@ -127,18 +130,10 @@ def generate_schema(session: nox.Session) -> None:
 @nox.session(python="3.9")
 def docs(session: nox.Session) -> None:
     """
-    Build the docs.
+    Build the docs. Will serve unless --non-interactive
     """
-    session.install("-e", ".[docs]")
-    session.run("pip", "list")
-
-    if session.posargs:
-        if "serve" in session.posargs:
-            session.run("mkdocs", "serve")
-        else:
-            session.error("Unrecognized args, use 'serve'")
-    else:
-        session.run("mkdocs", "build")
+    session.install("-e.[docs]")
+    session.run("mkdocs", "serve" if session.interactive else "build")
 
 
 @nox.session
