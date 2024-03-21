@@ -66,14 +66,14 @@ def update_constraints(session: nox.Session) -> None:
     """
 
     if getattr(session.virtualenv, "venv_backend", "") != "uv":
-        session.install("uv")
+        session.install("uv>=0.1.23")
 
     for minor_version in range(7, 13):
         python_version = f"3.{minor_version}"
         env = os.environ.copy()
         # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
         # regenerate the constraints files
-        env["CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+        env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
         session.run(
             "uv",
             "pip",
