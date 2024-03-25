@@ -357,7 +357,7 @@ Then cibuildwheel will detect that it's installed and use it instead. However, y
 
 ### macOS: Library dependencies do not satisfy target MacOS
 
-Since delocate 0.10.8 there is added verification that the library binary dependencies match the target macOS version. This is to prevent the situation where a wheel platform tag is lower than the actual minimum macOS version required by the library. To resolve this error you need to build the library to the same macOS version as the target wheel (for example using `MACOSX_DEPLOYMENT_TARGET` environment variable).
+Since delocate 0.11.0 there is added verification that the library binary dependencies match the target macOS version. This is to prevent the situation where a wheel platform tag is lower than the actual minimum macOS version required by the library. To resolve this error you need to build the library to the same macOS version as the target wheel (for example using `MACOSX_DEPLOYMENT_TARGET` environment variable).
 Alternatively, you could set `MACOSX_DEPLOYMENT_TARGET` in `CIBW_ENVIRONMENT` to correctly label the wheel as incompatible with older macOS versions.
 
 This error may happen when you install a library using a package manager like Homebrew, which compiles the library for the macOS version of the build machine. This is not suitable for wheels, as the library will only work on the same macOS version as the build machine. You should compile the library yourself, or use a precompiled binary that matches the target macOS version.
