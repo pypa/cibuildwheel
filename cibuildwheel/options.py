@@ -75,7 +75,6 @@ class GlobalOptions:
     build_selector: BuildSelector
     test_selector: TestSelector
     architectures: set[Architecture]
-    container_engine: OCIContainerEngineConfig
 
 
 @dataclasses.dataclass(frozen=True)
@@ -95,6 +94,7 @@ class BuildOptions:
     build_verbosity: int
     build_frontend: BuildFrontendConfig | None
     config_settings: str
+    container_engine: OCIContainerEngineConfig
 
     @property
     def package_dir(self) -> Path:
@@ -545,25 +545,12 @@ class Options:
         )
         test_selector = TestSelector(skip_config=test_skip)
 
-        container_engine_str = self.reader.get(
-            "container-engine",
-            table_format={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
-        )
-
-        try:
-            container_engine = OCIContainerEngineConfig.from_config_string(container_engine_str)
-        except ValueError as e:
-            msg = f"cibuildwheel: Failed to parse container config. {e}"
-            print(msg, file=sys.stderr)
-            sys.exit(2)
-
         return GlobalOptions(
             package_dir=package_dir,
             output_dir=output_dir,
             build_selector=build_selector,
             test_selector=test_selector,
             architectures=architectures,
-            container_engine=container_engine,
         )
 
     def build_options(self, identifier: str | None) -> BuildOptions:
@@ -643,6 +630,8 @@ class Options:
 
             manylinux_images: dict[str, str] = {}
             musllinux_images: dict[str, str] = {}
+            container_engine: OCIContainerEngineConfig | None = None
+
             if self.platform == "linux":
                 all_pinned_container_images = _get_pinned_container_images()
 
@@ -677,6 +666,18 @@ class Options:
 
                     musllinux_images[build_platform] = image
 
+            container_engine_str = self.reader.get(
+                "container-engine",
+                table_format={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
+            )
+
+            try:
+                container_engine = OCIContainerEngineConfig.from_config_string(container_engine_str)
+            except ValueError as e:
+                msg = f"cibuildwheel: Failed to parse container config. {e}"
+                print(msg, file=sys.stderr)
+                sys.exit(2)
+
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
@@ -693,6 +694,7 @@ class Options:
                 musllinux_images=musllinux_images or None,
                 build_frontend=build_frontend,
                 config_settings=config_settings,
+                container_engine=container_engine,
             )
 
     def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:
