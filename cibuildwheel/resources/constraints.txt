@@ -2,11 +2,11 @@
 #    nox -s update_constraints
 altgraph==0.17.4
     # via macholib
-build==1.1.1
+build==1.2.1
 delocate==0.11.0
 distlib==0.3.8
     # via virtualenv
-filelock==3.13.1
+filelock==3.13.3
     # via virtualenv
 macholib==1.16.3
     # via delocate
@@ -19,6 +19,6 @@ platformdirs==4.2.0
     # via virtualenv
 pyproject-hooks==1.0.0
     # via build
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via delocate
 virtualenv==20.25.1
