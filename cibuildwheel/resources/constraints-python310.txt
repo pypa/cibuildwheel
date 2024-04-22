@@ -6,7 +6,7 @@ build==1.2.1
 delocate==0.11.0
 distlib==0.3.8
     # via virtualenv
-filelock==3.13.3
+filelock==3.13.4
     # via virtualenv
 importlib-metadata==7.1.0
     # via build
@@ -27,6 +27,6 @@ tomli==2.0.1
     #   pyproject-hooks
 typing-extensions==4.11.0
     # via delocate
-virtualenv==20.25.1
+virtualenv==20.25.3
 zipp==3.18.1
     # via importlib-metadata
