@@ -88,7 +88,7 @@ jobs:
       - uses: actions/checkout@v4
 
       # Used to host cibuildwheel
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==2.17.0
