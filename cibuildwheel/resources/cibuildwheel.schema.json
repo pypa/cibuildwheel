@@ -491,6 +491,9 @@
           "config-settings": {
             "$ref": "#/properties/config-settings"
           },
+          "container-engine": {
+            "$ref": "#/properties/container-engine"
+          },
           "dependency-versions": {
             "$ref": "#/properties/dependency-versions"
           },
@@ -578,6 +581,9 @@
         },
         "config-settings": {
           "$ref": "#/properties/config-settings"
+        },
+        "container-engine": {
+          "$ref": "#/properties/container-engine"
         },
         "environment": {
           "$ref": "#/properties/environment"
