@@ -89,5 +89,5 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
     assert identifiers(build_steps[3]) == ["cp310-manylinux_x86_64"]
     assert before_alls(build_steps[3]) == [""]
     assert container_engines(build_steps[3]) == [
-        OCIContainerEngineConfig(name="docker", create_args=["--privileged"])
+        OCIContainerEngineConfig(name="docker", create_args=("--privileged",))
     ]

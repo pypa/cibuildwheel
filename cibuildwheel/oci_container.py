@@ -32,7 +32,7 @@ ContainerEngineName = Literal["docker", "podman"]
 @dataclass(frozen=True)
 class OCIContainerEngineConfig:
     name: ContainerEngineName
-    create_args: list[str] = field(default_factory=list)
+    create_args: tuple[str, ...] = field(default_factory=tuple)
     disable_host_mount: bool = False
 
     @staticmethod
@@ -58,7 +58,7 @@ class OCIContainerEngineConfig:
         )
 
         return OCIContainerEngineConfig(
-            name=name, create_args=create_args, disable_host_mount=disable_host_mount
+            name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount
         )
 
     def options_summary(self) -> str | dict[str, str]:
@@ -70,18 +70,6 @@ class OCIContainerEngineConfig:
                 "create_args": repr(self.create_args),
                 "disable_host_mount": str(self.disable_host_mount),
             }
-
-    def __eq__(self, value: object) -> bool:
-        if not isinstance(value, OCIContainerEngineConfig):
-            return False
-        return (
-            self.name == value.name
-            and self.create_args == value.create_args
-            and self.disable_host_mount == value.disable_host_mount
-        )
-
-    def __hash__(self) -> int:
-        return hash((self.name, tuple(self.create_args), self.disable_host_mount))
 
 
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
