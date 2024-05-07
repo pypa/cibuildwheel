@@ -21,17 +21,15 @@ packaging==24.0
 pip==24.0
 platformdirs==4.0.0
     # via virtualenv
-pyproject-hooks==1.0.0
+pyproject-hooks==1.1.0
     # via build
 tomli==2.0.1
-    # via
-    #   build
-    #   pyproject-hooks
+    # via build
 typing-extensions==4.7.1
     # via
     #   delocate
     #   importlib-metadata
     #   platformdirs
-virtualenv==20.25.3
+virtualenv==20.26.1
 zipp==3.15.0
     # via importlib-metadata

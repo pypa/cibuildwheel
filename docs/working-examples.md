@@ -74,8 +74,8 @@ title: Working examples
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS |
 | [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
-| [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
+| [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] ![appveyor icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
@@ -101,8 +101,8 @@ title: Working examples
 | [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
-| [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
+| [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
 | [ninja][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
@@ -111,8 +111,8 @@ title: Working examples
 | [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
 | [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
 | [CorrectionLib][]                 | ![github icon][] | ![apple icon][] ![linux icon][] | Structured JSON powered correction library for HEP, designed for the CMS experiment at CERN. |
-| [xmlstarlet][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
 | [aalink][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Async Python interface for Ableton Link. |
+| [xmlstarlet][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
 | [pyinstrument_cext][]             | ![travisci icon][] ![appveyor icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A simple C extension, without external dependencies |
 | [werpy][]                         | ![github icon][] | ![windows icon][] ![linux icon][] ![apple icon][] | An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER). |
 | [pybind11 cross build example][]  | ![github icon][] ![gitlab icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Same as pybind11 cmake_example but used to demo Linux ARM + Windows + macOS builds on GitLab |
@@ -183,8 +183,8 @@ title: Working examples
 [Rtree]: https://github.com/Toblerity/rtree
 [pybind11 cmake_example]: https://github.com/pybind/cmake_example
 [KDEpy]: https://github.com/tommyod/KDEpy
-[python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
+[python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [tgcalls]: https://github.com/MarshalX/tgcalls
 [python-snappy]: https://github.com/andrix/python-snappy
 [pybind11 python_example]: https://github.com/pybind/python_example
@@ -210,8 +210,8 @@ title: Working examples
 [Arbor]: https://github.com/arbor-sim/arbor
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [polaroid]: https://github.com/daggy1234/polaroid
-[etebase-py]: https://github.com/etesync/etebase-py
 [clang-format]: https://github.com/ssciwr/clang-format-wheel
+[etebase-py]: https://github.com/etesync/etebase-py
 [cf-units]: https://github.com/SciTools/cf-units
 [ninja]: https://github.com/scikit-build/ninja-python-distributions
 [numpythia]: https://github.com/scikit-hep/numpythia
@@ -220,8 +220,8 @@ title: Working examples
 [GSD]: https://github.com/glotzerlab/gsd
 [SiPM]: https://github.com/EdoPro98/SimSiPM
 [CorrectionLib]: https://github.com/cms-nanoAOD/correctionlib
-[xmlstarlet]: https://github.com/dimitern/xmlstarlet
 [aalink]: https://github.com/artfwo/aalink
+[xmlstarlet]: https://github.com/dimitern/xmlstarlet
 [pyinstrument_cext]: https://github.com/joerick/pyinstrument_cext
 [werpy]: https://github.com/analyticsinmotion/werpy
 [pybind11 cross build example]: https://github.com/wbarnha/pybind_cmake_example_crossbuild
