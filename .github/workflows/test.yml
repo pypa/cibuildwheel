@@ -33,7 +33,7 @@ jobs:
         pipx run nox -s pylint
 
   test:
-    name: Test cibuildwheel on ${{ matrix.os }}
+    name: Test cibuildwheel on ${{ matrix.os }} (${{ matrix.python_version }})
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
