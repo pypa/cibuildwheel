@@ -407,6 +407,28 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 extra_flags += build_frontend.args
 
+                build_env = env.copy()
+                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                if build_options.dependency_constraints:
+                    constraints_path = build_options.dependency_constraints.get_for_python_version(
+                        config.version
+                    )
+                    # Bug in pip <= 21.1.3 - we can't have a space in the
+                    # constraints file, and pip doesn't support drive letters
+                    # in uhi.  After probably pip 21.2, we can use uri. For
+                    # now, use a temporary file.
+                    if " " in str(constraints_path):
+                        assert " " not in str(identifier_tmp_dir)
+                        tmp_file = identifier_tmp_dir / "constraints.txt"
+                        tmp_file.write_bytes(constraints_path.read_bytes())
+                        constraints_path = tmp_file
+
+                    our_constraints = str(constraints_path)
+                    user_constraints = build_env.get("PIP_CONSTRAINT")
+                    build_env["PIP_CONSTRAINT"] = " ".join(
+                        c for c in [our_constraints, user_constraints] if c
+                    )
+
                 if build_frontend.name == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
@@ -420,46 +442,22 @@ def build(options: Options, tmp_path: Path) -> None:
                         f"--wheel-dir={built_wheel_dir}",
                         "--no-deps",
                         *extra_flags,
-                        env=env,
+                        env=build_env,
                     )
                 elif build_frontend.name == "build":
                     if not 0 <= build_options.build_verbosity < 2:
                         msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                         log.warning(msg)
-                    build_env = env.copy()
-                    if build_options.dependency_constraints:
-                        constraints_path = (
-                            build_options.dependency_constraints.get_for_python_version(
-                                config.version
-                            )
-                        )
-                        # Bug in pip <= 21.1.3 - we can't have a space in the
-                        # constraints file, and pip doesn't support drive letters
-                        # in uhi.  After probably pip 21.2, we can use uri. For
-                        # now, use a temporary file.
-                        if " " in str(constraints_path):
-                            assert " " not in str(identifier_tmp_dir)
-                            tmp_file = identifier_tmp_dir / "constraints.txt"
-                            tmp_file.write_bytes(constraints_path.read_bytes())
-                            constraints_path = tmp_file
-
-                        our_constraints = str(constraints_path)
-                        user_constraints = build_env.get("PIP_CONSTRAINT")
-                        build_env["PIP_CONSTRAINT"] = " ".join(
-                            c for c in [our_constraints, user_constraints] if c
-                        )
-
-                        build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-                        call(
-                            "python",
-                            "-m",
-                            "build",
-                            build_options.package_dir,
-                            "--wheel",
-                            f"--outdir={built_wheel_dir}",
-                            *extra_flags,
-                            env=build_env,
-                        )
+                    call(
+                        "python",
+                        "-m",
+                        "build",
+                        build_options.package_dir,
+                        "--wheel",
+                        f"--outdir={built_wheel_dir}",
+                        *extra_flags,
+                        env=build_env,
+                    )
                 else:
                     assert_never(build_frontend)
 
