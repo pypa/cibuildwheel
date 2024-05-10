@@ -285,7 +285,7 @@ For these reasons, it's strongly recommended to not use brew for native library 
 ### Building Rust wheels
 
 If you build Rust wheels, you need to download the Rust compilers in manylinux.
-If you support 32-bit windows, you need to add this as a potential target. You
+If you support 32-bit Windows, you need to add this as a potential target. You
 can do this, for example on GitHub Actions, with:
 
 ```yaml
