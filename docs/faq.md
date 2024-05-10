@@ -282,6 +282,27 @@ For these reasons, it's strongly recommended to not use brew for native library 
 [Homebrew]: https://brew.sh/
 [delocate]: https://github.com/matthew-brett/delocate
 
+### Building Rust wheels
+
+If you build Rust wheels, you need to download the Rust compilers in manylinux.
+If you support 32-bit windows, you need to add this as a potential target. You
+can do this, for example on GitHub Actions, with:
+
+```toml
+CIBW_BEFORE_ALL_LINUX: curl -sSf https://sh.rustup.rs | sh -s -- -y
+CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
+CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
+```
+
+You probably need to skip PyPy (if using PyO3, anyway), and Rust doesn't support musllinux 1.1:
+
+```toml
+[tool.cibuildwheel]
+skip = ["pp*", "*musl*"]
+```
+
+Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels and can cross-compile.
+
 ### macOS: ModuleNotFoundError
 
 Calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/pypa/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
