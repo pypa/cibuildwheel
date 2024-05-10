@@ -381,6 +381,18 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 extra_flags += build_frontend.args
 
+                build_env = env.copy()
+                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                if build_options.dependency_constraints:
+                    constraint_path = build_options.dependency_constraints.get_for_python_version(
+                        config.version
+                    )
+                    user_constraints = build_env.get("PIP_CONSTRAINT")
+                    our_constraints = constraint_path.as_uri()
+                    build_env["PIP_CONSTRAINT"] = " ".join(
+                        c for c in [user_constraints, our_constraints] if c
+                    )
+
                 if build_frontend.name == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
@@ -394,25 +406,12 @@ def build(options: Options, tmp_path: Path) -> None:
                         f"--wheel-dir={built_wheel_dir}",
                         "--no-deps",
                         *extra_flags,
-                        env=env,
+                        env=build_env,
                     )
                 elif build_frontend.name == "build":
                     if not 0 <= build_options.build_verbosity < 2:
                         msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                         log.warning(msg)
-                    build_env = env.copy()
-                    if build_options.dependency_constraints:
-                        constraint_path = (
-                            build_options.dependency_constraints.get_for_python_version(
-                                config.version
-                            )
-                        )
-                        user_constraints = build_env.get("PIP_CONSTRAINT")
-                        our_constraints = constraint_path.as_uri()
-                        build_env["PIP_CONSTRAINT"] = " ".join(
-                            c for c in [user_constraints, our_constraints] if c
-                        )
-                    build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                     call(
                         "python",
                         "-m",
