@@ -1056,11 +1056,11 @@ The available options are (default value):
 - `CIBW_MANYLINUX_S390X_IMAGE` ([`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2014_s390x))
 - `CIBW_MANYLINUX_PYPY_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
 - `CIBW_MANYLINUX_PYPY_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
-- `CIBW_MUSLLINUX_X86_64_IMAGE` ([`quay.io/pypa/musllinux_1_1_x86_64`](https://quay.io/pypa/musllinux_1_1_x86_64))
-- `CIBW_MUSLLINUX_I686_IMAGE` ([`quay.io/pypa/musllinux_1_1_i686`](https://quay.io/pypa/musllinux_1_1_i686))
-- `CIBW_MUSLLINUX_AARCH64_IMAGE` ([`quay.io/pypa/musllinux_1_1_aarch64`](https://quay.io/pypa/musllinux_1_1_aarch64))
-- `CIBW_MUSLLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/musllinux_1_1_ppc64le`](https://quay.io/pypa/musllinux_1_1_ppc64le))
-- `CIBW_MUSLLINUX_S390X_IMAGE` ([`quay.io/pypa/musllinux_1_1_s390x`](https://quay.io/pypa/musllinux_1_1_s390x))
+- `CIBW_MUSLLINUX_X86_64_IMAGE` ([`quay.io/pypa/musllinux_1_2_x86_64`](https://quay.io/pypa/musllinux_1_2_x86_64))
+- `CIBW_MUSLLINUX_I686_IMAGE` ([`quay.io/pypa/musllinux_1_2_i686`](https://quay.io/pypa/musllinux_1_2_i686))
+- `CIBW_MUSLLINUX_AARCH64_IMAGE` ([`quay.io/pypa/musllinux_1_2_aarch64`](https://quay.io/pypa/musllinux_1_2_aarch64))
+- `CIBW_MUSLLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/musllinux_1_2_ppc64le`](https://quay.io/pypa/musllinux_1_2_ppc64le))
+- `CIBW_MUSLLINUX_S390X_IMAGE` ([`quay.io/pypa/musllinux_1_2_s390x`](https://quay.io/pypa/musllinux_1_2_s390x))
 
 Set an alternative Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
@@ -1071,7 +1071,7 @@ For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `mus
 
 If this option is blank, it will fall though to the next available definition (environment variable -> pyproject.toml -> default).
 
-If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/musllinux_1_1 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
+If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/musllinux_1_1/musllinux_1_2 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
 
 Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 

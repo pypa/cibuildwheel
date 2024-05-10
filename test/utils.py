@@ -160,7 +160,7 @@ def expected_wheels(
             manylinux_versions = ["manylinux_2_17", "manylinux2014"]
 
     if musllinux_versions is None:
-        musllinux_versions = ["musllinux_1_1"]
+        musllinux_versions = ["musllinux_1_2"]
 
     if python_abi_tags is None:
         python_abi_tags = [

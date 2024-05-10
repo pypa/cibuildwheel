@@ -669,7 +669,7 @@ class Options:
                     config_value = self.reader.get(f"musllinux-{build_platform}-image")
 
                     if not config_value:
-                        image = pinned_images["musllinux_1_1"]
+                        image = pinned_images["musllinux_1_2"]
                     elif config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
