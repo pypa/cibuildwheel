@@ -540,6 +540,7 @@ def _ensure_virtualenv() -> Path:
 
 
 def _parse_constraints_for_virtualenv(
+    seed_packages: list[str],
     dependency_constraint_flags: Sequence[PathOrStr],
 ) -> dict[str, str]:
     """
@@ -552,8 +553,8 @@ def _parse_constraints_for_virtualenv(
     {macos|windows}.setup_python function.
     """
     assert len(dependency_constraint_flags) in {0, 2}
-    packages = ["pip", "setuptools", "wheel"]
-    constraints_dict = {package: "embed" for package in packages}
+    # only seed pip if other seed packages do not appear in a constraint file
+    constraints_dict = {"pip": "embed"}
     if len(dependency_constraint_flags) == 2:
         assert dependency_constraint_flags[0] == "-c"
         constraint_path = Path(dependency_constraint_flags[1])
@@ -569,7 +570,7 @@ def _parse_constraints_for_virtualenv(
                     requirement = Requirement(line)
                     package = requirement.name
                     if (
-                        package not in packages
+                        package not in seed_packages
                         or requirement.url is not None
                         or requirement.marker is not None
                         or len(requirement.extras) != 0
@@ -590,8 +591,16 @@ def virtualenv(
 ) -> dict[str, str]:
     assert python.exists()
     virtualenv_app = _ensure_virtualenv()
-    constraints = _parse_constraints_for_virtualenv(dependency_constraint_flags)
-    additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
+    allowed_seed_packages = ["pip", "setuptools", "wheel"]
+    constraints = _parse_constraints_for_virtualenv(
+        allowed_seed_packages, dependency_constraint_flags
+    )
+    additional_flags: list[str] = []
+    for package in allowed_seed_packages:
+        if package in constraints:
+            additional_flags.append(f"--{package}={constraints[package]}")
+        else:
+            additional_flags.append(f"--no-{package}")
 
     # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
     # environment. The initial cost is a bit higher but reusing is much faster.
