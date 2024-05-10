@@ -288,7 +288,7 @@ If you build Rust wheels, you need to download the Rust compilers in manylinux.
 If you support 32-bit windows, you need to add this as a potential target. You
 can do this, for example on GitHub Actions, with:
 
-```toml
+```yaml
 CIBW_BEFORE_ALL_LINUX: curl -sSf https://sh.rustup.rs | sh -s -- -y
 CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
 CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
