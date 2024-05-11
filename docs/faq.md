@@ -286,7 +286,7 @@ For these reasons, it's strongly recommended to not use brew for native library 
 
 If you build Rust wheels, you need to download the Rust compilers in manylinux.
 If you support 32-bit Windows, you need to add this as a potential target. You
-can do this on GitHub Actiions, for example, with:
+can do this on GitHub Actions, for example, with:
 
 ```yaml
 CIBW_BEFORE_ALL_LINUX: curl -sSf https://sh.rustup.rs | sh -s -- -y
