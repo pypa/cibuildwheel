@@ -286,7 +286,7 @@ For these reasons, it's strongly recommended to not use brew for native library 
 
 If you build Rust wheels, you need to download the Rust compilers in manylinux.
 If you support 32-bit Windows, you need to add this as a potential target. You
-can do this, for example on GitHub Actions, with:
+can do this on GitHub Actiions, for example, with:
 
 ```yaml
 CIBW_BEFORE_ALL_LINUX: curl -sSf https://sh.rustup.rs | sh -s -- -y
@@ -294,14 +294,14 @@ CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
 CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
 ```
 
-You probably need to skip PyPy (if using PyO3, anyway), and Rust doesn't support musllinux 1.1:
+You probably need to skip PyPy (if using PyO3, anyway), and Rust provides cargo for musllinux 32-bit:
 
 ```toml
 [tool.cibuildwheel]
-skip = ["pp*", "*musl*"]
+skip = ["pp*", "*-musllinux_i686"]
 ```
 
-Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels and can cross-compile.
+Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels and can cross-compile (and can build 32-bit musl, for example).
 
 ### macOS: ModuleNotFoundError
 
