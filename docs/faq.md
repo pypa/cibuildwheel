@@ -294,14 +294,14 @@ CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
 CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
 ```
 
-You probably need to skip PyPy (if using PyO3, anyway), and Rust does not provide Cargo for musllinux 32-bit:
+Rust does not provide Cargo for musllinux 32-bit, so that needs to be skipped:
 
 ```toml
 [tool.cibuildwheel]
-skip = ["pp*", "*-musllinux_i686"]
+skip = ["*-musllinux_i686"]
 ```
 
-Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels and can cross-compile (and can build 32-bit musl, for example).
+Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels, builds the non-Python Rust modules once, and can cross-compile (and can build 32-bit musl, for example).
 
 ### macOS: ModuleNotFoundError
 
