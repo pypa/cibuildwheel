@@ -4,6 +4,12 @@ import textwrap
 
 from . import test_projects, utils
 
+pyproject_toml = r"""
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+"""
+
 limited_api_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         r"""
@@ -29,6 +35,8 @@ limited_api_project = test_projects.new_c_project(
     setup_py_extension_args_add="**extension_kwargs",
     setup_py_setup_args_add="cmdclass=cmdclass",
 )
+
+limited_api_project.files["pyproject.toml"] = pyproject_toml
 
 
 def test_abi3(tmp_path):
@@ -154,6 +162,8 @@ ctypes_project.files["test/add_test.py"] = textwrap.dedent(
         assert ctypesexample.summing.add(a, b) == [5, 7, 9]
     """
 )
+
+ctypes_project.files["pyproject.toml"] = pyproject_toml
 
 
 def test_abi_none(tmp_path, capfd):
