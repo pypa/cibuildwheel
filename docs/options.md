@@ -1102,6 +1102,10 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     # Build using a different image from the docker registry
     CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
     CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
+
+    # Build musllinux wheels using the musllinux_1_1 image
+    CIBW_MUSLLINUX_X86_64_IMAGE: musllinux_1_1
+    CIBW_MUSLLINUX_I686_IMAGE: musllinux_1_1
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1129,6 +1133,10 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     # Build using a different image from the docker registry
     manylinux-x86_64-image = "dockcross/manylinux-x64"
     manylinux-i686-image = "dockcross/manylinux-x86"
+
+    # Build musllinux wheels using the musllinux_1_1 image
+    musllinux-x86_64-image = "musllinux_1_1"
+    musllinux-i686-image = "musllinux_1_1"
     ```
 
     Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
