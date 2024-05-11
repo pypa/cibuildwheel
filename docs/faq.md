@@ -294,7 +294,7 @@ CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
 CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
 ```
 
-You probably need to skip PyPy (if using PyO3, anyway), and Rust provides cargo for musllinux 32-bit:
+You probably need to skip PyPy (if using PyO3, anyway), and Rust does not provide Cargo for musllinux 32-bit:
 
 ```toml
 [tool.cibuildwheel]
