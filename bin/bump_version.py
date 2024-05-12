@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = ["click", "packaging"]
+# ///
+
 
 from __future__ import annotations
 
+import configparser
 import glob
 import os
 import subprocess
@@ -12,8 +17,6 @@ from pathlib import Path
 
 import click
 from packaging.version import InvalidVersion, Version
-
-import cibuildwheel
 
 config = [
     # file path, version find/replace format
@@ -34,7 +37,10 @@ OFF = "\u001b[0m"
 
 @click.command()
 def bump_version() -> None:
-    current_version = cibuildwheel.__version__
+    # Update if moving setup.cfg to pyproject.toml
+    cfg = configparser.ConfigParser()
+    cfg.read("setup.cfg")
+    current_version = cfg["metadata"]["version"]
 
     try:
         commit_date_str = subprocess.run(
