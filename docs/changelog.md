@@ -4,6 +4,23 @@ title: Changelog
 
 # Changelog
 
+### v2.18.0
+
+_12 May 2024_
+
+- ✨ Adds CPython 3.13 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.13.0b1. Free-threading mode is not available yet, waiting on official binaries (planned for beta 2) and pip support.
+
+    While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.13 will be available in cibuildwheel without the flag. (#1816)
+- ✨ Musllinux now defaults to `musllinux_1_2`. You can set the older `manylinux_1_1` via config if needed. (#1817)
+- 🛠 No longer pre-seed setuptools/wheel in virtual environments (#1819)
+- 🛠 Respect the constraints file when building with pip, matching build (#1818)
+- 🛠 Use uv to compile our pinned dependencies, 10x faster and doesn't require special setup (#1778)
+- 🐛 Fix an issue with the schema (#1788)
+- 📚 Document the new delocate error checking macOS versions (#1766)
+- 📚 Document Rust builds (#1816)
+- 📚 Speed up our readthedocs builds with uv, 26 seconds -> 6 seconds to install dependencies (#1816)
+
+
 ### v2.17.0
 
 _11 March 2024_
