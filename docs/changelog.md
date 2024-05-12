@@ -10,7 +10,8 @@ _12 May 2024_
 
 - ✨ Adds CPython 3.13 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.13.0b1. Free-threading mode is not available yet, waiting on official binaries (planned for beta 2) and pip support.
 
-    While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.13 will be available in cibuildwheel without the flag. (#1816)
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.13 will be available in cibuildwheel without the flag._ (#1816)
+
 - ✨ Musllinux now defaults to `musllinux_1_2`. You can set the older `manylinux_1_1` via config if needed. (#1817)
 - 🛠 No longer pre-seed setuptools/wheel in virtual environments (#1819)
 - 🛠 Respect the constraints file when building with pip, matching build (#1818)
@@ -26,14 +27,14 @@ _12 May 2024_
 _11 March 2024_
 
 - 🌟 Adds the ability to inherit configuration in TOML overrides. This makes certain configurations much simpler. If you're overriding an option like `before-build` or `environment`, and you just want to add an  extra command or environment variable, you can just append (or prepend) to the previous config. See [the docs](https://cibuildwheel.pypa.io/en/stable/options/#inherit) for more information. (#1730)
-- 🌟 Adds official support for native arm64 macOS GitHub runners. To use them, just specify `macos-14` as an `os` of your job in your workflow file. You can also keep `macos-13` in your build matrix to build x86_64. Check out the new [GitHub Actions example config](https://cibuildwheel.pypa.io/en/stable/setup/#github-actions).
+- 🌟 Adds official support for native `arm64` macOS GitHub runners. To use them, just specify `macos-14` as an `os` of your job in your workflow file. You can also keep `macos-13` in your build matrix to build `x86_64`. Check out the new [GitHub Actions example config](https://cibuildwheel.pypa.io/en/stable/setup/#github-actions).
 - ✨ You no longer need to specify `--platform` to run cibuildwheel locally! Instead it will detect your platform automatically. This was a safety feature, no longer necessary. (#1727)
 - 🛠 Removed setuptools and wheel pinned versions. This only affects old-style projects without a `pyproject.toml`, projects with `pyproject.toml` are already getting fresh versions of their `build-system.requires` installed into an isolated environment. (#1725)
 - 🛠 Improve how the GitHub Action passes arguments (#1757)
 - 🛠 Remove a system-wide install of pipx in the GitHub Action (#1745)
-- 🐛 No longer will cibuildwheel override the PIP_CONSTRAINT environment variable when using the `build` frontend. Instead it will be extended. (#1675)
-- 🐛 Fix a bug where building and testing both x86_86 and arm64 wheels on the same runner caused the wrong architectures in the test environment (#1750)
-- 🐛 Fix a bug that prevented testing a CPython 3.8 wheel targeting macOS 11+ on x86_64 (#1768)
+- 🐛 No longer will cibuildwheel override the `PIP_CONSTRAINT` environment variable when using the `build` frontend. Instead it will be extended. (#1675)
+- 🐛 Fix a bug where building and testing both `x86_86` and `arm64` wheels on the same runner caused the wrong architectures in the test environment (#1750)
+- 🐛 Fix a bug that prevented testing a CPython 3.8 wheel targeting macOS 11+ on `x86_64` (#1768)
 - 📚 Moved the docs onto the official PyPA domain - they're now available at https://cibuildwheel.pypa.io . (#1775)
 - 📚 Docs and examples improvements (#1762, #1734)
 
@@ -110,7 +111,7 @@ _10 July 2023_
 - 🛠 Updates the prerelease CPython 3.12 version to 3.12.0b3.
 - ✨ Allow the use of the `{wheel}` placeholder in CIBW_TEST_COMMAND (#1533)
 - 📚 Docs & examples updates (#1532, #1416)
-- ⚠️ Removed support for running cibuildwheel in Python 3.7. Python 3.7 is EOL. However, cibuildwheel continues to build Python 3.7 wheels for the moment. (#1175)
+- ⚠️  Removed support for running cibuildwheel in Python 3.7. Python 3.7 is EOL. However, cibuildwheel continues to build Python 3.7 wheels for the moment. (#1175)
 
 ### v2.13.1
 
