@@ -16,8 +16,8 @@ title: Working examples
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
-| [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an in-process SQL OLAP Database Management System |
+| [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
 | [Triton][]                        | ![github icon][] | ![linux icon][] | Self hosted runners |
 | [uvloop][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | Ultra fast asyncio event loop. |
@@ -125,8 +125,8 @@ title: Working examples
 [NCNN]: https://github.com/Tencent/ncnn
 [Prophet]: https://github.com/facebook/prophet
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
-[Kivy]: https://github.com/kivy/kivy
 [duckdb]: https://github.com/duckdb/duckdb
+[Kivy]: https://github.com/kivy/kivy
 [MemRay]: https://github.com/bloomberg/memray
 [Triton]: https://github.com/openai/triton
 [uvloop]: https://github.com/MagicStack/uvloop
