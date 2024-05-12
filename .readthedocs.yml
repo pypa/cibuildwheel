@@ -11,5 +11,5 @@ build:
     - asdf install uv latest
     - asdf global uv latest
     - uv venv
-    - uv pip install .[docs]
-    - .venv/bin/python -m mkdocs build --site-dir $READTHEDOCS_OUTPUT/html
+    - uv pip install -e.[docs]
+    - . .venv/bin/activate && mkdocs build --strict --verbose --site-dir $READTHEDOCS_OUTPUT/html
