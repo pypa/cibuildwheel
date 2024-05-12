@@ -49,3 +49,5 @@ plugins:
       module_name: docs/main
       j2_variable_start_string: «
       j2_variable_end_string: »
+      on_error_fail: true
+      on_undefined: strict

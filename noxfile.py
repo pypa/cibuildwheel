@@ -133,7 +133,7 @@ def docs(session: nox.Session) -> None:
     Build the docs. Will serve unless --non-interactive
     """
     session.install("-e.[docs]")
-    session.run("mkdocs", "serve" if session.interactive else "build")
+    session.run("mkdocs", "serve" if session.interactive else "build", "--strict", *session.posargs)
 
 
 @nox.session
