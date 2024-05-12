@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import os
 import subprocess
+import sysconfig
 from typing import Any
-
-# Requires Python 3.7+
 
 
 def define_env(env: Any) -> None:
@@ -12,4 +12,7 @@ def define_env(env: Any) -> None:
     @env.macro
     def subprocess_run(*args: str) -> str:
         "Run a subprocess and return the stdout"
-        return subprocess.run(args, check=True, capture_output=True, text=True).stdout
+        env = os.environ.copy()
+        scripts = sysconfig.get_path("scripts")
+        env["PATH"] = f"{scripts}{os.pathsep}{env.get('PATH', '')}"
+        return subprocess.run(args, check=True, capture_output=True, text=True, env=env).stdout

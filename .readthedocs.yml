@@ -12,4 +12,4 @@ build:
     - asdf global uv latest
     - uv venv
     - uv pip install -e.[docs]
-    - . .venv/bin/activate && NO_COLOR=1 mkdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html
+    - NO_COLOR=1 .venv/bin/mkdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html
