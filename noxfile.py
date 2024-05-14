@@ -50,7 +50,7 @@ def pylint(session: nox.Session) -> None:
     Run pylint.
     """
 
-    session.install("pylint", ".")
+    session.install("pylint>=3.2", "-e.")
     session.run("pylint", "cibuildwheel", *session.posargs)
 
 
