@@ -8,9 +8,9 @@ title: Changelog
 
 _12 May 2024_
 
-- ✨ Adds CPython 3.13 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.13.0b1. Free-threading mode is not available yet, waiting on official binaries (planned for beta 2) and pip support.
+- ✨ Adds CPython 3.13 support, under the prerelease flag [CIBW_PRERELEASE_PYTHONS](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons). This version of cibuildwheel uses 3.13.0b1. Free-threading mode is not available yet (#1657), waiting on official binaries (planned for beta 2) and pip support.
 
-    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.13 will be available in cibuildwheel without the flag._ (#1816)
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.13 will be available in cibuildwheel without the flag._ (#1815)
 
 - ✨ Musllinux now defaults to `musllinux_1_2`. You can set the older `musllinux_1_1` via config if needed. (#1817)
 - 🛠 No longer pre-seed setuptools/wheel in virtual environments (#1819)
