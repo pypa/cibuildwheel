@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-dynamic = ["version"]
+version = "2.18.0"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -90,14 +90,6 @@ Changelog = "https://github.com/pypa/cibuildwheel#changelog"
 Documentation = "https://cibuildwheel.pypa.io"
 Homepage = "https://github.com/pypa/cibuildwheel"
 
-[tool.hatch.version]
-path = "cibuildwheel/__init__.py"
-
-[tool.hatch.build.targets.sdist]
-include = [
-    "/cibuildwheel",
-]
-
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
@@ -149,21 +141,6 @@ module = [
 ]
 ignore_missing_imports = true
 
-
-[tool.check-manifest]
-ignore = [
-    ".*",
-    ".circleci/**",
-    "test/**",
-    "unit_test/**",
-    "docs/**",
-    "examples/**",
-    "bin/**",
-    "*.yml",
-    "CI.md",  # TODO: can change test/test_ssl and remove this
-    "requirements-dev.txt",
-    "noxfile.py",
-]
 
 [tool.pylint]
 py-version = "3.8"
