@@ -16,8 +16,8 @@ title: Working examples
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
-| [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an in-process SQL OLAP Database Management System |
+| [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
 | [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
 | [Triton][]                        | ![github icon][] | ![linux icon][] | Self hosted runners |
 | [uvloop][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | Ultra fast asyncio event loop. |
@@ -118,15 +118,15 @@ title: Working examples
 | [pybind11 cross build example][]  | ![github icon][] ![gitlab icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Same as pybind11 cmake_example but used to demo Linux ARM + Windows + macOS builds on GitLab |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
-[pytorch-fairseq]: https://github.com/pytorch/fairseq
+[pytorch-fairseq]: https://github.com/facebookresearch/fairseq
 [NumPy]: https://github.com/numpy/numpy
 [Tornado]: https://github.com/tornadoweb/tornado
 [Matplotlib]: https://github.com/matplotlib/matplotlib
 [NCNN]: https://github.com/Tencent/ncnn
 [Prophet]: https://github.com/facebook/prophet
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
-[Kivy]: https://github.com/kivy/kivy
 [duckdb]: https://github.com/duckdb/duckdb
+[Kivy]: https://github.com/kivy/kivy
 [MemRay]: https://github.com/bloomberg/memray
 [Triton]: https://github.com/openai/triton
 [uvloop]: https://github.com/MagicStack/uvloop
@@ -141,11 +141,11 @@ title: Working examples
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
 [PyOxidizer]: https://github.com/indygreg/PyOxidizer
 [cvxpy]: https://github.com/cvxpy/cvxpy
-[websockets]: https://github.com/aaugustin/websockets
+[websockets]: https://github.com/python-websockets/websockets
 [pedalboard]: https://github.com/spotify/pedalboard
 [River]: https://github.com/online-ml/river
 [UltraJSON]: https://github.com/ultrajson/ultrajson
-[OpenSpiel]: https://github.com/deepmind/open_spiel
+[OpenSpiel]: https://github.com/google-deepmind/open_spiel
 [aiortc]: https://github.com/aiortc/aiortc
 [Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
 [Dependency Injector]: https://github.com/ets-labs/python-dependency-injector
@@ -169,7 +169,7 @@ title: Working examples
 [aioquic]: https://github.com/aiortc/aioquic
 [Psycopg 3]: https://github.com/psycopg/psycopg
 [ruptures]: https://github.com/deepcharles/ruptures
-[OpenTimelineIO]: https://github.com/PixarAnimationStudios/OpenTimelineIO
+[OpenTimelineIO]: https://github.com/AcademySoftwareFoundation/OpenTimelineIO
 [PyTables]: https://github.com/PyTables/PyTables
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
 [google neuroglancer]: https://github.com/google/neuroglancer
@@ -186,9 +186,9 @@ title: Working examples
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [tgcalls]: https://github.com/MarshalX/tgcalls
-[python-snappy]: https://github.com/andrix/python-snappy
+[python-snappy]: https://github.com/intake/python-snappy
 [pybind11 python_example]: https://github.com/pybind/python_example
-[sourmash]: https://github.com/dib-lab/sourmash
+[sourmash]: https://github.com/sourmash-bio/sourmash
 [abess]: https://github.com/abess-team/abess
 [cyvcf2]: https://github.com/brentp/cyvcf2
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
@@ -203,7 +203,7 @@ title: Working examples
 [bx-python]: https://github.com/bxlab/bx-python
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
-[power-grid-model]: https://github.com/alliander-opensource/power-grid-model
+[power-grid-model]: https://github.com/PowerGridModel/power-grid-model
 [pybase64]: https://github.com/mayeut/pybase64
 [fathon]: https://github.com/stfbnc/fathon
 [Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build

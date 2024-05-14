@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "click",
+#   "pyyaml",
+#   "pygithub",
+# ]
+# ///
+
 """
 Convert a yaml project list into a nice table.
 

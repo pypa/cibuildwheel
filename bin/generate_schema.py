@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# /// script
+# dependencies = ["pyyaml"]
+# ///
+
 import argparse
 import copy
 import json

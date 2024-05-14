@@ -4,15 +4,21 @@ import os
 import shutil
 import sys
 from pathlib import Path
+from typing import Any
 
 import nox
 
+nox.needs_version = ">=2024.4.15"
 nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
+nox.options.default_venv_backend = "uv|virtualenv"
 
 DIR = Path(__file__).parent.resolve()
 
-if os.environ.get("CI", None):
-    nox.options.error_on_missing_interpreters = True
+
+def install_and_run(session: nox.Session, script: str, *args: str, **kwargs: Any) -> str | None:
+    deps = nox.project.load_toml(script)["dependencies"]
+    session.install(*deps)
+    return session.run("python", script, *args, **kwargs)
 
 
 @nox.session
@@ -20,11 +26,11 @@ def tests(session: nox.Session) -> None:
     """
     Run the unit and regular tests.
     """
-    unit_test_args = ["--run-docker"] if sys.platform.startswith("linux") else []
     session.install("-e.[test]")
     if session.posargs:
         session.run("pytest", *session.posargs)
     else:
+        unit_test_args = ["--run-docker"] if sys.platform.startswith("linux") else []
         session.run("pytest", "unit_test", *unit_test_args)
         session.run("pytest", "test", "-x", "--durations", "0", "--timeout=2400", "test")
 
@@ -44,8 +50,7 @@ def pylint(session: nox.Session) -> None:
     Run pylint.
     """
 
-    name = "cibuildwheel @ ." if getattr(session.virtualenv, "venv_backend", "") == "uv" else "."
-    session.install("pylint", name)
+    session.install("pylint", ".")
     session.run("pylint", "cibuildwheel", *session.posargs)
 
 
@@ -65,7 +70,7 @@ def update_constraints(session: nox.Session) -> None:
     Update the dependencies inplace.
     """
 
-    if getattr(session.virtualenv, "venv_backend", "") != "uv":
+    if session.venv_backend != "uv":
         session.install("uv>=0.1.23")
 
     for minor_version in range(7, 14):
@@ -96,20 +101,19 @@ def update_pins(session: nox.Session) -> None:
     """
     Update the python, docker and virtualenv pins version inplace.
     """
-    session.install("-e", ".[bin]")
+    session.install("-e.[bin]")
     session.run("python", "bin/update_pythons.py", "--force")
     session.run("python", "bin/update_docker.py")
     session.run("python", "bin/update_virtualenv.py", "--force")
 
 
-@nox.session
+@nox.session(reuse_venv=True)
 def update_proj(session: nox.Session) -> None:
     """
     Update the README inplace.
     """
-    session.install("-e.[bin]")
-    session.run(
-        "python",
+    install_and_run(
+        session,
         "bin/projects.py",
         "docs/data/projects.yml",
         *session.posargs,
@@ -121,13 +125,20 @@ def generate_schema(session: nox.Session) -> None:
     """
     Generate the cibuildwheel.schema.json file.
     """
-    session.install("pyyaml")
-    output = session.run("python", "bin/generate_schema.py", silent=True)
+    output = install_and_run(session, "bin/generate_schema.py", silent=True)
     assert isinstance(output, str)
     DIR.joinpath("cibuildwheel/resources/cibuildwheel.schema.json").write_text(output)
 
 
-@nox.session(python="3.9")
+@nox.session(reuse_venv=True)
+def bump_version(session: nox.Session) -> None:
+    """
+    Bump cibuildwheel's version. Interactive.
+    """
+    install_and_run(session, "bin/bump_version.py")
+
+
+@nox.session(python="3.12")
 def docs(session: nox.Session) -> None:
     """
     Build the docs. Will serve unless --non-interactive
