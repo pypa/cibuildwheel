@@ -24,6 +24,7 @@ else:
 
 config = [
     # file path, version find/replace format
+    ("pyproject.toml", 'version = "{}"'),
     ("README.md", "cibuildwheel=={}"),
     ("cibuildwheel/__init__.py", '__version__ = "{}"'),
     ("docs/faq.md", "cibuildwheel=={}"),
