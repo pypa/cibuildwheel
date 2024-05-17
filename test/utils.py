@@ -176,6 +176,8 @@ def expected_wheels(
             "cp312-cp312",
             "cp313-cp313",
         ]
+        if platform != "macos":
+            python_abi_tags.append("cp313-cp313t")
 
         if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
             python_abi_tags += [
