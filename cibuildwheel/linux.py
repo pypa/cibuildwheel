@@ -337,6 +337,10 @@ def build_in_container(
             virtualenv_env = env.copy()
             virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
 
+            # TODO remove me once virtualenv provides pip>=24.1b1
+            if config.version == "3.13":
+                container.call(["pip", "install", "pip>=24.1b1"], env=virtualenv_env)
+
             if build_options.before_test:
                 before_test_prepared = prepare_command(
                     build_options.before_test,

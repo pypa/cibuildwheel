@@ -575,6 +575,10 @@ def build(options: Options, tmp_path: Path) -> None:
                     # check that we are using the Python from the virtual environment
                     call_with_arch("which", "python", env=virtualenv_env)
 
+                    # TODO remove me once virtualenv provides pip>=24.1b1
+                    if config.version == "3.13":
+                        call("python", "-m", "pip", "install", "pip>=24.1b1", env=virtualenv_env)
+
                     if build_options.before_test:
                         before_test_prepared = prepare_command(
                             build_options.before_test,

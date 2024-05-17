@@ -238,13 +238,15 @@ class BuildSelector:
     requires_python: SpecifierSet | None = None
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = "cp313-*"
+    PRERELEASE_SKIP: ClassVar[str] = "cp313-* cp313t-*"
     prerelease_pythons: bool = False
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
             py_ver_str = build_id.split("-")[0]
+            if py_ver_str.endswith("t"):
+                py_ver_str = py_ver_str[:-1]
             major = int(py_ver_str[2])
             minor = int(py_ver_str[3:])
             version = Version(f"{major}.{minor}.99")
@@ -645,10 +647,13 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     """
 
     interpreter, platform = identifier.split("-")
+    free_threaded = interpreter.endswith("t")
+    if free_threaded:
+        interpreter = interpreter[:-1]
     for wheel in wheels:
         _, _, _, tags = parse_wheel_filename(wheel.name)
         for tag in tags:
-            if tag.abi == "abi3":
+            if tag.abi == "abi3" and not free_threaded:
                 # ABI3 wheels must start with cp3 for impl and tag
                 if not (interpreter.startswith("cp3") and tag.interpreter.startswith("cp3")):
                     continue

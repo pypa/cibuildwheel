@@ -13,9 +13,14 @@ build-backend = "setuptools.build_meta"
 limited_api_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         r"""
+        import sysconfig
+
+        IS_CPYTHON = sys.implementation.name == "cpython"
+        Py_GIL_DISABLED = sysconfig.get_config_var("Py_GIL_DISABLED")
+        CAN_USE_ABI3 = IS_CPYTHON and not Py_GIL_DISABLED
         cmdclass = {}
         extension_kwargs = {}
-        if sys.version_info[:2] >= (3, 8):
+        if CAN_USE_ABI3 and sys.version_info[:2] >= (3, 8):
             from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
             class bdist_wheel_abi3(_bdist_wheel):
@@ -47,7 +52,8 @@ def test_abi3(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_SKIP": "pp* ",  # PyPy does not have a Py_LIMITED_API equivalent
+            # free_threaded and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
+            "CIBW_BUILD": "cp3?-* cp31?-* cp313t-* pp310-*"
         },
     )
 
@@ -55,7 +61,9 @@ def test_abi3(tmp_path):
     expected_wheels = [
         w.replace("cp38-cp38", "cp38-abi3")
         for w in utils.expected_wheels("spam", "0.1.0")
-        if "-pp" not in w and "-cp39" not in w and "-cp31" not in w
+        if ("-pp310" in w or "-pp" not in w)
+        and "-cp39" not in w
+        and ("-cp313t" in w or "-cp31" not in w)
     ]
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -177,7 +185,7 @@ def test_abi_none(tmp_path, capfd):
             "CIBW_TEST_REQUIRES": "pytest",
             "CIBW_TEST_COMMAND": "pytest {project}/test",
             # limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp38-* cp310-* pp39-*",
+            "CIBW_BUILD": "cp38-* cp310-* cp313t-* pp310-*",
         },
     )
 

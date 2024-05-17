@@ -44,7 +44,9 @@ from .util import (
 )
 
 
-def get_nuget_args(version: str, arch: str, output_directory: Path) -> list[str]:
+def get_nuget_args(
+    version: str, arch: str, free_threaded: bool, output_directory: Path
+) -> list[str]:
     package_name = {
         "32": "pythonx86",
         "64": "python",
@@ -53,6 +55,8 @@ def get_nuget_args(version: str, arch: str, output_directory: Path) -> list[str]
         "x86": "pythonx86",
         "AMD64": "python",
     }[arch]
+    if free_threaded:
+        package_name = f"{package_name}-freethreaded"
     return [
         package_name,
         "-Version",
@@ -106,11 +110,12 @@ def _ensure_nuget() -> Path:
     return nuget
 
 
-def install_cpython(version: str, arch: str) -> Path:
+def install_cpython(version: str, arch: str, free_threaded: bool) -> Path:
     base_output_dir = CIBW_CACHE_PATH / "nuget-cpython"
-    nuget_args = get_nuget_args(version, arch, base_output_dir)
+    nuget_args = get_nuget_args(version, arch, free_threaded, base_output_dir)
     installation_path = base_output_dir / (nuget_args[0] + "." + version) / "tools"
-    with FileLock(str(base_output_dir) + f"-{version}-{arch}.lock"):
+    free_threaded_str = "-freethreaded" if free_threaded else ""
+    with FileLock(str(base_output_dir) + f"-{version}{free_threaded_str}-{arch}.lock"):
         if not installation_path.exists():
             nuget = _ensure_nuget()
             call(nuget, "install", *nuget_args)
@@ -224,18 +229,21 @@ def setup_python(
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
         native_arch = platform_module.machine()
+        free_threaded = implementation_id.endswith("t")
         if python_configuration.arch == "ARM64" != native_arch:
             # To cross-compile for ARM64, we need a native CPython to run the
             # build, and a copy of the ARM64 import libraries ('.\libs\*.lib')
             # for any extension modules.
             python_libs_base = install_cpython(
-                python_configuration.version, python_configuration.arch
+                python_configuration.version, python_configuration.arch, free_threaded
             )
             python_libs_base = python_libs_base.parent / "libs"
             log.step(f"Installing native Python {native_arch} for cross-compilation...")
-            base_python = install_cpython(python_configuration.version, native_arch)
+            base_python = install_cpython(python_configuration.version, native_arch, free_threaded)
         else:
-            base_python = install_cpython(python_configuration.version, python_configuration.arch)
+            base_python = install_cpython(
+                python_configuration.version, python_configuration.arch, free_threaded
+            )
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
@@ -520,6 +528,10 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 # check that we are using the Python from the virtual environment
                 call("where", "python", env=virtualenv_env)
+
+                # TODO remove me once virtualenv provides pip>=24.1b1
+                if config.version.startswith("3.13."):
+                    call("python", "-m", "pip", "install", "--pre", "-U", "pip", env=virtualenv_env)
 
                 if build_options.before_test:
                     before_test_prepared = prepare_command(
