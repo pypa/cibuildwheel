@@ -202,13 +202,15 @@ def test_universal2_testing_on_arm64(tmp_path, capfd):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cp38_arm64_testing(tmp_path, capfd):
+def test_cp38_arm64_testing(tmp_path, capfd, request):
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
     if get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
     if platform.machine() != "arm64":
         pytest.skip("this test only works on arm64")
+    if request.config.getoption("--run-cp38-universal2"):
+        pytest.skip("--run-cp38-universal2 option skips this test")
 
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
