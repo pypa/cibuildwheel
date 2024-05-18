@@ -93,10 +93,21 @@ def test_overridden_path(tmp_path, capfd):
 
     assert len(os.listdir(output_dir)) == 0
     captured = capfd.readouterr()
-    assert "python available on PATH doesn't match our installed instance" in captured.err
+    assert "python available on PATH doesn't match our installed instance" in captured.err.replace(
+        "venv", "installed"
+    )
 
 
-@pytest.mark.parametrize("build_frontend", ["pip", "build"])
+@pytest.mark.parametrize(
+    "build_frontend",
+    [
+        pytest.param(
+            "pip",
+            marks=pytest.mark.skipif(utils.platform == "pyodide", reason="No pip for pyodide"),
+        ),
+        "build",
+    ],
+)
 def test_overridden_pip_constraint(tmp_path, build_frontend):
     """
     Verify that users can use PIP_CONSTRAINT to specify a specific version of

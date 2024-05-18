@@ -42,14 +42,18 @@ PyMODINIT_FUNC PyInit_spam(void)
 """
 
 SETUP_PY_TEMPLATE = r"""
+import os
 import sys
+
 from setuptools import setup, Extension
 
 {{ setup_py_add }}
 
 libraries = []
-if sys.platform.startswith('linux'):
+# Emscripten fails if you pass -lc...
+if sys.platform.startswith('linux') and "emscripten" not in os.environ.get("_PYTHON_HOST_PLATFORM", ""):
     libraries.extend(['m', 'c'])
+
 
 setup(
     ext_modules=[Extension(

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from . import test_projects, utils
 
 before_test_project = test_projects.new_c_project()
@@ -40,11 +42,19 @@ def test(tmp_path):
     test_project_dir = project_dir / "dependency"
     test_projects.new_c_project().generate(test_project_dir)
 
-    before_test = (
-        """python -c "import os, sys; open('{project}/pythonversion_bt.txt', 'w').write(sys.version)" && """
-        """python -c "import os, sys; open('{project}/pythonprefix_bt.txt', 'w').write(sys.prefix)" && """
-        """python -m pip install {project}/dependency"""
-    )
+    before_test_steps = [
+        '''python -c "import os, sys; open('{project}/pythonversion_bt.txt', 'w').write(sys.version)"''',
+        '''python -c "import os, sys; open('{project}/pythonprefix_bt.txt', 'w').write(sys.prefix)"''',
+    ]
+
+    if utils.platform == "pyodide":
+        before_test_steps.extend(
+            ["pyodide build {project}/dependency", "pip install --find-links dist/ spam"]
+        )
+    else:
+        before_test_steps.append("python -m pip install {project}/dependency")
+
+    before_test = " && ".join(before_test_steps)
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(
@@ -58,6 +68,7 @@ def test(tmp_path):
             # mac/linux.
             "CIBW_TEST_COMMAND": "false || pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "pytest {project}/test",
+            "_PYODIDE_EXTRA_MOUNTS": "/tmp/my-tmp-dir/",
         },
     )
 

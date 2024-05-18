@@ -15,6 +15,7 @@ PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "linux": "Linux",
     "macos": "macOS",
     "windows": "Windows",
+    "pyodide": "Pyodide",
 }
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
@@ -46,6 +47,9 @@ class Architecture(Enum):
     AMD64 = "AMD64"
     ARM64 = "ARM64"
 
+    # WebAssembly
+    wasm32 = "wasm32"
+
     # Allow this to be sorted
     def __lt__(self, other: Architecture) -> bool:
         return self.value < other.value
@@ -74,6 +78,9 @@ class Architecture(Enum):
     @staticmethod
     def auto_archs(platform: PlatformName) -> set[Architecture]:
         native_machine = platform_module.machine()
+
+        if platform == "pyodide":
+            return {Architecture.wasm32}
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
@@ -120,6 +127,7 @@ class Architecture(Enum):
             },
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
+            "pyodide": {Architecture.wasm32},
         }
         return all_archs_map[platform]
 
