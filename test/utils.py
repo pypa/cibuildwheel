@@ -147,6 +147,9 @@ def expected_wheels(
 
     if machine_arch is None:
         machine_arch = pm.machine()
+        if platform == "linux" and machine_arch.lower() == "arm64":
+            # we're running linux tests from macOS/Windows arm64, override platform
+            machine_arch = "aarch64"
 
     if manylinux_versions is None:
         if machine_arch == "x86_64":
