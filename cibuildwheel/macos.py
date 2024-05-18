@@ -181,7 +181,9 @@ def setup_python(
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
+    env = virtualenv(
+        python_configuration.version, base_python, venv_path, dependency_constraint_flags
+    )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,

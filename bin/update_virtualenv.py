@@ -53,10 +53,6 @@ def git_ls_remote_versions(url) -> list[VersionTuple]:
             if version.is_prerelease:
                 log.info("Ignoring pre-release %r", str(version))
                 continue
-            # Do not upgrade past 20.22.0 to keep python 3.6 compat
-            if version >= Version("20.22.0"):
-                log.info("Ignoring %r which is not compatible with python 3.6", str(version))
-                continue
             versions.append(VersionTuple(version, version_string))
         except InvalidVersion:
             log.warning("Ignoring ref %r", ref)
@@ -82,15 +78,20 @@ def update_virtualenv(force: bool, level: str) -> None:
 
     original_toml = toml_file_path.read_text()
     with toml_file_path.open("rb") as f:
-        loaded_file = tomllib.load(f)
-    version = str(loaded_file["version"])
+        configurations = tomllib.load(f)
+    default = configurations.pop("default")
+    version = str(default["version"])
     versions = git_ls_remote_versions(GET_VIRTUALENV_GITHUB)
     if versions[0].version > Version(version):
         version = versions[0].version_string
 
-    result_toml = (
-        f'version = "{version}"\n'
-        f'url = "{GET_VIRTUALENV_URL_TEMPLATE.format(version=version)}"\n'
+    configurations["default"] = {
+        "version": version,
+        "url": GET_VIRTUALENV_URL_TEMPLATE.format(version=version),
+    }
+    result_toml = "".join(
+        f'{key} = {{ version = "{value["version"]}", url = "{value["url"]}" }}\n'
+        for key, value in configurations.items()
     )
 
     rich.print()  # spacer
