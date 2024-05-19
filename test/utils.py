@@ -37,6 +37,9 @@ def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pyt
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
     if prerelease_pythons:
         cmd.append("--prerelease-pythons")
+    if env is None:
+        env = os.environ.copy()
+    env.setdefault("CIBW_FREE_THREADED_SUPPORT", "1")
 
     cmd_output = subprocess.run(
         cmd,
@@ -93,6 +96,8 @@ def cibuildwheel_run(
         env.update(add_env)
 
     _update_pip_cache_dir(env)
+
+    env.setdefault("CIBW_FREE_THREADED_SUPPORT", "1")
 
     with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(

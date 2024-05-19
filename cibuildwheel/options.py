@@ -117,7 +117,7 @@ class BuildOptions:
         return self.globals.architectures
 
 
-Setting = Union[Mapping[str, str], Sequence[str], str, int]
+Setting = Union[Mapping[str, str], Sequence[str], str, int, bool]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -196,7 +196,7 @@ def _resolve_cascade(
         if value is None:
             continue
 
-        if ignore_empty and not value:
+        if ignore_empty and not value and value is not False:
             continue
 
         value_string = _stringify_setting(value, list_sep, table_format)
@@ -258,7 +258,7 @@ def _stringify_setting(
             raise ConfigOptionError(msg)
         return list_sep.join(setting)
 
-    if isinstance(setting, int):
+    if isinstance(setting, (bool, int)):
         return str(setting)
 
     return setting
@@ -516,6 +516,10 @@ class Options:
         skip_config = self.reader.get("skip", env_plat=False, list_sep=" ")
         test_skip = self.reader.get("test-skip", env_plat=False, list_sep=" ")
 
+        free_threaded_support = strtobool(
+            self.reader.get("free-threaded-support", env_plat=False, ignore_empty=True)
+        )
+
         prerelease_pythons = args.prerelease_pythons or strtobool(
             self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
         )
@@ -536,12 +540,14 @@ class Options:
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
             prerelease_pythons = True
+            free_threaded_support = True
 
         build_selector = BuildSelector(
             build_config=build_config,
             skip_config=skip_config,
             requires_python=requires_python,
             prerelease_pythons=prerelease_pythons,
+            free_threaded_support=free_threaded_support,
         )
         test_selector = TestSelector(skip_config=test_skip)
 

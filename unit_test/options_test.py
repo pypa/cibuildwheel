@@ -415,3 +415,36 @@ def test_override_inherit_environment_with_references(tmp_path: Path):
     ) == {
         "PATH": "/opt/local/bin:/opt/bin:/usr/bin:/bin",
     }
+
+
+@pytest.mark.parametrize(
+    ("toml_assignment", "env", "expected_result"),
+    [
+        ("", {}, False),
+        ("free-threaded-support = true", {}, True),
+        ("free-threaded-support = false", {}, False),
+        ("", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
+        ("", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
+        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
+        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
+        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": ""}, True),
+        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": ""}, False),
+    ],
+)
+def test_free_threaded_support(
+    tmp_path: Path, toml_assignment: str, env: dict[str, str], expected_result: bool
+):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {toml_assignment}
+            """
+        )
+    )
+    options = Options(platform="linux", command_line_arguments=args, env=env)
+    assert options.globals.build_selector.free_threaded_support is expected_result
