@@ -110,7 +110,11 @@ def _ensure_nuget() -> Path:
     return nuget
 
 
-def install_cpython(version: str, arch: str, free_threaded: bool) -> Path:
+def install_cpython(configuration: PythonConfiguration, arch: str | None = None) -> Path:
+    version = configuration.version
+    free_threaded = "t-" in configuration.identifier
+    if arch is None:
+        arch = configuration.arch
     base_output_dir = CIBW_CACHE_PATH / "nuget-cpython"
     nuget_args = get_nuget_args(version, arch, free_threaded, base_output_dir)
     installation_path = base_output_dir / (nuget_args[0] + "." + version) / "tools"
@@ -229,21 +233,14 @@ def setup_python(
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
         native_arch = platform_module.machine()
-        free_threaded = implementation_id.endswith("t")
+        base_python = install_cpython(python_configuration)
         if python_configuration.arch == "ARM64" != native_arch:
             # To cross-compile for ARM64, we need a native CPython to run the
             # build, and a copy of the ARM64 import libraries ('.\libs\*.lib')
             # for any extension modules.
-            python_libs_base = install_cpython(
-                python_configuration.version, python_configuration.arch, free_threaded
-            )
-            python_libs_base = python_libs_base.parent / "libs"
+            python_libs_base = base_python.parent / "libs"
             log.step(f"Installing native Python {native_arch} for cross-compilation...")
-            base_python = install_cpython(python_configuration.version, native_arch, free_threaded)
-        else:
-            base_python = install_cpython(
-                python_configuration.version, python_configuration.arch, free_threaded
-            )
+            base_python = install_cpython(python_configuration, arch=native_arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
