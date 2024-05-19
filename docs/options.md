@@ -408,6 +408,53 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for
   }
 </style>
 
+### `CIBW_FREE_THREADED_SUPPORT` {: #free-threaded-support}
+
+> Choose whether free-threaded variants should be built
+
+[PEP 703](https://www.python.org/dev/peps/pep-0703) introduced variants of CPython that can be built without the Global Interpreter Lock (GIL).
+Those variants are also known as free-threaded / no-gil.
+
+Building for free-threaded variants is disabled by default.
+
+Building can be enabled by setting this option to `true`. The free-threaded compatible wheels will be built in addition to the standard wheels.
+
+This option doesn't support overrides.
+If you need to enable/disable it per platform or python version, set this option to `true` and use [`CIBW_BUILD`](#build-skip)/[`CIBW_SKIP`](#build-skip) options to filter the builds.
+
+The build identifiers for those variants have a `t` suffix in their `python_tag` (e.g. `cp313t-manylinux_x86_64`)
+
+!!! note
+    This feature is experimental: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Enable free-threaded support
+    CIBW_FREE_THREADED_SUPPORT: 1
+
+    # Skip building free-threaded compatible wheels on Windows
+    CIBW_FREE_THREADED_SUPPORT: 1
+    CIBW_SKIP: *t-win*
+    ```
+
+    It is generally recommended to use `free-threaded-support` in a config file as you can statically declare that you
+    support free-threaded builds.
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Enable free-threaded support
+    free-threaded-support = true
+
+    # Skip building free-threaded compatible wheels on Windows
+    free-threaded-support = true
+    skip = "*t-win*"
+    ```
+
 ### `CIBW_ARCHS` {: #archs}
 > Change the architectures built on your machine by default.
 
