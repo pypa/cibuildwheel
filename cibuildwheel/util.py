@@ -241,6 +241,8 @@ class BuildSelector:
     PRERELEASE_SKIP: ClassVar[str] = "cp313-* cp313t-*"
     prerelease_pythons: bool = False
 
+    free_threaded_support: bool = False
+
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
@@ -257,6 +259,10 @@ class BuildSelector:
         if not self.prerelease_pythons and selector_matches(self.PRERELEASE_SKIP, build_id):
             return False
 
+        # filter out free threaded pythons if self.free_threaded_support is False
+        if not self.free_threaded_support and selector_matches("*t-*", build_id):
+            return False
+
         should_build = selector_matches(self.build_config, build_id)
         should_skip = selector_matches(self.skip_config, build_id)
 
@@ -268,6 +274,7 @@ class BuildSelector:
             "skip_config": self.skip_config,
             "requires_python": str(self.requires_python),
             "prerelease_pythons": self.prerelease_pythons,
+            "free_threaded_support": self.free_threaded_support,
         }
 
 
