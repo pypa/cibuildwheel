@@ -73,7 +73,7 @@ def update_constraints(session: nox.Session) -> None:
     if session.venv_backend != "uv":
         session.install("uv>=0.1.23")
 
-    for minor_version in range(7, 14):
+    for minor_version in [12]:
         python_version = f"3.{minor_version}"
         env = os.environ.copy()
         # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
@@ -83,6 +83,7 @@ def update_constraints(session: nox.Session) -> None:
             "uv",
             "pip",
             "compile",
+            "--prerelease=allow",
             f"--python-version={python_version}",
             "--upgrade",
             "cibuildwheel/resources/constraints.in",

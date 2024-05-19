@@ -62,8 +62,11 @@ def install_emscripten(tmp: Path, version: str) -> Path:
 
 
 def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
-    xbuildenv_cache_dir = CIBW_CACHE_PATH / f"pyodide-xbuildenv-{pyodide_version}"
-    pyodide_root = xbuildenv_cache_dir / ".pyodide-xbuildenv/xbuildenv/pyodide-root/"
+    xbuildenv_cache_dir = CIBW_CACHE_PATH
+    pyodide_root = (
+        xbuildenv_cache_dir
+        / f".pyodide-xbuildenv-0.26.0.dev0/{pyodide_version}/xbuildenv/pyodide-root"
+    )
     if pyodide_root.exists():
         return str(pyodide_root)
 
@@ -76,7 +79,7 @@ def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
         "pyodide",
         "xbuildenv",
         "install",
-        "--download",
+        pyodide_version,
         env=env,
         cwd=xbuildenv_cache_dir,
     )
@@ -104,12 +107,11 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
 ) -> dict[str, str]:
-    pyodide_version = python_configuration.pyodide_version
     base_python = get_base_python(python_configuration.identifier)
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
+    env = virtualenv(base_python, venv_path, [])
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -123,7 +125,6 @@ def setup_python(
         "install",
         "--upgrade",
         "pip",
-        *dependency_constraint_flags,
         env=env,
         cwd=venv_path,
     )
@@ -163,7 +164,7 @@ def setup_python(
         "--upgrade",
         "auditwheel-emscripten",
         "build[virtualenv]",
-        f"pyodide-build=={pyodide_version}",
+        "pyodide-build",
         *dependency_constraint_flags,
         env=env,
     )
