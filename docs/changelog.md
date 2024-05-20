@@ -4,6 +4,18 @@ title: Changelog
 
 # Changelog
 
+### v2.18.1
+
+- 🌟 Add free-threaded Linux and Windows builds for 3.13. New identifiers `cp313t-*`, new option `CIBW_FREE_THREADED_SUPPORT`/`tool.cibuildwheel.free-threaded-support` required to opt-in. [See the docs](https://cibuildwheel.pypa.io/en/stable/options/#free-threaded-support) for more information. (#1831)
+- ✨ The `container-engine` is now a build (non-global) option. (#1792)
+- 🛠 The build backend for cibuildwheel is now hatchling. (#1297)
+- 🛠 Significant improvements and modernization to our noxfile. (#1823)
+- 🛠 Use pylint's new GitHub Actions reporter instead of a custom matcher. (#1823)
+- 🛠 Unpin virtualenv updates for Python 3.7+ (#1830)
+- 🐛 Fix running linux tests from Windows or macOS ARM. (#1788)
+- 📚 Fix our documentation build. (#1821)
+
+
 ### v2.18.0
 
 _12 May 2024_
