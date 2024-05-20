@@ -526,12 +526,15 @@ def get_pip_version(env: Mapping[str, str]) -> str:
 
 
 @lru_cache(maxsize=None)
-def _ensure_virtualenv() -> Path:
+def _ensure_virtualenv(version: str) -> Path:
+    version_parts = version.split(".")
+    key = f"py{version_parts[0]}{version_parts[1]}"
     input_file = resources_dir / "virtualenv.toml"
     with input_file.open("rb") as f:
         loaded_file = tomllib.load(f)
-    version = str(loaded_file["version"])
-    url = str(loaded_file["url"])
+    configuration = loaded_file.get(key, loaded_file["default"])
+    version = str(configuration["version"])
+    url = str(configuration["url"])
     path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
     with FileLock(str(path) + ".lock"):
         if not path.exists():
@@ -587,10 +590,10 @@ def _parse_constraints_for_virtualenv(
 
 
 def virtualenv(
-    python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
+    version: str, python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
 ) -> dict[str, str]:
     assert python.exists()
-    virtualenv_app = _ensure_virtualenv()
+    virtualenv_app = _ensure_virtualenv(version)
     allowed_seed_packages = ["pip", "setuptools", "wheel"]
     constraints = _parse_constraints_for_virtualenv(
         allowed_seed_packages, dependency_constraint_flags

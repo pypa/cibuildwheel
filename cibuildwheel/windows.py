@@ -246,7 +246,9 @@ def setup_python(
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
+    env = virtualenv(
+        python_configuration.version, base_python, venv_path, dependency_constraint_flags
+    )
 
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version

@@ -111,7 +111,6 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
             """
             pip=={pip}
             delocate=={delocate}
-            importlib-metadata<3,>=0.12; python_version < "3.8"
             """.format(**tool_versions)
         )
     )
