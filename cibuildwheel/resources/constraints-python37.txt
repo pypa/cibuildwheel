@@ -3,7 +3,9 @@
 altgraph==0.17.4
     # via macholib
 build==1.1.1
+    # via -r cibuildwheel/resources/constraints.in
 delocate==0.11.0
+    # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.8
     # via virtualenv
 filelock==3.12.2
@@ -19,6 +21,7 @@ packaging==24.0
     #   build
     #   delocate
 pip==24.0
+    # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.0.0
     # via virtualenv
 pyproject-hooks==1.1.0
@@ -30,6 +33,7 @@ typing-extensions==4.7.1
     #   delocate
     #   importlib-metadata
     #   platformdirs
-virtualenv==20.26.1
+virtualenv==20.26.2
+    # via -r cibuildwheel/resources/constraints.in
 zipp==3.15.0
     # via importlib-metadata
