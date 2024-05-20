@@ -20,12 +20,6 @@ repos:
     args: ["--fix", "--show-fixes"]
   - id: ruff-format
 
-- repo: https://github.com/asottile/setup-cfg-fmt
-  rev: v2.5.0
-  hooks:
-  - id: setup-cfg-fmt
-    args: [--include-version-classifiers, --min-py-version=3.8, --max-py-version=3.12]
-
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v1.10.0
   hooks:

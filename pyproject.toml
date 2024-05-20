@@ -1,9 +1,94 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
+[project]
+name = "cibuildwheel"
+version = "2.18.0"
+description = "Build Python wheels on CI with minimal configuration."
+readme = "README.md"
+license = "BSD-2-Clause"
+requires-python = ">=3.8"
+authors = [
+    { name = "Joe Rickerby", email = "joerick@mac.com" },
+]
+keywords = [
+    "appveyor",
+    "ci",
+    "linux",
+    "macos",
+    "packaging",
+    "pypi",
+    "travis",
+    "wheel",
+    "windows",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Build Tools",
+]
+dependencies = [
+    "bashlex!=0.13",
+    "bracex",
+    "certifi",
+    "filelock",
+    "packaging>=20.9",
+    "platformdirs",
+    "tomli;python_version < '3.11'",
+    "typing-extensions>=4.1.0;python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+bin = [
+    "click",
+    "packaging>=21.0",
+    "pip-tools",
+    "pygithub",
+    "pyyaml",
+    "requests",
+    "rich>=9.6",
+]
+dev = [
+    "cibuildwheel[test,bin]",
+]
+docs = [
+    "jinja2>=3.1.2",
+    "mkdocs-include-markdown-plugin==2.8.0",
+    "mkdocs-macros-plugin",
+    "mkdocs==1.3.1",
+    "pymdown-extensions",
+]
+test = [
+    "build",
+    "jinja2",
+    "pytest-timeout",
+    "pytest-xdist",
+    "pytest>=6",
+    "tomli_w",
+    "validate-pyproject",
+]
+
+[project.scripts]
+cibuildwheel = "cibuildwheel.__main__:main"
+
+[project.entry-points."validate_pyproject.tool_schema"]
+cibuildwheel = "cibuildwheel.schema:get_schema"
+
+[project.urls]
+Changelog = "https://github.com/pypa/cibuildwheel#changelog"
+Documentation = "https://cibuildwheel.pypa.io"
+Homepage = "https://github.com/pypa/cibuildwheel"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -56,21 +141,6 @@ module = [
 ]
 ignore_missing_imports = true
 
-
-[tool.check-manifest]
-ignore = [
-    ".*",
-    ".circleci/**",
-    "test/**",
-    "unit_test/**",
-    "docs/**",
-    "examples/**",
-    "bin/**",
-    "*.yml",
-    "CI.md",  # TODO: can change test/test_ssl and remove this
-    "requirements-dev.txt",
-    "noxfile.py",
-]
 
 [tool.pylint]
 py-version = "3.8"
@@ -162,6 +232,7 @@ flake8-unused-arguments.ignore-variadic-names = true
 [tool.ruff.lint.per-file-ignores]
 "unit_test/*" = ["PLC1901"]
 "cibuildwheel/_compat/**.py" = ["TID251"]
+"bin/*" = ["TID251"]
 
 [tool.repo-review]
 ignore = ["PC170", "PP303"]
