@@ -340,7 +340,7 @@ def test_create_args_volume(tmp_path: Path, container_engine):
     test_mount_dir.mkdir()
     (test_mount_dir / "test_file.txt").write_text("1234")
     container_engine = OCIContainerEngineConfig(
-        name="docker", create_args=[f"--volume={test_mount_dir}:/test_mount"]
+        name="docker", create_args=(f"--volume={test_mount_dir}:/test_mount",)
     )
 
     with OCIContainer(
@@ -356,37 +356,37 @@ def test_create_args_volume(tmp_path: Path, container_engine):
         (
             "docker",
             "docker",
-            [],
+            (),
         ),
         (
             "docker;create_args:",
             "docker",
-            [],
+            (),
         ),
         (
             "docker;create_args:--abc --def",
             "docker",
-            ["--abc", "--def"],
+            ("--abc", "--def"),
         ),
         (
             "docker; create_args: --abc --def",
             "docker",
-            ["--abc", "--def"],
+            ("--abc", "--def"),
         ),
         (
             "name:docker; create_args: --abc --def",
             "docker",
-            ["--abc", "--def"],
+            ("--abc", "--def"),
         ),
         (
             'docker; create_args: --some-option="value with spaces"',
             "docker",
-            ["--some-option=value with spaces"],
+            ("--some-option=value with spaces",),
         ),
         (
             'docker; create_args: --some-option="value; with; semicolons" --another-option',
             "docker",
-            ["--some-option=value; with; semicolons", "--another-option"],
+            ("--some-option=value; with; semicolons", "--another-option"),
         ),
     ],
 )

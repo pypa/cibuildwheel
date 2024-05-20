@@ -247,7 +247,6 @@ for key, value in schema["properties"].items():
 non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
 del non_global_options["skip"]
-del non_global_options["container-engine"]
 del non_global_options["test-skip"]
 
 overrides["items"]["properties"]["select"]["oneOf"] = string_array
@@ -258,6 +257,7 @@ del overrides["items"]["properties"]["archs"]
 not_linux = non_global_options.copy()
 
 del not_linux["environment-pass"]
+del not_linux["container-engine"]
 for key in list(not_linux):
     if "linux-" in key:
         del not_linux[key]

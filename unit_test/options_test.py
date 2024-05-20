@@ -206,49 +206,49 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value)
         (
             'container-engine = "podman"',
             "podman",
-            [],
+            (),
             False,
         ),
         (
             'container-engine = {name = "podman"}',
             "podman",
-            [],
+            (),
             False,
         ),
         (
             'container-engine = "docker; create_args: --some-option"',
             "docker",
-            ["--some-option"],
+            ("--some-option",),
             False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option"]}',
             "docker",
-            ["--some-option"],
+            ("--some-option",),
             False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option", "value that contains spaces"]}',
             "docker",
-            ["--some-option", "value that contains spaces"],
+            ("--some-option", "value that contains spaces"),
             False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option", "value;that;contains;semicolons"]}',
             "docker",
-            ["--some-option", "value;that;contains;semicolons"],
+            ("--some-option", "value;that;contains;semicolons"),
             False,
         ),
         (
             'container-engine = {name = "docker", disable-host-mount = true}',
             "docker",
-            [],
+            (),
             True,
         ),
         (
             'container-engine = {name = "docker", disable_host_mount = true}',
             "docker",
-            [],
+            (),
             True,
         ),
     ],
@@ -269,7 +269,7 @@ def test_container_engine_option(
     )
 
     options = Options(platform="linux", command_line_arguments=args, env={})
-    parsed_container_engine = options.globals.container_engine
+    parsed_container_engine = options.build_options(None).container_engine
 
     assert parsed_container_engine.name == result_name
     assert parsed_container_engine.create_args == result_create_args
