@@ -39,7 +39,7 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
 
     # check that the expected wheels are produced
     expected_wheels = [
-        "spam-0.1.0-cp312-cp312-emscripten_3_1_52_wasm32.whl",
+        "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
     ]
 
     print("actual_wheels", actual_wheels)

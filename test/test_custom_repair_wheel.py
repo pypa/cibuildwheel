@@ -16,7 +16,7 @@ from pathlib import Path
 
 wheel = Path(sys.argv[1])
 dest_dir = Path(sys.argv[2])
-print("reparing", wheel, dest_dir)
+print("repairing", wheel, dest_dir)
 platform = wheel.stem.split("-")[-1]
 name = f"spam-0.1.0-py2-none-{platform}.whl"
 dest = dest_dir / name
@@ -56,5 +56,5 @@ def test(tmp_path, capfd):
         # As far as I can tell, this is the only full test coverage for
         # CIBW_REPAIR_WHEEL_COMMAND so this is useful even in the case when no
         # error is raised
-        assert "spam-0.1.0-py2-none-emscripten" in captured.out
+        assert "spam-0.1.0-py2-none-pyodide" in captured.out
         assert result[0].startswith("spam-0.1.0-py2-none-")
