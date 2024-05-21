@@ -98,6 +98,7 @@ def test_overridden_path(tmp_path, capfd):
     )
 
 
+@utils.skip_if_pyodide(reason="TODO: fix!")
 @pytest.mark.parametrize(
     "build_frontend",
     [

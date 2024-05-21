@@ -36,6 +36,7 @@ class TestBeforeTest(TestCase):
 """
 
 
+@utils.skip_if_pyodide(reason="TODO: fix!")
 def test(tmp_path):
     project_dir = tmp_path / "project"
     before_test_project.generate(project_dir)

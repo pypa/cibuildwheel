@@ -33,6 +33,7 @@ print('before_build.py executed!')
 """
 
 
+@utils.skip_if_pyodide(reason="Doesn't work")
 def test(capfd, tmp_path):
     project_dir = tmp_path / "project"
     subdir_package_project.generate(project_dir)

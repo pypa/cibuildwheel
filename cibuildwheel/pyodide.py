@@ -65,7 +65,7 @@ def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
     xbuildenv_cache_dir = CIBW_CACHE_PATH
     pyodide_root = (
         xbuildenv_cache_dir
-        / f".pyodide-xbuildenv-0.26.0.dev0/{pyodide_version}/xbuildenv/pyodide-root"
+        / f".pyodide-xbuildenv-{pyodide_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
     if pyodide_root.exists():
         return str(pyodide_root)
@@ -108,6 +108,7 @@ def setup_python(
     environment: ParsedEnvironment,
 ) -> dict[str, str]:
     base_python = get_base_python(python_configuration.identifier)
+    pyodide_version = python_configuration.pyodide_version
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -164,7 +165,7 @@ def setup_python(
         "--upgrade",
         "auditwheel-emscripten",
         "build[virtualenv]",
-        "git+https://github.com/pyodide/pyodide.git@main#subdirectory=pyodide-build",
+        f"pyodide-build=={pyodide_version}",
         *dependency_constraint_flags,
         env=env,
     )

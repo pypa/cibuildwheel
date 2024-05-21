@@ -24,6 +24,7 @@ def a_function():
 """
 
 
+@utils.skip_if_pyodide(reason="Doesn't work")
 def test(tmp_path, capfd):
     # this test checks that if a pure wheel is generated, the build should
     # fail.

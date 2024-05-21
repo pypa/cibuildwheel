@@ -6,6 +6,9 @@ from . import utils
 from .test_projects.c import new_c_project
 
 
+@utils.skip_if_pyodide(
+    reason="pyodide build -h doesn't print help text https://github.com/pyodide/pyodide/issues/4783"
+)
 @pytest.mark.parametrize("frontend_name", ["pip", "build"])
 def test_build_frontend_args(tmp_path, capfd, frontend_name):
     project = new_c_project()
