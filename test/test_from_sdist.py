@@ -55,7 +55,6 @@ def cibuildwheel_from_sdist_run(sdist_path, add_env=None, config_file=None):
 # tests
 
 
-@utils.skip_if_pyodide(reason="TODO: fix!")
 def test_simple(tmp_path):
     basic_project = test_projects.new_c_project()
 
@@ -84,7 +83,6 @@ def test_simple(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-@utils.skip_if_pyodide(reason="TODO: fix!")
 def test_external_config_file_argument(tmp_path, capfd):
     basic_project = test_projects.new_c_project()
 
@@ -116,7 +114,6 @@ def test_external_config_file_argument(tmp_path, capfd):
     assert "test log statement from before-all" in captured.out
 
 
-@utils.skip_if_pyodide(reason="TODO: fix!")
 def test_config_in_pyproject_toml(tmp_path, capfd):
     # make a project with a pyproject.toml
     project = test_projects.new_c_project()
@@ -144,7 +141,6 @@ def test_config_in_pyproject_toml(tmp_path, capfd):
     assert "test log statement from before-build 8419" in captured.out
 
 
-@utils.skip_if_pyodide(reason="Doesn't work")
 def test_internal_config_file_argument(tmp_path, capfd):
     # make a project with a config file inside
     project = test_projects.new_c_project(
