@@ -255,7 +255,7 @@ Default: `auto`
 
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
-- For `pyodide` you need to be on an x86-64 linux runner and run cibuildwheel from Python 3.11.
+- For `pyodide` you need to be on an x86-64 linux runner and run cibuildwheel from Python 3.12.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
