@@ -359,12 +359,14 @@ class DependencyConstraints:
     def with_defaults() -> DependencyConstraints:
         return DependencyConstraints(base_file_path=resources_dir / "constraints.txt")
 
-    def get_for_python_version(self, version: str) -> Path:
+    def get_for_python_version(
+        self, version: str, *, variant: Literal["python", "pyodide"] = "python"
+    ) -> Path:
         version_parts = version.split(".")
 
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python36.txt
-        specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
+        specific_stem = self.base_file_path.stem + f"-{variant}{version_parts[0]}{version_parts[1]}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)
 

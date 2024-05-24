@@ -108,7 +108,6 @@ def setup_python(
     environment: ParsedEnvironment,
 ) -> dict[str, str]:
     base_python = get_base_python(python_configuration.identifier)
-    pyodide_version = python_configuration.pyodide_version
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -165,7 +164,7 @@ def setup_python(
         "--upgrade",
         "auditwheel-emscripten",
         "build[virtualenv]",
-        f"pyodide-build=={pyodide_version}",
+        "pyodide-build",
         *dependency_constraint_flags,
         env=env,
     )
@@ -233,7 +232,7 @@ def build(options: Options, tmp_path: Path) -> None:
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
                 constraints_path = build_options.dependency_constraints.get_for_python_version(
-                    config.version
+                    config.version, variant="pyodide"
                 )
                 dependency_constraint_flags = ["-c", constraints_path]
 

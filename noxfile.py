@@ -70,6 +70,8 @@ def update_constraints(session: nox.Session) -> None:
     Update the dependencies inplace.
     """
 
+    resources = Path("cibuildwheel/resources")
+
     if session.venv_backend != "uv":
         session.install("uv>=0.1.23")
 
@@ -79,21 +81,43 @@ def update_constraints(session: nox.Session) -> None:
         # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
         # regenerate the constraints files
         env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+        output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
         session.run(
             "uv",
             "pip",
             "compile",
             f"--python-version={python_version}",
             "--upgrade",
-            "cibuildwheel/resources/constraints.in",
-            f"--output-file=cibuildwheel/resources/constraints-python{python_version.replace('.', '')}.txt",
+            resources / "constraints.in",
+            f"--output-file={output_file}",
             env=env,
         )
-    RESOURCES = DIR / "cibuildwheel" / "resources"
+
     shutil.copyfile(
-        RESOURCES / "constraints-python312.txt",
-        RESOURCES / "constraints.txt",
+        resources / "constraints-python312.txt",
+        resources / "constraints.txt",
     )
+
+    build_platforms = nox.project.load_toml(resources / "build-platforms.toml")
+    pyodides = build_platforms["pyodide"]["python_configurations"]
+    for pyodide in pyodides:
+        python_version = ".".join(pyodide["version"].split(".")[:2])
+        pyodide_version = pyodide["pyodide_version"]
+        output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
+        tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
+        tmp_file.write_text(
+            f"auditwheel-emscripten\nbuild[virtualenv]\npyodide-build=={pyodide_version}"
+        )
+        session.run(
+            "uv",
+            "pip",
+            "compile",
+            f"--python-version={python_version}",
+            "--upgrade",
+            tmp_file,
+            f"--output-file={output_file}",
+            env=env,
+        )
 
 
 @nox.session
