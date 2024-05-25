@@ -72,7 +72,8 @@ def test_cwd(tmp_path):
             "CIBW_BEFORE_ALL": f'''python -c "import os; assert os.getcwd() == {str(project_dir)!r}"''',
             "CIBW_BEFORE_ALL_LINUX": '''python -c "import os; assert os.getcwd() == '/project'"''',
         },
+        single_python=True,
     )
 
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)

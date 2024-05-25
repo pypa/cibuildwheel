@@ -60,16 +60,13 @@ def test_wheel_tag_is_correct_when_using_windows_cross_compile(tmp_path, use_pyp
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={
-            "CIBW_BUILD": "cp310-*",
-        },
         add_args=["--archs", "ARM64"],
+        single_python=True,
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [
-        "spam-0.1.0-cp310-cp310-win_arm64.whl",
-    ]
+    tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    expected_wheels = [f"spam-0.1.0-{tag}-{tag}-win_arm64.whl"]
 
     print("actual_wheels", actual_wheels)
     print("expected_wheels", expected_wheels)

@@ -105,10 +105,11 @@ def test_extras_require(tmp_path):
             "CIBW_TEST_COMMAND": "false || pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
         },
+        single_python=True,
     )
 
     # also check that we got the right wheels
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)
 
 

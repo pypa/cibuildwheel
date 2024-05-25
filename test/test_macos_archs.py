@@ -42,13 +42,11 @@ def test_cross_compiled_build(tmp_path):
 
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={
-            "CIBW_BUILD": "cp39-*",
-            "CIBW_ARCHS": "x86_64, universal2, arm64",
-        },
+        add_env={"CIBW_ARCHS": "x86_64, universal2, arm64"},
+        single_python=True,
     )
-
-    expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w]
+    python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    expected_wheels = [w for w in ALL_MACOS_WHEELS if python_tag in w]
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -65,7 +63,7 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp39-*" if build_universal2 else "*p39-*",
+            "CIBW_BUILD": "cp310-*" if build_universal2 else "*p310-*",
             "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
             "CIBW_ARCHS": "universal2" if build_universal2 else "x86_64 arm64",
             "CIBW_BUILD_VERBOSITY": "3",
@@ -103,11 +101,11 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         )
 
     if build_universal2:
-        expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" in w]
+        expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp310" in w and "universal2" in w]
     else:
-        expected_wheels = [w for w in ALL_MACOS_WHEELS if "p39-" in w and "universal2" not in w]
+        expected_wheels = [w for w in ALL_MACOS_WHEELS if "p310-" in w and "universal2" not in w]
         if platform_machine == "x86_64":
-            expected_wheels = [w for w in expected_wheels if not ("pp39" in w and "arm64" in w)]
+            expected_wheels = [w for w in expected_wheels if not ("pp310" in w and "arm64" in w)]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -123,11 +121,11 @@ def test_deployment_target_warning_is_firing(tmp_path, capfd):
     utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp39-*",
             "CIBW_ARCHS": "x86_64",
             "MACOSX_DEPLOYMENT_TARGET": "10.8",
             "CIBW_BUILD_VERBOSITY": "3",
         },
+        single_python=True,
     )
 
     captured = capfd.readouterr()
@@ -149,11 +147,11 @@ def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp39-*",
             "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
             "CIBW_ARCHS": "universal2",
             "CIBW_TEST_SKIP": "*_universal2:arm64" if skip_arm64_test else "",
         },
+        single_python=True,
     )
 
     captured = capfd.readouterr()
@@ -168,7 +166,8 @@ def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
         else:
             assert warning_message in captured.err
 
-    expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" in w]
+    python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    expected_wheels = [w for w in ALL_MACOS_WHEELS if python_tag in w and "universal2" in w]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -186,19 +185,20 @@ def test_universal2_testing_on_arm64(tmp_path, capfd):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp39-*",
             "CIBW_ARCHS": "universal2",
             # check that a native dependency is correctly installed, once per each testing arch
             "CIBW_TEST_REQUIRES": "numpy",
             "CIBW_TEST_COMMAND": '''python -c "import numpy, platform; print(f'running tests on {platform.machine()} with numpy {numpy.__version__}')"''',
         },
+        single_python=True,
     )
 
     captured = capfd.readouterr()
     assert "running tests on arm64" in captured.out
     assert "running tests on x86_64" in captured.out
 
-    expected_wheels = [w for w in ALL_MACOS_WHEELS if "cp39" in w and "universal2" in w]
+    python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    expected_wheels = [w for w in ALL_MACOS_WHEELS if python_tag in w and "universal2" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
 

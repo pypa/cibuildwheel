@@ -11,8 +11,11 @@ import platform as pm
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
+from typing import Final
 
 from cibuildwheel.util import CIBW_CACHE_PATH
+
+SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
 platform: str
 
@@ -67,7 +70,13 @@ def _update_pip_cache_dir(env: dict[str, str]) -> None:
 
 
 def cibuildwheel_run(
-    project_path, package_dir=".", env=None, add_env=None, output_dir=None, add_args=None
+    project_path,
+    package_dir=".",
+    env=None,
+    add_env=None,
+    output_dir=None,
+    add_args=None,
+    single_python=False,
 ):
     """
     Runs cibuildwheel as a subprocess, building the project at project_path.
@@ -98,6 +107,9 @@ def cibuildwheel_run(
     _update_pip_cache_dir(env)
 
     env.setdefault("CIBW_FREE_THREADED_SUPPORT", "1")
+
+    if single_python:
+        env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
 
     with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(
@@ -141,6 +153,7 @@ def expected_wheels(
     machine_arch=None,
     python_abi_tags=None,
     include_universal2=False,
+    single_python=False,
 ):
     """
     Returns a list of expected wheels from a run of cibuildwheel.
@@ -205,6 +218,16 @@ def expected_wheels(
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
             ]
+
+    if single_python:
+        python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
+        python_abi_tags = [
+            next(
+                tag
+                for tag in python_abi_tags
+                if tag.startswith(python_tag) and not tag.endswith("t")
+            )
+        ]
 
     wheels = []
 

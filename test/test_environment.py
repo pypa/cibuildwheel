@@ -49,10 +49,11 @@ def test(tmp_path):
             "CIBW_ENVIRONMENT": """CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$(echo 'test string 3')" PATH=$PATH:/opt/cibw_test_path""",
             "CIBW_ENVIRONMENT_WINDOWS": f'''CIBW_TEST_VAR="a b c" CIBW_TEST_VAR_2=1 CIBW_TEST_VAR_3="$({python_echo} 'test string 3')" PATH="$PATH;/opt/cibw_test_path"''',
         },
+        single_python=True,
     )
 
     # also check that we got the right wheels built
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -133,12 +134,12 @@ def test_overridden_pip_constraint(tmp_path, build_frontend):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp312-*",
             "CIBW_BUILD_FRONTEND": build_frontend,
             "PIP_CONSTRAINT": str(constraints_file),
             "CIBW_ENVIRONMENT_LINUX": "PIP_CONSTRAINT=./constraints.txt",
         },
+        single_python=True,
     )
 
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp312" in w]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)

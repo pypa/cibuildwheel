@@ -16,10 +16,8 @@ def test_build_frontend_args(tmp_path, capfd, frontend_name):
     with pytest.raises(subprocess.CalledProcessError):
         utils.cibuildwheel_run(
             project_dir,
-            add_env={
-                "CIBW_BUILD": "cp311-*",
-                "CIBW_BUILD_FRONTEND": f"{frontend_name}; args: -h",
-            },
+            add_env={"CIBW_BUILD_FRONTEND": f"{frontend_name}; args: -h"},
+            single_python=True,
         )
 
     captured = capfd.readouterr()
