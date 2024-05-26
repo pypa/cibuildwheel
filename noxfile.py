@@ -127,6 +127,7 @@ def update_pins(session: nox.Session) -> None:
     session.run("python", "bin/update_pythons.py", "--force")
     session.run("python", "bin/update_docker.py")
     session.run("python", "bin/update_virtualenv.py", "--force")
+    session.run("python", "bin/update_nodejs.py", "--force")
 
 
 @nox.session(reuse_venv=True)

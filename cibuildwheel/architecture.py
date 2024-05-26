@@ -76,11 +76,9 @@ class Architecture(Enum):
         return result
 
     @staticmethod
-    def auto_archs(platform: PlatformName) -> set[Architecture]:
-        native_machine = platform_module.machine()
-
+    def native_arch(platform: PlatformName) -> Architecture | None:
         if platform == "pyodide":
-            return {Architecture.wasm32}
+            return Architecture.wasm32
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
@@ -89,6 +87,7 @@ class Architecture(Enum):
             else ("macos" if sys.platform.startswith("darwin") else "linux")
         )
 
+        native_machine = platform_module.machine()
         native_architecture = Architecture(native_machine)
 
         # we might need to rename the native arch to the machine we're running
@@ -100,11 +99,18 @@ class Architecture(Enum):
 
                     if synonym is None:
                         # can't build anything on this platform
-                        return set()
+                        return None
 
                     native_architecture = Architecture(synonym)
 
-        result = {native_architecture}
+        return native_architecture
+
+    @staticmethod
+    def auto_archs(platform: PlatformName) -> set[Architecture]:
+        native_arch = Architecture.native_arch(platform)
+        if native_arch is None:
+            return set()  # can't build anything on this platform
+        result = {native_arch}
 
         if platform == "linux" and Architecture.x86_64 in result:
             # x86_64 machines can run i686 containers

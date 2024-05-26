@@ -23,6 +23,7 @@ from .util import (
     NonPlatformWheelError,
     call,
     download,
+    ensure_node,
     extract_zip,
     find_compatible_wheel,
     get_pip_version,
@@ -41,6 +42,7 @@ class PythonConfiguration:
     identifier: str
     pyodide_version: str
     emscripten_version: str
+    node_version: str
 
 
 def install_emscripten(tmp: Path, version: str) -> Path:
@@ -325,10 +327,17 @@ def build(options: Options, tmp_path: Path) -> None:
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
 
-                # --no-download??
-                call("pyodide", "venv", venv_dir, env=env)
-
                 virtualenv_env = env.copy()
+                virtualenv_env["PATH"] = os.pathsep.join(
+                    [
+                        str(ensure_node(config.node_version)),
+                        virtualenv_env["PATH"],
+                    ]
+                )
+
+                # --no-download??
+                call("pyodide", "venv", venv_dir, env=virtualenv_env)
+
                 virtualenv_env["PATH"] = os.pathsep.join(
                     [
                         str(venv_dir / "bin"),

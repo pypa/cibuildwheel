@@ -9,6 +9,7 @@ import shlex
 import ssl
 import subprocess
 import sys
+import tarfile
 import textwrap
 import time
 import typing
@@ -19,6 +20,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property, lru_cache
 from pathlib import Path, PurePath
+from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Any, ClassVar, Final, Literal, TextIO, TypeVar
 from zipfile import ZipFile
@@ -33,6 +35,7 @@ from packaging.version import Version
 from platformdirs import user_cache_path
 
 from ._compat import tomllib
+from .architecture import Architecture
 from .typing import PathOrStr, PlatformName
 
 __all__ = [
@@ -350,6 +353,12 @@ def extract_zip(zip_src: Path, dest: Path) -> None:
                 dest.joinpath(zinfo.filename).chmod(permissions)
 
 
+def extract_tar(tar_src: Path, dest: Path) -> None:
+    with tarfile.open(tar_src) as tar_:
+        tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
+        tar_.extractall(dest)
+
+
 class DependencyConstraints:
     def __init__(self, base_file_path: Path):
         assert base_file_path.exists()
@@ -550,6 +559,38 @@ def get_pip_version(env: Mapping[str, str]) -> str:
         if version.startswith("pip==")
     )
     return pip_version
+
+
+@lru_cache(maxsize=None)
+def ensure_node(major_version: str) -> Path:
+    input_file = resources_dir / "nodejs.toml"
+    with input_file.open("rb") as f:
+        loaded_file = tomllib.load(f)
+    version = str(loaded_file[major_version])
+    base_url = str(loaded_file["url"])
+    ext = "zip" if IS_WIN else "tar.xz"
+    platform = "win" if IS_WIN else ("darwin" if sys.platform.startswith("darwin") else "linux")
+    linux_arch = Architecture.native_arch("linux")
+    assert linux_arch is not None
+    arch = {"x86_64": "x64", "i686": "x86", "aarch64": "arm64"}.get(
+        linux_arch.value, linux_arch.value
+    )
+    name = f"node-{version}-{platform}-{arch}"
+    path = CIBW_CACHE_PATH / name
+    with FileLock(str(path) + ".lock"):
+        if not path.exists():
+            url = f"{base_url}{version}/{name}.{ext}"
+            with TemporaryDirectory() as tmp_path:
+                archive = Path(tmp_path) / f"{name}.{ext}"
+                download(url, archive)
+                if ext == "zip":
+                    extract_zip(archive, path.parent)
+                else:
+                    extract_tar(archive, path.parent)
+    assert path.exists()
+    if not IS_WIN:
+        return path / "bin"
+    return path
 
 
 @lru_cache(maxsize=None)
