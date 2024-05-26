@@ -30,7 +30,7 @@ class TestBeforeTest(TestCase):
         #  Works around path-comparison bugs caused by short-paths on Windows e.g.
         #  vssadm~1 instead of vssadministrator
 
-        assert os.stat(stored_prefix) == os.stat(sys.prefix)
+        assert os.path.samefile(stored_prefix, sys.prefix)
 """
 
 
