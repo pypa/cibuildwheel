@@ -20,7 +20,7 @@ limited_api_project = test_projects.new_c_project(
         CAN_USE_ABI3 = IS_CPYTHON and not Py_GIL_DISABLED
         cmdclass = {}
         extension_kwargs = {}
-        if CAN_USE_ABI3 and sys.version_info[:2] >= (3, 8):
+        if CAN_USE_ABI3 and sys.version_info[:2] >= (3, 10):
             from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
             class bdist_wheel_abi3(_bdist_wheel):
@@ -33,7 +33,7 @@ limited_api_project = test_projects.new_c_project(
                     return python, "abi3", plat
 
             cmdclass["bdist_wheel"] = bdist_wheel_abi3
-            extension_kwargs["define_macros"] = [("Py_LIMITED_API", "0x03080000")]
+            extension_kwargs["define_macros"] = [("Py_LIMITED_API", "0x030A0000")]
             extension_kwargs["py_limited_api"] = True
     """
     ),
@@ -53,17 +53,16 @@ def test_abi3(tmp_path):
         project_dir,
         add_env={
             # free_threaded and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
-            "CIBW_BUILD": "cp3?-* cp31?-* cp313t-* pp310-*"
+            # also limit the number of builds for test performance reasons
+            "CIBW_BUILD": "cp39-* cp310-* pp310-* cp311-* cp313t-*"
         },
     )
 
     # check that the expected wheels are produced
     expected_wheels = [
-        w.replace("cp38-cp38", "cp38-abi3")
+        w.replace("cp310-cp310", "cp310-abi3")
         for w in utils.expected_wheels("spam", "0.1.0")
-        if ("-pp310" in w or "-pp" not in w)
-        and "-cp39" not in w
-        and ("-cp313t" in w or "-cp31" not in w)
+        if "-cp39" in w or "-cp310" in w or "-pp310" in w or "-cp313t" in w
     ]
     assert set(actual_wheels) == set(expected_wheels)
 

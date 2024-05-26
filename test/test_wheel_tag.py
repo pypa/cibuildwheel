@@ -18,17 +18,14 @@ def test_wheel_tag_is_correct_when_using_macosx_deployment_target(tmp_path):
     deployment_target = "10.11"
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={
-            "CIBW_BUILD": "cp39-*",
-            "MACOSX_DEPLOYMENT_TARGET": deployment_target,
-        },
+        add_env={"MACOSX_DEPLOYMENT_TARGET": deployment_target},
+        single_python=True,
     )
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", macosx_deployment_target=deployment_target
+        "spam", "0.1.0", macosx_deployment_target=deployment_target, single_python=True
     )
-    expected_wheels = [w for w in expected_wheels if "cp39" in w]
 
     print("actual_wheels", actual_wheels)
     print("expected_wheels", expected_wheels)

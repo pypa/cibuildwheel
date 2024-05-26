@@ -21,17 +21,16 @@ def test_podman(tmp_path, capfd, request):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp310-*{manylinux,musllinux}_x86_64",
+            "CIBW_ARCHS": "x86_64",
             "CIBW_BEFORE_ALL": "echo 'test log statement from before-all'",
             "CIBW_CONTAINER_ENGINE": "podman",
         },
+        single_python=True,
     )
 
     # check that the expected wheels are produced
     expected_wheels = [
-        w
-        for w in utils.expected_wheels("spam", "0.1.0")
-        if ("-cp310-" in w) and ("x86_64" in w) and ("manylinux" in w or "musllinux" in w)
+        w for w in utils.expected_wheels("spam", "0.1.0", single_python=True) if "x86_64" in w
     ]
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -51,15 +50,16 @@ def test_create_args(tmp_path, capfd):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_BUILD": "cp310-manylinux_*",
+            "CIBW_SKIP": "*-musllinux_*",
             "CIBW_BEFORE_ALL": "echo TEST_CREATE_ARGS is set to $TEST_CREATE_ARGS",
             "CIBW_CONTAINER_ENGINE": "docker; create_args: --env=TEST_CREATE_ARGS=itworks",
         },
+        single_python=True,
     )
 
-    expected_wheels = [
-        w for w in utils.expected_wheels("spam", "0.1.0") if ("cp310-manylinux" in w)
-    ]
+    expected_wheels = utils.expected_wheels(
+        "spam", "0.1.0", musllinux_versions=[], single_python=True
+    )
     assert set(actual_wheels) == set(expected_wheels)
 
     captured = capfd.readouterr()
