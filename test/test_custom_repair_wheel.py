@@ -16,7 +16,6 @@ from pathlib import Path
 
 wheel = Path(sys.argv[1])
 dest_dir = Path(sys.argv[2])
-print("repairing", wheel, dest_dir)
 platform = wheel.stem.split("-")[-1]
 name = f"spam-0.1.0-py2-none-{platform}.whl"
 dest = dest_dir / name

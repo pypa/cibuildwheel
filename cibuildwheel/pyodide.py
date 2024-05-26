@@ -44,11 +44,13 @@ class PythonConfiguration:
 
 
 def install_emscripten(tmp: Path, version: str) -> Path:
-    url = "https://github.com/emscripten-core/emsdk/archive/main.zip"
-    installation_path = CIBW_CACHE_PATH / ("emsdk-" + version)
-    emsdk_path = installation_path / "emsdk-main/emsdk"
-    emcc_path = installation_path / "emsdk-main/upstream/emscripten/emcc"
-    with FileLock(str(installation_path) + ".lock"):
+    # We don't need to match the emsdk version to the version we install, but
+    # we do for stability
+    url = f"https://github.com/emscripten-core/emsdk/archive/refs/tags/{version}.zip"
+    installation_path = CIBW_CACHE_PATH / f"emsdk-{version}"
+    emsdk_path = installation_path / f"emsdk-{version}/emsdk"
+    emcc_path = installation_path / f"emsdk-{version}/upstream/emscripten/emcc"
+    with FileLock(f"{installation_path}.lock"):
         if installation_path.exists():
             return emcc_path
         emsdk_zip = tmp / "emsdk.zip"
@@ -125,14 +127,12 @@ def setup_python(
         "install",
         "--upgrade",
         "pip",
+        *dependency_constraint_flags,
         env=env,
         cwd=venv_path,
     )
 
     env = environment.as_dictionary(prev_environment=env)
-    if "HOME" not in env:
-        # Workaround for https://github.com/pyodide/pyodide/pull/3744
-        env["HOME"] = ""
 
     # check what pip version we're on
     assert (venv_bin_path / "pip").exists()

@@ -310,6 +310,9 @@ For CPython, the minimally supported macOS version is 10.9; for PyPy 3.7, macOS 
 
 Windows arm64 platform support is experimental.
 
+For an experimental WebAssembly build with `--platform pyodide`,
+`cp312-pyodide_wasm32` is the only platform identifier.
+
 See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
 
 #### Examples
@@ -1019,6 +1022,12 @@ Platform-specific environment variables are also available:<br/>
     Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
 
     [Delvewheel]: https://github.com/adang1345/delvewheel
+
+!!! tip
+    When using `--platform pyodide`, `pyodide build` is used to do the build,
+    which already uses `auditwheel-emscripten` to repair the wheel, so the default
+    repair command is empty. If there is a way to do this in two steps in the future,
+    this could change.
 
 #### Examples
 

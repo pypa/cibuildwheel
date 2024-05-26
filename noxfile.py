@@ -105,9 +105,7 @@ def update_constraints(session: nox.Session) -> None:
         pyodide_version = pyodide["pyodide_version"]
         output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
-        tmp_file.write_text(
-            f"auditwheel-emscripten\nbuild[virtualenv]\npyodide-build=={pyodide_version}"
-        )
+        tmp_file.write_text(f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_version}")
         session.run(
             "uv",
             "pip",

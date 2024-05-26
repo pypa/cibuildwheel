@@ -5,9 +5,7 @@ annotated-types==0.7.0
 anyio==4.3.0
     # via httpx
 auditwheel-emscripten==0.0.14
-    # via
-    #   -r .nox/update_constraints/tmp/constraints-pyodide.in
-    #   pyodide-build
+    # via pyodide-build
 build==1.2.1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
@@ -54,6 +52,8 @@ packaging==24.0
     #   build
     #   pyodide-build
     #   unearth
+pip==24.0
+    # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.2.2
     # via virtualenv
 pydantic==2.7.1

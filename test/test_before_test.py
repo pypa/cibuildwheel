@@ -36,7 +36,6 @@ class TestBeforeTest(TestCase):
 """
 
 
-@utils.skip_if_pyodide(reason="TODO: fix!")
 def test(tmp_path):
     project_dir = tmp_path / "project"
     before_test_project.generate(project_dir)
@@ -67,7 +66,7 @@ def test(tmp_path):
             "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": "false || pytest {project}/test",
+            "CIBW_TEST_COMMAND": "false || python -m pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "pytest {project}/test",
             "_PYODIDE_EXTRA_MOUNTS": "/tmp/my-tmp-dir/",
         },
