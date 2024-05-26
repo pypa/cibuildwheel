@@ -185,6 +185,8 @@ def expected_wheels(
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
+    if platform == "pyodide" and python_abi_tags is None:
+        python_abi_tags = ["cp312-cp312"]
     if python_abi_tags is None:
         python_abi_tags = [
             "cp36-cp36m",
@@ -234,7 +236,8 @@ def expected_wheels(
     wheels = []
 
     if platform == "pyodide":
-        python_abi_tag = "cp312-cp312"
+        assert len(python_abi_tags) == 1
+        python_abi_tag = python_abi_tags[0]
         platform_tag = "pyodide_2024_0_wasm32"
         return [f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"]
 

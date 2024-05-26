@@ -288,7 +288,11 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 build_env = env.copy()
                 if build_options.dependency_constraints:
-                    build_env["PIP_CONSTRAINT"] = str(constraints_path)
+                    our_constraints = str(constraints_path)
+                    user_constraints = build_env.get("PIP_CONSTRAINT")
+                    build_env["PIP_CONSTRAINT"] = " ".join(
+                        c for c in [our_constraints, user_constraints] if c
+                    )
                 build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                 call(
                     "pyodide",

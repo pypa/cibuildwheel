@@ -7,9 +7,13 @@ import pytest
 
 from . import test_projects, utils
 
+# pyodide does not support building without isolation, need to check the base_prefix
+SYS_PREFIX = f"sys.{'base_' if utils.platform == 'pyodide' else ''}prefix"
+
+
 project_with_before_build_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
-        r"""
+        rf"""
         import os
 
         # assert that the Python version as written to pythonversion_bb.txt in the CIBW_BEFORE_BUILD step
@@ -24,11 +28,11 @@ project_with_before_build_asserts = test_projects.new_c_project(
         with open('pythonprefix_bb.txt') as f:
             stored_prefix = f.read()
         print('stored_prefix', stored_prefix)
-        print('sys.prefix', sys.prefix)
+        print('{SYS_PREFIX}', {SYS_PREFIX})
         #  Works around path-comparison bugs caused by short-paths on Windows e.g.
         #  vssadm~1 instead of vssadministrator
 
-        assert os.path.samefile(stored_prefix, sys.prefix)
+        assert os.path.samefile(stored_prefix, {SYS_PREFIX})
         """
     )
 )
@@ -40,7 +44,7 @@ def test(tmp_path):
 
     before_build = (
         """python -c "import sys; open('{project}/pythonversion_bb.txt', 'w').write(sys.version)" && """
-        '''python -c "import sys; open('{project}/pythonprefix_bb.txt', 'w').write(sys.prefix)"'''
+        f'''python -c "import sys; open('{{project}}/pythonprefix_bb.txt', 'w').write({SYS_PREFIX})"'''
     )
 
     # build the wheels

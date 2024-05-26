@@ -44,10 +44,11 @@ limited_api_project = test_projects.new_c_project(
 limited_api_project.files["pyproject.toml"] = pyproject_toml
 
 
-@utils.skip_if_pyodide(reason="No abi3, no py38")
 def test_abi3(tmp_path):
     project_dir = tmp_path / "project"
     limited_api_project.generate(project_dir)
+
+    single_python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(
@@ -55,16 +56,24 @@ def test_abi3(tmp_path):
         add_env={
             # free_threaded and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
             # also limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp39-* cp310-* pp310-* cp311-* cp313t-*"
+            "CIBW_BUILD": f"cp39-* cp310-* pp310-* {single_python_tag}-* cp313t-*"
         },
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [
-        w.replace("cp310-cp310", "cp310-abi3")
-        for w in utils.expected_wheels("spam", "0.1.0")
-        if "-cp39" in w or "-cp310" in w or "-pp310" in w or "-cp313t" in w
-    ]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    if utils.platform == "pyodide":
+        # there's only 1 possible configuration for pyodide, the single_python_tag one
+        expected_wheels = [
+            w.replace(f"{single_python_tag}-{single_python_tag}", f"{single_python_tag}-abi3")
+            for w in expected_wheels
+        ]
+    else:
+        expected_wheels = [
+            w.replace("cp310-cp310", "cp310-abi3")
+            for w in expected_wheels
+            if "-cp39" in w or "-cp310" in w or "-pp310" in w or "-cp313t" in w
+        ]
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -174,7 +183,6 @@ ctypes_project.files["test/add_test.py"] = textwrap.dedent(
 ctypes_project.files["pyproject.toml"] = pyproject_toml
 
 
-@utils.skip_if_pyodide(reason="Doesn't work for some reason")
 def test_abi_none(tmp_path, capfd):
     project_dir = tmp_path / "project"
     ctypes_project.generate(project_dir)
@@ -184,9 +192,9 @@ def test_abi_none(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": "pytest {project}/test",
+            "CIBW_TEST_COMMAND": "python -m pytest {project}/test",
             # limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp38-* cp310-* cp313t-* pp310-*",
+            "CIBW_BUILD": "cp38-* cp{}{}-* cp313t-* pp310-*".format(*utils.SINGLE_PYTHON_VERSION),
         },
     )
 
@@ -197,4 +205,8 @@ def test_abi_none(tmp_path, capfd):
     # check that each wheel was built once, and reused
     captured = capfd.readouterr()
     assert "Building wheel..." in captured.out
-    assert "Found previously built wheel" in captured.out
+    if utils.platform == "pyodide":
+        # there's only 1 possible configuration for pyodide, we won't see the message expected on following builds
+        assert "Found previously built wheel" not in captured.out
+    else:
+        assert "Found previously built wheel" in captured.out

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from . import test_projects, utils
 
 before_test_project = test_projects.new_c_project()
@@ -36,7 +34,6 @@ class TestBeforeTest(TestCase):
 """
 
 
-@pytest.mark.xfail(utils.platform == "pyodide", reason="TODO: venv error on pyodide!", strict=True)
 def test(tmp_path):
     project_dir = tmp_path / "project"
     before_test_project.generate(project_dir)
@@ -69,7 +66,6 @@ def test(tmp_path):
             # mac/linux.
             "CIBW_TEST_COMMAND": "false || python -m pytest {project}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "pytest {project}/test",
-            "_PYODIDE_EXTRA_MOUNTS": "/tmp/my-tmp-dir/",
         },
     )
 

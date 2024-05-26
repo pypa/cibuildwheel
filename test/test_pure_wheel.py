@@ -24,7 +24,11 @@ def a_function():
 """
 
 
-@utils.skip_if_pyodide(reason="Doesn't work")
+@pytest.mark.xfail(
+    condition=utils.platform == "pyodide",
+    reason="pyodide build re-tag platform 'none' as 'pyodide_2024_0_wasm32'",
+    strict=True,
+)
 def test(tmp_path, capfd):
     # this test checks that if a pure wheel is generated, the build should
     # fail.
