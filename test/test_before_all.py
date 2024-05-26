@@ -25,7 +25,7 @@ project_with_before_build_asserts = test_projects.new_c_project(
         print('sys.prefix', sys.prefix)
         #  Works around path-comparison bugs caused by short-paths on Windows e.g.
         #  vssadm~1 instead of vssadministrator
-        assert os.stat(stored_prefix) != os.stat(sys.prefix)
+        assert not os.path.samefile(stored_prefix, sys.prefix)
         """
     )
 )
