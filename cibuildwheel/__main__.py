@@ -256,6 +256,11 @@ def get_platform_module(platform: PlatformName) -> PlatformModule:
 
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
+    if platform == "pyodide" and sys.platform == "win32":
+        msg = "cibuildwheel: Building for pyodide is not supported on Windows"
+        print(msg, file=sys.stderr)
+        sys.exit(2)
+
     options = compute_options(platform=platform, command_line_arguments=args, env=os.environ)
 
     package_dir = options.globals.package_dir
