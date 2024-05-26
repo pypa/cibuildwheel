@@ -36,6 +36,7 @@ class TestBeforeTest(TestCase):
 """
 
 
+@pytest.mark.xfail(utils.platform == "pyodide", reason="TODO: venv error on pyodide!", strict=True)
 def test(tmp_path):
     project_dir = tmp_path / "project"
     before_test_project.generate(project_dir)
