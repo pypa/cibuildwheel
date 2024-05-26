@@ -19,14 +19,20 @@ from pyodide.code import run_js
 
 
 def check_node():
+    # cibuildwheel adds a pinned node version to the PATH
+    # check it's in the PATH then, check it's the one that runs pyoodide
+    cibw_cache_path = Path(sys.argv[1]).resolve(strict=True)
+    # find the node executable in PATH
     node = shutil.which("node")
     assert node is not None, "node is None"
     node_path = Path(node).resolve(strict=True)
-    cibw_cache_path = Path(sys.argv[1]).resolve(strict=True)
+    # it shall be in cibuildwheel cache
     assert cibw_cache_path in node_path.parents, f"{cibw_cache_path} not a parent of {node_path}"
+    # find the path to the node executable that runs pyodide
     node_js = run_js("globalThis.process.execPath")
     assert node_js is not None, "node_js is None"
     node_js_path = Path(node_js).resolve(strict=True)
+    # it shall be the one pinned by cibuildwheel
     assert node_js_path == node_path, f"{node_js_path} != {node_path}"
 
 

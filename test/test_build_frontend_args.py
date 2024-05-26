@@ -9,10 +9,7 @@ from .test_projects.c import new_c_project
 @pytest.mark.parametrize(
     "frontend_name",
     [
-        pytest.param(
-            "pip",
-            marks=pytest.mark.skipif(utils.platform == "pyodide", reason="No pip for pyodide"),
-        ),
+        pytest.param("pip", marks=utils.skip_if_pyodide("No pip for pyodide")),
         pytest.param(
             "build",
             marks=pytest.mark.xfail(

@@ -101,10 +101,7 @@ def test_overridden_path(tmp_path, capfd):
 @pytest.mark.parametrize(
     "build_frontend",
     [
-        pytest.param(
-            "pip",
-            marks=pytest.mark.skipif(utils.platform == "pyodide", reason="No pip for pyodide"),
-        ),
+        pytest.param("pip", marks=utils.skip_if_pyodide("No pip for pyodide")),
         "build",
     ],
 )

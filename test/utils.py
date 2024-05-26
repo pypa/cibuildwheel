@@ -310,7 +310,7 @@ def get_macos_version():
     return tuple(map(int, version_str.split(".")[:2]))
 
 
-def skip_if_pyodide(reason):
+def skip_if_pyodide(reason: str):
     return pytest.mark.skipif(platform == "pyodide", reason=reason)
 
 
