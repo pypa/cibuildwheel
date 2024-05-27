@@ -244,6 +244,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 dependency_constraint_flags,
                 build_options.environment,
             )
+            pip_version = get_pip_version(env)
             # The Pyodide command line runner mounts all directories in the host
             # filesystem into the Pyodide file system, except for the custom
             # file systems /dev, /lib, /proc, and /tmp. Mounting the mount
@@ -293,7 +294,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_env["PIP_CONSTRAINT"] = " ".join(
                         c for c in [our_constraints, user_constraints] if c
                     )
-                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                build_env["VIRTUALENV_PIP"] = pip_version
                 call(
                     "pyodide",
                     "build",
@@ -342,8 +343,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 # pyodide venv uses virtualenv under the hood
                 # use the pip embedded with virtualenv & disable network updates
                 virtualenv_create_env = virtualenv_env.copy()
-                virtualenv_create_env["VIRTUALENV_PIP"] = "embed"
-                virtualenv_create_env["VIRTUALENV_DOWNLOAD"] = "0"
+                virtualenv_create_env["VIRTUALENV_PIP"] = pip_version
                 virtualenv_create_env["VIRTUALENV_NO_PERIODIC_UPDATE"] = "1"
 
                 call("pyodide", "venv", venv_dir, env=virtualenv_create_env)
