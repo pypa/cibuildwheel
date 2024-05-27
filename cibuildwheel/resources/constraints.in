@@ -2,4 +2,5 @@ pip>=24.1b1 ; python_version >= '3.13'
 pip ; python_version < '3.13'
 build
 delocate
+uv; python_version >= '3.8'
 virtualenv

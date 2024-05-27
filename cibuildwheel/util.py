@@ -40,20 +40,21 @@ from .architecture import Architecture
 from .typing import PathOrStr, PlatformName
 
 __all__ = [
-    "resources_dir",
     "MANYLINUX_ARCHS",
-    "call",
-    "shell",
-    "find_compatible_wheel",
-    "format_safe",
-    "prepare_command",
-    "get_build_verbosity_extra_flags",
-    "read_python_configs",
-    "selector_matches",
-    "strtobool",
     "cached_property",
+    "call",
     "chdir",
+    "find_compatible_wheel",
+    "find_uv",
+    "format_safe",
+    "get_build_verbosity_extra_flags",
+    "prepare_command",
+    "read_python_configs",
+    "resources_dir",
+    "selector_matches",
+    "shell",
     "split_config_settings",
+    "strtobool",
 ]
 
 resources_dir: Final[Path] = Path(__file__).parent / "resources"
@@ -200,7 +201,9 @@ def get_build_verbosity_extra_flags(level: int) -> list[str]:
         return []
 
 
-def split_config_settings(config_settings: str, frontend: Literal["pip", "build"]) -> list[str]:
+def split_config_settings(
+    config_settings: str, frontend: Literal["pip", "build", "build[uv]"]
+) -> list[str]:
     config_settings_list = shlex.split(config_settings)
     s = "s" if frontend == "pip" else ""
     return [f"--config-setting{s}={setting}" for setting in config_settings_list]
@@ -435,7 +438,7 @@ class DependencyConstraints:
             return self.base_file_path.name
 
 
-BuildFrontendName = Literal["pip", "build"]
+BuildFrontendName = Literal["pip", "build", "build[uv]"]
 
 
 @dataclass(frozen=True)
@@ -447,8 +450,8 @@ class BuildFrontendConfig:
     def from_config_string(config_string: str) -> BuildFrontendConfig:
         config_dict = parse_key_value_string(config_string, ["name"], ["args"])
         name = " ".join(config_dict["name"])
-        if name not in {"pip", "build"}:
-            msg = f"Unrecognised build frontend {name}, only 'pip' and 'build' are supported"
+        if name not in {"pip", "build", "build[uv]"}:
+            msg = f"Unrecognised build frontend {name}, only 'pip', 'build', and 'build[uv]' are supported"
             raise ValueError(msg)
 
         name = typing.cast(BuildFrontendName, name)
@@ -693,45 +696,60 @@ def _parse_constraints_for_virtualenv(
 
 
 def virtualenv(
-    version: str, python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
+    version: str,
+    python: Path,
+    venv_path: Path,
+    dependency_constraint_flags: Sequence[PathOrStr],
+    *,
+    use_uv: bool,
 ) -> dict[str, str]:
+    """
+    Create a virtual environment. If `use_uv` is True,
+    dependency_constraint_flags are ignored since nothing is installed in the
+    venv. Otherwise, pip is installed, and setuptools + wheel if Python < 3.12.
+    """
     assert python.exists()
-    virtualenv_app = _ensure_virtualenv(version)
-    allowed_seed_packages = ["pip", "setuptools", "wheel"]
-    constraints = _parse_constraints_for_virtualenv(
-        allowed_seed_packages, dependency_constraint_flags
-    )
-    additional_flags: list[str] = []
-    for package in allowed_seed_packages:
-        if package in constraints:
-            additional_flags.append(f"--{package}={constraints[package]}")
-        else:
-            additional_flags.append(f"--no-{package}")
 
-    # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
-    # environment. The initial cost is a bit higher but reusing is much faster.
-    # Windows does not always allow symlinks so just disabling for now.
-    # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
-    # version of pip that will end-up installed.
-    # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
-    if (
-        not IS_WIN
-        and constraints["pip"] != "embed"
-        and Version(constraints["pip"]) >= Version("19.3")
-    ):
-        additional_flags.append("--symlink-app-data")
+    if use_uv:
+        call("uv", "venv", venv_path, "--python", python)
+    else:
+        virtualenv_app = _ensure_virtualenv(version)
+        allowed_seed_packages = ["pip", "setuptools", "wheel"]
+        constraints = _parse_constraints_for_virtualenv(
+            allowed_seed_packages, dependency_constraint_flags
+        )
+        additional_flags: list[str] = []
+        for package in allowed_seed_packages:
+            if package in constraints:
+                additional_flags.append(f"--{package}={constraints[package]}")
+            else:
+                additional_flags.append(f"--no-{package}")
 
-    call(
-        sys.executable,
-        "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
-        virtualenv_app,
-        "--activators=",
-        "--no-periodic-update",
-        *additional_flags,
-        "--python",
-        python,
-        venv_path,
-    )
+        # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
+        # environment. The initial cost is a bit higher but reusing is much faster.
+        # Windows does not always allow symlinks so just disabling for now.
+        # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
+        # version of pip that will end-up installed.
+        # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
+        if (
+            not IS_WIN
+            and constraints["pip"] != "embed"
+            and Version(constraints["pip"]) >= Version("19.3")
+        ):
+            additional_flags.append("--symlink-app-data")
+
+        call(
+            sys.executable,
+            "-sS",  # just the stdlib, https://github.com/pypa/virtualenv/issues/2133#issuecomment-1003710125
+            virtualenv_app,
+            "--activators=",
+            "--no-periodic-update",
+            *additional_flags,
+            "--python",
+            python,
+            venv_path,
+        )
+
     paths = [str(venv_path), str(venv_path / "Scripts")] if IS_WIN else [str(venv_path / "bin")]
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join([*paths, env["PATH"]])
@@ -877,3 +895,14 @@ def parse_key_value_string(
         result[field_name] += values
 
     return dict(result)
+
+
+def find_uv() -> Path | None:
+    # Prefer uv in our environment
+    with contextlib.suppress(ImportError, FileNotFoundError):
+        from uv import find_uv_bin
+
+        return Path(find_uv_bin())
+
+    uv_on_path = shutil.which("uv")
+    return Path(uv_on_path) if uv_on_path else None

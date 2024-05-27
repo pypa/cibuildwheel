@@ -31,6 +31,7 @@ from .util import (
     download,
     extract_zip,
     find_compatible_wheel,
+    find_uv,
     get_build_verbosity_extra_flags,
     get_pip_version,
     move_file,
@@ -244,10 +245,19 @@ def setup_python(
         raise ValueError(msg)
     assert base_python.exists()
 
+    use_uv = build_frontend == "build[uv]" and Version(python_configuration.version) >= Version(
+        "3.8"
+    )
+    uv_path = find_uv()
+
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
     env = virtualenv(
-        python_configuration.version, base_python, venv_path, dependency_constraint_flags
+        python_configuration.version,
+        base_python,
+        venv_path,
+        dependency_constraint_flags,
+        use_uv=use_uv,
     )
 
     # set up environment variables for run_with_env
@@ -257,17 +267,18 @@ def setup_python(
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
-    call(
-        "python",
-        "-m",
-        "pip",
-        "install",
-        "--upgrade",
-        "pip",
-        *dependency_constraint_flags,
-        env=env,
-        cwd=venv_path,
-    )
+    if not use_uv:
+        call(
+            "python",
+            "-m",
+            "pip",
+            "install",
+            "--upgrade",
+            "pip",
+            *dependency_constraint_flags,
+            env=env,
+            cwd=venv_path,
+        )
 
     # update env with results from CIBW_ENVIRONMENT
     env = environment.as_dictionary(prev_environment=env)
@@ -285,20 +296,32 @@ def setup_python(
         sys.exit(1)
 
     # check what pip version we're on
-    assert (venv_path / "Scripts" / "pip.exe").exists()
-    where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
-    if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
-        print(
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    if not use_uv:
+        assert (venv_path / "Scripts" / "pip.exe").exists()
+        where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
+        if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
+            print(
+                "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
-    call("pip", "--version", env=env)
+        call("pip", "--version", env=env)
 
     log.step("Installing build tools...")
     if build_frontend == "build":
         call(
+            "pip",
+            "install",
+            "--upgrade",
+            "build[virtualenv]",
+            *dependency_constraint_flags,
+            env=env,
+        )
+    elif build_frontend == "build[uv]":
+        assert uv_path is not None
+        call(
+            uv_path,
             "pip",
             "install",
             "--upgrade",
@@ -340,6 +363,9 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
+            use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version(
+                "3.8"
+            )
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -362,7 +388,8 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
-            pip_version = get_pip_version(env)
+            if not use_uv:
+                pip_version = get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -391,7 +418,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags += build_frontend.args
 
                 build_env = env.copy()
-                build_env["VIRTUALENV_PIP"] = pip_version
+                if not use_uv:
+                    build_env["VIRTUALENV_PIP"] = pip_version
+
                 if build_options.dependency_constraints:
                     constraints_path = build_options.dependency_constraints.get_for_python_version(
                         config.version
@@ -411,6 +440,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_env["PIP_CONSTRAINT"] = " ".join(
                         c for c in [our_constraints, user_constraints] if c
                     )
+                    build_env["UV_CONSTRAINT"] = build_env["PIP_CONSTRAINT"]
 
                 if build_frontend.name == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
@@ -427,10 +457,12 @@ def build(options: Options, tmp_path: Path) -> None:
                         *extra_flags,
                         env=build_env,
                     )
-                elif build_frontend.name == "build":
+                elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
                     if not 0 <= build_options.build_verbosity < 2:
                         msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                         log.warning(msg)
+                    if use_uv:
+                        extra_flags.append("--installer=uv")
                     call(
                         "python",
                         "-m",
@@ -484,15 +516,20 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
-                call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
+                if not use_uv:
+                    call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
+
                 venv_dir = identifier_tmp_dir / "venv-test"
 
-                # Use pip version from the initial env to ensure determinism
-                venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
-                # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
-                if Version(config.version) < Version("3.12"):
-                    venv_args.extend(("--setuptools=embed", "--wheel=embed"))
-                call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
+                if use_uv:
+                    call("uv", "venv", venv_dir, "--python=python", env=env)
+                else:
+                    # Use pip version from the initial env to ensure determinism
+                    venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
+                    # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
+                    if Version(config.version) < Version("3.12"):
+                        venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                    call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                 virtualenv_env = env.copy()
                 virtualenv_env["PATH"] = os.pathsep.join(
@@ -514,9 +551,11 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
+                pip = ["uv", "pip"] if use_uv else ["pip"]
+
                 # install the wheel
                 call(
-                    "pip",
+                    *pip,
                     "install",
                     str(repaired_wheel) + build_options.test_extras,
                     env=virtualenv_env,
@@ -524,7 +563,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 # test the wheel
                 if build_options.test_requires:
-                    call("pip", "install", *build_options.test_requires, env=virtualenv_env)
+                    call(*pip, "install", *build_options.test_requires, env=virtualenv_env)
 
                 # run the tests from a temp dir, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel

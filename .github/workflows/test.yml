@@ -15,6 +15,9 @@ concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  CIBW_BUILD_FRONTEND: "build[uv]"
+
 jobs:
   lint:
     name: Linters (mypy, flake8, etc.)
@@ -49,6 +52,8 @@ jobs:
       with:
         python-version: ${{ matrix.python_version }}
 
+    - uses: yezz123/setup-uv@v4
+
     # Install podman on this CI instance for podman tests on linux
     # Snippet from: https://github.com/redhat-actions/podman-login/blob/main/.github/workflows/example.yml
     - name: Install latest podman
@@ -69,7 +74,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install ".[test]"
+        uv pip install --system ".[test]"
 
     - name: Generate a sample project
       run: |
@@ -159,7 +164,7 @@ jobs:
       with:
         python-version: "3.x"
     - name: Install dependencies
-      run: python -m pip install ".[test]"
+      run: python -m pip install ".[test,uv]"
 
     - name: Set up QEMU
       id: qemu

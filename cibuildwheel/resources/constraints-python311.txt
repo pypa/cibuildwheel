@@ -24,5 +24,7 @@ pyproject-hooks==1.1.0
     # via build
 typing-extensions==4.12.2
     # via delocate
+uv==0.2.8
+    # via -r cibuildwheel/resources/constraints.in
 virtualenv==20.26.2
     # via -r cibuildwheel/resources/constraints.in

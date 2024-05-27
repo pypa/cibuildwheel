@@ -78,6 +78,7 @@ test = [
     "tomli_w",
     "validate-pyproject",
 ]
+uv = ["uv"]
 
 [project.scripts]
 cibuildwheel = "cibuildwheel.__main__:main"

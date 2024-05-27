@@ -114,7 +114,7 @@ def setup_python(
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(python_configuration.version, base_python, venv_path, [])
+    env = virtualenv(python_configuration.version, base_python, venv_path, [], use_uv=False)
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
