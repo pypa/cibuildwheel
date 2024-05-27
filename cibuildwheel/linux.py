@@ -337,7 +337,7 @@ def build_in_container(
             # Use embedded dependencies from virtualenv to ensure determinism
             venv_args = ["--no-periodic-update", "--pip=embed"]
             # In Python<3.12, setuptools & wheel are installed as well
-            if Version(config.version) < Version("3.12.0a0"):
+            if Version(config.version) < Version("3.12"):
                 venv_args.extend(("--setuptools=embed", "--wheel=embed"))
             container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
 

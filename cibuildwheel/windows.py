@@ -515,7 +515,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 # Use pip version from the initial env to ensure determinism
                 venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
                 # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
-                if Version(config.version) < Version("3.12.0a0"):
+                if Version(config.version) < Version("3.12"):
                     venv_args.extend(("--setuptools=embed", "--wheel=embed"))
                 call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
