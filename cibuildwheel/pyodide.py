@@ -339,8 +339,14 @@ def build(options: Options, tmp_path: Path) -> None:
                     ]
                 )
 
-                # --no-download??
-                call("pyodide", "venv", venv_dir, env=virtualenv_env)
+                # pyodide venv uses virtualenv under the hood
+                # use the pip embeded with virtualenv & disable network updates
+                virtualenv_create_env = virtualenv_env.copy()
+                virtualenv_create_env["VIRTUALENV_PIP"] = "embed"
+                virtualenv_create_env["VIRTUALENV_DOWNLOAD"] = "0"
+                virtualenv_create_env["VIRTUALENV_NO_PERIODIC_UPDATE"] = "1"
+
+                call("pyodide", "venv", venv_dir, env=virtualenv_create_env)
 
                 virtualenv_env["PATH"] = os.pathsep.join(
                     [
