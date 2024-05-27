@@ -66,27 +66,26 @@ def install_emscripten(tmp: Path, version: str) -> Path:
 
 
 def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
-    xbuildenv_cache_dir = CIBW_CACHE_PATH
     pyodide_root = (
-        xbuildenv_cache_dir
+        CIBW_CACHE_PATH
         / f".pyodide-xbuildenv-{pyodide_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
-    if pyodide_root.exists():
-        return str(pyodide_root)
+    with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
+        if pyodide_root.exists():
+            return str(pyodide_root)
 
-    xbuildenv_cache_dir.mkdir(exist_ok=True)
-    # We don't want to mutate env but we need to delete any existing
-    # PYODIDE_ROOT so copy it first.
-    env = dict(env)
-    env.pop("PYODIDE_ROOT", None)
-    call(
-        "pyodide",
-        "xbuildenv",
-        "install",
-        pyodide_version,
-        env=env,
-        cwd=xbuildenv_cache_dir,
-    )
+        # We don't want to mutate env but we need to delete any existing
+        # PYODIDE_ROOT so copy it first.
+        env = dict(env)
+        env.pop("PYODIDE_ROOT", None)
+        call(
+            "pyodide",
+            "xbuildenv",
+            "install",
+            pyodide_version,
+            env=env,
+            cwd=CIBW_CACHE_PATH,
+        )
     return str(pyodide_root)
 
 

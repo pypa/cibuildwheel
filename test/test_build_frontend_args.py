@@ -10,14 +10,7 @@ from .test_projects.c import new_c_project
     "frontend_name",
     [
         pytest.param("pip", marks=utils.skip_if_pyodide("No pip for pyodide")),
-        pytest.param(
-            "build",
-            marks=pytest.mark.xfail(
-                condition=utils.platform == "pyodide",
-                reason="pyodide build -h doesn't print help text https://github.com/pyodide/pyodide/issues/4783",
-                strict=True,
-            ),
-        ),
+        "build",
     ],
 )
 def test_build_frontend_args(tmp_path, capfd, frontend_name):
@@ -40,6 +33,8 @@ def test_build_frontend_args(tmp_path, capfd, frontend_name):
     if frontend_name == "pip":
         assert "Usage:" in captured.out
         assert "Wheel Options:" in captured.out
+    elif utils.platform == "pyodide":
+        assert "Usage: pyodide build" in captured.out
     else:
         assert "usage:" in captured.out
         assert "A simple, correct Python build frontend." in captured.out
