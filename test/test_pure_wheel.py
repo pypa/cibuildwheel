@@ -26,7 +26,7 @@ def a_function():
 
 @pytest.mark.xfail(
     condition=utils.platform == "pyodide",
-    reason="pyodide build re-tag platform 'none' as 'pyodide_2024_0_wasm32'",
+    reason="pyodide build re-tag platform as 'pyodide_2024_0_wasm32', https://github.com/pyodide/pyodide/pull/4803",
     strict=True,
 )
 def test(tmp_path, capfd):
