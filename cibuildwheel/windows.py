@@ -387,6 +387,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
+            pip_version = get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -415,7 +416,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags += build_frontend.args
 
                 build_env = env.copy()
-                build_env["VIRTUALENV_PIP"] = get_pip_version(env)
+                build_env["VIRTUALENV_PIP"] = pip_version
                 if build_options.dependency_constraints:
                     constraints_path = build_options.dependency_constraints.get_for_python_version(
                         config.version
@@ -511,9 +512,12 @@ def build(options: Options, tmp_path: Path) -> None:
                 call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
                 venv_dir = identifier_tmp_dir / "venv-test"
 
-                # Use --no-download to ensure determinism by using seed libraries
-                # built into virtualenv
-                call("python", "-m", "virtualenv", "--no-download", venv_dir, env=env)
+                # Use pip version from the initial env to ensure determinism
+                venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
+                # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
+                if Version(config.version) < Version("3.12"):
+                    venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                 virtualenv_env = env.copy()
                 virtualenv_env["PATH"] = os.pathsep.join(
@@ -525,10 +529,6 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 # check that we are using the Python from the virtual environment
                 call("where", "python", env=virtualenv_env)
-
-                # TODO remove me once virtualenv provides pip>=24.1b1
-                if config.version.startswith("3.13."):
-                    call("python", "-m", "pip", "install", "--pre", "-U", "pip", env=virtualenv_env)
 
                 if build_options.before_test:
                     before_test_prepared = prepare_command(
