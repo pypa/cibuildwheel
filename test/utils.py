@@ -314,6 +314,13 @@ def skip_if_pyodide(reason: str):
     return pytest.mark.skipif(platform == "pyodide", reason=reason)
 
 
+def invoke_pytest() -> str:
+    # see https://github.com/pyodide/pyodide/issues/4802
+    if platform == "pyodide" and sys.platform.startswith("darwin"):
+        return "python -m pytest"
+    return "pytest"
+
+
 def arch_name_for_linux(arch: str):
     """
     Archs have different names on different platforms, but it's useful to be

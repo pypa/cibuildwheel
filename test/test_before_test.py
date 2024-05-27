@@ -64,7 +64,7 @@ def test(tmp_path):
             "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": "false || python -m pytest {project}/test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "pytest {project}/test",
         },
     )
