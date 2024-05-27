@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import OrderedDict, Tuple
 
+from packaging.version import Version
+
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
@@ -332,7 +334,12 @@ def build_in_container(
             )
             venv_dir = testing_temp_dir / "venv"
 
-            container.call(["python", "-m", "virtualenv", "--no-download", venv_dir], env=env)
+            # Use embedded dependencies from virtualenv to ensure determinism
+            venv_args = ["--no-periodic-update", "--pip=embed"]
+            # In Python<3.12, setuptools & wheel are installed as well
+            if Version(config.version) < Version("3.12.0a0"):
+                venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+            container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
