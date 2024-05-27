@@ -340,7 +340,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 # pyodide venv uses virtualenv under the hood
-                # use the pip embeded with virtualenv & disable network updates
+                # use the pip embedded with virtualenv & disable network updates
                 virtualenv_create_env = virtualenv_env.copy()
                 virtualenv_create_env["VIRTUALENV_PIP"] = "embed"
                 virtualenv_create_env["VIRTUALENV_DOWNLOAD"] = "0"
