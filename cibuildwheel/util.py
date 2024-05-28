@@ -9,6 +9,7 @@ import shlex
 import ssl
 import subprocess
 import sys
+import tarfile
 import textwrap
 import time
 import typing
@@ -19,8 +20,10 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property, lru_cache
 from pathlib import Path, PurePath
+from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Any, ClassVar, Final, Literal, TextIO, TypeVar
+from zipfile import ZipFile
 
 import bracex
 import certifi
@@ -32,6 +35,7 @@ from packaging.version import Version
 from platformdirs import user_cache_path
 
 from ._compat import tomllib
+from .architecture import Architecture
 from .typing import PathOrStr, PlatformName
 
 __all__ = [
@@ -334,6 +338,27 @@ def download(url: str, dest: Path) -> None:
             sleep(3)
 
 
+def extract_zip(zip_src: Path, dest: Path) -> None:
+    with ZipFile(zip_src) as zip_:
+        for zinfo in zip_.filelist:
+            zip_.extract(zinfo, dest)
+
+            # Set permissions to the same values as they were set in the archive
+            # We have to do this manually due to
+            # https://github.com/python/cpython/issues/59999
+            # But some files in the zipfile seem to have external_attr with 0
+            # permissions. In that case just use the default value???
+            permissions = (zinfo.external_attr >> 16) & 0o777
+            if permissions != 0:
+                dest.joinpath(zinfo.filename).chmod(permissions)
+
+
+def extract_tar(tar_src: Path, dest: Path) -> None:
+    with tarfile.open(tar_src) as tar_:
+        tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
+        tar_.extractall(dest)
+
+
 class DependencyConstraints:
     def __init__(self, base_file_path: Path):
         assert base_file_path.exists()
@@ -343,12 +368,14 @@ class DependencyConstraints:
     def with_defaults() -> DependencyConstraints:
         return DependencyConstraints(base_file_path=resources_dir / "constraints.txt")
 
-    def get_for_python_version(self, version: str) -> Path:
+    def get_for_python_version(
+        self, version: str, *, variant: Literal["python", "pyodide"] = "python"
+    ) -> Path:
         version_parts = version.split(".")
 
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python36.txt
-        specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
+        specific_stem = self.base_file_path.stem + f"-{variant}{version_parts[0]}{version_parts[1]}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)
 
@@ -532,6 +559,38 @@ def get_pip_version(env: Mapping[str, str]) -> str:
         if version.startswith("pip==")
     )
     return pip_version
+
+
+@lru_cache(maxsize=None)
+def ensure_node(major_version: str) -> Path:
+    input_file = resources_dir / "nodejs.toml"
+    with input_file.open("rb") as f:
+        loaded_file = tomllib.load(f)
+    version = str(loaded_file[major_version])
+    base_url = str(loaded_file["url"])
+    ext = "zip" if IS_WIN else "tar.xz"
+    platform = "win" if IS_WIN else ("darwin" if sys.platform.startswith("darwin") else "linux")
+    linux_arch = Architecture.native_arch("linux")
+    assert linux_arch is not None
+    arch = {"x86_64": "x64", "i686": "x86", "aarch64": "arm64"}.get(
+        linux_arch.value, linux_arch.value
+    )
+    name = f"node-{version}-{platform}-{arch}"
+    path = CIBW_CACHE_PATH / name
+    with FileLock(str(path) + ".lock"):
+        if not path.exists():
+            url = f"{base_url}{version}/{name}.{ext}"
+            with TemporaryDirectory() as tmp_path:
+                archive = Path(tmp_path) / f"{name}.{ext}"
+                download(url, archive)
+                if ext == "zip":
+                    extract_zip(archive, path.parent)
+                else:
+                    extract_tar(archive, path.parent)
+    assert path.exists()
+    if not IS_WIN:
+        return path / "bin"
+    return path
 
 
 @lru_cache(maxsize=None)

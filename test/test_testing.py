@@ -66,7 +66,7 @@ class TestSpam(TestCase):
         # See #336 for more info.
         bits = struct.calcsize("P") * 8
         if bits == 32:
-            self.assertEqual(platform.machine(), "i686")
+            self.assertIn(platform.machine(), ["i686", "wasm32"])
 '''
 
 
@@ -81,7 +81,7 @@ def test(tmp_path):
             "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": "false || pytest {project}/test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
         },
     )
@@ -102,7 +102,7 @@ def test_extras_require(tmp_path):
             "CIBW_TEST_EXTRAS": "test",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": "false || pytest {project}/test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
         },
         single_python=True,

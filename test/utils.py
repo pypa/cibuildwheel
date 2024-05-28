@@ -13,6 +13,8 @@ import sys
 from tempfile import TemporaryDirectory
 from typing import Final
 
+import pytest
+
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.util import CIBW_CACHE_PATH
 
@@ -188,6 +190,8 @@ def expected_wheels(
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
+    if platform == "pyodide" and python_abi_tags is None:
+        python_abi_tags = ["cp312-cp312"]
     if python_abi_tags is None:
         python_abi_tags = [
             "cp36-cp36m",
@@ -236,6 +240,12 @@ def expected_wheels(
 
     wheels = []
 
+    if platform == "pyodide":
+        assert len(python_abi_tags) == 1
+        python_abi_tag = python_abi_tags[0]
+        platform_tag = "pyodide_2024_0_wasm32"
+        return [f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"]
+
     for python_abi_tag in python_abi_tags:
         platform_tags = []
 
@@ -283,7 +293,6 @@ def expected_wheels(
                 platform_tags.append(
                     f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
                 )
-
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
@@ -304,6 +313,17 @@ def get_macos_version():
     """
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))
+
+
+def skip_if_pyodide(reason: str):
+    return pytest.mark.skipif(platform == "pyodide", reason=reason)
+
+
+def invoke_pytest() -> str:
+    # see https://github.com/pyodide/pyodide/issues/4802
+    if platform == "pyodide" and sys.platform.startswith("darwin"):
+        return "python -m pytest"
+    return "pytest"
 
 
 def arch_name_for_linux(arch: str):

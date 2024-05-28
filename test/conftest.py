@@ -32,6 +32,8 @@ def pytest_addoption(parser) -> None:
     params=[{"CIBW_BUILD_FRONTEND": "pip"}, {"CIBW_BUILD_FRONTEND": "build"}], ids=["pip", "build"]
 )
 def build_frontend_env(request) -> dict[str, str]:
+    if platform == "pyodide":
+        pytest.skip("Can't use pip as build frontend for pyodide platform")
     return request.param  # type: ignore[no-any-return]
 
 

@@ -107,6 +107,13 @@ You can override the cache folder using the ``CIBW_CACHE_PATH`` environment vari
     Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
     ```
 
+### Pyodide (WebAssembly) builds (experimental)
+
+Pre-requisite: you need to have a matching host version of Python (unlike all
+other cibuildwheel platforms). Linux host highly recommended; macOS hosts may
+work (e.g. invoking `pytest` directly in [`CIBW_TEST_COMMAND`](options.md#test-command) is [currently failing](https://github.com/pyodide/pyodide/issues/4802)) and Windows hosts will not work.
+
+You must target pyodide with `--platform pyodide` (or use `--only` on the identifier).
 
 ## Configure a CI service
 

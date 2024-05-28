@@ -34,6 +34,7 @@ PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
     "macosx_x86_64": "macOS x86_64",
     "macosx_universal2": "macOS Universal 2 - x86_64 and arm64",
     "macosx_arm64": "macOS arm64 - Apple Silicon",
+    "pyodide_wasm32": "Pyodide",
 }
 
 
