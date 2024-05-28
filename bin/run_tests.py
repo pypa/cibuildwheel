@@ -43,7 +43,7 @@ if __name__ == "__main__":
         "-m",
         "pytest",
         f"--numprocesses={args.num_processes}",
-        "-x",
+        "-vv",
         "--durations",
         "0",
         "--timeout=2400",
