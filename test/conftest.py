@@ -8,12 +8,16 @@ import pytest
 
 from cibuildwheel.util import detect_ci_provider
 
-from .utils import platform
+from .utils import EMULATED_ARCHS, platform
 
 
 def pytest_addoption(parser) -> None:
     parser.addoption(
-        "--run-emulation", action="store_true", default=False, help="run emulation tests"
+        "--run-emulation",
+        action="store",
+        default=None,
+        help="run emulation tests",
+        choices=("all", *EMULATED_ARCHS),
     )
     parser.addoption("--run-podman", action="store_true", default=False, help="run podman tests")
     parser.addoption(

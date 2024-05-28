@@ -6,6 +6,7 @@ import sys
 import textwrap
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
 from test.test_projects.base import TestProject
 
 from . import test_projects, utils

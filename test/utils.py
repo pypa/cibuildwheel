@@ -15,8 +15,12 @@ from typing import Final
 
 import pytest
 
+from cibuildwheel.architecture import Architecture
 from cibuildwheel.util import CIBW_CACHE_PATH
 
+EMULATED_ARCHS: Final[list[str]] = sorted(
+    arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
+)
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
 platform: str
@@ -156,6 +160,7 @@ def expected_wheels(
     python_abi_tags=None,
     include_universal2=False,
     single_python=False,
+    single_arch=False,
 ):
     """
     Returns a list of expected wheels from a run of cibuildwheel.
@@ -247,7 +252,7 @@ def expected_wheels(
         if platform == "linux":
             architectures = [arch_name_for_linux(machine_arch)]
 
-            if machine_arch == "x86_64":
+            if machine_arch == "x86_64" and not single_arch:
                 architectures.append("i686")
 
             if len(manylinux_versions) > 0:

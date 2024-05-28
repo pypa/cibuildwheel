@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import subprocess
 from contextlib import nullcontext as does_not_raise
-from test import test_projects
 
 import pytest
+
+from test import test_projects
 
 from . import utils
 
