@@ -353,6 +353,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         virtualenv_env["PATH"],
                     ]
                 )
+                virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
                 # check that we are using the Python from the virtual environment
                 call("which", "python", env=virtualenv_env)
