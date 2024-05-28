@@ -171,9 +171,12 @@ jobs:
       run: pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
-    name: Test cibuildwheel building pyodide wheels
+    name: Test pyodide on ${{ matrix.os }}
     needs: lint
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
