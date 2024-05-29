@@ -58,6 +58,7 @@ class TestSpam(TestCase):
 
         self.assertTrue(path_contains(sys.prefix, sys.executable))
         self.assertTrue(path_contains(sys.prefix, spam.__file__))
+        self.assertIn("VIRTUAL_ENV", os.environ)
 
     def test_uname(self):
         if platform.system() == "Windows":
