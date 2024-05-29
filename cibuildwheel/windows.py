@@ -255,26 +255,6 @@ def setup_python(
     env["PYTHON_ARCH"] = python_configuration.arch
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
-    # pip older than 21.3 builds executables such as pip.exe for x64 platform.
-    # The first re-install of pip updates pip module but builds pip.exe using
-    # the old pip which still generates x64 executable. But the second
-    # re-install uses updated pip and correctly builds pip.exe for the target.
-    # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
-    # pip versions newer than 21.3.
-    if python_configuration.arch == "ARM64" and Version(get_pip_version(env)) < Version("21.3"):
-        call(
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--force-reinstall",
-            "--upgrade",
-            "pip",
-            *dependency_constraint_flags,
-            env=env,
-            cwd=venv_path,
-        )
-
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
     call(
