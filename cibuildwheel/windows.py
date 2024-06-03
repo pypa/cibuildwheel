@@ -7,7 +7,6 @@ import subprocess
 import sys
 import textwrap
 from collections.abc import MutableMapping, Sequence, Set
-from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
