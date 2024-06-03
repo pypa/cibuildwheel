@@ -395,8 +395,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (overwrite existing)
             if compatible_wheel is None:
-                with contextlib.suppress(FileNotFoundError):
-                    (build_options.output_dir / repaired_wheel.name).unlink()
+                (build_options.output_dir / repaired_wheel.name).unlink(missing_ok=True)
 
                 shutil.move(str(repaired_wheel), build_options.output_dir)
                 built_wheels.append(build_options.output_dir / repaired_wheel.name)
