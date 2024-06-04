@@ -648,7 +648,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 output_dir.mkdir(parents=True, exist_ok=True)
 
                 # using os.move() as Path.rename() is not guaranteed to work across filesystem boundaries
-                shutil.move(repaired_wheel, output_wheel)
+                shutil.move(str(repaired_wheel), str(output_wheel)) # explicit str() needed for mypy3.8
                 built_wheels.append(output_wheel)
 
             # clean up
