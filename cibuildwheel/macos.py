@@ -646,7 +646,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 # os.move() will rename the file to what we were expecting to be the parent directory if we don't ensure it exists
                 output_dir.mkdir(parents=True, exist_ok=True)
-                
+
                 # using os.move() as Path.rename() is not guaranteed to work across filesystem boundaries
                 shutil.move(repaired_wheel, output_wheel)
                 built_wheels.append(output_wheel)
