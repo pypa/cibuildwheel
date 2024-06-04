@@ -640,10 +640,16 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (overwrite existing)
             if compatible_wheel is None:
-                build_options.output_dir.joinpath(repaired_wheel.name).unlink(missing_ok=True)
+                output_dir = build_options.output_dir.resolve()
+                output_wheel = output_dir.joinpath(repaired_wheel.name).resolve()
+                output_wheel.unlink(missing_ok=True)
 
-                shutil.move(str(repaired_wheel), build_options.output_dir)
-                built_wheels.append(build_options.output_dir / repaired_wheel.name)
+                # os.move() will rename the file to what we were expecting to be the parent directory if we don't ensure it exists
+                output_dir.mkdir(parents=True, exist_ok=True)
+                
+                # using os.move() as Path.rename() is not guaranteed to work across filesystem boundaries
+                shutil.move(repaired_wheel, output_wheel)
+                built_wheels.append(output_wheel)
 
             # clean up
             shutil.rmtree(identifier_tmp_dir)
