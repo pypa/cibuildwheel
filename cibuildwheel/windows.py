@@ -546,13 +546,13 @@ def build(options: Options, tmp_path: Path) -> None:
                 output_wheel = output_dir.joinpath(repaired_wheel.name).resolve()
                 output_wheel.unlink(missing_ok=True)
 
-                # os.move() will rename the file to what we were expecting to be the parent directory if we don't ensure it exists
+                # shutil.move() will rename the file to what we were expecting to be the parent directory if we don't ensure it exists
                 output_dir.mkdir(parents=True, exist_ok=True)
 
-                # using os.move() as Path.rename() is not guaranteed to work across filesystem boundaries
+                # using shutil.move() as Path.rename() is not guaranteed to work across filesystem boundaries
                 shutil.move(
                     str(repaired_wheel), str(output_wheel)
-                )  # explicit str() needed for mypy3.8
+                )  # explicit str() needed for Python 3.8 - can change to Paths when we drop 3.8 support
                 built_wheels.append(output_wheel)
 
             # clean up
