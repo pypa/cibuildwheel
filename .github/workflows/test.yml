@@ -15,9 +15,6 @@ concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CIBW_BUILD_FRONTEND: "build[uv]"
-
 jobs:
   lint:
     name: Linters (mypy, flake8, etc.)
