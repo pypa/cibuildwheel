@@ -546,7 +546,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
                 moved_wheel = move_file(repaired_wheel, output_wheel)
                 if moved_wheel != output_wheel.resolve():
-                    log.warning("{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}")
+                    log.warning(
+                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                    )
                 built_wheels.append(output_wheel)
 
             # clean up

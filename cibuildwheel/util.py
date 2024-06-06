@@ -362,7 +362,7 @@ def extract_tar(tar_src: Path, dest: Path) -> None:
 
 def move_file(src_file: Path, dst_file: Path) -> Path:
     """Moves a file safely while avoiding potential semantic confusion:
-     
+
     1. `dst_file` must point to the target filename, not a directory
     2. `dst_file` will be overwritten if it already exists
     3. any missing parent directories will be created
@@ -373,7 +373,7 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
         NotADirectoryError: If any part of the intermediate path to `dst_file` is an existing file
         IsADirectoryError: If `dst_file` points directly to an existing directory
     """
-    
+
     # Importing here as logger needs various functions from util -> circular imports
     from .logger import log
 
@@ -392,7 +392,7 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
     resulting_file = Path(resulting_file).resolve()
     log.notice(f"Moved {src_file} to {resulting_file}")
     return Path(resulting_file)
-    
+
 
 class DependencyConstraints:
     def __init__(self, base_file_path: Path):
