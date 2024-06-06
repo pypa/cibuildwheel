@@ -382,7 +382,8 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
 
     if dst_file.is_dir():
         # Cannot overwrite a directory with a file
-        raise IsADirectoryError
+        msg = "dst_file must be a valid target filename, not an existing directory."
+        raise IsADirectoryError(msg)
     dst_file.unlink(missing_ok=True)
     dst_file.parent.mkdir(parents=True, exist_ok=True)
 
