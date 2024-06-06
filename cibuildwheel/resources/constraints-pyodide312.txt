@@ -107,7 +107,7 @@ typing-extensions==4.12.1
     #   pydantic
     #   pydantic-core
     #   typer
-unearth==0.15.3
+unearth==0.15.4
     # via pyodide-build
 urllib3==2.2.1
     # via
