@@ -26,6 +26,7 @@ from .util import (
     extract_zip,
     find_compatible_wheel,
     get_pip_version,
+    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -394,9 +395,11 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (overwrite existing)
             if compatible_wheel is None:
-                build_options.output_dir.joinpath(repaired_wheel.name).unlink(missing_ok=True)
+                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                moved_wheel = move_file(repaired_wheel, output_wheel)
+                if moved_wheel != output_wheel.resolve():
+                    log.warning("{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}")
+                built_wheels.append(output_wheel)
 
-                shutil.move(str(repaired_wheel), build_options.output_dir)
-                built_wheels.append(build_options.output_dir / repaired_wheel.name)
     finally:
         pass

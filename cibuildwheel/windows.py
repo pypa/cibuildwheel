@@ -33,6 +33,7 @@ from .util import (
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
+    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -542,16 +543,10 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (remove if already exists)
             if compatible_wheel is None:
-                output_dir = build_options.output_dir.resolve()
-                output_wheel = output_dir.joinpath(repaired_wheel.name).resolve()
-                output_wheel.unlink(missing_ok=True)
-
-                # shutil.move() will rename the file to what we were expecting to be the parent directory if we don't ensure it exists
-                output_dir.mkdir(parents=True, exist_ok=True)
-
-                # using shutil.move() as Path.rename() is not guaranteed to work across filesystem boundaries
-                # explicit str() needed for Python 3.8
-                shutil.move(str(repaired_wheel), str(output_wheel))
+                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                moved_wheel = move_file(repaired_wheel, output_wheel)
+                if moved_wheel != output_wheel.resolve():
+                    log.warning("{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}")
                 built_wheels.append(output_wheel)
 
             # clean up

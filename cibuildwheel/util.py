@@ -6,6 +6,7 @@ import itertools
 import os
 import re
 import shlex
+import shutil
 import ssl
 import subprocess
 import sys
@@ -358,6 +359,40 @@ def extract_tar(tar_src: Path, dest: Path) -> None:
         tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
         tar_.extractall(dest)
 
+
+def move_file(src_file: Path, dst_file: Path) -> Path:
+    """Moves a file safely while avoiding potential semantic confusion:
+     
+    1. `dst_file` must point to the target filename, not a directory
+    2. `dst_file` will be overwritten if it already exists
+    3. any missing parent directories will be created
+
+    Returns the fully resolved Path of the resulting file.
+
+    Raises:
+        NotADirectoryError: If any part of the intermediate path to `dst_file` is an existing file
+        IsADirectoryError: If `dst_file` points directly to an existing directory
+    """
+    
+    # Importing here as logger needs various functions from util -> circular imports
+    from .logger import log
+
+    src_file = src_file.resolve()
+    dst_file = dst_file.resolve()
+
+    if dst_file.is_dir():
+        # Cannot overwrite a directory with a file
+        raise IsADirectoryError
+    dst_file.unlink(missing_ok=True)
+    dst_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # using shutil.move() as Path.rename() is not guaranteed to work across filesystem boundaries
+    # explicit str() needed for Python 3.8
+    resulting_file = shutil.move(str(src_file), str(dst_file))
+    resulting_file = Path(resulting_file).resolve()
+    log.notice(f"Moved {src_file} to {resulting_file}")
+    return Path(resulting_file)
+    
 
 class DependencyConstraints:
     def __init__(self, base_file_path: Path):
