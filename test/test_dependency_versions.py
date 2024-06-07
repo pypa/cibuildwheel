@@ -101,7 +101,6 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
-        "pip": "23.1.2",
         "delocate": "0.10.3",
     }
 
@@ -109,7 +108,6 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     constraints_file.write_text(
         textwrap.dedent(
             """
-            pip=={pip}
             delocate=={delocate}
             """.format(**tool_versions)
         )
