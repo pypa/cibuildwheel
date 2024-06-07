@@ -222,6 +222,7 @@ def expected_wheels(
                 "cp311-cp311",
                 "cp312-cp312",
                 "cp313-cp313",
+                "cp313-cp313t",
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",

@@ -147,9 +147,11 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
             pkg_path.unlink()
             env = os.environ.copy()
             env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-            call(installation_path / "bin/python3", install_certifi_script, env=env)
-            if version.startswith("3.13"):
-                call(installation_path / "bin/python3.13t", install_certifi_script, env=env)
+
+            if free_threading:
+                call(installation_path / f"bin/python{version}t", install_certifi_script, env=env)
+            else:
+                call(installation_path / "bin/python3", install_certifi_script, env=env)
 
     return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 

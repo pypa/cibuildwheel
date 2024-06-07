@@ -82,6 +82,7 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+        CIBW_FREE_THREADED_SUPPORT: 1
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
