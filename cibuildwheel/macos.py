@@ -117,11 +117,12 @@ def get_python_configurations(
 
 
 def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> Path:
-    installation_path = Path(f"/Library/Frameworks/Python.framework/Versions/{version}")
+    ft = "T" if free_threading else ""
+    installation_path = Path(f"/Library/Frameworks/Python{ft}.framework/Versions/{version}")
     with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
         installed_system_packages = call("pkgutil", "--pkgs", capture_stdout=True).splitlines()
         # if this version of python isn't installed, get it from python.org and install
-        python_package_identifier = f"org.python.Python.PythonFramework-{version}"
+        python_package_identifier = f"org.python.Python.Python{ft}Framework-{version}"
         if python_package_identifier not in installed_system_packages:
             if detect_ci_provider() is None:
                 # if running locally, we don't want to install CPython with sudo
