@@ -149,6 +149,7 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
             env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
             if free_threading:
+                call(installation_path / f"bin/python{version}t", "-m", "ensurepip", env=env)
                 call(installation_path / f"bin/python{version}t", install_certifi_script, env=env)
             else:
                 call(installation_path / "bin/python3", install_certifi_script, env=env)
