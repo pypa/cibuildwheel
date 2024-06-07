@@ -53,7 +53,7 @@ def get_versions_from_constraint_file(constraint_file):
 
 
 @pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.10"])
-def test_pinned_versions(tmp_path, python_version, build_frontend_env):
+def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
     if python_version == "3.6" and utils.platform == "macos" and platform.machine() == "arm64":
@@ -79,7 +79,7 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
         add_env={
             "CIBW_BUILD": build_pattern,
             "CIBW_ENVIRONMENT": cibw_environment_option,
-            **build_frontend_env,
+            **build_frontend_env_nouv,
         },
     )
 
@@ -93,7 +93,7 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_dependency_constraints_file(tmp_path, build_frontend_env):
+def test_dependency_constraints_file(tmp_path, build_frontend_env_nouv):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 
@@ -101,6 +101,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     project_with_expected_version_checks.generate(project_dir)
 
     tool_versions = {
+        "pip": "23.1.2",
         "delocate": "0.10.3",
     }
 
@@ -108,6 +109,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
     constraints_file.write_text(
         textwrap.dedent(
             """
+            pip=={pip}
             delocate=={delocate}
             """.format(**tool_versions)
         )
@@ -128,7 +130,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
             "CIBW_ENVIRONMENT": cibw_environment_option,
             "CIBW_DEPENDENCY_VERSIONS": str(constraints_file),
             "CIBW_SKIP": "cp36-*",
-            **build_frontend_env,
+            **build_frontend_env_nouv,
         },
     )
 
