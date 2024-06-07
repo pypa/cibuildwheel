@@ -150,9 +150,7 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
 
             if free_threading:
                 call(installation_path / f"bin/python{version}t", "-m", "ensurepip", env=env)
-                call(installation_path / f"bin/python{version}t", install_certifi_script, env=env)
-            else:
-                call(installation_path / "bin/python3", install_certifi_script, env=env)
+            call(installation_path / "bin/python3", install_certifi_script, env=env)
 
     return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
