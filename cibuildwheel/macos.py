@@ -257,8 +257,23 @@ def setup_python(
     # Set MACOSX_DEPLOYMENT_TARGET, if the user didn't set it.
     # For arm64, the minimal deployment target is 11.0.
     # On x86_64 (or universal2), use 10.9 as a default.
-    # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
-    env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11.0" if config_is_arm64 else "10.9")
+    # PyPy needs 10.10. CPython 3.13 needs 10.13.
+    if config_is_arm64:
+        default_target = "11.0"
+    elif Version(python_configuration.version) >= Version("3.13"):
+        default_target = "10.13"
+    elif python_configuration.identifier.startswith("pp"):
+        default_target = "10.10"
+    else:
+        default_target = "10.9"
+    env.setdefault("MACOSX_DEPLOYMENT_TARGET", default_target)
+
+    # This is a floor, it can't be set lower than the default_target.
+    if Version(env["MACOSX_DEPLOYMENT_TARGET"]) < Version(default_target):
+        log.notice(
+            f"Bumping MACOSX_DEPLOYMENT_TARGET ({env['MACOSX_DEPLOYMENT_TARGET']}) to the minimum required ({default_target})."
+        )
+        env["MACOSX_DEPLOYMENT_TARGET"] = default_target
 
     if python_configuration.version not in {"3.6", "3.7"}:
         if config_is_arm64:
