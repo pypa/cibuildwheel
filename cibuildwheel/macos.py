@@ -34,6 +34,7 @@ from .util import (
     detect_ci_provider,
     download,
     find_compatible_wheel,
+    free_thread_enable_313,
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
@@ -115,7 +116,7 @@ def get_python_configurations(
     return python_configurations
 
 
-def install_cpython(tmp: Path, version: str, url: str) -> Path:
+def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> Path:
     installation_path = Path(f"/Library/Frameworks/Python.framework/Versions/{version}")
     with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
         installed_system_packages = call("pkgutil", "--pkgs", capture_stdout=True).splitlines()
@@ -137,13 +138,19 @@ def install_cpython(tmp: Path, version: str, url: str) -> Path:
             # download the pkg
             download(url, pkg_path)
             # install
-            call("sudo", "installer", "-pkg", pkg_path, "-target", "/")
+            args = []
+            if version.startswith("3.13"):
+                # Python 3.13 is the first version to have a free-threading option
+                args += ["-applyChoiceChangesXML", str(free_thread_enable_313.resolve())]
+            call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
             env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-            call(installation_path / "bin" / "python3", install_certifi_script, env=env)
+            call(installation_path / "bin/python3", install_certifi_script, env=env)
+            if version.startswith("3.13"):
+                call(installation_path / "bin/python3.13t", install_certifi_script, env=env)
 
-    return installation_path / "bin" / "python3"
+    return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
 
 def install_pypy(tmp: Path, url: str) -> Path:
@@ -172,13 +179,19 @@ def setup_python(
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        base_python = install_cpython(tmp, python_configuration.version, python_configuration.url)
+        free_threading = "t-macos" in python_configuration.identifier
+        base_python = install_cpython(
+            tmp, python_configuration.version, python_configuration.url, free_threading
+        )
+
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
-    assert base_python.exists()
+    assert (
+        base_python.exists()
+    ), f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
