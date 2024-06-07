@@ -7,7 +7,6 @@ import subprocess
 import sys
 import textwrap
 from collections.abc import MutableMapping, Sequence, Set
-from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -34,6 +33,7 @@ from .util import (
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
+    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -543,11 +543,13 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (remove if already exists)
             if compatible_wheel is None:
-                with suppress(FileNotFoundError):
-                    (build_options.output_dir / repaired_wheel.name).unlink()
-
-                shutil.move(str(repaired_wheel), build_options.output_dir)
-                built_wheels.append(build_options.output_dir / repaired_wheel.name)
+                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                moved_wheel = move_file(repaired_wheel, output_wheel)
+                if moved_wheel != output_wheel.resolve():
+                    log.warning(
+                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                    )
+                built_wheels.append(output_wheel)
 
             # clean up
             # (we ignore errors because occasionally Windows fails to unlink a file and we
