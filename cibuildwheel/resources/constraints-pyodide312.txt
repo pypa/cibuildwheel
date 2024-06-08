@@ -64,7 +64,7 @@ pydantic-core==2.18.4
     # via pydantic
 pygments==2.18.0
     # via rich
-pyodide-build==0.26.0
+pyodide-build==0.26.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.2.3
     # via
@@ -102,12 +102,12 @@ typer==0.12.3
     #   pyodide-cli
 types-requests==2.32.0.20240602
     # via pyodide-build
-typing-extensions==4.12.1
+typing-extensions==4.12.2
     # via
     #   pydantic
     #   pydantic-core
     #   typer
-unearth==0.15.3
+unearth==0.15.4
     # via pyodide-build
 urllib3==2.2.1
     # via
