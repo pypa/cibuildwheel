@@ -276,7 +276,7 @@ def setup_python(
 
     # This is a floor, it can't be set lower than the default_target.
     if Version(env["MACOSX_DEPLOYMENT_TARGET"]) < Version(default_target):
-        log.notice(
+        log.warning(
             f"Bumping MACOSX_DEPLOYMENT_TARGET ({env['MACOSX_DEPLOYMENT_TARGET']}) to the minimum required ({default_target})."
         )
         env["MACOSX_DEPLOYMENT_TARGET"] = default_target
