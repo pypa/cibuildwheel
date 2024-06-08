@@ -624,7 +624,7 @@ This option can also be set using the [command-line option](#command-line) `--pr
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
-> Set the tool to use to build, either "pip" (default for now) or "build"
+> Set the tool to use to build, either "pip" (default for now), "build", or "build[uv]"
 
 Options:
 
@@ -636,17 +636,30 @@ Default: `pip`
 Choose which build frontend to use. Can either be "pip", which will run
 `python -m pip wheel`, or "build", which will run `python -m build --wheel`.
 
+You can also use "build[uv]", which will use an external [uv][] everywhere
+possible, both through `--installer=uv` passed to build, as well as when making
+all build and test environments. This will generally speed up cibuildwheel.
+Make sure you have an external uv on Windows and macOS, either by
+pre-installing it, or installing cibuildwheel with the uv extra,
+`cibuildwheel[uv]`. `uv` will not be used for Python 3.6 or Python 3.7. You
+cannot use uv currently on Windows for ARM or for musllinux on s390x as
+binaries are not provided by uv. Legacy dependencies like setuptools on Python
+< 3.12 and pip are not installed if using uv.
+
+Pyodide ignores this setting, as only "build" is supported.
+
 You can specify extra arguments to pass to `pip wheel` or `build` using the
 optional `args` option.
 
 !!! tip
-    Until v2.0.0, [pip] was the only way to build wheels, and is still the
+    Until v2.0.0, [pip][] was the only way to build wheels, and is still the
     default. However, we expect that at some point in the future, cibuildwheel
-    will change the default to [build], in line with the PyPA's recommendation.
+    will change the default to [build][], in line with the PyPA's recommendation.
     If you want to try `build` before this, you can use this option.
 
 [pip]: https://pip.pypa.io/en/stable/cli/pip_wheel/
 [build]: https://github.com/pypa/build/
+[uv]: https://github.com/astral-sh/uv
 
 #### Examples
 
@@ -661,6 +674,12 @@ optional `args` option.
 
     # supply an extra argument to 'pip wheel'
     CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
+
+    # Use uv and build
+    CIBW_BUILD_FRONTEND: "build[uv]"
+
+    # Use uv and build with an argument
+    CIBW_BUILD_FRONTEND: "build[uv]; args: --no-isolation"
     ```
 
 !!! tab examples "pyproject.toml"
@@ -675,6 +694,12 @@ optional `args` option.
 
     # supply an extra argument to 'pip wheel'
     build-frontend = { name = "pip", args = ["--no-build-isolation"] }
+
+    # Use uv and build
+    build-frontend = "build[uv]"
+
+    # Use uv and build with an argument
+    build-frontend = { name = "build[uv]", args = ["--no-isolation"] }
     ```
 
 ### `CIBW_CONFIG_SETTINGS` {: #config-settings}
