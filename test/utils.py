@@ -137,17 +137,11 @@ def cibuildwheel_run(
     return wheels
 
 
-def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
+def _floor_macosx(*args: str) -> str:
     """
-    The first version of macOS that supports arm is 11.0. So the wheel tag
-    cannot contain an earlier deployment target, even if
-    MACOSX_DEPLOYMENT_TARGET sets it.
+    Make sure a deployment target is not less than some value.
     """
-    version_tuple = tuple(map(int, macosx_deployment_target.split(".")))
-    if version_tuple <= (11, 0):
-        return "11.0"
-    else:
-        return macosx_deployment_target
+    return max(args, key=lambda x: tuple(map(int, x.split("."))))
 
 
 def expected_wheels(
@@ -202,9 +196,8 @@ def expected_wheels(
             "cp311-cp311",
             "cp312-cp312",
             "cp313-cp313",
+            "cp313-cp313t",
         ]
-        if platform != "macos":
-            python_abi_tags.append("cp313-cp313t")
 
         if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
             python_abi_tags += [
@@ -223,6 +216,7 @@ def expected_wheels(
                 "cp311-cp311",
                 "cp312-cp312",
                 "cp313-cp313",
+                "cp313-cp313t",
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
@@ -282,12 +276,19 @@ def expected_wheels(
 
         elif platform == "macos":
             if machine_arch == "arm64":
-                arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(
-                    macosx_deployment_target
-                )
-                platform_tags = [f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64']
+                arm64_macosx = _floor_macosx(macosx_deployment_target, "11.0")
+                platform_tags = [f'macosx_{arm64_macosx.replace(".", "_")}_arm64']
             else:
-                platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
+                if python_abi_tag.startswith("pp") and not python_abi_tag.startswith(
+                    ("pp37", "pp38")
+                ):
+                    pypy_macosx = _floor_macosx(macosx_deployment_target, "10.15")
+                    platform_tags = [f'macosx_{pypy_macosx.replace(".", "_")}_x86_64']
+                elif python_abi_tag.startswith("cp313"):
+                    pypy_macosx = _floor_macosx(macosx_deployment_target, "10.13")
+                    platform_tags = [f'macosx_{pypy_macosx.replace(".", "_")}_x86_64']
+                else:
+                    platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
 
             if include_universal2:
                 platform_tags.append(

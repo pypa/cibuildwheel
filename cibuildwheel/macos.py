@@ -33,6 +33,7 @@ from .util import (
     detect_ci_provider,
     download,
     find_compatible_wheel,
+    free_thread_enable_313,
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
@@ -115,12 +116,13 @@ def get_python_configurations(
     return python_configurations
 
 
-def install_cpython(tmp: Path, version: str, url: str) -> Path:
-    installation_path = Path(f"/Library/Frameworks/Python.framework/Versions/{version}")
+def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> Path:
+    ft = "T" if free_threading else ""
+    installation_path = Path(f"/Library/Frameworks/Python{ft}.framework/Versions/{version}")
     with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
         installed_system_packages = call("pkgutil", "--pkgs", capture_stdout=True).splitlines()
         # if this version of python isn't installed, get it from python.org and install
-        python_package_identifier = f"org.python.Python.PythonFramework-{version}"
+        python_package_identifier = f"org.python.Python.Python{ft}Framework-{version}"
         if python_package_identifier not in installed_system_packages:
             if detect_ci_provider() is None:
                 # if running locally, we don't want to install CPython with sudo
@@ -137,13 +139,22 @@ def install_cpython(tmp: Path, version: str, url: str) -> Path:
             # download the pkg
             download(url, pkg_path)
             # install
-            call("sudo", "installer", "-pkg", pkg_path, "-target", "/")
+            args = []
+            if version.startswith("3.13"):
+                # Python 3.13 is the first version to have a free-threading option
+                args += ["-applyChoiceChangesXML", str(free_thread_enable_313.resolve())]
+            call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
             env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-            call(installation_path / "bin" / "python3", install_certifi_script, env=env)
 
-    return installation_path / "bin" / "python3"
+            if free_threading:
+                call(installation_path / f"bin/python{version}t", "-m", "ensurepip", env=env)
+                call(installation_path / f"bin/python{version}t", install_certifi_script, env=env)
+            else:
+                call(installation_path / "bin/python3", install_certifi_script, env=env)
+
+    return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
 
 def install_pypy(tmp: Path, url: str) -> Path:
@@ -172,13 +183,19 @@ def setup_python(
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        base_python = install_cpython(tmp, python_configuration.version, python_configuration.url)
+        free_threading = "t-macos" in python_configuration.identifier
+        base_python = install_cpython(
+            tmp, python_configuration.version, python_configuration.url, free_threading
+        )
+
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
-    assert base_python.exists()
+    assert (
+        base_python.exists()
+    ), f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -244,8 +261,25 @@ def setup_python(
     # Set MACOSX_DEPLOYMENT_TARGET, if the user didn't set it.
     # For arm64, the minimal deployment target is 11.0.
     # On x86_64 (or universal2), use 10.9 as a default.
-    # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
-    env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11.0" if config_is_arm64 else "10.9")
+    # CPython 3.13 needs 10.13.
+    if config_is_arm64:
+        default_target = "11.0"
+    elif Version(python_configuration.version) >= Version("3.13"):
+        default_target = "10.13"
+    elif python_configuration.identifier.startswith("pp") and Version(
+        python_configuration.version
+    ) >= Version("3.9"):
+        default_target = "10.15"
+    else:
+        default_target = "10.9"
+    env.setdefault("MACOSX_DEPLOYMENT_TARGET", default_target)
+
+    # This is a floor, it can't be set lower than the default_target.
+    if Version(env["MACOSX_DEPLOYMENT_TARGET"]) < Version(default_target):
+        log.warning(
+            f"Bumping MACOSX_DEPLOYMENT_TARGET ({env['MACOSX_DEPLOYMENT_TARGET']}) to the minimum required ({default_target})."
+        )
+        env["MACOSX_DEPLOYMENT_TARGET"] = default_target
 
     if python_configuration.version not in {"3.6", "3.7"}:
         if config_is_arm64:

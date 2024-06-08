@@ -60,6 +60,8 @@ resources_dir: Final[Path] = Path(__file__).parent / "resources"
 
 install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 
+free_thread_enable_313: Final[Path] = resources_dir / "free-threaded-enable-313.xml"
+
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
 
