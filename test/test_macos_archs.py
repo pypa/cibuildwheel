@@ -14,7 +14,7 @@ ALL_MACOS_WHEELS = {
     *utils.expected_wheels("spam", "0.1.0", machine_arch="arm64", include_universal2=True),
 }
 
-DEPLOYMENT_TARGET_TOO_LOW_WARNING = "[WARNING] MACOSX_DEPLOYMENT_TARGET is set to a lower value"
+DEPLOYMENT_TARGET_TOO_LOW_WARNING = "Bumping MACOSX_DEPLOYMENT_TARGET"
 
 
 def get_xcode_version() -> tuple[int, int]:
