@@ -189,6 +189,7 @@ def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
             # check that a native dependency is correctly installed, once per each testing arch
             "CIBW_TEST_REQUIRES": "numpy",
             "CIBW_TEST_COMMAND": '''python -c "import numpy, platform; print(f'running tests on {platform.machine()} with numpy {numpy.__version__}')"''',
+            **build_frontend_env,
         },
         single_python=True,
     )
