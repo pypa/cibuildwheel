@@ -627,10 +627,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     venv_dir = identifier_tmp_dir / f"venv-test-{testing_arch}"
 
                     arch_prefix = []
+                    uv_arch_args = []
                     if testing_arch != machine_arch:
                         if machine_arch == "arm64" and testing_arch == "x86_64":
                             # rosetta2 will provide the emulation with just the arch prefix.
                             arch_prefix = ["arch", "-x86_64"]
+                            uv_arch_args = ["--python-platform", "x86_64-apple-darwin"]
                         else:
                             msg = f"don't know how to emulate {testing_arch} on {machine_arch}"
                             raise RuntimeError(msg)
@@ -640,8 +642,10 @@ def build(options: Options, tmp_path: Path) -> None:
                     shell_with_arch = functools.partial(call, *arch_prefix, "/bin/sh", "-c")
 
                     if use_uv:
-                        call_with_arch("uv", "venv", venv_dir, "--python=python", env=env)
+                        pip_install = functools.partial(call, *pip, "install", *uv_arch_args)
+                        call("uv", "venv", venv_dir, "--python=python", env=env)
                     else:
+                        pip_install = functools.partial(call_with_arch, *pip, "install")
                         # Use pip version from the initial env to ensure determinism
                         venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
                         # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
@@ -687,18 +691,14 @@ def build(options: Options, tmp_path: Path) -> None:
                     else:
                         virtualenv_env_install_wheel = virtualenv_env
 
-                    call_with_arch(
-                        *pip,
-                        "install",
+                    pip_install(
                         f"{repaired_wheel}{build_options.test_extras}",
                         env=virtualenv_env_install_wheel,
                     )
 
                     # test the wheel
                     if build_options.test_requires:
-                        call_with_arch(
-                            *pip,
-                            "install",
+                        pip_install(
                             *build_options.test_requires,
                             env=virtualenv_env_install_wheel,
                         )
