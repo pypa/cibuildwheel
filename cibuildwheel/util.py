@@ -16,7 +16,7 @@ import time
 import typing
 import urllib.request
 from collections import defaultdict
-from collections.abc import Generator, Iterable, Mapping, Sequence
+from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property, lru_cache
@@ -44,6 +44,7 @@ __all__ = [
     "cached_property",
     "call",
     "chdir",
+    "combine_constraints",
     "find_compatible_wheel",
     "find_uv",
     "format_safe",
@@ -900,9 +901,37 @@ def parse_key_value_string(
 def find_uv() -> Path | None:
     # Prefer uv in our environment
     with contextlib.suppress(ImportError, FileNotFoundError):
+        # pylint: disable-next=import-outside-toplevel
         from uv import find_uv_bin
 
         return Path(find_uv_bin())
 
     uv_on_path = shutil.which("uv")
     return Path(uv_on_path) if uv_on_path else None
+
+
+def combine_constraints(
+    env: MutableMapping[str, str], /, constraints_path: Path, tmp_dir: Path | None
+) -> None:
+    """
+    This will workaround a bug in pip<=21.1.1 or uv<=0.2.0 if a tmp_dir is given.
+    If set to None, this will use the modern URI method.
+    """
+
+    if tmp_dir:
+        if " " in str(constraints_path):
+            assert " " not in str(tmp_dir)
+            tmp_file = tmp_dir / "constraints.txt"
+            tmp_file.write_bytes(constraints_path.read_bytes())
+            constraints_path = tmp_file
+        our_constraints = str(constraints_path)
+    else:
+        our_constraints = (
+            constraints_path.as_uri() if " " in str(constraints_path) else str(constraints_path)
+        )
+
+    user_constraints = env.get("PIP_CONSTRAINT")
+
+    env["UV_CONSTRAINT"] = env["PIP_CONSTRAINT"] = " ".join(
+        c for c in [our_constraints, user_constraints] if c
+    )

@@ -28,6 +28,7 @@ from .util import (
     BuildSelector,
     NonPlatformWheelError,
     call,
+    combine_constraints,
     download,
     extract_zip,
     find_compatible_wheel,
@@ -425,22 +426,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     constraints_path = build_options.dependency_constraints.get_for_python_version(
                         config.version
                     )
-                    # Bug in pip <= 21.1.3 - we can't have a space in the
-                    # constraints file, and pip doesn't support drive letters
-                    # in uhi.  After probably pip 21.2, we can use uri. For
-                    # now, use a temporary file.
-                    if " " in str(constraints_path):
-                        assert " " not in str(identifier_tmp_dir)
-                        tmp_file = identifier_tmp_dir / "constraints.txt"
-                        tmp_file.write_bytes(constraints_path.read_bytes())
-                        constraints_path = tmp_file
-
-                    our_constraints = str(constraints_path)
-                    user_constraints = build_env.get("PIP_CONSTRAINT")
-                    build_env["PIP_CONSTRAINT"] = " ".join(
-                        c for c in [our_constraints, user_constraints] if c
-                    )
-                    build_env["UV_CONSTRAINT"] = build_env["PIP_CONSTRAINT"]
+                    combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
                 if build_frontend.name == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)

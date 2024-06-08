@@ -30,6 +30,7 @@ from .util import (
     BuildSelector,
     NonPlatformWheelError,
     call,
+    combine_constraints,
     detect_ci_provider,
     download,
     find_compatible_wheel,
@@ -432,11 +433,8 @@ def build(options: Options, tmp_path: Path) -> None:
                     constraint_path = build_options.dependency_constraints.get_for_python_version(
                         config.version
                     )
-                    pip_constraint = "UV_CONSTRAINT" if use_uv else "PIP_CONSTRAINT"
-                    user_constraints = build_env.get(pip_constraint)
-                    our_constraints = str(constraint_path) if use_uv else constraint_path.as_uri()
-                    build_env[pip_constraint] = " ".join(
-                        c for c in [user_constraints, our_constraints] if c
+                    combine_constraints(
+                        build_env, constraint_path, identifier_tmp_dir if use_uv else None
                     )
 
                 if build_frontend.name == "pip":
