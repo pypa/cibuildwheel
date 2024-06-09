@@ -172,7 +172,7 @@ def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_universal2_testing_on_arm64(tmp_path, capfd):
+def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
     # cibuildwheel should test the universal2 wheel on both x86_64 and arm64, when run on arm64
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
@@ -187,15 +187,16 @@ def test_universal2_testing_on_arm64(tmp_path, capfd):
         add_env={
             "CIBW_ARCHS": "universal2",
             # check that a native dependency is correctly installed, once per each testing arch
-            "CIBW_TEST_REQUIRES": "numpy",
-            "CIBW_TEST_COMMAND": '''python -c "import numpy, platform; print(f'running tests on {platform.machine()} with numpy {numpy.__version__}')"''',
+            "CIBW_TEST_REQUIRES": "--only-binary :all: pillow>=10.3",  # pillow>=10.3 provides wheels for macOS 10.10, not 10.9
+            "CIBW_TEST_COMMAND": '''python -c "import PIL, platform; print(f'running tests on {platform.machine()} with pillow {PIL.__version__}')"''',
+            **build_frontend_env,
         },
         single_python=True,
     )
 
     captured = capfd.readouterr()
-    assert "running tests on arm64" in captured.out
-    assert "running tests on x86_64" in captured.out
+    assert "running tests on arm64 with pillow" in captured.out
+    assert "running tests on x86_64 with pillow" in captured.out
 
     python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
     expected_wheels = [w for w in ALL_MACOS_WHEELS if python_tag in w and "universal2" in w]

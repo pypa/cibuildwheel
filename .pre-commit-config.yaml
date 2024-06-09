@@ -40,6 +40,7 @@ repos:
       - types-jinja2
       - types-pyyaml
       - types-requests
+      - uv
       - validate-pyproject
   - id: mypy
     name: mypy 3.12
