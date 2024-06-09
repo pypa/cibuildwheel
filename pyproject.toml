@@ -78,6 +78,7 @@ test = [
     "tomli_w",
     "validate-pyproject",
 ]
+uv = ["uv"]
 
 [project.scripts]
 cibuildwheel = "cibuildwheel.__main__:main"
@@ -176,6 +177,7 @@ messages_control.disable = [
   "wrong-import-position",
   "unused-argument",  # Handled by Ruff
   "broad-exception-raised",  # Could be improved eventually
+  "consider-using-in",  # MyPy can't narrow "in"
 ]
 
 [tool.ruff]

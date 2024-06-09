@@ -6,7 +6,7 @@ from typing import Generator
 
 import pytest
 
-from cibuildwheel.util import detect_ci_provider
+from cibuildwheel.util import detect_ci_provider, find_uv
 
 from .utils import EMULATED_ARCHS, platform
 
@@ -31,10 +31,19 @@ def pytest_addoption(parser) -> None:
 @pytest.fixture(
     params=[{"CIBW_BUILD_FRONTEND": "pip"}, {"CIBW_BUILD_FRONTEND": "build"}], ids=["pip", "build"]
 )
-def build_frontend_env(request) -> dict[str, str]:
+def build_frontend_env_nouv(request) -> dict[str, str]:
     if platform == "pyodide":
         pytest.skip("Can't use pip as build frontend for pyodide platform")
+
     return request.param  # type: ignore[no-any-return]
+
+
+@pytest.fixture()
+def build_frontend_env(build_frontend_env_nouv: dict[str, str]) -> dict[str, str]:
+    if build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build" and find_uv() is not None:
+        return {"CIBW_BUILD_FRONTEND": "build[uv]"}
+
+    return build_frontend_env_nouv
 
 
 @pytest.fixture()

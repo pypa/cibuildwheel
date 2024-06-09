@@ -96,12 +96,13 @@
     },
     "build-frontend": {
       "default": "default",
-      "description": "Set the tool to use to build, either \"pip\" (default for now) or \"build\"",
+      "description": "Set the tool to use to build, either \"pip\" (default for now), \"build\", or \"build[uv]\"",
       "oneOf": [
         {
           "enum": [
             "pip",
             "build",
+            "build[uv]",
             "default"
           ]
         },
@@ -114,6 +115,10 @@
           "pattern": "^build; ?args:"
         },
         {
+          "type": "string",
+          "pattern": "^build\\[uv\\]; ?args:"
+        },
+        {
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -123,7 +128,8 @@
             "name": {
               "enum": [
                 "pip",
-                "build"
+                "build",
+                "build[uv]"
               ]
             },
             "args": {

@@ -193,6 +193,8 @@ def build_in_container(
         log.build_start(config.identifier)
         build_options = options.build_options(config.identifier)
         build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
+        use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version("3.8")
+        pip = ["uv", "pip"] if use_uv else ["pip"]
 
         dependency_constraint_flags: list[PathOrStr] = []
 
@@ -223,10 +225,16 @@ def build_in_container(
             msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
             raise errors.FatalError(msg)
 
-        which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
-        if PurePosixPath(which_pip) != python_bin / "pip":
-            msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
-            raise errors.FatalError(msg)
+        if use_uv:
+            which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()
+            if not which_uv:
+                msg = "uv not found on PATH. You must use a supported manylinux or musllinux environment with uv."
+                raise errors.FatalError(msg)
+        else:
+            which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
+            if PurePosixPath(which_pip) != python_bin / "pip":
+                msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+                raise errors.FatalError(msg)
 
         compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
         if compatible_wheel:
@@ -270,10 +278,12 @@ def build_in_container(
                     ],
                     env=env,
                 )
-            elif build_frontend.name == "build":
+            elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
                 if not 0 <= build_options.build_verbosity < 2:
                     msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                     log.warning(msg)
+                if use_uv:
+                    extra_flags += ["--installer=uv"]
                 container.call(
                     [
                         "python",
@@ -318,26 +328,32 @@ def build_in_container(
 
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
-            container.call(["pip", "install", "virtualenv", *dependency_constraint_flags], env=env)
+            if not use_uv:
+                container.call(
+                    ["pip", "install", "virtualenv", *dependency_constraint_flags], env=env
+                )
 
             testing_temp_dir = PurePosixPath(
                 container.call(["mktemp", "-d"], capture_output=True).strip()
             )
             venv_dir = testing_temp_dir / "venv"
 
-            # Use embedded dependencies from virtualenv to ensure determinism
-            venv_args = ["--no-periodic-update", "--pip=embed"]
-            # In Python<3.12, setuptools & wheel are installed as well
-            if Version(config.version) < Version("3.12"):
-                venv_args.extend(("--setuptools=embed", "--wheel=embed"))
-            container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
+            if use_uv:
+                container.call(["uv", "venv", venv_dir], env=env)
+            else:
+                # Use embedded dependencies from virtualenv to ensure determinism
+                venv_args = ["--no-periodic-update", "--pip=embed"]
+                # In Python<3.12, setuptools & wheel are installed as well
+                if Version(config.version) < Version("3.12"):
+                    venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
 
             virtualenv_env = env.copy()
             virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
             virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
             # TODO remove me once virtualenv provides pip>=24.1b1
-            if config.version == "3.13":
+            if config.version == "3.13" and not use_uv:
                 container.call(["pip", "install", "pip>=24.1b1"], env=virtualenv_env)
 
             if build_options.before_test:
@@ -356,13 +372,13 @@ def build_in_container(
             # Let's just pick the first one.
             wheel_to_test = repaired_wheels[0]
             container.call(
-                ["pip", "install", str(wheel_to_test) + build_options.test_extras],
+                [*pip, "install", str(wheel_to_test) + build_options.test_extras],
                 env=virtualenv_env,
             )
 
             # Install any requirements to run the tests
             if build_options.test_requires:
-                container.call(["pip", "install", *build_options.test_requires], env=virtualenv_env)
+                container.call([*pip, "install", *build_options.test_requires], env=virtualenv_env)
 
             # Run the tests from a different directory
             test_command_prepared = prepare_command(

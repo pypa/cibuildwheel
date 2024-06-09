@@ -49,6 +49,8 @@ jobs:
       with:
         python-version: ${{ matrix.python_version }}
 
+    - uses: yezz123/setup-uv@v4
+
     # Install podman on this CI instance for podman tests on linux
     # Snippet from: https://github.com/redhat-actions/podman-login/blob/main/.github/workflows/example.yml
     - name: Install latest podman
@@ -69,7 +71,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install ".[test]"
+        uv pip install --system ".[test]"
 
     - name: Generate a sample project
       run: |
@@ -82,6 +84,7 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+        CIBW_BUILD_FRONTEND: 'build[uv]'
         CIBW_FREE_THREADED_SUPPORT: 1
         CIBW_PRERELEASE_PYTHONS: 1
 
@@ -161,7 +164,7 @@ jobs:
       with:
         python-version: "3.x"
     - name: Install dependencies
-      run: python -m pip install ".[test]"
+      run: python -m pip install ".[test,uv]"
 
     - name: Set up QEMU
       id: qemu
