@@ -418,7 +418,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                 check=True,
                 stdout=subprocess.DEVNULL,
             )
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as error:
             msg = unwrap(
                 f"""
                 cibuildwheel: {build_step.container_engine.name} not found. An

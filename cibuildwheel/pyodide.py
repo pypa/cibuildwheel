@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import os
 import shutil
-import sys
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
 
 from filelock import FileLock
 
+from . import errors
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
@@ -96,11 +96,8 @@ def get_base_python(identifier: str) -> Path:
     python_name = f"python{major_minor}"
     which_python = shutil.which(python_name)
     if which_python is None:
-        print(
-            f"Error: CPython {major_minor} is not installed.",
-            file=sys.stderr,
-        )
-        raise SystemExit(1)
+        msg = f"CPython {major_minor} is not installed."
+        raise errors.FatalError(msg)
     return Path(which_python)
 
 
@@ -141,22 +138,16 @@ def setup_python(
     call("pip", "--version", env=env)
     which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
     if which_pip != str(venv_bin_path / "pip"):
-        print(
-            "cibuildwheel: pip available on PATH doesn't match our venv instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        msg = "pip available on PATH doesn't match our venv instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+        raise errors.FatalError(msg)
 
     # check what Python version we're on
     call("which", "python", env=env)
     call("python", "--version", env=env)
     which_python = call("which", "python", env=env, capture_stdout=True).strip()
     if which_python != str(venv_bin_path / "python"):
-        print(
-            "cibuildwheel: python available on PATH doesn't match our venv instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        msg = "python available on PATH doesn't match our venv instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+        raise errors.FatalError(msg)
 
     log.step("Installing build tools...")
     call(
@@ -219,8 +210,9 @@ def build(options: Options, tmp_path: Path) -> None:
             build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
 
             if build_frontend.name == "pip":
-                print("The pyodide platform doesn't support pip frontend", file=sys.stderr)
-                sys.exit(1)
+                msg = "The pyodide platform doesn't support pip frontend"
+                raise errors.FatalError(msg)
+
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier

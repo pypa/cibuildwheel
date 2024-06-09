@@ -10,8 +10,7 @@ import functools
 import shlex
 import sys
 import textwrap
-import traceback
-from collections.abc import Callable, Generator, Iterable, Iterator, Mapping, Set
+from collections.abc import Callable, Generator, Iterable, Iterator, Set
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TID251
 

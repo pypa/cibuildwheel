@@ -6,7 +6,6 @@ import platform
 import re
 import shutil
 import subprocess
-import sys
 import typing
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
@@ -128,14 +127,13 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
             if detect_ci_provider() is None:
                 # if running locally, we don't want to install CPython with sudo
                 # let the user know & provide a link to the installer
-                print(
+                msg = (
                     f"Error: CPython {version} is not installed.\n"
                     "cibuildwheel will not perform system-wide installs when running outside of CI.\n"
                     f"To build locally, install CPython {version} on this machine, or, disable this version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*\n"
-                    f"\nDownload link: {url}",
-                    file=sys.stderr,
+                    f"\nDownload link: {url}"
                 )
-                raise SystemExit(1)
+                raise errors.FatalError(msg)
             pkg_path = tmp / "Python.pkg"
             # download the pkg
             download(url, pkg_path)
