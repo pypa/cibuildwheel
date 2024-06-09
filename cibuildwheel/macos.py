@@ -50,6 +50,7 @@ from .util import (
 )
 
 
+@functools.lru_cache(maxsize=None)
 def get_macos_version() -> tuple[int, int]:
     """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
@@ -61,7 +62,27 @@ def get_macos_version() -> tuple[int, int]:
     """
     version_str, _, _ = platform.mac_ver()
     version = tuple(map(int, version_str.split(".")[:2]))
+    if (10, 15) < version < (11, 0):
+        # When built against an older macOS SDK, Python will report macOS 10.16
+        # instead of the real version.
+        version_str = call(
+            sys.executable,
+            "-sS",
+            "-c",
+            "import platform; print(platform.mac_ver()[0])",
+            env={"SYSTEM_VERSION_COMPAT": "0"},
+            capture_stdout=True,
+        )
+        version = tuple(map(int, version_str.split(".")[:2]))
     return typing.cast(Tuple[int, int], version)
+
+
+@functools.lru_cache(maxsize=None)
+def get_test_macosx_deployment_target() -> str:
+    version = get_macos_version()
+    if version >= (11, 0):
+        return f"{version[0]}.0"
+    return "{}.{}".format(*version)
 
 
 def get_macos_sdks() -> list[str]:
@@ -654,6 +675,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         call_with_arch("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                     virtualenv_env = env.copy()
+                    virtualenv_env["MACOSX_DEPLOYMENT_TARGET"] = get_test_macosx_deployment_target()
                     virtualenv_env["PATH"] = os.pathsep.join(
                         [
                             str(venv_dir / "bin"),
