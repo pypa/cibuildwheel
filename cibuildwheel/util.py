@@ -375,11 +375,7 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
         NotADirectoryError: If any part of the intermediate path to `dst_file` is an existing file
         IsADirectoryError: If `dst_file` points directly to an existing directory
     """
-
-    # Importing here as logger needs various functions from util -> circular imports
-    from .logger import log
-
-    src_file = src_file.resolve()
+    src_file = src_file.resolve(strict=True)
     dst_file = dst_file.resolve()
 
     if dst_file.is_dir():
@@ -391,9 +387,7 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
     # using shutil.move() as Path.rename() is not guaranteed to work across filesystem boundaries
     # explicit str() needed for Python 3.8
     resulting_file = shutil.move(str(src_file), str(dst_file))
-    resulting_file = Path(resulting_file).resolve()
-    log.notice(f"Moved {src_file} to {resulting_file}")
-    return Path(resulting_file)
+    return Path(resulting_file).resolve(strict=True)
 
 
 class DependencyConstraints:
