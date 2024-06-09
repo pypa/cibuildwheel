@@ -82,7 +82,7 @@ def get_test_macosx_deployment_target() -> str:
     version = get_macos_version()
     if version >= (11, 0):
         return f"{version[0]}.0"
-    return "{}.{}".format(*version)
+    return f"{version[0]}.{version[1]}"
 
 
 def get_macos_sdks() -> list[str]:
