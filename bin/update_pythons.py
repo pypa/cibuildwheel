@@ -7,7 +7,7 @@ import difflib
 import logging
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
-from typing import Any, Final, Literal, TypedDict, Union
+from typing import Any, Final, Literal, TypedDict
 
 import click
 import requests
@@ -50,7 +50,7 @@ class ConfigMacOS(TypedDict):
     url: str
 
 
-AnyConfig = Union[ConfigWinCP, ConfigWinPP, ConfigMacOS]
+AnyConfig = ConfigWinCP | ConfigWinPP | ConfigMacOS
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to

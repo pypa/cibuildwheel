@@ -9,9 +9,17 @@ import enum
 import functools
 import shlex
 import textwrap
-from collections.abc import Callable, Generator, Iterable, Iterator, Set
+from collections.abc import (
+    Callable,
+    Generator,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+    Set,
+)
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TID251
+from typing import Any, Literal, TypedDict
 
 from packaging.specifiers import SpecifierSet
 
@@ -117,7 +125,7 @@ class BuildOptions:
         return self.globals.architectures
 
 
-Setting = Union[Mapping[str, str], Sequence[str], str, int, bool]
+Setting = Mapping[str, str] | Sequence[str] | str | int | bool
 
 
 @dataclasses.dataclass(frozen=True)
@@ -258,7 +266,7 @@ def _stringify_setting(
             raise ConfigOptionError(msg)
         return list_sep.join(setting)
 
-    if isinstance(setting, (bool, int)):
+    if isinstance(setting, bool | int):
         return str(setting)
 
     return setting
@@ -838,7 +846,7 @@ def compute_options(
     return options
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.

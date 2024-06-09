@@ -11,7 +11,7 @@ import typing
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Tuple
+from typing import Literal
 
 from filelock import FileLock
 from packaging.version import Version
@@ -51,7 +51,7 @@ from .util import (
 )
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def get_macos_version() -> tuple[int, int]:
     """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
@@ -75,10 +75,10 @@ def get_macos_version() -> tuple[int, int]:
             capture_stdout=True,
         )
         version = tuple(map(int, version_str.split(".")[:2]))
-    return typing.cast(Tuple[int, int], version)
+    return typing.cast(tuple[int, int], version)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def get_test_macosx_deployment_target() -> str:
     version = get_macos_version()
     if version >= (11, 0):

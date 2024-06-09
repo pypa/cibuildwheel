@@ -3,10 +3,10 @@ from __future__ import annotations
 import subprocess
 import sys
 import textwrap
+from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import OrderedDict, Tuple
 
 from packaging.version import Version
 
@@ -96,7 +96,7 @@ def get_build_steps(
     Groups PythonConfigurations into BuildSteps. Each BuildStep represents a
     separate container instance.
     """
-    steps = OrderedDict[Tuple[str, str, str, OCIContainerEngineConfig], BuildStep]()
+    steps = OrderedDict[tuple[str, str, str, OCIContainerEngineConfig], BuildStep]()
 
     for config in python_configurations:
         _, platform_tag = config.identifier.split("-", 1)
