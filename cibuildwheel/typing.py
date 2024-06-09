@@ -15,7 +15,7 @@ __all__ = (
 
 if typing.TYPE_CHECKING:
     PopenBytes = subprocess.Popen[bytes]
-    PathOrStr = Union[str, os.PathLike[str]]
+    PathOrStr = str | os.PathLike[str]
 else:
     PopenBytes = subprocess.Popen
     PathOrStr = Union[str, "os.PathLike[str]"]

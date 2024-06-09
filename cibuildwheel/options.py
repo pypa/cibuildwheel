@@ -9,15 +9,14 @@ import enum
 import functools
 import shlex
 import textwrap
-from collections.abc import Generator, Iterable, Set
+import tomllib
+from collections.abc import Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence, Union  # noqa: TID251
+from typing import Any, Literal, assert_never
 
 from packaging.specifiers import SpecifierSet
 
 from . import errors
-from ._compat import tomllib
-from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
@@ -121,10 +120,10 @@ class BuildOptions:
         return self.globals.architectures
 
 
-SettingLeaf = Union[str, int, bool]
+SettingLeaf = str | int | bool
 SettingList = Sequence[SettingLeaf]
-SettingTable = Mapping[str, Union[SettingLeaf, SettingList]]
-SettingValue = Union[SettingTable, SettingList, SettingLeaf]
+SettingTable = Mapping[str, SettingLeaf | SettingList]
+SettingValue = SettingTable | SettingList | SettingLeaf
 
 
 @dataclasses.dataclass(frozen=True)
@@ -359,7 +358,7 @@ def _stringify_setting(
             msg = f"Error converting {setting!r} to a string: this setting doesn't accept a list"
             raise OptionsReaderError(msg) from None
 
-    if isinstance(setting, (bool, int)):
+    if isinstance(setting, bool | int):
         return str(setting)
 
     return setting
@@ -976,7 +975,7 @@ def compute_options(
     return options
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
