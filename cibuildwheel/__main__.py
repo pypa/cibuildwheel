@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import shutil
 import sys
@@ -36,13 +37,16 @@ from cibuildwheel.util import (
     strtobool,
 )
 
-# a global variable that decides what happens when errors are hit.
-print_traceback_on_error = True
+
+@dataclasses.dataclass
+class GlobalOptions:
+    print_traceback_on_error: bool = True  # decides what happens when errors are hit.
 
 
 def main() -> None:
+    global_options = GlobalOptions()
     try:
-        main_inner()
+        main_inner(global_options)
     except errors.FatalError as e:
         message = e.args[0]
         if log.step_active:
@@ -50,13 +54,13 @@ def main() -> None:
         else:
             print(f"cibuildwheel: {message}", file=sys.stderr)
 
-        if print_traceback_on_error:
+        if global_options.print_traceback_on_error:
             traceback.print_exc(file=sys.stderr)
 
         sys.exit(e.return_code)
 
 
-def main_inner() -> None:
+def main_inner(global_options: GlobalOptions) -> None:
     """
     `main_inner` is the same as `main`, but it raises FatalError exceptions
     rather than exiting directly.
@@ -168,8 +172,7 @@ def main_inner() -> None:
 
     args = CommandLineArguments(**vars(parser.parse_args()))
 
-    global print_traceback_on_error  # noqa: PLW0603
-    print_traceback_on_error = args.debug_traceback
+    global_options.print_traceback_on_error = args.debug_traceback
 
     args.package_dir = args.package_dir.resolve()
 

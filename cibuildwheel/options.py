@@ -8,7 +8,6 @@ import difflib
 import enum
 import functools
 import shlex
-import sys
 import textwrap
 from collections.abc import Callable, Generator, Iterable, Iterator, Set
 from pathlib import Path
@@ -861,5 +860,4 @@ def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> No
         msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
         if error:
             raise errors.DeprecationError(msg)
-
-        print(msg, file=sys.stderr)
+        log.warning(msg)
