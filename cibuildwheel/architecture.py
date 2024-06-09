@@ -6,9 +6,8 @@ import re
 import sys
 from collections.abc import Set
 from enum import Enum
-from typing import Final, Literal
+from typing import Final, Literal, assert_never
 
-from ._compat.typing import assert_never
 from .typing import PlatformName
 
 PRETTY_NAMES: Final[dict[PlatformName, str]] = {
