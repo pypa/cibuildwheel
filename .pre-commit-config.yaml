@@ -24,9 +24,9 @@ repos:
   rev: v1.14.0
   hooks:
   - id: mypy
-    name: mypy 3.8 on cibuildwheel/
+    name: mypy 3.11 on cibuildwheel/
     exclude: ^cibuildwheel/resources/.*py|bin/generate_schema.py$
-    args: ["--python-version=3.8"]
+    args: ["--python-version=3.11"]
     additional_dependencies: &mypy-dependencies
       - bracex
       - dependency-groups>=1.2
@@ -47,9 +47,9 @@ repos:
       - uv
       - validate-pyproject
   - id: mypy
-    name: mypy 3.12
+    name: mypy 3.13
     exclude: ^cibuildwheel/resources/.*py$
-    args: ["--python-version=3.12"]
+    args: ["--python-version=3.13"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py

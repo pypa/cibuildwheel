@@ -7,14 +7,14 @@ import subprocess
 import textwrap
 from collections.abc import MutableMapping, Sequence, Set
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
+from typing import assert_never
 
 from filelock import FileLock
 from packaging.version import Version
 
 from . import errors
-from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log
@@ -96,7 +96,7 @@ def get_python_configurations(
     return python_configurations
 
 
-@lru_cache(maxsize=None)
+@cache
 def _ensure_nuget() -> Path:
     nuget = CIBW_CACHE_PATH / "nuget.exe"
     with FileLock(str(nuget) + ".lock"):

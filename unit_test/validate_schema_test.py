@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from pathlib import Path
 
 import pytest
 import validate_pyproject.api
-
-from cibuildwheel._compat import tomllib
 
 DIR = Path(__file__).parent.resolve()
 

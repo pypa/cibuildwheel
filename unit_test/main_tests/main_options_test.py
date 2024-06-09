@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import sys
+import tomllib
 from fnmatch import fnmatch
 from pathlib import Path
 
 import pytest
 
 from cibuildwheel.__main__ import main
-from cibuildwheel._compat import tomllib
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.util import BuildSelector, resources_dir, split_config_settings
