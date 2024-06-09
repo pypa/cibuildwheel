@@ -6,6 +6,7 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import typing
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
