@@ -187,7 +187,7 @@ def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
         add_env={
             "CIBW_ARCHS": "universal2",
             # check that a native dependency is correctly installed, once per each testing arch
-            "CIBW_TEST_REQUIRES": "pillow",  # pillow provides wheels for macOS 10.10, not 10.9
+            "CIBW_TEST_REQUIRES": "--only-binary :all: pillow>=10.3",  # pillow>=10.3 provides wheels for macOS 10.10, not 10.9
             "CIBW_TEST_COMMAND": '''python -c "import PIL, platform; print(f'running tests on {platform.machine()} with pillow {PIL.__version__}')"''',
             **build_frontend_env,
         },
