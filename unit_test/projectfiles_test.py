@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import tomllib
 from textwrap import dedent
 
 import pytest
 
-from cibuildwheel._compat import tomllib
 from cibuildwheel.projectfiles import (
     get_requires_python_str,
     resolve_dependency_groups,
