@@ -19,7 +19,7 @@ from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from functools import cached_property, lru_cache
+from functools import lru_cache
 from pathlib import Path, PurePath
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -35,30 +35,11 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from ._compat import tomllib
-from .architecture import Architecture
-from .typing import PathOrStr, PlatformName
+from .._compat import tomllib
+from ..architecture import Architecture
+from ..typing import PathOrStr, PlatformName
 
-__all__ = [
-    "MANYLINUX_ARCHS",
-    "cached_property",
-    "call",
-    "chdir",
-    "combine_constraints",
-    "find_compatible_wheel",
-    "find_uv",
-    "format_safe",
-    "get_build_verbosity_extra_flags",
-    "prepare_command",
-    "read_python_configs",
-    "resources_dir",
-    "selector_matches",
-    "shell",
-    "split_config_settings",
-    "strtobool",
-]
-
-resources_dir: Final[Path] = Path(__file__).parent / "resources"
+resources_dir: Final[Path] = Path(__file__).parents[1] / "resources"
 
 install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 
