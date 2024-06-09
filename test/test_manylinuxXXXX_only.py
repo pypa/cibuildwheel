@@ -86,10 +86,10 @@ def test(manylinux_image, tmp_path):
         add_env["CIBW_SKIP"] = "pp* cp31*"
     if manylinux_image in {"manylinux2010"}:
         # We don't have a manylinux2010 image for PyPy 3.9+, CPython 3.11+
-        add_env["CIBW_SKIP"] = "pp39* pp31* cp311* cp312*"
+        add_env["CIBW_SKIP"] = "pp39* pp31* cp311* cp312* cp313*"
     if manylinux_image in {"manylinux_2_24"}:
         # We don't have a manylinux_2_24 image for PyPy 3.10+, CPython 3.12+
-        add_env["CIBW_SKIP"] = "pp31* cp312*"
+        add_env["CIBW_SKIP"] = "pp31* cp312* cp313*"
     if manylinux_image == "manylinux_2_28" and platform.machine() == "x86_64":
         # We don't have a manylinux_2_28 image for i686
         add_env["CIBW_ARCHS"] = "x86_64"
@@ -116,12 +116,20 @@ def test(manylinux_image, tmp_path):
         expected_wheels = [
             w
             for w in expected_wheels
-            if "-pp39" not in w and "-pp31" not in w and "-cp311" not in w and "-cp312" not in w
+            if "-pp39" not in w
+            and "-pp31" not in w
+            and "-cp311" not in w
+            and "-cp312" not in w
+            and "-cp313" not in w
         ]
 
     if manylinux_image in {"manylinux_2_24"}:
         # remove PyPy 3.10+ & CPython 3.11 and above
-        expected_wheels = [w for w in expected_wheels if "-pp31" not in w and "-cp312" not in w]
+        expected_wheels = [
+            w
+            for w in expected_wheels
+            if "-pp31" not in w and "-cp312" not in w and "-cp313" not in w
+        ]
 
     if manylinux_image == "manylinux_2_28" and platform.machine() == "x86_64":
         # We don't have a manylinux_2_28 image for i686

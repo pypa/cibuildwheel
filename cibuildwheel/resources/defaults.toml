@@ -2,6 +2,7 @@
 build = "*"
 skip = ""
 test-skip = ""
+free-threaded-support = false
 
 archs = ["auto"]
 build-frontend = "default"
@@ -31,11 +32,11 @@ manylinux-pypy_x86_64-image = "manylinux2014"
 manylinux-pypy_i686-image = "manylinux2014"
 manylinux-pypy_aarch64-image = "manylinux2014"
 
-musllinux-x86_64-image = "musllinux_1_1"
-musllinux-i686-image = "musllinux_1_1"
-musllinux-aarch64-image = "musllinux_1_1"
-musllinux-ppc64le-image = "musllinux_1_1"
-musllinux-s390x-image = "musllinux_1_1"
+musllinux-x86_64-image = "musllinux_1_2"
+musllinux-i686-image = "musllinux_1_2"
+musllinux-aarch64-image = "musllinux_1_2"
+musllinux-ppc64le-image = "musllinux_1_2"
+musllinux-s390x-image = "musllinux_1_2"
 
 
 [tool.cibuildwheel.linux]
@@ -45,3 +46,5 @@ repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
 
 [tool.cibuildwheel.windows]
+
+[tool.cibuildwheel.pyodide]

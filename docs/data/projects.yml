@@ -26,7 +26,7 @@
   notes: A simple C extension, without external dependencies
 
 - name: websockets
-  gh: aaugustin/websockets
+  gh: python-websockets/websockets
   ci: [travisci]
   ci_config: .travis.yml
   os: [apple, linux]
@@ -325,12 +325,12 @@
   notes: Full range of wheels for setuptools rust, with auto release and PyPI deploy.
 
 - name: python-snappy
-  gh: andrix/python-snappy
+  gh: intake/python-snappy
   ci: [github]
   os: [apple, linux, windows]
 
 - name: sourmash
-  gh: dib-lab/sourmash
+  gh: sourmash-bio/sourmash
   ci: [github]
   os: [apple, linux, windows]
 
@@ -418,7 +418,7 @@
   notes: Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension.
 
 - name: pytorch-fairseq
-  gh: pytorch/fairseq
+  gh: facebookresearch/fairseq
   ci: [github]
   os: [apple, linux]
 
@@ -475,7 +475,7 @@
   os: [apple, linux, windows]
 
 - name: OpenSpiel
-  gh: deepmind/open_spiel
+  gh: google-deepmind/open_spiel
   ci: [github]
   os: [apple, linux]
 
@@ -505,7 +505,7 @@
   os: [apple, linux, windows]
 
 - name: OpenTimelineIO
-  gh: PixarAnimationStudios/OpenTimelineIO
+  gh: AcademySoftwareFoundation/OpenTimelineIO
   ci: [github]
   os: [apple, linux, windows]
 
@@ -584,7 +584,7 @@
   notes: Includes GPU support for linux wheels
 
 - name: power-grid-model
-  gh: alliander-opensource/power-grid-model
+  gh: PowerGridModel/power-grid-model
   ci: [github]
   os: [windows, apple, linux]
   notes: Python/C++ library for distribution power system analysis
@@ -645,3 +645,15 @@
   os: [linux, apple]
   pypi: keyvi
   notes: FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime
+
+- name: pedalboard
+  gh: spotify/pedalboard
+  ci: [github]
+  os: [windows, linux, apple]
+  pypi: pedalboard
+  notes: >
+      A Python library for working with audio data and audio plugins
+      by wrapping the [JUCE](https://github.com/juce-framework/JUCE/)
+      C++ framework. Uses cibuildwheel to deploy on as many operating
+      systems and Python versions as possible with only one dependency
+      (any NumPy).

@@ -10,7 +10,7 @@ title: Tips and tricks
 
 Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 600](https://www.python.org/dev/peps/pep-0600/) / [PEP 656](https://www.python.org/dev/peps/pep-0656/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
 
--   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2010` or `manylinux2014`, `apt-get` for `manylinux_2_24` and `apk` for `musllinux_1_1`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
+-   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2010` or `manylinux2014`, `apt-get` for `manylinux_2_24`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
 
     `cibuildwheel` supports this by providing the [`CIBW_ENVIRONMENT`](options.md#environment) and [`CIBW_BEFORE_ALL`](options.md#before-all) options to setup the build environment inside the running container.
 
@@ -142,7 +142,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v2.16.5
+uses: pypa/cibuildwheel@v2.18.1
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -164,7 +164,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==2.16.5
+cibuildwheel==2.18.1
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -249,7 +249,7 @@ Consider incorporating these into your package, for example, in `setup.py` using
 
 ### Python 2.7 / PyPy2 wheels
 
-See the [cibuildwheel version 1 docs](https://cibuildwheel.readthedocs.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
+See the [cibuildwheel version 1 docs](https://cibuildwheel.pypa.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
 
 ## Troubleshooting
 
@@ -282,6 +282,27 @@ For these reasons, it's strongly recommended to not use brew for native library 
 [Homebrew]: https://brew.sh/
 [delocate]: https://github.com/matthew-brett/delocate
 
+### Building Rust wheels
+
+If you build Rust wheels, you need to download the Rust compilers in manylinux.
+If you support 32-bit Windows, you need to add this as a potential target. You
+can do this on GitHub Actions, for example, with:
+
+```yaml
+CIBW_BEFORE_ALL_LINUX: curl -sSf https://sh.rustup.rs | sh -s -- -y
+CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
+CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
+```
+
+Rust does not provide Cargo for musllinux 32-bit, so that needs to be skipped:
+
+```toml
+[tool.cibuildwheel]
+skip = ["*-musllinux_i686"]
+```
+
+Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels, builds the non-Python Rust modules once, and can cross-compile (and can build 32-bit musl, for example).
+
 ### macOS: ModuleNotFoundError
 
 Calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/pypa/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
@@ -307,7 +328,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==2.16.5 --output-dir wheelhouse
+pipx run cibuildwheel==2.18.1 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 
@@ -315,7 +336,7 @@ pipx run twine upload wheelhouse/*.whl
 
 macOS has built-in [System Integrity protections](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) which limits the use of `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH` so that it does not automatically pass to children processes. This means if you set `DYLD_LIBRARY_PATH` before running cibuildwheel, or even set it in `CIBW_ENVIRONMENT`, it will be stripped out of the environment before delocate is called.
 
-To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`CIBW_REPAIR_WHEEL_COMMAND_MACOS`](https://cibuildwheel.readthedocs.io/en/stable/options/#repair-wheel-command), like this:
+To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`CIBW_REPAIR_WHEEL_COMMAND_MACOS`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), like this:
 
 !!! tab examples "Environment variables"
 
@@ -354,6 +375,13 @@ sh "/Applications/Python 3.8/Install Certificates.command"
 ```
 
 Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
+
+### macOS: Library dependencies do not satisfy target MacOS
+
+Since delocate 0.11.0 there is added verification that the library binary dependencies match the target macOS version. This is to prevent the situation where a wheel platform tag is lower than the actual minimum macOS version required by the library. To resolve this error you need to build the library to the same macOS version as the target wheel (for example using `MACOSX_DEPLOYMENT_TARGET` environment variable).
+Alternatively, you could set `MACOSX_DEPLOYMENT_TARGET` in `CIBW_ENVIRONMENT` to correctly label the wheel as incompatible with older macOS versions.
+
+This error may happen when you install a library using a package manager like Homebrew, which compiles the library for the macOS version of the build machine. This is not suitable for wheels, as the library will only work on the same macOS version as the build machine. You should compile the library yourself, or use a precompiled binary that matches the target macOS version.
 
 ### Windows: 'ImportError: DLL load failed: The specific module could not be found'
 

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = ["click", "packaging", "tomli; python_version<'3.11'"]
+# ///
+
 
 from __future__ import annotations
 
@@ -13,10 +17,14 @@ from pathlib import Path
 import click
 from packaging.version import InvalidVersion, Version
 
-import cibuildwheel
+if sys.version_info < (3, 11):
+    import tomli as tomllib
+else:
+    import tomllib
 
 config = [
     # file path, version find/replace format
+    ("pyproject.toml", 'version = "{}"'),
     ("README.md", "cibuildwheel=={}"),
     ("cibuildwheel/__init__.py", '__version__ = "{}"'),
     ("docs/faq.md", "cibuildwheel=={}"),
@@ -24,7 +32,6 @@ config = [
     ("docs/setup.md", "cibuildwheel=={}"),
     ("examples/*", "cibuildwheel=={}"),
     ("examples/*", "cibuildwheel@v{}"),
-    ("setup.cfg", "version = {}"),
 ]
 
 RED = "\u001b[31m"
@@ -34,7 +41,8 @@ OFF = "\u001b[0m"
 
 @click.command()
 def bump_version() -> None:
-    current_version = cibuildwheel.__version__
+    with open("pyproject.toml", "rb") as f:
+        current_version = tomllib.load(f)["project"]["version"]
 
     try:
         commit_date_str = subprocess.run(
@@ -181,7 +189,7 @@ def bump_version() -> None:
     print()
 
     print("Push the new version to GitHub with:")
-    print("    git push && git push --tags")
+    print(f"    git push && git push origin v{new_version}")
     print()
 
     release_url = "https://github.com/pypa/cibuildwheel/releases/new?" + urllib.parse.urlencode(

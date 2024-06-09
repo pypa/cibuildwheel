@@ -38,7 +38,7 @@ def test(musllinux_image, tmp_path):
 
     # build the wheels
     add_env = {
-        "CIBW_BUILD": "*-musllinux*",
+        "CIBW_SKIP": "*-manylinux*",
         "CIBW_MUSLLINUX_X86_64_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_I686_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_AARCH64_IMAGE": musllinux_image,
@@ -46,11 +46,12 @@ def test(musllinux_image, tmp_path):
         "CIBW_MUSLLINUX_S390X_IMAGE": musllinux_image,
     }
 
-    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env, single_python=True)
     expected_wheels = utils.expected_wheels(
         "spam",
         "0.1.0",
         manylinux_versions=[],
         musllinux_versions=[musllinux_image],
+        single_python=True,
     )
     assert set(actual_wheels) == set(expected_wheels)

@@ -107,6 +107,13 @@ You can override the cache folder using the ``CIBW_CACHE_PATH`` environment vari
     Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
     ```
 
+### Pyodide (WebAssembly) builds (experimental)
+
+Pre-requisite: you need to have a matching host version of Python (unlike all
+other cibuildwheel platforms). Linux host highly recommended; macOS hosts may
+work (e.g. invoking `pytest` directly in [`CIBW_TEST_COMMAND`](options.md#test-command) is [currently failing](https://github.com/pyodide/pyodide/issues/4802)) and Windows hosts will not work.
+
+You must target pyodide with `--platform pyodide` (or use `--only` on the identifier).
 
 ## Configure a CI service
 
@@ -154,7 +161,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/checkout@v4
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.16.5
+            run: pipx run cibuildwheel==2.18.1
 
           - uses: actions/upload-artifact@v4
             with:
@@ -188,10 +195,10 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/checkout@v4
 
           # Used to host cibuildwheel
-          - uses: actions/setup-python@v3
+          - uses: actions/setup-python@v5
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.16.5
+            run: python -m pip install cibuildwheel==2.18.1
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse

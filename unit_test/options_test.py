@@ -208,49 +208,49 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value)
         (
             'container-engine = "podman"',
             "podman",
-            [],
+            (),
             False,
         ),
         (
             'container-engine = {name = "podman"}',
             "podman",
-            [],
+            (),
             False,
         ),
         (
             'container-engine = "docker; create_args: --some-option"',
             "docker",
-            ["--some-option"],
+            ("--some-option",),
             False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option"]}',
             "docker",
-            ["--some-option"],
+            ("--some-option",),
             False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option", "value that contains spaces"]}',
             "docker",
-            ["--some-option", "value that contains spaces"],
+            ("--some-option", "value that contains spaces"),
             False,
         ),
         (
             'container-engine = {name = "docker", create-args = ["--some-option", "value;that;contains;semicolons"]}',
             "docker",
-            ["--some-option", "value;that;contains;semicolons"],
+            ("--some-option", "value;that;contains;semicolons"),
             False,
         ),
         (
             'container-engine = {name = "docker", disable-host-mount = true}',
             "docker",
-            [],
+            (),
             True,
         ),
         (
             'container-engine = {name = "docker", disable_host_mount = true}',
             "docker",
-            [],
+            (),
             True,
         ),
     ],
@@ -271,7 +271,7 @@ def test_container_engine_option(
     )
 
     options = Options(platform="linux", command_line_arguments=args, env={})
-    parsed_container_engine = options.globals.container_engine
+    parsed_container_engine = options.build_options(None).container_engine
 
     assert parsed_container_engine.name == result_name
     assert parsed_container_engine.create_args == result_create_args
@@ -349,3 +349,104 @@ def test_build_frontend_option(tmp_path: Path, toml_assignment, result_name, res
         assert parsed_build_frontend.args == result_args
     else:
         assert parsed_build_frontend is None
+
+
+def test_override_inherit_environment(tmp_path: Path):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            """\
+            [tool.cibuildwheel]
+            environment = {FOO="BAR", "HAM"="EGGS"}
+
+            [[tool.cibuildwheel.overrides]]
+            select = "cp37*"
+            inherit.environment = "append"
+            environment = {FOO="BAZ", "PYTHON"="MONTY"}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    parsed_environment = options.build_options(identifier=None).environment
+    assert parsed_environment.as_dictionary(prev_environment={}) == {
+        "FOO": "BAR",
+        "HAM": "EGGS",
+    }
+
+    assert options.build_options("cp37-manylinux_x86_64").environment.as_dictionary(
+        prev_environment={}
+    ) == {
+        "FOO": "BAZ",
+        "HAM": "EGGS",
+        "PYTHON": "MONTY",
+    }
+
+
+def test_override_inherit_environment_with_references(tmp_path: Path):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            """\
+            [tool.cibuildwheel]
+            environment = {PATH="/opt/bin:$PATH"}
+
+            [[tool.cibuildwheel.overrides]]
+            select = "cp37*"
+            inherit.environment = "append"
+            environment = {PATH="/opt/local/bin:$PATH"}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={"MONTY": "PYTHON"})
+    parsed_environment = options.build_options(identifier=None).environment
+    prev_environment = {"PATH": "/usr/bin:/bin"}
+    assert parsed_environment.as_dictionary(prev_environment=prev_environment) == {
+        "PATH": "/opt/bin:/usr/bin:/bin",
+    }
+
+    assert options.build_options("cp37-manylinux_x86_64").environment.as_dictionary(
+        prev_environment=prev_environment
+    ) == {
+        "PATH": "/opt/local/bin:/opt/bin:/usr/bin:/bin",
+    }
+
+
+@pytest.mark.parametrize(
+    ("toml_assignment", "env", "expected_result"),
+    [
+        ("", {}, False),
+        ("free-threaded-support = true", {}, True),
+        ("free-threaded-support = false", {}, False),
+        ("", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
+        ("", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
+        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
+        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
+        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": ""}, True),
+        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": ""}, False),
+    ],
+)
+def test_free_threaded_support(
+    tmp_path: Path, toml_assignment: str, env: dict[str, str], expected_result: bool
+):
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {toml_assignment}
+            """
+        )
+    )
+    options = Options(platform="linux", command_line_arguments=args, env=env)
+    assert options.globals.build_selector.free_threaded_support is expected_result

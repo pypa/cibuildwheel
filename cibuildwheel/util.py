@@ -6,9 +6,11 @@ import itertools
 import os
 import re
 import shlex
+import shutil
 import ssl
 import subprocess
 import sys
+import tarfile
 import textwrap
 import time
 import typing
@@ -19,8 +21,10 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property, lru_cache
 from pathlib import Path, PurePath
+from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Any, ClassVar, Final, Literal, TextIO, TypeVar
+from zipfile import ZipFile
 
 import bracex
 import certifi
@@ -32,6 +36,7 @@ from packaging.version import Version
 from platformdirs import user_cache_path
 
 from ._compat import tomllib
+from .architecture import Architecture
 from .typing import PathOrStr, PlatformName
 
 __all__ = [
@@ -54,6 +59,8 @@ __all__ = [
 resources_dir: Final[Path] = Path(__file__).parent / "resources"
 
 install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
+
+free_thread_enable_313: Final[Path] = resources_dir / "free-threaded-enable-313.xml"
 
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
@@ -91,8 +98,7 @@ def call(
     env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[False] = ...,
-) -> None:
-    ...
+) -> None: ...
 
 
 @typing.overload
@@ -101,8 +107,7 @@ def call(
     env: Mapping[str, str] | None = None,
     cwd: PathOrStr | None = None,
     capture_stdout: Literal[True],
-) -> str:
-    ...
+) -> str: ...
 
 
 def call(
@@ -240,13 +245,17 @@ class BuildSelector:
     requires_python: SpecifierSet | None = None
 
     # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = ""
+    PRERELEASE_SKIP: ClassVar[str] = "cp313-* cp313t-*"
     prerelease_pythons: bool = False
+
+    free_threaded_support: bool = False
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
             py_ver_str = build_id.split("-")[0]
+            if py_ver_str.endswith("t"):
+                py_ver_str = py_ver_str[:-1]
             major = int(py_ver_str[2])
             minor = int(py_ver_str[3:])
             version = Version(f"{major}.{minor}.99")
@@ -255,6 +264,10 @@ class BuildSelector:
 
         # filter out the prerelease pythons if self.prerelease_pythons is False
         if not self.prerelease_pythons and selector_matches(self.PRERELEASE_SKIP, build_id):
+            return False
+
+        # filter out free threaded pythons if self.free_threaded_support is False
+        if not self.free_threaded_support and selector_matches("*t-*", build_id):
             return False
 
         should_build = selector_matches(self.build_config, build_id)
@@ -268,6 +281,7 @@ class BuildSelector:
             "skip_config": self.skip_config,
             "requires_python": str(self.requires_python),
             "prerelease_pythons": self.prerelease_pythons,
+            "free_threaded_support": self.free_threaded_support,
         }
 
 
@@ -327,6 +341,61 @@ def download(url: str, dest: Path) -> None:
             sleep(3)
 
 
+def extract_zip(zip_src: Path, dest: Path) -> None:
+    with ZipFile(zip_src) as zip_:
+        for zinfo in zip_.filelist:
+            zip_.extract(zinfo, dest)
+
+            # Set permissions to the same values as they were set in the archive
+            # We have to do this manually due to
+            # https://github.com/python/cpython/issues/59999
+            # But some files in the zipfile seem to have external_attr with 0
+            # permissions. In that case just use the default value???
+            permissions = (zinfo.external_attr >> 16) & 0o777
+            if permissions != 0:
+                dest.joinpath(zinfo.filename).chmod(permissions)
+
+
+def extract_tar(tar_src: Path, dest: Path) -> None:
+    with tarfile.open(tar_src) as tar_:
+        tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
+        tar_.extractall(dest)
+
+
+def move_file(src_file: Path, dst_file: Path) -> Path:
+    """Moves a file safely while avoiding potential semantic confusion:
+
+    1. `dst_file` must point to the target filename, not a directory
+    2. `dst_file` will be overwritten if it already exists
+    3. any missing parent directories will be created
+
+    Returns the fully resolved Path of the resulting file.
+
+    Raises:
+        NotADirectoryError: If any part of the intermediate path to `dst_file` is an existing file
+        IsADirectoryError: If `dst_file` points directly to an existing directory
+    """
+
+    # Importing here as logger needs various functions from util -> circular imports
+    from .logger import log
+
+    src_file = src_file.resolve()
+    dst_file = dst_file.resolve()
+
+    if dst_file.is_dir():
+        msg = "dst_file must be a valid target filename, not an existing directory."
+        raise IsADirectoryError(msg)
+    dst_file.unlink(missing_ok=True)
+    dst_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # using shutil.move() as Path.rename() is not guaranteed to work across filesystem boundaries
+    # explicit str() needed for Python 3.8
+    resulting_file = shutil.move(str(src_file), str(dst_file))
+    resulting_file = Path(resulting_file).resolve()
+    log.notice(f"Moved {src_file} to {resulting_file}")
+    return Path(resulting_file)
+
+
 class DependencyConstraints:
     def __init__(self, base_file_path: Path):
         assert base_file_path.exists()
@@ -336,12 +405,14 @@ class DependencyConstraints:
     def with_defaults() -> DependencyConstraints:
         return DependencyConstraints(base_file_path=resources_dir / "constraints.txt")
 
-    def get_for_python_version(self, version: str) -> Path:
+    def get_for_python_version(
+        self, version: str, *, variant: Literal["python", "pyodide"] = "python"
+    ) -> Path:
         version_parts = version.split(".")
 
         # try to find a version-specific dependency file e.g. if
         # ./constraints.txt is the base, look for ./constraints-python36.txt
-        specific_stem = self.base_file_path.stem + f"-python{version_parts[0]}{version_parts[1]}"
+        specific_stem = self.base_file_path.stem + f"-{variant}{version_parts[0]}{version_parts[1]}"
         specific_name = specific_stem + self.base_file_path.suffix
         specific_file_path = self.base_file_path.with_name(specific_name)
 
@@ -528,12 +599,47 @@ def get_pip_version(env: Mapping[str, str]) -> str:
 
 
 @lru_cache(maxsize=None)
-def _ensure_virtualenv() -> Path:
+def ensure_node(major_version: str) -> Path:
+    input_file = resources_dir / "nodejs.toml"
+    with input_file.open("rb") as f:
+        loaded_file = tomllib.load(f)
+    version = str(loaded_file[major_version])
+    base_url = str(loaded_file["url"])
+    ext = "zip" if IS_WIN else "tar.xz"
+    platform = "win" if IS_WIN else ("darwin" if sys.platform.startswith("darwin") else "linux")
+    linux_arch = Architecture.native_arch("linux")
+    assert linux_arch is not None
+    arch = {"x86_64": "x64", "i686": "x86", "aarch64": "arm64"}.get(
+        linux_arch.value, linux_arch.value
+    )
+    name = f"node-{version}-{platform}-{arch}"
+    path = CIBW_CACHE_PATH / name
+    with FileLock(str(path) + ".lock"):
+        if not path.exists():
+            url = f"{base_url}{version}/{name}.{ext}"
+            with TemporaryDirectory() as tmp_path:
+                archive = Path(tmp_path) / f"{name}.{ext}"
+                download(url, archive)
+                if ext == "zip":
+                    extract_zip(archive, path.parent)
+                else:
+                    extract_tar(archive, path.parent)
+    assert path.exists()
+    if not IS_WIN:
+        return path / "bin"
+    return path
+
+
+@lru_cache(maxsize=None)
+def _ensure_virtualenv(version: str) -> Path:
+    version_parts = version.split(".")
+    key = f"py{version_parts[0]}{version_parts[1]}"
     input_file = resources_dir / "virtualenv.toml"
     with input_file.open("rb") as f:
         loaded_file = tomllib.load(f)
-    version = str(loaded_file["version"])
-    url = str(loaded_file["url"])
+    configuration = loaded_file.get(key, loaded_file["default"])
+    version = str(configuration["version"])
+    url = str(configuration["url"])
     path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
     with FileLock(str(path) + ".lock"):
         if not path.exists():
@@ -542,6 +648,7 @@ def _ensure_virtualenv() -> Path:
 
 
 def _parse_constraints_for_virtualenv(
+    seed_packages: list[str],
     dependency_constraint_flags: Sequence[PathOrStr],
 ) -> dict[str, str]:
     """
@@ -554,8 +661,8 @@ def _parse_constraints_for_virtualenv(
     {macos|windows}.setup_python function.
     """
     assert len(dependency_constraint_flags) in {0, 2}
-    packages = ["pip", "setuptools", "wheel"]
-    constraints_dict = {package: "embed" for package in packages}
+    # only seed pip if other seed packages do not appear in a constraint file
+    constraints_dict = {"pip": "embed"}
     if len(dependency_constraint_flags) == 2:
         assert dependency_constraint_flags[0] == "-c"
         constraint_path = Path(dependency_constraint_flags[1])
@@ -571,7 +678,7 @@ def _parse_constraints_for_virtualenv(
                     requirement = Requirement(line)
                     package = requirement.name
                     if (
-                        package not in packages
+                        package not in seed_packages
                         or requirement.url is not None
                         or requirement.marker is not None
                         or len(requirement.extras) != 0
@@ -588,12 +695,20 @@ def _parse_constraints_for_virtualenv(
 
 
 def virtualenv(
-    python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
+    version: str, python: Path, venv_path: Path, dependency_constraint_flags: Sequence[PathOrStr]
 ) -> dict[str, str]:
     assert python.exists()
-    virtualenv_app = _ensure_virtualenv()
-    constraints = _parse_constraints_for_virtualenv(dependency_constraint_flags)
-    additional_flags = [f"--{package}={version}" for package, version in constraints.items()]
+    virtualenv_app = _ensure_virtualenv(version)
+    allowed_seed_packages = ["pip", "setuptools", "wheel"]
+    constraints = _parse_constraints_for_virtualenv(
+        allowed_seed_packages, dependency_constraint_flags
+    )
+    additional_flags: list[str] = []
+    for package in allowed_seed_packages:
+        if package in constraints:
+            additional_flags.append(f"--{package}={constraints[package]}")
+        else:
+            additional_flags.append(f"--no-{package}")
 
     # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
     # environment. The initial cost is a bit higher but reusing is much faster.
@@ -622,6 +737,7 @@ def virtualenv(
     paths = [str(venv_path), str(venv_path / "Scripts")] if IS_WIN else [str(venv_path / "bin")]
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join([*paths, env["PATH"]])
+    env["VIRTUAL_ENV"] = str(venv_path)
     return env
 
 
@@ -635,10 +751,13 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     """
 
     interpreter, platform = identifier.split("-")
+    free_threaded = interpreter.endswith("t")
+    if free_threaded:
+        interpreter = interpreter[:-1]
     for wheel in wheels:
         _, _, _, tags = parse_wheel_filename(wheel.name)
         for tag in tags:
-            if tag.abi == "abi3":
+            if tag.abi == "abi3" and not free_threaded:
                 # ABI3 wheels must start with cp3 for impl and tag
                 if not (interpreter.startswith("cp3") and tag.interpreter.startswith("cp3")):
                     continue

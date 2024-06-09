@@ -15,9 +15,10 @@ project_with_expected_version_checks = test_projects.new_c_project(
         r"""
         import subprocess
         import os
+        import sys
 
         versions_output_text = subprocess.check_output(
-            ['pip', 'freeze', '--all', '-qq'],
+            [sys.executable, '-m', 'pip', 'freeze', '--all', '-qq'],
             universal_newlines=True,
         )
         versions = versions_output_text.strip().splitlines()
@@ -36,6 +37,11 @@ project_with_expected_version_checks = test_projects.new_c_project(
     )
 )
 
+project_with_expected_version_checks.files["pyproject.toml"] = r"""
+[build-system]
+requires = ["setuptools", "pip"]
+build-backend = "setuptools.build_meta"
+"""
 
 VERSION_REGEX = r"([\w-]+)==([^\s]+)"
 
@@ -50,27 +56,16 @@ def get_versions_from_constraint_file(constraint_file):
 def test_pinned_versions(tmp_path, python_version, build_frontend_env):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
+    if python_version == "3.6" and utils.platform == "macos" and platform.machine() == "arm64":
+        pytest.skip("macOS arm64 does not support Python 3.6")
 
     project_dir = tmp_path / "project"
     project_with_expected_version_checks.generate(project_dir)
 
+    version_no_dot = python_version.replace(".", "")
     build_environment = {}
-
-    if python_version == "3.6":
-        if utils.platform == "macos" and platform.machine() == "arm64":
-            pytest.skip("macOS arm64 does not support Python 3.6")
-        constraint_filename = "constraints-python36.txt"
-        build_pattern = "[cp]p36-*"
-    elif python_version == "3.7":
-        constraint_filename = "constraints-python37.txt"
-        build_pattern = "[cp]p37-*"
-    elif python_version == "3.8":
-        constraint_filename = "constraints-python38.txt"
-        build_pattern = "[cp]p38-*"
-    else:
-        constraint_filename = "constraints-python310.txt"
-        build_pattern = "[cp]p310-*"
-
+    build_pattern = f"[cp]p{version_no_dot}-*"
+    constraint_filename = f"constraints-python{version_no_dot}.txt"
     constraint_file = cibuildwheel.util.resources_dir / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 
@@ -89,21 +84,11 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env):
     )
 
     # also check that we got the right wheels
-    if python_version == "3.6":
-        expected_wheels = [
-            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp36" in w or "-pp36" in w
-        ]
-    elif python_version == "3.8":
-        expected_wheels = [
-            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp38" in w or "-pp38" in w
-        ]
-    elif python_version == "3.10":
-        expected_wheels = [
-            w for w in utils.expected_wheels("spam", "0.1.0") if "-cp310" in w or "-pp310" in w
-        ]
-    else:
-        msg = "unhandled python version"
-        raise ValueError(msg)
+    expected_wheels = [
+        w
+        for w in utils.expected_wheels("spam", "0.1.0")
+        if f"-cp{version_no_dot}" in w or f"-pp{version_no_dot}" in w
+    ]
 
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -126,7 +111,6 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env):
             """
             pip=={pip}
             delocate=={delocate}
-            importlib-metadata<3,>=0.12; python_version < "3.8"
             """.format(**tool_versions)
         )
     )

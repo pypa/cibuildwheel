@@ -91,9 +91,9 @@ You can configure cibuildwheel with a config file, such as `pyproject.toml`.
 Options have the same names as the environment variable overrides, but are
 placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
 common [TOML][] practice. Anything placed in subsections `linux`, `windows`,
-or `macos` will only affect those platforms. Lists can be used instead of
-strings for items that are naturally a list. Multiline strings also work just
-like in the environment variables. Environment variables will take
+`macos`, or `pyodide` will only affect those platforms. Lists can be used
+instead of strings for items that are naturally a list. Multiline strings also
+work just like in the environment variables. Environment variables will take
 precedence if defined.
 
 The example above using environment variables could have been written like this:
@@ -135,6 +135,10 @@ trigger new containers, one per image. Some commands are not supported;
 `output-dir`, build/skip/test_skip selectors, and architectures cannot be
 overridden.
 
+You can specify a table of overrides in `inherit={}`, any list or table in this
+list will inherit from previous overrides or the main configuration. The valid
+options are `"none"` (the default), `"append"`, and `"prepend"`.
+
 ##### Examples:
 
 ```toml
@@ -169,6 +173,69 @@ This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
 wheels on manylinux2010, and manylinux2014 wheels for any newer Python
 (like 3.10).
 
+```toml
+[tool.cibuildwheel]
+environment = {FOO="BAR", "HAM"="EGGS"}
+test-command = ["pyproject"]
+
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+
+inherit.test-command = "prepend"
+test-command = ["pyproject-before"]
+
+inherit.environment="append"
+environment = {FOO="BAZ", "PYTHON"="MONTY"}
+
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+inherit.test-command = "append"
+test-command = ["pyproject-after"]
+```
+
+This example will provide the command `"pyproject-before && pyproject && pyproject-after"`
+on Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"="EGGS"}`.
+
+
+### Extending existing options {: #inherit }
+
+In the TOML configuration, you can choose how tables and lists are inherited.
+By default, all values are overridden completely (`"none"`) but sometimes you'd
+rather `"append"` or `"prepend"` to an existing list or table. You can do this
+with the `inherit` table in overrides.  For example, if you want to add an environment
+variable for CPython 3.11, without `inherit` you'd have to repeat all the
+original environment variables in the override. With `inherit`, it's just:
+
+```toml
+[[tool.cibuildwheel.overrides]]
+select = "cp311*"
+inherit.environment = "append"
+environment.NEWVAR = "Added!"
+```
+
+For a table, `"append"` will replace a key if it exists, while `"prepend"` will
+only add a new key, older keys take precedence.
+
+Lists are also supported (and keep in mind that commands are lists). For
+example, you can print a message before and after a wheel is repaired:
+
+```toml
+[[tool.cibuildwheel.overrides]]
+select = "*"
+inherit.repair-wheel-command = "prepend"
+repair-wheel-command = "echo 'Before repair'"
+
+[[tool.cibuildwheel.overrides]]
+select = "*"
+inherit.repair-wheel-command = "append"
+repair-wheel-command = "echo 'After repair'"
+```
+
+As seen in this example, you can have multiple overrides match - they match top
+to bottom, with the config being accumulated. If you need platform-specific
+inheritance, you can use `select = "*-????linux_*"` for Linux, `select =
+"*-win_*"` for Windows, and `select = "*-macosx_*"` for macOS. As always,
+environment variables will completely override any TOML configuration.
 
 ## Options summary
 
@@ -180,7 +247,7 @@ wheels on manylinux2010, and manylinux2014 wheels for any newer Python
 
 > Override the auto-detected target platform
 
-Options: `auto` `linux` `macos` `windows`
+Options: `auto` `linux` `macos` `windows` `pyodide`
 
 Default: `auto`
 
@@ -188,6 +255,7 @@ Default: `auto`
 
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
+- For `pyodide` you need to be on an x86-64 linux runner and `python3.12` must be available in `PATH`.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
@@ -229,6 +297,7 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x |
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x |
+| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x |
 | PyPy3.7 v7.3  | pp37-macosx_x86_64                                                     | pp37-win_amd64                                      | pp37-manylinux_x86_64<br/>pp37-manylinux_i686                                                       | pp37-manylinux_aarch64                                                                                                                                          |
 | PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                          |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                          |
@@ -241,7 +310,10 @@ For CPython, the minimally supported macOS version is 10.9; for PyPy 3.7, macOS 
 
 Windows arm64 platform support is experimental.
 
-See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
+For an experimental WebAssembly build with `--platform pyodide`,
+`cp312-pyodide_wasm32` is the only platform identifier.
+
+See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
 
 #### Examples
 
@@ -340,6 +412,53 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.readthedocs.io/en/1.
   }
 </style>
 
+### `CIBW_FREE_THREADED_SUPPORT` {: #free-threaded-support}
+
+> Choose whether free-threaded variants should be built
+
+[PEP 703](https://www.python.org/dev/peps/pep-0703) introduced variants of CPython that can be built without the Global Interpreter Lock (GIL).
+Those variants are also known as free-threaded / no-gil.
+
+Building for free-threaded variants is disabled by default.
+
+Building can be enabled by setting this option to `true`. The free-threaded compatible wheels will be built in addition to the standard wheels.
+
+This option doesn't support overrides.
+If you need to enable/disable it per platform or python version, set this option to `true` and use [`CIBW_BUILD`](#build-skip)/[`CIBW_SKIP`](#build-skip) options to filter the builds.
+
+The build identifiers for those variants have a `t` suffix in their `python_tag` (e.g. `cp313t-manylinux_x86_64`)
+
+!!! note
+    This feature is experimental: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Enable free-threaded support
+    CIBW_FREE_THREADED_SUPPORT: 1
+
+    # Skip building free-threaded compatible wheels on Windows
+    CIBW_FREE_THREADED_SUPPORT: 1
+    CIBW_SKIP: *t-win*
+    ```
+
+    It is generally recommended to use `free-threaded-support` in a config file as you can statically declare that you
+    support free-threaded builds.
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Enable free-threaded support
+    free-threaded-support = true
+
+    # Skip building free-threaded compatible wheels on Windows
+    free-threaded-support = true
+    skip = "*t-win*"
+    ```
+
 ### `CIBW_ARCHS` {: #archs}
 > Change the architectures built on your machine by default.
 
@@ -359,6 +478,7 @@ Options:
 - Linux: `x86_64` `i686` `aarch64` `ppc64le` `s390x`
 - macOS: `x86_64` `arm64` `universal2`
 - Windows: `AMD64` `x86` `ARM64`
+- Pyodide: `wasm32`
 - `auto`: The default archs for your machine - see the table below.
     - `auto64`: Just the 64-bit auto archs
     - `auto32`: Just the 32-bit auto archs
@@ -569,7 +689,7 @@ a table of items, including arrays.
     single values.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX`
+`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX` | `CIBW_CONFIG_SETTINGS_PYODIDE`
 
 
 #### Examples
@@ -600,7 +720,7 @@ You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to 
 To specify more than one environment variable, separate the assignments by spaces.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX`
+`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX` | `CIBW_ENVIRONMENT_PYODIDE`
 
 #### Examples
 
@@ -676,7 +796,7 @@ Platform-specific environment variables are also available:<br/>
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
 
 !!! note
-    To do its work, cibuildwheel internally sets the options `PIP_CONSTRAINT`, `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`. Your assignments to these options might be overridden.
+    To do its work, cibuildwheel sets the variables `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`, and it extends the variables `PATH` and `PIP_CONSTRAINT`. Your assignments to these options might be replaced or extended.
 
 ### `CIBW_ENVIRONMENT_PASS_LINUX` {: #environment-pass}
 > Set environment variables on the host to pass-through to the container.
@@ -732,7 +852,7 @@ On linux, overriding it triggers a new container launch. It cannot be overridden
 on macOS and Windows.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX`
+`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX` | `CIBW_BEFORE_ALL_PYODIDE`
 
 !!! note
 
@@ -797,7 +917,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
- `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX`
+ `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX` | `CIBW_BEFORE_BUILD_PYODIDE`
 
 #### Examples
 
@@ -878,6 +998,7 @@ Default:
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
 - on Windows: `''`
+- on Pyodide: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
 The command is run on each built wheel (except for pure Python ones) before testing it.
@@ -891,7 +1012,7 @@ The following placeholders must be used inside the command and will be replaced 
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX`
+`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
 !!! tip
     cibuildwheel doesn't yet ship a default repair command for Windows.
@@ -901,6 +1022,12 @@ Platform-specific environment variables are also available:<br/>
     Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
 
     [Delvewheel]: https://github.com/adang1345/delvewheel
+
+!!! tip
+    When using `--platform pyodide`, `pyodide build` is used to do the build,
+    which already uses `auditwheel-emscripten` to repair the wheel, so the default
+    repair command is empty. If there is a way to do this in two steps in the future,
+    this could change.
 
 #### Examples
 
@@ -989,11 +1116,11 @@ The available options are (default value):
 - `CIBW_MANYLINUX_S390X_IMAGE` ([`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2014_s390x))
 - `CIBW_MANYLINUX_PYPY_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
 - `CIBW_MANYLINUX_PYPY_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
-- `CIBW_MUSLLINUX_X86_64_IMAGE` ([`quay.io/pypa/musllinux_1_1_x86_64`](https://quay.io/pypa/musllinux_1_1_x86_64))
-- `CIBW_MUSLLINUX_I686_IMAGE` ([`quay.io/pypa/musllinux_1_1_i686`](https://quay.io/pypa/musllinux_1_1_i686))
-- `CIBW_MUSLLINUX_AARCH64_IMAGE` ([`quay.io/pypa/musllinux_1_1_aarch64`](https://quay.io/pypa/musllinux_1_1_aarch64))
-- `CIBW_MUSLLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/musllinux_1_1_ppc64le`](https://quay.io/pypa/musllinux_1_1_ppc64le))
-- `CIBW_MUSLLINUX_S390X_IMAGE` ([`quay.io/pypa/musllinux_1_1_s390x`](https://quay.io/pypa/musllinux_1_1_s390x))
+- `CIBW_MUSLLINUX_X86_64_IMAGE` ([`quay.io/pypa/musllinux_1_2_x86_64`](https://quay.io/pypa/musllinux_1_2_x86_64))
+- `CIBW_MUSLLINUX_I686_IMAGE` ([`quay.io/pypa/musllinux_1_2_i686`](https://quay.io/pypa/musllinux_1_2_i686))
+- `CIBW_MUSLLINUX_AARCH64_IMAGE` ([`quay.io/pypa/musllinux_1_2_aarch64`](https://quay.io/pypa/musllinux_1_2_aarch64))
+- `CIBW_MUSLLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/musllinux_1_2_ppc64le`](https://quay.io/pypa/musllinux_1_2_ppc64le))
+- `CIBW_MUSLLINUX_S390X_IMAGE` ([`quay.io/pypa/musllinux_1_2_s390x`](https://quay.io/pypa/musllinux_1_2_s390x))
 
 Set an alternative Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
@@ -1004,7 +1131,7 @@ For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `mus
 
 If this option is blank, it will fall though to the next available definition (environment variable -> pyproject.toml -> default).
 
-If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/musllinux_1_1 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
+If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/musllinux_1_1/musllinux_1_2 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
 
 Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
@@ -1035,6 +1162,10 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     # Build using a different image from the docker registry
     CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
     CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
+
+    # Build musllinux wheels using the musllinux_1_1 image
+    CIBW_MUSLLINUX_X86_64_IMAGE: musllinux_1_1
+    CIBW_MUSLLINUX_I686_IMAGE: musllinux_1_1
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1062,6 +1193,10 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     # Build using a different image from the docker registry
     manylinux-x86_64-image = "dockcross/manylinux-x64"
     manylinux-i686-image = "dockcross/manylinux-x86"
+
+    # Build musllinux wheels using the musllinux_1_1 image
+    musllinux-x86_64-image = "musllinux_1_1"
+    musllinux-i686-image = "musllinux_1_1"
     ```
 
     Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
@@ -1158,7 +1293,7 @@ here and it will be used instead.
     `./constraints.txt` if that's not found.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS`
+`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_PYODIDE`
 
 !!! note
     This option does not affect the tools used on the Linux build - those versions
@@ -1216,7 +1351,7 @@ not be installed after building.
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX`
+`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_PYODIDE`
 
 #### Examples
 
@@ -1279,7 +1414,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
- `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX`
+ `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX` | `CIBW_BEFORE_TEST_PYODIDE`
 
 #### Examples
 
@@ -1339,7 +1474,7 @@ Platform-specific environment variables are also available:<br/>
 Space-separated list of dependencies required for running the tests.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX`
+`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX` | `CIBW_TEST_REQUIRES_PYODIDE`
 
 #### Examples
 
@@ -1379,7 +1514,7 @@ tests. This can be used to avoid having to redefine test dependencies in
 `setup.cfg` or `setup.py`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX`
+`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX` | `CIBW_TEST_EXTRAS_PYODIDE`
 
 #### Examples
 
@@ -1472,7 +1607,7 @@ export CIBW_DEBUG_TRACEBACK=TRUE
 A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX`
+`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_PYODIDE`
 
 #### Examples
 
@@ -1626,7 +1761,7 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         }
 
         var optionNames = option.name.trim().split(', ')
-        var url = 'https://cibuildwheel.readthedocs.io/en/stable/options/#'+option.id;
+        var url = 'https://cibuildwheel.pypa.io/en/stable/options/#'+option.id;
         var namesMarkdown = $.map(optionNames, function(n) {
           return '[`'+n+'`]('+url+') '
         }).join(' <br> ')

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import difflib
 import logging
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
 import click
+import packaging.specifiers
+import requests
 import rich
 from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
@@ -24,10 +25,8 @@ log = logging.getLogger("cibw")
 DIR: Final[Path] = Path(__file__).parent.parent.resolve()
 RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
 
-GET_VIRTUALENV_GITHUB: Final[str] = "https://github.com/pypa/get-virtualenv"
-GET_VIRTUALENV_URL_TEMPLATE: Final[str] = (
-    f"{GET_VIRTUALENV_GITHUB}/blob/{{version}}/public/virtualenv.pyz?raw=true"
-)
+NODEJS_DIST: Final[str] = "https://nodejs.org/dist/"
+NODEJS_INDEX: Final[str] = f"{NODEJS_DIST}index.json"
 
 
 @dataclass(frozen=True, order=True)
@@ -36,15 +35,21 @@ class VersionTuple:
     version_string: str
 
 
-def git_ls_remote_versions(url) -> list[VersionTuple]:
+def parse_nodejs_index() -> list[VersionTuple]:
     versions: list[VersionTuple] = []
-    tags = subprocess.run(
-        ["git", "ls-remote", "--tags", url], check=True, text=True, capture_output=True
-    ).stdout.splitlines()
-    for tag in tags:
-        _, ref = tag.split()
-        assert ref.startswith("refs/tags/")
-        version_string = ref[10:]
+    response = requests.get(NODEJS_INDEX)
+    response.raise_for_status()
+    versions_info = response.json()
+    for version_info in versions_info:
+        version_string = version_info.get("version", "???")
+        if not version_info.get("lts", False):
+            log.debug("Ignoring non LTS release %r", version_string)
+            continue
+        if "linux-x64" not in version_info.get("files", []):
+            log.warning(
+                "Ignoring release %r which does not include a linux-x64 binary", version_string
+            )
+            continue
         try:
             version = Version(version_string)
             if version.is_devrelease:
@@ -55,7 +60,7 @@ def git_ls_remote_versions(url) -> list[VersionTuple]:
                 continue
             versions.append(VersionTuple(version, version_string))
         except InvalidVersion:
-            log.warning("Ignoring ref %r", ref)
+            log.warning("Ignoring release %r", version_string)
     versions.sort(reverse=True)
     return versions
 
@@ -65,7 +70,7 @@ def git_ls_remote_versions(url) -> list[VersionTuple]:
 @click.option(
     "--level", default="INFO", type=click.Choice(["WARNING", "INFO", "DEBUG"], case_sensitive=False)
 )
-def update_virtualenv(force: bool, level: str) -> None:
+def update_nodejs(force: bool, level: str) -> None:
     logging.basicConfig(
         level="INFO",
         format="%(message)s",
@@ -74,33 +79,51 @@ def update_virtualenv(force: bool, level: str) -> None:
     )
     log.setLevel(level)
 
-    toml_file_path = RESOURCES_DIR / "virtualenv.toml"
+    toml_file_path = RESOURCES_DIR / "nodejs.toml"
 
     original_toml = toml_file_path.read_text()
     with toml_file_path.open("rb") as f:
-        configurations = tomllib.load(f)
-    default = configurations.pop("default")
-    version = str(default["version"])
-    versions = git_ls_remote_versions(GET_VIRTUALENV_GITHUB)
-    if versions[0].version > Version(version):
-        version = versions[0].version_string
+        nodejs_data = tomllib.load(f)
 
-    configurations["default"] = {
-        "version": version,
-        "url": GET_VIRTUALENV_URL_TEMPLATE.format(version=version),
-    }
-    result_toml = "".join(
-        f'{key} = {{ version = "{value["version"]}", url = "{value["url"]}" }}\n'
-        for key, value in configurations.items()
+    nodejs_data.pop("url")
+
+    major_versions = [VersionTuple(Version(key), key) for key in nodejs_data]
+    major_versions.sort(reverse=True)
+
+    versions = parse_nodejs_index()
+
+    # update existing versions, 1 per LTS
+    for major_version in major_versions:
+        current = Version(nodejs_data[major_version.version_string])
+        specifier = packaging.specifiers.SpecifierSet(
+            specifiers=f"=={major_version.version.major}.*"
+        )
+        for version in versions:
+            if specifier.contains(version.version) and version.version > current:
+                nodejs_data[major_version.version_string] = version.version_string
+                break
+
+    # check for a new major LTS to insert
+    if versions and versions[0].version.major > major_versions[0].version.major:
+        major_versions.insert(
+            0,
+            VersionTuple(Version(str(versions[0].version.major)), f"v{versions[0].version.major}"),
+        )
+        nodejs_data[major_versions[0].version_string] = versions[0].version_string
+
+    versions_toml = "\n".join(
+        f'{major_version.version_string} = "{nodejs_data[major_version.version_string]}"'
+        for major_version in major_versions
     )
+    result_toml = f'url = "{NODEJS_DIST}"\n{versions_toml}\n'
 
     rich.print()  # spacer
 
     if original_toml == result_toml:
-        rich.print("[green]Check complete, virtualenv version unchanged.")
+        rich.print("[green]Check complete, nodejs version unchanged.")
         return
 
-    rich.print("virtualenv version updated.")
+    rich.print("nodejs version updated.")
     rich.print("Changes:")
     rich.print()
 
@@ -122,4 +145,4 @@ def update_virtualenv(force: bool, level: str) -> None:
 
 
 if __name__ == "__main__":
-    update_virtualenv()
+    update_nodejs()

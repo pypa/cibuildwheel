@@ -7,33 +7,32 @@ import pytest
 
 from . import test_projects, utils
 
+# pyodide does not support building without isolation, need to check the base_prefix
+SYS_PREFIX = f"sys.{'base_' if utils.platform == 'pyodide' else ''}prefix"
+
+
 project_with_before_build_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
-        r"""
+        rf"""
         import os
 
         # assert that the Python version as written to pythonversion_bb.txt in the CIBW_BEFORE_BUILD step
         # is the same one as is currently running.
-        version_file = 'c:\\pythonversion_bb.txt' if sys.platform == 'win32' else '/tmp/pythonversion_bb.txt'
-        with open(version_file) as f:
+        with open('pythonversion_bb.txt') as f:
             stored_version = f.read()
         print('stored_version', stored_version)
         print('sys.version', sys.version)
         assert stored_version == sys.version
 
-        # check that the executable also was written
-        executable_file = 'c:\\pythonexecutable_bb.txt' if sys.platform == 'win32' else '/tmp/pythonexecutable_bb.txt'
-        with open(executable_file) as f:
-            stored_executable = f.read()
-        print('stored_executable', stored_executable)
-        print('sys.executable', sys.executable)
+        # check that the prefix also was written
+        with open('pythonprefix_bb.txt') as f:
+            stored_prefix = f.read()
+        print('stored_prefix', stored_prefix)
+        print('{SYS_PREFIX}', {SYS_PREFIX})
+        #  Works around path-comparison bugs caused by short-paths on Windows e.g.
+        #  vssadm~1 instead of vssadministrator
 
-        # windows/mac are case insensitive
-        stored_path = os.path.realpath(stored_executable).lower()
-        current_path = os.path.realpath(sys.executable).lower()
-
-        # TODO: This is not valid in an virtual environment
-        assert stored_path == current_path, '{0} != {1}'.format(stored_path, current_path)
+        assert os.path.samefile(stored_prefix, {SYS_PREFIX})
         """
     )
 )
@@ -44,8 +43,8 @@ def test(tmp_path):
     project_with_before_build_asserts.generate(project_dir)
 
     before_build = (
-        """python -c "import sys; open('{output_dir}pythonversion_bb.txt', 'w').write(sys.version)" && """
-        '''python -c "import sys; open('{output_dir}pythonexecutable_bb.txt', 'w').write(sys.executable)"'''
+        """python -c "import sys; open('{project}/pythonversion_bb.txt', 'w').write(sys.version)" && """
+        f'''python -c "import sys; open('{{project}}/pythonprefix_bb.txt', 'w').write({SYS_PREFIX})"'''
     )
 
     # build the wheels
@@ -54,8 +53,7 @@ def test(tmp_path):
         add_env={
             # write python version information to a temporary file, this is
             # checked in setup.py
-            "CIBW_BEFORE_BUILD": before_build.format(output_dir="/tmp/"),
-            "CIBW_BEFORE_BUILD_WINDOWS": before_build.format(output_dir=r"c:\\"),
+            "CIBW_BEFORE_BUILD": before_build,
         },
     )
 
@@ -88,7 +86,8 @@ def test_cwd(tmp_path):
             "CIBW_BEFORE_BUILD": f'''python -c "import os; assert os.getcwd() == {str(project_dir)!r}"''',
             "CIBW_BEFORE_BUILD_LINUX": '''python -c "import os; assert os.getcwd() == '/project'"''',
         },
+        single_python=True,
     )
 
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)

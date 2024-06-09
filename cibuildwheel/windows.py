@@ -6,11 +6,9 @@ import shutil
 import subprocess
 import textwrap
 from collections.abc import MutableMapping, Sequence, Set
-from contextlib import suppress
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from zipfile import ZipFile
 
 from filelock import FileLock
 from packaging.version import Version
@@ -31,9 +29,11 @@ from .util import (
     NonPlatformWheelError,
     call,
     download,
+    extract_zip,
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     get_pip_version,
+    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -44,7 +44,9 @@ from .util import (
 )
 
 
-def get_nuget_args(version: str, arch: str, output_directory: Path) -> list[str]:
+def get_nuget_args(
+    version: str, arch: str, free_threaded: bool, output_directory: Path
+) -> list[str]:
     package_name = {
         "32": "pythonx86",
         "64": "python",
@@ -53,6 +55,8 @@ def get_nuget_args(version: str, arch: str, output_directory: Path) -> list[str]
         "x86": "pythonx86",
         "AMD64": "python",
     }[arch]
+    if free_threaded:
+        package_name = f"{package_name}-freethreaded"
     return [
         package_name,
         "-Version",
@@ -92,11 +96,6 @@ def get_python_configurations(
     return python_configurations
 
 
-def extract_zip(zip_src: Path, dest: Path) -> None:
-    with ZipFile(zip_src) as zip_:
-        zip_.extractall(dest)
-
-
 @lru_cache(maxsize=None)
 def _ensure_nuget() -> Path:
     nuget = CIBW_CACHE_PATH / "nuget.exe"
@@ -106,11 +105,16 @@ def _ensure_nuget() -> Path:
     return nuget
 
 
-def install_cpython(version: str, arch: str) -> Path:
+def install_cpython(configuration: PythonConfiguration, arch: str | None = None) -> Path:
+    version = configuration.version
+    free_threaded = "t-" in configuration.identifier
+    if arch is None:
+        arch = configuration.arch
     base_output_dir = CIBW_CACHE_PATH / "nuget-cpython"
-    nuget_args = get_nuget_args(version, arch, base_output_dir)
+    nuget_args = get_nuget_args(version, arch, free_threaded, base_output_dir)
     installation_path = base_output_dir / (nuget_args[0] + "." + version) / "tools"
-    with FileLock(str(base_output_dir) + f"-{version}-{arch}.lock"):
+    free_threaded_str = "-freethreaded" if free_threaded else ""
+    with FileLock(str(base_output_dir) + f"-{version}{free_threaded_str}-{arch}.lock"):
         if not installation_path.exists():
             nuget = _ensure_nuget()
             call(nuget, "install", *nuget_args)
@@ -224,18 +228,14 @@ def setup_python(
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
         native_arch = platform_module.machine()
+        base_python = install_cpython(python_configuration)
         if python_configuration.arch == "ARM64" != native_arch:
             # To cross-compile for ARM64, we need a native CPython to run the
             # build, and a copy of the ARM64 import libraries ('.\libs\*.lib')
             # for any extension modules.
-            python_libs_base = install_cpython(
-                python_configuration.version, python_configuration.arch
-            )
-            python_libs_base = python_libs_base.parent / "libs"
+            python_libs_base = base_python.parent / "libs"
             log.step(f"Installing native Python {native_arch} for cross-compilation...")
-            base_python = install_cpython(python_configuration.version, native_arch)
-        else:
-            base_python = install_cpython(python_configuration.version, python_configuration.arch)
+            base_python = install_cpython(python_configuration, arch=native_arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
@@ -246,32 +246,14 @@ def setup_python(
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
+    env = virtualenv(
+        python_configuration.version, base_python, venv_path, dependency_constraint_flags
+    )
 
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-
-    # pip older than 21.3 builds executables such as pip.exe for x64 platform.
-    # The first re-install of pip updates pip module but builds pip.exe using
-    # the old pip which still generates x64 executable. But the second
-    # re-install uses updated pip and correctly builds pip.exe for the target.
-    # This can be removed once ARM64 Pythons (currently 3.9 and 3.10) bundle
-    # pip versions newer than 21.3.
-    if python_configuration.arch == "ARM64" and Version(get_pip_version(env)) < Version("21.3"):
-        call(
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--force-reinstall",
-            "--upgrade",
-            "pip",
-            *dependency_constraint_flags,
-            env=env,
-            cwd=venv_path,
-        )
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
@@ -374,6 +356,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
+            pip_version = get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -401,6 +384,28 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 extra_flags += build_frontend.args
 
+                build_env = env.copy()
+                build_env["VIRTUALENV_PIP"] = pip_version
+                if build_options.dependency_constraints:
+                    constraints_path = build_options.dependency_constraints.get_for_python_version(
+                        config.version
+                    )
+                    # Bug in pip <= 21.1.3 - we can't have a space in the
+                    # constraints file, and pip doesn't support drive letters
+                    # in uhi.  After probably pip 21.2, we can use uri. For
+                    # now, use a temporary file.
+                    if " " in str(constraints_path):
+                        assert " " not in str(identifier_tmp_dir)
+                        tmp_file = identifier_tmp_dir / "constraints.txt"
+                        tmp_file.write_bytes(constraints_path.read_bytes())
+                        constraints_path = tmp_file
+
+                    our_constraints = str(constraints_path)
+                    user_constraints = build_env.get("PIP_CONSTRAINT")
+                    build_env["PIP_CONSTRAINT"] = " ".join(
+                        c for c in [our_constraints, user_constraints] if c
+                    )
+
                 if build_frontend.name == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
@@ -414,41 +419,22 @@ def build(options: Options, tmp_path: Path) -> None:
                         f"--wheel-dir={built_wheel_dir}",
                         "--no-deps",
                         *extra_flags,
-                        env=env,
+                        env=build_env,
                     )
                 elif build_frontend.name == "build":
                     if not 0 <= build_options.build_verbosity < 2:
                         msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                         log.warning(msg)
-                    build_env = env.copy()
-                    if build_options.dependency_constraints:
-                        constraints_path = (
-                            build_options.dependency_constraints.get_for_python_version(
-                                config.version
-                            )
-                        )
-                        # Bug in pip <= 21.1.3 - we can't have a space in the
-                        # constraints file, and pip doesn't support drive letters
-                        # in uhi.  After probably pip 21.2, we can use uri. For
-                        # now, use a temporary file.
-                        if " " in str(constraints_path):
-                            assert " " not in str(identifier_tmp_dir)
-                            tmp_file = identifier_tmp_dir / "constraints.txt"
-                            tmp_file.write_bytes(constraints_path.read_bytes())
-                            constraints_path = tmp_file
-
-                        build_env["PIP_CONSTRAINT"] = str(constraints_path)
-                        build_env["VIRTUALENV_PIP"] = get_pip_version(env)
-                        call(
-                            "python",
-                            "-m",
-                            "build",
-                            build_options.package_dir,
-                            "--wheel",
-                            f"--outdir={built_wheel_dir}",
-                            *extra_flags,
-                            env=build_env,
-                        )
+                    call(
+                        "python",
+                        "-m",
+                        "build",
+                        build_options.package_dir,
+                        "--wheel",
+                        f"--outdir={built_wheel_dir}",
+                        *extra_flags,
+                        env=build_env,
+                    )
                 else:
                     assert_never(build_frontend)
 
@@ -495,9 +481,12 @@ def build(options: Options, tmp_path: Path) -> None:
                 call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
                 venv_dir = identifier_tmp_dir / "venv-test"
 
-                # Use --no-download to ensure determinism by using seed libraries
-                # built into virtualenv
-                call("python", "-m", "virtualenv", "--no-download", venv_dir, env=env)
+                # Use pip version from the initial env to ensure determinism
+                venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
+                # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
+                if Version(config.version) < Version("3.12"):
+                    venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                 virtualenv_env = env.copy()
                 virtualenv_env["PATH"] = os.pathsep.join(
@@ -506,6 +495,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         virtualenv_env["PATH"],
                     ]
                 )
+                virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
                 # check that we are using the Python from the virtual environment
                 call("where", "python", env=virtualenv_env)
@@ -547,11 +537,13 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (remove if already exists)
             if compatible_wheel is None:
-                with suppress(FileNotFoundError):
-                    (build_options.output_dir / repaired_wheel.name).unlink()
-
-                shutil.move(str(repaired_wheel), build_options.output_dir)
-                built_wheels.append(build_options.output_dir / repaired_wheel.name)
+                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                moved_wheel = move_file(repaired_wheel, output_wheel)
+                if moved_wheel != output_wheel.resolve():
+                    log.warning(
+                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                    )
+                built_wheels.append(output_wheel)
 
             # clean up
             # (we ignore errors because occasionally Windows fails to unlink a file and we

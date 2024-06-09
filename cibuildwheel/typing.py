@@ -22,11 +22,10 @@ else:
     PathOrStr = Union[str, "os.PathLike[str]"]
 
 
-PlatformName = Literal["linux", "macos", "windows"]
-PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows"}
+PlatformName = Literal["linux", "macos", "windows", "pyodide"]
+PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows", "pyodide"}
 
 
 class GenericPythonConfiguration(Protocol):
     @property
-    def identifier(self) -> str:
-        ...
+    def identifier(self) -> str: ...

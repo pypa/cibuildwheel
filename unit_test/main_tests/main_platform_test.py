@@ -264,3 +264,16 @@ def test_only_overrides_env_vars(monkeypatch, intercepted_build_args, envvar_nam
     assert options.globals.build_selector.skip_config == ""
     assert options.platform == "linux"
     assert options.globals.architectures == Architecture.all_archs("linux")
+
+
+def test_pyodide_on_windows(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--only", "cp312-pyodide_wasm32"])
+
+    with pytest.raises(SystemExit) as exit:
+        main()
+
+    _, err = capsys.readouterr()
+
+    assert exit.value.code == 2
+    assert "cibuildwheel: Building for pyodide is not supported on Windows" in err

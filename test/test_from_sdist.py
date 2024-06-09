@@ -6,6 +6,7 @@ import sys
 import textwrap
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
 from test.test_projects.base import TestProject
 
 from . import test_projects, utils
@@ -32,6 +33,8 @@ def cibuildwheel_from_sdist_run(sdist_path, add_env=None, config_file=None):
 
     if add_env:
         env.update(add_env)
+
+    env["CIBW_BUILD"] = "cp{}{}-*".format(*utils.SINGLE_PYTHON_VERSION)
 
     with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(
@@ -69,19 +72,15 @@ def test_simple(tmp_path):
         assert os.path.exists('{package}/setup.py')
         """,
     )
-    setup_py_assertion_cmd = f'python3 -c "{setup_py_assertion_snippet !s}"'
+    setup_py_assertion_cmd = f'python -c "{setup_py_assertion_snippet !s}"'
 
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(
-        sdist_path,
-        add_env={
-            "CIBW_BEFORE_BUILD": setup_py_assertion_cmd,
-            "CIBW_BUILD": "cp39-*",
-        },
+        sdist_path, add_env={"CIBW_BEFORE_BUILD": setup_py_assertion_cmd}
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -105,14 +104,10 @@ def test_external_config_file_argument(tmp_path, capfd):
     )
 
     # build the wheels from sdist
-    actual_wheels = cibuildwheel_from_sdist_run(
-        sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
-        config_file=str(config_file),
-    )
+    actual_wheels = cibuildwheel_from_sdist_run(sdist_path, config_file=str(config_file))
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)
 
     # check that before-all was run
@@ -136,13 +131,10 @@ def test_config_in_pyproject_toml(tmp_path, capfd):
     sdist_path = make_sdist(project, sdist_dir)
 
     # build the wheels from sdist
-    actual_wheels = cibuildwheel_from_sdist_run(
-        sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
-    )
+    actual_wheels = cibuildwheel_from_sdist_run(sdist_path)
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)
 
     # check that before-build was run
@@ -174,13 +166,11 @@ def test_internal_config_file_argument(tmp_path, capfd):
 
     # build the wheels from sdist, referencing the config file inside
     actual_wheels = cibuildwheel_from_sdist_run(
-        sdist_path,
-        add_env={"CIBW_BUILD": "cp39-*"},
-        config_file="{package}/wheel_build_config.toml",
+        sdist_path, config_file="{package}/wheel_build_config.toml"
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp39" in w]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)
 
     # check that before-all was run

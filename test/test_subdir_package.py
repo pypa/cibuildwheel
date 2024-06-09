@@ -45,13 +45,12 @@ def test(capfd, tmp_path):
         add_env={
             "CIBW_BEFORE_BUILD": "python {project}/bin/before_build.py",
             "CIBW_TEST_COMMAND": "python {package}/test/run_tests.py",
-            # this shouldn't depend on the version of python, so build only CPython 3.10
-            "CIBW_BUILD": "cp310-*",
         },
+        single_python=True,
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "cp310" in w]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)
 
     captured = capfd.readouterr()

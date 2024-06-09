@@ -15,6 +15,7 @@ PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "linux": "Linux",
     "macos": "macOS",
     "windows": "Windows",
+    "pyodide": "Pyodide",
 }
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
@@ -46,6 +47,9 @@ class Architecture(Enum):
     AMD64 = "AMD64"
     ARM64 = "ARM64"
 
+    # WebAssembly
+    wasm32 = "wasm32"
+
     # Allow this to be sorted
     def __lt__(self, other: Architecture) -> bool:
         return self.value < other.value
@@ -72,8 +76,9 @@ class Architecture(Enum):
         return result
 
     @staticmethod
-    def auto_archs(platform: PlatformName) -> set[Architecture]:
-        native_machine = platform_module.machine()
+    def native_arch(platform: PlatformName) -> Architecture | None:
+        if platform == "pyodide":
+            return Architecture.wasm32
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
@@ -82,6 +87,7 @@ class Architecture(Enum):
             else ("macos" if sys.platform.startswith("darwin") else "linux")
         )
 
+        native_machine = platform_module.machine()
         native_architecture = Architecture(native_machine)
 
         # we might need to rename the native arch to the machine we're running
@@ -93,11 +99,18 @@ class Architecture(Enum):
 
                     if synonym is None:
                         # can't build anything on this platform
-                        return set()
+                        return None
 
                     native_architecture = Architecture(synonym)
 
-        result = {native_architecture}
+        return native_architecture
+
+    @staticmethod
+    def auto_archs(platform: PlatformName) -> set[Architecture]:
+        native_arch = Architecture.native_arch(platform)
+        if native_arch is None:
+            return set()  # can't build anything on this platform
+        result = {native_arch}
 
         if platform == "linux" and Architecture.x86_64 in result:
             # x86_64 machines can run i686 containers
@@ -120,6 +133,7 @@ class Architecture(Enum):
             },
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
+            "pyodide": {Architecture.wasm32},
         }
         return all_archs_map[platform]
 

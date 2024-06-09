@@ -20,10 +20,38 @@ def test_validate_default_schema():
     assert validator(example) is not None
 
 
-def test_validate_bad_container_engine():
+def test_validate_container_engine():
+    """
+    This test checks container engine can be overridden - it used to be a
+    global option but is now a build option.
+    """
+
     example = tomllib.loads(
         """
+        [tool.cibuildwheel]
+        container-engine = "docker"
+
         [tool.cibuildwheel.linux]
+        container-engine = "docker"
+
+        [[tool.cibuildwheel.overrides]]
+        select = "*_x86_64"
+        container-engine = "docker; create_args: --platform linux/arm64/v8"
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    assert validator(example) is not None
+
+
+@pytest.mark.parametrize("platform", ["macos", "windows"])
+def test_validate_bad_container_engine(platform: str):
+    """
+    container-engine is not a valid option for macos or windows
+    """
+    example = tomllib.loads(
+        f"""
+        [tool.cibuildwheel.{platform}]
         container-engine = "docker"
         """
     )
@@ -64,6 +92,50 @@ def test_overrides_only_select():
         """
         [[tool.cibuildwheel.overrides]]
         select = "somestring"
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
+def test_overrides_valid_inherit():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        inherit.repair-wheel-command = "append"
+        select = "somestring"
+        repair-wheel-command = ["something"]
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    assert validator(example) is not None
+
+
+def test_overrides_invalid_inherit():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        inherit.something = "append"
+        select = "somestring"
+        repair-wheel-command = "something"
+        """
+    )
+
+    validator = validate_pyproject.api.Validator()
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
+def test_overrides_invalid_inherit_value():
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        inherit.repair-wheel-command = "nothing"
+        select = "somestring"
+        repair-wheel-command = "something"
         """
     )
 

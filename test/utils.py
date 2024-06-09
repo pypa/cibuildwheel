@@ -11,8 +11,17 @@ import platform as pm
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
+from typing import Final
 
+import pytest
+
+from cibuildwheel.architecture import Architecture
 from cibuildwheel.util import CIBW_CACHE_PATH
+
+EMULATED_ARCHS: Final[list[str]] = sorted(
+    arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
+)
+SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
 platform: str
 
@@ -37,6 +46,9 @@ def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pyt
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
     if prerelease_pythons:
         cmd.append("--prerelease-pythons")
+    if env is None:
+        env = os.environ.copy()
+    env.setdefault("CIBW_FREE_THREADED_SUPPORT", "1")
 
     cmd_output = subprocess.run(
         cmd,
@@ -64,7 +76,13 @@ def _update_pip_cache_dir(env: dict[str, str]) -> None:
 
 
 def cibuildwheel_run(
-    project_path, package_dir=".", env=None, add_env=None, output_dir=None, add_args=None
+    project_path,
+    package_dir=".",
+    env=None,
+    add_env=None,
+    output_dir=None,
+    add_args=None,
+    single_python=False,
 ):
     """
     Runs cibuildwheel as a subprocess, building the project at project_path.
@@ -94,6 +112,11 @@ def cibuildwheel_run(
 
     _update_pip_cache_dir(env)
 
+    env.setdefault("CIBW_FREE_THREADED_SUPPORT", "1")
+
+    if single_python:
+        env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
+
     with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(
             [
@@ -114,17 +137,11 @@ def cibuildwheel_run(
     return wheels
 
 
-def _get_arm64_macosx_deployment_target(macosx_deployment_target: str) -> str:
+def _floor_macosx(*args: str) -> str:
     """
-    The first version of macOS that supports arm is 11.0. So the wheel tag
-    cannot contain an earlier deployment target, even if
-    MACOSX_DEPLOYMENT_TARGET sets it.
+    Make sure a deployment target is not less than some value.
     """
-    version_tuple = tuple(map(int, macosx_deployment_target.split(".")))
-    if version_tuple <= (11, 0):
-        return "11.0"
-    else:
-        return macosx_deployment_target
+    return max(args, key=lambda x: tuple(map(int, x.split("."))))
 
 
 def expected_wheels(
@@ -136,6 +153,8 @@ def expected_wheels(
     machine_arch=None,
     python_abi_tags=None,
     include_universal2=False,
+    single_python=False,
+    single_arch=False,
 ):
     """
     Returns a list of expected wheels from a run of cibuildwheel.
@@ -147,6 +166,9 @@ def expected_wheels(
 
     if machine_arch is None:
         machine_arch = pm.machine()
+        if platform == "linux" and machine_arch.lower() == "arm64":
+            # we're running linux tests from macOS/Windows arm64, override platform
+            machine_arch = "aarch64"
 
     if manylinux_versions is None:
         if machine_arch == "x86_64":
@@ -160,8 +182,10 @@ def expected_wheels(
             manylinux_versions = ["manylinux_2_17", "manylinux2014"]
 
     if musllinux_versions is None:
-        musllinux_versions = ["musllinux_1_1"]
+        musllinux_versions = ["musllinux_1_2"]
 
+    if platform == "pyodide" and python_abi_tags is None:
+        python_abi_tags = ["cp312-cp312"]
     if python_abi_tags is None:
         python_abi_tags = [
             "cp36-cp36m",
@@ -171,6 +195,8 @@ def expected_wheels(
             "cp310-cp310",
             "cp311-cp311",
             "cp312-cp312",
+            "cp313-cp313",
+            "cp313-cp313t",
         ]
 
         if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
@@ -189,12 +215,30 @@ def expected_wheels(
                 "cp310-cp310",
                 "cp311-cp311",
                 "cp312-cp312",
+                "cp313-cp313",
+                "cp313-cp313t",
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
             ]
 
+    if single_python:
+        python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
+        python_abi_tags = [
+            next(
+                tag
+                for tag in python_abi_tags
+                if tag.startswith(python_tag) and not tag.endswith("t")
+            )
+        ]
+
     wheels = []
+
+    if platform == "pyodide":
+        assert len(python_abi_tags) == 1
+        python_abi_tag = python_abi_tags[0]
+        platform_tag = "pyodide_2024_0_wasm32"
+        return [f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"]
 
     for python_abi_tag in python_abi_tags:
         platform_tags = []
@@ -202,7 +246,7 @@ def expected_wheels(
         if platform == "linux":
             architectures = [arch_name_for_linux(machine_arch)]
 
-            if machine_arch == "x86_64":
+            if machine_arch == "x86_64" and not single_arch:
                 architectures.append("i686")
 
             if len(manylinux_versions) > 0:
@@ -232,18 +276,24 @@ def expected_wheels(
 
         elif platform == "macos":
             if machine_arch == "arm64":
-                arm64_macosx_deployment_target = _get_arm64_macosx_deployment_target(
-                    macosx_deployment_target
-                )
-                platform_tags = [f'macosx_{arm64_macosx_deployment_target.replace(".", "_")}_arm64']
+                arm64_macosx = _floor_macosx(macosx_deployment_target, "11.0")
+                platform_tags = [f'macosx_{arm64_macosx.replace(".", "_")}_arm64']
             else:
-                platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
+                if python_abi_tag.startswith("pp") and not python_abi_tag.startswith(
+                    ("pp37", "pp38")
+                ):
+                    pypy_macosx = _floor_macosx(macosx_deployment_target, "10.15")
+                    platform_tags = [f'macosx_{pypy_macosx.replace(".", "_")}_x86_64']
+                elif python_abi_tag.startswith("cp313"):
+                    pypy_macosx = _floor_macosx(macosx_deployment_target, "10.13")
+                    platform_tags = [f'macosx_{pypy_macosx.replace(".", "_")}_x86_64']
+                else:
+                    platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
 
             if include_universal2:
                 platform_tags.append(
                     f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
                 )
-
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
@@ -264,6 +314,17 @@ def get_macos_version():
     """
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))
+
+
+def skip_if_pyodide(reason: str):
+    return pytest.mark.skipif(platform == "pyodide", reason=reason)
+
+
+def invoke_pytest() -> str:
+    # see https://github.com/pyodide/pyodide/issues/4802
+    if platform == "pyodide" and sys.platform.startswith("darwin"):
+        return "python -m pytest"
+    return "pytest"
 
 
 def arch_name_for_linux(arch: str):

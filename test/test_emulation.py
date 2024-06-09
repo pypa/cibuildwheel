@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import subprocess
 
 import pytest
@@ -18,8 +19,12 @@ def test_spam():
 
 
 def test(tmp_path, request):
-    if not request.config.getoption("--run-emulation"):
+    archs = request.config.getoption("--run-emulation")
+    if archs is None:
         pytest.skip("needs --run-emulation option to run")
+
+    if archs == "all":
+        archs = " ".join(utils.EMULATED_ARCHS)
 
     project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
@@ -30,15 +35,14 @@ def test(tmp_path, request):
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
             "CIBW_TEST_COMMAND": "pytest {project}/test",
-            "CIBW_ARCHS": "aarch64 ppc64le s390x",
+            "CIBW_ARCHS": archs,
         },
     )
 
     # also check that we got the right wheels
-    expected_wheels = (
-        utils.expected_wheels("spam", "0.1.0", machine_arch="aarch64")
-        + utils.expected_wheels("spam", "0.1.0", machine_arch="ppc64le")
-        + utils.expected_wheels("spam", "0.1.0", machine_arch="s390x")
+    expected_wheels = itertools.chain.from_iterable(
+        utils.expected_wheels("spam", "0.1.0", machine_arch=arch, single_arch=True)
+        for arch in archs.split(" ")
     )
     assert set(actual_wheels) == set(expected_wheels)
 

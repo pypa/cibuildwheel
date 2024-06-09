@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import subprocess
-from test import test_projects
+from contextlib import nullcontext as does_not_raise
 
 import pytest
+
+from test import test_projects
 
 from . import utils
 
@@ -30,8 +32,14 @@ def test(tmp_path, capfd):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
-    with pytest.raises(subprocess.CalledProcessError):
-        utils.cibuildwheel_run(
+    num_builds = len(utils.cibuildwheel_get_build_identifiers(project_dir))
+    if num_builds > 1:
+        expectation = pytest.raises(subprocess.CalledProcessError)
+    else:
+        expectation = does_not_raise()
+
+    with expectation:
+        result = utils.cibuildwheel_run(
             project_dir,
             add_env={
                 "CIBW_REPAIR_WHEEL_COMMAND": "python repair.py {wheel} {dest_dir}",
@@ -39,4 +47,14 @@ def test(tmp_path, capfd):
         )
 
     captured = capfd.readouterr()
-    assert "Build failed because a wheel named" in captured.err
+    if num_builds > 1:
+        assert "Build failed because a wheel named" in captured.err
+    else:
+        # We only produced one wheel (currently Pyodide)
+        # check that it has the right name
+        #
+        # As far as I can tell, this is the only full test coverage for
+        # CIBW_REPAIR_WHEEL_COMMAND so this is useful even in the case when no
+        # error is raised
+        assert "spam-0.1.0-py2-none-pyodide" in captured.out
+        assert result[0].startswith("spam-0.1.0-py2-none-")

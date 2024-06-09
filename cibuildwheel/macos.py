@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import functools
 import os
 import platform
@@ -15,6 +14,7 @@ from pathlib import Path
 from typing import Literal, Tuple
 
 from filelock import FileLock
+from packaging.version import Version
 
 from . import errors
 from ._compat.typing import assert_never
@@ -34,9 +34,11 @@ from .util import (
     detect_ci_provider,
     download,
     find_compatible_wheel,
+    free_thread_enable_313,
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
+    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -115,12 +117,13 @@ def get_python_configurations(
     return python_configurations
 
 
-def install_cpython(tmp: Path, version: str, url: str) -> Path:
-    installation_path = Path(f"/Library/Frameworks/Python.framework/Versions/{version}")
+def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> Path:
+    ft = "T" if free_threading else ""
+    installation_path = Path(f"/Library/Frameworks/Python{ft}.framework/Versions/{version}")
     with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
         installed_system_packages = call("pkgutil", "--pkgs", capture_stdout=True).splitlines()
         # if this version of python isn't installed, get it from python.org and install
-        python_package_identifier = f"org.python.Python.PythonFramework-{version}"
+        python_package_identifier = f"org.python.Python.Python{ft}Framework-{version}"
         if python_package_identifier not in installed_system_packages:
             if detect_ci_provider() is None:
                 # if running locally, we don't want to install CPython with sudo
@@ -137,13 +140,22 @@ def install_cpython(tmp: Path, version: str, url: str) -> Path:
             # download the pkg
             download(url, pkg_path)
             # install
-            call("sudo", "installer", "-pkg", pkg_path, "-target", "/")
+            args = []
+            if version.startswith("3.13"):
+                # Python 3.13 is the first version to have a free-threading option
+                args += ["-applyChoiceChangesXML", str(free_thread_enable_313.resolve())]
+            call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
             env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-            call(installation_path / "bin" / "python3", install_certifi_script, env=env)
 
-    return installation_path / "bin" / "python3"
+            if free_threading:
+                call(installation_path / f"bin/python{version}t", "-m", "ensurepip", env=env)
+                call(installation_path / f"bin/python{version}t", install_certifi_script, env=env)
+            else:
+                call(installation_path / "bin/python3", install_certifi_script, env=env)
+
+    return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
 
 def install_pypy(tmp: Path, url: str) -> Path:
@@ -172,17 +184,25 @@ def setup_python(
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        base_python = install_cpython(tmp, python_configuration.version, python_configuration.url)
+        free_threading = "t-macos" in python_configuration.identifier
+        base_python = install_cpython(
+            tmp, python_configuration.version, python_configuration.url, free_threading
+        )
+
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
-    assert base_python.exists()
+    assert (
+        base_python.exists()
+    ), f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(base_python, venv_path, dependency_constraint_flags)
+    env = virtualenv(
+        python_configuration.version, base_python, venv_path, dependency_constraint_flags
+    )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     # Fix issue with site.py setting the wrong `sys.prefix`, `sys.exec_prefix`,
@@ -236,8 +256,25 @@ def setup_python(
     # Set MACOSX_DEPLOYMENT_TARGET, if the user didn't set it.
     # For arm64, the minimal deployment target is 11.0.
     # On x86_64 (or universal2), use 10.9 as a default.
-    # PyPy defaults to 10.7, causing inconsistencies if it's left unset.
-    env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11.0" if config_is_arm64 else "10.9")
+    # CPython 3.13 needs 10.13.
+    if config_is_arm64:
+        default_target = "11.0"
+    elif Version(python_configuration.version) >= Version("3.13"):
+        default_target = "10.13"
+    elif python_configuration.identifier.startswith("pp") and Version(
+        python_configuration.version
+    ) >= Version("3.9"):
+        default_target = "10.15"
+    else:
+        default_target = "10.9"
+    env.setdefault("MACOSX_DEPLOYMENT_TARGET", default_target)
+
+    # This is a floor, it can't be set lower than the default_target.
+    if Version(env["MACOSX_DEPLOYMENT_TARGET"]) < Version(default_target):
+        log.warning(
+            f"Bumping MACOSX_DEPLOYMENT_TARGET ({env['MACOSX_DEPLOYMENT_TARGET']}) to the minimum required ({default_target})."
+        )
+        env["MACOSX_DEPLOYMENT_TARGET"] = default_target
 
     if python_configuration.version not in {"3.6", "3.7"}:
         if config_is_arm64:
@@ -352,6 +389,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
+            pip_version = get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -376,6 +414,18 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 extra_flags += build_frontend.args
 
+                build_env = env.copy()
+                build_env["VIRTUALENV_PIP"] = pip_version
+                if build_options.dependency_constraints:
+                    constraint_path = build_options.dependency_constraints.get_for_python_version(
+                        config.version
+                    )
+                    user_constraints = build_env.get("PIP_CONSTRAINT")
+                    our_constraints = constraint_path.as_uri()
+                    build_env["PIP_CONSTRAINT"] = " ".join(
+                        c for c in [user_constraints, our_constraints] if c
+                    )
+
                 if build_frontend.name == "pip":
                     extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
@@ -389,21 +439,12 @@ def build(options: Options, tmp_path: Path) -> None:
                         f"--wheel-dir={built_wheel_dir}",
                         "--no-deps",
                         *extra_flags,
-                        env=env,
+                        env=build_env,
                     )
                 elif build_frontend.name == "build":
                     if not 0 <= build_options.build_verbosity < 2:
                         msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                         log.warning(msg)
-                    build_env = env.copy()
-                    if build_options.dependency_constraints:
-                        constraint_path = (
-                            build_options.dependency_constraints.get_for_python_version(
-                                config.version
-                            )
-                        )
-                        build_env["PIP_CONSTRAINT"] = constraint_path.as_uri()
-                    build_env["VIRTUALENV_PIP"] = get_pip_version(env)
                     call(
                         "python",
                         "-m",
@@ -550,9 +591,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     call_with_arch = functools.partial(call, *arch_prefix)
                     shell_with_arch = functools.partial(call, *arch_prefix, "/bin/sh", "-c")
 
-                    # Use --no-download to ensure determinism by using seed libraries
-                    # built into virtualenv
-                    call_with_arch("python", "-m", "virtualenv", "--no-download", venv_dir, env=env)
+                    # Use pip version from the initial env to ensure determinism
+                    venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
+                    # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
+                    if Version(config.version) < Version("3.12"):
+                        venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                    call_with_arch("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                     virtualenv_env = env.copy()
                     virtualenv_env["PATH"] = os.pathsep.join(
@@ -561,6 +605,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             virtualenv_env["PATH"],
                         ]
                     )
+                    virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
                     # check that we are using the Python from the virtual environment
                     call_with_arch("which", "python", env=virtualenv_env)
@@ -574,17 +619,37 @@ def build(options: Options, tmp_path: Path) -> None:
                         shell_with_arch(before_test_prepared, env=virtualenv_env)
 
                     # install the wheel
+                    if is_cp38 and python_arch == "x86_64":
+                        virtualenv_env_install_wheel = virtualenv_env.copy()
+                        virtualenv_env_install_wheel["SYSTEM_VERSION_COMPAT"] = "0"
+                        log.notice(
+                            unwrap(
+                                """
+                                Setting SYSTEM_VERSION_COMPAT=0 to ensure CPython 3.8 can get
+                                correct macOS version and allow installation of wheels with
+                                MACOSX_DEPLOYMENT_TARGET >= 11.0.
+                                See https://github.com/pypa/cibuildwheel/issues/1767 for the
+                                details.
+                                """
+                            )
+                        )
+                    else:
+                        virtualenv_env_install_wheel = virtualenv_env
+
                     call_with_arch(
                         "pip",
                         "install",
                         f"{repaired_wheel}{build_options.test_extras}",
-                        env=virtualenv_env,
+                        env=virtualenv_env_install_wheel,
                     )
 
                     # test the wheel
                     if build_options.test_requires:
                         call_with_arch(
-                            "pip", "install", *build_options.test_requires, env=virtualenv_env
+                            "pip",
+                            "install",
+                            *build_options.test_requires,
+                            env=virtualenv_env_install_wheel,
                         )
 
                     # run the tests from a temp dir, with an absolute path in the command
@@ -605,11 +670,13 @@ def build(options: Options, tmp_path: Path) -> None:
 
             # we're all done here; move it to output (overwrite existing)
             if compatible_wheel is None:
-                with contextlib.suppress(FileNotFoundError):
-                    (build_options.output_dir / repaired_wheel.name).unlink()
-
-                shutil.move(str(repaired_wheel), build_options.output_dir)
-                built_wheels.append(build_options.output_dir / repaired_wheel.name)
+                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                moved_wheel = move_file(repaired_wheel, output_wheel)
+                if moved_wheel != output_wheel.resolve():
+                    log.warning(
+                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                    )
+                built_wheels.append(output_wheel)
 
             # clean up
             shutil.rmtree(identifier_tmp_dir)

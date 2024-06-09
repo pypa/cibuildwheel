@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# /// script
+# dependencies = ["pyyaml"]
+# ///
+
 import argparse
 import copy
 import json
@@ -12,8 +16,16 @@ parser.add_argument("--schemastore", action="store_true", help="Generate schema_
 args = parser.parse_args()
 
 starter = """
-$id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
 $schema: http://json-schema.org/draft-07/schema
+$id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
+$defs:
+  inherit:
+    enum:
+      - none
+      - prepend
+      - append
+    default: none
+    description: How to inherit the parent's value.
 additionalProperties: false
 description: cibuildwheel's settings.
 type: object
@@ -92,6 +104,10 @@ properties:
     description: Set environment variables on the host to pass-through to the container
       during the build.
     type: string_array
+  free-threaded-support:
+    type: boolean
+    default: false
+    description: The project supports free-threaded builds of Python (PEP703)
   manylinux-aarch64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
@@ -153,9 +169,6 @@ properties:
 
 schema = yaml.safe_load(starter)
 
-if args.schemastore:
-    schema["$id"] += "#"
-
 string_array = yaml.safe_load(
     """
 - type: string
@@ -214,23 +227,32 @@ items:
   additionalProperties: false
   properties:
     select: {}
+    inherit:
+      type: object
+      additionalProperties: false
+      properties:
+        before-all: {"$ref": "#/$defs/inherit"}
+        before-build: {"$ref": "#/$defs/inherit"}
+        before-test: {"$ref": "#/$defs/inherit"}
+        config-settings: {"$ref": "#/$defs/inherit"}
+        container-engine: {"$ref": "#/$defs/inherit"}
+        environment: {"$ref": "#/$defs/inherit"}
+        environment-pass: {"$ref": "#/$defs/inherit"}
+        repair-wheel-command: {"$ref": "#/$defs/inherit"}
+        test-command: {"$ref": "#/$defs/inherit"}
+        test-extras: {"$ref": "#/$defs/inherit"}
+        test-requires: {"$ref": "#/$defs/inherit"}
 """
 )
 
 for key, value in schema["properties"].items():
     value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
 
-if args.schemastore:
-    non_global_options = {
-        k: {"$ref": f"#/properties/tool/properties/cibuildwheel/properties/{k}"}
-        for k in schema["properties"]
-    }
-else:
-    non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
+non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
 del non_global_options["skip"]
-del non_global_options["container-engine"]
 del non_global_options["test-skip"]
+del non_global_options["free-threaded-support"]
 
 overrides["items"]["properties"]["select"]["oneOf"] = string_array
 overrides["items"]["properties"] |= non_global_options.copy()
@@ -240,6 +262,7 @@ del overrides["items"]["properties"]["archs"]
 not_linux = non_global_options.copy()
 
 del not_linux["environment-pass"]
+del not_linux["container-engine"]
 for key in list(not_linux):
     if "linux-" in key:
         del not_linux[key]
@@ -257,6 +280,7 @@ oses = {
     "linux": as_object(non_global_options),
     "windows": as_object(not_linux),
     "macos": as_object(not_linux),
+    "pyodide": as_object(not_linux),
 }
 
 oses["linux"]["properties"]["repair-wheel-command"] = {
@@ -273,27 +297,11 @@ del oses["linux"]["properties"]["dependency-versions"]
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
 
-if not args.schemastore:
-    print(json.dumps(schema, indent=2))
-    raise SystemExit(0)
+if args.schemastore:
+    schema["$id"] = "https://json.schemastore.org/partial-cibuildwheel.json"
+    schema["$schema"] = "http://json-schema.org/draft-07/schema#"
+    schema["description"] = (
+        "cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel."
+    )
 
-schema_store_txt = """
-$id: https://json.schemastore.org/cibuildwheel.json
-$schema: http://json-schema.org/draft-07/schema#
-additionalProperties: false
-description: cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel.
-type: object
-properties:
-    tool:
-        type: object
-        properties:
-            cibuildwheel:
-                type: object
-"""
-schema_store = yaml.safe_load(schema_store_txt)
-
-schema_store["properties"]["tool"]["properties"]["cibuildwheel"]["properties"] = schema[
-    "properties"
-]
-
-print(json.dumps(schema_store, indent=2))
+print(json.dumps(schema, indent=2))

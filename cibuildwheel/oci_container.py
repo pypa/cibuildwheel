@@ -11,7 +11,7 @@ import sys
 import typing
 import uuid
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
@@ -32,7 +32,7 @@ ContainerEngineName = Literal["docker", "podman"]
 @dataclass(frozen=True)
 class OCIContainerEngineConfig:
     name: ContainerEngineName
-    create_args: Sequence[str] = ()
+    create_args: tuple[str, ...] = field(default_factory=tuple)
     disable_host_mount: bool = False
 
     @staticmethod
@@ -58,7 +58,7 @@ class OCIContainerEngineConfig:
         )
 
         return OCIContainerEngineConfig(
-            name=name, create_args=create_args, disable_host_mount=disable_host_mount
+            name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount
         )
 
     def options_summary(self) -> str | dict[str, str]:

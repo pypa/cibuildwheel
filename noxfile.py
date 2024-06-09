@@ -4,17 +4,21 @@ import os
 import shutil
 import sys
 from pathlib import Path
+from typing import Any
 
 import nox
 
+nox.needs_version = ">=2024.4.15"
 nox.options.sessions = ["lint", "pylint", "check_manifest", "tests"]
-
-PYTHON_ALL_VERSIONS = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+nox.options.default_venv_backend = "uv|virtualenv"
 
 DIR = Path(__file__).parent.resolve()
 
-if os.environ.get("CI", None):
-    nox.options.error_on_missing_interpreters = True
+
+def install_and_run(session: nox.Session, script: str, *args: str, **kwargs: Any) -> str | None:
+    deps = nox.project.load_toml(script)["dependencies"]
+    session.install(*deps)
+    return session.run("python", script, *args, **kwargs)
 
 
 @nox.session
@@ -22,11 +26,11 @@ def tests(session: nox.Session) -> None:
     """
     Run the unit and regular tests.
     """
-    unit_test_args = ["--run-docker"] if sys.platform.startswith("linux") else []
-    session.install("-e", ".[test]")
+    session.install("-e.[test]")
     if session.posargs:
         session.run("pytest", *session.posargs)
     else:
+        unit_test_args = ["--run-docker"] if sys.platform.startswith("linux") else []
         session.run("pytest", "unit_test", *unit_test_args)
         session.run("pytest", "test", "-x", "--durations", "0", "--timeout=2400", "test")
 
@@ -46,7 +50,7 @@ def pylint(session: nox.Session) -> None:
     Run pylint.
     """
 
-    session.install("pylint", ".")
+    session.install("pylint>=3.2", "-e.")
     session.run("pylint", "cibuildwheel", *session.posargs)
 
 
@@ -60,31 +64,57 @@ def check_manifest(session: nox.Session) -> None:
     session.run("check-manifest", *session.posargs)
 
 
-@nox.session(python=PYTHON_ALL_VERSIONS)
+@nox.session
 def update_constraints(session: nox.Session) -> None:
     """
     Update the dependencies inplace.
     """
-    session.install("pip-tools")
-    assert isinstance(session.python, str)
-    python_version = session.python.replace(".", "")
-    env = os.environ.copy()
-    # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
-    # regenerate the constraints files
-    env["CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
-    session.run(
-        "pip-compile",
-        "--allow-unsafe",
-        "--upgrade",
-        "cibuildwheel/resources/constraints.in",
-        f"--output-file=cibuildwheel/resources/constraints-python{python_version}.txt",
-        env=env,
+
+    resources = Path("cibuildwheel/resources")
+
+    if session.venv_backend != "uv":
+        session.install("uv>=0.1.23")
+
+    for minor_version in range(7, 14):
+        python_version = f"3.{minor_version}"
+        env = os.environ.copy()
+        # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+        # regenerate the constraints files
+        env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+        output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
+        session.run(
+            "uv",
+            "pip",
+            "compile",
+            f"--python-version={python_version}",
+            "--upgrade",
+            resources / "constraints.in",
+            f"--output-file={output_file}",
+            env=env,
+        )
+
+    shutil.copyfile(
+        resources / "constraints-python312.txt",
+        resources / "constraints.txt",
     )
-    if session.python == PYTHON_ALL_VERSIONS[-1]:
-        RESOURCES = DIR / "cibuildwheel" / "resources"
-        shutil.copyfile(
-            RESOURCES / f"constraints-python{python_version}.txt",
-            RESOURCES / "constraints.txt",
+
+    build_platforms = nox.project.load_toml(resources / "build-platforms.toml")
+    pyodides = build_platforms["pyodide"]["python_configurations"]
+    for pyodide in pyodides:
+        python_version = ".".join(pyodide["version"].split(".")[:2])
+        pyodide_version = pyodide["pyodide_version"]
+        output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
+        tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
+        tmp_file.write_text(f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_version}")
+        session.run(
+            "uv",
+            "pip",
+            "compile",
+            f"--python-version={python_version}",
+            "--upgrade",
+            tmp_file,
+            f"--output-file={output_file}",
+            env=env,
         )
 
 
@@ -93,20 +123,20 @@ def update_pins(session: nox.Session) -> None:
     """
     Update the python, docker and virtualenv pins version inplace.
     """
-    session.install("-e", ".[bin]")
+    session.install("-e.[bin]")
     session.run("python", "bin/update_pythons.py", "--force")
     session.run("python", "bin/update_docker.py")
     session.run("python", "bin/update_virtualenv.py", "--force")
+    session.run("python", "bin/update_nodejs.py", "--force")
 
 
-@nox.session
+@nox.session(reuse_venv=True)
 def update_proj(session: nox.Session) -> None:
     """
     Update the README inplace.
     """
-    session.install("-e", ".[bin]")
-    session.run(
-        "python",
+    install_and_run(
+        session,
         "bin/projects.py",
         "docs/data/projects.yml",
         *session.posargs,
@@ -118,27 +148,26 @@ def generate_schema(session: nox.Session) -> None:
     """
     Generate the cibuildwheel.schema.json file.
     """
-    session.install("pyyaml")
-    output = session.run("python", "bin/generate_schema.py", silent=True)
+    output = install_and_run(session, "bin/generate_schema.py", silent=True)
     assert isinstance(output, str)
     DIR.joinpath("cibuildwheel/resources/cibuildwheel.schema.json").write_text(output)
 
 
-@nox.session(python="3.9")
+@nox.session(reuse_venv=True)
+def bump_version(session: nox.Session) -> None:
+    """
+    Bump cibuildwheel's version. Interactive.
+    """
+    install_and_run(session, "bin/bump_version.py")
+
+
+@nox.session(python="3.12")
 def docs(session: nox.Session) -> None:
     """
-    Build the docs.
+    Build the docs. Will serve unless --non-interactive
     """
-    session.install("-e", ".[docs]")
-    session.run("pip", "list")
-
-    if session.posargs:
-        if "serve" in session.posargs:
-            session.run("mkdocs", "serve")
-        else:
-            session.error("Unrecognized args, use 'serve'")
-    else:
-        session.run("mkdocs", "build")
+    session.install("-e.[docs]")
+    session.run("mkdocs", "serve" if session.interactive else "build", "--strict", *session.posargs)
 
 
 @nox.session

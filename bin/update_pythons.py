@@ -58,7 +58,7 @@ AnyConfig = Union[ConfigWinCP, ConfigWinPP, ConfigMacOS]
 
 
 class WindowsVersions:
-    def __init__(self, arch_str: ArchStr) -> None:
+    def __init__(self, arch_str: ArchStr, free_threaded: bool) -> None:
         response = requests.get("https://api.nuget.org/v3/index.json")
         response.raise_for_status()
         api_info = response.json()
@@ -72,7 +72,11 @@ class WindowsVersions:
 
         self.arch_str = arch_str
         self.arch = ARCH_DICT[arch_str]
+        self.free_threaded = free_threaded
+
         package = PACKAGE_DICT[arch_str]
+        if free_threaded:
+            package = f"{package}-freethreaded"
 
         response = requests.get(f"{endpoint}{package}/index.json")
         response.raise_for_status()
@@ -92,8 +96,9 @@ class WindowsVersions:
         if not versions:
             return None
 
+        flags = "t" if self.free_threaded else ""
         version = versions[0]
-        identifier = f"cp{version.major}{version.minor}-{self.arch}"
+        identifier = f"cp{version.major}{version.minor}{flags}-{self.arch}"
         return ConfigWinCP(
             identifier=identifier,
             version=self.version_dict[version],
@@ -233,9 +238,12 @@ class CPythonVersions:
 
 class AllVersions:
     def __init__(self) -> None:
-        self.windows_32 = WindowsVersions("32")
-        self.windows_64 = WindowsVersions("64")
-        self.windows_arm64 = WindowsVersions("ARM64")
+        self.windows_32 = WindowsVersions("32", False)
+        self.windows_t_32 = WindowsVersions("32", True)
+        self.windows_64 = WindowsVersions("64", False)
+        self.windows_t_64 = WindowsVersions("64", True)
+        self.windows_arm64 = WindowsVersions("ARM64", False)
+        self.windows_t_arm64 = WindowsVersions("ARM64", True)
         self.windows_pypy_64 = PyPyVersions("64")
 
         self.macos_cpython = CPythonVersions()
@@ -259,14 +267,19 @@ class AllVersions:
                     config_update = self.macos_pypy.update_version_macos(spec)
                 elif "macosx_arm64" in identifier:
                     config_update = self.macos_pypy_arm64.update_version_macos(spec)
-        elif "win32" in identifier:
-            if identifier.startswith("cp"):
-                config_update = self.windows_32.update_version_windows(spec)
+        elif "t-win32" in identifier and identifier.startswith("cp"):
+            config_update = self.windows_t_32.update_version_windows(spec)
+        elif "win32" in identifier and identifier.startswith("cp"):
+            config_update = self.windows_32.update_version_windows(spec)
+        elif "t-win_amd64" in identifier and identifier.startswith("cp"):
+            config_update = self.windows_t_64.update_version_windows(spec)
         elif "win_amd64" in identifier:
             if identifier.startswith("cp"):
                 config_update = self.windows_64.update_version_windows(spec)
             elif identifier.startswith("pp"):
                 config_update = self.windows_pypy_64.update_version_windows(spec)
+        elif "t-win_arm64" in identifier and identifier.startswith("cp"):
+            config_update = self.windows_t_arm64.update_version_windows(spec)
         elif "win_arm64" in identifier and identifier.startswith("cp"):
             config_update = self.windows_arm64.update_version_windows(spec)
 

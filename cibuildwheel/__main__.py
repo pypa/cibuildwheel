@@ -16,6 +16,7 @@ from typing import Protocol
 import cibuildwheel
 import cibuildwheel.linux
 import cibuildwheel.macos
+import cibuildwheel.pyodide
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel import errors
@@ -72,7 +73,7 @@ def main_inner() -> None:
 
     parser.add_argument(
         "--platform",
-        choices=["auto", "linux", "macos", "windows"],
+        choices=["auto", "linux", "macos", "windows", "pyodide"],
         default=None,
         help="""
             Platform to build for. Use this option to override the
@@ -213,6 +214,8 @@ def _compute_platform_only(only: str) -> PlatformName:
         return "macos"
     if "win_" in only or "win32" in only:
         return "windows"
+    if "pyodide_" in only:
+        return "pyodide"
     msg = f"Invalid --only='{only}', must be a build selector with a known platform"
     raise errors.ConfigurationError(msg)
 
@@ -260,11 +263,9 @@ class PlatformModule(Protocol):
     # is applied to a module
     def get_python_configurations(
         self, build_selector: BuildSelector, architectures: Set[Architecture]
-    ) -> Sequence[GenericPythonConfiguration]:
-        ...
+    ) -> Sequence[GenericPythonConfiguration]: ...
 
-    def build(self, options: Options, tmp_path: Path) -> None:
-        ...
+    def build(self, options: Options, tmp_path: Path) -> None: ...
 
 
 # pylint: disable-next=inconsistent-return-statements
@@ -275,11 +276,18 @@ def get_platform_module(platform: PlatformName) -> PlatformModule:
         return cibuildwheel.windows
     if platform == "macos":
         return cibuildwheel.macos
+    if platform == "pyodide":
+        return cibuildwheel.pyodide
     assert_never(platform)
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
+    if platform == "pyodide" and sys.platform == "win32":
+        msg = "cibuildwheel: Building for pyodide is not supported on Windows"
+        print(msg, file=sys.stderr)
+        sys.exit(2)
+
     options = compute_options(platform=platform, command_line_arguments=args, env=os.environ)
 
     package_dir = options.globals.package_dir
