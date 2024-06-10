@@ -4,6 +4,22 @@ title: Changelog
 
 # Changelog
 
+### v2.19.0
+
+- 🌟 Add Pyodide platform. Set with `--platform pyodide` or `CIBW_PLATFORM: pyodide` on Linux with a host Python 3.12 to build WebAssembly wheels. Not accepted on PyPI currently, but usable directly in a website using Pyodide, for live docs, etc. (#1456, #1859)
+- 🌟 Add `build[uv]` backend, which will take a pre-existing uv install (or install `cibuildwheel[uv]`) and use `uv` for all environment setup and installs on Python 3.8+. This is significantly faster in most cases. (#1856)
+- ✨ Add free-threaded macOS builds and update CPython to 3.13.0b2. (#1854)
+- 🐛 Issue copying a wheel to a non-existent output dir fixed. (#1851, #1862)
+- 🐛 Better determinism for the test environment seeding. (#1835)
+- 🛠 `VIRTUAL_ENV` variable now set. (#1842)
+- 🛠 Remove a pip<21.3 workaround. (#1842)
+- 🛠 Error handling was refactored to use exceptions. (#1719)
+- 🛠 Hardcoded paths in tests avoided. (#1834)
+- 🛠 Single Python tests made more generic. (#1835)
+- 🛠 Sped up our ci by splitting up emulation tests. (#1839)
+
+
+
 ### v2.18.1
 
 - 🌟 Add free-threaded Linux and Windows builds for 3.13. New identifiers `cp313t-*`, new option `CIBW_FREE_THREADED_SUPPORT`/`tool.cibuildwheel.free-threaded-support` required to opt-in. [See the docs](https://cibuildwheel.pypa.io/en/stable/options/#free-threaded-support) for more information. (#1831)
