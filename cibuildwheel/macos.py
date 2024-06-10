@@ -16,6 +16,7 @@ from typing import Literal, Tuple
 from filelock import FileLock
 from packaging.version import Version
 
+from . import errors
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
@@ -150,14 +151,13 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
             if detect_ci_provider() is None:
                 # if running locally, we don't want to install CPython with sudo
                 # let the user know & provide a link to the installer
-                print(
+                msg = (
                     f"Error: CPython {version} is not installed.\n"
                     "cibuildwheel will not perform system-wide installs when running outside of CI.\n"
                     f"To build locally, install CPython {version} on this machine, or, disable this version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*\n"
-                    f"\nDownload link: {url}",
-                    file=sys.stderr,
+                    f"\nDownload link: {url}"
                 )
-                raise SystemExit(1)
+                raise errors.FatalError(msg)
             pkg_path = tmp / "Python.pkg"
             # download the pkg
             download(url, pkg_path)
@@ -279,22 +279,16 @@ def setup_python(
         call("pip", "--version", env=env)
         which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
         if which_pip != str(venv_bin_path / "pip"):
-            print(
-                "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
+            msg = "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+            raise errors.FatalError(msg)
 
     # check what Python version we're on
     call("which", "python", env=env)
     call("python", "--version", env=env)
     which_python = call("which", "python", env=env, capture_stdout=True).strip()
     if which_python != str(venv_bin_path / "python"):
-        print(
-            "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        msg = "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+        raise errors.FatalError(msg)
 
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
@@ -756,7 +750,5 @@ def build(options: Options, tmp_path: Path) -> None:
 
             log.build_end()
     except subprocess.CalledProcessError as error:
-        log.step_end_with_error(
-            f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
-        )
-        sys.exit(1)
+        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+        raise errors.FatalError(msg) from error

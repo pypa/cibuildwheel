@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import shutil
 import sys
 import tarfile
 import textwrap
+import traceback
 import typing
 from collections.abc import Iterable, Sequence, Set
 from pathlib import Path
@@ -18,6 +20,7 @@ import cibuildwheel.macos
 import cibuildwheel.pyodide
 import cibuildwheel.util
 import cibuildwheel.windows
+from cibuildwheel import errors
 from cibuildwheel._compat.typing import assert_never
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
@@ -31,10 +34,38 @@ from cibuildwheel.util import (
     chdir,
     detect_ci_provider,
     fix_ansi_codes_for_github_actions,
+    strtobool,
 )
 
 
+@dataclasses.dataclass
+class GlobalOptions:
+    print_traceback_on_error: bool = True  # decides what happens when errors are hit.
+
+
 def main() -> None:
+    global_options = GlobalOptions()
+    try:
+        main_inner(global_options)
+    except errors.FatalError as e:
+        message = e.args[0]
+        if log.step_active:
+            log.step_end_with_error(message)
+        else:
+            print(f"cibuildwheel: {message}", file=sys.stderr)
+
+        if global_options.print_traceback_on_error:
+            traceback.print_exc(file=sys.stderr)
+
+        sys.exit(e.return_code)
+
+
+def main_inner(global_options: GlobalOptions) -> None:
+    """
+    `main_inner` is the same as `main`, but it raises FatalError exceptions
+    rather than exiting directly.
+    """
+
     parser = argparse.ArgumentParser(
         description="Build wheels for all the platforms.",
         epilog="""
@@ -132,7 +163,16 @@ def main() -> None:
         help="Enable pre-release Python versions if available.",
     )
 
+    parser.add_argument(
+        "--debug-traceback",
+        action="store_true",
+        default=strtobool(os.environ.get("CIBW_DEBUG_TRACEBACK", "0")),
+        help="Print a full traceback for all errors",
+    )
+
     args = CommandLineArguments(**vars(parser.parse_args()))
+
+    global_options.print_traceback_on_error = args.debug_traceback
 
     args.package_dir = args.package_dir.resolve()
 
@@ -179,11 +219,8 @@ def _compute_platform_only(only: str) -> PlatformName:
         return "windows"
     if "pyodide_" in only:
         return "pyodide"
-    print(
-        f"Invalid --only='{only}', must be a build selector with a known platform",
-        file=sys.stderr,
-    )
-    sys.exit(2)
+    msg = f"Invalid --only='{only}', must be a build selector with a known platform"
+    raise errors.ConfigurationError(msg)
 
 
 def _compute_platform_auto() -> PlatformName:
@@ -194,34 +231,27 @@ def _compute_platform_auto() -> PlatformName:
     elif sys.platform == "win32":
         return "windows"
     else:
-        print(
+        msg = (
             'cibuildwheel: Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
             "support building wheels for this platform. You might be able to build for a different "
-            "platform using the --platform argument. Check --help output for more information.",
-            file=sys.stderr,
+            "platform using the --platform argument. Check --help output for more information."
         )
-        sys.exit(2)
+        raise errors.ConfigurationError(msg)
 
 
 def _compute_platform(args: CommandLineArguments) -> PlatformName:
     platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
 
     if args.only and args.platform is not None:
-        print(
-            "--platform cannot be specified with --only, it is computed from --only",
-            file=sys.stderr,
-        )
-        sys.exit(2)
+        msg = "--platform cannot be specified with --only, it is computed from --only"
+        raise errors.ConfigurationError(msg)
     if args.only and args.archs is not None:
-        print(
-            "--arch cannot be specified with --only, it is computed from --only",
-            file=sys.stderr,
-        )
-        sys.exit(2)
+        msg = "--arch cannot be specified with --only, it is computed from --only"
+        raise errors.ConfigurationError(msg)
 
     if platform_option_value not in PLATFORMS | {"auto"}:
-        print(f"cibuildwheel: Unsupported platform: {platform_option_value}", file=sys.stderr)
-        sys.exit(2)
+        msg = f"Unsupported platform: {platform_option_value}"
+        raise errors.ConfigurationError(msg)
 
     if args.only:
         return _compute_platform_only(args.only)
@@ -268,9 +298,8 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     if not any(package_dir.joinpath(name).exists() for name in package_files):
         names = ", ".join(sorted(package_files, reverse=True))
-        msg = f"cibuildwheel: Could not find any of {{{names}}} at root of package"
-        print(msg, file=sys.stderr)
-        sys.exit(2)
+        msg = f"Could not find any of {{{names}}} at root of package"
+        raise errors.ConfigurationError(msg)
 
     platform_module = get_platform_module(platform)
     identifiers = get_build_identifiers(
@@ -301,16 +330,14 @@ def build_in_directory(args: CommandLineArguments) -> None:
         options.check_for_invalid_configuration(identifiers)
         allowed_architectures_check(platform, options.globals.architectures)
     except ValueError as err:
-        print("cibuildwheel:", *err.args, file=sys.stderr)
-        sys.exit(4)
+        raise errors.DeprecationError(*err.args) from err
 
     if not identifiers:
-        print(
-            f"cibuildwheel: No build identifiers selected: {options.globals.build_selector}",
-            file=sys.stderr,
-        )
-        if not args.allow_empty:
-            sys.exit(3)
+        message = f"No build identifiers selected: {options.globals.build_selector}"
+        if args.allow_empty:
+            print(f"cibuildwheel: {message}", file=sys.stderr)
+        else:
+            raise errors.NothingToDoError(message)
 
     output_dir = options.globals.output_dir
 
@@ -365,7 +392,9 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
 
 
 def get_build_identifiers(
-    platform_module: PlatformModule, build_selector: BuildSelector, architectures: Set[Architecture]
+    platform_module: PlatformModule,
+    build_selector: BuildSelector,
+    architectures: Set[Architecture],
 ) -> list[str]:
     python_configurations = platform_module.get_python_configurations(build_selector, architectures)
     return [config.identifier for config in python_configurations]

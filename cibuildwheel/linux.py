@@ -10,6 +10,7 @@ from typing import OrderedDict, Tuple
 
 from packaging.version import Version
 
+from . import errors
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
@@ -147,11 +148,7 @@ def check_all_python_exist(
             exist = False
     if not exist:
         message = "\n".join(messages)
-        print(
-            f"cibuildwheel:\n{message}",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        raise errors.FatalError(message)
 
 
 def build_in_container(
@@ -225,28 +222,19 @@ def build_in_container(
         # check config python is still on PATH
         which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
         if PurePosixPath(which_python) != python_bin / "python":
-            print(
-                "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
+            msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+            raise errors.FatalError(msg)
 
         if use_uv:
             which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()
             if not which_uv:
-                print(
-                    "cibuildwheel: uv not found on PATH. You must use a supported manylinux or musllinux environment with uv.",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
+                msg = "uv not found on PATH. You must use a supported manylinux or musllinux environment with uv."
+                raise errors.FatalError(msg)
         else:
             which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
             if PurePosixPath(which_pip) != python_bin / "pip":
-                print(
-                    "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it.",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
+                msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+                raise errors.FatalError(msg)
 
         compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
         if compatible_wheel:
@@ -446,21 +434,18 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                 check=True,
                 stdout=subprocess.DEVNULL,
             )
-        except subprocess.CalledProcessError:
-            print(
-                unwrap(
-                    f"""
-                    cibuildwheel: {build_step.container_engine.name} not found. An
-                    OCI exe like Docker or Podman is required to run Linux builds.
-                    If you're building on Travis CI, add `services: [docker]` to
-                    your .travis.yml. If you're building on Circle CI in Linux,
-                    add a `setup_remote_docker` step to your .circleci/config.yml.
-                    If you're building on Cirrus CI, use `docker_builder` task.
-                    """
-                ),
-                file=sys.stderr,
+        except subprocess.CalledProcessError as error:
+            msg = unwrap(
+                f"""
+                cibuildwheel: {build_step.container_engine.name} not found. An
+                OCI exe like Docker or Podman is required to run Linux builds.
+                If you're building on Travis CI, add `services: [docker]` to
+                your .travis.yml. If you're building on Circle CI in Linux,
+                add a `setup_remote_docker` step to your .circleci/config.yml.
+                If you're building on Cirrus CI, use `docker_builder` task.
+                """
             )
-            sys.exit(2)
+            raise errors.ConfigurationError(msg) from error
 
         try:
             ids_to_build = [x.identifier for x in build_step.platform_configs]
@@ -483,11 +468,9 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                 )
 
         except subprocess.CalledProcessError as error:
-            log.step_end_with_error(
-                f"Command {error.cmd} failed with code {error.returncode}. {error.stdout}"
-            )
             troubleshoot(options, error)
-            sys.exit(1)
+            msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+            raise errors.FatalError(msg) from error
 
 
 def _matches_prepared_command(error_cmd: Sequence[str], command_template: str) -> bool:
@@ -506,7 +489,6 @@ def troubleshoot(options: Options, error: Exception) -> None:
         )  # TODO allow matching of overrides too?
     ):
         # the wheel build step or the repair step failed
-        print("Checking for common errors...")
         so_files = list(options.globals.package_dir.glob("**/*.so"))
 
         if so_files:

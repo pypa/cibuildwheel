@@ -448,7 +448,7 @@ class BuildFrontendConfig:
         config_dict = parse_key_value_string(config_string, ["name"], ["args"])
         name = " ".join(config_dict["name"])
         if name not in {"pip", "build", "build[uv]"}:
-            msg = f"Unrecognised build frontend {name}, only 'pip', 'build', and 'build[uv]' are supported"
+            msg = f"Unrecognised build frontend {name!r}, only 'pip', 'build', and 'build[uv]' are supported"
             raise ValueError(msg)
 
         name = typing.cast(BuildFrontendName, name)

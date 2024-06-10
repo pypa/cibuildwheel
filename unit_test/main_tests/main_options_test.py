@@ -344,6 +344,28 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
     assert build_options.before_all == (before_all or "")
 
 
+@pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
+def test_debug_traceback(monkeypatch, method, capfd):
+    if method == "command_line":
+        monkeypatch.setattr(sys, "argv", [*sys.argv, "--debug-traceback"])
+    elif method == "env_var":
+        monkeypatch.setenv("CIBW_DEBUG_TRACEBACK", "TRUE")
+
+    # set an option that produces a configuration error
+    monkeypatch.setenv("CIBW_BUILD_FRONTEND", "invalid_value")
+
+    with pytest.raises(SystemExit) as exit:
+        main()
+    assert exit.value.code == 2
+
+    _, err = capfd.readouterr()
+
+    if method == "unset":
+        assert "Traceback (most recent call last)" not in err
+    else:
+        assert "Traceback (most recent call last)" in err
+
+
 def test_defaults(platform, intercepted_build_args):
     main()
 

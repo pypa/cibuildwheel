@@ -8,15 +8,14 @@ import difflib
 import enum
 import functools
 import shlex
-import sys
 import textwrap
-import traceback
 from collections.abc import Callable, Generator, Iterable, Iterator, Set
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TID251
 
 from packaging.specifiers import SpecifierSet
 
+from . import errors
 from ._compat import tomllib
 from ._compat.typing import NotRequired, assert_never
 from .architecture import Architecture
@@ -52,6 +51,7 @@ class CommandLineArguments:
     print_build_identifiers: bool
     allow_empty: bool
     prerelease_pythons: bool
+    debug_traceback: bool
 
     @staticmethod
     def defaults() -> CommandLineArguments:
@@ -65,6 +65,7 @@ class CommandLineArguments:
             package_dir=Path("."),
             prerelease_pythons=False,
             print_build_identifiers=False,
+            debug_traceback=False,
         )
 
 
@@ -597,18 +598,14 @@ class Options:
                 try:
                     build_frontend = BuildFrontendConfig.from_config_string(build_frontend_str)
                 except ValueError as e:
-                    print(f"cibuildwheel: {e}", file=sys.stderr)
-                    sys.exit(2)
+                    msg = f"Failed to parse build frontend. {e}"
+                    raise errors.ConfigurationError(msg) from e
 
             try:
                 environment = parse_environment(environment_config)
-            except (EnvironmentParseError, ValueError):
-                print(
-                    f"cibuildwheel: Malformed environment option {environment_config!r}",
-                    file=sys.stderr,
-                )
-                traceback.print_exc(None, sys.stderr)
-                sys.exit(2)
+            except (EnvironmentParseError, ValueError) as e:
+                msg = f"Malformed environment option {environment_config!r}"
+                raise errors.ConfigurationError(msg) from e
 
             # Pass through environment variables
             if self.platform == "linux":
@@ -680,9 +677,8 @@ class Options:
             try:
                 container_engine = OCIContainerEngineConfig.from_config_string(container_engine_str)
             except ValueError as e:
-                msg = f"cibuildwheel: Failed to parse container config. {e}"
-                print(msg, file=sys.stderr)
-                sys.exit(2)
+                msg = f"Failed to parse container config. {e}"
+                raise errors.ConfigurationError(msg) from e
 
             return BuildOptions(
                 globals=self.globals,
@@ -862,6 +858,6 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
 def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
     if "p2" in selector or "p35" in selector:
         msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
-        print(msg, file=sys.stderr)
         if error:
-            sys.exit(4)
+            raise errors.DeprecationError(msg)
+        log.warning(msg)
