@@ -187,4 +187,4 @@ git push && git push --tags
 
 Then head to https://github.com/pypa/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry. Once the release is created inside GitHub, a CI job will create the assets and upload them to PyPI.
 
-If there were any schema updates, run `pipx run ./bin/generate_schema.py --schemastore > cibuildwheel.json` and contribute the changes to SchemaStore.
+If there were any schema updates, run `pipx run ./bin/generate_schema.py --schemastore > partial-cibuildwheel.json` and contribute the changes to SchemaStore.
