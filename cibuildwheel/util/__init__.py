@@ -3,6 +3,7 @@
 from functools import cached_property  # re-exported as part of __all__
 
 # Using import * to avoid making a breaking change by splitting util into submodules
+from .files import *
 from .misc import *
 
 __all__ = [
