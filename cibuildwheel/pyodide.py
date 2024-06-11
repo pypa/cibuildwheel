@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,7 +93,11 @@ def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
 def get_base_python(identifier: str) -> Path:
     implementation_id = identifier.split("-")[0]
     majorminor = implementation_id[len("cp") :]
-    major_minor = f"{majorminor[0]}.{majorminor[1:]}"
+    version_info = (int(majorminor[0]), int(majorminor[1:]))
+    if version_info == sys.version_info[:2]:
+        return Path(sys.executable)
+
+    major_minor = ".".join(str(v) for v in version_info)
     python_name = f"python{major_minor}"
     which_python = shutil.which(python_name)
     if which_python is None:

@@ -24,11 +24,11 @@ branding:
 runs:
   using: composite
   steps:
-    # Set up a non-EOL, cibuildwheel & pipx supported Python version
+    # Set up the version of Python that supports pyodide
     - uses: actions/setup-python@v5
       id: python
       with:
-        python-version: "3.8 - 3.12"
+        python-version: "3.12"
         update-environment: false
 
     - id: cibw
