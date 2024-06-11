@@ -56,7 +56,7 @@ properties:
       - type: string
         pattern: '^build; ?args:'
       - type: string
-        pattern: '^build\[uv\]; ?args:'
+        pattern: '^build\\[uv\\]; ?args:'
       - type: object
         additionalProperties: false
         required: [name]
