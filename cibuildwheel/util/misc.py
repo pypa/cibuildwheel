@@ -324,6 +324,7 @@ def download(url: str, dest: Path) -> None:
                 raise
             sleep(3)
 
+
 class DependencyConstraints:
     def __init__(self, base_file_path: Path):
         assert base_file_path.exists()
@@ -470,6 +471,7 @@ def unwrap(text: str) -> str:
     text = text.strip()
     # remove consecutive whitespace
     return re.sub(r"\s+", " ", text)
+
 
 @contextlib.contextmanager
 def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:

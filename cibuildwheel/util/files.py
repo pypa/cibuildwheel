@@ -13,7 +13,7 @@ from zipfile import ZipFile
 def extract_zip(zip_src: Path, dest: Path) -> None:
     """Extracts a zip and correctly sets permissions on extracted files.
 
-    Note: 
+    Note:
       - sets permissions to the same values as they were set in the archive
       - files with no clear permissions in `external_attr` will be extracted with default values
     """
@@ -29,7 +29,7 @@ def extract_zip(zip_src: Path, dest: Path) -> None:
 
 def extract_tar(tar_src: Path, dest: Path) -> None:
     """Extracts a tar file using the stdlib 'tar' filter.
-    
+
     See: https://docs.python.org/3/library/tarfile.html#tarfile.tar_filter for filter details
     """
     with tarfile.open(tar_src) as tar_:
@@ -68,6 +68,7 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
 @dataclass(frozen=True)
 class FileReport:
     """Caches basic details about a file to avoid repeated calls to `stat()`."""
+
     name: str
     size: str
 
@@ -76,7 +77,7 @@ class FileReport:
 @contextlib.contextmanager
 def chdir(new_path: Path | str) -> Generator[None, None, None]:
     """Non thread-safe context manager to temporarily change the current working directory.
-    
+
     Equivalent to `contextlib.chdir` in Python 3.11
     """
 
