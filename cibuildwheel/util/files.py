@@ -1,5 +1,7 @@
 """File handling functions with default case and error handling."""
 
+from __future__ import annotations
+
 import contextlib
 import os
 import shutil
