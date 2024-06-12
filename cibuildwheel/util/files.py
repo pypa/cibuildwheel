@@ -1,3 +1,5 @@
+"""File handling functions with default case and error handling."""
+
 import contextlib
 import os
 import shutil
@@ -9,21 +11,27 @@ from zipfile import ZipFile
 
 
 def extract_zip(zip_src: Path, dest: Path) -> None:
+    """Extracts a zip and correctly sets permissions on extracted files.
+
+    Note: 
+      - sets permissions to the same values as they were set in the archive
+      - files with no clear permissions in `external_attr` will be extracted with default values
+    """
     with ZipFile(zip_src) as zip_:
         for zinfo in zip_.filelist:
             zip_.extract(zinfo, dest)
 
-            # Set permissions to the same values as they were set in the archive
-            # We have to do this manually due to
-            # https://github.com/python/cpython/issues/59999
-            # But some files in the zipfile seem to have external_attr with 0
-            # permissions. In that case just use the default value???
+            # We have to do this manually due to https://github.com/python/cpython/issues/59999
             permissions = (zinfo.external_attr >> 16) & 0o777
             if permissions != 0:
                 dest.joinpath(zinfo.filename).chmod(permissions)
 
 
 def extract_tar(tar_src: Path, dest: Path) -> None:
+    """Extracts a tar file using the stdlib 'tar' filter.
+    
+    See: https://docs.python.org/3/library/tarfile.html#tarfile.tar_filter for filter details
+    """
     with tarfile.open(tar_src) as tar_:
         tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
         tar_.extractall(dest)
@@ -59,14 +67,18 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
 
 @dataclass(frozen=True)
 class FileReport:
+    """Caches basic details about a file to avoid repeated calls to `stat()`."""
     name: str
     size: str
 
 
-# Can be replaced by contextlib.chdir in Python 3.11
+# Required until end of Python 3.10 support
 @contextlib.contextmanager
 def chdir(new_path: Path | str) -> Generator[None, None, None]:
-    """Non thread-safe context manager to change the current working directory."""
+    """Non thread-safe context manager to temporarily change the current working directory.
+    
+    Equivalent to `contextlib.chdir` in Python 3.11
+    """
 
     cwd = os.getcwd()
     try:
