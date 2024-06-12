@@ -201,7 +201,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
-) -> dict[str, str]:
+) -> tuple[Path, dict[str, str]]:
     if build_frontend == "build[uv]" and Version(python_configuration.version) < Version("3.8"):
         build_frontend = "build"
 
@@ -388,7 +388,7 @@ def setup_python(
     else:
         assert_never(build_frontend)
 
-    return env
+    return base_python, env
 
 
 def build(options: Options, tmp_path: Path) -> None:
@@ -442,7 +442,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_options.dependency_constraints.get_for_python_version(config.version),
                 ]
 
-            env = setup_python(
+            base_python, env = setup_python(
                 identifier_tmp_dir / "build",
                 config,
                 dependency_constraint_flags,
@@ -658,7 +658,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     if use_uv:
                         pip_install = functools.partial(call, *pip, "install", *uv_arch_args)
-                        call("uv", "venv", venv_dir, "--python=python", env=env)
+                        call("uv", "venv", venv_dir, f"--python={base_python}", env=env)
                     else:
                         pip_install = functools.partial(call_with_arch, *pip, "install")
                         # Use pip version from the initial env to ensure determinism

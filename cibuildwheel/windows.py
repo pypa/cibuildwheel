@@ -223,7 +223,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
-) -> dict[str, str]:
+) -> tuple[Path, dict[str, str]]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     python_libs_base = None
@@ -330,7 +330,7 @@ def setup_python(
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
-    return env
+    return base_python, env
 
 
 def build(options: Options, tmp_path: Path) -> None:
@@ -376,7 +376,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 ]
 
             # install Python
-            env = setup_python(
+            base_python, env = setup_python(
                 identifier_tmp_dir / "build",
                 config,
                 dependency_constraint_flags,
@@ -502,7 +502,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 venv_dir = identifier_tmp_dir / "venv-test"
 
                 if use_uv:
-                    call("uv", "venv", venv_dir, "--python=python", env=env)
+                    call("uv", "venv", venv_dir, f"--python={base_python}", env=env)
                 else:
                     # Use pip version from the initial env to ensure determinism
                     venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
