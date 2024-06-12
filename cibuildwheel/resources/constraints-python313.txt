@@ -12,11 +12,11 @@ filelock==3.14.0
     # via virtualenv
 macholib==1.16.3
     # via delocate
-packaging==24.0
+packaging==24.1
     # via
     #   build
     #   delocate
-pip==24.1b1
+pip==24.1b2
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.2.2
     # via virtualenv

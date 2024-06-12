@@ -21,7 +21,7 @@ click==8.1.7
     # via typer
 cloudpickle==3.0.0
     # via loky
-cmake==3.29.3
+cmake==3.29.5
     # via pyodide-build
 distlib==0.3.8
     # via virtualenv
@@ -46,7 +46,7 @@ markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-packaging==24.0
+packaging==24.1
     # via
     #   auditwheel-emscripten
     #   build
@@ -56,7 +56,7 @@ pip==24.0
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.2.2
     # via virtualenv
-pydantic==2.7.3
+pydantic==2.7.4
     # via
     #   pyodide-build
     #   pyodide-lock
