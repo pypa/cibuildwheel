@@ -34,7 +34,7 @@ class TestBeforeTest(TestCase):
 """
 
 
-def test(tmp_path):
+def test(tmp_path, build_frontend_env):
     project_dir = tmp_path / "project"
     before_test_project.generate(project_dir)
     test_project_dir = project_dir / "dependency"
@@ -49,7 +49,7 @@ def test(tmp_path):
         before_test_steps.extend(
             ["pyodide build {project}/dependency", "pip install --find-links dist/ spam"]
         )
-    else:
+    elif build_frontend_env["CIBW_BUILD_FRONTEND"] in {"pip", "build"}:
         before_test_steps.append("python -m pip install {project}/dependency")
 
     before_test = " && ".join(before_test_steps)
@@ -66,6 +66,7 @@ def test(tmp_path):
             # mac/linux.
             "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
             "CIBW_TEST_COMMAND_WINDOWS": "pytest {project}/test",
+            **build_frontend_env,
         },
     )
 
