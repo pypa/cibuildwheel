@@ -372,14 +372,6 @@ So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`
   if: runner.os == 'macOS' && runner.arch == 'ARM64'
 ```
 
-There is also an 'experimental' installer available that's built natively for arm64 that you can install manually with something like:
-
-```bash
-curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
-sudo installer -pkg /tmp/Python38.pkg -target /
-sh "/Applications/Python 3.8/Install Certificates.command"
-```
-
 Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
 
 ### macOS: Library dependencies do not satisfy target MacOS
