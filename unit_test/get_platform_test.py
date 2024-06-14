@@ -1,5 +1,6 @@
 # ruff: noqa: ARG001
 import contextlib
+import sys
 from pathlib import Path
 from typing import Dict
 
@@ -8,11 +9,14 @@ import setuptools._distutils.util
 
 from cibuildwheel.windows import PythonConfiguration, setup_setuptools_cross_compile
 
+# monkeypatching os.name is too flaky. E.g. It works on my machine, but fails in pipeline
+if not sys.platform.startswith("win"):
+    pytest.skip("Windows-only tests", allow_module_level=True)
+
 
 @contextlib.contextmanager
 def patched_environment(monkeypatch: pytest.MonkeyPatch, environment: Dict[str, str]):
     with monkeypatch.context() as mp:
-        mp.setattr("os.name", "nt")
         for envvar, val in environment.items():
             mp.setenv(name=envvar, value=val)
         yield
