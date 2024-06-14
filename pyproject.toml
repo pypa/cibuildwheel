@@ -75,6 +75,7 @@ test = [
     "pytest-timeout",
     "pytest-xdist",
     "pytest>=6",
+    "setuptools",
     "tomli_w",
     "validate-pyproject",
 ]
@@ -140,6 +141,8 @@ disallow_untyped_decorators = true
 [[tool.mypy.overrides]]
 module = [
     "setuptools",
+    "setuptools._distutils", # needed even if only directly import setuptools._distutils.util
+    "setuptools._distutils.util",
     "pytest", # ignored in pre-commit to speed up check
     "bashlex",
     "bashlex.*",
