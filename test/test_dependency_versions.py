@@ -52,12 +52,14 @@ def get_versions_from_constraint_file(constraint_file):
     return dict(re.findall(VERSION_REGEX, constraint_file_text))
 
 
-@pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.10"])
+@pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.12"])
 def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
     if python_version == "3.6" and utils.platform == "macos" and platform.machine() == "arm64":
         pytest.skip("macOS arm64 does not support Python 3.6")
+    if python_version != "3.12" and utils.platform == "pyodide":
+        pytest.skip(f"pyodide does not support Python {python_version}")
 
     project_dir = tmp_path / "project"
     project_with_expected_version_checks.generate(project_dir)
