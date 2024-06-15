@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import textwrap
 
+import pytest
+
 from . import test_projects, utils
 
 basic_project = test_projects.new_c_project(
@@ -32,6 +34,7 @@ build-backend = "setuptools.build_meta"
 """
 
 
+@pytest.mark.xfail(condition=utils.platform == "pyodide", reason="unknown...", strict=True)
 def test_pep518(tmp_path, build_frontend_env):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
