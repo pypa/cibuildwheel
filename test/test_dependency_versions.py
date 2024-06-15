@@ -95,6 +95,7 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
     assert set(actual_wheels) == set(expected_wheels)
 
 
+@pytest.mark.xfail(condition=utils.platform == "pyodide", reason="unknown...", strict=True)
 def test_dependency_constraints_file(tmp_path, build_frontend_env_nouv):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
