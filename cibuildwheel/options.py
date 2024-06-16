@@ -6,10 +6,10 @@ import contextlib
 import dataclasses
 import difflib
 import enum
-import functools
 import shlex
 import textwrap
 from collections.abc import Callable, Generator, Iterable, Iterator, Set
+from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TID251
 
@@ -31,7 +31,6 @@ from .util import (
     BuildSelector,
     DependencyConstraints,
     TestSelector,
-    cached_property,
     format_safe,
     resources_dir,
     selector_matches,
@@ -839,7 +838,7 @@ def compute_options(
     return options
 
 
-@functools.lru_cache(maxsize=None)
+@lru_cache(maxsize=None)
 def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
