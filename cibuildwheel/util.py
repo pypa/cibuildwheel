@@ -19,7 +19,7 @@ from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from functools import cached_property, lru_cache
+from functools import lru_cache
 from pathlib import Path, PurePath
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -41,7 +41,6 @@ from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "MANYLINUX_ARCHS",
-    "cached_property",
     "call",
     "chdir",
     "combine_constraints",
