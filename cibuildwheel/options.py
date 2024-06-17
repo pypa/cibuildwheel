@@ -6,10 +6,10 @@ import contextlib
 import dataclasses
 import difflib
 import enum
+import functools
 import shlex
 import textwrap
 from collections.abc import Callable, Generator, Iterable, Iterator, Set
-from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TID251
 
@@ -501,7 +501,7 @@ class Options:
 
         return None
 
-    @cached_property
+    @functools.cached_property
     def package_requires_python_str(self) -> str | None:
         args = self.command_line_arguments
         return get_requires_python_str(Path(args.package_dir))
@@ -721,7 +721,7 @@ class Options:
         deprecated_selectors("CIBW_SKIP", build_selector.skip_config)
         deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
-    @cached_property
+    @functools.cached_property
     def defaults(self) -> Options:
         return Options(
             platform=self.platform,
@@ -838,7 +838,7 @@ def compute_options(
     return options
 
 
-@lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None)
 def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
