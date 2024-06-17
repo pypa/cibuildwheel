@@ -22,6 +22,7 @@ from .util import (
     BuildSelector,
     NonPlatformWheelError,
     call,
+    combine_constraints,
     download,
     ensure_node,
     extract_zip,
@@ -285,11 +286,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 build_env = env.copy()
                 if build_options.dependency_constraints:
-                    our_constraints = str(constraints_path)
-                    user_constraints = build_env.get("PIP_CONSTRAINT")
-                    build_env["PIP_CONSTRAINT"] = " ".join(
-                        c for c in [our_constraints, user_constraints] if c
-                    )
+                    combine_constraints(build_env, constraints_path, identifier_tmp_dir)
                 build_env["VIRTUALENV_PIP"] = pip_version
                 call(
                     "pyodide",

@@ -8,8 +8,8 @@ basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         """
         # Will fail if PEP 518 does work
-        import requests
-        assert requests.__version__ == "2.27.0", "Requests found but wrong version ({0})".format(requests.__version__)
+        import jmespath
+        assert jmespath.__version__ == "0.10.0", "'jmespath' found but wrong version ({0})".format(jmespath.__version__)
 
         # Just making sure environment is still set
         import os
@@ -24,8 +24,7 @@ basic_project.files["pyproject.toml"] = """
 requires = [
     "setuptools >= 42",
     "setuptools_scm[toml]>=4.1.2",
-    "wheel",
-    "requests==2.27.0"
+    "jmespath==0.10.0"
 ]
 
 build-backend = "setuptools.build_meta"

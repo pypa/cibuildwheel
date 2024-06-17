@@ -28,22 +28,22 @@ def pytest_addoption(parser) -> None:
     )
 
 
-@pytest.fixture(
-    params=[{"CIBW_BUILD_FRONTEND": "pip"}, {"CIBW_BUILD_FRONTEND": "build"}], ids=["pip", "build"]
-)
-def build_frontend_env_nouv(request) -> dict[str, str]:
-    if platform == "pyodide":
+@pytest.fixture(params=["pip", "build"])
+def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
+    frontend = request.param
+    if platform == "pyodide" and frontend == "pip":
         pytest.skip("Can't use pip as build frontend for pyodide platform")
 
-    return request.param  # type: ignore[no-any-return]
+    return {"CIBW_BUILD_FRONTEND": frontend}
 
 
 @pytest.fixture()
 def build_frontend_env(build_frontend_env_nouv: dict[str, str]) -> dict[str, str]:
-    if build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build" and find_uv() is not None:
-        return {"CIBW_BUILD_FRONTEND": "build[uv]"}
+    frontend = build_frontend_env_nouv["CIBW_BUILD_FRONTEND"]
+    if frontend != "build" or platform == "pyodide" or find_uv() is None:
+        return build_frontend_env_nouv
 
-    return build_frontend_env_nouv
+    return {"CIBW_BUILD_FRONTEND": "build[uv]"}
 
 
 @pytest.fixture()
