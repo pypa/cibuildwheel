@@ -624,7 +624,7 @@ This option can also be set using the [command-line option](#command-line) `--pr
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
-> Set the tool to use to build, either "pip" (default for now), "build", or "build[uv]"
+> Set the tool to use to build, either "pip" (default for now), "build", or "build\[uv\]"
 
 Options:
 
@@ -636,7 +636,7 @@ Default: `pip`
 Choose which build frontend to use. Can either be "pip", which will run
 `python -m pip wheel`, or "build", which will run `python -m build --wheel`.
 
-You can also use "build[uv]", which will use an external [uv][] everywhere
+You can also use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
