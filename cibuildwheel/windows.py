@@ -9,12 +9,12 @@ from collections.abc import MutableMapping, Sequence, Set
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
+from typing import assert_never
 
 from filelock import FileLock
 from packaging.version import Version
 
 from . import errors
-from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import ParsedEnvironment
 from .logger import log

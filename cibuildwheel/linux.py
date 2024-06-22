@@ -7,11 +7,11 @@ from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
+from typing import assert_never
 
 from packaging.version import Version
 
 from . import errors
-from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
 from .oci_container import OCIContainer, OCIContainerEngineConfig

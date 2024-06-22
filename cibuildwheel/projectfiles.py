@@ -3,9 +3,8 @@ from __future__ import annotations
 import ast
 import configparser
 import contextlib
+import tomllib
 from pathlib import Path
-
-from ._compat import tomllib
 
 
 def get_parent(node: ast.AST | None, depth: int = 1) -> ast.AST | None:

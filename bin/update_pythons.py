@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import difflib
 import logging
+import tomllib
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Final, Literal, TypedDict
@@ -17,7 +18,6 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel._compat import tomllib
 from cibuildwheel.extra import dump_python_configurations
 
 log = logging.getLogger("cibw")

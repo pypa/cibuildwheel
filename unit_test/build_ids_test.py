@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import tomllib
+
 from packaging.version import Version
 
-from cibuildwheel._compat import tomllib
 from cibuildwheel.extra import Printable, dump_python_configurations
 from cibuildwheel.util import resources_dir
 

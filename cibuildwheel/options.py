@@ -9,6 +9,7 @@ import enum
 import functools
 import shlex
 import textwrap
+import tomllib
 from collections.abc import (
     Callable,
     Generator,
@@ -19,13 +20,11 @@ from collections.abc import (
     Set,
 )
 from pathlib import Path
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict, assert_never
 
 from packaging.specifiers import SpecifierSet
 
 from . import errors
-from ._compat import tomllib
-from ._compat.typing import NotRequired, assert_never
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log

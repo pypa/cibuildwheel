@@ -13,6 +13,7 @@ import sys
 import tarfile
 import textwrap
 import time
+import tomllib
 import typing
 import urllib.request
 from collections import defaultdict
@@ -35,7 +36,6 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from ._compat import tomllib
 from .architecture import Architecture
 from .typing import PathOrStr, PlatformName
 

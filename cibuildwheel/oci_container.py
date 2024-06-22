@@ -14,9 +14,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Literal
+from typing import IO, Literal, Self
 
-from ._compat.typing import Self
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
