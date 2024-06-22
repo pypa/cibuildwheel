@@ -363,7 +363,7 @@ If you're building on an arm64 runner, you might notice something strange about 
 
 This is fine for simple C extensions, but for more complicated builds on arm64 it becomes an issue.
 
-So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`) on Python 3.8, before invoking cibuildwheel, you should install a native arm64 Python 3.8 interpreter on the runner. On GitHub actions you can set this up easily using the `setup-python` action with something like:
+So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`) on Python 3.8, before invoking cibuildwheel, you should install a native arm64 Python 3.8 interpreter on the runner:
 
 
 !!! tab "GitHub Actions"
@@ -375,7 +375,7 @@ So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`
       if: runner.os == 'macOS' && runner.arch == 'ARM64'
     ```
 
-!!! tab "Other CIs"
+!!! tab "Generic"
 
     ```bash
     curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
