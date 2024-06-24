@@ -14,7 +14,7 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.4.9
+  rev: v0.4.10
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
@@ -77,7 +77,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.28.5
+  rev: 0.28.6
   hooks:
     - id: check-dependabot
     - id: check-github-actions
