@@ -1,5 +1,5 @@
 linux:
-  image: python:3.8
+  image: python:3.12
   services:
     - name: docker:dind
       entrypoint: ["env", "-u", "DOCKER_HOST"]
@@ -23,9 +23,9 @@ windows:
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   before_script:
-    - choco install python -y --version 3.8.6
+    - choco install python -y --version 3.12.4
   script:
     - py -m pip install -e ".[dev]" pytest-custom-exit-code
     - py bin\run_tests.py
   tags:
-    - windows
+    - saas-windows-medium-amd64
