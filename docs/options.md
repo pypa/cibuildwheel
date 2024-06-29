@@ -1383,9 +1383,6 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Run the project tests against the installed wheel using `nose`
-    CIBW_TEST_COMMAND: nosetests {project}/tests
-
     # Run the package tests using `pytest`
     CIBW_TEST_COMMAND: pytest {package}/tests
 
@@ -1402,9 +1399,6 @@ Platform-specific environment variables are also available:<br/>
 
     ```toml
     [tool.cibuildwheel]
-    # Run the project tests against the installed wheel using `nose`
-    test-command = "nosetests {project}/tests"
-
     # Run the package tests using `pytest`
     test-command = "pytest {package}/tests"
 
@@ -1510,7 +1504,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_REQUIRES: pytest
 
     # Install specific versions of test dependencies
-    CIBW_TEST_REQUIRES: nose==1.3.7 moto==0.4.31
+    CIBW_TEST_REQUIRES: pytest==8.2.2 packaging==24.1
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1522,7 +1516,7 @@ Platform-specific environment variables are also available:<br/>
 
     # Install specific versions of test dependencies
     [tool.cibuildwheel]
-    test-requires = ["nose==1.3.7", "moto==0.4.31"]
+    test-requires = ["pytest==8.2.2", "packaging==24.1"]
     ```
 
     In configuration files, you can use an array, and the items will be joined with a space.
