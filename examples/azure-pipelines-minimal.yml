@@ -14,7 +14,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 
 - job: macos
-  pool: {vmImage: 'macOS-11'}
+  pool: {vmImage: 'macOS-12'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
