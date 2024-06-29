@@ -1,5 +1,5 @@
 linux:
-  image: python:3.8
+  image: python:3.12
   # make a docker daemon available for cibuildwheel to use
   services:
     - name: docker:dind
@@ -21,7 +21,7 @@ linux:
 windows:
   image: mcr.microsoft.com/windows/servercore:1809
   before_script:
-    - choco install python -y --version 3.8.6
+    - choco install python -y --version 3.12.4
     - choco install git.install -y
     - py -m pip install cibuildwheel==2.19.1
   script:
@@ -30,4 +30,4 @@ windows:
     paths:
       - wheelhouse/
   tags:
-    - windows
+    - saas-windows-medium-amd64

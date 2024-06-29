@@ -1,9 +1,10 @@
 version: 2
 
 jobs:
-  osx-python3.9:
+  osx-python3.12:
     macos:
-      xcode: 12.5.1
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
     environment:
       PYTHON: python3
     steps:
@@ -17,9 +18,9 @@ jobs:
           command: venv/bin/python ./bin/run_tests.py
           no_output_timeout: 30m
 
-  linux-python3.9:
+  linux-python3.12:
     docker:
-      - image: circleci/python:3.9
+      - image: cimg/python:3.12
     environment:
       PYTHON: python3
       # Temporarily restrict the tests that are run on CircleCI to prevent
@@ -61,6 +62,6 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      - osx-python3.9
-      - linux-python3.9
+      - osx-python3.12
+      - linux-python3.12
       - linux-aarch64
