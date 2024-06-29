@@ -38,7 +38,7 @@ idna==3.7
     #   anyio
     #   httpx
     #   requests
-leb128==1.0.7
+leb128==1.0.8
     # via auditwheel-emscripten
 loky==3.4.1
     # via pyodide-build
@@ -52,7 +52,7 @@ packaging==24.1
     #   build
     #   pyodide-build
     #   unearth
-pip==24.1
+pip==24.1.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.2.2
     # via virtualenv
@@ -66,7 +66,7 @@ pygments==2.18.0
     # via rich
 pyodide-build==0.26.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-pyodide-cli==0.2.3
+pyodide-cli==0.2.4
     # via
     #   auditwheel-emscripten
     #   pyodide-build
@@ -107,7 +107,7 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   typer
-unearth==0.15.4
+unearth==0.15.5
     # via pyodide-build
 urllib3==2.2.2
     # via
