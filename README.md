@@ -61,7 +61,7 @@ Usage
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             |
 | AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |
 | CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             |
-| Gitlab CI       | ✅    |       | ✅      | ✅¹       |           |             |
+| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             |
 | Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>

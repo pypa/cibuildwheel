@@ -29,3 +29,13 @@ windows:
     - py bin\run_tests.py
   tags:
     - saas-windows-medium-amd64
+
+macos:
+  image: macos-14-xcode-15
+  variables:
+    PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
+  script:
+    - python3 -m pip install -e ".[dev]" pytest-custom-exit-code
+    - python3 ./bin/run_tests.py
+  tags:
+    - saas-macos-medium-m1
