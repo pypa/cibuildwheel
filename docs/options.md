@@ -657,6 +657,12 @@ optional `args` option.
     will change the default to [build][], in line with the PyPA's recommendation.
     If you want to try `build` before this, you can use this option.
 
+!!! warning
+    If you are using `build[uv]` and are passing `--no-isolation` or `-n`, we
+    will detect this and avoid passing `--installer=uv` to build, but still
+    install all packages with uv. We do not currently detect combined short
+    options, like `-xn`!
+
 [pip]: https://pip.pypa.io/en/stable/cli/pip_wheel/
 [build]: https://github.com/pypa/build/
 [uv]: https://github.com/astral-sh/uv
