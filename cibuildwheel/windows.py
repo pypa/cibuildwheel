@@ -158,8 +158,8 @@ def setup_setuptools_cross_compile(
     vscmd_arg_tgt_arch = {"32": "x86", "64": "x64", "ARM64": "arm64"}
     current_tgt_arch = vscmd_arg_tgt_arch[python_configuration.arch]
     if env.get("VSCMD_ARG_TGT_ARCH", current_tgt_arch) != current_tgt_arch:
-         msg = f"VSCMD_ARG_TGT_ARCH must be set to {current_tgt_arch}, got {env['VSCMD_ARG_TGT_ARCH']}. Make sure you setup MSVC targetting the right architecture."
-         raise errors.FatalError(msg)
+        msg = f"VSCMD_ARG_TGT_ARCH must be set to {current_tgt_arch}, got {env['VSCMD_ARG_TGT_ARCH']}. Make sure you setup MSVC targeting the right architecture."
+        raise errors.FatalError(msg)
     env["VSCMD_ARG_TGT_ARCH"] = current_tgt_arch
 
     # (This file must be default/locale encoding, so we can't pass 'encoding')
