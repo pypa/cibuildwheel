@@ -13,13 +13,14 @@ import sys
 import tarfile
 import textwrap
 import time
+import tomllib
 import typing
 import urllib.request
 from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from functools import lru_cache
+from functools import cache
 from pathlib import Path, PurePath
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -35,7 +36,6 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
-from ._compat import tomllib
 from .architecture import Architecture
 from .typing import PathOrStr, PlatformName
 
@@ -595,7 +595,7 @@ def get_pip_version(env: Mapping[str, str]) -> str:
     return pip_version
 
 
-@lru_cache(maxsize=None)
+@cache
 def ensure_node(major_version: str) -> Path:
     input_file = resources_dir / "nodejs.toml"
     with input_file.open("rb") as f:
@@ -627,7 +627,7 @@ def ensure_node(major_version: str) -> Path:
     return path
 
 
-@lru_cache(maxsize=None)
+@cache
 def _ensure_virtualenv(version: str) -> Path:
     version_parts = version.split(".")
     key = f"py{version_parts[0]}{version_parts[1]}"

@@ -22,13 +22,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
+      id: python
       with:
         python-version: "3.x"
     - uses: pre-commit/action@v3.0.1
     - name: Check manifest
-      run: pipx run nox -s check_manifest
+      run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s check_manifest
     - name: PyLint checks
-      run: pipx run nox -s pylint -- --output-format=github
+      run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
   test:
     name: Test on ${{ matrix.os }} (${{ matrix.python_version }})
@@ -37,10 +38,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-        python_version: ['3.12']
+        python_version: ['3.13']
         include:
         - os: ubuntu-latest
-          python_version: '3.8'
+          python_version: '3.11'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -48,6 +49,7 @@ jobs:
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
+        allow-prereleases: true
 
     - uses: yezz123/setup-uv@v4
 
