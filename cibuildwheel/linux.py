@@ -282,7 +282,7 @@ def build_in_container(
                 if not 0 <= build_options.build_verbosity < 2:
                     msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
                     log.warning(msg)
-                if use_uv:
+                if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                     extra_flags += ["--installer=uv"]
                 container.call(
                     [
