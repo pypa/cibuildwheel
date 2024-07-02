@@ -155,9 +155,12 @@ def setup_setuptools_cross_compile(
 
     # Set environment variable so that setuptools._distutils.get_platform()
     # identifies the target, not the host
-    if not env.get("VSCMD_ARG_TGT_ARCH"):
-        vscmd_arg_tgt_arch = {"32": "x86", "64": "x64", "ARM64": "arm64"}
-        env["VSCMD_ARG_TGT_ARCH"] = vscmd_arg_tgt_arch[python_configuration.arch]
+    vscmd_arg_tgt_arch = {"32": "x86", "64": "x64", "ARM64": "arm64"}
+    current_tgt_arch = vscmd_arg_tgt_arch[python_configuration.arch]
+    if env.get("VSCMD_ARG_TGT_ARCH", current_tgt_arch) != current_tgt_arch:
+         msg = f"VSCMD_ARG_TGT_ARCH must be set to {current_tgt_arch}, got {env['VSCMD_ARG_TGT_ARCH']}. Make sure you setup MSVC targetting the right architecture."
+         raise errors.FatalError(msg)
+    env["VSCMD_ARG_TGT_ARCH"] = current_tgt_arch
 
     # (This file must be default/locale encoding, so we can't pass 'encoding')
     distutils_cfg.write_text(
