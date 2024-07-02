@@ -4,6 +4,18 @@ title: Changelog
 
 # Changelog
 
+### v2.19.2
+
+- 🐛 Update manylinux2014 pins to versions that support past-EoL CentOS 7 mirrors. (#1917)
+- 🐛 Support `--no-isolation` with `build[uv]` build-frontend. (#1889)
+- 🛠 Provide attestations for releases at <https://github.com/pypa/cibuildwheel/attestations>. (#1916)
+- 🛠 Provide CPython 3.13.0b3. (#1913)
+- 🛠 Remove some workarounds now that pip 21.1 is available. (#1891, #1892)
+- 📚 Remove nosetest from our docs. (#1821)
+- 📚 Document the macOS ARM workaround for 3.8 on GHA. (#1971)
+- 📚 GitLab CI + macOS is now a supported platform with an example. (#1911)
+
+
 ### v2.19.1
 
 - 🐛 Don't require setup-python on GHA for Pyodide (#1868)
