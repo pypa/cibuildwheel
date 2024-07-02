@@ -157,8 +157,8 @@ def setup_setuptools_cross_compile(
     # identifies the target, not the host
     vscmd_arg_tgt_arch = {"32": "x86", "64": "x64", "ARM64": "arm64"}
     current_tgt_arch = vscmd_arg_tgt_arch[python_configuration.arch]
-    if env.get("VSCMD_ARG_TGT_ARCH", current_tgt_arch) != current_tgt_arch:
-        msg = f"VSCMD_ARG_TGT_ARCH must be set to {current_tgt_arch}, got {env['VSCMD_ARG_TGT_ARCH']}. Make sure you setup MSVC targeting the right architecture."
+    if (env.get("VSCMD_ARG_TGT_ARCH") or current_tgt_arch) != current_tgt_arch:
+        msg = f"VSCMD_ARG_TGT_ARCH must be set to {current_tgt_arch!r}, got {env['VSCMD_ARG_TGT_ARCH']!r}. If you're setting up MSVC yourself (e.g. using vcvarsall.bat or msvc-dev-cmd), make sure to target the right architecture. Alternatively, run cibuildwheel without configuring MSVC, and let the build backend handle it."
         raise errors.FatalError(msg)
     env["VSCMD_ARG_TGT_ARCH"] = current_tgt_arch
 
