@@ -56,11 +56,11 @@ pip==24.1.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.2.2
     # via virtualenv
-pydantic==2.7.4
+pydantic==2.8.0
     # via
     #   pyodide-build
     #   pyodide-lock
-pydantic-core==2.18.4
+pydantic-core==2.20.0
     # via pydantic
 pygments==2.18.0
     # via rich
