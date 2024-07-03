@@ -7,6 +7,7 @@ from typing import Dict
 import pytest
 import setuptools._distutils.util
 
+from cibuildwheel.errors import FatalError
 from cibuildwheel.util import CIProvider, detect_ci_provider
 from cibuildwheel.windows import PythonConfiguration, setup_setuptools_cross_compile
 
@@ -68,18 +69,14 @@ def test_arm(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert target_platform == "win-arm64"
 
 
-def test_env_set(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_env_set(tmp_path: Path):
     arch = "32"
     environment = {"VSCMD_ARG_TGT_ARCH": "x64"}
 
     configuration = PythonConfiguration("irrelevant", arch, "irrelevant", None)
 
-    setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)
-    with patched_environment(monkeypatch, environment):
-        target_platform = setuptools._distutils.util.get_platform()
-
-    assert environment["VSCMD_ARG_TGT_ARCH"] == "x64"
-    assert target_platform == "win-amd64"
+    with pytest.raises(FatalError, match="VSCMD_ARG_TGT_ARCH"):
+        setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)
 
 
 def test_env_blank(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
