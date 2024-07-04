@@ -657,3 +657,10 @@
       C++ framework. Uses cibuildwheel to deploy on as many operating
       systems and Python versions as possible with only one dependency
       (any NumPy).
+
+- name: streaming-form-data
+  gh: siddhantgoel/streaming-form-data
+  ci: [github]
+  os: [apple, linux, windows]
+  pypi: streaming-form-data
+  notes: Streaming parser for multipart/form-data written in Cython

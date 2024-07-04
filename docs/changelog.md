@@ -4,7 +4,30 @@ title: Changelog
 
 # Changelog
 
+### v2.19.2
+
+- 🐛 Update manylinux2014 pins to versions that support past-EoL CentOS 7 mirrors. (#1917)
+- 🐛 Support `--no-isolation` with `build[uv]` build-frontend. (#1889)
+- 🛠 Provide attestations for releases at <https://github.com/pypa/cibuildwheel/attestations>. (#1916)
+- 🛠 Provide CPython 3.13.0b3. (#1913)
+- 🛠 Remove some workarounds now that pip 21.1 is available. (#1891, #1892)
+- 📚 Remove nosetest from our docs. (#1821)
+- 📚 Document the macOS ARM workaround for 3.8 on GHA. (#1971)
+- 📚 GitLab CI + macOS is now a supported platform with an example. (#1911)
+
+
+### v2.19.1
+
+- 🐛 Don't require setup-python on GHA for Pyodide (#1868)
+- 🐛 Specify full python path for uv (fixes issue in 0.2.10 & 0.2.11) (#1881)
+- 🛠 Update for pip 24.1b2 on CPython 3.13. (#1879)
+- 🛠 Fix a warning in our schema generation script. (#1866)
+- 🛠 Cleaner output on pytest 8-8.2. (#1865)
+
+
 ### v2.19.0
+
+See the [release post](https://iscinumpy.dev/post/cibuildwheel-2-19-0/) for more info on new features!
 
 - 🌟 Add Pyodide platform. Set with `--platform pyodide` or `CIBW_PLATFORM: pyodide` on Linux with a host Python 3.12 to build WebAssembly wheels. Not accepted on PyPI currently, but usable directly in a website using Pyodide, for live docs, etc. (#1456, #1859)
 - 🌟 Add `build[uv]` backend, which will take a pre-existing uv install (or install `cibuildwheel[uv]`) and use `uv` for all environment setup and installs on Python 3.8+. This is significantly faster in most cases. (#1856)

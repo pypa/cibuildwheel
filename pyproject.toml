@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "2.19.0"
+version = "2.19.2"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -93,7 +93,12 @@ Homepage = "https://github.com/pypa/cibuildwheel"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+addopts = [
+  "-rfEsX",  # TODO: replace with -ra when pytest > 8.2.2 is released
+  "--showlocals",
+  "--strict-markers",
+  "--strict-config",
+]
 junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]

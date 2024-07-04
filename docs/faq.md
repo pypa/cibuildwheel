@@ -142,7 +142,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v2.19.0
+uses: pypa/cibuildwheel@v2.19.2
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -164,7 +164,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==2.19.0
+cibuildwheel==2.19.2
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -328,7 +328,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==2.19.0 --output-dir wheelhouse
+pipx run cibuildwheel==2.19.2 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 
@@ -363,16 +363,25 @@ If you're building on an arm64 runner, you might notice something strange about 
 
 This is fine for simple C extensions, but for more complicated builds on arm64 it becomes an issue.
 
-So, if the cross-compilation is an issue for you, there is an 'experimental' installer available that's built natively for arm64.
-
-To use this installer and perform native CPython 3.8 building, before invoking cibuildwheel, install the universal2 version of Python on your arm64 runner, something like:
+So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`) on Python 3.8, before invoking cibuildwheel, you should install a native arm64 Python 3.8 interpreter on the runner:
 
 
-```bash
-curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
-sudo installer -pkg /tmp/Python38.pkg -target /
-sh "/Applications/Python 3.8/Install Certificates.command"
-```
+!!! tab "GitHub Actions"
+
+    ```yaml
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.8
+      if: runner.os == 'macOS' && runner.arch == 'ARM64'
+    ```
+
+!!! tab "Generic"
+
+    ```bash
+    curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
+    sudo installer -pkg /tmp/Python38.pkg -target /
+    sh "/Applications/Python 3.8/Install Certificates.command"
+    ```
 
 Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
 

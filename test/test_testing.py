@@ -135,8 +135,8 @@ def test_failing_test(tmp_path):
             project_dir,
             output_dir=output_dir,
             add_env={
-                "CIBW_TEST_REQUIRES": "nose",
-                "CIBW_TEST_COMMAND": "nosetests {project}/test",
+                "CIBW_TEST_REQUIRES": "pytest",
+                "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
                 # manylinux1 has a version of bash that's been shown to have
                 # problems with this, so let's check that.
                 "CIBW_MANYLINUX_I686_IMAGE": "manylinux1",

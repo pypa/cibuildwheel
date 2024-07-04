@@ -1,5 +1,5 @@
 linux:
-  image: python:3.8
+  image: python:3.12
   # make a docker daemon available for cibuildwheel to use
   services:
     - name: docker:dind
@@ -12,7 +12,7 @@ linux:
     DOCKER_TLS_CERTDIR: ""
   script:
     - curl -sSL https://get.docker.com/ | sh
-    - python -m pip install cibuildwheel==2.19.0
+    - python -m pip install cibuildwheel==2.19.2
     - cibuildwheel --output-dir wheelhouse
   artifacts:
     paths:
@@ -21,13 +21,25 @@ linux:
 windows:
   image: mcr.microsoft.com/windows/servercore:1809
   before_script:
-    - choco install python -y --version 3.8.6
+    - choco install python -y --version 3.12.4
     - choco install git.install -y
-    - py -m pip install cibuildwheel==2.19.0
+    - py -m pip install cibuildwheel==2.19.2
   script:
     - py -m cibuildwheel --output-dir wheelhouse --platform windows
   artifacts:
     paths:
       - wheelhouse/
   tags:
-    - windows
+    - saas-windows-medium-amd64
+
+macos:
+  image: macos-14-xcode-15
+  before_script:
+    - python3 -m pip install cibuildwheel==2.19.2
+  script:
+    - python3 -m cibuildwheel --output-dir wheelhouse
+  artifacts:
+    paths:
+      - wheelhouse/
+  tags:
+    - saas-macos-medium-m1

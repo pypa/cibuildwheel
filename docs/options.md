@@ -624,7 +624,7 @@ This option can also be set using the [command-line option](#command-line) `--pr
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
-> Set the tool to use to build, either "pip" (default for now), "build", or "build[uv]"
+> Set the tool to use to build, either "pip" (default for now), "build", or "build\[uv\]"
 
 Options:
 
@@ -636,7 +636,7 @@ Default: `pip`
 Choose which build frontend to use. Can either be "pip", which will run
 `python -m pip wheel`, or "build", which will run `python -m build --wheel`.
 
-You can also use "build[uv]", which will use an external [uv][] everywhere
+You can also use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
@@ -656,6 +656,12 @@ optional `args` option.
     default. However, we expect that at some point in the future, cibuildwheel
     will change the default to [build][], in line with the PyPA's recommendation.
     If you want to try `build` before this, you can use this option.
+
+!!! warning
+    If you are using `build[uv]` and are passing `--no-isolation` or `-n`, we
+    will detect this and avoid passing `--installer=uv` to build, but still
+    install all packages with uv. We do not currently detect combined short
+    options, like `-xn`!
 
 [pip]: https://pip.pypa.io/en/stable/cli/pip_wheel/
 [build]: https://github.com/pypa/build/
@@ -818,7 +824,7 @@ Platform-specific environment variables are also available:<br/>
     In configuration mode, you can use a [TOML][] table instead of a raw string as shown above.
 
 !!! note
-    cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#building-packages-with-optional-c-extensions).
+    cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#optional-extensions).
 
 !!! note
     To do its work, cibuildwheel sets the variables `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`, and it extends the variables `PATH` and `PIP_CONSTRAINT`. Your assignments to these options might be replaced or extended.
@@ -1383,9 +1389,6 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Run the project tests against the installed wheel using `nose`
-    CIBW_TEST_COMMAND: nosetests {project}/tests
-
     # Run the package tests using `pytest`
     CIBW_TEST_COMMAND: pytest {package}/tests
 
@@ -1402,9 +1405,6 @@ Platform-specific environment variables are also available:<br/>
 
     ```toml
     [tool.cibuildwheel]
-    # Run the project tests against the installed wheel using `nose`
-    test-command = "nosetests {project}/tests"
-
     # Run the package tests using `pytest`
     test-command = "pytest {package}/tests"
 
@@ -1510,7 +1510,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_REQUIRES: pytest
 
     # Install specific versions of test dependencies
-    CIBW_TEST_REQUIRES: nose==1.3.7 moto==0.4.31
+    CIBW_TEST_REQUIRES: pytest==8.2.2 packaging==24.1
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1522,7 +1522,7 @@ Platform-specific environment variables are also available:<br/>
 
     # Install specific versions of test dependencies
     [tool.cibuildwheel]
-    test-requires = ["nose==1.3.7", "moto==0.4.31"]
+    test-requires = ["pytest==8.2.2", "packaging==24.1"]
     ```
 
     In configuration files, you can use an array, and the items will be joined with a space.

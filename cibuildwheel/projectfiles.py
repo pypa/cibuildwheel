@@ -39,10 +39,8 @@ def is_main(parent: ast.AST | None) -> bool:
     if len(mains) != 1:
         return False
     consts = {x for x in values if isinstance(x, ast.Name) and x.id == "__name__"}
-    if len(consts) != 1:
-        return False
 
-    return True
+    return len(consts) == 1
 
 
 class Analyzer(ast.NodeVisitor):

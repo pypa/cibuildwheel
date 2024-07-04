@@ -4,14 +4,14 @@ jobs:
   linux-wheels:
     working_directory: ~/linux-wheels
     docker:
-      - image: circleci/python:3.9
+      - image: cimg/python:3.12
     steps:
       - checkout
       - setup_remote_docker
       - run:
           name: Build the Linux wheels.
           command: |
-            pip3 install --user cibuildwheel==2.19.0
+            python3 -m pip install --user cibuildwheel==2.19.2
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
-            python3 -m pip install --user cibuildwheel==2.19.0
+            python3 -m pip install --user cibuildwheel==2.19.2
             python3 -m cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -36,13 +36,15 @@ jobs:
   osx-wheels:
     working_directory: ~/osx-wheels
     macos:
-      xcode: 12.5.1
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
     steps:
       - checkout
       - run:
           name: Build the OS X wheels.
           command: |
-            pip3 install cibuildwheel==2.19.0
+            sudo softwareupdate --install-rosetta --agree-to-license  # for python<=3.8 or x86_64/universal2 tests
+            pip3 install cibuildwheel==2.19.2
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
