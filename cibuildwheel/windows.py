@@ -35,7 +35,6 @@ from .util import (
     find_uv,
     get_build_verbosity_extra_flags,
     get_pip_version,
-    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -44,6 +43,7 @@ from .util import (
     unwrap,
     virtualenv,
 )
+from .util.files import move_file
 
 
 def get_nuget_args(

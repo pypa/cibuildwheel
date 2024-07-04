@@ -40,7 +40,6 @@ from .util import (
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
-    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -49,6 +48,7 @@ from .util import (
     unwrap,
     virtualenv,
 )
+from .util.files import move_file
 
 
 @functools.lru_cache(maxsize=None)
