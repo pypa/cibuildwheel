@@ -25,7 +25,6 @@ from .util import (
     combine_constraints,
     download,
     ensure_node,
-    extract_zip,
     find_compatible_wheel,
     get_pip_version,
     prepare_command,
@@ -35,7 +34,7 @@ from .util import (
     test_fail_cwd_file,
     virtualenv,
 )
-from .util.files import move_file
+from .util.files import extract_zip, move_file
 
 
 @dataclass(frozen=True)

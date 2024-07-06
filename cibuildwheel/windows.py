@@ -30,7 +30,6 @@ from .util import (
     call,
     combine_constraints,
     download,
-    extract_zip,
     find_compatible_wheel,
     find_uv,
     get_build_verbosity_extra_flags,
@@ -43,7 +42,7 @@ from .util import (
     unwrap,
     virtualenv,
 )
-from .util.files import move_file
+from .util.files import extract_zip, move_file
 
 
 def get_nuget_args(
