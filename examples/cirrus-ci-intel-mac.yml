@@ -11,10 +11,11 @@ macos_task:
   name: Build macOS x86_64 and arm64 wheels.
   macos_instance:
     image: ghcr.io/cirruslabs/macos-sonoma-xcode
-
   env:
-    PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
     CIBW_ARCHS_MACOS: x86_64 arm64
   install_pre_requirements_script:
-    - brew install python@3.10
+    - brew install python@3.12
+    - python3.12 -m venv ${VENV_ROOT}
   <<: *BUILD_AND_STORE_WHEELS
