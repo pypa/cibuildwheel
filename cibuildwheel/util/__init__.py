@@ -1,13 +1,11 @@
 # flake8: noqa: F401, F403, F405
 
-from functools import cached_property  # re-exported as part of __all__
 
 from .files import chdir
 from .misc import *
 
 __all__ = [
     "MANYLINUX_ARCHS",
-    "cached_property",
     "call",
     "chdir",
     "combine_constraints",
