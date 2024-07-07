@@ -462,37 +462,6 @@ class BuildFrontendConfig:
             return {"name": self.name, "args": repr(self.args)}
 
 
-class NonPlatformWheelError(Exception):
-    def __init__(self) -> None:
-        message = textwrap.dedent(
-            """
-            cibuildwheel: Build failed because a pure Python wheel was generated.
-
-            If you intend to build a pure-Python wheel, you don't need cibuildwheel - use
-            `pip wheel -w DEST_DIR .` instead.
-
-            If you expected a platform wheel, check your project configuration, or run
-            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
-            """
-        )
-
-        super().__init__(message)
-
-
-class AlreadyBuiltWheelError(Exception):
-    def __init__(self, wheel_name: str) -> None:
-        message = textwrap.dedent(
-            f"""
-            cibuildwheel: Build failed because a wheel named {wheel_name} was already generated in the current run.
-
-            If you expected another wheel to be generated, check your project configuration, or run
-            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
-            """
-        )
-
-        super().__init__(message)
-
-
 def strtobool(val: str) -> bool:
     return val.lower() in {"y", "yes", "t", "true", "on", "1"}
 

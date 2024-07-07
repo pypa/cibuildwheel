@@ -31,10 +31,11 @@ def test(tmp_path, capfd):
     project_dir = tmp_path / "project"
     pure_python_project.generate(project_dir)
 
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(subprocess.CalledProcessError) as exc_info:
         print("produced wheels:", utils.cibuildwheel_run(project_dir))
 
     captured = capfd.readouterr()
     print("out", captured.out)
     print("err", captured.err)
+    assert exc_info.value.returncode == 5
     assert "Build failed because a pure Python wheel was generated" in captured.err
