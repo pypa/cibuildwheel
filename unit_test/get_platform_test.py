@@ -1,4 +1,3 @@
-# ruff: noqa: ARG001
 import contextlib
 import sys
 from pathlib import Path
