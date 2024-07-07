@@ -31,7 +31,6 @@ from .util import (
     call,
     combine_constraints,
     detect_ci_provider,
-    download,
     find_compatible_wheel,
     find_uv,
     free_thread_enable_313,
@@ -46,7 +45,7 @@ from .util import (
     unwrap,
     virtualenv,
 )
-from .util.files import move_file
+from .util.files import download, move_file
 
 
 @functools.lru_cache(maxsize=None)

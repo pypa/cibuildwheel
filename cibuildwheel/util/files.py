@@ -5,11 +5,16 @@ from __future__ import annotations
 import contextlib
 import os
 import shutil
+import ssl
 import tarfile
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
+from time import sleep
 from typing import Generator
 from zipfile import ZipFile
+
+import certifi
 
 
 def extract_zip(zip_src: Path, dest: Path) -> None:
@@ -37,6 +42,29 @@ def extract_tar(tar_src: Path, dest: Path) -> None:
     with tarfile.open(tar_src) as tar_:
         tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
         tar_.extractall(dest)
+
+
+def download(url: str, dest: Path) -> None:
+    print(f"+ Download {url} to {dest}")
+    dest_dir = dest.parent
+    if not dest_dir.exists():
+        dest_dir.mkdir(parents=True)
+
+    # we've had issues when relying on the host OS' CA certificates on Windows,
+    # so we use certifi (this sounds odd but requests also does this by default)
+    cafile = os.environ.get("SSL_CERT_FILE", certifi.where())
+    context = ssl.create_default_context(cafile=cafile)
+    repeat_num = 3
+    for i in range(repeat_num):
+        try:
+            with urllib.request.urlopen(url, context=context) as response:
+                dest.write_bytes(response.read())
+                return
+
+        except OSError:
+            if i == repeat_num - 1:
+                raise
+            sleep(3)
 
 
 def move_file(src_file: Path, dst_file: Path) -> Path:

@@ -21,7 +21,6 @@ from .util import (
     BuildSelector,
     call,
     combine_constraints,
-    download,
     ensure_node,
     find_compatible_wheel,
     get_pip_version,
@@ -32,7 +31,7 @@ from .util import (
     test_fail_cwd_file,
     virtualenv,
 )
-from .util.files import extract_zip, move_file
+from .util.files import download, extract_zip, move_file
 
 
 @dataclass(frozen=True)

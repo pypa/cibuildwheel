@@ -7,13 +7,11 @@ import os
 import re
 import shlex
 import shutil
-import ssl
 import subprocess
 import sys
 import textwrap
 import time
 import typing
-import urllib.request
 from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
@@ -21,11 +19,9 @@ from enum import Enum
 from functools import lru_cache
 from pathlib import Path, PurePath
 from tempfile import TemporaryDirectory
-from time import sleep
 from typing import Any, ClassVar, Final, Literal, TextIO, TypeVar
 
 import bracex
-import certifi
 from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
@@ -36,7 +32,7 @@ from platformdirs import user_cache_path
 from .._compat import tomllib
 from ..architecture import Architecture
 from ..typing import PathOrStr, PlatformName
-from .files import FileReport, extract_tar, extract_zip
+from .files import FileReport, download, extract_tar, extract_zip
 
 resources_dir: Final[Path] = Path(__file__).parents[1] / "resources"
 
@@ -300,29 +296,6 @@ class Unbuffered:
 
     def __getattr__(self, attr: str) -> Any:
         return getattr(self.stream, attr)
-
-
-def download(url: str, dest: Path) -> None:
-    print(f"+ Download {url} to {dest}")
-    dest_dir = dest.parent
-    if not dest_dir.exists():
-        dest_dir.mkdir(parents=True)
-
-    # we've had issues when relying on the host OS' CA certificates on Windows,
-    # so we use certifi (this sounds odd but requests also does this by default)
-    cafile = os.environ.get("SSL_CERT_FILE", certifi.where())
-    context = ssl.create_default_context(cafile=cafile)
-    repeat_num = 3
-    for i in range(repeat_num):
-        try:
-            with urllib.request.urlopen(url, context=context) as response:
-                dest.write_bytes(response.read())
-                return
-
-        except OSError:
-            if i == repeat_num - 1:
-                raise
-            sleep(3)
 
 
 class DependencyConstraints:
