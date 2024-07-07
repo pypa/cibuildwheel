@@ -38,7 +38,7 @@ def test(tmp_path, capfd):
     else:
         expectation = does_not_raise()
 
-    with expectation:
+    with expectation as exc_info:
         result = utils.cibuildwheel_run(
             project_dir,
             add_env={
@@ -49,6 +49,7 @@ def test(tmp_path, capfd):
     captured = capfd.readouterr()
     if num_builds > 1:
         assert "Build failed because a wheel named" in captured.err
+        assert exc_info.value.returncode == 6
     else:
         # We only produced one wheel (currently Pyodide)
         # check that it has the right name

@@ -4,6 +4,8 @@ a different return code, by defining them all here, we can ensure that they're
 semantically clear and unique.
 """
 
+import textwrap
+
 
 class FatalError(BaseException):
     """
@@ -25,3 +27,34 @@ class NothingToDoError(FatalError):
 
 class DeprecationError(FatalError):
     return_code = 4
+
+
+class NonPlatformWheelError(FatalError):
+    def __init__(self) -> None:
+        message = textwrap.dedent(
+            """
+            Build failed because a pure Python wheel was generated.
+
+            If you intend to build a pure-Python wheel, you don't need cibuildwheel - use
+            `pip wheel -w DEST_DIR .` instead.
+
+            If you expected a platform wheel, check your project configuration, or run
+            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
+            """
+        )
+        super().__init__(message)
+        self.return_code = 5
+
+
+class AlreadyBuiltWheelError(FatalError):
+    def __init__(self, wheel_name: str) -> None:
+        message = textwrap.dedent(
+            f"""
+            Build failed because a wheel named {wheel_name} was already generated in the current run.
+
+            If you expected another wheel to be generated, check your project configuration, or run
+            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
+            """
+        )
+        super().__init__(message)
+        self.return_code = 6

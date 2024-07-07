@@ -22,11 +22,9 @@ from .options import Options
 from .typing import PathOrStr
 from .util import (
     CIBW_CACHE_PATH,
-    AlreadyBuiltWheelError,
     BuildFrontendConfig,
     BuildFrontendName,
     BuildSelector,
-    NonPlatformWheelError,
     call,
     combine_constraints,
     download,
@@ -461,7 +459,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 repaired_wheel_dir.mkdir()
 
                 if built_wheel.name.endswith("none-any.whl"):
-                    raise NonPlatformWheelError()
+                    raise errors.NonPlatformWheelError()
 
                 if build_options.repair_command:
                     log.step("Repairing wheel...")
@@ -477,7 +475,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
 
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise AlreadyBuiltWheelError(repaired_wheel.name)
+                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
             test_selected = options.globals.test_selector(config.identifier)
             if test_selected and config.arch == "ARM64" != platform_module.machine():
