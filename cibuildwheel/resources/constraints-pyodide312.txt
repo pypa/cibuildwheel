@@ -4,13 +4,13 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.4.0
     # via httpx
-auditwheel-emscripten==0.0.15
+auditwheel-emscripten==0.0.16
     # via pyodide-build
 build==1.2.1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2024.6.2
+certifi==2024.7.4
     # via
     #   httpcore
     #   httpx
@@ -21,7 +21,7 @@ click==8.1.7
     # via typer
 cloudpickle==3.0.0
     # via loky
-cmake==3.29.6
+cmake==3.30.0
     # via pyodide-build
 distlib==0.3.8
     # via virtualenv
@@ -52,15 +52,15 @@ packaging==24.1
     #   build
     #   pyodide-build
     #   unearth
-pip==24.1.1
+pip==24.1.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.2.2
     # via virtualenv
-pydantic==2.8.0
+pydantic==2.8.2
     # via
     #   pyodide-build
     #   pyodide-lock
-pydantic-core==2.20.0
+pydantic-core==2.20.1
     # via pydantic
 pygments==2.18.0
     # via rich
@@ -107,7 +107,7 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   typer
-unearth==0.15.5
+unearth==0.16.0
     # via pyodide-build
 urllib3==2.2.2
     # via
