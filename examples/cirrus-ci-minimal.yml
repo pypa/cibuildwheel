@@ -15,9 +15,14 @@ linux_x86_task:
     platform: linux
     cpu: 4
     memory: 4G
-
+  env:
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
   install_pre_requirements_script:
-    - apt install -y python3-venv python-is-python3
+    - add-apt-repository -y ppa:deadsnakes/ppa
+    - apt-get update
+    - apt-get install -y python3.12-venv
+    - python3.12 -m venv ${VENV_ROOT}
   <<: *BUILD_AND_STORE_WHEELS
 
 linux_aarch64_task:
@@ -29,9 +34,14 @@ linux_aarch64_task:
     platform: linux
     cpu: 4
     memory: 4G
-
+  env:
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
   install_pre_requirements_script:
-    - apt install -y python3-venv python-is-python3
+    - add-apt-repository -y ppa:deadsnakes/ppa
+    - apt-get update
+    - apt-get install -y python3.12-venv
+    - python3.12 -m venv ${VENV_ROOT}
   <<: *BUILD_AND_STORE_WHEELS
 
 windows_x86_task:
@@ -42,7 +52,7 @@ windows_x86_task:
     memory: 4G
 
   install_pre_requirements_script:
-    - choco install -y --no-progress python3 --version 3.10.6
+    - choco install -y --no-progress python3 --version 3.12.4
     - refreshenv
     - echo PATH=%PATH% >> "%CIRRUS_ENV%"
   <<: *BUILD_AND_STORE_WHEELS
@@ -51,9 +61,10 @@ macos_arm64_task:
   name: Build macOS arm64 wheels.
   macos_instance:
     image: ghcr.io/cirruslabs/macos-sonoma-xcode
-
   env:
-    PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
   install_pre_requirements_script:
-    - brew install python@3.10
+    - brew install python@3.12
+    - python3.12 -m venv ${VENV_ROOT}
   <<: *BUILD_AND_STORE_WHEELS
