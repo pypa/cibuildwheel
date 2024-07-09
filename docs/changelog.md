@@ -12,7 +12,7 @@ title: Changelog
 - 🛠 Provide CPython 3.13.0b3. (#1913)
 - 🛠 Remove some workarounds now that pip 21.1 is available. (#1891, #1892)
 - 📚 Remove nosetest from our docs. (#1821)
-- 📚 Document the macOS ARM workaround for 3.8 on GHA. (#1971)
+- 📚 Document the macOS ARM workaround for 3.8 on GHA. (#1871)
 - 📚 GitLab CI + macOS is now a supported platform with an example. (#1911)
 
 
