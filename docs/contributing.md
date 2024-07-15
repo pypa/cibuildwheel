@@ -109,7 +109,7 @@ You can see a list of sessions by typing `nox -l`; here are a few common ones:
 ```console
 nox -s lint                    # Run the linters (default)
 nox -s tests [-- PYTEST-ARGS]  # Run the tests   (default)
-nox -s docs -- serve           # Build and serve the documentation
+nox -s docs                    # Build and serve the documentation
 nox -s build                   # Make SDist and wheel
 ```
 
