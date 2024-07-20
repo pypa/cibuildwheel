@@ -43,8 +43,8 @@ def test(tmp_path):
     project_with_before_build_asserts.generate(project_dir)
 
     before_build = (
-        """python -c "import sys; open('{project}/pythonversion_bb.txt', 'w').write(sys.version)" && """
-        f'''python -c "import sys; open('{{project}}/pythonprefix_bb.txt', 'w').write({SYS_PREFIX})"'''
+        """python -c "import sys; f = open('{project}/pythonversion_bb.txt', 'w'); f.write(sys.version); f.close()" && """
+        f'''python -c "import sys; f = open('{{project}}/pythonprefix_bb.txt', 'w'); f.write({SYS_PREFIX}); f.close()"'''
     )
 
     # build the wheels
