@@ -41,8 +41,8 @@ def test(tmp_path, build_frontend_env):
     test_projects.new_c_project().generate(test_project_dir)
 
     before_test_steps = [
-        '''python -c "import os, sys; open('{project}/pythonversion_bt.txt', 'w').write(sys.version)"''',
-        '''python -c "import os, sys; open('{project}/pythonprefix_bt.txt', 'w').write(sys.prefix)"''',
+        '''python -c "import os, sys; f = open('{project}/pythonversion_bt.txt', 'w'); f.write(sys.version); f.close()"''',
+        '''python -c "import os, sys; f = open('{project}/pythonprefix_bt.txt', 'w'); f.write(sys.prefix); f.close()"''',
     ]
 
     if utils.platform == "pyodide":
