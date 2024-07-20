@@ -220,8 +220,10 @@ def setup_python(
         build_frontend = "build"
 
     uv_path = find_uv()
-    use_uv = build_frontend == "build[uv]" and Version(python_configuration.version) >= Version(
-        "3.8"
+    use_uv = (
+        build_frontend == "build[uv]"
+        and Version(python_configuration.version) >= Version("3.8")
+        and not python_configuration.identifier.startswith("gp")
     )
 
     tmp.mkdir()
@@ -433,8 +435,10 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-            use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version(
-                "3.8"
+            use_uv = (
+                build_frontend.name == "build[uv]"
+                and Version(config.version) >= Version("3.8")
+                and not config.identifier.startswith("gp")
             )
             uv_path = find_uv()
             if use_uv and uv_path is None:
