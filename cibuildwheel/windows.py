@@ -150,7 +150,13 @@ def install_graalpy(tmp: Path, url: str) -> Path:
             # Extract to the parent directory because the zip file still contains a directory
             extract_zip(graalpy_zip, installation_path.parent)
             # Workaround graalpy_virtualenv bug
-            (installation_path / "lib-graalpython" / "modules" / "graalpy_virtualenv.egg-info" / "entry_points.txt").unlink(missing_ok=True)
+            (
+                installation_path
+                / "lib-graalpython"
+                / "modules"
+                / "graalpy_virtualenv.egg-info"
+                / "entry_points.txt"
+            ).unlink(missing_ok=True)
     return installation_path / "bin" / "graalpy.exe"
 
 
@@ -266,7 +272,7 @@ def setup_python(
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
     elif implementation_id.startswith("gp"):
-        base_python = install_graalpy(tmp, python_configuration.url or '')
+        base_python = install_graalpy(tmp, python_configuration.url or "")
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
