@@ -193,6 +193,30 @@ def install_pypy(tmp: Path, url: str) -> Path:
     return installation_path / "bin" / "pypy3"
 
 
+def install_graalpy(tmp: Path, url: str) -> Path:
+    graalpy_archive = url.rsplit("/", 1)[-1]
+    extension = ".tar.gz"
+    assert graalpy_archive.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / graalpy_archive[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            downloaded_archive = tmp / graalpy_archive
+            download(url, downloaded_archive)
+            installation_path.mkdir(parents=True)
+            # GraalPy top-folder name is inconsistent with archive name
+            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
+            downloaded_archive.unlink()
+            # Workaround graalpy_virtualenv bug
+            (
+                installation_path
+                / "lib-graalpython"
+                / "modules"
+                / "graalpy_virtualenv.egg-info"
+                / "entry_points.txt"
+            ).unlink(missing_ok=True)
+    return installation_path / "bin" / "graalpy"
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -204,8 +228,10 @@ def setup_python(
         build_frontend = "build"
 
     uv_path = find_uv()
-    use_uv = build_frontend == "build[uv]" and Version(python_configuration.version) >= Version(
-        "3.8"
+    use_uv = (
+        build_frontend == "build[uv]"
+        and Version(python_configuration.version) >= Version("3.8")
+        and not python_configuration.identifier.startswith("gp")
     )
 
     tmp.mkdir()
@@ -219,6 +245,8 @@ def setup_python(
 
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
+    elif implementation_id.startswith("gp"):
+        base_python = install_graalpy(tmp, python_configuration.url)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
@@ -415,8 +443,10 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-            use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version(
-                "3.8"
+            use_uv = (
+                build_frontend.name == "build[uv]"
+                and Version(config.version) >= Version("3.8")
+                and not config.identifier.startswith("gp")
             )
             uv_path = find_uv()
             if use_uv and uv_path is None:
