@@ -206,6 +206,8 @@ def install_graalpy(tmp: Path, url: str) -> Path:
             # GraalPy top-folder name is inconsistent with archive name
             call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
             downloaded_archive.unlink()
+            # Workaround graalpy_virtualenv bug
+            (installation_path / "lib-graalpython" / "modules" / "graalpy_virtualenv.egg-info" / "entry_points.txt").unlink(missing_ok=True)
     return installation_path / "bin" / "graalpy"
 
 

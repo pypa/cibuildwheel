@@ -149,6 +149,8 @@ def install_graalpy(tmp: Path, url: str) -> Path:
             download(url, graalpy_zip)
             # Extract to the parent directory because the zip file still contains a directory
             extract_zip(graalpy_zip, installation_path.parent)
+            # Workaround graalpy_virtualenv bug
+            (installation_path / "lib-graalpython" / "modules" / "graalpy_virtualenv.egg-info" / "entry_points.txt").unlink(missing_ok=True)
     return installation_path / "bin" / "graalpy.exe"
 
 
