@@ -94,12 +94,7 @@ Homepage = "https://github.com/pypa/cibuildwheel"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = [
-  "-rfEsX",  # TODO: replace with -ra when pytest > 8.2.2 is released
-  "--showlocals",
-  "--strict-markers",
-  "--strict-config",
-]
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]
