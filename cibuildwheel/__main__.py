@@ -319,7 +319,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
     # Python is buffering by default when running on the CI platforms, giving
     # problems interleaving subprocess call output with unflushed calls to
     # 'print'
-    sys.stdout = Unbuffered(sys.stdout)  # type: ignore[assignment]
+    sys.stdout = Unbuffered(sys.stdout)
 
     # create the cache dir before it gets printed & builds performed
     CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
