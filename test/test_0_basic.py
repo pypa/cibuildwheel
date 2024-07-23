@@ -69,7 +69,15 @@ def test_build_identifiers(tmp_path):
     ), f"{expected_wheels} vs {build_identifiers}"
 
 
-def test_allow_empty(tmp_path):
+@pytest.mark.parametrize(
+    ("add_args", "env_allow_empty"),
+    [
+        (["--allow-empty"], {}),
+        (["--allow-empty"], {"CIBW_ALLOW_EMPTY": "0"}),
+        (None, {"CIBW_ALLOW_EMPTY": "1"}),
+    ],
+)
+def test_allow_empty(tmp_path, add_args, env_allow_empty):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
@@ -77,8 +85,8 @@ def test_allow_empty(tmp_path):
     # without error
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={"CIBW_BUILD": "BUILD_NOTHING_AT_ALL"},
-        add_args=["--allow-empty"],
+        add_env={"CIBW_BUILD": "BUILD_NOTHING_AT_ALL", **env_allow_empty},
+        add_args=add_args,
     )
 
     # check that nothing was built

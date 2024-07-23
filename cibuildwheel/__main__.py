@@ -334,7 +334,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     if not identifiers:
         message = f"No build identifiers selected: {options.globals.build_selector}"
-        if args.allow_empty:
+        if options.globals.allow_empty:
             print(f"cibuildwheel: {message}", file=sys.stderr)
         else:
             raise errors.NothingToDoError(message)

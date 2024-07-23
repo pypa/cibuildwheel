@@ -75,6 +75,7 @@ class GlobalOptions:
     build_selector: BuildSelector
     test_selector: TestSelector
     architectures: set[Architecture]
+    allow_empty: bool
 
 
 @dataclasses.dataclass(frozen=True)
@@ -520,6 +521,8 @@ class Options:
             self.reader.get("free-threaded-support", env_plat=False, ignore_empty=True)
         )
 
+        allow_empty = args.allow_empty or strtobool(self.env.get("CIBW_ALLOW_EMPTY", "0"))
+
         prerelease_pythons = args.prerelease_pythons or strtobool(
             self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
         )
@@ -557,6 +560,7 @@ class Options:
             build_selector=build_selector,
             test_selector=test_selector,
             architectures=architectures,
+            allow_empty=allow_empty,
         )
 
     def build_options(self, identifier: str | None) -> BuildOptions:

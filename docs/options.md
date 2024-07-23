@@ -621,6 +621,28 @@ This option can also be set using the [command-line option](#command-line) `--pr
     CIBW_PRERELEASE_PYTHONS: True
     ```
 
+### `CIBW_ALLOW_EMPTY` {: #allow-empty}
+> Suppress the error code if no wheels match the specified build identifiers
+
+When none of the specified build identifiers match any available versions,
+cibuildwheel will typically return error code 3, indicating that there are
+no wheels to build. Enabling this option will suppress this error, allowing
+the build process to complete without signaling an error.
+
+Default: Off (0). Error code 3 is returned when no builds are selected.
+
+This option can also be set using the [command-line option](#command-line)
+`--allow-empty`. This option is not available in the `pyproject.toml` config.
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Prevent an error code if the build does not match any wheels
+    CIBW_ALLOW_EMPTY: True
+    ```
+
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
@@ -1667,7 +1689,7 @@ cibuildwheel exits 0 on success, or >0 if an error occurs.
 Specific error codes are defined:
 
 - 2 means a configuration error
-- 3 means no builds are selected (and --allow-empty wasn't passed)
+- 3 means no builds are selected (and [`--allow-empty`](#allow-empty) wasn't passed)
 - 4 means you specified an option that has been deprecated.
 
 
