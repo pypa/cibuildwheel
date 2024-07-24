@@ -17,6 +17,7 @@ linux_x86_task:
     memory: 8G
 
   install_pre_requirements_script:
+    - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
     - apt install -y python3-venv python-is-python3
   <<: *RUN_TESTS
 
@@ -30,6 +31,7 @@ linux_aarch64_task:
     memory: 4G
 
   install_pre_requirements_script:
+    - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
     - apt install -y python3-venv python-is-python3
   <<: *RUN_TESTS
 

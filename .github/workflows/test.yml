@@ -59,6 +59,11 @@ jobs:
         docker system prune -a -f
         df -h
 
+    # for oci_container unit tests
+    - name: Set up QEMU
+      if: runner.os == 'Linux'
+      uses: docker/setup-qemu-action@v3
+
     - name: Install dependencies
       run: |
         uv pip install --system ".[test]"
@@ -157,10 +162,7 @@ jobs:
       run: python -m pip install ".[test,uv]"
 
     - name: Set up QEMU
-      id: qemu
       uses: docker/setup-qemu-action@v3
-      with:
-        platforms: all
 
     - name: Run the emulation tests
       run: pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py

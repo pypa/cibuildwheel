@@ -12,11 +12,16 @@ import typing
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
 
-from ._compat.typing import Self
+from packaging.version import Version
+
+from ._compat.typing import Self, assert_never
+from .errors import OCIEngineTooOldError
+from .logger import log
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
@@ -27,6 +32,14 @@ from .util import (
 )
 
 ContainerEngineName = Literal["docker", "podman"]
+
+
+class OCIPlatform(Enum):
+    AMD64 = "linux/amd64"
+    i386 = "linux/386"
+    ARM64 = "linux/arm64"
+    PPC64LE = "linux/ppc64le"
+    S390X = "linux/s390x"
 
 
 @dataclass(frozen=True)
@@ -56,6 +69,15 @@ class OCIContainerEngineConfig:
         disable_host_mount = (
             strtobool(disable_host_mount_options[-1]) if disable_host_mount_options else False
         )
+        if "--platform" in create_args or any(arg.startswith("--platform=") for arg in create_args):
+            msg = "Using '--platform' in 'container-engine::create_args' is deprecated. It will be ignored."
+            log.warning(msg)
+            if "--platform" in create_args:
+                index = create_args.index("--platform")
+                create_args.pop(index)
+                create_args.pop(index)
+            else:
+                create_args = [arg for arg in create_args if not arg.startswith("--platform=")]
 
         return OCIContainerEngineConfig(
             name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount
@@ -73,6 +95,29 @@ class OCIContainerEngineConfig:
 
 
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
+
+
+def _check_minimum_engine_version(engine: OCIContainerEngineConfig) -> None:
+    try:
+        version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
+        version_info = json.loads(version_string.strip())
+        if engine.name == "docker":
+            client_api_version = Version(version_info["Client"]["ApiVersion"])
+            engine_api_version = Version(version_info["Server"]["ApiVersion"])
+            too_old = min(client_api_version, engine_api_version) < Version("1.32")
+        elif engine.name == "podman":
+            client_api_version = Version(version_info["Client"]["APIVersion"])
+            if "Server" in version_info:
+                engine_api_version = Version(version_info["Server"]["APIVersion"])
+            else:
+                engine_api_version = client_api_version
+            too_old = min(client_api_version, engine_api_version) < Version("3")
+        else:
+            assert_never(engine.name)
+        if too_old:
+            raise OCIEngineTooOldError() from None
+    except (subprocess.CalledProcessError, KeyError) as e:
+        raise OCIEngineTooOldError() from e
 
 
 class OCIContainer:
@@ -108,7 +153,7 @@ class OCIContainer:
         self,
         *,
         image: str,
-        enforce_32_bit: bool = False,
+        oci_platform: OCIPlatform,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
     ):
@@ -117,10 +162,12 @@ class OCIContainer:
             raise ValueError(msg)
 
         self.image = image
-        self.enforce_32_bit = enforce_32_bit
+        self.oci_platform = oci_platform
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
+
+        _check_minimum_engine_version(self.engine)
 
     def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
@@ -133,14 +180,28 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
+        # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
+        # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
+        platform_args = [f"--platform={self.oci_platform.value}", "--pull=always"]
+
         simulate_32_bit = False
-        if self.enforce_32_bit:
+        if self.oci_platform == OCIPlatform.i386:
             # If the architecture running the image is already the right one
             # or the image entrypoint takes care of enforcing this, then we don't need to
             # simulate this
-            container_machine = call(
-                self.engine.name, "run", "--rm", self.image, "uname", "-m", capture_stdout=True
-            ).strip()
+            run_cmd = [self.engine.name, "run", "--rm"]
+            ctr_cmd = ["uname", "-m"]
+            try:
+                container_machine = call(
+                    *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
+                ).strip()
+            except subprocess.CalledProcessError:
+                # The image might have been built with amd64 architecture
+                # Let's try that
+                platform_args = ["--platform=linux/amd64", *platform_args[1:]]
+                container_machine = call(
+                    *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
+                ).strip()
             simulate_32_bit = container_machine != "i686"
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
@@ -155,6 +216,7 @@ class OCIContainer:
                 "--interactive",
                 *(["--volume=/:/host"] if not self.engine.disable_host_mount else []),
                 *network_args,
+                *platform_args,
                 *self.engine.create_args,
                 self.image,
                 *shell_args,
