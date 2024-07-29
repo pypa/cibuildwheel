@@ -21,7 +21,7 @@ click==8.1.7
     # via typer
 cloudpickle==3.0.0
     # via loky
-cmake==3.30.0
+cmake==3.30.1
     # via pyodide-build
 distlib==0.3.8
     # via virtualenv
@@ -52,7 +52,7 @@ packaging==24.1
     #   build
     #   pyodide-build
     #   unearth
-pip==24.1.2
+pip==24.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.2.2
     # via virtualenv

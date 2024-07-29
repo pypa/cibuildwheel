@@ -16,7 +16,7 @@ packaging==24.1
     # via
     #   build
     #   delocate
-pip==24.1.2
+pip==24.2
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.2.2
     # via virtualenv
