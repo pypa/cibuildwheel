@@ -31,14 +31,12 @@ from .util import (
     call,
     combine_constraints,
     detect_ci_provider,
-    download,
     find_compatible_wheel,
     find_uv,
     free_thread_enable_313,
     get_build_verbosity_extra_flags,
     get_pip_version,
     install_certifi_script,
-    move_file,
     prepare_command,
     read_python_configs,
     shell,
@@ -47,6 +45,7 @@ from .util import (
     unwrap,
     virtualenv,
 )
+from .util.files import download, move_file
 
 
 @functools.lru_cache(maxsize=None)
