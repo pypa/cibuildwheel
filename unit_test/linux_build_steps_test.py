@@ -71,8 +71,9 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
         "cp36-manylinux_x86_64",
         "cp311-manylinux_x86_64",
         "cp312-manylinux_x86_64",
+        "cp313-manylinux_x86_64",
     ]
-    assert before_alls(build_steps[0]) == [""] * 3
+    assert before_alls(build_steps[0]) == [""] * 4
     assert container_engines(build_steps[0]) == [default_container_engine] * 3
 
     assert build_steps[1].container_image == "other_container_image"

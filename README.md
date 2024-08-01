@@ -39,7 +39,7 @@ What does it do?
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
-<sup>³ CPython 3.13 is available using the [`CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons) option. Free-threaded mode requires opt-in.</sup><br>
+<sup>³ CPython 3.13 is built by default using Python RCs, starting with cibuildwheel 2.20.</sup><br>
 <sup>⁴ Experimental, not yet supported on PyPI, but can be used directly in web deployment. Use `--platform pyodide` to build.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
