@@ -156,7 +156,8 @@ before-all = "true"
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
         f"{x}-manylinux_x86_64"
-        for x in ALL_IDS - {"cp36", "cp310", "cp311", "cp312", "cp313", "pp37", "pp38", "pp39", "pp310"}
+        for x in ALL_IDS
+        - {"cp36", "cp310", "cp311", "cp312", "cp313", "pp37", "pp38", "pp39", "pp310"}
     }
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
