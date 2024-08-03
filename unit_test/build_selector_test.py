@@ -50,7 +50,7 @@ def test_build_filter_pre():
     assert build_selector("cp313-manylinux_x86_64")
     assert build_selector("cp37-win_amd64")
     assert build_selector("cp313-win_amd64")
-    assert build_selector("cp313t-manylinux_x86_64")
+    assert not build_selector("cp313t-manylinux_x86_64")
 
 
 def test_skip():
