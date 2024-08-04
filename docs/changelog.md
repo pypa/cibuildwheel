@@ -4,6 +4,16 @@ title: Changelog
 
 # Changelog
 
+### v2.20.0
+
+- 🌟 CPython 3.13 wheels are now built by default - without the `CIBW_PRERELEASE_PYTHONS` flag. It's time to build and upload these wheels to PyPI! This release includes CPython 3.13.0rc1, which is guaranteed to be ABI compatible with the final release. Free-threading is still behind a flag/config option. (#1950)
+- ✨ Provide a `CIBW_ALLOW_EMPTY` environment variable as an alternative to the command line flag. (#1937)
+- 🐛 Don't use uv on PyPy3.8 on Windows, it stopped working starting in 0.2.25. Note that PyPy 3.8 is EoL. (#1868)
+- 🛠 Set the `VSCMD_ARG_TGT_ARCH` variable based on target arch. (#1876)
+- 🛠 Undo cleaner output on pytest 8-8.2 now that 8.3 is out. (#1943)
+- 📚 Update examples to use Python 3.12 on host  (cibuildwheel will require Python 3.11+ on the host machine starting in October 2024) (#1919)
+
+
 ### v2.19.2
 
 - 🐛 Update manylinux2014 pins to versions that support past-EoL CentOS 7 mirrors. (#1917)
