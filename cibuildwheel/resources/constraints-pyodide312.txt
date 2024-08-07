@@ -21,7 +21,7 @@ click==8.1.7
     # via typer
 cloudpickle==3.0.0
     # via loky
-cmake==3.30.1
+cmake==3.30.2
     # via pyodide-build
 distlib==0.3.8
     # via virtualenv
@@ -117,7 +117,7 @@ virtualenv==20.26.3
     # via
     #   build
     #   pyodide-build
-wheel==0.43.0
+wheel==0.44.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
