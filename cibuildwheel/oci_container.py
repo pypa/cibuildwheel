@@ -14,9 +14,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, Literal
+from typing import IO, Literal, Self
 
-from ._compat.typing import Self
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
@@ -398,7 +397,7 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return typing.cast(Dict[str, str], env)
+        return typing.cast(dict[str, str], env)
 
     def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
