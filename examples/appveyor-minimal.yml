@@ -1,16 +1,13 @@
 environment:
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-      APPVEYOR_JOB_NAME: "python37-x64-ubuntu"
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      APPVEYOR_JOB_NAME: "python37-x64-vs2015"
-    - APPVEYOR_BUILD_WORKER_IMAGE: macos
-      APPVEYOR_JOB_NAME: "python37-x64-macos"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2204
+      APPVEYOR_JOB_NAME: "linux-x64"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+      APPVEYOR_JOB_NAME: "windows-x64"
+    - APPVEYOR_BUILD_WORKER_IMAGE: macos-sonoma
+      APPVEYOR_JOB_NAME: "macos-x64"
 
-stack: python 3.7
-
-init:
-- cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
+stack: python 3.12
 
 install: python -m pip install cibuildwheel==2.20.0
 
