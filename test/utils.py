@@ -23,15 +23,14 @@ EMULATED_ARCHS: Final[list[str]] = sorted(
 )
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
-platform: str
-
-if "CIBW_PLATFORM" in os.environ:
-    platform = os.environ["CIBW_PLATFORM"]
+platform = os.environ.get("CIBW_PLATFORM", "")
+if platform:
+    pass
 elif sys.platform.startswith("linux"):
     platform = "linux"
 elif sys.platform.startswith("darwin"):
     platform = "macos"
-elif sys.platform in ["win32", "cygwin"]:
+elif sys.platform.startswith(("win32", "cygwin")):
     platform = "windows"
 else:
     msg = f"Unsupported platform {sys.platform!r}"
