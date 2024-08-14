@@ -240,7 +240,7 @@ def _compute_platform_auto() -> PlatformName:
 
 
 def _compute_platform(args: CommandLineArguments) -> PlatformName:
-    platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "auto")
+    platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "") or "auto"
 
     if args.only and args.platform is not None:
         msg = "--platform cannot be specified with --only, it is computed from --only"

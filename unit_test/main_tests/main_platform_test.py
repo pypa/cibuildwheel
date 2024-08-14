@@ -10,7 +10,7 @@ from cibuildwheel.architecture import Architecture
 from ..conftest import MOCK_PACKAGE_DIR
 
 
-@pytest.mark.parametrize("option_value", [None, "auto"])
+@pytest.mark.parametrize("option_value", [None, "auto", ""])
 def test_platform_unset_or_auto(monkeypatch, intercepted_build_args, option_value):
     if option_value is None:
         monkeypatch.delenv("CIBW_PLATFORM", raising=False)
