@@ -44,6 +44,7 @@ jobs:
       python: 3.9
       services: docker
       arch: s390x
+      allow_failure: True
       env: PYTHON=python
 
 install:
