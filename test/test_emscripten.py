@@ -6,7 +6,7 @@ import textwrap
 
 import pytest
 
-from cibuildwheel.util import CIBW_CACHE_PATH
+from cibuildwheel.util import CIBW_CACHE_PATH, CIProvider, detect_ci_provider
 
 from . import test_projects, utils
 
@@ -48,6 +48,9 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
 
     if not shutil.which("python3.12"):
         pytest.skip("Python 3.12 not installed")
+
+    if detect_ci_provider() == CIProvider.travis_ci:
+        pytest.skip("Python 3.12 is just a non-working pyenv shim")
 
     if use_pyproject_toml:
         basic_project.files["pyproject.toml"] = textwrap.dedent(
