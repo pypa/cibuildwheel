@@ -5,7 +5,6 @@ import json
 import os
 import platform
 import shlex
-import shutil
 import subprocess
 import sys
 import typing
@@ -300,73 +299,17 @@ class OCIContainer:
             self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
-        # `docker cp` causes 'no space left on device' error when
-        # a container is running and the host filesystem is
-        # mounted. https://github.com/moby/moby/issues/38995
-        # Use `docker exec` instead.
-
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
-            subprocess.run(
-                f"tar cf - . | {self.engine.name} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
-                shell=True,
-                check=True,
-                cwd=from_path,
-            )
+            call(self.engine.name, "cp", f"{from_path}/.", f"{self.name}:{to_path}")
         else:
-            exec_process: subprocess.Popen[bytes]
-            with subprocess.Popen(
-                [
-                    self.engine.name,
-                    "exec",
-                    "-i",
-                    str(self.name),
-                    "sh",
-                    "-c",
-                    f"cat > {shell_quote(to_path)}",
-                ],
-                stdin=subprocess.PIPE,
-            ) as exec_process:
-                assert exec_process.stdin
-                with open(from_path, "rb") as from_file:
-                    # Bug in mypy, https://github.com/python/mypy/issues/15031
-                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
-
-                exec_process.stdin.close()
-                exec_process.wait()
-
-                if exec_process.returncode:
-                    raise subprocess.CalledProcessError(
-                        exec_process.returncode, exec_process.args, None, None
-                    )
+            self.call(["mkdir", "-p", to_path.parent])
+            call(self.engine.name, "cp", from_path, f"{self.name}:{to_path}")
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
-
-        if self.engine.name == "podman":
-            subprocess.run(
-                [
-                    self.engine.name,
-                    "cp",
-                    f"{self.name}:{from_path}/.",
-                    str(to_path),
-                ],
-                check=True,
-                cwd=to_path,
-            )
-        elif self.engine.name == "docker":
-            # There is a bug in docker that prevents a simple 'cp' invocation
-            # from working https://github.com/moby/moby/issues/38995
-            command = f"{self.engine.name} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
-            subprocess.run(
-                command,
-                shell=True,
-                check=True,
-                cwd=to_path,
-            )
-        else:
-            raise KeyError(self.engine.name)
+        call(self.engine.name, "cp", f"{self.name}:{from_path}/.", to_path)
 
     def glob(self, path: PurePosixPath, pattern: str) -> list[PurePosixPath]:
         glob_pattern = path.joinpath(pattern)
