@@ -19,6 +19,7 @@ from typing import IO, Dict, Literal
 from packaging.version import InvalidVersion, Version
 
 from ._compat.typing import Self, assert_never
+from .errors import OCIEngineTooOldError
 from .logger import log
 from .typing import PathOrStr, PopenBytes
 from .util import (
@@ -95,41 +96,30 @@ class OCIContainerEngineConfig:
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 
 
-def _check_engine_multiarch_support(engine: OCIContainerEngineConfig) -> bool:
+def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
         if engine.name == "docker":
+            # --platform support was introduced in 1.32 as experimental
+            # docker cp, as used by cibuildwheel, has been fixed in v24 => API 1.43, https://github.com/moby/moby/issues/38995
             client_api_version = Version(version_info["Client"]["ApiVersion"])
             engine_api_version = Version(version_info["Server"]["ApiVersion"])
-            multiarch_supported = min(client_api_version, engine_api_version) >= Version("1.32")
-            if multiarch_supported and int(version_info["Client"]["Version"].split(".")[0]) < 20:
-                # check cli version because version < 20.x consider that experimental must be turned on
-                # for --platform to be allowed.
-                multiarch_supported = version_info["Server"].get("Experimental", False)
+            version_supported = min(client_api_version, engine_api_version) >= Version("1.43")
         elif engine.name == "podman":
             client_api_version = Version(version_info["Client"]["APIVersion"])
             if "Server" in version_info:
                 engine_api_version = Version(version_info["Server"]["APIVersion"])
             else:
                 engine_api_version = client_api_version
-            multiarch_supported = min(client_api_version, engine_api_version) >= Version("3")
+            # --platform support was introduced in v3
+            version_supported = min(client_api_version, engine_api_version) >= Version("3")
         else:
             assert_never(engine.name)
-    except subprocess.CalledProcessError:
-        log.warning(
-            f"{engine.name} version information could not be retrieved. Assuming no multiarch support."
-        )
-        multiarch_supported = False
-    except KeyError:
-        log.warning(f"{engine.name} version information incomplete. Assuming no multiarch support.")
-        multiarch_supported = False
-    except InvalidVersion:
-        log.warning(
-            f"{engine.name} version information could not be parsed. Assuming no multiarch support."
-        )
-        multiarch_supported = False
-    return multiarch_supported
+        if not version_supported:
+            raise OCIEngineTooOldError() from None
+    except (subprocess.CalledProcessError, KeyError, InvalidVersion) as e:
+        raise OCIEngineTooOldError() from e
 
 
 class OCIContainer:
@@ -182,6 +172,8 @@ class OCIContainer:
     def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
+        _check_engine_version(self.engine)
+
         # work-around for Travis-CI PPC64le Docker runs since 2021:
         # this avoids network splits
         # https://github.com/pypa/cibuildwheel/issues/904
@@ -190,13 +182,9 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
-        if _check_engine_multiarch_support(self.engine):
-            # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
-            # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
-            platform_args = [f"--platform={self.oci_platform.value}", "--pull=always"]
-        else:
-            platform_args = []
-            log.warning(f"{self.engine.name} does not support multiarch images.")
+        # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
+        # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
+        platform_args = [f"--platform={self.oci_platform.value}", "--pull=always"]
 
         simulate_32_bit = False
         if self.oci_platform == OCIPlatform.i386:
@@ -210,8 +198,6 @@ class OCIContainer:
                     *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
                 ).strip()
             except subprocess.CalledProcessError:
-                if not platform_args:
-                    raise
                 # The image might have been built with amd64 architecture
                 # Let's try that
                 platform_args = ["--platform=linux/amd64", *platform_args[1:]]
