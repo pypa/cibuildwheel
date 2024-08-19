@@ -52,17 +52,6 @@ jobs:
 
     - uses: yezz123/setup-uv@v4
 
-    # Install podman on this CI instance for podman tests on linux
-    # Snippet from: https://github.com/redhat-actions/podman-login/blob/main/.github/workflows/example.yml
-    - name: Install latest podman
-      if: runner.os == 'Linux'
-      run: |
-        . /etc/os-release
-        echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-        curl -sSfL "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key" | sudo apt-key add -
-        sudo apt-get update
-        sudo apt-get -y install podman
-
     # free some space to prevent reaching GHA disk space limits
     - name: Clean docker images
       if: runner.os == 'Linux'
