@@ -229,7 +229,7 @@ class OCIContainer:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f"tar -c --format bsdtar -f - . | {self.engine.name} exec -i {self.name} tar --format bsdtar --no-same-owner -xC {shell_quote(to_path)} -f -",
+                f"tar -c --format gnutar -f - . | {self.engine.name} exec -i {self.name} tar --format gnutar --no-same-owner -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
