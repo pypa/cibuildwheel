@@ -121,6 +121,9 @@ class OCIContainer:
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
+        self.host_tar_format = ""
+        if sys.platform.startswith("darwin"):
+            self.host_tar_format = "--format gnutar"
 
     def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
@@ -229,7 +232,7 @@ class OCIContainer:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
             subprocess.run(
-                f"tar -c --format gnutar -f - . | {self.engine.name} exec -i {self.name} tar --format gnutar --no-same-owner -xC {shell_quote(to_path)} -f -",
+                f"tar -c {self.host_tar_format} -f - . | {self.engine.name} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
                 shell=True,
                 check=True,
                 cwd=from_path,
