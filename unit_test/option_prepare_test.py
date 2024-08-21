@@ -29,7 +29,7 @@ ALL_IDS = {
 }
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_build_container(monkeypatch):
     def fail_on_call(*args, **kwargs):
         msg = "This should never be called"

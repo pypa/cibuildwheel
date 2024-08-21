@@ -60,7 +60,7 @@ def disable_print_wheels(monkeypatch):
     monkeypatch.setattr(util, "print_new_wheels", empty_cm)
 
 
-@pytest.fixture()
+@pytest.fixture
 def allow_empty(monkeypatch, fake_package_dir):
     monkeypatch.setattr(sys, "argv", [*fake_package_dir, "--allow-empty"])
 
@@ -81,7 +81,7 @@ def platform(request, monkeypatch):
     return platform_value
 
 
-@pytest.fixture()
+@pytest.fixture
 def intercepted_build_args(monkeypatch):
     intercepted = ArgsInterceptor()
 

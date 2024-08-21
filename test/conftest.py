@@ -37,7 +37,7 @@ def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     return {"CIBW_BUILD_FRONTEND": frontend}
 
 
-@pytest.fixture()
+@pytest.fixture
 def build_frontend_env(build_frontend_env_nouv: dict[str, str]) -> dict[str, str]:
     frontend = build_frontend_env_nouv["CIBW_BUILD_FRONTEND"]
     if frontend != "build" or platform == "pyodide" or find_uv() is None:
@@ -46,7 +46,7 @@ def build_frontend_env(build_frontend_env_nouv: dict[str, str]) -> dict[str, str
     return {"CIBW_BUILD_FRONTEND": "build[uv]"}
 
 
-@pytest.fixture()
+@pytest.fixture
 def docker_cleanup() -> Generator[None, None, None]:
     def get_images() -> set[str]:
         if detect_ci_provider() is None or platform != "linux":
