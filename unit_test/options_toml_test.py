@@ -4,7 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel.options import ConfigOptionError, InheritRule, OptionsReader, _resolve_cascade
+from cibuildwheel.options import (
+    EnvironmentFormat,
+    InheritRule,
+    ListFormat,
+    OptionsReader,
+    OptionsReaderError,
+    ShlexTableFormat,
+    _resolve_cascade,
+)
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -37,42 +45,32 @@ def test_simple_settings(tmp_path, platform, fname):
 
     options_reader = OptionsReader(config_file_path, platform=platform, env={})
 
-    assert options_reader.get("build", env_plat=False, list_sep=" ") == "cp39*"
+    assert options_reader.get("build", option_format=ListFormat(" "), env_plat=False) == "cp39*"
 
     assert options_reader.get("test-command") == "pyproject"
-    assert options_reader.get("archs", list_sep=" ") == "auto"
+    assert options_reader.get("archs", option_format=ListFormat(" ")) == "auto"
     assert (
-        options_reader.get("test-requires", list_sep=" ")
+        options_reader.get("test-requires", option_format=ListFormat(" "))
         == {"windows": "something", "macos": "else", "linux": "other many"}[platform]
     )
 
     # Also testing options for support for both lists and tables
     assert (
-        options_reader.get("environment", table_format={"item": '{k}="{v}"', "sep": " "})
+        options_reader.get("environment", option_format=EnvironmentFormat())
         == 'THING="OTHER" FOO="BAR"'
     )
-    assert (
-        options_reader.get(
-            "environment", list_sep="x", table_format={"item": '{k}="{v}"', "sep": " "}
-        )
-        == 'THING="OTHER" FOO="BAR"'
-    )
-    assert options_reader.get("test-extras", list_sep=",") == "one,two"
-    assert (
-        options_reader.get(
-            "test-extras", list_sep=",", table_format={"item": '{k}="{v}"', "sep": " "}
-        )
-        == "one,two"
-    )
+    assert options_reader.get("test-extras", option_format=ListFormat(",")) == "one,two"
 
     assert options_reader.get("manylinux-x86_64-image") == "manylinux1"
     assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
-    with pytest.raises(ConfigOptionError):
-        options_reader.get("environment", list_sep=" ")
+    with pytest.raises(OptionsReaderError):
+        # fails because the option is a table and the option_format only works with lists
+        options_reader.get("environment", option_format=ListFormat(" "))
 
-    with pytest.raises(ConfigOptionError):
-        options_reader.get("test-extras", table_format={"item": '{k}="{v}"', "sep": " "})
+    with pytest.raises(OptionsReaderError):
+        # fails because the option is a list and the option_format only works with tables
+        options_reader.get("test-extras", option_format=ShlexTableFormat())
 
 
 def test_envvar_override(tmp_path, platform):
@@ -91,14 +89,14 @@ def test_envvar_override(tmp_path, platform):
         },
     )
 
-    assert options_reader.get("archs", list_sep=" ") == "auto"
+    assert options_reader.get("archs", option_format=ListFormat(" ")) == "auto"
 
-    assert options_reader.get("build", list_sep=" ") == "cp38*"
+    assert options_reader.get("build") == "cp38*"
     assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_24"
     assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
     assert (
-        options_reader.get("test-requires", list_sep=" ")
+        options_reader.get("test-requires", option_format=ListFormat(" "))
         == {"windows": "docs", "macos": "docs", "linux": "scod"}[platform]
     )
     assert options_reader.get("test-command") == "mytest"
@@ -174,7 +172,7 @@ repairs-wheel-command = "repair-project-linux"
 """
     )
 
-    with pytest.raises(ConfigOptionError) as excinfo:
+    with pytest.raises(OptionsReaderError) as excinfo:
         OptionsReader(pyproject_toml, platform="linux", env={})
 
     assert "repair-wheel-command" in str(excinfo.value)
@@ -191,7 +189,7 @@ repair_wheel_command = "repair-project-linux"
 """
     )
 
-    with pytest.raises(ConfigOptionError) as excinfo:
+    with pytest.raises(OptionsReaderError) as excinfo:
         OptionsReader(pyproject_toml, platform="linux", env={})
 
     assert "repair-wheel-command" in str(excinfo.value)
@@ -205,7 +203,7 @@ def test_unexpected_table(tmp_path):
 repair-wheel-command = "repair-project-linux"
 """
     )
-    with pytest.raises(ConfigOptionError):
+    with pytest.raises(OptionsReaderError):
         OptionsReader(pyproject_toml, platform="linux", env={})
 
 
@@ -219,8 +217,8 @@ build = ["1", "2"]
     )
     options_reader = OptionsReader(pyproject_toml, platform="linux", env={})
 
-    assert options_reader.get("build", list_sep=", ") == "1, 2"
-    with pytest.raises(ConfigOptionError):
+    assert options_reader.get("build", option_format=ListFormat(", ")) == "1, 2"
+    with pytest.raises(OptionsReaderError):
         options_reader.get("build")
 
 
@@ -234,7 +232,7 @@ manylinux-x86_64-image = "manylinux1"
     )
     disallow = {"windows": {"manylinux-x86_64-image"}}
     OptionsReader(pyproject_toml, platform="linux", disallow=disallow, env={})
-    with pytest.raises(ConfigOptionError):
+    with pytest.raises(OptionsReaderError):
         OptionsReader(pyproject_toml, platform="windows", disallow=disallow, env={})
 
 
@@ -305,7 +303,7 @@ def test_resolve_cascade_merge_list(ignore_empty, rule):
         (["b1", "b2"], rule),
         (None, InheritRule.NONE),
         ignore_empty=ignore_empty,
-        list_sep=" ",
+        option_format=ListFormat(" "),
     )
 
     if not ignore_empty:
@@ -326,24 +324,34 @@ def test_resolve_cascade_merge_dict(rule):
         (None, InheritRule.NONE),
         ({"value": "override"}, rule),
         (None, InheritRule.NONE),
-        table_format={"item": "{k}={v}", "sep": " "},
+        option_format=ShlexTableFormat(),
     )
 
     if rule == InheritRule.PREPEND:
-        assert answer == "value=override value=a1 base=b1"
+        assert answer == "value=a1 base=b1"
     elif rule == InheritRule.NONE:
         assert answer == "value=override"
     elif rule == InheritRule.APPEND:
-        assert answer == "value=a1 base=b1 value=override"
+        assert answer == "value=override base=b1"
+
+
+def test_resolve_cascade_merge_strings():
+    answer = _resolve_cascade(
+        ("value=a1 base=b1", InheritRule.NONE),
+        ("value=override", InheritRule.APPEND),
+        option_format=ShlexTableFormat(),
+    )
+    assert answer == "value=override base=b1"
 
 
 def test_resolve_cascade_merge_different_types():
     answer = _resolve_cascade(
-        ({"value": "a1", "base": "b1"}, InheritRule.NONE),
+        ("value=a1 base=b1", InheritRule.NONE),
         ({"value": "override"}, InheritRule.APPEND),
-        table_format={"item": "{k}={v}", "sep": " "},
+        ("extra_string_var=c1", InheritRule.APPEND),
+        option_format=ShlexTableFormat(),
     )
-    assert answer == "value=a1 base=b1 value=override"
+    assert answer == "value=override base=b1 extra_string_var=c1"
 
 
 PYPROJECT_2 = """
@@ -387,28 +395,28 @@ def test_pyproject_2(tmp_path, platform):
     pyproject_toml.write_text(PYPROJECT_2)
 
     options_reader = OptionsReader(config_file_path=pyproject_toml, platform=platform, env={})
-    assert options_reader.get("test-command", list_sep=" && ") == "pyproject"
+    assert options_reader.get("test-command", option_format=ListFormat(" && ")) == "pyproject"
 
     with options_reader.identifier("random"):
-        assert options_reader.get("test-command", list_sep=" && ") == "pyproject"
+        assert options_reader.get("test-command", option_format=ListFormat(" && ")) == "pyproject"
 
     with options_reader.identifier("cp37-something"):
         assert (
-            options_reader.get("test-command", list_sep=" && ")
+            options_reader.get("test-command", option_format=ListFormat(" && "))
             == "pyproject-override && override2 && pyproject"
         )
         assert (
-            options_reader.get("environment", table_format={"item": '{k}="{v}"', "sep": " "})
+            options_reader.get("environment", option_format=EnvironmentFormat())
             == 'FOO="BAR" HAM="EGGS" FOO="BAZ" PYTHON="MONTY"'
         )
 
     with options_reader.identifier("cp37-final"):
         assert (
-            options_reader.get("test-command", list_sep=" && ")
+            options_reader.get("test-command", option_format=ListFormat(" && "))
             == "extra-prepend && pyproject-override && override2 && pyproject && pyproject-finalize && finalize2 && extra-finalize"
         )
         assert (
-            options_reader.get("environment", table_format={"item": '{k}="{v}"', "sep": " "})
+            options_reader.get("environment", option_format=EnvironmentFormat())
             == 'FOO="BAR" HAM="EGGS" FOO="BAZ" PYTHON="MONTY"'
         )
 
@@ -426,7 +434,7 @@ test-command = "pyproject-override"
 """
     )
 
-    with pytest.raises(ConfigOptionError):
+    with pytest.raises(OptionsReaderError):
         OptionsReader(config_file_path=pyproject_toml, platform=platform, env={})
 
 
@@ -442,8 +450,8 @@ other = ["two", "three"]
 
     options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
     assert (
-        options_reader.get("config-settings", table_format={"item": '{k}="{v}"', "sep": " "})
-        == 'example="one" other="two" other="three"'
+        options_reader.get("config-settings", option_format=ShlexTableFormat(pair_sep="=", sep=" "))
+        == "example=one other=two other=three"
     )
 
 
@@ -458,10 +466,8 @@ def test_pip_config_settings(tmp_path):
 
     options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
     assert (
-        options_reader.get(
-            "config-settings", table_format={"item": "--config-settings='{k}=\"{v}\"'", "sep": " "}
-        )
-        == "--config-settings='--build-option=\"--use-mypyc\"'"
+        options_reader.get("config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="="))
+        == "--build-option=--use-mypyc"
     )
 
 
@@ -471,11 +477,15 @@ def test_overrides_inherit(tmp_path):
         """\
 [tool.cibuildwheel]
 before-all = ["before-all"]
+config-settings = {key1="value1", key2="value2"}
 
 [[tool.cibuildwheel.overrides]]
 select = "cp37*"
 inherit.before-all = "append"
 before-all = ["override1"]
+
+inherit.config-settings = "append"
+config-settings = {key3="value3", key2="override2"}
 
 [[tool.cibuildwheel.overrides]]
 select = "cp37*"
@@ -486,9 +496,17 @@ before-all = ["override2"]
 
     options_reader = OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
     with options_reader.identifier("cp38-something"):
-        assert options_reader.get("before-all", list_sep=" && ") == "before-all"
+        assert options_reader.get("before-all", option_format=ListFormat(" && ")) == "before-all"
+        assert (
+            options_reader.get("config-settings", option_format=ShlexTableFormat())
+            == "key1=value1 key2=value2"
+        )
     with options_reader.identifier("cp37-something"):
         assert (
-            options_reader.get("before-all", list_sep=" && ")
+            options_reader.get("before-all", option_format=ListFormat(" && "))
             == "override2 && before-all && override1"
+        )
+        assert (
+            options_reader.get("config-settings", option_format=ShlexTableFormat())
+            == "key1=value1 key2=override2 key3=value3"
         )
