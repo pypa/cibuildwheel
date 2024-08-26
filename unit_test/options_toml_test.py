@@ -477,7 +477,7 @@ def test_overrides_inherit(tmp_path):
         """\
 [tool.cibuildwheel]
 before-all = ["before-all"]
-config-settings = {key1="value1", key2="value2"}
+config-settings = {key1="value1", key2="value2", empty=""}
 
 [[tool.cibuildwheel.overrides]]
 select = "cp37*"
@@ -499,7 +499,7 @@ before-all = ["override2"]
         assert options_reader.get("before-all", option_format=ListFormat(" && ")) == "before-all"
         assert (
             options_reader.get("config-settings", option_format=ShlexTableFormat())
-            == "key1=value1 key2=value2"
+            == "key1=value1 key2=value2 empty=''"
         )
     with options_reader.identifier("cp37-something"):
         assert (
@@ -508,5 +508,5 @@ before-all = ["override2"]
         )
         assert (
             options_reader.get("config-settings", option_format=ShlexTableFormat())
-            == "key1=value1 key2=override2 key3=value3"
+            == "key1=value1 key2=override2 empty='' key3=value3"
         )

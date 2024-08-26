@@ -221,9 +221,9 @@ class ShlexTableFormat(OptionFormat):
         assignments: list[tuple[str, str]] = []
 
         for assignment_str in shlex.split(table):
-            key, _, value = assignment_str.partition(self.pair_sep)
+            key, sep, value = assignment_str.partition(self.pair_sep)
 
-            if not value:
+            if not sep:
                 msg = f"malformed option with value {assignment_str!r}"
                 raise OptionsReaderError(msg)
 
