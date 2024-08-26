@@ -217,10 +217,10 @@ class ShlexTableFormat(OptionFormat):
 
         return self.format_table({**before_dict, **after_dict})
 
-    def parse_table(self, value: str) -> Mapping[str, str | Sequence[str]]:
+    def parse_table(self, table: str) -> Mapping[str, str | Sequence[str]]:
         assignments: list[tuple[str, str]] = []
 
-        for assignment_str in shlex.split(value):
+        for assignment_str in shlex.split(table):
             key, _, value = assignment_str.partition(self.pair_sep)
 
             if not value:
