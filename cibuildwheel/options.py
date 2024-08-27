@@ -649,8 +649,8 @@ class Options:
                     )
 
                     if not config_value:
-                        # default to manylinux2014
-                        image = pinned_images["manylinux2014"]
+                        # default to manylinux_2_28
+                        image = pinned_images["manylinux_2_28"]
                     elif config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
