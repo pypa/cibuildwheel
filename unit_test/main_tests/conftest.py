@@ -47,7 +47,7 @@ def mock_protection(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def fake_package_dir_autouse(fake_package_dir):  # noqa: ARG001
+def fake_package_dir_autouse(fake_package_dir):
     pass
 
 
