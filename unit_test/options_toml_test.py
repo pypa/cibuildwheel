@@ -66,7 +66,7 @@ def test_simple_settings(tmp_path, platform, fname):
     )
 
     assert options_reader.get("manylinux-x86_64-image") == "manylinux1"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
+    assert options_reader.get("manylinux-i686-image") == "manylinux_2_28"
 
     with pytest.raises(ConfigOptionError):
         options_reader.get("environment", list_sep=" ")
@@ -95,7 +95,7 @@ def test_envvar_override(tmp_path, platform):
 
     assert options_reader.get("build", list_sep=" ") == "cp38*"
     assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_24"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
+    assert options_reader.get("manylinux-i686-image") == "manylinux_2_28"
 
     assert (
         options_reader.get("test-requires", list_sep=" ")
@@ -261,7 +261,7 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-i686-image") == ""
     assert options_reader.get("manylinux-aarch64-image") == "manylinux1"
 
-    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux2014"
+    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux_2_28"
     assert options_reader.get("manylinux-i686-image", ignore_empty=True) == "manylinux1"
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
 
