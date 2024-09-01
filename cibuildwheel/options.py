@@ -119,8 +119,8 @@ class BuildOptions:
 
 
 SettingLeaf = Union[str, int, bool]
-SettingTable = Mapping[str, Union[SettingLeaf, Sequence[SettingLeaf]]]
 SettingList = Sequence[SettingLeaf]
+SettingTable = Mapping[str, Union[SettingLeaf, SettingList]]
 SettingValue = Union[SettingTable, SettingList, SettingLeaf]
 
 
