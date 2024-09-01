@@ -1157,25 +1157,30 @@ Platform-specific environment variables are also available:<br/>
 <div class="link-target" id="manylinux-image"></div>
 
 ### `CIBW_MANYLINUX_*_IMAGE`, `CIBW_MUSLLINUX_*_IMAGE` {: #linux-image}
-> Specify alternative manylinux / musllinux container images
 
-The available options are (default value):
+> Specify manylinux / musllinux container images
 
-- `CIBW_MANYLINUX_X86_64_IMAGE` ([`quay.io/pypa/manylinux2014_x86_64`](https://quay.io/pypa/manylinux2014_x86_64))
-- `CIBW_MANYLINUX_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
-- `CIBW_MANYLINUX_PYPY_X86_64_IMAGE` ([`quay.io/pypa/manylinux2014_x86_64`](https://quay.io/pypa/manylinux2014_x86_64))
-- `CIBW_MANYLINUX_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
-- `CIBW_MANYLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/manylinux2014_ppc64le`](https://quay.io/pypa/manylinux2014_ppc64le))
-- `CIBW_MANYLINUX_S390X_IMAGE` ([`quay.io/pypa/manylinux2014_s390x`](https://quay.io/pypa/manylinux2014_s390x))
-- `CIBW_MANYLINUX_PYPY_AARCH64_IMAGE` ([`quay.io/pypa/manylinux2014_aarch64`](https://quay.io/pypa/manylinux2014_aarch64))
-- `CIBW_MANYLINUX_PYPY_I686_IMAGE` ([`quay.io/pypa/manylinux2014_i686`](https://quay.io/pypa/manylinux2014_i686))
-- `CIBW_MUSLLINUX_X86_64_IMAGE` ([`quay.io/pypa/musllinux_1_2_x86_64`](https://quay.io/pypa/musllinux_1_2_x86_64))
-- `CIBW_MUSLLINUX_I686_IMAGE` ([`quay.io/pypa/musllinux_1_2_i686`](https://quay.io/pypa/musllinux_1_2_i686))
-- `CIBW_MUSLLINUX_AARCH64_IMAGE` ([`quay.io/pypa/musllinux_1_2_aarch64`](https://quay.io/pypa/musllinux_1_2_aarch64))
-- `CIBW_MUSLLINUX_PPC64LE_IMAGE` ([`quay.io/pypa/musllinux_1_2_ppc64le`](https://quay.io/pypa/musllinux_1_2_ppc64le))
-- `CIBW_MUSLLINUX_S390X_IMAGE` ([`quay.io/pypa/musllinux_1_2_s390x`](https://quay.io/pypa/musllinux_1_2_s390x))
+The available options are:
 
-Set an alternative Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
+| Option | Default | Future default* |
+|---|---|---|
+| CIBW_MANYLINUX_X86_64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)
+| CIBW_MANYLINUX_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_i686)
+| CIBW_MANYLINUX_PYPY_X86_64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)
+| CIBW_MANYLINUX_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64)
+| CIBW_MANYLINUX_PPC64LE_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le)
+| CIBW_MANYLINUX_S390X_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_s390x) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)
+| CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64)
+| CIBW_MANYLINUX_PYPY_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_i686)
+| CIBW_MUSLLINUX_X86_64_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64) |
+| CIBW_MUSLLINUX_I686_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686) |
+| CIBW_MUSLLINUX_AARCH64_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64) |
+| CIBW_MUSLLINUX_PPC64LE_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le) |
+| CIBW_MUSLLINUX_S390X_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x) |
+
+<small>* The default is scheduled to change in a cibuildwheel release on or after 30th June 2025 - it's recommended to set the value now to avoid this changing by itself.</small>
+
+Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
 For `CIBW_MANYLINUX_*_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
 than x86 (x86\_64 and i686) `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`. `manylinux_2_28` is not supported for `i686` architecture.
