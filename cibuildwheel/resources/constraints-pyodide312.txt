@@ -10,7 +10,7 @@ build==1.2.1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2024.7.4
+certifi==2024.8.30
     # via
     #   httpcore
     #   httpx
@@ -31,7 +31,7 @@ h11==0.14.0
     # via httpcore
 httpcore==1.0.5
     # via httpx
-httpx==0.27.0
+httpx==0.27.2
     # via unearth
 idna==3.8
     # via
@@ -80,7 +80,7 @@ requests==2.32.3
     # via pyodide-build
 resolvelib==1.0.1
     # via pyodide-build
-rich==13.7.1
+rich==13.8.0
     # via
     #   pyodide-build
     #   pyodide-cli
@@ -107,7 +107,7 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   typer
-unearth==0.17.1
+unearth==0.17.2
     # via pyodide-build
 urllib3==2.2.2
     # via
