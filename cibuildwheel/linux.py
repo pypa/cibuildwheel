@@ -204,6 +204,8 @@ def build_in_container(
 
         dependency_constraint_flags: list[PathOrStr] = []
 
+        log.step("Setting up build environment...")
+
         if build_options.dependency_constraints:
             constraints_file = build_options.dependency_constraints.get_for_python_version(
                 config.version
@@ -212,8 +214,6 @@ def build_in_container(
 
             container.copy_into(constraints_file, container_constraints_file)
             dependency_constraint_flags = ["-c", container_constraints_file]
-
-        log.step("Setting up build environment...")
 
         env = container.get_environment()
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
