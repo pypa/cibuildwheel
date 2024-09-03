@@ -9,15 +9,15 @@ import enum
 import functools
 import shlex
 import textwrap
-from collections.abc import Callable, Generator, Iterable, Iterator, Set
+from collections.abc import Generator, Iterable, Set
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence, TypedDict, Union  # noqa: TID251
+from typing import Any, Literal, Mapping, Sequence, Union  # noqa: TID251
 
 from packaging.specifiers import SpecifierSet
 
 from . import errors
 from ._compat import tomllib
-from ._compat.typing import NotRequired, assert_never
+from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
@@ -118,13 +118,16 @@ class BuildOptions:
         return self.globals.architectures
 
 
-Setting = Union[Mapping[str, str], Sequence[str], str, int, bool]
+SettingLeaf = Union[str, int, bool]
+SettingList = Sequence[SettingLeaf]
+SettingTable = Mapping[str, Union[SettingLeaf, SettingList]]
+SettingValue = Union[SettingTable, SettingList, SettingLeaf]
 
 
 @dataclasses.dataclass(frozen=True)
 class Override:
     select_pattern: str
-    options: dict[str, Setting]
+    options: dict[str, SettingValue]
     inherit: dict[str, InheritRule]
 
 
@@ -137,20 +140,121 @@ DISALLOWED_OPTIONS = {
 }
 
 
-class TableFmt(TypedDict):
-    # a format string, used with '.format', with `k` and `v` parameters
-    # e.g. "{k}={v}"
-    item: str
-    # the string that is inserted between items
-    # e.g. " "
-    sep: str
-    # a quoting function that, if supplied, is called to quote each value
-    # e.g. shlex.quote
-    quote: NotRequired[Callable[[str], str]]
-
-
-class ConfigOptionError(KeyError):
+class OptionsReaderError(errors.ConfigurationError):
     pass
+
+
+class OptionFormat:
+    """
+    Base class for option format specifiers. These objects describe how values
+    can be parsed from rich TOML values and how they're merged together.
+    """
+
+    class NotSupported(Exception):
+        pass
+
+    def format_list(self, value: SettingList) -> str:  # noqa: ARG002
+        raise OptionFormat.NotSupported
+
+    def format_table(self, table: SettingTable) -> str:  # noqa: ARG002
+        raise OptionFormat.NotSupported
+
+    def merge_values(self, before: str, after: str) -> str:  # noqa: ARG002
+        raise OptionFormat.NotSupported
+
+
+class ListFormat(OptionFormat):
+    """
+    A format that joins lists with a separator.
+    """
+
+    def __init__(self, sep: str) -> None:
+        self.sep = sep
+
+    def format_list(self, value: SettingList) -> str:
+        return self.sep.join(str(v) for v in value)
+
+    def merge_values(self, before: str, after: str) -> str:
+        return f"{before}{self.sep}{after}"
+
+
+class ShlexTableFormat(OptionFormat):
+    """
+    The standard table format uses shlex.quote to quote values and shlex.split
+    to unquote and split them. When merging values, keys in before are
+    replaced by keys in after.
+    """
+
+    def __init__(self, sep: str = " ", pair_sep: str = "=", allow_merge: bool = True) -> None:
+        self.sep = sep
+        self.pair_sep = pair_sep
+        self.allow_merge = allow_merge
+
+    def format_table(self, table: SettingTable) -> str:
+        assignments: list[tuple[str, str]] = []
+
+        for k, v in table.items():
+            if shlex.split(k) != [k]:
+                msg = f"Invalid table key: {k}"
+                raise OptionsReaderError(msg)
+
+            if isinstance(v, str):
+                assignments.append((k, v))
+            elif isinstance(v, Sequence):
+                for inner_v in v:
+                    assignments.append((k, str(inner_v)))
+            else:
+                assignments.append((k, str(v)))
+
+        return self.sep.join(f"{k}{self.pair_sep}{shlex.quote(v)}" for k, v in assignments)
+
+    def merge_values(self, before: str, after: str) -> str:
+        if not self.allow_merge:
+            raise OptionFormat.NotSupported
+
+        before_dict = self.parse_table(before)
+        after_dict = self.parse_table(after)
+
+        return self.format_table({**before_dict, **after_dict})
+
+    def parse_table(self, table: str) -> Mapping[str, str | Sequence[str]]:
+        assignments: list[tuple[str, str]] = []
+
+        for assignment_str in shlex.split(table):
+            key, sep, value = assignment_str.partition(self.pair_sep)
+
+            if not sep:
+                msg = f"malformed option with value {assignment_str!r}"
+                raise OptionsReaderError(msg)
+
+            assignments.append((key, value))
+
+        result: dict[str, str | list[str]] = {}
+
+        for key, value in assignments:
+            if key in result:
+                existing_value = result[key]
+                if isinstance(existing_value, list):
+                    result[key] = [*existing_value, value]
+                else:
+                    result[key] = [existing_value, value]
+            else:
+                result[key] = value
+
+        return result
+
+
+class EnvironmentFormat(OptionFormat):
+    """
+    The environment format accepts a table of environment variables, where the
+    values may contain variables or command substitutions.
+    """
+
+    def format_table(self, table: SettingTable) -> str:
+        return " ".join(f'{k}="{v}"' for k, v in table.items())
+
+    def merge_values(self, before: str, after: str) -> str:
+        return f"{before} {after}"
 
 
 class InheritRule(enum.Enum):
@@ -160,10 +264,9 @@ class InheritRule(enum.Enum):
 
 
 def _resolve_cascade(
-    *pairs: tuple[Setting | None, InheritRule],
+    *pairs: tuple[SettingValue | None, InheritRule],
     ignore_empty: bool = False,
-    list_sep: str | None = None,
-    table_format: TableFmt | None = None,
+    option_format: OptionFormat | None = None,
 ) -> str:
     """
     Given a cascade of values with inherit rules, resolve them into a single
@@ -186,13 +289,6 @@ def _resolve_cascade(
 
     result: str | None = None
 
-    if table_format is not None:
-        merge_sep = table_format["sep"]
-    elif list_sep is not None:
-        merge_sep = list_sep
-    else:
-        merge_sep = None
-
     for value, rule in pairs:
         if value is None:
             continue
@@ -200,14 +296,9 @@ def _resolve_cascade(
         if ignore_empty and not value and value is not False:
             continue
 
-        value_string = _stringify_setting(value, list_sep, table_format)
+        value_string = _stringify_setting(value, option_format=option_format)
 
-        result = _merge_values(
-            result,
-            value_string,
-            rule=rule,
-            merge_sep=merge_sep,
-        )
+        result = _apply_inherit_rule(result, value_string, rule=rule, option_format=option_format)
 
     if result is None:
         msg = "a setting should at least have a default value"
@@ -217,7 +308,9 @@ def _resolve_cascade(
 
 
 # pylint: disable-next=inconsistent-return-statements
-def _merge_values(before: str | None, after: str, rule: InheritRule, merge_sep: str | None) -> str:
+def _apply_inherit_rule(
+    before: str | None, after: str, rule: InheritRule, option_format: OptionFormat | None
+) -> str:
     if rule == InheritRule.NONE:
         return after
 
@@ -230,34 +323,39 @@ def _merge_values(before: str | None, after: str, rule: InheritRule, merge_sep: 
         # if after is an empty string, we shouldn't add any separator
         return before
 
-    if not merge_sep:
+    if not option_format:
         msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
-        raise ConfigOptionError(msg)
+        raise OptionsReaderError(msg)
 
     if rule == InheritRule.APPEND:
-        return f"{before}{merge_sep}{after}"
+        return option_format.merge_values(before, after)
     elif rule == InheritRule.PREPEND:
-        return f"{after}{merge_sep}{before}"
+        return option_format.merge_values(after, before)
     else:
         assert_never(rule)
 
 
 def _stringify_setting(
-    setting: Setting, list_sep: str | None, table_format: TableFmt | None
+    setting: SettingValue,
+    option_format: OptionFormat | None,
 ) -> str:
     if isinstance(setting, Mapping):
-        if table_format is None:
+        try:
+            if option_format is None:
+                raise OptionFormat.NotSupported
+            return option_format.format_table(setting)
+        except OptionFormat.NotSupported:
             msg = f"Error converting {setting!r} to a string: this setting doesn't accept a table"
-            raise ConfigOptionError(msg)
-        return table_format["sep"].join(
-            item for k, v in setting.items() for item in _inner_fmt(k, v, table_format)
-        )
+            raise OptionsReaderError(msg) from None
 
     if not isinstance(setting, str) and isinstance(setting, Sequence):
-        if list_sep is None:
+        try:
+            if option_format is None:
+                raise OptionFormat.NotSupported
+            return option_format.format_list(setting)
+        except OptionFormat.NotSupported:
             msg = f"Error converting {setting!r} to a string: this setting doesn't accept a list"
-            raise ConfigOptionError(msg)
-        return list_sep.join(setting)
+            raise OptionsReaderError(msg) from None
 
     if isinstance(setting, (bool, int)):
         return str(setting)
@@ -323,14 +421,14 @@ class OptionsReader:
         if config_overrides is not None:
             if not isinstance(config_overrides, list):
                 msg = "'tool.cibuildwheel.overrides' must be a list"
-                raise ConfigOptionError(msg)
+                raise OptionsReaderError(msg)
 
             for config_override in config_overrides:
                 select = config_override.pop("select", None)
 
                 if not select:
                     msg = "'select' must be set in an override"
-                    raise ConfigOptionError(msg)
+                    raise OptionsReaderError(msg)
 
                 if isinstance(select, list):
                     select = " ".join(select)
@@ -340,7 +438,7 @@ class OptionsReader:
                     i in {"none", "append", "prepend"} for i in inherit.values()
                 ):
                     msg = "'inherit' must be a dict containing only {'none', 'append', 'prepend'} values"
-                    raise ConfigOptionError(msg)
+                    raise OptionsReaderError(msg)
 
                 inherit_enum = {k: InheritRule[v.upper()] for k, v in inherit.items()}
 
@@ -358,7 +456,7 @@ class OptionsReader:
             matches = difflib.get_close_matches(name, allowed_option_names, 1, 0.7)
             if matches:
                 msg += f" Perhaps you meant {matches[0]!r}?"
-            raise ConfigOptionError(msg)
+            raise OptionsReaderError(msg)
 
     def _validate_platform_option(self, name: str) -> None:
         """
@@ -368,7 +466,7 @@ class OptionsReader:
         disallowed_platform_options = self.disallow.get(self.platform, set())
         if name in disallowed_platform_options:
             msg = f"{name!r} is not allowed in {disallowed_platform_options}"
-            raise ConfigOptionError(msg)
+            raise OptionsReaderError(msg)
 
         allowed_option_names = self.default_options.keys() | self.default_platform_options.keys()
 
@@ -377,7 +475,7 @@ class OptionsReader:
             matches = difflib.get_close_matches(name, allowed_option_names, 1, 0.7)
             if matches:
                 msg += f" Perhaps you meant {matches[0]!r}?"
-            raise ConfigOptionError(msg)
+            raise OptionsReaderError(msg)
 
     def _load_file(self, filename: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         """
@@ -412,8 +510,7 @@ class OptionsReader:
         name: str,
         *,
         env_plat: bool = True,
-        list_sep: str | None = None,
-        table_format: TableFmt | None = None,
+        option_format: OptionFormat | None = None,
         ignore_empty: bool = False,
     ) -> str:
         """
@@ -429,7 +526,7 @@ class OptionsReader:
 
         if name not in self.default_options and name not in self.default_platform_options:
             msg = f"{name!r} must be in cibuildwheel/resources/defaults.toml file to be accessed."
-            raise ConfigOptionError(msg)
+            raise OptionsReaderError(msg)
 
         # Environment variable form
         envvar = f"CIBW_{name.upper().replace('-', '_')}"
@@ -449,24 +546,8 @@ class OptionsReader:
             (self.env.get(envvar), InheritRule.NONE),
             (self.env.get(plat_envvar) if env_plat else None, InheritRule.NONE),
             ignore_empty=ignore_empty,
-            list_sep=list_sep,
-            table_format=table_format,
+            option_format=option_format,
         )
-
-
-def _inner_fmt(k: str, v: Any, table: TableFmt) -> Iterator[str]:
-    quote_function = table.get("quote", lambda a: a)
-
-    if isinstance(v, list):
-        for inner_v in v:
-            qv = quote_function(inner_v)
-            yield table["item"].format(k=k, v=qv)
-    elif isinstance(v, bool):
-        qv = quote_function(str(v))
-        yield table["item"].format(k=k, v=qv)
-    else:
-        qv = quote_function(v)
-        yield table["item"].format(k=k, v=qv)
 
 
 class Options:
@@ -513,9 +594,11 @@ class Options:
         package_dir = args.package_dir
         output_dir = args.output_dir
 
-        build_config = self.reader.get("build", env_plat=False, list_sep=" ") or "*"
-        skip_config = self.reader.get("skip", env_plat=False, list_sep=" ")
-        test_skip = self.reader.get("test-skip", env_plat=False, list_sep=" ")
+        build_config = (
+            self.reader.get("build", env_plat=False, option_format=ListFormat(sep=" ")) or "*"
+        )
+        skip_config = self.reader.get("skip", env_plat=False, option_format=ListFormat(sep=" "))
+        test_skip = self.reader.get("test-skip", env_plat=False, option_format=ListFormat(sep=" "))
 
         free_threaded_support = strtobool(
             self.reader.get("free-threaded-support", env_plat=False, ignore_empty=True)
@@ -534,7 +617,7 @@ class Options:
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
-        archs_config_str = args.archs or self.reader.get("archs", list_sep=" ")
+        archs_config_str = args.archs or self.reader.get("archs", option_format=ListFormat(sep=" "))
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
         # Process `--only`
@@ -569,30 +652,33 @@ class Options:
         """
 
         with self.reader.identifier(identifier):
-            before_all = self.reader.get("before-all", list_sep=" && ")
+            before_all = self.reader.get("before-all", option_format=ListFormat(sep=" && "))
 
-            environment_config = self.reader.get(
-                "environment", table_format={"item": '{k}="{v}"', "sep": " "}
+            environment_config = self.reader.get("environment", option_format=EnvironmentFormat())
+            environment_pass = self.reader.get(
+                "environment-pass", option_format=ListFormat(sep=" ")
+            ).split()
+            before_build = self.reader.get("before-build", option_format=ListFormat(sep=" && "))
+            repair_command = self.reader.get(
+                "repair-wheel-command", option_format=ListFormat(sep=" && ")
             )
-            environment_pass = self.reader.get("environment-pass", list_sep=" ").split()
-            before_build = self.reader.get("before-build", list_sep=" && ")
-            repair_command = self.reader.get("repair-wheel-command", list_sep=" && ")
             config_settings = self.reader.get(
-                "config-settings",
-                table_format={"item": "{k}={v}", "sep": " ", "quote": shlex.quote},
+                "config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="=")
             )
 
             dependency_versions = self.reader.get("dependency-versions")
-            test_command = self.reader.get("test-command", list_sep=" && ")
-            before_test = self.reader.get("before-test", list_sep=" && ")
-            test_requires = self.reader.get("test-requires", list_sep=" ").split()
-            test_extras = self.reader.get("test-extras", list_sep=",")
+            test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
+            before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
+            test_requires = self.reader.get(
+                "test-requires", option_format=ListFormat(sep=" ")
+            ).split()
+            test_extras = self.reader.get("test-extras", option_format=ListFormat(sep=","))
             build_verbosity_str = self.reader.get("build-verbosity")
 
             build_frontend_str = self.reader.get(
                 "build-frontend",
                 env_plat=False,
-                table_format={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
             )
             build_frontend: BuildFrontendConfig | None
             if not build_frontend_str or build_frontend_str == "default":
@@ -674,7 +760,7 @@ class Options:
 
             container_engine_str = self.reader.get(
                 "container-engine",
-                table_format={"item": "{k}:{v}", "sep": "; ", "quote": shlex.quote},
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
             )
 
             try:
