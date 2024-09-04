@@ -511,6 +511,12 @@ def test_disable_host_mount(tmp_path: Path, container_engine, config, should_hav
 
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine, platform):
+    if (
+        detect_ci_provider() in {CIProvider.travis_ci}
+        and pm in {"s390x", "ppc64le"}
+        and platform != DEFAULT_OCI_PLATFORM
+    ):
+        pytest.skip("Skipping test because docker on this platform does not support QEMU")
     with OCIContainer(
         engine=container_engine, image="debian:12-slim", oci_platform=platform
     ) as container:
