@@ -130,6 +130,10 @@ def test_cwd(container_engine):
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
+@pytest.mark.skipif(
+    pm == "s390x" and detect_ci_provider() == CIProvider.travis_ci,
+    reason="test is flaky on this platform, see https://github.com/pypa/cibuildwheel/pull/1961#issuecomment-2334678966",
+)
 def test_container_removed(container_engine):
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
