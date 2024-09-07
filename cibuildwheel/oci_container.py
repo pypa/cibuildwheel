@@ -184,7 +184,9 @@ class OCIContainer:
             network_args = ["--network=host"]
 
         platform_args = [f"--platform={self.oci_platform.value}"]
-        if not self.image.endswith(":cibw_local"):
+        if self.image.endswith(":cibw_local"):
+            platform_args.append("--pull=never")
+        else:
             # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
             # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
             platform_args.append("--pull=always")
