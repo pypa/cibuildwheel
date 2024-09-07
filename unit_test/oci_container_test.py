@@ -513,6 +513,15 @@ def test_disable_host_mount(tmp_path: Path, container_engine, config, should_hav
                 container.call(["cat", host_mount_path], capture_output=True)
 
 
+def test_local_image(container_engine):
+    local_image = f"cibw_test_{container_engine.name}_local:cibw_local"
+    subprocess.run([container_engine.name, "image", "tag", DEFAULT_IMAGE, local_image], check=True)
+    with OCIContainer(
+        engine=container_engine, image=local_image, oci_platform=DEFAULT_OCI_PLATFORM
+    ):
+        pass
+
+
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine, platform):
     if (
@@ -530,6 +539,15 @@ def test_multiarch_image(container_engine, platform):
             OCIPlatform.AMD64: "x86_64",
             OCIPlatform.ARM64: "aarch64",
             OCIPlatform.PPC64LE: "ppc64le",
+            OCIPlatform.S390X: "s390x",
+        }
+        assert output_map[platform] == output.strip()
+        output = container.call(["dpkg", "--print-architecture"], capture_output=True)
+        output_map = {
+            OCIPlatform.i386: "i386",
+            OCIPlatform.AMD64: "amd64",
+            OCIPlatform.ARM64: "arm64",
+            OCIPlatform.PPC64LE: "ppc64el",
             OCIPlatform.S390X: "s390x",
         }
         assert output_map[platform] == output.strip()

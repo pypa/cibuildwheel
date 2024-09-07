@@ -33,9 +33,10 @@ from .util import (
 ContainerEngineName = Literal["docker", "podman"]
 
 
+# Order of the enum matters for tests. 386 shall appear before amd64.
 class OCIPlatform(Enum):
-    AMD64 = "linux/amd64"
     i386 = "linux/386"
+    AMD64 = "linux/amd64"
     ARM64 = "linux/arm64"
     PPC64LE = "linux/ppc64le"
     S390X = "linux/s390x"
@@ -182,9 +183,11 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
-        # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
-        # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
-        platform_args = [f"--platform={self.oci_platform.value}", "--pull=always"]
+        platform_args = [f"--platform={self.oci_platform.value}"]
+        if not self.image.endswith(":cibw_local"):
+            # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
+            # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
+            platform_args.append("--pull=always")
 
         simulate_32_bit = False
         if self.oci_platform == OCIPlatform.i386:
