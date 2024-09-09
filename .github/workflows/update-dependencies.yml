@@ -44,7 +44,7 @@ jobs:
 
     - name: Create Pull Request
       if: github.ref == 'refs/heads/main' && github.repository == 'pypa/cibuildwheel'
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v7
       with:
         commit-message: Update dependencies
         title: '[Bot] Update dependencies'
