@@ -170,6 +170,31 @@ class OCIContainer:
         self.name: str | None = None
         self.engine = engine
 
+    def _get_platform_args(self, *, oci_platform: OCIPlatform | None = None) -> tuple[str, str]:
+        if oci_platform is None:
+            oci_platform = self.oci_platform
+
+        # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
+        # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
+        pull = "always"
+        try:
+            image_platform = call(
+                self.engine.name,
+                "image",
+                "inspect",
+                self.image,
+                "--format",
+                "{{.Os}}/{{.Architecture}}",
+                capture_stdout=True,
+            ).strip()
+            if image_platform == oci_platform.value:
+                # in case the correct image is already present, don't pull
+                # this allows to run local only images
+                pull = "never"
+        except subprocess.CalledProcessError:
+            pass
+        return f"--platform={oci_platform.value}", f"--pull={pull}"
+
     def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
@@ -183,13 +208,7 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
-        platform_args = [f"--platform={self.oci_platform.value}"]
-        if self.image.endswith(":cibw_local"):
-            platform_args.append("--pull=never")
-        else:
-            # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
-            # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
-            platform_args.append("--pull=always")
+        platform_args = self._get_platform_args()
 
         simulate_32_bit = False
         if self.oci_platform == OCIPlatform.i386:
@@ -205,7 +224,7 @@ class OCIContainer:
             except subprocess.CalledProcessError:
                 # The image might have been built with amd64 architecture
                 # Let's try that
-                platform_args = ["--platform=linux/amd64", *platform_args[1:]]
+                platform_args = self._get_platform_args(oci_platform=OCIPlatform.AMD64)
                 container_machine = call(
                     *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
                 ).strip()

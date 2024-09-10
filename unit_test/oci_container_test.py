@@ -514,7 +514,7 @@ def test_disable_host_mount(tmp_path: Path, container_engine, config, should_hav
 
 
 def test_local_image(container_engine):
-    local_image = f"cibw_test_{container_engine.name}_local:cibw_local"
+    local_image = f"cibw_test_{container_engine.name}_local:latest"
     subprocess.run(
         [container_engine.name, "pull", f"--platform={DEFAULT_OCI_PLATFORM.value}", DEFAULT_IMAGE],
         check=True,
