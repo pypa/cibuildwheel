@@ -170,7 +170,7 @@ def setup_python(
         env=env,
     )
 
-    log.step("Installing emscripten...")
+    log.step(f"Installing Emscripten version: {python_configuration.emscripten_version} ...")
     emcc_path = install_emscripten(tmp, python_configuration.emscripten_version)
 
     env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
