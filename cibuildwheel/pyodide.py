@@ -175,7 +175,7 @@ def setup_python(
 
     env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
 
-    log.step("Installing Pyodide xbuildenv...")
+    log.step(f"Installing Pyodide xbuildenv version: {python_configuration.pyodide_version} ...")
     env["PYODIDE_ROOT"] = install_xbuildenv(
         env, python_configuration.pyodide_build_version, python_configuration.pyodide_version
     )
