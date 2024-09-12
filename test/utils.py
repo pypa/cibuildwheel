@@ -274,25 +274,27 @@ def expected_wheels(
                 platform_tags = ["win32", "win_amd64"]
 
         elif platform == "macos":
+            if python_abi_tag.startswith("pp"):
+                if python_abi_tag.startswith(("pp37", "pp38")):
+                    min_macosx = macosx_deployment_target
+                else:
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
+            elif python_abi_tag.startswith("cp"):
+                if python_abi_tag.startswith(("cp36", "cp37", "cp38", "cp39", "cp310", "cp311")):
+                    min_macosx = macosx_deployment_target
+                else:
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
+            else:
+                min_macosx = macosx_deployment_target
+
             if machine_arch == "arm64":
-                arm64_macosx = _floor_macosx(macosx_deployment_target, "11.0")
+                arm64_macosx = _floor_macosx(min_macosx, "11.0")
                 platform_tags = [f'macosx_{arm64_macosx.replace(".", "_")}_arm64']
             else:
-                if python_abi_tag.startswith("pp") and not python_abi_tag.startswith(
-                    ("pp37", "pp38")
-                ):
-                    pypy_macosx = _floor_macosx(macosx_deployment_target, "10.15")
-                    platform_tags = [f'macosx_{pypy_macosx.replace(".", "_")}_x86_64']
-                elif python_abi_tag.startswith("cp313"):
-                    pypy_macosx = _floor_macosx(macosx_deployment_target, "10.13")
-                    platform_tags = [f'macosx_{pypy_macosx.replace(".", "_")}_x86_64']
-                else:
-                    platform_tags = [f'macosx_{macosx_deployment_target.replace(".", "_")}_x86_64']
+                platform_tags = [f'macosx_{min_macosx.replace(".", "_")}_x86_64']
 
             if include_universal2:
-                platform_tags.append(
-                    f'macosx_{macosx_deployment_target.replace(".", "_")}_universal2',
-                )
+                platform_tags.append(f'macosx_{min_macosx.replace(".", "_")}_universal2')
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)

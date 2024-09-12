@@ -21,7 +21,7 @@ def test_podman(tmp_path, capfd, request):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_ARCHS": "x86_64",
+            "CIBW_ARCHS": "native",
             "CIBW_BEFORE_ALL": "echo 'test log statement from before-all'",
             "CIBW_CONTAINER_ENGINE": "podman",
         },
@@ -29,9 +29,7 @@ def test_podman(tmp_path, capfd, request):
     )
 
     # check that the expected wheels are produced
-    expected_wheels = [
-        w for w in utils.expected_wheels("spam", "0.1.0", single_python=True) if "x86_64" in w
-    ]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True, single_arch=True)
     assert set(actual_wheels) == set(expected_wheels)
 
     # check that stdout is bring passed-though from container correctly
