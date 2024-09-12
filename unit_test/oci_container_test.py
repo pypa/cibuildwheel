@@ -6,6 +6,7 @@ import platform
 import random
 import shutil
 import subprocess
+import sys
 import textwrap
 from pathlib import Path, PurePath, PurePosixPath
 
@@ -13,7 +14,7 @@ import pytest
 import tomli_w
 
 from cibuildwheel.environment import EnvironmentAssignmentBash
-from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig
+from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
 # Test utilities
@@ -28,6 +29,14 @@ elif pm in {"aarch64", "arm64"}:
     DEFAULT_IMAGE = DEFAULT_IMAGE_TEMPLATE.format(machine="aarch64")
 else:
     DEFAULT_IMAGE = ""
+DEFAULT_OCI_PLATFORM = {
+    "AMD64": OCIPlatform.AMD64,
+    "x86_64": OCIPlatform.AMD64,
+    "ppc64le": OCIPlatform.PPC64LE,
+    "s390x": OCIPlatform.S390X,
+    "aarch64": OCIPlatform.ARM64,
+    "arm64": OCIPlatform.ARM64,
+}[pm]
 
 PODMAN = OCIContainerEngineConfig(name="podman")
 
@@ -63,24 +72,32 @@ def container_engine(request):
 
 
 def test_simple(container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
 
 def test_no_lf(container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
 def test_debug_info(container_engine):
-    container = OCIContainer(engine=container_engine, image=DEFAULT_IMAGE)
+    container = OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    )
     print(container.debug_info())
     with container:
         pass
 
 
 def test_environment(container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         assert (
             container.call(
                 ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
@@ -92,7 +109,9 @@ def test_environment(container_engine):
 def test_environment_pass(container_engine, monkeypatch):
     monkeypatch.setenv("CIBUILDWHEEL", "1")
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1489957071")
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         assert container.call(["sh", "-c", "echo $CIBUILDWHEEL"], capture_output=True) == "1\n"
         assert (
             container.call(["sh", "-c", "echo $SOURCE_DATE_EPOCH"], capture_output=True)
@@ -102,14 +121,23 @@ def test_environment_pass(container_engine, monkeypatch):
 
 def test_cwd(container_engine):
     with OCIContainer(
-        engine=container_engine, image=DEFAULT_IMAGE, cwd="/cibuildwheel/working_directory"
+        engine=container_engine,
+        image=DEFAULT_IMAGE,
+        oci_platform=DEFAULT_OCI_PLATFORM,
+        cwd="/cibuildwheel/working_directory",
     ) as container:
         assert container.call(["pwd"], capture_output=True) == "/cibuildwheel/working_directory\n"
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
+@pytest.mark.skipif(
+    pm == "s390x" and detect_ci_provider() == CIProvider.travis_ci,
+    reason="test is flaky on this platform, see https://github.com/pypa/cibuildwheel/pull/1961#issuecomment-2334678966",
+)
 def test_container_removed(container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         docker_containers_listing = subprocess.run(
             f"{container.engine.name} container ls",
             shell=True,
@@ -141,7 +169,9 @@ def test_large_environment(container_engine):
         "d": "0" * long_env_var_length,
     }
 
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         # check the length of d
         assert (
             container.call(["sh", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
@@ -150,7 +180,9 @@ def test_large_environment(container_engine):
 
 
 def test_binary_output(container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         # note: the below embedded snippets are in python2
 
         # check that we can pass though arbitrary binary data without erroring
@@ -200,7 +232,9 @@ def test_binary_output(container_engine):
 
 
 def test_file_operation(tmp_path: Path, container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         # test copying a file in
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
@@ -215,7 +249,9 @@ def test_file_operation(tmp_path: Path, container_engine):
 
 
 def test_dir_operations(tmp_path: Path, container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
         original_test_file = tmp_path / "test.dat"
         original_test_file.write_bytes(test_binary_data)
@@ -244,7 +280,9 @@ def test_dir_operations(tmp_path: Path, container_engine):
 
 
 def test_environment_executor(container_engine):
-    with OCIContainer(engine=container_engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         assignment = EnvironmentAssignmentBash("TEST=$(echo 42)")
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
 
@@ -252,6 +290,8 @@ def test_environment_executor(container_engine):
 def test_podman_vfs(tmp_path: Path, monkeypatch, container_engine):
     if container_engine.name != "podman":
         pytest.skip("only runs with podman")
+    if sys.platform.startswith("darwin"):
+        pytest.skip("Skipping test because podman on this platform does not support vfs")
 
     # create the VFS configuration
     vfs_path = tmp_path / "podman_vfs"
@@ -309,7 +349,9 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, container_engine):
     monkeypatch.setenv("CONTAINERS_CONF", str(vfs_containers_conf_fpath))
     monkeypatch.setenv("CONTAINERS_STORAGE_CONF", str(vfs_containers_storage_conf_fpath))
 
-    with OCIContainer(engine=PODMAN, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=PODMAN, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         # test running a command
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
@@ -346,6 +388,7 @@ def test_create_args_volume(tmp_path: Path, container_engine):
     with OCIContainer(
         engine=container_engine,
         image=DEFAULT_IMAGE,
+        oci_platform=DEFAULT_OCI_PLATFORM,
     ) as container:
         assert container.call(["cat", "/test_mount/test_file.txt"], capture_output=True) == "1234"
 
@@ -388,24 +431,47 @@ def test_create_args_volume(tmp_path: Path, container_engine):
             "docker",
             ("--some-option=value; with; semicolons", "--another-option"),
         ),
+        (
+            "docker; create_args: --platform=linux/amd64",
+            "docker",
+            (),
+        ),
+        (
+            "podman; create_args: --platform=linux/amd64",
+            "podman",
+            (),
+        ),
+        (
+            "docker; create_args: --platform linux/amd64",
+            "docker",
+            (),
+        ),
+        (
+            "podman; create_args: --platform linux/amd64",
+            "podman",
+            (),
+        ),
     ],
 )
-def test_parse_engine_config(config, name, create_args):
+def test_parse_engine_config(config, name, create_args, capsys):
     engine_config = OCIContainerEngineConfig.from_config_string(config)
     assert engine_config.name == name
     assert engine_config.create_args == create_args
+    if "--platform" in config:
+        captured = capsys.readouterr()
+        assert (
+            "Using '--platform' in 'container-engine::create_args' is deprecated. It will be ignored."
+            in captured.err
+        )
 
 
 @pytest.mark.skipif(pm != "x86_64", reason="Only runs on x86_64")
-@pytest.mark.parametrize(
-    ("image", "shell_args"),
-    [
-        (DEFAULT_IMAGE_TEMPLATE.format(machine="i686"), ["/bin/bash"]),
-        (DEFAULT_IMAGE_TEMPLATE.format(machine="x86_64"), ["linux32", "/bin/bash"]),
-    ],
-)
-def test_enforce_32_bit(container_engine, image, shell_args):
-    with OCIContainer(engine=container_engine, image=image, enforce_32_bit=True) as container:
+def test_enforce_32_bit(container_engine):
+    with OCIContainer(
+        engine=container_engine,
+        image=DEFAULT_IMAGE_TEMPLATE.format(machine="i686"),
+        oci_platform=OCIPlatform.i386,
+    ) as container:
         assert container.call(["uname", "-m"], capture_output=True).strip() == "i686"
         container_args = subprocess.run(
             f"{container.engine.name} inspect -f '{{{{json .Args }}}}' {container.name}",
@@ -414,7 +480,7 @@ def test_enforce_32_bit(container_engine, image, shell_args):
             stdout=subprocess.PIPE,
             text=True,
         ).stdout
-        assert json.loads(container_args) == shell_args
+        assert json.loads(container_args) == ["/bin/bash"]
 
 
 @pytest.mark.parametrize(
@@ -428,16 +494,64 @@ def test_enforce_32_bit(container_engine, image, shell_args):
 def test_disable_host_mount(tmp_path: Path, container_engine, config, should_have_host_mount):
     if detect_ci_provider() in {CIProvider.circle_ci, CIProvider.gitlab}:
         pytest.skip("Skipping test because docker on this platform does not support host mounts")
+    if sys.platform.startswith("darwin"):
+        pytest.skip("Skipping test because docker on this platform does not support host mounts")
 
     engine = OCIContainerEngineConfig.from_config_string(config.format(name=container_engine.name))
 
     sentinel_file = tmp_path / "sentinel"
     sentinel_file.write_text("12345")
 
-    with OCIContainer(engine=engine, image=DEFAULT_IMAGE) as container:
+    with OCIContainer(
+        engine=engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    ) as container:
         host_mount_path = "/host" + str(sentinel_file)
         if should_have_host_mount:
             assert container.call(["cat", host_mount_path], capture_output=True) == "12345"
         else:
             with pytest.raises(subprocess.CalledProcessError):
                 container.call(["cat", host_mount_path], capture_output=True)
+
+
+def test_local_image(container_engine):
+    local_image = f"cibw_test_{container_engine.name}_local:latest"
+    subprocess.run(
+        [container_engine.name, "pull", f"--platform={DEFAULT_OCI_PLATFORM.value}", DEFAULT_IMAGE],
+        check=True,
+    )
+    subprocess.run([container_engine.name, "image", "tag", DEFAULT_IMAGE, local_image], check=True)
+    with OCIContainer(
+        engine=container_engine, image=local_image, oci_platform=DEFAULT_OCI_PLATFORM
+    ):
+        pass
+
+
+@pytest.mark.parametrize("platform", list(OCIPlatform))
+def test_multiarch_image(container_engine, platform):
+    if (
+        detect_ci_provider() in {CIProvider.travis_ci}
+        and pm in {"s390x", "ppc64le"}
+        and platform != DEFAULT_OCI_PLATFORM
+    ):
+        pytest.skip("Skipping test because docker on this platform does not support QEMU")
+    with OCIContainer(
+        engine=container_engine, image="debian:12-slim", oci_platform=platform
+    ) as container:
+        output = container.call(["uname", "-m"], capture_output=True)
+        output_map = {
+            OCIPlatform.i386: "i686",
+            OCIPlatform.AMD64: "x86_64",
+            OCIPlatform.ARM64: "aarch64",
+            OCIPlatform.PPC64LE: "ppc64le",
+            OCIPlatform.S390X: "s390x",
+        }
+        assert output_map[platform] == output.strip()
+        output = container.call(["dpkg", "--print-architecture"], capture_output=True)
+        output_map = {
+            OCIPlatform.i386: "i386",
+            OCIPlatform.AMD64: "amd64",
+            OCIPlatform.ARM64: "arm64",
+            OCIPlatform.PPC64LE: "ppc64el",
+            OCIPlatform.S390X: "s390x",
+        }
+        assert output_map[platform] == output.strip()

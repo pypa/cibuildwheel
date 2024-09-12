@@ -64,7 +64,9 @@ class Architecture(Enum):
             if arch_str == "auto":
                 result |= Architecture.auto_archs(platform=platform)
             elif arch_str == "native":
-                result.add(Architecture(platform_module.machine()))
+                native_arch = Architecture.native_arch(platform=platform)
+                if native_arch:
+                    result.add(native_arch)
             elif arch_str == "all":
                 result |= Architecture.all_archs(platform=platform)
             elif arch_str == "auto64":

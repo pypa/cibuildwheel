@@ -5,18 +5,22 @@ import json
 import os
 import platform
 import shlex
-import shutil
 import subprocess
 import sys
 import typing
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
 
-from ._compat.typing import Self
+from packaging.version import InvalidVersion, Version
+
+from ._compat.typing import Self, assert_never
+from .errors import OCIEngineTooOldError
+from .logger import log
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
@@ -27,6 +31,15 @@ from .util import (
 )
 
 ContainerEngineName = Literal["docker", "podman"]
+
+
+# Order of the enum matters for tests. 386 shall appear before amd64.
+class OCIPlatform(Enum):
+    i386 = "linux/386"
+    AMD64 = "linux/amd64"
+    ARM64 = "linux/arm64"
+    PPC64LE = "linux/ppc64le"
+    S390X = "linux/s390x"
 
 
 @dataclass(frozen=True)
@@ -56,6 +69,15 @@ class OCIContainerEngineConfig:
         disable_host_mount = (
             strtobool(disable_host_mount_options[-1]) if disable_host_mount_options else False
         )
+        if "--platform" in create_args or any(arg.startswith("--platform=") for arg in create_args):
+            msg = "Using '--platform' in 'container-engine::create_args' is deprecated. It will be ignored."
+            log.warning(msg)
+            if "--platform" in create_args:
+                index = create_args.index("--platform")
+                create_args.pop(index)
+                create_args.pop(index)
+            else:
+                create_args = [arg for arg in create_args if not arg.startswith("--platform=")]
 
         return OCIContainerEngineConfig(
             name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount
@@ -73,6 +95,32 @@ class OCIContainerEngineConfig:
 
 
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
+
+
+def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
+    try:
+        version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
+        version_info = json.loads(version_string.strip())
+        if engine.name == "docker":
+            # --platform support was introduced in 1.32 as experimental
+            # docker cp, as used by cibuildwheel, has been fixed in v24 => API 1.43, https://github.com/moby/moby/issues/38995
+            client_api_version = Version(version_info["Client"]["ApiVersion"])
+            engine_api_version = Version(version_info["Server"]["ApiVersion"])
+            version_supported = min(client_api_version, engine_api_version) >= Version("1.43")
+        elif engine.name == "podman":
+            client_api_version = Version(version_info["Client"]["APIVersion"])
+            if "Server" in version_info:
+                engine_api_version = Version(version_info["Server"]["APIVersion"])
+            else:
+                engine_api_version = client_api_version
+            # --platform support was introduced in v3
+            version_supported = min(client_api_version, engine_api_version) >= Version("3")
+        else:
+            assert_never(engine.name)
+        if not version_supported:
+            raise OCIEngineTooOldError() from None
+    except (subprocess.CalledProcessError, KeyError, InvalidVersion) as e:
+        raise OCIEngineTooOldError() from e
 
 
 class OCIContainer:
@@ -108,7 +156,7 @@ class OCIContainer:
         self,
         *,
         image: str,
-        enforce_32_bit: bool = False,
+        oci_platform: OCIPlatform,
         cwd: PathOrStr | None = None,
         engine: OCIContainerEngineConfig = DEFAULT_ENGINE,
     ):
@@ -117,13 +165,40 @@ class OCIContainer:
             raise ValueError(msg)
 
         self.image = image
-        self.enforce_32_bit = enforce_32_bit
+        self.oci_platform = oci_platform
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
 
+    def _get_platform_args(self, *, oci_platform: OCIPlatform | None = None) -> tuple[str, str]:
+        if oci_platform is None:
+            oci_platform = self.oci_platform
+
+        # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
+        # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
+        pull = "always"
+        try:
+            image_platform = call(
+                self.engine.name,
+                "image",
+                "inspect",
+                self.image,
+                "--format",
+                "{{.Os}}/{{.Architecture}}",
+                capture_stdout=True,
+            ).strip()
+            if image_platform == oci_platform.value:
+                # in case the correct image is already present, don't pull
+                # this allows to run local only images
+                pull = "never"
+        except subprocess.CalledProcessError:
+            pass
+        return f"--platform={oci_platform.value}", f"--pull={pull}"
+
     def __enter__(self) -> Self:
         self.name = f"cibuildwheel-{uuid.uuid4()}"
+
+        _check_engine_version(self.engine)
 
         # work-around for Travis-CI PPC64le Docker runs since 2021:
         # this avoids network splits
@@ -133,14 +208,26 @@ class OCIContainer:
         if detect_ci_provider() == CIProvider.travis_ci and platform.machine() == "ppc64le":
             network_args = ["--network=host"]
 
+        platform_args = self._get_platform_args()
+
         simulate_32_bit = False
-        if self.enforce_32_bit:
+        if self.oci_platform == OCIPlatform.i386:
             # If the architecture running the image is already the right one
             # or the image entrypoint takes care of enforcing this, then we don't need to
             # simulate this
-            container_machine = call(
-                self.engine.name, "run", "--rm", self.image, "uname", "-m", capture_stdout=True
-            ).strip()
+            run_cmd = [self.engine.name, "run", "--rm"]
+            ctr_cmd = ["uname", "-m"]
+            try:
+                container_machine = call(
+                    *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
+                ).strip()
+            except subprocess.CalledProcessError:
+                # The image might have been built with amd64 architecture
+                # Let's try that
+                platform_args = self._get_platform_args(oci_platform=OCIPlatform.AMD64)
+                container_machine = call(
+                    *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
+                ).strip()
             simulate_32_bit = container_machine != "i686"
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
@@ -155,6 +242,7 @@ class OCIContainer:
                 "--interactive",
                 *(["--volume=/:/host"] if not self.engine.disable_host_mount else []),
                 *network_args,
+                *platform_args,
                 *self.engine.create_args,
                 self.image,
                 *shell_args,
@@ -221,73 +309,17 @@ class OCIContainer:
             self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
-        # `docker cp` causes 'no space left on device' error when
-        # a container is running and the host filesystem is
-        # mounted. https://github.com/moby/moby/issues/38995
-        # Use `docker exec` instead.
-
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
-            subprocess.run(
-                f"tar cf - . | {self.engine.name} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
-                shell=True,
-                check=True,
-                cwd=from_path,
-            )
+            call(self.engine.name, "cp", f"{from_path}/.", f"{self.name}:{to_path}")
         else:
-            exec_process: subprocess.Popen[bytes]
-            with subprocess.Popen(
-                [
-                    self.engine.name,
-                    "exec",
-                    "-i",
-                    str(self.name),
-                    "sh",
-                    "-c",
-                    f"cat > {shell_quote(to_path)}",
-                ],
-                stdin=subprocess.PIPE,
-            ) as exec_process:
-                assert exec_process.stdin
-                with open(from_path, "rb") as from_file:
-                    # Bug in mypy, https://github.com/python/mypy/issues/15031
-                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
-
-                exec_process.stdin.close()
-                exec_process.wait()
-
-                if exec_process.returncode:
-                    raise subprocess.CalledProcessError(
-                        exec_process.returncode, exec_process.args, None, None
-                    )
+            self.call(["mkdir", "-p", to_path.parent])
+            call(self.engine.name, "cp", from_path, f"{self.name}:{to_path}")
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
-
-        if self.engine.name == "podman":
-            subprocess.run(
-                [
-                    self.engine.name,
-                    "cp",
-                    f"{self.name}:{from_path}/.",
-                    str(to_path),
-                ],
-                check=True,
-                cwd=to_path,
-            )
-        elif self.engine.name == "docker":
-            # There is a bug in docker that prevents a simple 'cp' invocation
-            # from working https://github.com/moby/moby/issues/38995
-            command = f"{self.engine.name} exec -i {self.name} tar -cC {shell_quote(from_path)} -f - . | tar -xf -"
-            subprocess.run(
-                command,
-                shell=True,
-                check=True,
-                cwd=to_path,
-            )
-        else:
-            raise KeyError(self.engine.name)
+        call(self.engine.name, "cp", f"{self.name}:{from_path}/.", to_path)
 
     def glob(self, path: PurePosixPath, pattern: str) -> list[PurePosixPath]:
         glob_pattern = path.joinpath(pattern)

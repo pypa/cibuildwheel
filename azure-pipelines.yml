@@ -13,6 +13,7 @@ jobs:
       inputs:
         versionSpec: '3.8'
     - bash: |
+        docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
         python -m pip install -e ".[dev]"
         python ./bin/run_tests.py
 

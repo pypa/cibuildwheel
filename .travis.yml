@@ -20,6 +20,14 @@ jobs:
       group: edge
       virt: vm
       env: PYTHON=python
+      # docker is outdated in the arm64-graviton2 vm focal image (19.x)
+      # we need to upgrade to get >= 24.0
+      addons:
+        apt:
+          sources:
+            - sourceline: 'deb https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable'
+          packages:
+            - docker-ce docker-ce-cli containerd.io
 
     - name: Linux | ppc64le | Python 3.9
       python: 3.9
@@ -48,8 +56,9 @@ jobs:
       env: PYTHON=python
 
 install:
+- if [ "${TRAVIS_OS_NAME}" == "linux" ]; then docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all; fi
 - $PYTHON -m pip install -U pip
-- $PYTHON -m pip install -e ".[dev]" pytest-custom-exit-code
+- $PYTHON -m pip install -e ".[test]" pytest-custom-exit-code
 
 script: |
   # travis_wait disable the output while waiting

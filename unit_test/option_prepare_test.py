@@ -12,6 +12,7 @@ import pytest
 
 from cibuildwheel import linux, util
 from cibuildwheel.__main__ import main
+from cibuildwheel.oci_container import OCIPlatform
 
 ALL_IDS = {
     "cp36",
@@ -73,7 +74,7 @@ def test_build_default_launches(monkeypatch):
     kwargs = build_in_container.call_args_list[0][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert not kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {f"{x}-manylinux_x86_64" for x in ALL_IDS}
@@ -81,7 +82,7 @@ def test_build_default_launches(monkeypatch):
     kwargs = build_in_container.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
@@ -89,7 +90,7 @@ def test_build_default_launches(monkeypatch):
     kwargs = build_in_container.call_args_list[2][1]
     assert "quay.io/pypa/musllinux_1_2_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert not kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
@@ -99,7 +100,7 @@ def test_build_default_launches(monkeypatch):
     kwargs = build_in_container.call_args_list[3][1]
     assert "quay.io/pypa/musllinux_1_2_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x}
@@ -142,7 +143,7 @@ before-all = "true"
     kwargs = build_in_container.call_args_list[0][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert not kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {"cp36-manylinux_x86_64"}
@@ -151,7 +152,7 @@ before-all = "true"
     kwargs = build_in_container.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert not kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
@@ -164,7 +165,7 @@ before-all = "true"
     kwargs = build_in_container.call_args_list[2][1]
     assert "quay.io/pypa/manylinux_2_28_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert not kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
         f"{x}-manylinux_x86_64"
@@ -174,7 +175,7 @@ before-all = "true"
     kwargs = build_in_container.call_args_list[3][1]
     assert "quay.io/pypa/manylinux2014_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
@@ -182,7 +183,7 @@ before-all = "true"
     kwargs = build_in_container.call_args_list[4][1]
     assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert not kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
@@ -192,7 +193,7 @@ before-all = "true"
     kwargs = build_in_container.call_args_list[5][1]
     assert "quay.io/pypa/musllinux_1_2_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert not kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
         f"{x}-musllinux_x86_64" for x in ALL_IDS - {"cp36", "cp37", "cp38", "cp39"} if "pp" not in x
@@ -201,7 +202,7 @@ before-all = "true"
     kwargs = build_in_container.call_args_list[6][1]
     assert "quay.io/pypa/musllinux_1_2_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert kwargs["container"]["enforce_32_bit"]
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x}
