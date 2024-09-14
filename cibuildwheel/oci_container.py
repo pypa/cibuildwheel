@@ -238,6 +238,7 @@ class OCIContainer:
                 "create",
                 "--env=CIBUILDWHEEL",
                 "--env=SOURCE_DATE_EPOCH",
+                "--user=root",
                 f"--name={self.name}",
                 "--interactive",
                 *(["--volume=/:/host"] if not self.engine.disable_host_mount else []),
@@ -311,15 +312,15 @@ class OCIContainer:
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
-            call(self.engine.name, "cp", f"{from_path}/.", f"{self.name}:{to_path}")
+            call(self.engine.name, "cp", "-a", f"{from_path}/.", f"{self.name}:{to_path}")
         else:
             self.call(["mkdir", "-p", to_path.parent])
-            call(self.engine.name, "cp", from_path, f"{self.name}:{to_path}")
+            call(self.engine.name, "cp", "-a", from_path, f"{self.name}:{to_path}")
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
-        call(self.engine.name, "cp", f"{self.name}:{from_path}/.", to_path)
+        call(self.engine.name, "cp", "-a", f"{self.name}:{from_path}/.", to_path)
 
     def glob(self, path: PurePosixPath, pattern: str) -> list[PurePosixPath]:
         glob_pattern = path.joinpath(pattern)
