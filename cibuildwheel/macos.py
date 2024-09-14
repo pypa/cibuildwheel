@@ -193,6 +193,11 @@ def install_pypy(tmp: Path, url: str) -> Path:
     return installation_path / "bin" / "pypy3"
 
 
+def can_use_uv(python_configuration: PythonConfiguration) -> bool:
+    conditions = (Version(python_configuration.version) >= Version("3.8"),)
+    return all(conditions)
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -200,13 +205,11 @@ def setup_python(
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
 ) -> tuple[Path, dict[str, str]]:
-    if build_frontend == "build[uv]" and Version(python_configuration.version) < Version("3.8"):
+    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
         build_frontend = "build"
 
     uv_path = find_uv()
-    use_uv = build_frontend == "build[uv]" and Version(python_configuration.version) >= Version(
-        "3.8"
-    )
+    use_uv = build_frontend == "build[uv]"
 
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
@@ -415,9 +418,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-            use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version(
-                "3.8"
-            )
+            use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             uv_path = find_uv()
             if use_uv and uv_path is None:
                 msg = "uv not found"
