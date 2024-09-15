@@ -5,6 +5,7 @@ import json
 import os
 import platform
 import shlex
+import shutil
 import subprocess
 import sys
 import typing
@@ -169,6 +170,9 @@ class OCIContainer:
         self.cwd = cwd
         self.name: str | None = None
         self.engine = engine
+        self.host_tar_format = ""
+        if sys.platform.startswith("darwin"):
+            self.host_tar_format = "--format gnutar"
 
     def _get_platform_args(self, *, oci_platform: OCIPlatform | None = None) -> tuple[str, str]:
         if oci_platform is None:
@@ -311,10 +315,38 @@ class OCIContainer:
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         if from_path.is_dir():
             self.call(["mkdir", "-p", to_path])
-            call(self.engine.name, "cp", f"{from_path}/.", f"{self.name}:{to_path}")
+            subprocess.run(
+                f"tar -c {self.host_tar_format} -f - . | {self.engine.name} exec -i {self.name} tar --no-same-owner -xC {shell_quote(to_path)} -f -",
+                shell=True,
+                check=True,
+                cwd=from_path,
+            )
         else:
-            self.call(["mkdir", "-p", to_path.parent])
-            call(self.engine.name, "cp", from_path, f"{self.name}:{to_path}")
+            exec_process: subprocess.Popen[bytes]
+            with subprocess.Popen(
+                [
+                    self.engine.name,
+                    "exec",
+                    "-i",
+                    str(self.name),
+                    "sh",
+                    "-c",
+                    f"cat > {shell_quote(to_path)}",
+                ],
+                stdin=subprocess.PIPE,
+            ) as exec_process:
+                assert exec_process.stdin
+                with open(from_path, "rb") as from_file:
+                    # Bug in mypy, https://github.com/python/mypy/issues/15031
+                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
+
+                exec_process.stdin.close()
+                exec_process.wait()
+
+                if exec_process.returncode:
+                    raise subprocess.CalledProcessError(
+                        exec_process.returncode, exec_process.args, None, None
+                    )
 
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
