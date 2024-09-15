@@ -67,7 +67,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv pip install --system ".[test]"
+        uv pip install --system --python ${{ matrix.python_version }} ".[test]"
 
     - name: Generate a sample project
       run: |
