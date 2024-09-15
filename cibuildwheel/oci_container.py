@@ -320,7 +320,7 @@ class OCIContainer:
     def copy_out(self, from_path: PurePath, to_path: Path) -> None:
         # note: we assume from_path is a dir
         to_path.mkdir(parents=True, exist_ok=True)
-        call(self.engine.name, "cp", "-a", f"{self.name}:{from_path}/.", to_path)
+        call(self.engine.name, "cp", f"{self.name}:{from_path}/.", to_path)
 
     def glob(self, path: PurePosixPath, pattern: str) -> list[PurePosixPath]:
         glob_pattern = path.joinpath(pattern)
