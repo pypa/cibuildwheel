@@ -167,7 +167,7 @@ class OCIContainer:
         ...     print(self.debug_info())
     """
 
-    UTILITY_PYTHON = "/opt/python/cp38-cp38/bin/python"
+    UTILITY_PYTHON = "/opt/python/cp39-cp39/bin/python"
 
     process: PopenBytes
     bash_stdin: IO[bytes]
