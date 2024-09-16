@@ -345,7 +345,7 @@ def build_in_container(
             venv_dir = testing_temp_dir / "venv"
 
             if use_uv:
-                container.call(["uv", "venv", venv_dir, "--python", config.path], env=env)
+                container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
             else:
                 # Use embedded dependencies from virtualenv to ensure determinism
                 venv_args = ["--no-periodic-update", "--pip=embed"]
