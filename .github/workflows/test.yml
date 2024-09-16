@@ -50,7 +50,7 @@ jobs:
       with:
         python-version: ${{ matrix.python_version }}
 
-    - uses: astral-sh/setup-uv@v2
+    - uses: astral-sh/setup-uv@v3
 
     # free some space to prevent reaching GHA disk space limits
     - name: Clean docker images
