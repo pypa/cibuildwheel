@@ -225,6 +225,14 @@ def setup_rust_cross_compile(
         )
 
 
+def can_use_uv(python_configuration: PythonConfiguration) -> bool:
+    conditions = (
+        Version(python_configuration.version) >= Version("3.8"),
+        not python_configuration.identifier.startswith("pp38-"),
+    )
+    return all(conditions)
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -254,11 +262,10 @@ def setup_python(
         raise ValueError(msg)
     assert base_python.exists()
 
-    use_uv = (
-        build_frontend == "build[uv]"
-        and Version(python_configuration.version) >= Version("3.8")
-        and not python_configuration.identifier.startswith("pp38-")
-    )
+    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
+        build_frontend = "build"
+
+    use_uv = build_frontend == "build[uv]"
     uv_path = find_uv()
 
     log.step("Setting up build environment...")
@@ -368,11 +375,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-            use_uv = (
-                build_frontend.name == "build[uv]"
-                and Version(config.version) >= Version("3.8")
-                and not config.identifier.startswith("pp38-")
-            )
+            use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
