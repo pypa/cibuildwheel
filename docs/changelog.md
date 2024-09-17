@@ -4,6 +4,15 @@ title: Changelog
 
 # Changelog
 
+### v2.21.1
+
+_16 September 2024_
+
+- 🐛 Fix a bug in the Linux build, where files copied to the container would have invalid ownership permissions (#2007)
+- 🐛 Fix a bug on Windows where cibuildwheel would call upon `uv` to install dependencies for versions of CPython that it does not support (#2005)
+- 🐛 Fix a bug where `uv 0.4.10` would not use the right Python when testing on Linux. (#2008)
+- 🛠 Bump our documentation pins, fixes an issue with a missing package (#2011)
+
 ### v2.21.0
 
 _13 September 2024_
