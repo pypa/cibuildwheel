@@ -50,7 +50,7 @@ jobs:
       with:
         python-version: ${{ matrix.python_version }}
 
-    - uses: yezz123/setup-uv@v4
+    - uses: astral-sh/setup-uv@v3
 
     # free some space to prevent reaching GHA disk space limits
     - name: Clean docker images
@@ -109,7 +109,7 @@ jobs:
         output-dir: wheelhouse_config_file
         config-file: sample_proj/cibw.toml
 
-    - name: Check Action artefacts
+    - name: Check Action artifacts
       shell: bash
       run: |
         test $(find wheelhouse -name '*.whl' | wc -l) -ge 1

@@ -18,7 +18,7 @@ packaging==24.1
     #   delocate
 pip==24.2
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.3.2
+platformdirs==4.3.3
     # via virtualenv
 pyproject-hooks==1.1.0
     # via build
