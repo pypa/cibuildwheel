@@ -97,8 +97,10 @@ class OCIContainerEngineConfig:
 
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 
+
 def _version_from_string(version: str) -> Version:
     return Version(version.replace("-", "+"))
+
 
 def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
