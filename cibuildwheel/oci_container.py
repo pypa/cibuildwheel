@@ -103,8 +103,8 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
 
-        def version_from_string(str: ver):
-            return Version(ver.replace("-", "+"))
+        def version_from_string(version) -> Version:
+            return Version(version.replace("-", "+"))
 
         if engine.name == "docker":
             # --platform support was introduced in 1.32 as experimental
