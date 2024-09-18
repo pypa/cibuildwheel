@@ -102,16 +102,20 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
+
+        def version_from_string(str: ver):
+            return Version(ver.replace("-", "+"))
+        
         if engine.name == "docker":
             # --platform support was introduced in 1.32 as experimental
             # docker cp, as used by cibuildwheel, has been fixed in v24 => API 1.43, https://github.com/moby/moby/issues/38995
-            client_api_version = Version(version_info["Client"]["ApiVersion"])
-            engine_api_version = Version(version_info["Server"]["ApiVersion"])
+            client_api_version = version_from_string(version_info["Client"]["ApiVersion"])
+            engine_api_version = version_from_string(version_info["Server"]["ApiVersion"])
             version_supported = min(client_api_version, engine_api_version) >= Version("1.43")
         elif engine.name == "podman":
-            client_api_version = Version(version_info["Client"]["APIVersion"])
+            client_api_version = version_from_string(version_info["Client"]["APIVersion"])
             if "Server" in version_info:
-                engine_api_version = Version(version_info["Server"]["APIVersion"])
+                engine_api_version = version_from_string(version_info["Server"]["APIVersion"])
             else:
                 engine_api_version = client_api_version
             # --platform support was introduced in v3
