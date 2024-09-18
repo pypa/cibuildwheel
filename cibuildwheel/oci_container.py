@@ -105,7 +105,7 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
 
         def version_from_string(str: ver):
             return Version(ver.replace("-", "+"))
-        
+
         if engine.name == "docker":
             # --platform support was introduced in 1.32 as experimental
             # docker cp, as used by cibuildwheel, has been fixed in v24 => API 1.43, https://github.com/moby/moby/issues/38995
