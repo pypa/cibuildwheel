@@ -8,6 +8,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import textwrap
 import typing
 import uuid
 from collections.abc import Mapping, Sequence
@@ -106,7 +107,17 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
             client_api_version = Version(version_info["Client"]["ApiVersion"])
             server_api_version = Version(version_info["Server"]["ApiVersion"])
             # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
-            version_supported = min(client_api_version, server_api_version) >= Version("1.41")
+            version = min(client_api_version, server_api_version)
+            minimum_version = Version("1.41")
+            minimum_version_str = "20.10.0"  # docker version
+            error_msg = textwrap.dedent(
+                f"""
+                Build failed because {engine.name} is too old.
+
+                cibuildwheel requires {engine.name}>={minimum_version_str} running API version {minimum_version}.
+                The API version found by cibuildwheel is {version}.
+                """
+            )
         elif engine.name == "podman":
             # podman uses the same version string for "Version" & "ApiVersion"
             # the version string is not PEP440 compliant here
@@ -121,13 +132,23 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
             else:
                 server_version = client_version
             # --platform support was introduced in v3
-            version_supported = min(client_version, server_version) >= Version("3")
+            version = min(client_version, server_version)
+            minimum_version = Version("3")
+            error_msg = textwrap.dedent(
+                f"""
+                Build failed because {engine.name} is too old.
+
+                cibuildwheel requires {engine.name}>={minimum_version}.
+                The version found by cibuildwheel is {version}.
+                """
+            )
         else:
             assert_never(engine.name)
-        if not version_supported:
-            raise OCIEngineTooOldError() from None
+        if version < minimum_version:
+            raise OCIEngineTooOldError(error_msg) from None
     except (subprocess.CalledProcessError, KeyError, InvalidVersion) as e:
-        raise OCIEngineTooOldError() from e
+        msg = f"Build failed because {engine.name} is too old or is not working properly."
+        raise OCIEngineTooOldError(msg) from e
 
 
 class OCIContainer:
