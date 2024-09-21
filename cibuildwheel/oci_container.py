@@ -4,7 +4,6 @@ import io
 import json
 import os
 import platform
-import re
 import shlex
 import shutil
 import subprocess
@@ -101,22 +100,28 @@ DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 
 def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
+        version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
+        version_info = json.loads(version_string.strip())
         if engine.name == "docker":
-            # --platform support was introduced in 1.32 as experimental
-            # docker cp, as used by cibuildwheel, has been fixed in v24 => API 1.43
-            # https://github.com/moby/moby/issues/38995
-            version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
-            version_info = json.loads(version_string.strip())
             client_api_version = Version(version_info["Client"]["ApiVersion"])
-            engine_api_version = Version(version_info["Server"]["ApiVersion"])
-            version_supported = min(client_api_version, engine_api_version) >= Version("1.43")
+            server_api_version = Version(version_info["Server"]["ApiVersion"])
+            # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
+            version_supported = min(client_api_version, server_api_version) >= Version("1.41")
         elif engine.name == "podman":
-            # Parse the version from the `podman --version` output
-            pattern = r"(?P<engine_name>\w+)\s+version\s+(?P<version>[0-9.]+)"
-            match = re.search(pattern, call(engine.name, "--version", capture_stdout=True))
-            engine_version = Version(match.group("version")) if match else Version("0")
+            # podman uses the same version string for "Version" & "ApiVersion"
+            # the version string is not PEP440 compliant here
+            def _version(version_string: str) -> Version:
+                for sep in ("-", "~", "^", "+"):
+                    version_string = version_string.split(sep, maxsplit=1)[0]
+                return Version(version_string)
+
+            client_version = _version(version_info["Client"]["Version"])
+            if "Server" in version_info:
+                server_version = _version(version_info["Server"]["Version"])
+            else:
+                server_version = client_version
             # --platform support was introduced in v3
-            version_supported = engine_version >= Version("3")
+            version_supported = min(client_version, server_version) >= Version("3")
         else:
             assert_never(engine.name)
         if not version_supported:
