@@ -83,6 +83,7 @@ MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
     "aarch64",
     "ppc64le",
     "s390x",
+    "armv7l",
 )
 
 DEFAULT_CIBW_CACHE_PATH: Final[Path] = user_cache_path(appname="cibuildwheel", appauthor="pypa")

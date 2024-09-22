@@ -38,6 +38,7 @@ ContainerEngineName = Literal["docker", "podman"]
 class OCIPlatform(Enum):
     i386 = "linux/386"
     AMD64 = "linux/amd64"
+    ARMV7 = "linux/arm/v7"
     ARM64 = "linux/arm64"
     PPC64LE = "linux/ppc64le"
     S390X = "linux/s390x"
@@ -215,7 +216,7 @@ class OCIContainer:
         platform_args = self._get_platform_args()
 
         simulate_32_bit = False
-        if self.oci_platform == OCIPlatform.i386:
+        if self.oci_platform in {OCIPlatform.i386, OCIPlatform.ARMV7}:
             # If the architecture running the image is already the right one
             # or the image entrypoint takes care of enforcing this, then we don't need to
             # simulate this
@@ -226,13 +227,14 @@ class OCIContainer:
                     *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
                 ).strip()
             except subprocess.CalledProcessError:
-                # The image might have been built with amd64 architecture
-                # Let's try that
-                platform_args = self._get_platform_args(oci_platform=OCIPlatform.AMD64)
-                container_machine = call(
-                    *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
-                ).strip()
-            simulate_32_bit = container_machine != "i686"
+                if self.oci_platform == OCIPlatform.i386:
+                    # The image might have been built with amd64 architecture
+                    # Let's try that
+                    platform_args = self._get_platform_args(oci_platform=OCIPlatform.AMD64)
+                    container_machine = call(
+                        *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
+                    ).strip()
+            simulate_32_bit = container_machine not in {"i686", "armv7l", "armv8l"}
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
 

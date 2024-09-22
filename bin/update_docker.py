@@ -65,6 +65,7 @@ images = [
     Image("musllinux_1_2", "aarch64", "quay.io/pypa/musllinux_1_2_aarch64", None),
     Image("musllinux_1_2", "ppc64le", "quay.io/pypa/musllinux_1_2_ppc64le", None),
     Image("musllinux_1_2", "s390x", "quay.io/pypa/musllinux_1_2_s390x", None),
+    Image("musllinux_1_2", "armv7l", "quay.io/pypa/musllinux_1_2_armv7l", None),
 ]
 
 config = configparser.ConfigParser()

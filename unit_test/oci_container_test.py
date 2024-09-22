@@ -548,24 +548,29 @@ def test_multiarch_image(container_engine, platform):
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
+    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
+        # both GHA & local macOS arm64 podman desktop are failing
+        pytest.xfail("podman fails with armv7l images")
     with OCIContainer(
         engine=container_engine, image="debian:12-slim", oci_platform=platform
     ) as container:
         output = container.call(["uname", "-m"], capture_output=True)
-        output_map = {
-            OCIPlatform.i386: "i686",
-            OCIPlatform.AMD64: "x86_64",
-            OCIPlatform.ARM64: "aarch64",
-            OCIPlatform.PPC64LE: "ppc64le",
-            OCIPlatform.S390X: "s390x",
+        output_map_kernel = {
+            OCIPlatform.i386: ("i686",),
+            OCIPlatform.AMD64: ("x86_64",),
+            OCIPlatform.ARMV7: ("armv7l", "armv8l"),
+            OCIPlatform.ARM64: ("aarch64",),
+            OCIPlatform.PPC64LE: ("ppc64le",),
+            OCIPlatform.S390X: ("s390x",),
         }
-        assert output_map[platform] == output.strip()
+        assert output.strip() in output_map_kernel[platform]
         output = container.call(["dpkg", "--print-architecture"], capture_output=True)
-        output_map = {
+        output_map_dpkg = {
             OCIPlatform.i386: "i386",
             OCIPlatform.AMD64: "amd64",
+            OCIPlatform.ARMV7: "armhf",
             OCIPlatform.ARM64: "arm64",
             OCIPlatform.PPC64LE: "ppc64el",
             OCIPlatform.S390X: "s390x",
         }
-        assert output_map[platform] == output.strip()
+        assert output_map_dpkg[platform] == output.strip()

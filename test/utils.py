@@ -170,7 +170,9 @@ def expected_wheels(
             machine_arch = "aarch64"
 
     if manylinux_versions is None:
-        if machine_arch == "x86_64":
+        if machine_arch == "armv7l":
+            manylinux_versions = []
+        elif machine_arch == "x86_64":
             manylinux_versions = [
                 "manylinux_2_5",
                 "manylinux1",
