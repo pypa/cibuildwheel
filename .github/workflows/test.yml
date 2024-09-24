@@ -194,7 +194,6 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
-        CIBW_PYODIDE_VERSION: 0.26.2
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |
