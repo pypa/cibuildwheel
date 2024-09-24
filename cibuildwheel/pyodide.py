@@ -226,7 +226,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
             log.build_start(config.identifier)
 
-            identifier_tmp_dir = tmp_path / config.identifier
+            # Include both the identifier and the Pyodide version in the temp directory name
+            identifier_tmp_dir = tmp_path / f"{config.identifier}_{config.pyodide_version}"
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
             repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
             identifier_tmp_dir.mkdir()
