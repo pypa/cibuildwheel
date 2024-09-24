@@ -94,6 +94,8 @@ typer==0.12.5
     #   auditwheel-emscripten
     #   pyodide-build
     #   pyodide-cli
+types-requests==2.32.0.20240914
+    # via pyodide-build
 typing-extensions==4.12.2
     # via
     #   pydantic
@@ -102,7 +104,9 @@ typing-extensions==4.12.2
 unearth==0.17.2
     # via pyodide-build
 urllib3==2.2.3
-    # via requests
+    # via
+    #   requests
+    #   types-requests
 virtualenv==20.26.5
     # via
     #   build

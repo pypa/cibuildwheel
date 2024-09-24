@@ -4,7 +4,30 @@ title: Changelog
 
 # Changelog
 
+### v2.21.1
+
+_16 September 2024_
+
+- 🐛 Fix a bug in the Linux build, where files copied to the container would have invalid ownership permissions (#2007)
+- 🐛 Fix a bug on Windows where cibuildwheel would call upon `uv` to install dependencies for versions of CPython that it does not support (#2005)
+- 🐛 Fix a bug where `uv 0.4.10` would not use the right Python when testing on Linux. (#2008)
+- 🛠 Bump our documentation pins, fixes an issue with a missing package (#2011)
+
+### v2.21.0
+
+_13 September 2024_
+
+- ⚠️ Update CPython 3.12 to 3.12.6, which changes the macOS minimum deployment target on CPython 3.12 from macOS 10.9 to macOS 10.13 (#1998)
+- 🛠 Changes the behaviour when inheriting `config-settings` in TOML overrides - rather than extending each key, which is rarely useful, individual keys will override previously set values. (#1803)
+- 🛠 Update CPython 3.13 to 3.13.0rc2 (#1998)
+- ✨ Adds support for multiarch OCI images (#1961)
+- 🐛 Fixes some bugs building Linux wheels on macOS. (#1961)
+- ⚠️ Changes the minimum version of Docker/Podman to Docker API version 1.43, Podman API version 3. The only mainstream runner this should affect is Travis Graviton2 runners - if so you can [upgrade your version of Docker](https://github.com/pypa/cibuildwheel/pull/1961#issuecomment-2304060019). (#1961)
+
+
 ### v2.20.0
+
+_4 August 2024_
 
 - 🌟 CPython 3.13 wheels are now built by default - without the `CIBW_PRERELEASE_PYTHONS` flag. It's time to build and upload these wheels to PyPI! This release includes CPython 3.13.0rc1, which is guaranteed to be ABI compatible with the final release. Free-threading is still behind a flag/config option. (#1950)
 - ✨ Provide a `CIBW_ALLOW_EMPTY` environment variable as an alternative to the command line flag. (#1937)
@@ -15,6 +38,8 @@ title: Changelog
 
 
 ### v2.19.2
+
+_2 July 2024_
 
 - 🐛 Update manylinux2014 pins to versions that support past-EoL CentOS 7 mirrors. (#1917)
 - 🐛 Support `--no-isolation` with `build[uv]` build-frontend. (#1889)
@@ -28,6 +53,8 @@ title: Changelog
 
 ### v2.19.1
 
+_13 June 2024_
+
 - 🐛 Don't require setup-python on GHA for Pyodide (#1868)
 - 🐛 Specify full python path for uv (fixes issue in 0.2.10 & 0.2.11) (#1881)
 - 🛠 Update for pip 24.1b2 on CPython 3.13. (#1879)
@@ -36,6 +63,8 @@ title: Changelog
 
 
 ### v2.19.0
+
+_10 June 2024_
 
 See the [release post](https://iscinumpy.dev/post/cibuildwheel-2-19-0/) for more info on new features!
 
@@ -54,6 +83,8 @@ See the [release post](https://iscinumpy.dev/post/cibuildwheel-2-19-0/) for more
 
 
 ### v2.18.1
+
+_20 May 2024_
 
 - 🌟 Add free-threaded Linux and Windows builds for 3.13. New identifiers `cp313t-*`, new option `CIBW_FREE_THREADED_SUPPORT`/`tool.cibuildwheel.free-threaded-support` required to opt-in. [See the docs](https://cibuildwheel.pypa.io/en/stable/options/#free-threaded-support) for more information. (#1831)
 - ✨ The `container-engine` is now a build (non-global) option. (#1792)

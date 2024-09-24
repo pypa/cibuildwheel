@@ -244,6 +244,9 @@ def test_file_operation(tmp_path: Path, container_engine):
 
         container.copy_into(original_test_file, dst_file)
 
+        owner = container.call(["stat", "-c", "%u:%g", dst_file], capture_output=True).strip()
+        assert owner == "0:0"
+
         output = container.call(["cat", dst_file], capture_output=True)
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
@@ -266,6 +269,12 @@ def test_dir_operations(tmp_path: Path, container_engine):
         dst_file = dst_dir / "test.dat"
         container.copy_into(test_dir, dst_dir)
 
+        owner = container.call(["stat", "-c", "%u:%g", dst_dir], capture_output=True).strip()
+        assert owner == "0:0"
+
+        owner = container.call(["stat", "-c", "%u:%g", dst_file], capture_output=True).strip()
+        assert owner == "0:0"
+
         output = container.call(["cat", dst_file], capture_output=True)
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
@@ -275,6 +284,11 @@ def test_dir_operations(tmp_path: Path, container_engine):
         # test copy dir out
         new_test_dir = tmp_path / "test_dir_new"
         container.copy_out(dst_dir, new_test_dir)
+
+        assert os.getuid() == new_test_dir.stat().st_uid
+        assert os.getgid() == new_test_dir.stat().st_gid
+        assert os.getuid() == (new_test_dir / "test.dat").stat().st_uid
+        assert os.getgid() == (new_test_dir / "test.dat").stat().st_gid
 
         assert test_binary_data == (new_test_dir / "test.dat").read_bytes()
 
