@@ -83,7 +83,12 @@ def retrieve_compatible_xbuildenvs() -> list[str]:
         env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
     ]
 
-    return compatible_xbuildenvs
+    # Fetch just the "stable" versions
+    compatible_xbuildenvs_filtered = [
+        version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
+    ]
+
+    return compatible_xbuildenvs_filtered
 
 
 def validate_xbuildenv_version(pyodide_build_version: str, xbuildenv_version: str) -> None:
