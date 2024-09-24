@@ -84,7 +84,12 @@ def search_and_install_xbuildenv(
         if pyodide_root.exists():
             return str(pyodide_root)
 
-        # Search for compatible xbuildenvs for the current pyodide-build version
+        # We don't want to mutate env but we need to delete any existing
+        # PYODIDE_ROOT so copy it first.
+        env = dict(env)
+        env.pop("PYODIDE_ROOT", None)
+
+        # 1. Search for compatible xbuildenvs for the current pyodide-build version
         xbuildenvs = call(
             "pyodide",
             "xbuildenv",
@@ -102,7 +107,7 @@ def search_and_install_xbuildenv(
             version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
         ]
 
-        # Now, validate that the requested xbuildenv version is compatible with the pyodide-build version.
+        # 2. Now, validate that the requested xbuildenv version is compatible with the pyodide-build version.
         # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
         # which will always be compatible. Hence, this condition really only checks for the case where the
         # version is supplied manually through the CIBW_PYODIDE_VERSION environment variable.
@@ -116,10 +121,7 @@ def search_and_install_xbuildenv(
             )
             raise errors.FatalError(msg)
 
-        # We don't want to mutate env but we need to delete any existing
-        # PYODIDE_ROOT so copy it first.
-        env = dict(env)
-        env.pop("PYODIDE_ROOT", None)
+        # 3. Install the xbuildenv
         call(
             "pyodide",
             "xbuildenv",
