@@ -69,27 +69,28 @@ def install_emscripten(tmp: Path, version: str) -> Path:
 
 def search_xbuildenv(env: dict[str, str]) -> list[str]:
     """Searches for the compatible xbuildenvs for the current pyodide-build version"""
-    xbuildenvs = call(
-        "pyodide",
-        "xbuildenv",
-        "search",
-        "--json",
-        "--all",
-        env=env,
-        cwd=CIBW_CACHE_PATH,
-        capture_stdout=True,
-    ).strip()
-    xbuildenvs_dict = json.loads(xbuildenvs)
-    compatible_xbuildenvs = [
-        env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
-    ]
-    # Fetch just the "stable" versions
-    compatible_xbuildenvs_filtered = [
-        version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
-    ]
-    # TODO: possibly remove that? Since this won't allow testing the unstable/dev versions
+    with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
+        xbuildenvs = call(
+            "pyodide",
+            "xbuildenv",
+            "search",
+            "--json",
+            "--all",
+            env=env,
+            cwd=CIBW_CACHE_PATH,
+            capture_stdout=True,
+        ).strip()
+        xbuildenvs_dict = json.loads(xbuildenvs)
+        compatible_xbuildenvs = [
+            env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
+        ]
+        # Fetch just the "stable" versions
+        compatible_xbuildenvs_filtered = [
+            version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
+        ]
+        # TODO: possibly remove that? Since this won't allow testing the unstable/dev versions
 
-    return compatible_xbuildenvs_filtered
+        return compatible_xbuildenvs_filtered
 
 
 # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
