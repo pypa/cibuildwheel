@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import sys
@@ -66,6 +67,36 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
+def retrieve_compatible_xbuildenvs() -> list[str]:
+    """Search for compatible xbuildenvs for the current pyodide-build version."""
+    xbuildenvs = call(
+        "pyodide",
+        "xbuildenv",
+        "search",
+        "--json",
+        "--all",
+        capture_stdout=True,
+    ).strip()
+
+    xbuildenvs_dict = json.loads(xbuildenvs)
+    compatible_xbuildenvs = [
+        env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
+    ]
+
+    return compatible_xbuildenvs
+
+
+def validate_xbuildenv_version(pyodide_build_version: str, xbuildenv_version: str) -> None:
+    """Validate that the requested xbuildenv version is compatible with the pyodide-build version."""
+    xbuildenvs = retrieve_compatible_xbuildenvs()
+    if xbuildenv_version not in xbuildenvs:
+        msg = (
+            f"The xbuildenv version {xbuildenv_version} is not compatible with the pyodide-build version {pyodide_build_version}."
+            f" The compatible versions are: {xbuildenvs}. Please use the 'pyodide xbuildenv search' command to find the compatible versions."
+        )
+        raise errors.FatalError(msg)
+
+
 def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_version: str) -> str:
     # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of pyodide-build are
     # not guaranteed to match the versions of Pyodide or be in sync with them. Hence, we shall
@@ -75,6 +106,16 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
         CIBW_CACHE_PATH
         / f".pyodide-xbuildenv-{pyodide_build_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
+
+    # Validate that the requested xbuildenv version is compatible with the pyodide-build version.
+    # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
+    # which will always be compatible. Hence, this function really only checks for the case where the
+    # version is supplied manually through CIBW_PYODIDE_VERSION environment variable.
+    cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION")
+    if cibw_pyodide_version:
+        validate_xbuildenv_version(pyodide_build_version, cibw_pyodide_version)
+        pyodide_version = cibw_pyodide_version
+
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         if pyodide_root.exists():
             return str(pyodide_root)
