@@ -69,12 +69,17 @@ def install_emscripten(tmp: Path, version: str) -> Path:
 
 def search_xbuildenv() -> list[str]:
     """Searches for the compatible xbuildenvs for the current pyodide-build version"""
+
+    env = dict(os.environ)
+    env.pop("PYODIDE_ROOT", None)
+
     xbuildenvs = call(
         "pyodide",
         "xbuildenv",
         "search",
         "--json",
         "--all",
+        env=env,
         cwd=CIBW_CACHE_PATH,
         capture_stdout=True,
     ).strip()
@@ -86,6 +91,7 @@ def search_xbuildenv() -> list[str]:
     compatible_xbuildenvs_filtered = [
         version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
     ]
+    # TODO: possibly remove that? Since this won't allow testing the unstable/dev versions
 
     return compatible_xbuildenvs_filtered
 
@@ -110,7 +116,7 @@ def validate_xbuildenv(pyodide_version: str, pyodide_build_version: str) -> None
 
 
 def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_version: str) -> str:
-    """Installs a particular Pyodide xbuildenv version."""
+    """Install a particular Pyodide xbuildenv version and set a path to the Pyodide root."""
     # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of pyodide-build are
     # not guaranteed to match the versions of Pyodide or be in sync with them. Hence, we shall
     # specify the pyodide-build version in the root path, which will set up the xbuildenv for
