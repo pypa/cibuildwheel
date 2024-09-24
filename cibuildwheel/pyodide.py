@@ -268,7 +268,9 @@ def build(options: Options, tmp_path: Path) -> None:
             log.build_start(config.identifier)
 
             # Include both the identifier and the Pyodide version in the temp directory name
-            identifier_tmp_dir = tmp_path / f"{config.identifier}_{config.pyodide_version}"
+            cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION", config.pyodide_version)
+            identifier_tmp_dir = tmp_path / f"{config.identifier}_{cibw_pyodide_version}"
+
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
             repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
             identifier_tmp_dir.mkdir()
