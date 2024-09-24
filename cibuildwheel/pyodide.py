@@ -80,41 +80,41 @@ def search_and_install_xbuildenv(
         / f".pyodide-xbuildenv-{pyodide_build_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
 
-    # Search for compatible xbuildenvs for the current pyodide-build version
-    xbuildenvs = call(
-        "pyodide",
-        "xbuildenv",
-        "search",
-        "--json",
-        "--all",
-        capture_stdout=True,
-    ).strip()
-    xbuildenvs_dict = json.loads(xbuildenvs)
-    compatible_xbuildenvs = [
-        env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
-    ]
-    # Fetch just the "stable" versions
-    compatible_xbuildenvs_filtered = [
-        version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
-    ]
-
-    # Now, validate that the requested xbuildenv version is compatible with the pyodide-build version.
-    # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
-    # which will always be compatible. Hence, this condition really only checks for the case where the
-    # version is supplied manually through the CIBW_PYODIDE_VERSION environment variable.
-    cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION", pyodide_version)
-    if cibw_pyodide_version not in compatible_xbuildenvs_filtered:
-        msg = (
-            f"The xbuildenv version {cibw_pyodide_version} is not compatible with the pyodide-build"
-            f" version {pyodide_build_version}. The compatible versions available to download are:"
-            f" {compatible_xbuildenvs_filtered}. Please use the 'pyodide xbuildenv search' command to"
-            f" find the compatible versions for {pyodide_build_version}"
-        )
-        raise errors.FatalError(msg)
-
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         if pyodide_root.exists():
             return str(pyodide_root)
+
+        # Search for compatible xbuildenvs for the current pyodide-build version
+        xbuildenvs = call(
+            "pyodide",
+            "xbuildenv",
+            "search",
+            "--json",
+            "--all",
+            capture_stdout=True,
+        ).strip()
+        xbuildenvs_dict = json.loads(xbuildenvs)
+        compatible_xbuildenvs = [
+            env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
+        ]
+        # Fetch just the "stable" versions
+        compatible_xbuildenvs_filtered = [
+            version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
+        ]
+
+        # Now, validate that the requested xbuildenv version is compatible with the pyodide-build version.
+        # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
+        # which will always be compatible. Hence, this condition really only checks for the case where the
+        # version is supplied manually through the CIBW_PYODIDE_VERSION environment variable.
+        cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION", pyodide_version)
+        if cibw_pyodide_version not in compatible_xbuildenvs_filtered:
+            msg = (
+                f"The xbuildenv version {cibw_pyodide_version} is not compatible with the pyodide-build"
+                f" version {pyodide_build_version}. The compatible versions available to download are:"
+                f" {compatible_xbuildenvs_filtered}. Please use the 'pyodide xbuildenv search' command to"
+                f" find the compatible versions for {pyodide_build_version}"
+            )
+            raise errors.FatalError(msg)
 
         # We don't want to mutate env but we need to delete any existing
         # PYODIDE_ROOT so copy it first.
