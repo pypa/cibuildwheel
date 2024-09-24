@@ -75,6 +75,7 @@ def search_xbuildenv() -> list[str]:
         "search",
         "--json",
         "--all",
+        cwd=CIBW_CACHE_PATH,
         capture_stdout=True,
     ).strip()
     xbuildenvs_dict = json.loads(xbuildenvs)
