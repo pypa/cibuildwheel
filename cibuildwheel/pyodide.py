@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import sys
@@ -41,6 +42,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     pyodide_version: str
+    pyodide_build_version: str
     emscripten_version: str
     node_version: str
 
@@ -65,11 +67,63 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
-def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
+def search_xbuildenv(env: dict[str, str]) -> list[str]:
+    """Searches for the compatible xbuildenvs for the current pyodide-build version"""
+    with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
+        xbuildenvs = call(
+            "pyodide",
+            "xbuildenv",
+            "search",
+            "--json",
+            "--all",
+            env=env,
+            cwd=CIBW_CACHE_PATH,
+            capture_stdout=True,
+        ).strip()
+        xbuildenvs_dict = json.loads(xbuildenvs)
+        compatible_xbuildenvs = [
+            env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
+        ]
+        # Fetch just the "stable" versions
+        compatible_xbuildenvs_filtered = [
+            version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
+        ]
+        # TODO: possibly remove that? Since this won't allow testing the unstable/dev versions
+
+        return compatible_xbuildenvs_filtered
+
+
+# The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
+# which will always be compatible. Hence, this condition really checks only for the case where the
+# version is supplied manually through a CIBW_PYODIDE_VERSION environment variable and raises an
+# error as appropriate.
+def validate_xbuildenv(
+    cibw_pyodide_version: str, pyodide_build_version: str, compatible_versions: list[str]
+) -> None:
+    """Validate the Pyodide version if set manually for the current pyodide-build version
+    against a list of compatible versions."""
+
+    if cibw_pyodide_version not in compatible_versions:
+        msg = (
+            f"The xbuildenv version {cibw_pyodide_version} is not compatible with the pyodide-build"
+            f" version {pyodide_build_version}. The compatible versions available to download are:"
+            f" {compatible_versions}. Please use the 'pyodide xbuildenv search' command to"
+            f" find the compatible versions for {pyodide_build_version}"
+        )
+        raise errors.FatalError(msg)
+
+
+def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_version: str) -> str:
+    """Install a particular Pyodide xbuildenv version and set a path to the Pyodide root."""
+    # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of pyodide-build are
+    # not guaranteed to match the versions of Pyodide or be in sync with them. Hence, we shall
+    # specify the pyodide-build version in the root path, which will set up the xbuildenv for
+    # the requested Pyodide version.
     pyodide_root = (
         CIBW_CACHE_PATH
-        / f".pyodide-xbuildenv-{pyodide_version}/{pyodide_version}/xbuildenv/pyodide-root"
+        / f".pyodide-xbuildenv-{pyodide_build_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
+
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         if pyodide_root.exists():
             return str(pyodide_root)
@@ -78,6 +132,8 @@ def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
         # PYODIDE_ROOT so copy it first.
         env = dict(env)
         env.pop("PYODIDE_ROOT", None)
+
+        # 3. Install the xbuildenv
         call(
             "pyodide",
             "xbuildenv",
@@ -165,13 +221,28 @@ def setup_python(
         env=env,
     )
 
-    log.step("Installing emscripten...")
+    log.step(f"Installing Emscripten version: {python_configuration.emscripten_version} ...")
     emcc_path = install_emscripten(tmp, python_configuration.emscripten_version)
 
     env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
 
-    log.step("Installing Pyodide xbuildenv...")
-    env["PYODIDE_ROOT"] = install_xbuildenv(env, python_configuration.pyodide_version)
+    # Allow overriding the xbuildenv version with an environment variable. This allows
+    # testing new Pyodide xbuildenv versions before they are officially released, or for
+    # using a different Pyodide version other than the one that is listed to be compatible
+    # with the pyodide-build version in the build-platforms.toml file.
+    cibw_pyodide_version = os.environ.get(
+        "CIBW_PYODIDE_VERSION", python_configuration.pyodide_version
+    )
+    log.step(f"Installing Pyodide xbuildenv version: {cibw_pyodide_version} ...")
+    # Search for compatible xbuildenv versions
+    compatible_versions = search_xbuildenv(env)
+    # and then validate the xbuildenv version
+    validate_xbuildenv(
+        cibw_pyodide_version, python_configuration.pyodide_build_version, compatible_versions
+    )
+    env["PYODIDE_ROOT"] = install_xbuildenv(
+        env, python_configuration.pyodide_build_version, cibw_pyodide_version
+    )
 
     return env
 
@@ -219,7 +290,10 @@ def build(options: Options, tmp_path: Path) -> None:
 
             log.build_start(config.identifier)
 
-            identifier_tmp_dir = tmp_path / config.identifier
+            # Include both the identifier and the Pyodide version in the temp directory name
+            cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION", config.pyodide_version)
+            identifier_tmp_dir = tmp_path / f"{config.identifier}_{cibw_pyodide_version}"
+
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
             repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
             identifier_tmp_dir.mkdir()

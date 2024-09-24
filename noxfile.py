@@ -102,10 +102,10 @@ def update_constraints(session: nox.Session) -> None:
     pyodides = build_platforms["pyodide"]["python_configurations"]
     for pyodide in pyodides:
         python_version = ".".join(pyodide["version"].split(".")[:2])
-        pyodide_version = pyodide["pyodide_version"]
+        pyodide_build_version = pyodide["pyodide_build_version"]
         output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
-        tmp_file.write_text(f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_version}")
+        tmp_file.write_text(f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_build_version}")
         session.run(
             "uv",
             "pip",

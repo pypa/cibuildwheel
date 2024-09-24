@@ -814,6 +814,11 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "pyodide-version": {
+          "description": "Specify the Pyodide xbuildenv version to use for building",
+          "type": "string",
+          "title": "CIBW_PYODIDE_VERSION"
         }
       }
     }
