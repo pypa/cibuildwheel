@@ -96,6 +96,8 @@ def search_and_install_xbuildenv(
             "search",
             "--json",
             "--all",
+            env=env,
+            cwd=CIBW_CACHE_PATH,
             capture_stdout=True,
         ).strip()
         xbuildenvs_dict = json.loads(xbuildenvs)
