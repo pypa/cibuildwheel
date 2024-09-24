@@ -107,18 +107,18 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
         / f".pyodide-xbuildenv-{pyodide_build_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
 
-    # Validate that the requested xbuildenv version is compatible with the pyodide-build version.
-    # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
-    # which will always be compatible. Hence, this function really only checks for the case where the
-    # version is supplied manually through CIBW_PYODIDE_VERSION environment variable.
-    cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION")
-    if cibw_pyodide_version:
-        validate_xbuildenv_version(pyodide_build_version, cibw_pyodide_version)
-        pyodide_version = cibw_pyodide_version
-
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         if pyodide_root.exists():
             return str(pyodide_root)
+
+        # Validate that the requested xbuildenv version is compatible with the pyodide-build version.
+        # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
+        # which will always be compatible. Hence, this function really only checks for the case where the
+        # version is supplied manually through CIBW_PYODIDE_VERSION environment variable.
+        cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION")
+        if cibw_pyodide_version:
+            validate_xbuildenv_version(pyodide_build_version, cibw_pyodide_version)
+            pyodide_version = cibw_pyodide_version
 
         # We don't want to mutate env but we need to delete any existing
         # PYODIDE_ROOT so copy it first.
