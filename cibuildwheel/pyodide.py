@@ -67,12 +67,8 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
-def search_xbuildenv() -> list[str]:
+def search_xbuildenv(env: dict[str, str]) -> list[str]:
     """Searches for the compatible xbuildenvs for the current pyodide-build version"""
-
-    env = dict(os.environ)
-    env.pop("PYODIDE_ROOT", None)
-
     xbuildenvs = call(
         "pyodide",
         "xbuildenv",
@@ -96,20 +92,21 @@ def search_xbuildenv() -> list[str]:
     return compatible_xbuildenvs_filtered
 
 
-def validate_xbuildenv(pyodide_version: str, pyodide_build_version: str) -> None:
-    """Validate the Pyodide version if set manually for the current pyodide-build version"""
-    pyodide_versions = search_xbuildenv()
+# The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
+# which will always be compatible. Hence, this condition really checks only for the case where the
+# version is supplied manually through a CIBW_PYODIDE_VERSION environment variable and raises an
+# error as appropriate.
+def validate_xbuildenv(
+    cibw_pyodide_version: str, pyodide_build_version: str, compatible_versions: list[str]
+) -> None:
+    """Validate the Pyodide version if set manually for the current pyodide-build version
+    against a list of compatible versions."""
 
-    # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
-    # which will always be compatible. Hence, this condition really checks only for the case where the
-    # version is supplied manually through a CIBW_PYODIDE_VERSION environment variable and raises an
-    # error as appropriate.
-    cibw_pyodide_version = os.environ.get("CIBW_PYODIDE_VERSION", pyodide_version)
-    if cibw_pyodide_version not in pyodide_versions:
+    if cibw_pyodide_version not in compatible_versions:
         msg = (
             f"The xbuildenv version {cibw_pyodide_version} is not compatible with the pyodide-build"
             f" version {pyodide_build_version}. The compatible versions available to download are:"
-            f" {pyodide_versions}. Please use the 'pyodide xbuildenv search' command to"
+            f" {compatible_versions}. Please use the 'pyodide xbuildenv search' command to"
             f" find the compatible versions for {pyodide_build_version}"
         )
         raise errors.FatalError(msg)
@@ -236,7 +233,12 @@ def setup_python(
         "CIBW_PYODIDE_VERSION", python_configuration.pyodide_version
     )
     log.step(f"Installing Pyodide xbuildenv version: {cibw_pyodide_version} ...")
-    validate_xbuildenv(cibw_pyodide_version, cibw_pyodide_version)
+    # Search for compatible xbuildenv versions
+    compatible_versions = search_xbuildenv(env)
+    # and then validate the xbuildenv version
+    validate_xbuildenv(
+        cibw_pyodide_version, python_configuration.pyodide_build_version, compatible_versions
+    )
     env["PYODIDE_ROOT"] = install_xbuildenv(
         env, python_configuration.pyodide_build_version, cibw_pyodide_version
     )
