@@ -34,7 +34,7 @@ def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     if platform == "pyodide" and frontend == "pip":
         pytest.skip("Can't use pip as build frontend for pyodide platform")
 
-    return {"CIBW_BUILD_FRONTEND": frontend}
+    return {"CIBW_BUILD": "gp*", "CIBW_BUILD_FRONTEND": frontend}
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def build_frontend_env(build_frontend_env_nouv: dict[str, str]) -> dict[str, str
     if frontend != "build" or platform == "pyodide" or find_uv() is None:
         return build_frontend_env_nouv
 
-    return {"CIBW_BUILD_FRONTEND": "build[uv]"}
+    return {"CIBW_BUILD": "gp*", "CIBW_BUILD_FRONTEND": "build[uv]"}
 
 
 @pytest.fixture
