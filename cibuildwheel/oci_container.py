@@ -18,14 +18,13 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
 
-from packaging.version import InvalidVersion, Version
-
 from ._compat.typing import Self, assert_never
 from .errors import OCIEngineTooOldError
 from .logger import log
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
+    FlexibleVersion,
     call,
     detect_ci_provider,
     parse_key_value_string,
@@ -104,11 +103,11 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
         if engine.name == "docker":
-            client_api_version = Version(version_info["Client"]["ApiVersion"])
-            server_api_version = Version(version_info["Server"]["ApiVersion"])
+            client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
+            server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
             # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
             version = min(client_api_version, server_api_version)
-            minimum_version = Version("1.41")
+            minimum_version = FlexibleVersion("1.41")
             minimum_version_str = "20.10.0"  # docker version
             error_msg = textwrap.dedent(
                 f"""
@@ -120,20 +119,14 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
             )
         elif engine.name == "podman":
             # podman uses the same version string for "Version" & "ApiVersion"
-            # the version string is not PEP440 compliant here
-            def _version(version_string: str) -> Version:
-                for sep in ("-", "~", "^", "+"):
-                    version_string = version_string.split(sep, maxsplit=1)[0]
-                return Version(version_string)
-
-            client_version = _version(version_info["Client"]["Version"])
+            client_version = FlexibleVersion(version_info["Client"]["Version"])
             if "Server" in version_info:
-                server_version = _version(version_info["Server"]["Version"])
+                server_version = FlexibleVersion(version_info["Server"]["Version"])
             else:
                 server_version = client_version
             # --platform support was introduced in v3
             version = min(client_version, server_version)
-            minimum_version = Version("3")
+            minimum_version = FlexibleVersion("3")
             error_msg = textwrap.dedent(
                 f"""
                 Build failed because {engine.name} is too old.
@@ -146,7 +139,7 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
             assert_never(engine.name)
         if version < minimum_version:
             raise OCIEngineTooOldError(error_msg) from None
-    except (subprocess.CalledProcessError, KeyError, InvalidVersion) as e:
+    except (subprocess.CalledProcessError, KeyError, ValueError) as e:
         msg = f"Build failed because {engine.name} is too old or is not working properly."
         raise OCIEngineTooOldError(msg) from e
 

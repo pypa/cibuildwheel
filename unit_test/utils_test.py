@@ -6,6 +6,7 @@ from pathlib import PurePath
 import pytest
 
 from cibuildwheel.util import (
+    FlexibleVersion,
     find_compatible_wheel,
     fix_ansi_codes_for_github_actions,
     format_safe,
@@ -206,3 +207,17 @@ def test_parse_key_value_string():
         "name": ["docker"],
         "create_args": [],
     }
+
+
+def test_flexible_version_comparisons():
+    assert FlexibleVersion("2.0") == FlexibleVersion("2")
+    assert FlexibleVersion("2.0") < FlexibleVersion("2.1")
+    assert FlexibleVersion("2.1") > FlexibleVersion("2")
+    assert FlexibleVersion("1.9.9") < FlexibleVersion("2.0")
+    assert FlexibleVersion("1.10") > FlexibleVersion("1.9.9")
+    assert FlexibleVersion("3.0.1") > FlexibleVersion("3.0")
+    assert FlexibleVersion("3.0") < FlexibleVersion("3.0.1")
+    # Suffix should not affect comparisons
+    assert FlexibleVersion("1.0.1-rhel") > FlexibleVersion("1.0")
+    assert FlexibleVersion("1.0.1-rhel") < FlexibleVersion("1.1")
+    assert FlexibleVersion("1.0.1") == FlexibleVersion("v1.0.1")

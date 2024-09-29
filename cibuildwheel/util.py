@@ -19,7 +19,7 @@ from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from functools import lru_cache
+from functools import lru_cache, total_ordering
 from pathlib import Path, PurePath
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -899,3 +899,51 @@ def combine_constraints(
     env["UV_CONSTRAINT"] = env["PIP_CONSTRAINT"] = " ".join(
         c for c in [our_constraints, user_constraints] if c
     )
+
+
+@total_ordering
+class FlexibleVersion:
+    version_str: str
+    version_parts: tuple[int, ...]
+    suffix: str
+
+    def __init__(self, version_str: str) -> None:
+        self.version_str = version_str
+
+        # Split into numeric parts and the optional suffix
+        match = re.match(r"^[v]?(\d+(\.\d+)*)(.*)$", version_str)
+        if not match:
+            msg = f"Invalid version string: {version_str}"
+            raise ValueError(msg)
+
+        version_part, _, suffix = match.groups()
+
+        # Convert numeric version part into a tuple of integers
+        self.version_parts = tuple(map(int, version_part.split(".")))
+        self.suffix = suffix.strip() if suffix else ""
+
+        # Normalize by removing trailing zeros
+        self.version_parts = self._remove_trailing_zeros(self.version_parts)
+
+    def _remove_trailing_zeros(self, parts: tuple[int, ...]) -> tuple[int, ...]:
+        # Remove trailing zeros for accurate comparisons
+        # without this, "3.0" would be considered greater than "3"
+        while parts and parts[-1] == 0:
+            parts = parts[:-1]
+        return parts
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, FlexibleVersion):
+            raise NotImplementedError()
+        return (self.version_parts, self.suffix) == (other.version_parts, other.suffix)
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, FlexibleVersion):
+            raise NotImplementedError()
+        return (self.version_parts, self.suffix) < (other.version_parts, other.suffix)
+
+    def __repr__(self) -> str:
+        return f"FlexibleVersion('{self.version_str}')"
+
+    def __str__(self) -> str:
+        return self.version_str
