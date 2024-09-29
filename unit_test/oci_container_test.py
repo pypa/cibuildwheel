@@ -527,16 +527,32 @@ def test_disable_host_mount(tmp_path: Path, container_engine, config, should_hav
                 container.call(["cat", host_mount_path], capture_output=True)
 
 
-def test_local_image(container_engine):
-    local_image = f"cibw_test_{container_engine.name}_local:latest"
+@pytest.mark.parametrize("platform", list(OCIPlatform))
+def test_local_image(container_engine, platform, tmp_path: Path):
+    if (
+        detect_ci_provider() in {CIProvider.travis_ci}
+        and pm in {"s390x", "ppc64le"}
+        and platform != DEFAULT_OCI_PLATFORM
+    ):
+        pytest.skip("Skipping test because docker on this platform does not support QEMU")
+    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
+        # both GHA & local macOS arm64 podman desktop are failing
+        pytest.xfail("podman fails with armv7l images")
+
+    remote_image = "debian:12-slim"
+    local_image = f"cibw_{container_engine.name}_{platform.value.replace("/", "_")}_local:latest"
+    dockerfile = tmp_path / "Dockerfile"
+    dockerfile.write_text(f"FROM {remote_image}")
     subprocess.run(
-        [container_engine.name, "pull", f"--platform={DEFAULT_OCI_PLATFORM.value}", DEFAULT_IMAGE],
+        [container_engine.name, "pull", f"--platform={platform.value}", remote_image],
         check=True,
     )
-    subprocess.run([container_engine.name, "image", "tag", DEFAULT_IMAGE, local_image], check=True)
-    with OCIContainer(
-        engine=container_engine, image=local_image, oci_platform=DEFAULT_OCI_PLATFORM
-    ):
+    subprocess.run(
+        [container_engine.name, "build", f"--platform={platform.value}", "-t", local_image, "."],
+        check=True,
+        cwd=tmp_path,
+    )
+    with OCIContainer(engine=container_engine, image=local_image, oci_platform=platform):
         pass
 
 

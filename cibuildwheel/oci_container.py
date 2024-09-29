@@ -183,13 +183,16 @@ class OCIContainer:
         # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
         pull = "always"
         try:
+            components = len(oci_platform.value.split("/"))
+            assert components in {2, 3}
+            variant = "/{{.Variant}}" if components == 3 else ""
             image_platform = call(
                 self.engine.name,
                 "image",
                 "inspect",
                 self.image,
                 "--format",
-                "{{.Os}}/{{.Architecture}}",
+                "{{.Os}}/{{.Architecture}}" + variant,
                 capture_stdout=True,
             ).strip()
             if image_platform == oci_platform.value:
