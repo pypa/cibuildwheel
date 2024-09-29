@@ -1178,7 +1178,7 @@ The available options are:
 | CIBW_MUSLLINUX_PPC64LE_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le) |
 | CIBW_MUSLLINUX_S390X_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x) |
 
-<small>* The default is scheduled to change in a cibuildwheel release on or after 30th June 2025 - if you don't want the new default, you should set the value to `manylinux2014`.</small>
+<small>* The default is scheduled to change in a cibuildwheel release on or after 6th May 2025 - if you don't want the new default, you should set the value to `manylinux2014`.</small>
 
 Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
