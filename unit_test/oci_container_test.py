@@ -540,7 +540,8 @@ def test_local_image(container_engine, platform, tmp_path: Path):
         pytest.xfail("podman fails with armv7l images")
 
     remote_image = "debian:12-slim"
-    local_image = f"cibw_{container_engine.name}_{platform.value.replace("/", "_")}_local:latest"
+    platform_name = platform.value.replace("/", "_")
+    local_image = f"cibw_{container_engine.name}_{platform_name}_local:latest"
     dockerfile = tmp_path / "Dockerfile"
     dockerfile.write_text(f"FROM {remote_image}")
     subprocess.run(
