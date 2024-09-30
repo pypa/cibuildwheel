@@ -20,9 +20,9 @@ pip==24.2
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.3.6
     # via virtualenv
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via build
 typing-extensions==4.12.2
     # via delocate
-virtualenv==20.26.5
+virtualenv==20.26.6
     # via -r cibuildwheel/resources/constraints.in
