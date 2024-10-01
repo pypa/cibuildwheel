@@ -21,7 +21,7 @@ click==8.1.7
     # via typer
 cloudpickle==3.0.0
     # via loky
-cmake==3.30.3
+cmake==3.30.4
     # via pyodide-build
 distlib==0.3.8
     # via virtualenv
@@ -72,7 +72,7 @@ pyodide-cli==0.2.4
     #   pyodide-build
 pyodide-lock==0.1.0a6
     # via pyodide-build
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via build
 pyyaml==6.0.2
     # via pyodide-build
@@ -113,7 +113,7 @@ urllib3==2.2.3
     # via
     #   requests
     #   types-requests
-virtualenv==20.26.5
+virtualenv==20.26.6
     # via
     #   build
     #   pyodide-build
