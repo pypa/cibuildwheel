@@ -8,6 +8,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import textwrap
 import typing
 import uuid
 from collections.abc import Mapping, Sequence
@@ -17,14 +18,13 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
 
-from packaging.version import InvalidVersion, Version
-
 from ._compat.typing import Self, assert_never
 from .errors import OCIEngineTooOldError
 from .logger import log
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
+    FlexibleVersion,
     call,
     detect_ci_provider,
     parse_key_value_string,
@@ -103,25 +103,45 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
         if engine.name == "docker":
-            # --platform support was introduced in 1.32 as experimental
-            # docker cp, as used by cibuildwheel, has been fixed in v24 => API 1.43, https://github.com/moby/moby/issues/38995
-            client_api_version = Version(version_info["Client"]["ApiVersion"])
-            engine_api_version = Version(version_info["Server"]["ApiVersion"])
-            version_supported = min(client_api_version, engine_api_version) >= Version("1.43")
+            client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
+            server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
+            # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
+            version = min(client_api_version, server_api_version)
+            minimum_version = FlexibleVersion("1.41")
+            minimum_version_str = "20.10.0"  # docker version
+            error_msg = textwrap.dedent(
+                f"""
+                Build failed because {engine.name} is too old.
+
+                cibuildwheel requires {engine.name}>={minimum_version_str} running API version {minimum_version}.
+                The API version found by cibuildwheel is {version}.
+                """
+            )
         elif engine.name == "podman":
-            client_api_version = Version(version_info["Client"]["APIVersion"])
+            # podman uses the same version string for "Version" & "ApiVersion"
+            client_version = FlexibleVersion(version_info["Client"]["Version"])
             if "Server" in version_info:
-                engine_api_version = Version(version_info["Server"]["APIVersion"])
+                server_version = FlexibleVersion(version_info["Server"]["Version"])
             else:
-                engine_api_version = client_api_version
+                server_version = client_version
             # --platform support was introduced in v3
-            version_supported = min(client_api_version, engine_api_version) >= Version("3")
+            version = min(client_version, server_version)
+            minimum_version = FlexibleVersion("3")
+            error_msg = textwrap.dedent(
+                f"""
+                Build failed because {engine.name} is too old.
+
+                cibuildwheel requires {engine.name}>={minimum_version}.
+                The version found by cibuildwheel is {version}.
+                """
+            )
         else:
             assert_never(engine.name)
-        if not version_supported:
-            raise OCIEngineTooOldError() from None
-    except (subprocess.CalledProcessError, KeyError, InvalidVersion) as e:
-        raise OCIEngineTooOldError() from e
+        if version < minimum_version:
+            raise OCIEngineTooOldError(error_msg) from None
+    except (subprocess.CalledProcessError, KeyError, ValueError) as e:
+        msg = f"Build failed because {engine.name} is too old or is not working properly."
+        raise OCIEngineTooOldError(msg) from e
 
 
 class OCIContainer:
