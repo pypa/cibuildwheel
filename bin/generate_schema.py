@@ -137,6 +137,9 @@ properties:
   musllinux-aarch64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
+  musllinux-armv7l-image:
+    type: string
+    description: Specify alternative manylinux / musllinux container images
   musllinux-i686-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
