@@ -8,13 +8,21 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
 
 import pytest
 import tomli_w
 
+import cibuildwheel.oci_container
 from cibuildwheel.environment import EnvironmentAssignmentBash
-from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
+from cibuildwheel.errors import OCIEngineTooOldError
+from cibuildwheel.oci_container import (
+    OCIContainer,
+    OCIContainerEngineConfig,
+    OCIPlatform,
+    _check_engine_version,
+)
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
 # Test utilities
@@ -591,3 +599,64 @@ def test_multiarch_image(container_engine, platform):
             OCIPlatform.S390X: "s390x",
         }
         assert output_map_dpkg[platform] == output.strip()
+
+
+@pytest.mark.parametrize(
+    ("engine_name", "version", "context"),
+    [
+        (
+            "docker",
+            None,  # 17.12.1-ce does supports "docker version --format '{{json . }}'" so a version before that
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "docker",
+            '{"Client":{"Version":"19.03.15","ApiVersion": "1.40"},"Server":{"ApiVersion": "1.40"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "docker",
+            '{"Client":{"Version":"20.10.0","ApiVersion":"1.41"},"Server":{"ApiVersion":"1.41"}}',
+            nullcontext(),
+        ),
+        (
+            "docker",
+            '{"Client":{"Version":"24.0.0","ApiVersion":"1.43"},"Server":{"ApiVersion":"1.43"}}',
+            nullcontext(),
+        ),
+        (
+            "docker",
+            '{"Client":{"ApiVersion":"1.43"},"Server":{"ApiVersion":"1.30"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "docker",
+            '{"Client":{"ApiVersion":"1.30"},"Server":{"ApiVersion":"1.43"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        ("podman", '{"Client":{"Version":"5.2.0"},"Server":{"Version":"5.1.2"}}', nullcontext()),
+        ("podman", '{"Client":{"Version":"4.9.4-rhel"}}', nullcontext()),
+        (
+            "podman",
+            '{"Client":{"Version":"5.2.0"},"Server":{"Version":"2.1.2"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "podman",
+            '{"Client":{"Version":"2.2.0"},"Server":{"Version":"5.1.2"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        ("podman", '{"Client":{"Version":"3.0~rc1-rhel"}}', nullcontext()),
+        ("podman", '{"Client":{"Version":"2.1.0~rc1"}}', pytest.raises(OCIEngineTooOldError)),
+    ],
+)
+def test_engine_version(engine_name, version, context, monkeypatch):
+    def mockcall(*args, **kwargs):
+        if version is None:
+            raise subprocess.CalledProcessError(1, " ".join(str(arg) for arg in args))
+        return version
+
+    monkeypatch.setattr(cibuildwheel.oci_container, "call", mockcall)
+    engine = OCIContainerEngineConfig.from_config_string(engine_name)
+    with context:
+        _check_engine_version(engine)

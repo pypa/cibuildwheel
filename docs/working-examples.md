@@ -41,8 +41,8 @@ title: Working examples
 | [Dependency Injector][]           | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Dependency injection framework for Python, uses Windows TravisCI |
 | [pyzmq][]                         | ![github icon][] ![circleci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython on CPython and CFFI on PyPy. ARM wheels for linux are built natively on CircleCI.  |
 | [Implicit][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes GPU support for linux wheels |
-| [vispy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Main repository for Vispy |
 | [tinyobjloader][]                 | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Tiny but powerful single file wavefront obj loader |
+| [vispy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Main repository for Vispy |
 | [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
 | [coverage.py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The coverage tool for Python |
 | [PyCryptodome][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A self-contained cryptographic library for Python |
@@ -81,8 +81,8 @@ title: Working examples
 | [abess][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions. |
 | [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
 | [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
-| [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
 | [matrixprofile][]                 | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python 3 library making time series data mining tasks, utilizing matrix profile algorithms, accessible to everyone. |
+| [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
 | [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Jupyter-friendly Python interface for C++ MINUIT2 |
 | [Tokenizer][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
 | [keyvi][]                         | ![github icon][] | ![linux icon][] ![apple icon][] | FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime |
@@ -96,8 +96,8 @@ title: Working examples
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M92 |
 | [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
-| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
+| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
 | [polaroid][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Full range of wheels for setuptools rust, with auto release and PyPI deploy. |
@@ -151,8 +151,8 @@ title: Working examples
 [Dependency Injector]: https://github.com/ets-labs/python-dependency-injector
 [pyzmq]: https://github.com/zeromq/pyzmq
 [Implicit]: https://github.com/benfred/implicit
-[vispy]: https://github.com/vispy/vispy
 [tinyobjloader]: https://github.com/tinyobjloader/tinyobjloader
+[vispy]: https://github.com/vispy/vispy
 [CTranslate2]: https://github.com/OpenNMT/CTranslate2
 [coverage.py]: https://github.com/nedbat/coveragepy
 [PyCryptodome]: https://github.com/Legrandin/pycryptodome
@@ -191,8 +191,8 @@ title: Working examples
 [abess]: https://github.com/abess-team/abess
 [sourmash]: https://github.com/sourmash-bio/sourmash
 [cyvcf2]: https://github.com/brentp/cyvcf2
-[jq.py]: https://github.com/mwilliamson/jq.py
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
+[jq.py]: https://github.com/mwilliamson/jq.py
 [iminuit]: https://github.com/scikit-hep/iminuit
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
 [keyvi]: https://github.com/KeyviDev/keyvi
@@ -206,8 +206,8 @@ title: Working examples
 [power-grid-model]: https://github.com/PowerGridModel/power-grid-model
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
 [pybase64]: https://github.com/mayeut/pybase64
-[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [fathon]: https://github.com/stfbnc/fathon
+[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [Arbor]: https://github.com/arbor-sim/arbor
 [polaroid]: https://github.com/daggy1234/polaroid
