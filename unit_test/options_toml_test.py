@@ -62,7 +62,7 @@ def test_simple_settings(tmp_path, platform, fname):
     assert options_reader.get("test-extras", option_format=ListFormat(",")) == "one,two"
 
     assert options_reader.get("manylinux-x86_64-image") == "manylinux1"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
+    assert options_reader.get("manylinux-i686-image") == "manylinux_2_28"
 
     with pytest.raises(OptionsReaderError):
         # fails because the option is a table and the option_format only works with lists
@@ -93,7 +93,7 @@ def test_envvar_override(tmp_path, platform):
 
     assert options_reader.get("build") == "cp38*"
     assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_24"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
+    assert options_reader.get("manylinux-i686-image") == "manylinux_2_28"
 
     assert (
         options_reader.get("test-requires", option_format=ListFormat(" "))
@@ -259,7 +259,7 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-i686-image") == ""
     assert options_reader.get("manylinux-aarch64-image") == "manylinux1"
 
-    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux2014"
+    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux_2_28"
     assert options_reader.get("manylinux-i686-image", ignore_empty=True) == "manylinux1"
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
 
