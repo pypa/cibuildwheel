@@ -1165,13 +1165,13 @@ The available options are:
 | Option | Default | Future default* |
 |---|---|---|
 | CIBW_MANYLINUX_X86_64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)
-| CIBW_MANYLINUX_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) | 
+| CIBW_MANYLINUX_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) |
 | CIBW_MANYLINUX_PYPY_X86_64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)
 | CIBW_MANYLINUX_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64)
 | CIBW_MANYLINUX_PPC64LE_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le)
 | CIBW_MANYLINUX_S390X_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_s390x) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)
 | CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64)
-| CIBW_MANYLINUX_PYPY_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) | 
+| CIBW_MANYLINUX_PYPY_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) |
 | CIBW_MUSLLINUX_X86_64_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64) |
 | CIBW_MUSLLINUX_I686_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686) |
 | CIBW_MUSLLINUX_AARCH64_IMAGE | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64) |
