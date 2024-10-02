@@ -58,3 +58,9 @@ class AlreadyBuiltWheelError(FatalError):
         )
         super().__init__(message)
         self.return_code = 6
+
+
+class OCIEngineTooOldError(FatalError):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.return_code = 7

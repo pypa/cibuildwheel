@@ -37,6 +37,7 @@ class Architecture(Enum):
     aarch64 = "aarch64"
     ppc64le = "ppc64le"
     s390x = "s390x"
+    armv7l = "armv7l"
 
     # mac archs
     universal2 = "universal2"
@@ -64,7 +65,9 @@ class Architecture(Enum):
             if arch_str == "auto":
                 result |= Architecture.auto_archs(platform=platform)
             elif arch_str == "native":
-                result.add(Architecture(platform_module.machine()))
+                native_arch = Architecture.native_arch(platform=platform)
+                if native_arch:
+                    result.add(native_arch)
             elif arch_str == "all":
                 result |= Architecture.all_archs(platform=platform)
             elif arch_str == "auto64":
@@ -130,6 +133,7 @@ class Architecture(Enum):
                 Architecture.aarch64,
                 Architecture.ppc64le,
                 Architecture.s390x,
+                Architecture.armv7l,
             },
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
@@ -138,17 +142,15 @@ class Architecture(Enum):
         return all_archs_map[platform]
 
     @staticmethod
-    # pylint: disable-next=inconsistent-return-statements
     def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> set[Architecture]:
-        archs_32 = {Architecture.i686, Architecture.x86}
+        archs_32 = {Architecture.i686, Architecture.x86, Architecture.armv7l}
         auto_archs = Architecture.auto_archs(platform)
 
         if bitness == "64":
             return auto_archs - archs_32
-        elif bitness == "32":
+        if bitness == "32":
             return auto_archs & archs_32
-        else:
-            assert_never(bitness)
+        assert_never(bitness)
 
 
 def allowed_architectures_check(

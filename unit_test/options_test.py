@@ -10,7 +10,6 @@ import pytest
 from cibuildwheel import errors
 from cibuildwheel.__main__ import get_build_identifiers, get_platform_module
 from cibuildwheel.bashlex_eval import local_environment_executor
-from cibuildwheel.environment import parse_environment
 from cibuildwheel.options import (
     CommandLineArguments,
     Options,
@@ -66,7 +65,7 @@ def test_options_1(tmp_path, monkeypatch):
 
     default_build_options = options.build_options(identifier=None)
 
-    assert default_build_options.environment == parse_environment('FOO="BAR"')
+    assert default_build_options.environment.as_dictionary(prev_environment={}) == {"FOO": "BAR"}
 
     all_pinned_container_images = _get_pinned_container_images()
     pinned_x86_64_container_image = all_pinned_container_images["x86_64"]

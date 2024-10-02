@@ -17,6 +17,9 @@ init:
       if (-not ($BRANCH -eq 'main' -or $BRANCH.ToLower().StartsWith('appveyor-'))) {
         $env:PYTEST_ADDOPTS = '-k "unit_test or test_0_basic" --suppress-no-test-exit-code'
       }
+      if ($IsLinux) {
+        docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
+      }
 
 install:
   - python -m pip install -U pip

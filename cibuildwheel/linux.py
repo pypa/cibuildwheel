@@ -14,7 +14,7 @@ from . import errors
 from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
-from .oci_container import OCIContainer, OCIContainerEngineConfig
+from .oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from .options import BuildOptions, Options
 from .typing import PathOrStr
 from .util import (
@@ -28,6 +28,15 @@ from .util import (
     test_fail_cwd_file,
     unwrap,
 )
+
+ARCHITECTURE_OCI_PLATFORM_MAP = {
+    Architecture.x86_64: OCIPlatform.AMD64,
+    Architecture.i686: OCIPlatform.i386,
+    Architecture.aarch64: OCIPlatform.ARM64,
+    Architecture.ppc64le: OCIPlatform.PPC64LE,
+    Architecture.s390x: OCIPlatform.S390X,
+    Architecture.armv7l: OCIPlatform.ARMV7,
+}
 
 
 @dataclass(frozen=True)
@@ -196,6 +205,8 @@ def build_in_container(
 
         dependency_constraint_flags: list[PathOrStr] = []
 
+        log.step("Setting up build environment...")
+
         if build_options.dependency_constraints:
             constraints_file = build_options.dependency_constraints.get_for_python_version(
                 config.version
@@ -204,8 +215,6 @@ def build_in_container(
 
             container.copy_into(constraints_file, container_constraints_file)
             dependency_constraint_flags = ["-c", container_constraints_file]
-
-        log.step("Setting up build environment...")
 
         env = container.get_environment()
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -337,7 +346,7 @@ def build_in_container(
             venv_dir = testing_temp_dir / "venv"
 
             if use_uv:
-                container.call(["uv", "venv", venv_dir], env=env)
+                container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
             else:
                 # Use embedded dependencies from virtualenv to ensure determinism
                 venv_args = ["--no-periodic-update", "--pip=embed"]
@@ -446,10 +455,11 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
             log.step(f"Starting container image {build_step.container_image}...")
 
             print(f"info: This container will host the build for {', '.join(ids_to_build)}...")
+            architecture = Architecture(build_step.platform_tag.split("_", 1)[1])
 
             with OCIContainer(
                 image=build_step.container_image,
-                enforce_32_bit=build_step.platform_tag.endswith("i686"),
+                oci_platform=ARCHITECTURE_OCI_PLATFORM_MAP[architecture],
                 cwd=container_project_path,
                 engine=build_step.container_engine,
             ) as container:
