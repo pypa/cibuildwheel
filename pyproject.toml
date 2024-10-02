@@ -240,3 +240,6 @@ flake8-unused-arguments.ignore-variadic-names = true
 
 [tool.repo-review]
 ignore = ["PC170", "PP303"]
+
+[tool.check-wheel-contents]
+ignore = ["W002"]  # requirements-*.txt are allowed to be duplicates of one another
