@@ -4,6 +4,17 @@ title: Changelog
 
 # Changelog
 
+### v2.21.2
+
+_2 October 2024_
+
+- ✨ Adds support for building 32-bit armv7l wheels on musllinux. On a Linux system with emulation set up, set [CIBW_ARCHS](https://cibuildwheel.pypa.io/en/stable/options/#archs) to `armv7l` on Linux to try it out if you're interested! (#2017)
+- 🐛 Fix Linux Podman builds on some systems (#2016)
+- ✨ Adds official support for running on Python 3.13 (#2026)
+- 🛠 Update CPython 3.13 to 3.13.0rc3 (#2029)
+
+Note: the default [manylinux image](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) is **scheduled to change** from `manylinux2014` to `manylinux_2_28` in a cibuildwheel release on or after **6th May 2025** - you can set the value now to avoid getting upgraded if you want. (#1992)
+
 ### v2.21.1
 
 _16 September 2024_
