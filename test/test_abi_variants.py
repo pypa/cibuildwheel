@@ -18,27 +18,16 @@ limited_api_project = test_projects.new_c_project(
         IS_CPYTHON = sys.implementation.name == "cpython"
         Py_GIL_DISABLED = sysconfig.get_config_var("Py_GIL_DISABLED")
         CAN_USE_ABI3 = IS_CPYTHON and not Py_GIL_DISABLED
-        cmdclass = {}
+        setup_options = {}
         extension_kwargs = {}
         if CAN_USE_ABI3 and sys.version_info[:2] >= (3, 10):
-            from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
-
-            class bdist_wheel_abi3(_bdist_wheel):
-                def finalize_options(self):
-                    _bdist_wheel.finalize_options(self)
-                    self.root_is_pure = False
-
-                def get_tag(self):
-                    python, abi, plat = _bdist_wheel.get_tag(self)
-                    return python, "abi3", plat
-
-            cmdclass["bdist_wheel"] = bdist_wheel_abi3
             extension_kwargs["define_macros"] = [("Py_LIMITED_API", "0x030A0000")]
             extension_kwargs["py_limited_api"] = True
+            setup_options = {"bdist_wheel": {"py_limited_api": "cp310"}}
     """
     ),
     setup_py_extension_args_add="**extension_kwargs",
-    setup_py_setup_args_add="cmdclass=cmdclass",
+    setup_py_setup_args_add="options=setup_options",
 )
 
 limited_api_project.files["pyproject.toml"] = pyproject_toml
@@ -65,7 +54,7 @@ def test_abi3(tmp_path):
     if utils.platform == "pyodide":
         # there's only 1 possible configuration for pyodide, the single_python_tag one
         expected_wheels = [
-            w.replace(f"{single_python_tag}-{single_python_tag}", f"{single_python_tag}-abi3")
+            w.replace(f"{single_python_tag}-{single_python_tag}", "cp310-abi3")
             for w in expected_wheels
         ]
     else:
