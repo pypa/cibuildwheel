@@ -1160,6 +1160,8 @@ Platform-specific environment variables are also available:<br/>
 
 > Specify manylinux / musllinux container images
 
+The available options are:
+
 | Option | Default | Future default* |
 |---|---|---|
 | CIBW_MANYLINUX_X86_64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)
