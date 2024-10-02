@@ -24,7 +24,7 @@ platformdirs==4.3.6
     # via virtualenv
 pyproject-hooks==1.2.0
     # via build
-tomli==2.0.1
+tomli==2.0.2
     # via build
 typing-extensions==4.12.2
     # via delocate
