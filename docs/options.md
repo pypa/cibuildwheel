@@ -1165,7 +1165,7 @@ The available options are:
 | Option | Default | Future default* |
 |---|---|---|
 | CIBW_MANYLINUX_X86_64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)
-| CIBW_MANYLINUX_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_i686)
+| CIBW_MANYLINUX_I686_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686) | 
 | CIBW_MANYLINUX_PYPY_X86_64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)
 | CIBW_MANYLINUX_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64)
 | CIBW_MANYLINUX_PPC64LE_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le) | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le)
