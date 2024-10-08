@@ -108,7 +108,7 @@ def test_environment(container_engine):
     ) as container:
         assert (
             container.call(
-                ["sh", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
+                ["bash", "-c", "echo $TEST_VAR"], env={"TEST_VAR": "1"}, capture_output=True
             )
             == "1\n"
         )
@@ -120,9 +120,9 @@ def test_environment_pass(container_engine, monkeypatch):
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
-        assert container.call(["sh", "-c", "echo $CIBUILDWHEEL"], capture_output=True) == "1\n"
+        assert container.call(["bash", "-c", "echo $CIBUILDWHEEL"], capture_output=True) == "1\n"
         assert (
-            container.call(["sh", "-c", "echo $SOURCE_DATE_EPOCH"], capture_output=True)
+            container.call(["bash", "-c", "echo $SOURCE_DATE_EPOCH"], capture_output=True)
             == "1489957071\n"
         )
 
@@ -182,7 +182,7 @@ def test_large_environment(container_engine):
     ) as container:
         # check the length of d
         assert (
-            container.call(["sh", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
+            container.call(["bash", "-c", "echo ${#d}"], env=large_environment, capture_output=True)
             == f"{long_env_var_length}\n"
         )
 

@@ -192,7 +192,7 @@ def build_in_container(
             project=container_project_path,
             package=container_package_dir,
         )
-        container.call(["sh", "-c", before_all_prepared], env=env)
+        container.call(["bash", "-c", before_all_prepared], env=env)
 
     built_wheels: list[PurePosixPath] = []
 
@@ -258,7 +258,7 @@ def build_in_container(
                     project=container_project_path,
                     package=container_package_dir,
                 )
-                container.call(["sh", "-c", before_build_prepared], env=env)
+                container.call(["bash", "-c", before_build_prepared], env=env)
 
             log.step("Building wheel...")
 
@@ -320,7 +320,7 @@ def build_in_container(
                 repair_command_prepared = prepare_command(
                     build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
                 )
-                container.call(["sh", "-c", repair_command_prepared], env=env)
+                container.call(["bash", "-c", repair_command_prepared], env=env)
             else:
                 container.call(["mv", built_wheel, repaired_wheel_dir])
 
@@ -365,7 +365,7 @@ def build_in_container(
                     project=container_project_path,
                     package=container_package_dir,
                 )
-                container.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
+                container.call(["bash", "-c", before_test_prepared], env=virtualenv_env)
 
             # Install the wheel we just built
             # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
@@ -394,7 +394,7 @@ def build_in_container(
             container.call(["mkdir", "-p", test_cwd])
             container.copy_into(test_fail_cwd_file, test_cwd / "test_fail.py")
 
-            container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
+            container.call(["bash", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 
             # clean up test environment
             container.call(["rm", "-rf", testing_temp_dir])
@@ -478,7 +478,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
 
 
 def _matches_prepared_command(error_cmd: Sequence[str], command_template: str) -> bool:
-    if len(error_cmd) < 3 or error_cmd[0:2] != ["sh", "-c"]:
+    if len(error_cmd) < 3 or error_cmd[0:2] != ["bash", "-c"]:
         return False
     command_prefix = command_template.split("{", maxsplit=1)[0].strip()
     return error_cmd[2].startswith(command_prefix)
