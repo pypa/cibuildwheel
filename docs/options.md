@@ -306,7 +306,17 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
-For CPython, the minimally supported macOS version is 10.9; for PyPy 3.7, macOS 10.13 or higher is required.
+The lowest value you can set `MACOSX_DEPLOYMENT_TARGET` is as follows:
+
+| Arch  | Python version range | Minimum target |
+|-------|----------------------|----------------|
+| Intel | CPython 3.6-3.11     | 10.9           |
+| Intel | CPython 3.12+        | 10.13          |
+| AS    | CPython or PyPy      | 11             |
+| Intel | PyPy 3.7-3.8         | 10.13          |
+| Intel | PyPy 3.9+            | 10.15          |
+
+If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
 
 Windows arm64 platform support is experimental.
 
