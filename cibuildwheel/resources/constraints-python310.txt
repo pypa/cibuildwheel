@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 altgraph==0.17.4
     # via macholib
-build==1.2.2
+build==1.2.2.post1
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.12.0
     # via -r cibuildwheel/resources/constraints.in
