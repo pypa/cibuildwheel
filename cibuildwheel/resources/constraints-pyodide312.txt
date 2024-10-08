@@ -6,7 +6,7 @@ anyio==4.6.0
     # via httpx
 auditwheel-emscripten==0.0.16
     # via pyodide-build
-build==1.2.2
+build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
@@ -80,7 +80,7 @@ requests==2.32.3
     # via pyodide-build
 resolvelib==1.0.1
     # via pyodide-build
-rich==13.9.1
+rich==13.9.2
     # via
     #   pyodide-build
     #   pyodide-cli
