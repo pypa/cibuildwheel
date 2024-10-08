@@ -41,7 +41,7 @@ jobs:
         python_version: ['3.13']
         include:
         - os: ubuntu-latest
-          python_version: '3.8'
+          python_version: '3.11'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv pip install --system ".[test]"
+        uv pip install --system --python ${{ matrix.python_version }} ".[test]"
 
     - name: Generate a sample project
       run: |

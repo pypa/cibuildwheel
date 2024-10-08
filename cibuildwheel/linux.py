@@ -3,15 +3,15 @@ from __future__ import annotations
 import subprocess
 import sys
 import textwrap
+from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import OrderedDict, Tuple
+from typing import assert_never
 
 from packaging.version import Version
 
 from . import errors
-from ._compat.typing import assert_never
 from .architecture import Architecture
 from .logger import log
 from .oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
@@ -103,7 +103,7 @@ def get_build_steps(
     Groups PythonConfigurations into BuildSteps. Each BuildStep represents a
     separate container instance.
     """
-    steps = OrderedDict[Tuple[str, str, str, OCIContainerEngineConfig], BuildStep]()
+    steps = OrderedDict[tuple[str, str, str, OCIContainerEngineConfig], BuildStep]()
 
     for config in python_configurations:
         _, platform_tag = config.identifier.split("-", 1)
@@ -180,7 +180,7 @@ def build_in_container(
         log.step("Running before_all...")
 
         env = container.get_environment()
-        env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
+        env["PATH"] = f'/opt/python/cp39-cp39/bin:{env["PATH"]}'
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
         env["PIP_ROOT_USER_ACTION"] = "ignore"
         env = before_all_options.environment.as_dictionary(
