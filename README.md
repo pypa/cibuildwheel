@@ -39,10 +39,10 @@ What does it do?
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
-<sup>³ CPython 3.13 is built by default using Python RCs, starting with cibuildwheel 2.20. Free-threaded mode will still require opt-in using [`CIBW_FREE_THREADED_SUPPORT`](https://cibuildwheel.pypa.io/en/stable/options/#free-threaded-support).</sup><br>
+<sup>³ Free-threaded mode requires opt-in using [`CIBW_FREE_THREADED_SUPPORT`](https://cibuildwheel.pypa.io/en/stable/options/#free-threaded-support).</sup><br>
 <sup>⁴ Experimental, not yet supported on PyPI, but can be used directly in web deployment. Use `--platform pyodide` to build.</sup><br>
 
-- Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
+- Builds manylinux, musllinux, macOS 10.9+ (10.13+ for Python 3.12+), and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
@@ -85,7 +85,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
