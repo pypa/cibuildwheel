@@ -355,7 +355,7 @@ class OCIContainer:
                     "exec",
                     "-i",
                     str(self.name),
-                    "sh",
+                    "bash",
                     "-c",
                     f"cat > {shell_quote(to_path)}",
                 ],
