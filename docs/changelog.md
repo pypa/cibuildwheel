@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v2.21.3
+
+_9 October 2024_
+
+- 🛠 Update CPython 3.13 to 3.13.0 final release (#2032)
+- 📚 Docs updates and tidy ups (#2035)
+
 ### v2.21.2
 
 _2 October 2024_
