@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import inspect
 import os
 import platform
 import re
@@ -149,11 +150,15 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
             if detect_ci_provider() is None:
                 # if running locally, we don't want to install CPython with sudo
                 # let the user know & provide a link to the installer
-                msg = (
-                    f"Error: CPython {version} is not installed.\n"
-                    "cibuildwheel will not perform system-wide installs when running outside of CI.\n"
-                    f"To build locally, install CPython {version} on this machine, or, disable this version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*\n"
-                    f"\nDownload link: {url}"
+                msg = inspect.cleandoc(
+                    f"""
+                        Error: CPython {version} is not installed.
+                        cibuildwheel will not perform system-wide installs when running outside of CI.
+                        To build locally, install CPython {version} on this machine, or, disable this
+                        version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*
+                        For portable builds, cibuildwheel needs the official builds from python.org.
+                        Download link: {url}
+                    """
                 )
                 raise errors.FatalError(msg)
             pkg_path = tmp / "Python.pkg"
