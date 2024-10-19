@@ -15,6 +15,7 @@ from cibuildwheel.options import (
     Options,
     _get_pinned_container_images,
 )
+from cibuildwheel.util import EnableGroups
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -454,4 +455,7 @@ def test_free_threaded_support(
         )
     )
     options = Options(platform="linux", command_line_arguments=args, env=env)
-    assert options.globals.build_selector.free_threaded_support is expected_result
+    if expected_result:
+        assert EnableGroups.CPythonFreeThreaded in options.globals.build_selector.enable
+    else:
+        assert EnableGroups.CPythonFreeThreaded not in options.globals.build_selector.enable
