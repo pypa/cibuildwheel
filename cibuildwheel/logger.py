@@ -23,6 +23,7 @@ PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
     "manylinux_aarch64": "manylinux aarch64",
     "manylinux_ppc64le": "manylinux ppc64le",
     "manylinux_s390x": "manylinux s390x",
+    "manylinux_armv7l": "manylinux armv7l",
     "musllinux_x86_64": "musllinux x86_64",
     "musllinux_i686": "musllinux i686",
     "musllinux_aarch64": "musllinux aarch64",
