@@ -258,6 +258,8 @@ class OCIContainer:
                     container_machine = call(
                         *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
                     ).strip()
+                else:
+                    raise
             simulate_32_bit = container_machine not in {"i686", "armv7l", "armv8l"}
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
