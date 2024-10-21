@@ -20,7 +20,7 @@ README_CHANGELOG_SECTION = re.compile(
 )
 
 
-def main():
+def main() -> None:
     changelog_text = CHANGELOG_FILE.read_text()
     readme_text = README_FILE.read_text()
 

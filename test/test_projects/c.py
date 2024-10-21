@@ -78,13 +78,13 @@ version = 0.1.0
 
 def new_c_project(
     *,
-    spam_c_top_level_add="",
-    spam_c_function_add="",
-    setup_py_add="",
-    setup_py_extension_args_add="",
-    setup_py_setup_args_add="",
-    setup_cfg_add="",
-):
+    spam_c_top_level_add: str = "",
+    spam_c_function_add: str = "",
+    setup_py_add: str = "",
+    setup_py_extension_args_add: str = "",
+    setup_py_setup_args_add: str = "",
+    setup_cfg_add: str = "",
+) -> TestProject:
     project = TestProject()
 
     project.files.update(

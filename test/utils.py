@@ -10,8 +10,10 @@ import os
 import platform as pm
 import subprocess
 import sys
+from collections.abc import Mapping, Sequence
+from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Final
+from typing import Any, Final
 
 import pytest
 
@@ -37,7 +39,9 @@ else:
     raise Exception(msg)
 
 
-def cibuildwheel_get_build_identifiers(project_path, env=None, *, prerelease_pythons=False):
+def cibuildwheel_get_build_identifiers(
+    project_path: Path, env: dict[str, str] | None = None, *, prerelease_pythons: bool = False
+) -> list[str]:
     """
     Returns the list of build identifiers that cibuildwheel will try to build
     for the current platform.
@@ -75,14 +79,14 @@ def _update_pip_cache_dir(env: dict[str, str]) -> None:
 
 
 def cibuildwheel_run(
-    project_path,
-    package_dir=".",
-    env=None,
-    add_env=None,
-    output_dir=None,
-    add_args=None,
-    single_python=False,
-):
+    project_path: str | Path,
+    package_dir: str | Path = ".",
+    env: dict[str, str] | None = None,
+    add_env: Mapping[str, str] | None = None,
+    output_dir: Path | None = None,
+    add_args: Sequence[str] | None = None,
+    single_python: bool = False,
+) -> list[str]:
     """
     Runs cibuildwheel as a subprocess, building the project at project_path.
 
@@ -144,17 +148,17 @@ def _floor_macosx(*args: str) -> str:
 
 
 def expected_wheels(
-    package_name,
-    package_version,
-    manylinux_versions=None,
-    musllinux_versions=None,
-    macosx_deployment_target="10.9",
-    machine_arch=None,
-    python_abi_tags=None,
-    include_universal2=False,
-    single_python=False,
-    single_arch=False,
-):
+    package_name: str,
+    package_version: str,
+    manylinux_versions: list[str] | None = None,
+    musllinux_versions: list[str] | None = None,
+    macosx_deployment_target: str = "10.9",
+    machine_arch: str | None = None,
+    python_abi_tags: list[str] | None = None,
+    include_universal2: bool = False,
+    single_python: bool = False,
+    single_arch: bool = False,
+) -> list[str]:
     """
     Returns a list of expected wheels from a run of cibuildwheel.
     """
@@ -307,7 +311,7 @@ def expected_wheels(
     return wheels
 
 
-def get_macos_version():
+def get_macos_version() -> tuple[int, int]:
     """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
 
@@ -316,10 +320,10 @@ def get_macos_version():
         (11, 2) <= (11, 0) != True
     """
     version_str, _, _ = pm.mac_ver()
-    return tuple(map(int, version_str.split(".")[:2]))
+    return tuple(map(int, version_str.split(".")[:2]))  # type: ignore[return-value]
 
 
-def skip_if_pyodide(reason: str):
+def skip_if_pyodide(reason: str) -> Any:
     return pytest.mark.skipif(platform == "pyodide", reason=reason)
 
 
@@ -330,7 +334,7 @@ def invoke_pytest() -> str:
     return "pytest"
 
 
-def arch_name_for_linux(arch: str):
+def arch_name_for_linux(arch: str) -> str:
     """
     Archs have different names on different platforms, but it's useful to be
     able to run linux tests on dev machines. This function translates between

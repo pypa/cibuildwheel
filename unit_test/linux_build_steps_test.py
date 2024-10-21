@@ -53,13 +53,13 @@ def test_linux_container_split(tmp_path: Path, monkeypatch):
     build_steps = list(cibuildwheel.linux.get_build_steps(options, python_configurations))
 
     # helper functions to extract test info
-    def identifiers(step):
+    def identifiers(step: cibuildwheel.linux.BuildStep) -> list[str]:
         return [c.identifier for c in step.platform_configs]
 
-    def before_alls(step):
+    def before_alls(step: cibuildwheel.linux.BuildStep) -> list[str]:
         return [options.build_options(c.identifier).before_all for c in step.platform_configs]
 
-    def container_engines(step):
+    def container_engines(step: cibuildwheel.linux.BuildStep) -> list[OCIContainerEngineConfig]:
         return [options.build_options(c.identifier).container_engine for c in step.platform_configs]
 
     pprint(build_steps)

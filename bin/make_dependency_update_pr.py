@@ -16,14 +16,16 @@ def shell(cmd, *, check: bool, **kwargs):
     return run([cmd], shell=True, check=check, **kwargs)
 
 
-def git_repo_has_changes():
-    unstaged_changes = shell("git diff-index --quiet HEAD --", check=False).returncode != 0
-    staged_changes = shell("git diff-index --quiet --cached HEAD --", check=False).returncode != 0
+def git_repo_has_changes() -> bool:
+    unstaged_changes: bool = shell("git diff-index --quiet HEAD --", check=False).returncode != 0
+    staged_changes: bool = (
+        shell("git diff-index --quiet --cached HEAD --", check=False).returncode != 0
+    )
     return unstaged_changes or staged_changes
 
 
 @click.command()
-def main():
+def main() -> None:
     project_root = Path(__file__).parent / ".."
     os.chdir(project_root)
 

@@ -11,7 +11,7 @@ from . import test_projects, utils
 basic_project = test_projects.new_c_project()
 
 
-def skip_if_no_msvc(arm64=False):
+def skip_if_no_msvc(arm64: bool = False) -> None:
     programfiles = os.getenv("PROGRAMFILES(X86)", "") or os.getenv("PROGRAMFILES", "")
     if not programfiles:
         pytest.skip("Requires %PROGRAMFILES(X86)% variable to be set")
