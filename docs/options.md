@@ -963,9 +963,9 @@ Platform-specific environment variables also available:<br/>
 
     In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
 
-Note that manylinux_2_24 builds occur inside a Debian9 docker, where
+Note that manylinux_2_24/manylinux_2_31 builds occur inside a debian derivative docker container, where
 manylinux2010 and manylinux2014 builds occur inside a CentOS one. So for
-`manylinux_2_24` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
+`manylinux_2_24`/`manylinux_2_31` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
 instead.
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
@@ -1194,9 +1194,9 @@ The available options are:
 
 Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
-For `CIBW_MANYLINUX_*_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
+For `CIBW_MANYLINUX_*_IMAGE`, except `CIBW_MANYLINUX_ARMV7L_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
 than x86 (x86\_64 and i686) `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`. `manylinux_2_28` is not supported for `i686` architecture.
-`manylinux_2_31` is only supported for the `armv7l` architecture and is experimental.
+For `CIBW_MANYLINUX_ARMV7L_IMAGE`, the value of this option can either be set to `manylinux_2_31` or a custom image. Support is experimental for now. The `manylinux_2_31` value is only available for `armv7`.
 
 For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `musllinux_1_1` or `musllinux_1_2` to use a pinned version of the [official musllinux images](https://github.com/pypa/musllinux). Alternatively, set these options to any other valid Docker image name.
 
