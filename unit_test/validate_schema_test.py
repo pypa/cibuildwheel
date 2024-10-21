@@ -45,7 +45,7 @@ def test_validate_container_engine():
 
 
 @pytest.mark.parametrize("platform", ["macos", "windows"])
-def test_validate_bad_container_engine(platform: str):
+def test_validate_bad_container_engine(platform: str) -> None:
     """
     container-engine is not a valid option for macos or windows
     """

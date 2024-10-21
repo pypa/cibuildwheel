@@ -239,7 +239,7 @@ def test_binary_output(container_engine):
         assert output == binary_data_string
 
 
-def test_file_operation(tmp_path: Path, container_engine):
+def test_file_operation(tmp_path: Path, container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
@@ -259,7 +259,7 @@ def test_file_operation(tmp_path: Path, container_engine):
         assert test_binary_data == bytes(output, encoding="utf8", errors="surrogateescape")
 
 
-def test_dir_operations(tmp_path: Path, container_engine):
+def test_dir_operations(tmp_path: Path, container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
@@ -301,7 +301,7 @@ def test_dir_operations(tmp_path: Path, container_engine):
         assert test_binary_data == (new_test_dir / "test.dat").read_bytes()
 
 
-def test_environment_executor(container_engine):
+def test_environment_executor(container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
@@ -309,7 +309,9 @@ def test_environment_executor(container_engine):
         assert assignment.evaluated_value({}, container.environment_executor) == "42"
 
 
-def test_podman_vfs(tmp_path: Path, monkeypatch, container_engine):
+def test_podman_vfs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, container_engine: OCIContainerEngineConfig
+) -> None:
     if container_engine.name != "podman":
         pytest.skip("only runs with podman")
     if sys.platform.startswith("darwin"):
@@ -391,7 +393,7 @@ def test_podman_vfs(tmp_path: Path, monkeypatch, container_engine):
     subprocess.run(["podman", "unshare", "rm", "-rf", vfs_path], check=True)
 
 
-def test_create_args_volume(tmp_path: Path, container_engine):
+def test_create_args_volume(tmp_path: Path, container_engine: OCIContainerEngineConfig) -> None:
     if container_engine.name != "docker":
         pytest.skip("only runs with docker")
 
@@ -513,7 +515,12 @@ def test_enforce_32_bit(container_engine):
         ("{name}; disable_host_mount: true", False),
     ],
 )
-def test_disable_host_mount(tmp_path: Path, container_engine, config, should_have_host_mount):
+def test_disable_host_mount(
+    tmp_path: Path,
+    container_engine: OCIContainerEngineConfig,
+    config: str,
+    should_have_host_mount: bool,
+) -> None:
     if detect_ci_provider() in {CIProvider.circle_ci, CIProvider.gitlab}:
         pytest.skip("Skipping test because docker on this platform does not support host mounts")
     if sys.platform.startswith("darwin"):
@@ -536,7 +543,9 @@ def test_disable_host_mount(tmp_path: Path, container_engine, config, should_hav
 
 
 @pytest.mark.parametrize("platform", list(OCIPlatform))
-def test_local_image(container_engine, platform, tmp_path: Path):
+def test_local_image(
+    container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
+) -> None:
     if (
         detect_ci_provider() in {CIProvider.travis_ci}
         and pm in {"s390x", "ppc64le"}
