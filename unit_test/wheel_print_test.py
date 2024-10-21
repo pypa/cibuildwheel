@@ -27,7 +27,7 @@ def test_no_printout_on_error(tmp_path, capsys):
         tmp_path.joinpath("example.1").touch()
         raise RuntimeError()
 
-    captured = capsys.readouterr()  # type: ignore[unreachable]
+    captured = capsys.readouterr()
     assert captured.err == ""
 
     assert "example.0" not in captured.out
