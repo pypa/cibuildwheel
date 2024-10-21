@@ -380,14 +380,13 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
 
     print()
     print(f"Cache folder: {CIBW_CACHE_PATH}")
+    print()
 
     warnings = detect_warnings(options=options, identifiers=identifiers)
-    if warnings:
-        print("\nWarnings:")
-        for warning in warnings:
-            print("  " + warning)
+    for warning in warnings:
+        log.warning(warning)
 
-    print("\nHere we go!\n")
+    print("Here we go!\n")
 
 
 def get_build_identifiers(
