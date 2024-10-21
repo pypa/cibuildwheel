@@ -365,8 +365,7 @@ class OCIContainer:
             ) as exec_process:
                 assert exec_process.stdin
                 with open(from_path, "rb") as from_file:
-                    # Bug in mypy, https://github.com/python/mypy/issues/15031
-                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
+                    shutil.copyfileobj(from_file, exec_process.stdin)
 
                 exec_process.stdin.close()
                 exec_process.wait()
