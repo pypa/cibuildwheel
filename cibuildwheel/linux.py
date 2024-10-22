@@ -35,6 +35,7 @@ ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.aarch64: OCIPlatform.ARM64,
     Architecture.ppc64le: OCIPlatform.PPC64LE,
     Architecture.s390x: OCIPlatform.S390X,
+    Architecture.armv7l: OCIPlatform.ARMV7,
 }
 
 
@@ -179,7 +180,7 @@ def build_in_container(
         log.step("Running before_all...")
 
         env = container.get_environment()
-        env["PATH"] = f'/opt/python/cp38-cp38/bin:{env["PATH"]}'
+        env["PATH"] = f'/opt/python/cp39-cp39/bin:{env["PATH"]}'
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
         env["PIP_ROOT_USER_ACTION"] = "ignore"
         env = before_all_options.environment.as_dictionary(

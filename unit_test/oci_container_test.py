@@ -8,13 +8,21 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
 
 import pytest
 import tomli_w
 
+import cibuildwheel.oci_container
 from cibuildwheel.environment import EnvironmentAssignmentBash
-from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
+from cibuildwheel.errors import OCIEngineTooOldError
+from cibuildwheel.oci_container import (
+    OCIContainer,
+    OCIContainerEngineConfig,
+    OCIPlatform,
+    _check_engine_version,
+)
 from cibuildwheel.util import CIProvider, detect_ci_provider
 
 # Test utilities
@@ -527,16 +535,33 @@ def test_disable_host_mount(tmp_path: Path, container_engine, config, should_hav
                 container.call(["cat", host_mount_path], capture_output=True)
 
 
-def test_local_image(container_engine):
-    local_image = f"cibw_test_{container_engine.name}_local:latest"
+@pytest.mark.parametrize("platform", list(OCIPlatform))
+def test_local_image(container_engine, platform, tmp_path: Path):
+    if (
+        detect_ci_provider() in {CIProvider.travis_ci}
+        and pm in {"s390x", "ppc64le"}
+        and platform != DEFAULT_OCI_PLATFORM
+    ):
+        pytest.skip("Skipping test because docker on this platform does not support QEMU")
+    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
+        # both GHA & local macOS arm64 podman desktop are failing
+        pytest.xfail("podman fails with armv7l images")
+
+    remote_image = "debian:12-slim"
+    platform_name = platform.value.replace("/", "_")
+    local_image = f"cibw_{container_engine.name}_{platform_name}_local:latest"
+    dockerfile = tmp_path / "Dockerfile"
+    dockerfile.write_text(f"FROM {remote_image}")
     subprocess.run(
-        [container_engine.name, "pull", f"--platform={DEFAULT_OCI_PLATFORM.value}", DEFAULT_IMAGE],
+        [container_engine.name, "pull", f"--platform={platform.value}", remote_image],
         check=True,
     )
-    subprocess.run([container_engine.name, "image", "tag", DEFAULT_IMAGE, local_image], check=True)
-    with OCIContainer(
-        engine=container_engine, image=local_image, oci_platform=DEFAULT_OCI_PLATFORM
-    ):
+    subprocess.run(
+        [container_engine.name, "build", f"--platform={platform.value}", "-t", local_image, "."],
+        check=True,
+        cwd=tmp_path,
+    )
+    with OCIContainer(engine=container_engine, image=local_image, oci_platform=platform):
         pass
 
 
@@ -548,24 +573,90 @@ def test_multiarch_image(container_engine, platform):
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
+    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
+        # both GHA & local macOS arm64 podman desktop are failing
+        pytest.xfail("podman fails with armv7l images")
     with OCIContainer(
         engine=container_engine, image="debian:12-slim", oci_platform=platform
     ) as container:
         output = container.call(["uname", "-m"], capture_output=True)
-        output_map = {
-            OCIPlatform.i386: "i686",
-            OCIPlatform.AMD64: "x86_64",
-            OCIPlatform.ARM64: "aarch64",
-            OCIPlatform.PPC64LE: "ppc64le",
-            OCIPlatform.S390X: "s390x",
+        output_map_kernel = {
+            OCIPlatform.i386: ("i686",),
+            OCIPlatform.AMD64: ("x86_64",),
+            OCIPlatform.ARMV7: ("armv7l", "armv8l"),
+            OCIPlatform.ARM64: ("aarch64",),
+            OCIPlatform.PPC64LE: ("ppc64le",),
+            OCIPlatform.S390X: ("s390x",),
         }
-        assert output_map[platform] == output.strip()
+        assert output.strip() in output_map_kernel[platform]
         output = container.call(["dpkg", "--print-architecture"], capture_output=True)
-        output_map = {
+        output_map_dpkg = {
             OCIPlatform.i386: "i386",
             OCIPlatform.AMD64: "amd64",
+            OCIPlatform.ARMV7: "armhf",
             OCIPlatform.ARM64: "arm64",
             OCIPlatform.PPC64LE: "ppc64el",
             OCIPlatform.S390X: "s390x",
         }
-        assert output_map[platform] == output.strip()
+        assert output_map_dpkg[platform] == output.strip()
+
+
+@pytest.mark.parametrize(
+    ("engine_name", "version", "context"),
+    [
+        (
+            "docker",
+            None,  # 17.12.1-ce does supports "docker version --format '{{json . }}'" so a version before that
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "docker",
+            '{"Client":{"Version":"19.03.15","ApiVersion": "1.40"},"Server":{"ApiVersion": "1.40"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "docker",
+            '{"Client":{"Version":"20.10.0","ApiVersion":"1.41"},"Server":{"ApiVersion":"1.41"}}',
+            nullcontext(),
+        ),
+        (
+            "docker",
+            '{"Client":{"Version":"24.0.0","ApiVersion":"1.43"},"Server":{"ApiVersion":"1.43"}}',
+            nullcontext(),
+        ),
+        (
+            "docker",
+            '{"Client":{"ApiVersion":"1.43"},"Server":{"ApiVersion":"1.30"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "docker",
+            '{"Client":{"ApiVersion":"1.30"},"Server":{"ApiVersion":"1.43"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        ("podman", '{"Client":{"Version":"5.2.0"},"Server":{"Version":"5.1.2"}}', nullcontext()),
+        ("podman", '{"Client":{"Version":"4.9.4-rhel"}}', nullcontext()),
+        (
+            "podman",
+            '{"Client":{"Version":"5.2.0"},"Server":{"Version":"2.1.2"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        (
+            "podman",
+            '{"Client":{"Version":"2.2.0"},"Server":{"Version":"5.1.2"}}',
+            pytest.raises(OCIEngineTooOldError),
+        ),
+        ("podman", '{"Client":{"Version":"3.0~rc1-rhel"}}', nullcontext()),
+        ("podman", '{"Client":{"Version":"2.1.0~rc1"}}', pytest.raises(OCIEngineTooOldError)),
+    ],
+)
+def test_engine_version(engine_name, version, context, monkeypatch):
+    def mockcall(*args, **kwargs):
+        if version is None:
+            raise subprocess.CalledProcessError(1, " ".join(str(arg) for arg in args))
+        return version
+
+    monkeypatch.setattr(cibuildwheel.oci_container, "call", mockcall)
+    engine = OCIContainerEngineConfig.from_config_string(engine_name)
+    with context:
+        _check_engine_version(engine)

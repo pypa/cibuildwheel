@@ -258,6 +258,16 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 80%;
 }
 
+.rst-content table.docutils td code,
+.rst-content table.docutils th code,
+.rst-content table.field-list td code,
+.rst-content table.field-list th code,
+.wy-table td code,
+.wy-table th code {
+  /* table elements are already made smaller, the code styling on top of that makes the text too small */
+  font-size: 82.5%;
+}
+
 
 /* expand all the toctree entries */
 .wy-menu-vertical .toctree-l1.current .toctree-l2>ul,

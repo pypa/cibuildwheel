@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "2.21.1"
+version = "2.21.3"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -35,6 +35,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Build Tools",
 ]
@@ -239,3 +240,6 @@ flake8-unused-arguments.ignore-variadic-names = true
 
 [tool.repo-review]
 ignore = ["PC170", "PP303"]
+
+[tool.check-wheel-contents]
+ignore = ["W002"]  # requirements-*.txt are allowed to be duplicates of one another

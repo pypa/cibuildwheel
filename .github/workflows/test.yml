@@ -38,7 +38,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-        python_version: ['3.12']
+        python_version: ['3.13']
         include:
         - os: ubuntu-latest
           python_version: '3.8'
@@ -49,6 +49,7 @@ jobs:
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
+        allow-prereleases: true
 
     - uses: astral-sh/setup-uv@v3
 

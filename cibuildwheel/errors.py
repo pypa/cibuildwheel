@@ -35,11 +35,14 @@ class NonPlatformWheelError(FatalError):
             """
             Build failed because a pure Python wheel was generated.
 
-            If you intend to build a pure-Python wheel, you don't need cibuildwheel - use
-            `pip wheel -w DEST_DIR .` instead.
+            If you intend to build a pure-Python wheel, you don't need
+            cibuildwheel - use `pip wheel .`, `pipx run build --wheel`, `uv
+            build --wheel`, etc. instead. You only need cibuildwheel if you
+            have compiled (not Python) code in your wheels making them depend
+            on the platform.
 
-            If you expected a platform wheel, check your project configuration, or run
-            cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
+            If you expected a platform wheel, check your project configuration,
+            or run cibuildwheel with CIBW_BUILD_VERBOSITY=1 to view build logs.
             """
         )
         super().__init__(message)
@@ -61,4 +64,6 @@ class AlreadyBuiltWheelError(FatalError):
 
 
 class OCIEngineTooOldError(FatalError):
-    return_code = 7
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.return_code = 7

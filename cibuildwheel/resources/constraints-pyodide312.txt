@@ -2,11 +2,11 @@
 #    nox -s update_constraints
 annotated-types==0.7.0
     # via pydantic
-anyio==4.6.0
+anyio==4.6.2.post1
     # via httpx
 auditwheel-emscripten==0.0.16
     # via pyodide-build
-build==1.2.2
+build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
@@ -15,19 +15,21 @@ certifi==2024.8.30
     #   httpcore
     #   httpx
     #   requests
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via typer
-cmake==3.30.3
+cloudpickle==3.1.0
+    # via loky
+cmake==3.30.5
     # via pyodide-build
-distlib==0.3.8
+distlib==0.3.9
     # via virtualenv
 filelock==3.16.1
     # via virtualenv
 h11==0.14.0
     # via httpcore
-httpcore==1.0.5
+httpcore==1.0.6
     # via httpx
 httpx==0.27.2
     # via unearth
@@ -68,20 +70,20 @@ pyodide-cli==0.2.4
     #   pyodide-build
 pyodide-lock==0.1.0a7
     # via pyodide-build
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via build
 requests==2.32.3
     # via pyodide-build
 resolvelib==1.0.1
     # via pyodide-build
-rich==13.8.1
+rich==13.9.2
     # via
     #   pyodide-build
     #   pyodide-cli
     #   typer
 ruamel-yaml==0.18.6
     # via pyodide-build
-ruamel-yaml-clib==0.2.8
+ruamel-yaml-clib==0.2.12
     # via ruamel-yaml
 shellingham==1.5.4
     # via typer
@@ -94,6 +96,8 @@ typer==0.12.5
     #   auditwheel-emscripten
     #   pyodide-build
     #   pyodide-cli
+types-requests==2.32.0.20241016
+    # via pyodide-build
 typing-extensions==4.12.2
     # via
     #   pydantic
@@ -102,8 +106,10 @@ typing-extensions==4.12.2
 unearth==0.17.2
     # via pyodide-build
 urllib3==2.2.3
-    # via requests
-virtualenv==20.26.5
+    # via
+    #   requests
+    #   types-requests
+virtualenv==20.27.0
     # via
     #   build
     #   pyodide-build

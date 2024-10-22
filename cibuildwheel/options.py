@@ -307,7 +307,6 @@ def _resolve_cascade(
     return result
 
 
-# pylint: disable-next=inconsistent-return-statements
 def _apply_inherit_rule(
     before: str | None, after: str, rule: InheritRule, option_format: OptionFormat | None
 ) -> str:
@@ -329,10 +328,10 @@ def _apply_inherit_rule(
 
     if rule == InheritRule.APPEND:
         return option_format.merge_values(before, after)
-    elif rule == InheritRule.PREPEND:
+    if rule == InheritRule.PREPEND:
         return option_format.merge_values(after, before)
-    else:
-        assert_never(rule)
+
+    assert_never(rule)
 
 
 def _stringify_setting(

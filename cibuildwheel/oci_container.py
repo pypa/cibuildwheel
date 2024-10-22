@@ -8,6 +8,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import textwrap
 import typing
 import uuid
 from collections.abc import Mapping, Sequence
@@ -17,14 +18,13 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Dict, Literal
 
-from packaging.version import InvalidVersion, Version
-
 from ._compat.typing import Self, assert_never
 from .errors import OCIEngineTooOldError
 from .logger import log
 from .typing import PathOrStr, PopenBytes
 from .util import (
     CIProvider,
+    FlexibleVersion,
     call,
     detect_ci_provider,
     parse_key_value_string,
@@ -38,6 +38,7 @@ ContainerEngineName = Literal["docker", "podman"]
 class OCIPlatform(Enum):
     i386 = "linux/386"
     AMD64 = "linux/amd64"
+    ARMV7 = "linux/arm/v7"
     ARM64 = "linux/arm64"
     PPC64LE = "linux/ppc64le"
     S390X = "linux/s390x"
@@ -103,25 +104,45 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
         if engine.name == "docker":
-            # --platform support was introduced in 1.32 as experimental
-            # docker cp, as used by cibuildwheel, has been fixed in v24 => API 1.43, https://github.com/moby/moby/issues/38995
-            client_api_version = Version(version_info["Client"]["ApiVersion"])
-            engine_api_version = Version(version_info["Server"]["ApiVersion"])
-            version_supported = min(client_api_version, engine_api_version) >= Version("1.43")
+            client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
+            server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
+            # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
+            version = min(client_api_version, server_api_version)
+            minimum_version = FlexibleVersion("1.41")
+            minimum_version_str = "20.10.0"  # docker version
+            error_msg = textwrap.dedent(
+                f"""
+                Build failed because {engine.name} is too old.
+
+                cibuildwheel requires {engine.name}>={minimum_version_str} running API version {minimum_version}.
+                The API version found by cibuildwheel is {version}.
+                """
+            )
         elif engine.name == "podman":
-            client_api_version = Version(version_info["Client"]["APIVersion"])
+            # podman uses the same version string for "Version" & "ApiVersion"
+            client_version = FlexibleVersion(version_info["Client"]["Version"])
             if "Server" in version_info:
-                engine_api_version = Version(version_info["Server"]["APIVersion"])
+                server_version = FlexibleVersion(version_info["Server"]["Version"])
             else:
-                engine_api_version = client_api_version
+                server_version = client_version
             # --platform support was introduced in v3
-            version_supported = min(client_api_version, engine_api_version) >= Version("3")
+            version = min(client_version, server_version)
+            minimum_version = FlexibleVersion("3")
+            error_msg = textwrap.dedent(
+                f"""
+                Build failed because {engine.name} is too old.
+
+                cibuildwheel requires {engine.name}>={minimum_version}.
+                The version found by cibuildwheel is {version}.
+                """
+            )
         else:
             assert_never(engine.name)
-        if not version_supported:
-            raise OCIEngineTooOldError() from None
-    except (subprocess.CalledProcessError, KeyError, InvalidVersion) as e:
-        raise OCIEngineTooOldError() from e
+        if version < minimum_version:
+            raise OCIEngineTooOldError(error_msg) from None
+    except (subprocess.CalledProcessError, KeyError, ValueError) as e:
+        msg = f"Build failed because {engine.name} is too old or is not working properly."
+        raise OCIEngineTooOldError(msg) from e
 
 
 class OCIContainer:
@@ -147,7 +168,7 @@ class OCIContainer:
         ...     print(self.debug_info())
     """
 
-    UTILITY_PYTHON = "/opt/python/cp38-cp38/bin/python"
+    UTILITY_PYTHON = "/opt/python/cp39-cp39/bin/python"
 
     process: PopenBytes
     bash_stdin: IO[bytes]
@@ -188,7 +209,11 @@ class OCIContainer:
                 "inspect",
                 self.image,
                 "--format",
-                "{{.Os}}/{{.Architecture}}",
+                (
+                    "{{.Os}}/{{.Architecture}}/{{.Variant}}"
+                    if len(oci_platform.value.split("/")) == 3
+                    else "{{.Os}}/{{.Architecture}}"
+                ),
                 capture_stdout=True,
             ).strip()
             if image_platform == oci_platform.value:
@@ -215,7 +240,7 @@ class OCIContainer:
         platform_args = self._get_platform_args()
 
         simulate_32_bit = False
-        if self.oci_platform == OCIPlatform.i386:
+        if self.oci_platform in {OCIPlatform.i386, OCIPlatform.ARMV7}:
             # If the architecture running the image is already the right one
             # or the image entrypoint takes care of enforcing this, then we don't need to
             # simulate this
@@ -226,13 +251,16 @@ class OCIContainer:
                     *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
                 ).strip()
             except subprocess.CalledProcessError:
-                # The image might have been built with amd64 architecture
-                # Let's try that
-                platform_args = self._get_platform_args(oci_platform=OCIPlatform.AMD64)
-                container_machine = call(
-                    *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
-                ).strip()
-            simulate_32_bit = container_machine != "i686"
+                if self.oci_platform == OCIPlatform.i386:
+                    # The image might have been built with amd64 architecture
+                    # Let's try that
+                    platform_args = self._get_platform_args(oci_platform=OCIPlatform.AMD64)
+                    container_machine = call(
+                        *run_cmd, *platform_args, self.image, *ctr_cmd, capture_stdout=True
+                    ).strip()
+                else:
+                    raise
+            simulate_32_bit = container_machine not in {"i686", "armv7l", "armv8l"}
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
 
@@ -337,8 +365,7 @@ class OCIContainer:
             ) as exec_process:
                 assert exec_process.stdin
                 with open(from_path, "rb") as from_file:
-                    # Bug in mypy, https://github.com/python/mypy/issues/15031
-                    shutil.copyfileobj(from_file, exec_process.stdin)  # type: ignore[misc]
+                    shutil.copyfileobj(from_file, exec_process.stdin)
 
                 exec_process.stdin.close()
                 exec_process.wait()

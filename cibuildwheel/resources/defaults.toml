@@ -37,6 +37,7 @@ musllinux-i686-image = "musllinux_1_2"
 musllinux-aarch64-image = "musllinux_1_2"
 musllinux-ppc64le-image = "musllinux_1_2"
 musllinux-s390x-image = "musllinux_1_2"
+musllinux-armv7l-image = "musllinux_1_2"
 
 
 [tool.cibuildwheel.linux]

@@ -22,27 +22,27 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
-|                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | Pyodide |
-|----------------|----|-----|-----|-----|-----|----|-----|----|-----|-----|-----|
-| CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  | N/A |
-| CPython 3.7    | ✅ | N/A | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | N/A |
-| CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | N/A |
-| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | N/A |
-| CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | N/A |
-| CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | N/A |
-| CPython 3.12   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁴ |
-| CPython 3.13³  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | N/A |
-| PyPy 3.7 v7.3  | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A |
-| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A |
-| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A |
-| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A |
+|                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | musllinux armv7l | Pyodide |
+|----------------|----|-----|-----|-----|-----|----|-----|----|-----|-----|---|-----|
+| CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  | ✅ | N/A |
+| CPython 3.7    | ✅ | N/A | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | N/A |
+| CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | N/A |
+| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅ | N/A |
+| CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | N/A |
+| CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | N/A |
+| CPython 3.12   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅  | ✅⁴ |
+| CPython 3.13³  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅  | N/A |
+| PyPy 3.7 v7.3  | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
+| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
+| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
+| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
-<sup>³ CPython 3.13 is built by default using Python RCs, starting with cibuildwheel 2.20. Free-threaded mode will still require opt-in using [`CIBW_FREE_THREADED_SUPPORT`](https://cibuildwheel.pypa.io/en/stable/options/#free-threaded-support).</sup><br>
+<sup>³ Free-threaded mode requires opt-in using [`CIBW_FREE_THREADED_SUPPORT`](https://cibuildwheel.pypa.io/en/stable/options/#free-threaded-support).</sup><br>
 <sup>⁴ Experimental, not yet supported on PyPI, but can be used directly in web deployment. Use `--platform pyodide` to build.</sup><br>
 
-- Builds manylinux, musllinux, macOS 10.9+, and Windows wheels for CPython and PyPy
+- Builds manylinux, musllinux, macOS 10.9+ (10.13+ for Python 3.12+), and Windows wheels for CPython and PyPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
@@ -85,7 +85,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -94,7 +94,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.21.1
+        run: python -m pip install cibuildwheel==2.21.3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -211,6 +211,24 @@ Changelog
 
 <!-- this section was generated by bin/update_readme_changelog.py -- do not edit manually -->
 
+### v2.21.3
+
+_9 October 2024_
+
+- 🛠 Update CPython 3.13 to 3.13.0 final release (#2032)
+- 📚 Docs updates and tidy ups (#2035)
+
+### v2.21.2
+
+_2 October 2024_
+
+- ✨ Adds support for building 32-bit armv7l wheels on musllinux. On a Linux system with emulation set up, set [CIBW_ARCHS](https://cibuildwheel.pypa.io/en/stable/options/#archs) to `armv7l` on Linux to try it out if you're interested! (#2017)
+- 🐛 Fix Linux Podman builds on some systems (#2016)
+- ✨ Adds official support for running on Python 3.13 (#2026)
+- 🛠 Update CPython 3.13 to 3.13.0rc3 (#2029)
+
+Note: the default [manylinux image](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) is **scheduled to change** from `manylinux2014` to `manylinux_2_28` in a cibuildwheel release on or after **6th May 2025** - you can set the value now to avoid getting upgraded if you want. (#1992)
+
 ### v2.21.1
 
 _16 September 2024_
@@ -242,31 +260,6 @@ _4 August 2024_
 - 🛠 Set the `VSCMD_ARG_TGT_ARCH` variable based on target arch. (#1876)
 - 🛠 Undo cleaner output on pytest 8-8.2 now that 8.3 is out. (#1943)
 - 📚 Update examples to use Python 3.12 on host  (cibuildwheel will require Python 3.11+ on the host machine starting in October 2024) (#1919)
-
-
-### v2.19.2
-
-_2 July 2024_
-
-- 🐛 Update manylinux2014 pins to versions that support past-EoL CentOS 7 mirrors. (#1917)
-- 🐛 Support `--no-isolation` with `build[uv]` build-frontend. (#1889)
-- 🛠 Provide attestations for releases at <https://github.com/pypa/cibuildwheel/attestations>. (#1916)
-- 🛠 Provide CPython 3.13.0b3. (#1913)
-- 🛠 Remove some workarounds now that pip 21.1 is available. (#1891, #1892)
-- 📚 Remove nosetest from our docs. (#1821)
-- 📚 Document the macOS ARM workaround for 3.8 on GHA. (#1871)
-- 📚 GitLab CI + macOS is now a supported platform with an example. (#1911)
-
-
-### v2.19.1
-
-_13 June 2024_
-
-- 🐛 Don't require setup-python on GHA for Pyodide (#1868)
-- 🐛 Specify full python path for uv (fixes issue in 0.2.10 & 0.2.11) (#1881)
-- 🛠 Update for pip 24.1b2 on CPython 3.13. (#1879)
-- 🛠 Fix a warning in our schema generation script. (#1866)
-- 🛠 Cleaner output on pytest 8-8.2. (#1865)
 
 <!-- END bin/update_readme_changelog.py -->
 
