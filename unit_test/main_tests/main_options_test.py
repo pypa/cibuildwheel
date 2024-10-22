@@ -119,7 +119,7 @@ def test_manylinux_images(
         assert build_options.manylinux_images is None
 
 
-def get_default_repair_command(platform):
+def get_default_repair_command(platform: str) -> str:
     if platform == "linux":
         return "auditwheel repair -w {dest_dir} {wheel}"
     elif platform == "macos":

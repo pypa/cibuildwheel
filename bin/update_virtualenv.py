@@ -36,7 +36,7 @@ class VersionTuple:
     version_string: str
 
 
-def git_ls_remote_versions(url) -> list[VersionTuple]:
+def git_ls_remote_versions(url: str) -> list[VersionTuple]:
     versions: list[VersionTuple] = []
     tags = subprocess.run(
         ["git", "ls-remote", "--tags", url], check=True, text=True, capture_output=True

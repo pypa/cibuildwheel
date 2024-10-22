@@ -155,7 +155,7 @@ def test_failing_test(tmp_path):
 @pytest.mark.parametrize("test_runner", ["pytest", "unittest"])
 def test_bare_pytest_invocation(
     tmp_path: Path, capfd: pytest.CaptureFixture[str], test_runner: str
-):
+) -> None:
     """Check that if a user runs pytest in the the test cwd, it raises a helpful error"""
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"

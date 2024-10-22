@@ -9,7 +9,7 @@ from typing import Any
 def define_env(env: Any) -> None:
     "Hook function for mkdocs-macros"
 
-    @env.macro
+    @env.macro  # type: ignore[misc]
     def subprocess_run(*args: str) -> str:
         "Run a subprocess and return the stdout"
         env = os.environ.copy()

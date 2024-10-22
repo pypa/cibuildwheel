@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser(
         prog="python -m test.test_projects", description="Generate a test project to check it out"
     )

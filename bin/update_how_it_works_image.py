@@ -18,7 +18,7 @@ except ImportError:
     )
 
 
-def main():
+def main() -> None:
     subprocess.run(["mkdocs", "build"], check=True)
 
     hti = Html2Image(custom_flags=["--force-device-scale-factor=2"])

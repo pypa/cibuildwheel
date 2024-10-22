@@ -32,6 +32,7 @@ repos:
       - nox
       - packaging
       - pygithub
+      - pytest
       - rich
       - tomli
       - tomli_w
@@ -40,6 +41,7 @@ repos:
       - types-jinja2
       - types-pyyaml
       - types-requests
+      - types-setuptools
       - uv
       - validate-pyproject
   - id: mypy
