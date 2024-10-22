@@ -406,7 +406,8 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
         python_version = ".".join(map(str, python_version_deprecation[0]))
         msg = (
             f"cibuildwheel {python_version_deprecation[1]}+ will require Python {python_version}+, "
-            "please upgrade your python version."
+            "please upgrade the Python version used to run cibuildwheel. "
+            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
         )
         warnings.append(msg)
 
