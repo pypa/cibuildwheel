@@ -405,7 +405,7 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
     if sys.version_info[:2] < python_version_deprecation[0]:
         python_version = ".".join(map(str, python_version_deprecation[0]))
         msg = (
-            f"cibuildwheel {python_version_deprecation[1]}+ will require Python {python_version}+, "
+            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
             "please upgrade the Python version used to run cibuildwheel. "
             "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
         )
@@ -419,7 +419,7 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
             # Reminder: in an f-string, double braces means literal single brace
             msg = (
                 f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
-                "and will be removed in a future release. Simply use 'python' or 'pip' instead."
+                "and will be removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
             warnings.append(msg)
 
