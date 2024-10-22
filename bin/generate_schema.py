@@ -26,6 +26,13 @@ $defs:
       - append
     default: none
     description: How to inherit the parent's value.
+  enable:
+    enum:
+      - cpython-eol
+      - cpython-free-threaded
+      - cpython-prerelease
+      - pypy-eol
+  description: A Python version or flavor to enable.
 additionalProperties: false
 description: cibuildwheel's settings.
 type: object
@@ -99,6 +106,13 @@ properties:
     default: pinned
     description: Specify how cibuildwheel controls the versions of the tools it uses
     type: string
+  enable:
+    description: Enable or disable certain builds.
+    oneOf:
+      - $ref: "#/$defs/enable"
+      - type: array
+        items:
+          $ref: "#/$defs/enable"
   environment:
     description: Set environment variables needed during the build.
     type: string_table
@@ -110,6 +124,7 @@ properties:
     type: boolean
     default: false
     description: The project supports free-threaded builds of Python (PEP703)
+    deprecated: Use the `enable` option instead.
   manylinux-aarch64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
@@ -258,6 +273,7 @@ del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["test-skip"]
 del non_global_options["free-threaded-support"]
+del non_global_options["enable"]
 
 overrides["items"]["properties"]["select"]["oneOf"] = string_array
 overrides["items"]["properties"] |= non_global_options.copy()

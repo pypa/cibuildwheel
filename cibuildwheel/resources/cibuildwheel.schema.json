@@ -10,7 +10,16 @@
       ],
       "default": "none",
       "description": "How to inherit the parent's value."
-    }
+    },
+    "enable": {
+      "enum": [
+        "cpython-eol",
+        "cpython-free-threaded",
+        "cpython-prerelease",
+        "pypy-eol"
+      ]
+    },
+    "description": "A Python version or flavor to enable."
   },
   "additionalProperties": false,
   "description": "cibuildwheel's settings.",
@@ -227,6 +236,21 @@
       "description": "Specify how cibuildwheel controls the versions of the tools it uses",
       "type": "string",
       "title": "CIBW_DEPENDENCY_VERSIONS"
+    },
+    "enable": {
+      "description": "Enable or disable certain builds.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/enable"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/enable"
+          }
+        }
+      ],
+      "title": "CIBW_ENABLE"
     },
     "environment": {
       "description": "Set environment variables needed during the build.",

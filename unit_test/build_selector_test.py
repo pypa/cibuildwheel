@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from packaging.specifiers import SpecifierSet
 
-from cibuildwheel.util import BuildSelector
+from cibuildwheel.util import BuildSelector, EnableGroups
 
 
 def test_build():
@@ -43,7 +43,9 @@ def test_build_filter_pre():
     build_selector = BuildSelector(
         build_config="cp3*-* *-manylinux*",
         skip_config="",
-        prerelease_pythons=True,
+        enable=frozenset(
+            [EnableGroups.CPythonPrerelease, EnableGroups.CPythonEoL, EnableGroups.PyPyEoL]
+        ),
     )
 
     assert build_selector("cp37-manylinux_x86_64")
@@ -146,9 +148,7 @@ def test_build_limited_python_patch():
 
 
 def test_build_free_threaded_python():
-    build_selector = BuildSelector(
-        build_config="*", skip_config="", prerelease_pythons=True, free_threaded_support=True
-    )
+    build_selector = BuildSelector(build_config="*", skip_config="", enable=frozenset(EnableGroups))
 
     assert build_selector("cp313t-manylinux_x86_64")
 

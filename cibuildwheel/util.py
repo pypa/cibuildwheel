@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import enum
 import fnmatch
 import itertools
 import os
@@ -23,7 +24,7 @@ from functools import lru_cache, total_ordering
 from pathlib import Path, PurePath
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Any, ClassVar, Final, Literal, TextIO, TypeVar
+from typing import Any, Final, Literal, TextIO, TypeVar
 from zipfile import ZipFile
 
 import bracex
@@ -41,6 +42,7 @@ from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "MANYLINUX_ARCHS",
+    "EnableGroups",
     "call",
     "chdir",
     "combine_constraints",
@@ -64,6 +66,17 @@ install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 free_thread_enable_313: Final[Path] = resources_dir / "free-threaded-enable-313.xml"
 
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
+
+
+class EnableGroups(enum.Enum):
+    """
+    Groups of build selectors that are not enabled by default.
+    """
+
+    CPythonEoL = "cpython-eol"
+    CPythonFreeThreaded = "cpython-free-threaded"
+    CPythonPrerelease = "cpython-prerelease"
+    PyPyEoL = "pypy-eol"
 
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
@@ -247,12 +260,7 @@ class BuildSelector:
     build_config: str
     skip_config: str
     requires_python: SpecifierSet | None = None
-
-    # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = ""
-    prerelease_pythons: bool = False
-
-    free_threaded_support: bool = False
+    enable: frozenset[EnableGroups] = frozenset()
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
@@ -266,12 +274,20 @@ class BuildSelector:
             if not self.requires_python.contains(version):
                 return False
 
-        # filter out the prerelease pythons if self.prerelease_pythons is False
-        if not self.prerelease_pythons and selector_matches(self.PRERELEASE_SKIP, build_id):
+        # filter out groups that are not enabled
+        if EnableGroups.CPythonEoL not in self.enable and selector_matches(
+            "cp3{6,7,8}-*", build_id
+        ):
             return False
-
-        # filter out free threaded pythons if self.free_threaded_support is False
-        if not self.free_threaded_support and selector_matches("*t-*", build_id):
+        if EnableGroups.CPythonFreeThreaded not in self.enable and selector_matches(
+            "cp3??t-*", build_id
+        ):
+            return False
+        if EnableGroups.CPythonPrerelease not in self.enable and selector_matches(
+            "cp314*", build_id
+        ):
+            return False
+        if EnableGroups.PyPyEoL not in self.enable and selector_matches("pp3{7,8,9}-*", build_id):
             return False
 
         should_build = selector_matches(self.build_config, build_id)
@@ -284,8 +300,7 @@ class BuildSelector:
             "build_config": self.build_config,
             "skip_config": self.skip_config,
             "requires_python": str(self.requires_python),
-            "prerelease_pythons": self.prerelease_pythons,
-            "free_threaded_support": self.free_threaded_support,
+            "enable": sorted(group.value for group in self.enable),
         }
 
 
