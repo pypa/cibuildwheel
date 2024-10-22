@@ -19,8 +19,6 @@ charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via typer
-cloudpickle==3.1.0
-    # via loky
 cmake==3.30.5
     # via pyodide-build
 distlib==0.3.9
@@ -96,8 +94,6 @@ typer==0.12.5
     #   auditwheel-emscripten
     #   pyodide-build
     #   pyodide-cli
-types-requests==2.32.0.20241016
-    # via pyodide-build
 typing-extensions==4.12.2
     # via
     #   pydantic
@@ -106,9 +102,7 @@ typing-extensions==4.12.2
 unearth==0.17.2
     # via pyodide-build
 urllib3==2.2.3
-    # via
-    #   requests
-    #   types-requests
+    # via requests
 virtualenv==20.27.0
     # via
     #   build
