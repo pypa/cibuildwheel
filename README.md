@@ -22,6 +22,8 @@ Python wheels are great. Building them across **Mac, Linux, Windows**, on **mult
 What does it do?
 ----------------
 
+While cibuildwheel itself requires a recent Python version to run (we support the last three releases), it can target the following versions to build wheels:
+
 |                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | musllinux armv7l | Pyodide |
 |----------------|----|-----|-----|-----|-----|----|-----|----|-----|-----|---|-----|
 | CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  | ✅ | N/A |
