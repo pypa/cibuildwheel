@@ -417,10 +417,10 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
         if any(o and ("{python}" in o or "{pip}" in o) for o in option_values):
             # Reminder: in an f-string, double braces means literal single brace
             msg = (
-                f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
-                "and will be removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
+                f"{option_name}: '{{python}}' and '{{pip}}' are no longer supported "
+                "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
-            warnings.append(msg)
+            raise errors.ConfigurationError(msg)
 
     return warnings
 

@@ -219,12 +219,12 @@ def format_safe(template: str, **kwargs: str | os.PathLike[str]) -> str:
 
 def prepare_command(command: str, **kwargs: PathOrStr) -> str:
     """
-    Preprocesses a command by expanding variables like {python}.
+    Preprocesses a command by expanding variables like {project}.
 
     For example, used in the test_command option to specify the path to the
     project's root. Unmatched syntax will mostly be allowed through.
     """
-    return format_safe(command, python="python", pip="pip", **kwargs)
+    return format_safe(command, **kwargs)
 
 
 def get_build_verbosity_extra_flags(level: int) -> list[str]:
