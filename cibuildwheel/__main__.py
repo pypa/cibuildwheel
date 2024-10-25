@@ -380,14 +380,13 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
 
     print()
     print(f"Cache folder: {CIBW_CACHE_PATH}")
+    print()
 
     warnings = detect_warnings(options=options, identifiers=identifiers)
-    if warnings:
-        print("\nWarnings:")
-        for warning in warnings:
-            print("  " + warning)
+    for warning in warnings:
+        log.warning(warning)
 
-    print("\nHere we go!\n")
+    print("Here we go!\n")
 
 
 def get_build_identifiers(
@@ -402,6 +401,16 @@ def get_build_identifiers(
 def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str]:
     warnings = []
 
+    python_version_deprecation = ((3, 11), 3)
+    if sys.version_info[:2] < python_version_deprecation[0]:
+        python_version = ".".join(map(str, python_version_deprecation[0]))
+        msg = (
+            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
+            "please upgrade the Python version used to run cibuildwheel. "
+            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
+        )
+        warnings.append(msg)
+
     # warn about deprecated {python} and {pip}
     for option_name in ["test_command", "before_build"]:
         option_values = [getattr(options.build_options(i), option_name) for i in identifiers]
@@ -410,7 +419,7 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
             # Reminder: in an f-string, double braces means literal single brace
             msg = (
                 f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
-                "and will be removed in a future release. Simply use 'python' or 'pip' instead."
+                "and will be removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
             warnings.append(msg)
 
