@@ -490,7 +490,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 else:
                     shutil.move(str(built_wheel), repaired_wheel_dir)
 
-                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                try:
+                    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.RepairStepProducedNoWheelError() from None
 
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)

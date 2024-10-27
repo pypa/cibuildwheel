@@ -326,6 +326,9 @@ def build_in_container(
 
             repaired_wheels = container.glob(repaired_wheel_dir, "*.whl")
 
+            if not repaired_wheels:
+                raise errors.RepairStepProducedNoWheelError()
+
             for repaired_wheel in repaired_wheels:
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
