@@ -1120,6 +1120,7 @@ Platform-specific environment variables are also available:<br/>
       delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
       pipx run abi3audit --strict --report {wheel}
     CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+      copy {wheel} {dest_dir} &&
       pipx run abi3audit --strict --report {wheel}
     ```
 
@@ -1158,7 +1159,10 @@ Platform-specific environment variables are also available:<br/>
       "pipx run abi3audit --strict --report {wheel}",
     ]
     [tool.cibuildwheel.windows]
-    repair-wheel-command = "pipx run abi3audit --strict --report {wheel}"
+    repair-wheel-command = [
+      "copy {wheel} {dest_dir}",
+      "pipx run abi3audit --strict --report {wheel}",
+    ]
     ```
 
     In configuration mode, you can use an inline array, and the items will be joined with `&&`.

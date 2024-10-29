@@ -67,3 +67,21 @@ class OCIEngineTooOldError(FatalError):
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.return_code = 7
+
+
+class RepairStepProducedNoWheelError(FatalError):
+    def __init__(self) -> None:
+        message = textwrap.dedent(
+            """
+            Build failed because the repair step completed successfully but
+            did not produce a wheel.
+
+            Your `repair-wheel-command` is expected to place the repaired
+            wheel in the {dest_dir} directory. See the documentation for
+            example configurations:
+
+            https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command
+            """
+        )
+        super().__init__(message)
+        self.return_code = 8
