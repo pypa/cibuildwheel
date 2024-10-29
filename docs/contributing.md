@@ -17,11 +17,11 @@ Everyone contributing to the cibuildwheel project is expected to follow the [PSF
 - `cibuildwheel` should wrap the complexity of wheel building.
 - The user interface to `cibuildwheel` is the build script (e.g. `.travis.yml`). Feature additions should not increase the complexity of this script.
 - Options should be environment variables (these lend themselves better to YML config files). They should be prefixed with `CIBW_`.
-- Options should be generalise to all platforms. If platform-specific options are required, they should be namespaced e.g. `CIBW_TEST_COMMAND_MACOS`
+- Options should be generalised to all platforms. If platform-specific options are required, they should be namespaced e.g. `CIBW_TEST_COMMAND_MACOS`
 
 Other notes:
 
-- The platforms are very similar, until they're not. I'd rather have straight-forward code than totally DRY code, so let's keep airy platform abstractions to a minimum.
+- The platforms are very similar, until they're not. I'd rather have straightforward code than totally DRY code, so let's keep airy platform abstractions to a minimum.
 - I might want to break the options into a shared config file one day, so that config is more easily shared. That has motivated some of the design decisions.
 
 ### cibuildwheel's relationship with build errors
@@ -102,7 +102,7 @@ CIBW_PLATFORM=linux pytest test -k test_build_frontend_args
 
 ### Linting, docs
 
-Most developer tasks have a nox interface. This allows you to very simply run tasks without worrying about setting up a development environment (as shown below). This is a slower than setting up a development environment and reusing it, but has the (important) benefit of being highly reproducible; an earlier run does not affect a current run, or anything else on your machine.
+Most developer tasks have a nox interface. This allows you to very simply run tasks without worrying about setting up a development environment (as shown below). This is slower than setting up a development environment and reusing it, but has the (important) benefit of being highly reproducible; an earlier run does not affect a current run, or anything else on your machine.
 
 You can see a list of sessions by typing `nox -l`; here are a few common ones:
 
