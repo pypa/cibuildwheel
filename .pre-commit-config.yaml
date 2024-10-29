@@ -30,6 +30,7 @@ repos:
     additional_dependencies: &mypy-dependencies
       - bracex
       - nox
+      - orjson
       - packaging
       - pygithub
       - pytest
