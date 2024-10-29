@@ -133,7 +133,7 @@ myextension = Extension(
 
 ### Automatic updates using Dependabot {: #automatic-updates}
 
-Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worse-case scenario, it could occur during a release.
+Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worst-case scenario, it could occur during a release.
 
 There are two suggested methods for keeping cibuildwheel up to date that instead involve scheduled pull requests using GitHub's Dependabot.
 
@@ -184,7 +184,7 @@ This will also try to update other pins in all requirement files, so be sure you
 ### Alternatives to cibuildwheel options {: #cibw-options-alternatives}
 
 cibuildwheel provides lots of opportunities to configure the build
-environment. However, you  might consider adding this build configuration into
+environment. However, you might consider adding this build configuration into
 the package itself - in general, this is preferred, because users of your
 package 'sdist' will also benefit.
 
