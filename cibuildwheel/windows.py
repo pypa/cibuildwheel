@@ -27,6 +27,7 @@ from .util import (
     BuildSelector,
     call,
     combine_constraints,
+    copy_test_sources,
     download,
     extract_zip,
     find_compatible_wheel,
@@ -574,7 +575,15 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 test_cwd = identifier_tmp_dir / "test_cwd"
                 test_cwd.mkdir()
-                (test_cwd / "test_fail.py").write_text(test_fail_cwd_file.read_text())
+                if build_options.test_sources:
+                    copy_test_sources(
+                        build_options.test_sources,
+                        build_options.package_dir,
+                        test_cwd,
+                    )
+                else:
+                    # There are no test sources. Copy the test safety file.
+                    (test_cwd / "test_fail.py").write_text(test_fail_cwd_file.read_text())
 
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 

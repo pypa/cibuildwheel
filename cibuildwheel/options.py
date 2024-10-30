@@ -90,6 +90,7 @@ class BuildOptions:
     dependency_constraints: DependencyConstraints | None
     test_command: str | None
     before_test: str | None
+    test_sources: list[str]
     test_requires: list[str]
     test_extras: str
     build_verbosity: int
@@ -668,6 +669,9 @@ class Options:
             dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
+            test_sources = self.reader.get(
+                "test-sources", option_format=ListFormat(sep=" ")
+            ).split()
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
@@ -771,6 +775,7 @@ class Options:
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
+                test_sources=test_sources,
                 test_requires=test_requires,
                 test_extras=test_extras,
                 before_test=before_test,

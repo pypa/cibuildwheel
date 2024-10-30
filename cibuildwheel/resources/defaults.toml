@@ -18,6 +18,7 @@ repair-wheel-command = ""
 
 test-command = ""
 before-test = ""
+test-sources = []
 test-requires = []
 test-extras = []
 

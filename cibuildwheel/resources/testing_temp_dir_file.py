@@ -13,5 +13,7 @@ class TestStringMethods(unittest.TestCase):
             "wheel. Please specify a path to your tests when invoking pytest "
             "using the {project} placeholder, e.g. `pytest {project}` or "
             "`pytest {project}/tests`. cibuildwheel will replace {project} with "
-            "the path to your project."
+            "the path to your project. Alternatively, use `test-sources` to "
+            "specify the files and folders that should be copied into the test "
+            "environment."
         )

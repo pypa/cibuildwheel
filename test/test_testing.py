@@ -184,3 +184,23 @@ def test_bare_pytest_invocation(
         "Please specify a path to your tests when invoking pytest using the {project} placeholder"
         in captured.out + captured.err
     )
+
+
+def test_test_sources(tmp_path):
+    project_dir = tmp_path / "project"
+    project_with_a_test.generate(project_dir)
+
+    # build and test the wheels in the test cwd, after copying in the test sources.
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_TEST_REQUIRES": "pytest",
+            "CIBW_TEST_COMMAND": "pytest",
+            "CIBW_TEST_COMMAND_WINDOWS": "pytest",
+            "CIBW_TEST_SOURCES": "test",
+        },
+    )
+
+    # also check that we got the right wheels
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    assert set(actual_wheels) == set(expected_wheels)
