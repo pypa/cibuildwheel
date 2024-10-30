@@ -22,7 +22,7 @@ from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
 from .oci_container import OCIContainerEngineConfig
-from .projectfiles import get_requires_python_str
+from .projectfiles import get_dependency_groups, get_requires_python_str
 from .typing import PLATFORMS, PlatformName
 from .util import (
     MANYLINUX_ARCHS,
@@ -92,6 +92,7 @@ class BuildOptions:
     before_test: str | None
     test_requires: list[str]
     test_extras: str
+    test_groups: list[str]
     build_verbosity: int
     build_frontend: BuildFrontendConfig | None
     config_settings: str
@@ -568,6 +569,13 @@ class Options:
             disallow=DISALLOWED_OPTIONS,
         )
 
+        self.project_dir = Path(command_line_arguments.package_dir)
+        try:
+            with self.project_dir.joinpath("pyproject.toml").open("rb") as f:
+                self.pyproject_toml = tomllib.load(f)
+        except FileNotFoundError:
+            self.pyproject_toml = {}
+
     @property
     def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
@@ -584,8 +592,10 @@ class Options:
 
     @functools.cached_property
     def package_requires_python_str(self) -> str | None:
-        args = self.command_line_arguments
-        return get_requires_python_str(Path(args.package_dir))
+        return get_requires_python_str(self.project_dir, self.pyproject_toml)
+
+    def dependency_groups(self, *groups: str) -> tuple[str, ...]:
+        return get_dependency_groups(self.pyproject_toml, *groups)
 
     @property
     def globals(self) -> GlobalOptions:
@@ -672,6 +682,9 @@ class Options:
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
             test_extras = self.reader.get("test-extras", option_format=ListFormat(sep=","))
+            test_groups_str = self.reader.get("test-groups", option_format=ListFormat(sep=","))
+            test_groups = [x for x in test_groups_str.split(",") if x]
+            test_dependency_groups = self.dependency_groups(*test_groups)
             build_verbosity_str = self.reader.get("build-verbosity")
 
             build_frontend_str = self.reader.get(
@@ -771,8 +784,9 @@ class Options:
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
-                test_requires=test_requires,
+                test_requires=[*test_requires, *test_dependency_groups],
                 test_extras=test_extras,
+                test_groups=test_groups,
                 before_test=before_test,
                 before_build=before_build,
                 before_all=before_all,

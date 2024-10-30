@@ -397,6 +397,21 @@
       ],
       "title": "CIBW_TEST_EXTRAS"
     },
+    "test-groups": {
+      "description": "Install extra groups when testing",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_TEST_GROUPS"
+    },
     "test-requires": {
       "description": "Install Python dependencies before running the tests",
       "oneOf": [
@@ -571,6 +586,9 @@
           "test-extras": {
             "$ref": "#/properties/test-extras"
           },
+          "test-groups": {
+            "$ref": "#/properties/test-groups"
+          },
           "test-requires": {
             "$ref": "#/properties/test-requires"
           }
@@ -675,6 +693,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
+        },
         "test-requires": {
           "$ref": "#/properties/test-requires"
         }
@@ -719,6 +740,9 @@
         },
         "test-extras": {
           "$ref": "#/properties/test-extras"
+        },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
@@ -778,6 +802,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
+        },
         "test-requires": {
           "$ref": "#/properties/test-requires"
         }
@@ -822,6 +849,9 @@
         },
         "test-extras": {
           "$ref": "#/properties/test-extras"
+        },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"

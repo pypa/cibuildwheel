@@ -1604,6 +1604,40 @@ Platform-specific environment variables are also available:<br/>
 
     In configuration files, you can use an inline array, and the items will be joined with a comma.
 
+
+### `CIBW_TEST_GROUPS` {: #test-groups}
+> Install your wheel for testing using `dependency-groups`
+
+List of
+[dependency-groups](https://peps.python.org/pep-0735)
+that should be included when installing the wheel prior to running the
+tests. This can be used to avoid having to redefine test dependencies in
+`CIBW_TEST_REQUIRES` if they are already defined in `pyproject.toml`.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_GROUPS_MACOS` | `CIBW_TEST_GROUPS_WINDOWS` | `CIBW_TEST_GROUPS_LINUX` | `CIBW_TEST_GROUPS_PYODIDE`
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Will cause the wheel to be installed with these groups of dependencies
+    CIBW_TEST_GROUPS: "test,qt"
+    ```
+
+    Separate multiple items with a comma.
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Will cause the wheel to be installed with these groups of dependencies
+    test-groups = ["test", "qt"]
+    ```
+
+    In configuration files, you can use an inline array, and the items will be joined with a comma.
+
 ### `CIBW_TEST_SKIP` {: #test-skip}
 > Skip running tests on some builds
 
