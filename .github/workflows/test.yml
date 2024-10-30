@@ -67,11 +67,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv pip install --system ".[test]"
+        uv sync
 
     - name: Generate a sample project
       run: |
-        python -m test.test_projects test.test_0_basic.basic_project sample_proj
+        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -124,7 +124,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        python ./bin/run_tests.py --run-podman
+        uv run bin/run_tests.py --run-podman
 
   emulated-archs:
     name: Get qemu emulated architectures
@@ -137,12 +137,13 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
+    - uses: astral-sh/setup-uv@v3
     - name: Install dependencies
-      run: python -m pip install ".[test]"
+      run: uv sync
     - name: Get qemu emulated architectures
       id: archs
       run: |
-        OUTPUT=$(python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
+        OUTPUT=$(.venv/bin/python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
         echo "${OUTPUT}"
         echo "archs=${OUTPUT}" >> "$GITHUB_OUTPUT"
 
@@ -159,14 +160,15 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
+    - uses: astral-sh/setup-uv@v3
     - name: Install dependencies
-      run: python -m pip install ".[test,uv]"
+      run: uv sync
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
     - name: Run the emulation tests
-      run: pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
+      run: uv run pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
     name: Test cibuildwheel building pyodide wheels
@@ -179,14 +181,14 @@ jobs:
       name: Install Python 3.12
       with:
         python-version: '3.12'
+    - uses: astral-sh/setup-uv@v3
 
     - name: Install dependencies
-      run: |
-        python -m pip install ".[test]"
+      run: uv sync
 
     - name: Generate a sample project
       run: |
-        python -m test.test_projects test.test_0_basic.basic_project sample_proj
+        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -198,6 +200,6 @@ jobs:
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |
-        python ./bin/run_tests.py
+        uv run ./bin/run_tests.py
       env:
         CIBW_PLATFORM: pyodide
