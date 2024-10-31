@@ -143,7 +143,7 @@ jobs:
     - name: Get qemu emulated architectures
       id: archs
       run: |
-        OUTPUT=$(.venv/bin/python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
+        OUTPUT=$(uv run python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
         echo "${OUTPUT}"
         echo "archs=${OUTPUT}" >> "$GITHUB_OUTPUT"
 
