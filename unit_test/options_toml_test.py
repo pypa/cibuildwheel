@@ -61,7 +61,7 @@ def test_simple_settings(tmp_path, platform, fname):
         == 'THING="OTHER" FOO="BAR"'
     )
     assert options_reader.get("test-extras", option_format=ListFormat(",")) == "one,two"
-    assert options_reader.get("test-groups", option_format=ListFormat(",")) == "three,four"
+    assert options_reader.get("test-groups", option_format=ListFormat(" ")) == "three four"
 
     assert options_reader.get("manylinux-x86_64-image") == "manylinux1"
     assert options_reader.get("manylinux-i686-image") == "manylinux2014"

@@ -4,8 +4,8 @@ from textwrap import dedent
 
 from cibuildwheel._compat import tomllib
 from cibuildwheel.projectfiles import (
-    get_dependency_groups,
     get_requires_python_str,
+    resolve_dependency_groups,
     setup_py_python_requires,
 )
 
@@ -260,7 +260,7 @@ def test_read_pyproject_toml_empty(tmp_path):
 
 def test_read_dep_groups():
     pyproject_toml = {"dependency-groups": {"group1": ["pkg1", "pkg2"], "group2": ["pkg3"]}}
-    assert get_dependency_groups(pyproject_toml) == ()
-    assert get_dependency_groups(pyproject_toml, "group1") == ("pkg1", "pkg2")
-    assert get_dependency_groups(pyproject_toml, "group2") == ("pkg3",)
-    assert get_dependency_groups(pyproject_toml, "group1", "group2") == ("pkg1", "pkg2", "pkg3")
+    assert resolve_dependency_groups(pyproject_toml) == ()
+    assert resolve_dependency_groups(pyproject_toml, "group1") == ("pkg1", "pkg2")
+    assert resolve_dependency_groups(pyproject_toml, "group2") == ("pkg3",)
+    assert resolve_dependency_groups(pyproject_toml, "group1", "group2") == ("pkg1", "pkg2", "pkg3")

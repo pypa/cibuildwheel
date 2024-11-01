@@ -1606,7 +1606,7 @@ Platform-specific environment variables are also available:<br/>
 
 
 ### `CIBW_TEST_GROUPS` {: #test-groups}
-> Install your wheel for testing using `dependency-groups`
+> Specify test dependencies from your project's `dependency-groups`
 
 List of
 [dependency-groups](https://peps.python.org/pep-0735)

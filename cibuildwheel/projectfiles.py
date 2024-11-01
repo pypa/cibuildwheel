@@ -106,7 +106,7 @@ def get_requires_python_str(package_dir: Path, pyproject_toml: dict[str, Any]) -
     return None
 
 
-def get_dependency_groups(pyproject_toml: dict[str, Any], *groups: str) -> tuple[str, ...]:
+def resolve_dependency_groups(pyproject_toml: dict[str, Any], *groups: str) -> tuple[str, ...]:
     """
     Get the packages in dependency-groups for a package.
     """
