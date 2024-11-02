@@ -87,7 +87,7 @@ def test_envvar_override(tmp_path, platform):
             "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux_2_24",
             "CIBW_TEST_COMMAND": "mytest",
             "CIBW_TEST_REQUIRES": "docs",
-            "CIBW_TEST_GROUPS": "mgroup,two",
+            "CIBW_TEST_GROUPS": "mgroup two",
             "CIBW_TEST_REQUIRES_LINUX": "scod",
             "CIBW_TEST_GROUPS_LINUX": "lgroup",
         },
@@ -104,8 +104,8 @@ def test_envvar_override(tmp_path, platform):
         == {"windows": "docs", "macos": "docs", "linux": "scod"}[platform]
     )
     assert (
-        options_reader.get("test-groups", option_format=ListFormat(","))
-        == {"windows": "mgroup,two", "macos": "mgroup,two", "linux": "lgroup"}[platform]
+        options_reader.get("test-groups", option_format=ListFormat(" "))
+        == {"windows": "mgroup two", "macos": "mgroup two", "linux": "lgroup"}[platform]
     )
     assert options_reader.get("test-command") == "mytest"
 

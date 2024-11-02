@@ -1623,10 +1623,10 @@ Platform-specific environment variables are also available:<br/>
 
     ```yaml
     # Will cause the wheel to be installed with these groups of dependencies
-    CIBW_TEST_GROUPS: "test,qt"
+    CIBW_TEST_GROUPS: "test qt"
     ```
 
-    Separate multiple items with a comma.
+    Separate multiple items with a space.
 
 !!! tab examples "pyproject.toml"
 
@@ -1636,7 +1636,7 @@ Platform-specific environment variables are also available:<br/>
     test-groups = ["test", "qt"]
     ```
 
-    In configuration files, you can use an inline array, and the items will be joined with a comma.
+    In configuration files, you can use an inline array, and the items will be joined with a space.
 
 ### `CIBW_TEST_SKIP` {: #test-skip}
 > Skip running tests on some builds
