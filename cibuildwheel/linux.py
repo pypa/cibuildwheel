@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import subprocess
 import sys
 import textwrap
@@ -133,14 +134,13 @@ def check_all_python_exist(
     *, platform_configs: Iterable[PythonConfiguration], container: OCIContainer
 ) -> None:
     exist = True
-    has_manylinux_interpreters = True
+    has_manylinux_interpreters = False
     messages = []
 
-    try:
+    with contextlib.suppress(subprocess.CalledProcessError):
         # use capture_output to keep quiet
         container.call(["manylinux-interpreters", "--help"], capture_output=True)
-    except subprocess.CalledProcessError:
-        has_manylinux_interpreters = False
+        has_manylinux_interpreters = True
 
     for config in platform_configs:
         python_path = config.path / "bin" / "python"
