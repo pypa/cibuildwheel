@@ -144,25 +144,23 @@ def check_all_python_exist(
 
     for config in platform_configs:
         python_path = config.path / "bin" / "python"
-        ensure_failed = False
-        try:
-            if has_manylinux_interpreters:
-                try:
-                    container.call(["manylinux-interpreters", "ensure", config.path.name])
-                except subprocess.CalledProcessError:
-                    ensure_failed = True
-            container.call(["test", "-x", python_path])
-        except subprocess.CalledProcessError:
-            if ensure_failed:
+        if has_manylinux_interpreters:
+            try:
+                container.call(["manylinux-interpreters", "ensure", config.path.name])
+            except subprocess.CalledProcessError:
                 messages.append(
                     f"  'manylinux-interpreters ensure {config.path.name}' needed to build '{config.identifier}' failed in container running image '{container.image}'."
                     " Either the installation failed or this interpreter is not available in that image. Please check the logs."
                 )
-            else:
+                exist = False
+        else:
+            try:
+                container.call(["test", "-x", python_path])
+            except subprocess.CalledProcessError:
                 messages.append(
                     f"  '{python_path}' executable doesn't exist in image '{container.image}' to build '{config.identifier}'."
                 )
-            exist = False
+                exist = False
     if not exist:
         message = "\n".join(messages)
         raise errors.FatalError(message)
