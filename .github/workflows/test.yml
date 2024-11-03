@@ -67,7 +67,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync
+        uv sync --no-dev --group test
 
     - name: Generate a sample project
       run: |
@@ -139,7 +139,7 @@ jobs:
         python-version: "3.x"
     - uses: astral-sh/setup-uv@v3
     - name: Install dependencies
-      run: uv sync
+      run: uv sync --no-dev --group test
     - name: Get qemu emulated architectures
       id: archs
       run: |
@@ -162,7 +162,7 @@ jobs:
         python-version: "3.x"
     - uses: astral-sh/setup-uv@v3
     - name: Install dependencies
-      run: uv sync
+      run: uv sync --no-dev --group test
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -184,7 +184,7 @@ jobs:
     - uses: astral-sh/setup-uv@v3
 
     - name: Install dependencies
-      run: uv sync
+      run: uv sync --no-dev --group test
 
     - name: Generate a sample project
       run: |
