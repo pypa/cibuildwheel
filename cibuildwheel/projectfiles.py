@@ -85,12 +85,12 @@ def setup_py_python_requires(content: str) -> str | None:
         return None
 
 
-def get_requires_python_str(package_dir: Path, pyproject_toml: dict[str, Any]) -> str | None:
+def get_requires_python_str(package_dir: Path, pyproject_toml: dict[str, Any] | None) -> str | None:
     """Return the python requires string from the most canonical source available, or None"""
 
     # Read in from pyproject.toml:project.requires-python
     with contextlib.suppress(KeyError, IndexError, TypeError):
-        return str(pyproject_toml["project"]["requires-python"])
+        return str((pyproject_toml or {})["project"]["requires-python"])
 
     # Read in from setup.cfg:options.python_requires
     config = configparser.ConfigParser()
@@ -106,7 +106,9 @@ def get_requires_python_str(package_dir: Path, pyproject_toml: dict[str, Any]) -
     return None
 
 
-def resolve_dependency_groups(pyproject_toml: dict[str, Any], *groups: str) -> tuple[str, ...]:
+def resolve_dependency_groups(
+    pyproject_toml: dict[str, Any] | None, *groups: str
+) -> tuple[str, ...]:
     """
     Get the packages in dependency-groups for a package.
     """
@@ -114,10 +116,14 @@ def resolve_dependency_groups(pyproject_toml: dict[str, Any], *groups: str) -> t
     if not groups:
         return ()
 
+    if pyproject_toml is None:
+        msg = f"Didn't find a pyproject.toml, so can't read [dependency-groups] {groups!r} from it!"
+        raise FileNotFoundError(msg)
+
     try:
         dependency_groups_toml = pyproject_toml["dependency-groups"]
     except KeyError:
-        msg = f"Didn't find [dependency-groups], which are needed to resolve {groups!r}."
+        msg = f"Didn't find [dependency-groups] in pyproject.toml, which is needed to resolve {groups!r}."
         raise KeyError(msg) from None
 
     return dependency_groups.resolve(dependency_groups_toml, *groups)

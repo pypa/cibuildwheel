@@ -551,6 +551,8 @@ class OptionsReader:
 
 
 class Options:
+    pyproject_toml: dict[str, Any] | None
+
     def __init__(
         self,
         platform: PlatformName,
@@ -574,7 +576,7 @@ class Options:
             with self.package_dir.joinpath("pyproject.toml").open("rb") as f:
                 self.pyproject_toml = tomllib.load(f)
         except FileNotFoundError:
-            self.pyproject_toml = {}
+            self.pyproject_toml = None
 
     @property
     def config_file_path(self) -> Path | None:

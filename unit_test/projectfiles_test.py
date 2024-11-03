@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from textwrap import dedent
 
+import pytest
+
 from cibuildwheel._compat import tomllib
 from cibuildwheel.projectfiles import (
     get_requires_python_str,
@@ -264,3 +266,13 @@ def test_read_dep_groups():
     assert resolve_dependency_groups(pyproject_toml, "group1") == ("pkg1", "pkg2")
     assert resolve_dependency_groups(pyproject_toml, "group2") == ("pkg3",)
     assert resolve_dependency_groups(pyproject_toml, "group1", "group2") == ("pkg1", "pkg2", "pkg3")
+
+
+def test_dep_group_no_file_error():
+    with pytest.raises(FileNotFoundError, match="pyproject.toml"):
+        resolve_dependency_groups(None, "test")
+
+
+def test_dep_group_no_section_error():
+    with pytest.raises(KeyError, match="pyproject.toml"):
+        resolve_dependency_groups({}, "test")
