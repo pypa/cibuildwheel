@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from textwrap import dedent
 
-from cibuildwheel.projectfiles import get_requires_python_str, setup_py_python_requires
+import pytest
+
+from cibuildwheel._compat import tomllib
+from cibuildwheel.projectfiles import (
+    get_requires_python_str,
+    resolve_dependency_groups,
+    setup_py_python_requires,
+)
 
 
 def test_read_setup_py_simple(tmp_path):
@@ -23,7 +30,7 @@ def test_read_setup_py_simple(tmp_path):
         )
 
     assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "1.23"
-    assert get_requires_python_str(tmp_path) == "1.23"
+    assert get_requires_python_str(tmp_path, {}) == "1.23"
 
 
 def test_read_setup_py_if_main(tmp_path):
@@ -45,7 +52,7 @@ def test_read_setup_py_if_main(tmp_path):
         )
 
     assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "1.23"
-    assert get_requires_python_str(tmp_path) == "1.23"
+    assert get_requires_python_str(tmp_path, {}) == "1.23"
 
 
 def test_read_setup_py_if_main_reversed(tmp_path):
@@ -67,7 +74,7 @@ def test_read_setup_py_if_main_reversed(tmp_path):
         )
 
     assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) == "1.23"
-    assert get_requires_python_str(tmp_path) == "1.23"
+    assert get_requires_python_str(tmp_path, {}) == "1.23"
 
 
 def test_read_setup_py_if_invalid(tmp_path):
@@ -89,7 +96,7 @@ def test_read_setup_py_if_invalid(tmp_path):
         )
 
     assert not setup_py_python_requires(tmp_path.joinpath("setup.py").read_text())
-    assert not get_requires_python_str(tmp_path)
+    assert not get_requires_python_str(tmp_path, {})
 
 
 def test_read_setup_py_full(tmp_path):
@@ -115,7 +122,7 @@ def test_read_setup_py_full(tmp_path):
     assert (
         setup_py_python_requires(tmp_path.joinpath("setup.py").read_text(encoding="utf8")) == "1.24"
     )
-    assert get_requires_python_str(tmp_path) == "1.24"
+    assert get_requires_python_str(tmp_path, {}) == "1.24"
 
 
 def test_read_setup_py_assign(tmp_path):
@@ -138,7 +145,7 @@ def test_read_setup_py_assign(tmp_path):
         )
 
     assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) is None
-    assert get_requires_python_str(tmp_path) is None
+    assert get_requires_python_str(tmp_path, {}) is None
 
 
 def test_read_setup_py_None(tmp_path):
@@ -161,7 +168,7 @@ def test_read_setup_py_None(tmp_path):
         )
 
     assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) is None
-    assert get_requires_python_str(tmp_path) is None
+    assert get_requires_python_str(tmp_path, {}) is None
 
 
 def test_read_setup_py_empty(tmp_path):
@@ -183,7 +190,7 @@ def test_read_setup_py_empty(tmp_path):
         )
 
     assert setup_py_python_requires(tmp_path.joinpath("setup.py").read_text()) is None
-    assert get_requires_python_str(tmp_path) is None
+    assert get_requires_python_str(tmp_path, {}) is None
 
 
 def test_read_setup_cfg(tmp_path):
@@ -199,7 +206,7 @@ def test_read_setup_cfg(tmp_path):
             )
         )
 
-    assert get_requires_python_str(tmp_path) == "1.234"
+    assert get_requires_python_str(tmp_path, {}) == "1.234"
 
 
 def test_read_setup_cfg_empty(tmp_path):
@@ -215,7 +222,7 @@ def test_read_setup_cfg_empty(tmp_path):
             )
         )
 
-    assert get_requires_python_str(tmp_path) is None
+    assert get_requires_python_str(tmp_path, {}) is None
 
 
 def test_read_pyproject_toml(tmp_path):
@@ -231,8 +238,10 @@ def test_read_pyproject_toml(tmp_path):
                 """
             )
         )
+    with open(tmp_path / "pyproject.toml", "rb") as f:
+        pyproject_toml = tomllib.load(f)
 
-    assert get_requires_python_str(tmp_path) == "1.654"
+    assert get_requires_python_str(tmp_path, pyproject_toml) == "1.654"
 
 
 def test_read_pyproject_toml_empty(tmp_path):
@@ -245,5 +254,25 @@ def test_read_pyproject_toml_empty(tmp_path):
                 """
             )
         )
+    with open(tmp_path / "pyproject.toml", "rb") as f:
+        pyproject_toml = tomllib.load(f)
 
-    assert get_requires_python_str(tmp_path) is None
+    assert get_requires_python_str(tmp_path, pyproject_toml) is None
+
+
+def test_read_dep_groups():
+    pyproject_toml = {"dependency-groups": {"group1": ["pkg1", "pkg2"], "group2": ["pkg3"]}}
+    assert resolve_dependency_groups(pyproject_toml) == ()
+    assert resolve_dependency_groups(pyproject_toml, "group1") == ("pkg1", "pkg2")
+    assert resolve_dependency_groups(pyproject_toml, "group2") == ("pkg3",)
+    assert resolve_dependency_groups(pyproject_toml, "group1", "group2") == ("pkg1", "pkg2", "pkg3")
+
+
+def test_dep_group_no_file_error():
+    with pytest.raises(FileNotFoundError, match="pyproject.toml"):
+        resolve_dependency_groups(None, "test")
+
+
+def test_dep_group_no_section_error():
+    with pytest.raises(KeyError, match="pyproject.toml"):
+        resolve_dependency_groups({}, "test")

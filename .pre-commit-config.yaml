@@ -29,6 +29,7 @@ repos:
     args: ["--python-version=3.8"]
     additional_dependencies: &mypy-dependencies
       - bracex
+      - dependency-groups>=1.2
       - nox
       - orjson
       - packaging

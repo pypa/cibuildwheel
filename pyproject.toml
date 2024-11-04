@@ -43,6 +43,7 @@ dependencies = [
     "bashlex!=0.13",
     "bracex",
     "certifi",
+    "dependency-groups>=1.2",
     "filelock",
     "packaging>=20.9",
     "platformdirs",
