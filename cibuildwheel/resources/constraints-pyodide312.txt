@@ -52,7 +52,7 @@ packaging==24.1
     #   build
     #   pyodide-build
     #   unearth
-pip==24.2
+pip==24.3.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.6
     # via virtualenv
@@ -78,9 +78,9 @@ pyyaml==6.0.2
     # via pyodide-build
 requests==2.32.3
     # via pyodide-build
-resolvelib==1.0.1
+resolvelib==1.1.0
     # via pyodide-build
-rich==13.9.2
+rich==13.9.4
     # via
     #   pyodide-build
     #   pyodide-cli
@@ -113,7 +113,7 @@ urllib3==2.2.3
     # via
     #   requests
     #   types-requests
-virtualenv==20.27.0
+virtualenv==20.27.1
     # via
     #   build
     #   pyodide-build
