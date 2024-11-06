@@ -20,6 +20,7 @@ test-command = ""
 before-test = ""
 test-requires = []
 test-extras = []
+test-groups = []
 
 container-engine = "docker"
 

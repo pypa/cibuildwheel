@@ -14,7 +14,7 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.7.1
+  rev: v0.7.2
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
@@ -29,6 +29,7 @@ repos:
     args: ["--python-version=3.8"]
     additional_dependencies: &mypy-dependencies
       - bracex
+      - dependency-groups>=1.2
       - nox
       - orjson
       - packaging
