@@ -634,7 +634,7 @@ class Options:
             log.warning(msg)
 
         if free_threaded_support:
-            enable.add(EnableGroups.CPythonFreeThreaded)
+            enable.add(EnableGroups.CPythonFreeThreading)
         if prerelease_pythons:
             enable.add(EnableGroups.CPythonPrerelease)
 

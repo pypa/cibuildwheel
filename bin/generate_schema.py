@@ -28,7 +28,7 @@ $defs:
     description: How to inherit the parent's value.
   enable:
     enum:
-      - cpython-free-threaded
+      - cpython-freethreading
       - cpython-prerelease
       - pypy
   description: A Python version or flavor to enable.

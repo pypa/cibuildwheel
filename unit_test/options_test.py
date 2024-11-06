@@ -456,6 +456,6 @@ def test_free_threaded_support(
     )
     options = Options(platform="linux", command_line_arguments=args, env=env)
     if expected_result:
-        assert EnableGroups.CPythonFreeThreaded in options.globals.build_selector.enable
+        assert EnableGroups.CPythonFreeThreading in options.globals.build_selector.enable
     else:
-        assert EnableGroups.CPythonFreeThreaded not in options.globals.build_selector.enable
+        assert EnableGroups.CPythonFreeThreading not in options.globals.build_selector.enable

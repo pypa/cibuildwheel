@@ -73,7 +73,7 @@ class EnableGroups(enum.Enum):
     Groups of build selectors that are not enabled by default.
     """
 
-    CPythonFreeThreaded = "cpython-free-threaded"
+    CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     PyPy = "pypy"
 
@@ -274,7 +274,7 @@ class BuildSelector:
                 return False
 
         # filter out groups that are not enabled
-        if EnableGroups.CPythonFreeThreaded not in self.enable and selector_matches(
+        if EnableGroups.CPythonFreeThreading not in self.enable and selector_matches(
             "cp3??t-*", build_id
         ):
             return False

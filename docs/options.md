@@ -569,7 +569,7 @@ values are:
 - `cypython-prerelease`: Enables beta versions of Pythons if any are available
   (May-July, approximately). For backward compatibility, `CIBW_PRERELEASE_PYTHONS`
   is also supported until cibuildwheel 3.
-- `cpython-free-threaded`: [PEP 703](https://www.python.org/dev/peps/pep-0703)
+- `cpython-freethreading`: [PEP 703](https://www.python.org/dev/peps/pep-0703)
   introduced variants of CPython that can be built without the Global
   Interpreter Lock (GIL).  Those variants are also known as free-threaded /
   no-gil. This will enable building these wheels while they are experimental.
@@ -614,17 +614,17 @@ partial list in environment variables; use `CIBW_SKIP` instead.
     CIBW_ENABLE: cpython-prerelease
 
     # Include free-threaded support
-    CIBW_ENABLE: cpython-free-threaded
+    CIBW_ENABLE: cpython-freethreading
 
     # Include both
-    CIBW_ENABLE: cpython-prerelease cpython-free-threaded
+    CIBW_ENABLE: cpython-prerelease cpython-freethreading
 
     # Skip building free-threaded compatible wheels on Windows
-    CIBW_ENABLE: cpython-free-threaded
+    CIBW_ENABLE: cpython-freethreading
     CIBW_SKIP: *t-win*
     ```
 
-    It is generally recommended to use `cpython-free-threaded` in a config
+    It is generally recommended to use `cpython-freethreading` in a config
     file as you can statically declare that you support free-threaded builds.
 
 !!! tab examples "pyproject.toml"
@@ -632,10 +632,10 @@ partial list in environment variables; use `CIBW_SKIP` instead.
     ```toml
     [tool.cibuildwheel]
     # Enable free-threaded support
-    enable = ["cpython-free-threaded"]
+    enable = ["cpython-freethreading"]
 
     # Skip building free-threaded compatible wheels on Windows
-    enable = ["cpython-free-threaded"]
+    enable = ["cpython-freethreading"]
     skip = "*t-win*"
     ```
 

@@ -14,7 +14,7 @@
     "enable": {
       "enum": [
         "cpython-eol",
-        "cpython-free-threaded",
+        "cpython-freethreading",
         "cpython-prerelease",
         "pypy-eol"
       ]
