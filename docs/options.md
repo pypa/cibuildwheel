@@ -104,7 +104,7 @@ test-requires = "pytest"
 test-command = "pytest {project}/tests"
 ```
 
-The complete set of defaults for the current version of cibuildwheel is shown below:
+The complete set of defaults for the current version of cibuildwheel are shown below:
 
 ```toml
 {% include "../cibuildwheel/resources/defaults.toml" %}
