@@ -580,7 +580,7 @@ class Options:
         except FileNotFoundError:
             self.pyproject_toml = None
 
-    @property
+    @functools.cached_property
     def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
 
@@ -598,7 +598,7 @@ class Options:
     def package_requires_python_str(self) -> str | None:
         return get_requires_python_str(self.package_dir, self.pyproject_toml)
 
-    @property
+    @functools.cached_property
     def globals(self) -> GlobalOptions:
         args = self.command_line_arguments
         package_dir = args.package_dir
