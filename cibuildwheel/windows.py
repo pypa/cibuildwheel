@@ -302,22 +302,22 @@ def setup_python(
     env = environment.as_dictionary(prev_environment=env)
 
     # check what Python version we're on
-    call("where", "python", env=env)
-    call("python", "--version", env=env)
-    call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
     where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()
+    print(where_python)
     if where_python != str(venv_path / "Scripts" / "python.exe"):
         msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
         raise errors.FatalError(msg)
+    call("python", "--version", env=env)
+    call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
 
     # check what pip version we're on
     if not use_uv:
         assert (venv_path / "Scripts" / "pip.exe").exists()
         where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
+        print(where_pip)
         if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
             msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
             raise errors.FatalError(msg)
-
         call("pip", "--version", env=env)
 
     log.step("Installing build tools...")

@@ -37,6 +37,7 @@ from platformdirs import user_cache_path
 
 from ._compat import tomllib
 from .architecture import Architecture
+from .errors import FatalError
 from .typing import PathOrStr, PlatformName
 
 __all__ = [
@@ -127,13 +128,32 @@ def call(
     args_ = [str(arg) for arg in args]
     # print the command executing for the logs
     print("+ " + " ".join(shlex.quote(a) for a in args_))
-    kwargs: dict[str, Any] = {}
-    if capture_stdout:
-        kwargs["universal_newlines"] = True
-        kwargs["stdout"] = subprocess.PIPE
-    result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
+    # workaround platform behaviour differences outlined
+    # in https://github.com/python/cpython/issues/52803
+    path_env = env if env is not None else os.environ
+    path = path_env.get("PATH", None)
+    executable = shutil.which(args_[0], path=path)
+    if executable is None:
+        msg = f"Couldn't find {args_[0]!r} in PATH {path!r}"
+        raise FatalError(msg)
+    args_[0] = executable
+    try:
+        result = subprocess.run(
+            args_,
+            check=True,
+            shell=IS_WIN,
+            env=env,
+            cwd=cwd,
+            capture_output=capture_stdout,
+            text=capture_stdout,
+        )
+    except subprocess.CalledProcessError as e:
+        if capture_stdout:
+            sys.stderr.write(e.stderr)
+        raise
     if not capture_stdout:
         return None
+    sys.stderr.write(result.stderr)
     return typing.cast(str, result.stdout)
 
 

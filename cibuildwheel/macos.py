@@ -278,23 +278,23 @@ def setup_python(
     # Apply our environment after pip is ready
     env = environment.as_dictionary(prev_environment=env)
 
-    # check what pip version we're on
-    if not use_uv:
-        assert (venv_bin_path / "pip").exists()
-        call("which", "pip", env=env)
-        call("pip", "--version", env=env)
-        which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
-        if which_pip != str(venv_bin_path / "pip"):
-            msg = "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
-            raise errors.FatalError(msg)
-
     # check what Python version we're on
-    call("which", "python", env=env)
-    call("python", "--version", env=env)
     which_python = call("which", "python", env=env, capture_stdout=True).strip()
+    print(which_python)
     if which_python != str(venv_bin_path / "python"):
         msg = "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
         raise errors.FatalError(msg)
+    call("python", "--version", env=env)
+
+    # check what pip version we're on
+    if not use_uv:
+        assert (venv_bin_path / "pip").exists()
+        which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
+        print(which_pip)
+        if which_pip != str(venv_bin_path / "pip"):
+            msg = "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+            raise errors.FatalError(msg)
+        call("pip", "--version", env=env)
 
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
