@@ -33,6 +33,7 @@ from .util import (
     EnableGroups,
     TestSelector,
     format_safe,
+    read_python_configs,
     resources_dir,
     selector_matches,
     strtobool,
@@ -560,14 +561,15 @@ class Options:
         platform: PlatformName,
         command_line_arguments: CommandLineArguments,
         env: Mapping[str, str],
-        read_config_file: bool = True,
+        defaults: bool = False,
     ):
         self.platform = platform
         self.command_line_arguments = command_line_arguments
         self.env = env
+        self._defaults = defaults
 
         self.reader = OptionsReader(
-            self.config_file_path if read_config_file else None,
+            None if defaults else self.config_file_path,
             platform=platform,
             env=env,
             disallow=DISALLOWED_OPTIONS,
@@ -638,9 +640,6 @@ class Options:
         if prerelease_pythons:
             enable.add(EnableGroups.CPythonPrerelease)
 
-        # For backwards compatibility, we are adding PyPy for now
-        enable |= {EnableGroups.PyPy}
-
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
         requires_python_str: str | None = (
@@ -662,9 +661,23 @@ class Options:
             build_config=build_config,
             skip_config=skip_config,
             requires_python=requires_python,
-            enable=frozenset(enable),
+            enable=frozenset(
+                enable | {EnableGroups.PyPy}
+            ),  # For backwards compatibility, we are adding PyPy for now
         )
         test_selector = TestSelector(skip_config=test_skip)
+
+        all_configs = read_python_configs(self.platform)
+        all_pypy_ids = {
+            config["identifier"] for config in all_configs if config["identifier"].startswith("pp")
+        }
+        if (
+            not self._defaults
+            and EnableGroups.PyPy not in enable
+            and any(build_selector(build_id) for build_id in all_pypy_ids)
+        ):
+            msg = "PyPy builds will be disabled by default in version 3. Enabling PyPy builds should be specified by enable"
+            log.warning(msg)
 
         return GlobalOptions(
             package_dir=package_dir,
@@ -852,7 +865,7 @@ class Options:
             platform=self.platform,
             command_line_arguments=CommandLineArguments.defaults(),
             env={},
-            read_config_file=False,
+            defaults=True,
         )
 
     def summary(self, identifiers: Iterable[str]) -> str:
