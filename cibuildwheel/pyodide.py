@@ -32,7 +32,6 @@ from .util import (
     read_python_configs,
     shell,
     split_config_settings,
-    test_fail_cwd_file,
     virtualenv,
 )
 
@@ -380,17 +379,17 @@ def build(options: Options, tmp_path: Path) -> None:
                     package=build_options.package_dir.resolve(),
                 )
 
-                test_cwd = identifier_tmp_dir / "test_cwd"
-                test_cwd.mkdir(exist_ok=True)
                 if build_options.test_sources:
+                    test_cwd = identifier_tmp_dir / "test_cwd"
+                    test_cwd.mkdir(exist_ok=True)
                     copy_test_sources(
                         build_options.test_sources,
                         build_options.package_dir,
                         test_cwd,
                     )
                 else:
-                    # There are no test sources. Copy the test safety file.
-                    (test_cwd / "test_fail.py").write_text(test_fail_cwd_file.read_text())
+                    # There are no test sources. Run the tests in the project directory.
+                    test_cwd = Path(".").resolve()
 
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 

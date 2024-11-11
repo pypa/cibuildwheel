@@ -27,7 +27,6 @@ from .util import (
     prepare_command,
     read_python_configs,
     split_config_settings,
-    test_fail_cwd_file,
     unwrap,
 )
 
@@ -402,9 +401,10 @@ def build_in_container(
                 package=container_package_dir,
                 wheel=wheel_to_test,
             )
-            test_cwd = testing_temp_dir / "test_cwd"
-            container.call(["mkdir", "-p", test_cwd])
+
             if build_options.test_sources:
+                test_cwd = testing_temp_dir / "test_cwd"
+                container.call(["mkdir", "-p", test_cwd])
                 copy_test_sources(
                     build_options.test_sources,
                     build_options.package_dir,
@@ -412,7 +412,8 @@ def build_in_container(
                     copy_into=container.copy_into,
                 )
             else:
-                container.copy_into(test_fail_cwd_file, test_cwd / "test_fail.py")
+                # There are no test sources. Run the tests in the project directory.
+                test_cwd = PurePosixPath(container_project_path)
 
             container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 
