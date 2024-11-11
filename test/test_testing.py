@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import os
 import subprocess
 import textwrap
@@ -101,6 +102,38 @@ def test_extras_require(tmp_path):
         project_dir,
         add_env={
             "CIBW_TEST_EXTRAS": "test",
+            # the 'false ||' bit is to ensure this command runs in a shell on
+            # mac/linux.
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+        },
+        single_python=True,
+    )
+
+    # also check that we got the right wheels
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_dependency_groups(tmp_path):
+    group_project = project_with_a_test.copy()
+    group_project.files["pyproject.toml"] = inspect.cleandoc("""
+        [build-system]
+        requires = ["setuptools"]
+        build-backend = "setuptools.build_meta"
+
+        [dependency-groups]
+        dev = ["pytest"]
+        """)
+
+    project_dir = tmp_path / "project"
+    group_project.generate(project_dir)
+
+    # build and test the wheels
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_TEST_GROUPS": "dev",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
             "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",

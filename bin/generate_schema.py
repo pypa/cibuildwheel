@@ -164,6 +164,9 @@ properties:
   test-extras:
     description: Install your wheel for testing using `extras_require`
     type: string_array
+  test-groups:
+    description: Install extra groups when testing
+    type: string_array
   test-requires:
     description: Install Python dependencies before running the tests
     type: string_array

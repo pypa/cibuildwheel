@@ -86,7 +86,7 @@ This requires setting this GitHub workflow in your project's PyPI settings (for 
 
 You should use Dependabot to keep the publish action up to date. In the above
 example, the same name (the default, "artifact" is used for all upload-artifact
-runs, so we can just download all of the in one step into a common directory.
+runs, so we can just download all of them in one step into a common directory.
 
 See
 [`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml)

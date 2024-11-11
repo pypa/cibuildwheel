@@ -270,7 +270,7 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     config_settings = 'setting=value setting=value2 other="something else"'
     if platform_specific:
         monkeypatch.setenv("CIBW_CONFIG_SETTINGS_" + platform.upper(), config_settings)
-        monkeypatch.setenv("CIBW_CONFIG_SETTIGNS", "a=b")
+        monkeypatch.setenv("CIBW_CONFIG_SETTINGS", "a=b")
     else:
         monkeypatch.setenv("CIBW_CONFIG_SETTINGS", config_settings)
 
