@@ -18,8 +18,8 @@ title: Working examples
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
 | [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
-| [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
 | [Triton][]                        | ![github icon][] | ![linux icon][] | Self hosted runners |
+| [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
 | [uvloop][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | Ultra fast asyncio event loop. |
 | [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
 | [Google Benchmark][]              | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A microbenchmark support library |
@@ -70,8 +70,8 @@ title: Working examples
 | [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
 | [Picologging][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A high-performance logging library for Python. |
 | [markupsafe][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Safely add untrusted strings to HTML/XML markup. |
-| [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS |
+| [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a CMake-based build system |
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
@@ -94,10 +94,10 @@ title: Working examples
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
 | [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
-| [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M92 |
-| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
+| [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
 | [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
+| [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
@@ -128,8 +128,8 @@ title: Working examples
 [Prophet]: https://github.com/facebook/prophet
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
 [Kivy]: https://github.com/kivy/kivy
-[MemRay]: https://github.com/bloomberg/memray
 [Triton]: https://github.com/openai/triton
+[MemRay]: https://github.com/bloomberg/memray
 [uvloop]: https://github.com/MagicStack/uvloop
 [psutil]: https://github.com/giampaolo/psutil
 [Google Benchmark]: https://github.com/google/benchmark
@@ -180,8 +180,8 @@ title: Working examples
 [time-machine]: https://github.com/adamchainz/time-machine
 [Picologging]: https://github.com/microsoft/picologging
 [markupsafe]: https://github.com/pallets/markupsafe
-[pybind11 cmake_example]: https://github.com/pybind/cmake_example
 [Rtree]: https://github.com/Toblerity/rtree
+[pybind11 cmake_example]: https://github.com/pybind/cmake_example
 [KDEpy]: https://github.com/tommyod/KDEpy
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
 [tgcalls]: https://github.com/MarshalX/tgcalls
@@ -204,10 +204,10 @@ title: Working examples
 [bx-python]: https://github.com/bxlab/bx-python
 [power-grid-model]: https://github.com/PowerGridModel/power-grid-model
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
-[pybase64]: https://github.com/mayeut/pybase64
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
-[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
+[pybase64]: https://github.com/mayeut/pybase64
 [Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
+[Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [fathon]: https://github.com/stfbnc/fathon
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [Arbor]: https://github.com/arbor-sim/arbor

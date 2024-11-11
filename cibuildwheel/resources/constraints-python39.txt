@@ -14,7 +14,7 @@ importlib-metadata==8.5.0
     # via build
 macholib==1.16.3
     # via delocate
-packaging==24.1
+packaging==24.2
     # via
     #   build
     #   delocate
@@ -30,5 +30,5 @@ typing-extensions==4.12.2
     # via delocate
 virtualenv==20.27.1
     # via -r cibuildwheel/resources/constraints.in
-zipp==3.20.2
+zipp==3.21.0
     # via importlib-metadata
