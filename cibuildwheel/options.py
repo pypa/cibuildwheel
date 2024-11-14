@@ -30,8 +30,10 @@ from .util import (
     BuildFrontendConfig,
     BuildSelector,
     DependencyConstraints,
+    EnableGroups,
     TestSelector,
     format_safe,
+    read_python_configs,
     resources_dir,
     selector_matches,
     strtobool,
@@ -512,6 +514,7 @@ class OptionsReader:
         env_plat: bool = True,
         option_format: OptionFormat | None = None,
         ignore_empty: bool = False,
+        env_rule: InheritRule = InheritRule.NONE,
     ) -> str:
         """
         Get and return the value for the named option from environment,
@@ -543,8 +546,8 @@ class OptionsReader:
                 (o.options.get(name), o.inherit.get(name, InheritRule.NONE))
                 for o in self.active_config_overrides
             ],
-            (self.env.get(envvar), InheritRule.NONE),
-            (self.env.get(plat_envvar) if env_plat else None, InheritRule.NONE),
+            (self.env.get(envvar), env_rule),
+            (self.env.get(plat_envvar) if env_plat else None, env_rule),
             ignore_empty=ignore_empty,
             option_format=option_format,
         )
@@ -558,14 +561,15 @@ class Options:
         platform: PlatformName,
         command_line_arguments: CommandLineArguments,
         env: Mapping[str, str],
-        read_config_file: bool = True,
+        defaults: bool = False,
     ):
         self.platform = platform
         self.command_line_arguments = command_line_arguments
         self.env = env
+        self._defaults = defaults
 
         self.reader = OptionsReader(
-            self.config_file_path if read_config_file else None,
+            None if defaults else self.config_file_path,
             platform=platform,
             env=env,
             disallow=DISALLOWED_OPTIONS,
@@ -578,7 +582,7 @@ class Options:
         except FileNotFoundError:
             self.pyproject_toml = None
 
-    @property
+    @functools.cached_property
     def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
 
@@ -596,7 +600,7 @@ class Options:
     def package_requires_python_str(self) -> str | None:
         return get_requires_python_str(self.package_dir, self.pyproject_toml)
 
-    @property
+    @functools.cached_property
     def globals(self) -> GlobalOptions:
         args = self.command_line_arguments
         package_dir = args.package_dir
@@ -608,15 +612,33 @@ class Options:
         skip_config = self.reader.get("skip", env_plat=False, option_format=ListFormat(sep=" "))
         test_skip = self.reader.get("test-skip", env_plat=False, option_format=ListFormat(sep=" "))
 
+        allow_empty = args.allow_empty or strtobool(self.env.get("CIBW_ALLOW_EMPTY", "0"))
+
+        enable_groups = self.reader.get(
+            "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
+        )
+        enable = {EnableGroups(group) for group in enable_groups.split()}
+
         free_threaded_support = strtobool(
             self.reader.get("free-threaded-support", env_plat=False, ignore_empty=True)
         )
 
-        allow_empty = args.allow_empty or strtobool(self.env.get("CIBW_ALLOW_EMPTY", "0"))
-
         prerelease_pythons = args.prerelease_pythons or strtobool(
             self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
         )
+
+        if free_threaded_support or prerelease_pythons:
+            msg = (
+                "free-threaded-support and prerelease-pythons should be specified by enable instead"
+            )
+            if enable:
+                raise OptionsReaderError(msg)
+            log.warning(msg)
+
+        if free_threaded_support:
+            enable.add(EnableGroups.CPythonFreeThreading)
+        if prerelease_pythons:
+            enable.add(EnableGroups.CPythonPrerelease)
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
@@ -633,17 +655,29 @@ class Options:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
-            prerelease_pythons = True
-            free_threaded_support = True
+            enable = set(EnableGroups)
 
         build_selector = BuildSelector(
             build_config=build_config,
             skip_config=skip_config,
             requires_python=requires_python,
-            prerelease_pythons=prerelease_pythons,
-            free_threaded_support=free_threaded_support,
+            enable=frozenset(
+                enable | {EnableGroups.PyPy}
+            ),  # For backwards compatibility, we are adding PyPy for now
         )
         test_selector = TestSelector(skip_config=test_skip)
+
+        all_configs = read_python_configs(self.platform)
+        all_pypy_ids = {
+            config["identifier"] for config in all_configs if config["identifier"].startswith("pp")
+        }
+        if (
+            not self._defaults
+            and EnableGroups.PyPy not in enable
+            and any(build_selector(build_id) for build_id in all_pypy_ids)
+        ):
+            msg = "PyPy builds will be disabled by default in version 3. Enabling PyPy builds should be specified by enable"
+            log.warning(msg)
 
         return GlobalOptions(
             package_dir=package_dir,
@@ -831,7 +865,7 @@ class Options:
             platform=self.platform,
             command_line_arguments=CommandLineArguments.defaults(),
             env={},
-            read_config_file=False,
+            defaults=True,
         )
 
     def summary(self, identifiers: Iterable[str]) -> str:

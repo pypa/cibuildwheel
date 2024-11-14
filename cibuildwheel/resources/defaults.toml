@@ -3,6 +3,7 @@ build = "*"
 skip = ""
 test-skip = ""
 free-threaded-support = false
+enable = []
 
 archs = ["auto"]
 build-frontend = "default"
