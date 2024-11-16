@@ -116,7 +116,7 @@ nox -s build                   # Make SDist and wheel
 More advanced users can run the update scripts. `nox -s update_pins update_constraints`.
 
 ```console
-docker run --rm -itv $PWD:/src -w /src quay.io/pypa/manylinux_2_24_x86_64:latest pipx run nox -s update_constraints
+nox -s update_constraints
 ```
 
 ## Maintainer notes
