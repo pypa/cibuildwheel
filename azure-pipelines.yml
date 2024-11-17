@@ -15,7 +15,7 @@ jobs:
     - bash: |
         docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
         python -m pip install dependency-groups
-        python -m dependency_groups dev | xargs python -m pip install -e.
+        python -m dependency_groups test | xargs python -m pip install -e.
         python ./bin/run_tests.py
 
 - job: macos_38
@@ -26,7 +26,7 @@ jobs:
         versionSpec: '3.8'
     - bash: |
         python -m pip install dependency-groups
-        python -m dependency_groups dev | xargs python -m pip install -e.
+        python -m dependency_groups test | xargs python -m pip install -e.
         python ./bin/run_tests.py --num-processes 2
 
 - job: windows_38
@@ -38,5 +38,5 @@ jobs:
         versionSpec: '3.8'
     - bash: |
         python -m pip install dependency-groups
-        python -m dependency_groups dev | xargs python -m pip install -e.
+        python -m dependency_groups test | xargs python -m pip install -e.
         python ./bin/run_tests.py

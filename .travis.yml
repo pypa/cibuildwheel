@@ -58,7 +58,7 @@ jobs:
 install:
 - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all; fi
 - $PYTHON -m pip install -U pip dependency-groups
-- $PYTHON -m dependency_groups test | xargs $PYTHON -m pip install -e. pytest-custom-exit-code
+- $PYTHON -m dependency_groups test | xargs $PYTHON -m pip install -e.
 
 script: |
   # travis_wait disable the output while waiting
