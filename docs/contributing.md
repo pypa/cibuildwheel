@@ -113,10 +113,11 @@ nox -s docs                    # Build and serve the documentation
 nox -s build                   # Make SDist and wheel
 ```
 
-More advanced users can run the update scripts. `nox -s update_pins update_constraints`.
+More advanced users can run the update scripts:
 
 ```console
-nox -s update_constraints
+nox -s update_constraints # update all constraints files in cibuildwheel/resources
+nox -s update_pins        # update tools, python interpreters & docker images used by cibuildwheel
 ```
 
 ## Maintainer notes
