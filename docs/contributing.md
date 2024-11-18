@@ -113,10 +113,11 @@ nox -s docs                    # Build and serve the documentation
 nox -s build                   # Make SDist and wheel
 ```
 
-More advanced users can run the update scripts. `update_pins` should work directly, but `update_constraints` needs all versions of Python installed. If you don't want to do that locally, a fast way to run it to use docker to run nox:
+More advanced users can run the update scripts:
 
 ```console
-docker run --rm -itv $PWD:/src -w /src quay.io/pypa/manylinux_2_24_x86_64:latest pipx run nox -s update_constraints
+nox -s update_constraints # update all constraints files in cibuildwheel/resources
+nox -s update_pins        # update tools, python interpreters & docker images used by cibuildwheel
 ```
 
 ## Maintainer notes
