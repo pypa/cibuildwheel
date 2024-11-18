@@ -52,7 +52,7 @@ windows_x86_task:
 
 macos_arm64_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-xcode
+    image: ghcr.io/cirruslabs/macos-runner:sonoma
 
   env:
     PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH
@@ -62,7 +62,7 @@ macos_arm64_task:
 
 macos_arm64_cp38_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-xcode
+    image: ghcr.io/cirruslabs/macos-runner:sonoma
 
   env:
     PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH
