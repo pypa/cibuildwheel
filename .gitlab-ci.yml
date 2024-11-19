@@ -17,7 +17,7 @@ linux:
     - curl -sSL https://get.docker.com/ | sh
     - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
     - python -m pip install dependency-groups
-    - python3 -m dependency_groups test | xargs python -m pip install -e. pytest-custom-exit-code
+    - python -m dependency_groups test | xargs python -m pip install -e. pytest-custom-exit-code
     - python ./bin/run_tests.py
 
 windows:
@@ -28,8 +28,7 @@ windows:
     - choco install python -y --version 3.12.4
   script:
     - py -m pip install dependency-groups
-    - pip-install-dependency-groups test
-    - py -m pip install -e. pytest-custom-exit-code
+    - py -m pip install -e. pytest-custom-exit-code $(py -m dependency_groups test)
     - py bin\run_tests.py
   tags:
     - saas-windows-medium-amd64
