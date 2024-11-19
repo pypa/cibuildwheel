@@ -393,7 +393,7 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
     return Path(resulting_file).resolve(strict=True)
 
 
-def copy_into(src: Path, dst: PurePath) -> None:
+def copy_into_local(src: Path, dst: PurePath) -> None:
     """Copy a path from src to dst, regardless of whether it's a file or a directory."""
     # Ensure the target folder location exists
     Path(dst.parent).mkdir(exist_ok=True, parents=True)
@@ -408,7 +408,7 @@ def copy_test_sources(
     test_sources: list[str],
     package_dir: Path,
     test_dir: PurePath,
-    copy_into: Callable[[Path, PurePath], None] = copy_into,
+    copy_into: Callable[[Path, PurePath], None] = copy_into_local,
 ) -> None:
     """Copy the list of test sources from the package to the test directory.
 

@@ -1541,7 +1541,7 @@ Platform-specific environment variables are also available:<br/>
 
 
 ### `CIBW_TEST_SOURCES` {: #test-sources}
-> Files and folders from the source tree that must be copied into the test environment before running the tests.
+> Files and folders from the source tree that are copied into an isolated tree before running the tests
 
 A space-separated list of files and folders, relative to the root of the
 project, required for running the tests. If specified, these files and folders
