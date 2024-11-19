@@ -17,7 +17,7 @@ linux:
     - curl -sSL https://get.docker.com/ | sh
     - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
     - python -m pip install dependency-groups
-    - python3 -m dependency_groups --group test | xargs python -m pip install -e. pytest-custom-exit-code
+    - python3 -m dependency_groups test | xargs python -m pip install -e. pytest-custom-exit-code
     - python ./bin/run_tests.py
 
 windows:
@@ -40,7 +40,7 @@ macos:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   script:
     - python3 -m pip install dependency-groups
-    - python3 -m dependency_groups --group test | xargs python3 -m pip install -e. pytest-custom-exit-code
+    - python3 -m dependency_groups test | xargs python3 -m pip install -e. pytest-custom-exit-code
     - python3 ./bin/run_tests.py
   tags:
     - saas-macos-medium-m1
