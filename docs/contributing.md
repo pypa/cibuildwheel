@@ -82,14 +82,11 @@ A few notes-
 
 - Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
 
-#### Making a venv
+#### Running pytest directly
 
-More advanced users might prefer to invoke pytest directly-
+More advanced users might prefer to invoke pytest directly. Set up a [dev environment](#setting-up-a-dev-environment), then,
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .[dev]
 # run the unit tests
 pytest unit_test
 # run the whole integration test suite
@@ -119,6 +116,26 @@ More advanced users can run the update scripts:
 nox -s update_constraints # update all constraints files in cibuildwheel/resources
 nox -s update_pins        # update tools, python interpreters & docker images used by cibuildwheel
 ```
+
+### Setting up a dev environment
+
+A dev environment isn't required for any of the `nox` tasks above. However, a dev environment is still useful, to be able to point an editor at, and a few other jobs.
+
+cibuildwheel uses dependency groups. Set up a dev environment with UV by doing
+
+```bash
+uv sync
+```
+
+Or, if you're not using `uv`, you can do:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pipx run dependency-groups dev | xargs pip install -e.
+```
+
+Your virtualenv is at `.venv`.
 
 ## Maintainer notes
 

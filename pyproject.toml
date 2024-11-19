@@ -52,6 +52,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+uv = ["uv"]
+
+[project.scripts]
+cibuildwheel = "cibuildwheel.__main__:main"
+
+[project.entry-points."validate_pyproject.tool_schema"]
+cibuildwheel = "cibuildwheel.schema:get_schema"
+
+[project.urls]
+Changelog = "https://github.com/pypa/cibuildwheel#changelog"
+Documentation = "https://cibuildwheel.pypa.io"
+Homepage = "https://github.com/pypa/cibuildwheel"
+
+[dependency-groups]
 bin = [
     "click",
     "packaging>=21.0",
@@ -60,9 +74,6 @@ bin = [
     "pyyaml",
     "requests",
     "rich>=9.6",
-]
-dev = [
-    "cibuildwheel[test,bin]",
 ]
 docs = [
     "jinja2>=3.1.2",
@@ -81,18 +92,12 @@ test = [
     "tomli_w",
     "validate-pyproject",
 ]
-uv = ["uv"]
+dev = [
+    {include-group = "bin"},
+    {include-group = "docs"},
+    {include-group = "test"},
+]
 
-[project.scripts]
-cibuildwheel = "cibuildwheel.__main__:main"
-
-[project.entry-points."validate_pyproject.tool_schema"]
-cibuildwheel = "cibuildwheel.schema:get_schema"
-
-[project.urls]
-Changelog = "https://github.com/pypa/cibuildwheel#changelog"
-Documentation = "https://cibuildwheel.pypa.io"
-Homepage = "https://github.com/pypa/cibuildwheel"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
