@@ -9,7 +9,7 @@ import enum
 import functools
 import shlex
 import textwrap
-from collections.abc import Generator, Iterable, Set
+from collections.abc import Callable, Generator, Iterable, Set
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, Union  # noqa: TID251
 
@@ -170,11 +170,12 @@ class ListFormat(OptionFormat):
     A format that joins lists with a separator.
     """
 
-    def __init__(self, sep: str) -> None:
+    def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
         self.sep = sep
+        self.quote = quote if quote else lambda s: s
 
     def format_list(self, value: SettingList) -> str:
-        return self.sep.join(str(v) for v in value)
+        return self.sep.join(self.quote(str(v)) for v in value)
 
     def merge_values(self, before: str, after: str) -> str:
         return f"{before}{self.sep}{after}"
@@ -678,9 +679,12 @@ class Options:
             dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
-            test_sources = self.reader.get(
-                "test-sources", option_format=ListFormat(sep=" ")
-            ).split()
+            test_sources = shlex.split(
+                self.reader.get(
+                    "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
+            print(f"TEST-SOURCES {test_sources!r}")
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
