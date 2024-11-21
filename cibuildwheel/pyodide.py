@@ -66,6 +66,7 @@ def install_emscripten(tmp: Path, version: str) -> Path:
 
 
 def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
+    """Install a particular Pyodide xbuildenv version and set a path to the Pyodide root."""
     pyodide_root = (
         CIBW_CACHE_PATH
         / f".pyodide-xbuildenv-{pyodide_version}/{pyodide_version}/xbuildenv/pyodide-root"
