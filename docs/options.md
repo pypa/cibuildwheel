@@ -321,7 +321,7 @@ If you set the value lower, cibuildwheel will cap it to the lowest supported val
 Windows arm64 platform support is experimental.
 
 For an experimental WebAssembly build with `--platform pyodide`,
-`cp312-pyodide_wasm32` is the only platform identifier.
+`cp312-pyodide_wasm32` is the only platform identifier, corresponding to [Pyodide version `0.26.4`](https://github.com/pyodide/pyodide/releases/tag/0.26.4).
 
 See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
 
