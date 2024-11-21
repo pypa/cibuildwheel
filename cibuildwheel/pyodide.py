@@ -92,7 +92,7 @@ def get_xbuildenv_versions(env: dict[str, str]) -> list[str]:
 # which will always be compatible. Hence, this condition really checks only for the case where the
 # version is supplied manually through a CIBW_PYODIDE_VERSION environment variable and raises an
 # error as appropriate.
-def validate_xbuildenv(
+def validate_xbuildenv_version(
     cibw_pyodide_version: str, pyodide_build_version: str, compatible_versions: list[str]
 ) -> None:
     """Validate the Pyodide version if set manually for the current pyodide-build version
@@ -232,7 +232,7 @@ def setup_python(
     # Search for compatible xbuildenv versions
     compatible_versions = get_xbuildenv_versions(env)
     # and then validate the xbuildenv version
-    validate_xbuildenv(
+    validate_xbuildenv_version(
         cibw_pyodide_version, python_configuration.pyodide_build_version, compatible_versions
     )
     env["PYODIDE_ROOT"] = install_xbuildenv(
