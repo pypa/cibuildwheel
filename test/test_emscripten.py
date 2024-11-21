@@ -20,7 +20,7 @@ from pyodide.code import run_js
 
 def check_node():
     # cibuildwheel adds a pinned node version to the PATH
-    # check it's in the PATH then, check it's the one that runs pyoodide
+    # check it's in the PATH then, check it's the one that runs Pyodide
     cibw_cache_path = Path(sys.argv[1]).resolve(strict=True)
     # find the node executable in PATH
     node = shutil.which("node")

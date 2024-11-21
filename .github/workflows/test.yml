@@ -171,7 +171,7 @@ jobs:
       run: uv run pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
-    name: Test cibuildwheel building pyodide wheels
+    name: Test cibuildwheel building Pyodide wheels
     needs: lint
     runs-on: ubuntu-24.04
     timeout-minutes: 180
