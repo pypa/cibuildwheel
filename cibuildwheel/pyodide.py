@@ -81,16 +81,11 @@ def search_xbuildenv(env: dict[str, str]) -> list[str]:
             capture_stdout=True,
         ).strip()
         xbuildenvs_dict = json.loads(xbuildenvs)
-        compatible_xbuildenvs = [
+        compatible_xbuildenv_versions = [
             env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
         ]
-        # Fetch just the "stable" versions
-        compatible_xbuildenvs_filtered = [
-            version for version in compatible_xbuildenvs if not any(_ in version for _ in "abc")
-        ]
-        # TODO: possibly remove that? Since this won't allow testing the unstable/dev versions
 
-        return compatible_xbuildenvs_filtered
+        return compatible_xbuildenv_versions
 
 
 # The xbuildenv version is brought in sync with the pyodide-build version in build-platforms.toml,
