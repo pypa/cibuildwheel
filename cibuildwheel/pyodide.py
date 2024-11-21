@@ -67,7 +67,7 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
-def search_xbuildenv(env: dict[str, str]) -> list[str]:
+def get_xbuildenv_versions(env: dict[str, str]) -> list[str]:
     """Searches for the compatible xbuildenvs for the current pyodide-build version"""
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         xbuildenvs = call(
@@ -230,7 +230,7 @@ def setup_python(
     )
     log.step(f"Installing Pyodide xbuildenv version: {cibw_pyodide_version} ...")
     # Search for compatible xbuildenv versions
-    compatible_versions = search_xbuildenv(env)
+    compatible_versions = get_xbuildenv_versions(env)
     # and then validate the xbuildenv version
     validate_xbuildenv(
         cibw_pyodide_version, python_configuration.pyodide_build_version, compatible_versions
