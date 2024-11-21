@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import os
 import subprocess
 import textwrap
@@ -114,6 +115,38 @@ def test_extras_require(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
+def test_dependency_groups(tmp_path):
+    group_project = project_with_a_test.copy()
+    group_project.files["pyproject.toml"] = inspect.cleandoc("""
+        [build-system]
+        requires = ["setuptools"]
+        build-backend = "setuptools.build_meta"
+
+        [dependency-groups]
+        dev = ["pytest"]
+        """)
+
+    project_dir = tmp_path / "project"
+    group_project.generate(project_dir)
+
+    # build and test the wheels
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_TEST_GROUPS": "dev",
+            # the 'false ||' bit is to ensure this command runs in a shell on
+            # mac/linux.
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+        },
+        single_python=True,
+    )
+
+    # also check that we got the right wheels
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
+    assert set(actual_wheels) == set(expected_wheels)
+
+
 project_with_a_failing_test = test_projects.new_c_project()
 project_with_a_failing_test.files["test/spam_test.py"] = r"""
 from unittest import TestCase
@@ -155,7 +188,7 @@ def test_failing_test(tmp_path):
 @pytest.mark.parametrize("test_runner", ["pytest", "unittest"])
 def test_bare_pytest_invocation(
     tmp_path: Path, capfd: pytest.CaptureFixture[str], test_runner: str
-):
+) -> None:
     """Check that if a user runs pytest in the the test cwd, it raises a helpful error"""
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"

@@ -4,29 +4,29 @@ from __future__ import annotations
 
 import os
 import shutil
+import subprocess
 import sys
 import textwrap
 import time
 import typing
 from glob import glob
 from pathlib import Path
-from subprocess import run
 from urllib.parse import quote
 
 import click
 
 
-def shell(cmd, *, check: bool, **kwargs):
-    return run([cmd], shell=True, check=check, **kwargs)
+def shell(cmd: str, *, check: bool, **kwargs: object) -> subprocess.CompletedProcess[str]:
+    return subprocess.run([cmd], shell=True, check=check, **kwargs)  # type: ignore[call-overload, no-any-return]
 
 
-def git_repo_has_changes():
+def git_repo_has_changes() -> bool:
     unstaged_changes = shell("git diff-index --quiet HEAD --", check=False).returncode != 0
     staged_changes = shell("git diff-index --quiet --cached HEAD --", check=False).returncode != 0
     return unstaged_changes or staged_changes
 
 
-def generate_basic_project(path):
+def generate_basic_project(path: Path) -> None:
     sys.path.insert(0, "")
     from test.test_projects.c import new_c_project
 
@@ -79,7 +79,7 @@ services = [
 ]
 
 
-def ci_service_for_config_file(config_file):
+def ci_service_for_config_file(config_file: str) -> CIService:
     filename = Path(config_file).name
 
     try:
@@ -134,7 +134,7 @@ def run_example_ci_configs(config_files=None):
             dst_config_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(src_config_file, dst_config_file)
 
-        run(["git", "add", example_project], check=True)
+        subprocess.run(["git", "add", example_project], check=True)
         message = textwrap.dedent(
             f"""\
             Test example minimal configs
@@ -144,7 +144,7 @@ def run_example_ci_configs(config_files=None):
             Time: {timestamp}
             """
         )
-        run(["git", "commit", "--no-verify", "--message", message], check=True)
+        subprocess.run(["git", "commit", "--no-verify", "--message", message], check=True)
         shell(f"git subtree --prefix={example_project} push origin {branch_name}", check=True)
 
         print("---")

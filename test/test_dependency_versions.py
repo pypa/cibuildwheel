@@ -3,6 +3,7 @@ from __future__ import annotations
 import platform
 import re
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -46,8 +47,8 @@ build-backend = "setuptools.build_meta"
 VERSION_REGEX = r"([\w-]+)==([^\s]+)"
 
 
-def get_versions_from_constraint_file(constraint_file):
-    constraint_file_text = constraint_file.read_text(encoding="utf8")
+def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
+    constraint_file_text = constraint_file.read_text(encoding="utf-8")
 
     return dict(re.findall(VERSION_REGEX, constraint_file_text))
 

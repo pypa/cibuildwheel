@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import subprocess
 import sys
 import textwrap
@@ -133,26 +134,33 @@ def check_all_python_exist(
     *, platform_configs: Iterable[PythonConfiguration], container: OCIContainer
 ) -> None:
     exist = True
-    has_manylinux_interpreters = True
+    has_manylinux_interpreters = False
     messages = []
 
-    try:
+    with contextlib.suppress(subprocess.CalledProcessError):
         # use capture_output to keep quiet
         container.call(["manylinux-interpreters", "--help"], capture_output=True)
-    except subprocess.CalledProcessError:
-        has_manylinux_interpreters = False
+        has_manylinux_interpreters = True
 
     for config in platform_configs:
         python_path = config.path / "bin" / "python"
-        try:
-            if has_manylinux_interpreters:
+        if has_manylinux_interpreters:
+            try:
                 container.call(["manylinux-interpreters", "ensure", config.path.name])
-            container.call(["test", "-x", python_path])
-        except subprocess.CalledProcessError:
-            messages.append(
-                f"  '{python_path}' executable doesn't exist in image '{container.image}' to build '{config.identifier}'."
-            )
-            exist = False
+            except subprocess.CalledProcessError:
+                messages.append(
+                    f"  'manylinux-interpreters ensure {config.path.name}' needed to build '{config.identifier}' failed in container running image '{container.image}'."
+                    " Either the installation failed or this interpreter is not available in that image. Please check the logs."
+                )
+                exist = False
+        else:
+            try:
+                container.call(["test", "-x", python_path])
+            except subprocess.CalledProcessError:
+                messages.append(
+                    f"  '{python_path}' executable doesn't exist in image '{container.image}' to build '{config.identifier}'."
+                )
+                exist = False
     if not exist:
         message = "\n".join(messages)
         raise errors.FatalError(message)
@@ -325,6 +333,9 @@ def build_in_container(
                 container.call(["mv", built_wheel, repaired_wheel_dir])
 
             repaired_wheels = container.glob(repaired_wheel_dir, "*.whl")
+
+            if not repaired_wheels:
+                raise errors.RepairStepProducedNoWheelError()
 
             for repaired_wheel in repaired_wheels:
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:

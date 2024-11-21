@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import textwrap
+from collections.abc import Mapping
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -28,7 +29,11 @@ def make_sdist(project: TestProject, working_dir: Path) -> Path:
     return next(sdist_dir.glob("*.tar.gz"))
 
 
-def cibuildwheel_from_sdist_run(sdist_path, add_env=None, config_file=None):
+def cibuildwheel_from_sdist_run(
+    sdist_path: Path | str,
+    add_env: Mapping[str, str] | None = None,
+    config_file: str | None = None,
+) -> list[str]:
     env = os.environ.copy()
 
     if add_env:

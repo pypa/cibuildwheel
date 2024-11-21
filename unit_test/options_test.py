@@ -15,6 +15,7 @@ from cibuildwheel.options import (
     Options,
     _get_pinned_container_images,
 )
+from cibuildwheel.util import EnableGroups
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -178,7 +179,7 @@ def test_toml_environment_evil(tmp_path, env_var_value):
         (r'TEST_VAR="before\\$after"', "before$after"),
     ],
 )
-def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value):
+def test_toml_environment_quoting(tmp_path: Path, toml_assignment: str, result_value: str) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -255,8 +256,12 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment, result_value)
     ],
 )
 def test_container_engine_option(
-    tmp_path: Path, toml_assignment, result_name, result_create_args, result_disable_host_mount
-):
+    tmp_path: Path,
+    toml_assignment: str,
+    result_name: str,
+    result_create_args: tuple[str, ...],
+    result_disable_host_mount: bool,
+) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -326,7 +331,9 @@ def test_environment_pass_references():
         ),
     ],
 )
-def test_build_frontend_option(tmp_path: Path, toml_assignment, result_name, result_args):
+def test_build_frontend_option(
+    tmp_path: Path, toml_assignment: str, result_name: str, result_args: list[str]
+) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -350,7 +357,7 @@ def test_build_frontend_option(tmp_path: Path, toml_assignment, result_name, res
         assert parsed_build_frontend is None
 
 
-def test_override_inherit_environment(tmp_path: Path):
+def test_override_inherit_environment(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -385,7 +392,7 @@ def test_override_inherit_environment(tmp_path: Path):
     }
 
 
-def test_override_inherit_environment_with_references(tmp_path: Path):
+def test_override_inherit_environment_with_references(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -434,7 +441,7 @@ def test_override_inherit_environment_with_references(tmp_path: Path):
 )
 def test_free_threaded_support(
     tmp_path: Path, toml_assignment: str, env: dict[str, str], expected_result: bool
-):
+) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -448,4 +455,7 @@ def test_free_threaded_support(
         )
     )
     options = Options(platform="linux", command_line_arguments=args, env=env)
-    assert options.globals.build_selector.free_threaded_support is expected_result
+    if expected_result:
+        assert EnableGroups.CPythonFreeThreading in options.globals.build_selector.enable
+    else:
+        assert EnableGroups.CPythonFreeThreading not in options.globals.build_selector.enable

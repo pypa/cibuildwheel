@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import requests
+from packaging.version import Version
 
 DIR = Path(__file__).parent.resolve()
 RESOURCES = DIR.parent / "cibuildwheel/resources"
@@ -53,6 +54,8 @@ images = [
     Image("manylinux_2_28", "s390x", "quay.io/pypa/manylinux_2_28_s390x", None),
     Image("manylinux_2_28", "pypy_x86_64", "quay.io/pypa/manylinux_2_28_x86_64", None),
     Image("manylinux_2_28", "pypy_aarch64", "quay.io/pypa/manylinux_2_28_aarch64", None),
+    # manylinux_2_31 images
+    Image("manylinux_2_31", "armv7l", "ghcr.io/mayeut/manylinux_2_31", None),
     # musllinux_1_1 images
     Image("musllinux_1_1", "x86_64", "quay.io/pypa/musllinux_1_1_x86_64", None),
     Image("musllinux_1_1", "i686", "quay.io/pypa/musllinux_1_1_i686", None),
@@ -91,6 +94,21 @@ for image in images:
             for (name, info) in tags_dict.items()
             if info["manifest_digest"] == latest_tag["manifest_digest"]
         )
+    elif image.image_name.startswith("ghcr.io/"):
+        repository = image.image_name[8:]
+        response = requests.get(
+            "https://ghcr.io/token", params={"scope": f"repository:{repository}:pull"}
+        )
+        response.raise_for_status()
+        token = response.json()["token"]
+        response = requests.get(
+            f"https://ghcr.io/v2/{repository}/tags/list",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        response.raise_for_status()
+        ghcr_tags = [(Version(tag), tag) for tag in response.json()["tags"] if tag != "latest"]
+        ghcr_tags.sort(reverse=True)
+        tag_name = ghcr_tags[0][1]
     else:
         response = requests.get(f"https://hub.docker.com/v2/repositories/{image.image_name}/tags")
         response.raise_for_status()

@@ -19,7 +19,9 @@ charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via typer
-cmake==3.30.5
+cloudpickle==3.1.0
+    # via loky
+cmake==3.31.0.1
     # via pyodide-build
 distlib==0.3.9
     # via virtualenv
@@ -27,7 +29,7 @@ filelock==3.16.1
     # via virtualenv
 h11==0.14.0
     # via httpcore
-httpcore==1.0.6
+httpcore==1.0.7
     # via httpx
 httpx==0.27.2
     # via unearth
@@ -42,13 +44,13 @@ markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-packaging==24.1
+packaging==24.2
     # via
     #   auditwheel-emscripten
     #   build
     #   pyodide-build
     #   unearth
-pip==24.2
+pip==24.3.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.6
     # via virtualenv
@@ -72,9 +74,9 @@ pyproject-hooks==1.2.0
     # via build
 requests==2.32.3
     # via pyodide-build
-resolvelib==1.0.1
+resolvelib==1.1.0
     # via pyodide-build
-rich==13.9.2
+rich==13.9.4
     # via
     #   pyodide-build
     #   pyodide-cli
@@ -89,7 +91,7 @@ sniffio==1.3.1
     # via
     #   anyio
     #   httpx
-typer==0.12.5
+typer==0.13.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
@@ -102,12 +104,14 @@ typing-extensions==4.12.2
 unearth==0.17.2
     # via pyodide-build
 urllib3==2.2.3
-    # via requests
-virtualenv==20.27.0
+    # via
+    #   requests
+    #   types-requests
+virtualenv==20.27.1
     # via
     #   build
     #   pyodide-build
-wheel==0.44.0
+wheel==0.45.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build

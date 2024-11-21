@@ -22,11 +22,11 @@ class TestProject:
     files: FilesDict
     template_context: TemplateContext
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.files = {}
         self.template_context = {}
 
-    def generate(self, path: Path):
+    def generate(self, path: Path) -> None:
         for filename, content in self.files.items():
             file_path = path / filename
             file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -37,7 +37,7 @@ class TestProject:
 
                 f.write(content)
 
-    def copy(self):
+    def copy(self) -> TestProject:
         other = TestProject()
         other.files = self.files.copy()
         other.template_context = self.template_context.copy()

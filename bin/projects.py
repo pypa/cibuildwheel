@@ -172,7 +172,9 @@ def get_projects(
     return sorted((Project(item, github) for item in config), reverse=online)
 
 
-def render_projects(projects: Sequence[Project], *, dest_path: Path, include_info: bool = True):
+def render_projects(
+    projects: Sequence[Project], *, dest_path: Path, include_info: bool = True
+) -> str:
     io = StringIO()
     print = functools.partial(builtins.print, file=io)
 
@@ -203,7 +205,7 @@ def insert_projects_table(
     projects: Sequence[Project],
     input_filename: str,
     include_info: bool = True,
-):
+) -> None:
     text = file.read_text()
     projects_table = render_projects(projects, include_info=include_info, dest_path=file)
 

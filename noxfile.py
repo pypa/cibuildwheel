@@ -21,12 +21,16 @@ def install_and_run(session: nox.Session, script: str, *args: str, **kwargs: Any
     return session.run("python", script, *args, **kwargs)
 
 
+def dep_group(group: str) -> list[str]:
+    return nox.project.load_toml("pyproject.toml")["dependency-groups"][group]  # type: ignore[no-any-return]
+
+
 @nox.session
 def tests(session: nox.Session) -> None:
     """
     Run the unit and regular tests.
     """
-    session.install("-e.[test]")
+    session.install("-e.", *dep_group("test"))
     if session.posargs:
         session.run("pytest", *session.posargs)
     else:
@@ -123,7 +127,7 @@ def update_pins(session: nox.Session) -> None:
     """
     Update the python, docker and virtualenv pins version inplace.
     """
-    session.install("-e.[bin]")
+    session.install("-e.", *dep_group("bin"))
     session.run("python", "bin/update_pythons.py", "--force")
     session.run("python", "bin/update_docker.py")
     session.run("python", "bin/update_virtualenv.py", "--force")
@@ -166,7 +170,7 @@ def docs(session: nox.Session) -> None:
     """
     Build the docs. Will serve unless --non-interactive
     """
-    session.install("-e.[docs]")
+    session.install("-e.", *dep_group("docs"))
     session.run("mkdocs", "serve" if session.interactive else "build", "--strict", *session.posargs)
 
 

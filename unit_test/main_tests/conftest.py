@@ -12,12 +12,12 @@ from cibuildwheel import linux, macos, util, windows
 
 
 class ArgsInterceptor:
-    def __init__(self):
+    def __init__(self) -> None:
         self.call_count = 0
-        self.args = None
-        self.kwargs = None
+        self.args: tuple[object, ...] | None = None
+        self.kwargs: dict[str, object] | None = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: object, **kwargs: object) -> None:
         self.call_count += 1
         self.args = args
         self.kwargs = kwargs

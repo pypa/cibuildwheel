@@ -11,7 +11,7 @@ from cibuildwheel.util import detect_ci_provider, find_uv
 from .utils import EMULATED_ARCHS, platform
 
 
-def pytest_addoption(parser) -> None:
+def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--run-emulation",
         action="store",

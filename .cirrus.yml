@@ -2,7 +2,8 @@ only_if: changesInclude('.cirrus.yml') || ($CIRRUS_BRANCH == "main" && !changesI
 
 run_tests: &RUN_TESTS
   install_cibuildwheel_script:
-    - python -m pip install -e ".[dev]" pytest-custom-exit-code
+    - python -m pip install dependency-groups
+    - python -m dependency_groups test | xargs python -m pip install -e.
   run_cibuildwheel_tests_script:
     - python ./bin/run_tests.py
 
@@ -52,7 +53,7 @@ windows_x86_task:
 
 macos_arm64_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-xcode
+    image: ghcr.io/cirruslabs/macos-runner:sonoma
 
   env:
     PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH
@@ -62,7 +63,7 @@ macos_arm64_task:
 
 macos_arm64_cp38_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-xcode
+    image: ghcr.io/cirruslabs/macos-runner:sonoma
 
   env:
     PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH

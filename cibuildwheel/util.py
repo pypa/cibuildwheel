@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import enum
 import fnmatch
 import itertools
 import os
@@ -23,7 +24,7 @@ from functools import lru_cache, total_ordering
 from pathlib import Path, PurePath
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Any, ClassVar, Final, Literal, TextIO, TypeVar
+from typing import Any, Final, Literal, TextIO, TypeVar
 from zipfile import ZipFile
 
 import bracex
@@ -37,10 +38,12 @@ from platformdirs import user_cache_path
 
 from ._compat import tomllib
 from .architecture import Architecture
+from .errors import FatalError
 from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "MANYLINUX_ARCHS",
+    "EnableGroups",
     "call",
     "chdir",
     "combine_constraints",
@@ -66,6 +69,16 @@ free_thread_enable_313: Final[Path] = resources_dir / "free-threaded-enable-313.
 test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
 
+class EnableGroups(enum.Enum):
+    """
+    Groups of build selectors that are not enabled by default.
+    """
+
+    CPythonFreeThreading = "cpython-freethreading"
+    CPythonPrerelease = "cpython-prerelease"
+    PyPy = "pypy"
+
+
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
     "i686",
@@ -73,6 +86,7 @@ MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "aarch64",
     "ppc64le",
     "s390x",
+    "armv7l",
     "pypy_aarch64",
     "pypy_i686",
 )
@@ -127,13 +141,32 @@ def call(
     args_ = [str(arg) for arg in args]
     # print the command executing for the logs
     print("+ " + " ".join(shlex.quote(a) for a in args_))
-    kwargs: dict[str, Any] = {}
-    if capture_stdout:
-        kwargs["universal_newlines"] = True
-        kwargs["stdout"] = subprocess.PIPE
-    result = subprocess.run(args_, check=True, shell=IS_WIN, env=env, cwd=cwd, **kwargs)
+    # workaround platform behaviour differences outlined
+    # in https://github.com/python/cpython/issues/52803
+    path_env = env if env is not None else os.environ
+    path = path_env.get("PATH", None)
+    executable = shutil.which(args_[0], path=path)
+    if executable is None:
+        msg = f"Couldn't find {args_[0]!r} in PATH {path!r}"
+        raise FatalError(msg)
+    args_[0] = executable
+    try:
+        result = subprocess.run(
+            args_,
+            check=True,
+            shell=IS_WIN,
+            env=env,
+            cwd=cwd,
+            capture_output=capture_stdout,
+            text=capture_stdout,
+        )
+    except subprocess.CalledProcessError as e:
+        if capture_stdout:
+            sys.stderr.write(e.stderr)
+        raise
     if not capture_stdout:
         return None
+    sys.stderr.write(result.stderr)
     return typing.cast(str, result.stdout)
 
 
@@ -247,12 +280,7 @@ class BuildSelector:
     build_config: str
     skip_config: str
     requires_python: SpecifierSet | None = None
-
-    # a pattern that skips prerelease versions, when include_prereleases is False.
-    PRERELEASE_SKIP: ClassVar[str] = ""
-    prerelease_pythons: bool = False
-
-    free_threaded_support: bool = False
+    enable: frozenset[EnableGroups] = frozenset()
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
@@ -266,12 +294,16 @@ class BuildSelector:
             if not self.requires_python.contains(version):
                 return False
 
-        # filter out the prerelease pythons if self.prerelease_pythons is False
-        if not self.prerelease_pythons and selector_matches(self.PRERELEASE_SKIP, build_id):
+        # filter out groups that are not enabled
+        if EnableGroups.CPythonFreeThreading not in self.enable and selector_matches(
+            "cp3??t-*", build_id
+        ):
             return False
-
-        # filter out free threaded pythons if self.free_threaded_support is False
-        if not self.free_threaded_support and selector_matches("*t-*", build_id):
+        if EnableGroups.CPythonPrerelease not in self.enable and selector_matches(
+            "cp314*", build_id
+        ):
+            return False
+        if EnableGroups.PyPy not in self.enable and selector_matches("pp*", build_id):
             return False
 
         should_build = selector_matches(self.build_config, build_id)
@@ -284,8 +316,7 @@ class BuildSelector:
             "build_config": self.build_config,
             "skip_config": self.skip_config,
             "requires_python": str(self.requires_python),
-            "prerelease_pythons": self.prerelease_pythons,
-            "free_threaded_support": self.free_threaded_support,
+            "enable": sorted(group.value for group in self.enable),
         }
 
 

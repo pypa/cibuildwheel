@@ -76,7 +76,7 @@ def test_prepare_command():
         ("foo-0.1-py38-none-win_amd64.whl", "pp310-win_amd64"),
     ],
 )
-def test_find_compatible_wheel_found(wheel: str, identifier: str):
+def test_find_compatible_wheel_found(wheel: str, identifier: str) -> None:
     wheel_ = PurePath(wheel)
     found = find_compatible_wheel([wheel_], identifier)
     assert found is wheel_
@@ -96,7 +96,7 @@ def test_find_compatible_wheel_found(wheel: str, identifier: str):
         ("foo-0.1-cp38-cp38-win_amd64.whl", "cp310-win_amd64"),
     ],
 )
-def test_find_compatible_wheel_not_found(wheel: str, identifier: str):
+def test_find_compatible_wheel_not_found(wheel: str, identifier: str) -> None:
     assert find_compatible_wheel([PurePath(wheel)], identifier) is None
 
 

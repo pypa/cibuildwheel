@@ -33,10 +33,9 @@ def test(tmp_path, capfd):
     basic_project.generate(project_dir)
 
     num_builds = len(utils.cibuildwheel_get_build_identifiers(project_dir))
-    if num_builds > 1:
-        expectation = pytest.raises(subprocess.CalledProcessError)
-    else:
-        expectation = does_not_raise()
+    expectation = (
+        pytest.raises(subprocess.CalledProcessError) if num_builds > 1 else does_not_raise()
+    )
 
     with expectation as exc_info:
         result = utils.cibuildwheel_run(
@@ -48,6 +47,7 @@ def test(tmp_path, capfd):
 
     captured = capfd.readouterr()
     if num_builds > 1:
+        assert exc_info is not None
         assert "Build failed because a wheel named" in captured.err
         assert exc_info.value.returncode == 6
     else:

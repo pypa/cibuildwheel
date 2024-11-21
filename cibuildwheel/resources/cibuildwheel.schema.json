@@ -10,7 +10,16 @@
       ],
       "default": "none",
       "description": "How to inherit the parent's value."
-    }
+    },
+    "enable": {
+      "enum": [
+        "cpython-eol",
+        "cpython-freethreading",
+        "cpython-prerelease",
+        "pypy-eol"
+      ]
+    },
+    "description": "A Python version or flavor to enable."
   },
   "additionalProperties": false,
   "description": "cibuildwheel's settings.",
@@ -228,6 +237,21 @@
       "type": "string",
       "title": "CIBW_DEPENDENCY_VERSIONS"
     },
+    "enable": {
+      "description": "Enable or disable certain builds.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/enable"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/enable"
+          }
+        }
+      ],
+      "title": "CIBW_ENABLE"
+    },
     "environment": {
       "description": "Set environment variables needed during the build.",
       "oneOf": [
@@ -271,6 +295,11 @@
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MANYLINUX_AARCH64_IMAGE"
+    },
+    "manylinux-armv7l-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_ARMV7L_IMAGE"
     },
     "manylinux-i686-image": {
       "type": "string",
@@ -396,6 +425,21 @@
         }
       ],
       "title": "CIBW_TEST_EXTRAS"
+    },
+    "test-groups": {
+      "description": "Install extra groups when testing",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_TEST_GROUPS"
     },
     "test-requires": {
       "description": "Install Python dependencies before running the tests",
@@ -523,6 +567,9 @@
           "manylinux-aarch64-image": {
             "$ref": "#/properties/manylinux-aarch64-image"
           },
+          "manylinux-armv7l-image": {
+            "$ref": "#/properties/manylinux-armv7l-image"
+          },
           "manylinux-i686-image": {
             "$ref": "#/properties/manylinux-i686-image"
           },
@@ -571,6 +618,9 @@
           "test-extras": {
             "$ref": "#/properties/test-extras"
           },
+          "test-groups": {
+            "$ref": "#/properties/test-groups"
+          },
           "test-requires": {
             "$ref": "#/properties/test-requires"
           }
@@ -613,6 +663,9 @@
         },
         "manylinux-aarch64-image": {
           "$ref": "#/properties/manylinux-aarch64-image"
+        },
+        "manylinux-armv7l-image": {
+          "$ref": "#/properties/manylinux-armv7l-image"
         },
         "manylinux-i686-image": {
           "$ref": "#/properties/manylinux-i686-image"
@@ -675,6 +728,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
+        },
         "test-requires": {
           "$ref": "#/properties/test-requires"
         }
@@ -719,6 +775,9 @@
         },
         "test-extras": {
           "$ref": "#/properties/test-extras"
+        },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
@@ -778,6 +837,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
+        },
         "test-requires": {
           "$ref": "#/properties/test-requires"
         }
@@ -822,6 +884,9 @@
         },
         "test-extras": {
           "$ref": "#/properties/test-extras"
+        },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"

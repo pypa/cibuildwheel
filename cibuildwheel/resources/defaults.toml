@@ -3,6 +3,7 @@ build = "*"
 skip = ""
 test-skip = ""
 free-threaded-support = false
+enable = []
 
 archs = ["auto"]
 build-frontend = "default"
@@ -20,6 +21,7 @@ test-command = ""
 before-test = ""
 test-requires = []
 test-extras = []
+test-groups = []
 
 container-engine = "docker"
 
@@ -28,6 +30,7 @@ manylinux-i686-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 manylinux-ppc64le-image = "manylinux2014"
 manylinux-s390x-image = "manylinux2014"
+manylinux-armv7l-image = "manylinux_2_31"
 manylinux-pypy_x86_64-image = "manylinux2014"
 manylinux-pypy_i686-image = "manylinux2014"
 manylinux-pypy_aarch64-image = "manylinux2014"

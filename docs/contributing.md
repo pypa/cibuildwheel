@@ -17,11 +17,11 @@ Everyone contributing to the cibuildwheel project is expected to follow the [PSF
 - `cibuildwheel` should wrap the complexity of wheel building.
 - The user interface to `cibuildwheel` is the build script (e.g. `.travis.yml`). Feature additions should not increase the complexity of this script.
 - Options should be environment variables (these lend themselves better to YML config files). They should be prefixed with `CIBW_`.
-- Options should be generalise to all platforms. If platform-specific options are required, they should be namespaced e.g. `CIBW_TEST_COMMAND_MACOS`
+- Options should be generalised to all platforms. If platform-specific options are required, they should be namespaced e.g. `CIBW_TEST_COMMAND_MACOS`
 
 Other notes:
 
-- The platforms are very similar, until they're not. I'd rather have straight-forward code than totally DRY code, so let's keep airy platform abstractions to a minimum.
+- The platforms are very similar, until they're not. I'd rather have straightforward code than totally DRY code, so let's keep airy platform abstractions to a minimum.
 - I might want to break the options into a shared config file one day, so that config is more easily shared. That has motivated some of the design decisions.
 
 ### cibuildwheel's relationship with build errors
@@ -82,14 +82,11 @@ A few notes-
 
 - Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
 
-#### Making a venv
+#### Running pytest directly
 
-More advanced users might prefer to invoke pytest directly-
+More advanced users might prefer to invoke pytest directly. Set up a [dev environment](#setting-up-a-dev-environment), then,
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .[dev]
 # run the unit tests
 pytest unit_test
 # run the whole integration test suite
@@ -102,7 +99,7 @@ CIBW_PLATFORM=linux pytest test -k test_build_frontend_args
 
 ### Linting, docs
 
-Most developer tasks have a nox interface. This allows you to very simply run tasks without worrying about setting up a development environment (as shown below). This is a slower than setting up a development environment and reusing it, but has the (important) benefit of being highly reproducible; an earlier run does not affect a current run, or anything else on your machine.
+Most developer tasks have a nox interface. This allows you to very simply run tasks without worrying about setting up a development environment (as shown below). This is slower than setting up a development environment and reusing it, but has the (important) benefit of being highly reproducible; an earlier run does not affect a current run, or anything else on your machine.
 
 You can see a list of sessions by typing `nox -l`; here are a few common ones:
 
@@ -113,11 +110,32 @@ nox -s docs                    # Build and serve the documentation
 nox -s build                   # Make SDist and wheel
 ```
 
-More advanced users can run the update scripts. `update_pins` should work directly, but `update_constraints` needs all versions of Python installed. If you don't want to do that locally, a fast way to run it to use docker to run nox:
+More advanced users can run the update scripts:
 
 ```console
-docker run --rm -itv $PWD:/src -w /src quay.io/pypa/manylinux_2_24_x86_64:latest pipx run nox -s update_constraints
+nox -s update_constraints # update all constraints files in cibuildwheel/resources
+nox -s update_pins        # update tools, python interpreters & docker images used by cibuildwheel
 ```
+
+### Setting up a dev environment
+
+A dev environment isn't required for any of the `nox` tasks above. However, a dev environment is still useful, to be able to point an editor at, and a few other jobs.
+
+cibuildwheel uses dependency groups. Set up a dev environment with UV by doing
+
+```bash
+uv sync
+```
+
+Or, if you're not using `uv`, you can do:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pipx run dependency-groups dev | xargs pip install -e.
+```
+
+Your virtualenv is at `.venv`.
 
 ## Maintainer notes
 

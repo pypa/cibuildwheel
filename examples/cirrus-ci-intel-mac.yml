@@ -10,7 +10,7 @@ build_and_store_wheels: &BUILD_AND_STORE_WHEELS
 macos_task:
   name: Build macOS x86_64 and arm64 wheels.
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-xcode
+    image: ghcr.io/cirruslabs/macos-runner:sonoma
   env:
     VENV_ROOT: ${HOME}/venv-cibuildwheel
     PATH: ${VENV_ROOT}/bin:${PATH}
