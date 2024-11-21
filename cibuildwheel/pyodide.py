@@ -82,7 +82,7 @@ def search_xbuildenv(env: dict[str, str]) -> list[str]:
         ).strip()
         xbuildenvs_dict = json.loads(xbuildenvs)
         compatible_xbuildenv_versions = [
-            env["version"] for env in xbuildenvs_dict["environments"] if env["compatible"]
+            _["version"] for _ in xbuildenvs_dict["environments"] if _["compatible"]
         ]
 
         return compatible_xbuildenv_versions
