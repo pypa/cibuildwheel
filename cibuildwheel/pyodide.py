@@ -101,9 +101,9 @@ def validate_xbuildenv_version(
     if cibw_pyodide_version not in compatible_versions:
         msg = (
             f"The xbuildenv version {cibw_pyodide_version} is not compatible with the pyodide-build"
-            f" version {pyodide_build_version}. The compatible versions available to download are:"
-            f" {compatible_versions}. Please use the 'pyodide xbuildenv search' command to"
-            f" find the compatible versions for {pyodide_build_version}"
+            f" version {pyodide_build_version}. The compatible versions available to download are:\n"
+            f"{compatible_versions}. Please use the 'pyodide xbuildenv search' command to"
+            f" find the compatible versions for {pyodide_build_version}."
         )
         raise errors.FatalError(msg)
 
@@ -128,7 +128,7 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
         env = dict(env)
         env.pop("PYODIDE_ROOT", None)
 
-        # 3. Install the xbuildenv
+        # Install the xbuildenv
         call(
             "pyodide",
             "xbuildenv",
