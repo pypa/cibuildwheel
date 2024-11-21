@@ -255,7 +255,7 @@ Default: `auto`
 
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
-- For `pyodide` you need to be on an x86-64 linux runner and `python3.12` must be available in `PATH`.
+- For `pyodide` `python3.12` must be available in `PATH` and you need to be on one of the following runners: x86-64 Linux, arm64 Linux. Intel and Silicon macOS hosts may work, too. See [the section on Pyodide](setup.md#pyodide-(WebAssembly)-builds-(experimental)) for more information.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
