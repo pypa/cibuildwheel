@@ -214,7 +214,7 @@ jobs:
         # in cibuildwheel/resources/build-platforms.toml.
       env:
         CIBW_PLATFORM: pyodide
-        CIBW_PYODIDE_VERSION: "v0.27.0a2"
+        CIBW_PYODIDE_VERSION: "0.27.0a2"
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |

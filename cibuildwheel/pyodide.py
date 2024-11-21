@@ -103,7 +103,7 @@ def validate_xbuildenv_version(
             f"The xbuildenv version {cibw_pyodide_version} is not compatible with the pyodide-build"
             f" version {pyodide_build_version}. The compatible versions available to download are:\n"
             f"{compatible_versions}. Please use the 'pyodide xbuildenv search' command to"
-            f" find the compatible versions for {pyodide_build_version}."
+            f" find the compatible versions for 'pyodide-build' {pyodide_build_version}."
         )
         raise errors.FatalError(msg)
 
@@ -228,6 +228,8 @@ def setup_python(
     cibw_pyodide_version = os.environ.get(
         "CIBW_PYODIDE_VERSION", python_configuration.pyodide_version
     )
+    # If there's a "v" prefix, remove it: both would be equally valid
+    cibw_pyodide_version = cibw_pyodide_version.lstrip("v")
     log.step(f"Installing Pyodide xbuildenv version: {cibw_pyodide_version} ...")
     # Search for compatible xbuildenv versions
     compatible_versions = get_xbuildenv_versions(env)
