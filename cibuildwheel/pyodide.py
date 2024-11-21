@@ -41,6 +41,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     pyodide_version: str
+    pyodide_build_version: str
     emscripten_version: str
     node_version: str
 
@@ -65,11 +66,15 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
-def install_xbuildenv(env: dict[str, str], pyodide_version: str) -> str:
+def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_version: str) -> str:
     """Install a particular Pyodide xbuildenv version and set a path to the Pyodide root."""
+    # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of pyodide-build are
+    # not guaranteed to match the versions of Pyodide or be in sync with them. Hence, we shall
+    # specify the pyodide-build version in the root path, which will set up the xbuildenv for
+    # the requested Pyodide version.
     pyodide_root = (
         CIBW_CACHE_PATH
-        / f".pyodide-xbuildenv-{pyodide_version}/{pyodide_version}/xbuildenv/pyodide-root"
+        / f".pyodide-xbuildenv-{pyodide_build_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         if pyodide_root.exists():
@@ -172,7 +177,9 @@ def setup_python(
     env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
 
     log.step(f"Installing Pyodide xbuildenv version: {python_configuration.pyodide_version} ...")
-    env["PYODIDE_ROOT"] = install_xbuildenv(env, python_configuration.pyodide_version)
+    env["PYODIDE_ROOT"] = install_xbuildenv(
+        env, python_configuration.pyodide_build_version, python_configuration.pyodide_version
+    )
 
     return env
 
