@@ -207,7 +207,6 @@ ignore = [
   "PLR",    # Design related pylint codes
   "E501",   # Line too long
   "RET504", "RET505", "RET508",  # else after control flow
-  "PT004",  # Rename suggested for returnless fixtures
   "PT007",  # False positive
   "PYI025", # Set as AbstractSet
   "ISC001", # Conflicts with formatter

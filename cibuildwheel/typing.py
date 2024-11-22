@@ -9,7 +9,6 @@ __all__ = (
     "PLATFORMS",
     "PathOrStr",
     "PlatformName",
-    "PLATFORMS",
     "PopenBytes",
 )
 
