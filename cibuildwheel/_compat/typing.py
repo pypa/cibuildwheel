@@ -8,7 +8,7 @@ else:
     from typing import NotRequired, Self, assert_never
 
 __all__ = (
-    "assert_never",
     "NotRequired",
     "Self",
+    "assert_never",
 )
