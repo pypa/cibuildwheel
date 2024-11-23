@@ -432,14 +432,14 @@ def test_override_inherit_environment_with_references(tmp_path: Path) -> None:
     ("toml_assignment", "env", "expected_result"),
     [
         ("", {}, False),
-        ("free-threaded-support = true", {}, True),
-        ("free-threaded-support = false", {}, False),
-        ("", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
-        ("", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
-        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
-        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
-        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": ""}, True),
-        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": ""}, False),
+        ("enable = ['cpython-freethreading']", {}, True),
+        ("enable = []", {}, False),
+        ("", {"CIBW_ENABLE": "pypy"}, False),
+        ("", {"CIBW_ENABLE": "cpython-freethreading"}, True),
+        ("enable = []", {"CIBW_ENABLE": "cpython-freethreading"}, True),
+        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": "pypy"}, True),
+        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": ""}, True),
+        ("enable = []", {"CIBW_ENABLE": ""}, False),
     ],
 )
 def test_free_threaded_support(

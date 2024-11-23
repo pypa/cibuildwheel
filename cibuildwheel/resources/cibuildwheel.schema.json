@@ -284,13 +284,6 @@
       ],
       "title": "CIBW_ENVIRONMENT_PASS"
     },
-    "free-threaded-support": {
-      "type": "boolean",
-      "default": false,
-      "description": "The project supports free-threaded builds of Python (PEP703)",
-      "deprecated": "Use the `enable` option instead.",
-      "title": "CIBW_FREE_THREADED_SUPPORT"
-    },
     "manylinux-aarch64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
