@@ -157,12 +157,6 @@ def main_inner(global_options: GlobalOptions) -> None:
     )
 
     parser.add_argument(
-        "--prerelease-pythons",
-        action="store_true",
-        help="Enable pre-release Python versions if available.",
-    )
-
-    parser.add_argument(
         "--debug-traceback",
         action="store_true",
         default=strtobool(os.environ.get("CIBW_DEBUG_TRACEBACK", "0")),
