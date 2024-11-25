@@ -566,7 +566,7 @@ for new users, but can be added to the selectors available here. The allowed
 values are:
 
 
-- `cypython-prerelease`: Enables beta versions of Pythons if any are available
+- `cpython-prerelease`: Enables beta versions of Pythons if any are available
   (May-July, approximately). For backward compatibility, `CIBW_PRERELEASE_PYTHONS`
   is also supported until cibuildwheel 3.
 - `cpython-freethreading`: [PEP 703](https://www.python.org/dev/peps/pep-0703)
