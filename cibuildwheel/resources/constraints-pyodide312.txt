@@ -19,7 +19,7 @@ charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via typer
-cmake==3.31.0.1
+cmake==3.31.1
     # via pyodide-build
 distlib==0.3.9
     # via virtualenv
@@ -52,11 +52,11 @@ pip==24.3.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.6
     # via virtualenv
-pydantic==2.10.0
+pydantic==2.10.1
     # via
     #   pyodide-build
     #   pyodide-lock
-pydantic-core==2.27.0
+pydantic-core==2.27.1
     # via pydantic
 pygments==2.18.0
     # via rich
@@ -107,7 +107,7 @@ virtualenv==20.27.1
     # via
     #   build
     #   pyodide-build
-wheel==0.45.0
+wheel==0.45.1
     # via
     #   auditwheel-emscripten
     #   pyodide-build
