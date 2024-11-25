@@ -5,7 +5,10 @@ import subprocess
 from typing import Generator
 
 import pytest
+from filelock import FileLock
 
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.options import CommandLineArguments, Options
 from cibuildwheel.util import detect_ci_provider, find_uv
 
 from .utils import EMULATED_ARCHS, platform
@@ -26,6 +29,77 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="macOS cp38 uses the universal2 installer",
     )
+
+
+def docker_warmup(request: pytest.FixtureRequest) -> None:
+    machine = request.config.getoption("--run-emulation", default=None)
+    if machine is None:
+        archs = [arch.value for arch in Architecture.auto_archs("linux")]
+    elif machine == "all":
+        archs = EMULATED_ARCHS
+    else:
+        archs = [machine]
+    options = Options(
+        platform="linux",
+        command_line_arguments=CommandLineArguments.defaults(),
+        env={},
+        defaults=True,
+    )
+    build_options = options.build_options(None)
+    assert build_options.manylinux_images is not None
+    assert build_options.musllinux_images is not None
+    images = [build_options.manylinux_images[arch] for arch in archs] + [
+        build_options.musllinux_images[arch] for arch in archs
+    ]
+    for image in images:
+        try:
+            container_id = subprocess.run(
+                [
+                    "docker",
+                    "create",
+                    image,
+                    "bash",
+                    "-c",
+                    "manylinux-interpreters ensure-all && cpython3.13 -m pip download -d /tmp setuptools wheel pytest",
+                ],
+                text=True,
+                check=True,
+                stdout=subprocess.PIPE,
+            ).stdout.strip()
+            subprocess.run(["docker", "start", container_id], check=True, stdout=subprocess.DEVNULL)
+            exit_code = subprocess.run(
+                ["docker", "wait", container_id], text=True, check=True, stdout=subprocess.PIPE
+            ).stdout.strip()
+            if exit_code == "0":
+                subprocess.run(
+                    ["docker", "commit", container_id, image], check=True, stdout=subprocess.DEVNULL
+                )
+            subprocess.run(["docker", "rm", container_id], check=True, stdout=subprocess.DEVNULL)
+        except subprocess.CalledProcessError:
+            print(f"failed to warm-up {image} image")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def docker_warmup_fixture(
+    request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory, worker_id: str
+) -> None:
+    # if we're in CI testing linux, let's warm-up docker images
+    if detect_ci_provider() is None or platform != "linux":
+        return None
+
+    if worker_id == "master":
+        # not executing with multiple workers
+        return docker_warmup(request)
+
+    # get the temp directory shared by all workers
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+
+    fn = root_tmp_dir / "warmup.done"
+    with FileLock(str(fn) + ".lock"):
+        if not fn.is_file():
+            docker_warmup(request)
+            fn.write_text("done")
+    return None
 
 
 @pytest.fixture(params=["pip", "build"])
