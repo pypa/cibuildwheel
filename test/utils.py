@@ -47,11 +47,11 @@ def cibuildwheel_get_build_identifiers(
     for the current platform.
     """
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
-    if prerelease_pythons:
-        cmd.append("--prerelease-pythons")
     if env is None:
         env = os.environ.copy()
-    env.setdefault("CIBW_FREE_THREADED_SUPPORT", "1")
+    env["CIBW_ENABLE"] = "cpython-freethreading pypy"
+    if prerelease_pythons:
+        env["CIBW_ENABLE"] += " cpython-prerelease"
 
     cmd_output = subprocess.run(
         cmd,
@@ -115,7 +115,7 @@ def cibuildwheel_run(
 
     _update_pip_cache_dir(env)
 
-    env.setdefault("CIBW_FREE_THREADED_SUPPORT", "1")
+    env["CIBW_ENABLE"] = "cpython-prerelease cpython-freethreading pypy"
 
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
@@ -126,7 +126,6 @@ def cibuildwheel_run(
                 sys.executable,
                 "-m",
                 "cibuildwheel",
-                "--prerelease-pythons",
                 "--output-dir",
                 str(output_dir or tmp_output_dir),
                 str(package_dir),

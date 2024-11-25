@@ -9,15 +9,14 @@ import enum
 import functools
 import shlex
 import textwrap
-from collections.abc import Generator, Iterable, Set
+import tomllib
+from collections.abc import Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence, Union  # noqa: TID251
+from typing import Any, Literal, assert_never
 
 from packaging.specifiers import SpecifierSet
 
 from . import errors
-from ._compat import tomllib
-from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
 from .logger import log
@@ -33,7 +32,6 @@ from .util import (
     EnableGroups,
     TestSelector,
     format_safe,
-    read_python_configs,
     resources_dir,
     selector_matches,
     strtobool,
@@ -51,7 +49,6 @@ class CommandLineArguments:
     package_dir: Path
     print_build_identifiers: bool
     allow_empty: bool
-    prerelease_pythons: bool
     debug_traceback: bool
 
     @staticmethod
@@ -64,7 +61,6 @@ class CommandLineArguments:
             config_file="",
             output_dir=Path("wheelhouse"),
             package_dir=Path("."),
-            prerelease_pythons=False,
             print_build_identifiers=False,
             debug_traceback=False,
         )
@@ -121,10 +117,10 @@ class BuildOptions:
         return self.globals.architectures
 
 
-SettingLeaf = Union[str, int, bool]
+SettingLeaf = str | int | bool
 SettingList = Sequence[SettingLeaf]
-SettingTable = Mapping[str, Union[SettingLeaf, SettingList]]
-SettingValue = Union[SettingTable, SettingList, SettingLeaf]
+SettingTable = Mapping[str, SettingLeaf | SettingList]
+SettingValue = SettingTable | SettingList | SettingLeaf
 
 
 @dataclasses.dataclass(frozen=True)
@@ -359,7 +355,7 @@ def _stringify_setting(
             msg = f"Error converting {setting!r} to a string: this setting doesn't accept a list"
             raise OptionsReaderError(msg) from None
 
-    if isinstance(setting, (bool, int)):
+    if isinstance(setting, bool | int):
         return str(setting)
 
     return setting
@@ -619,27 +615,6 @@ class Options:
         )
         enable = {EnableGroups(group) for group in enable_groups.split()}
 
-        free_threaded_support = strtobool(
-            self.reader.get("free-threaded-support", env_plat=False, ignore_empty=True)
-        )
-
-        prerelease_pythons = args.prerelease_pythons or strtobool(
-            self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
-        )
-
-        if free_threaded_support or prerelease_pythons:
-            msg = (
-                "free-threaded-support and prerelease-pythons should be specified by enable instead"
-            )
-            if enable:
-                raise OptionsReaderError(msg)
-            log.warning(msg)
-
-        if free_threaded_support:
-            enable.add(EnableGroups.CPythonFreeThreading)
-        if prerelease_pythons:
-            enable.add(EnableGroups.CPythonPrerelease)
-
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
         requires_python_str: str | None = (
@@ -661,23 +636,9 @@ class Options:
             build_config=build_config,
             skip_config=skip_config,
             requires_python=requires_python,
-            enable=frozenset(
-                enable | {EnableGroups.PyPy}
-            ),  # For backwards compatibility, we are adding PyPy for now
+            enable=frozenset(enable),
         )
         test_selector = TestSelector(skip_config=test_skip)
-
-        all_configs = read_python_configs(self.platform)
-        all_pypy_ids = {
-            config["identifier"] for config in all_configs if config["identifier"].startswith("pp")
-        }
-        if (
-            not self._defaults
-            and EnableGroups.PyPy not in enable
-            and any(build_selector(build_id) for build_id in all_pypy_ids)
-        ):
-            msg = "PyPy builds will be disabled by default in version 3. Enabling PyPy builds should be specified by enable"
-            log.warning(msg)
 
         return GlobalOptions(
             package_dir=package_dir,
@@ -976,7 +937,7 @@ def compute_options(
     return options
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
