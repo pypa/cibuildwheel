@@ -53,15 +53,12 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
     ]
     for image in images:
         try:
+            command = (
+                "manylinux-interpreters ensure $(manylinux-interpreters list 2>/dev/null | grep -v graalpy) &&"
+                "cpython3.13 -m pip download -d /tmp setuptools wheel pytest"
+            )
             container_id = subprocess.run(
-                [
-                    "docker",
-                    "create",
-                    image,
-                    "bash",
-                    "-c",
-                    "manylinux-interpreters ensure-all && cpython3.13 -m pip download -d /tmp setuptools wheel pytest",
-                ],
+                ["docker", "create", image, "bash", "-c", command],
                 text=True,
                 check=True,
                 stdout=subprocess.PIPE,
