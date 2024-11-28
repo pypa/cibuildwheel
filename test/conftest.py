@@ -86,6 +86,9 @@ def docker_warmup_fixture(
     # if we're in CI testing linux, let's warm-up docker images
     if detect_ci_provider() is None or platform != "linux":
         return None
+    if request.config.getoption("--run-emulation", default=None) is not None:
+        # emulation tests only run one test in CI, caching the image only slows down the test
+        return None
 
     if worker_id == "master":
         # not executing with multiple workers
