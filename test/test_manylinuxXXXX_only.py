@@ -15,6 +15,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
         #include <stdlib.h>
         #include <stdint.h>
         #include <math.h>
+        #include <pthread.h>
 
         #if !defined(__GLIBC_PREREQ)
         #error "Must run on a glibc linux environment"
@@ -31,9 +32,16 @@ project_with_manylinux_symbols = test_projects.new_c_project(
     ),
     spam_c_function_add=textwrap.dedent(
         r"""
-        #if __GLIBC_PREREQ(2, 28)
+        #if __GLIBC_PREREQ(2, 34)
+            // pthread_mutexattr_init was moved to libc.so.6 in manylinux_2_34+
+            pthread_mutexattr_t attr;
+            sts = pthread_mutexattr_init(&attr);
+            if (sts == 0) {
+                pthread_mutexattr_destroy(&attr);
+            }
+        #elif __GLIBC_PREREQ(2, 28)
             // thrd_equal & thrd_current are only available in manylinux_2_28+
-            sts = thrd_equal(thrd_current(), thrd_current()) ? 0 : 1;;
+            sts = thrd_equal(thrd_current(), thrd_current()) ? 0 : 1;
         #elif __GLIBC_PREREQ(2, 24)
             // nextupf is only available in manylinux_2_24+
             sts = (int)nextupf(0.0F);
@@ -51,17 +59,24 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 
 @pytest.mark.parametrize(
     "manylinux_image",
-    ["manylinux1", "manylinux2010", "manylinux2014", "manylinux_2_24", "manylinux_2_28"],
+    [
+        "manylinux1",
+        "manylinux2010",
+        "manylinux2014",
+        "manylinux_2_24",
+        "manylinux_2_28",
+        "manylinux_2_34",
+    ],
 )
 @pytest.mark.usefixtures("docker_cleanup")
 def test(manylinux_image, tmp_path):
     if utils.platform != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
-    elif platform.machine() not in ["x86_64", "i686"]:
-        if manylinux_image in ["manylinux1", "manylinux2010"]:
-            pytest.skip("manylinux1 and 2010 doesn't exist for non-x86 architectures")
-    elif manylinux_image == "manylinux_2_28" and platform.machine() == "i686":
-        pytest.skip("manylinux_2_28 doesn't exist for i686 architecture")
+    elif platform.machine() not in {"x86_64", "i686"}:
+        if manylinux_image in {"manylinux1", "manylinux2010"}:
+            pytest.skip(f"{manylinux_image} doesn't exist for non-x86 architectures")
+    elif manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "i686":
+        pytest.skip(f"{manylinux_image} doesn't exist for i686 architecture")
 
     project_dir = tmp_path / "project"
     project_with_manylinux_symbols.generate(project_dir)
@@ -90,8 +105,8 @@ def test(manylinux_image, tmp_path):
     if manylinux_image in {"manylinux_2_24"}:
         # We don't have a manylinux_2_24 image for PyPy 3.10+, CPython 3.12+
         add_env["CIBW_SKIP"] = "pp31* cp312* cp313*"
-    if manylinux_image == "manylinux_2_28" and platform.machine() == "x86_64":
-        # We don't have a manylinux_2_28 image for i686
+    if manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "x86_64":
+        # We don't have a manylinux_2_28+ image for i686
         add_env["CIBW_ARCHS"] = "x86_64"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
@@ -131,8 +146,8 @@ def test(manylinux_image, tmp_path):
             if "-pp31" not in w and "-cp312" not in w and "-cp313" not in w
         ]
 
-    if manylinux_image == "manylinux_2_28" and platform.machine() == "x86_64":
-        # We don't have a manylinux_2_28 image for i686
+    if manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "x86_64":
+        # We don't have a manylinux_2_28+ image for i686
         expected_wheels = [w for w in expected_wheels if "i686" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
