@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
 import os
 import shutil
@@ -12,7 +13,7 @@ import typing
 from collections.abc import Iterable, Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Protocol
+from typing import Protocol, assert_never
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -21,7 +22,6 @@ import cibuildwheel.pyodide
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel import errors
-from cibuildwheel._compat.typing import assert_never
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
@@ -31,7 +31,6 @@ from cibuildwheel.util import (
     BuildSelector,
     CIProvider,
     Unbuffered,
-    chdir,
     detect_ci_provider,
     fix_ansi_codes_for_github_actions,
     strtobool,
@@ -200,7 +199,7 @@ def main_inner(global_options: GlobalOptions) -> None:
         # This is now the new package dir
         args.package_dir = project_dir.resolve()
 
-        with chdir(project_dir):
+        with contextlib.chdir(project_dir):
             build_in_directory(args)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
@@ -418,10 +417,10 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
         if any(o and ("{python}" in o or "{pip}" in o) for o in option_values):
             # Reminder: in an f-string, double braces means literal single brace
             msg = (
-                f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
-                "and will be removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
+                f"{option_name}: '{{python}}' and '{{pip}}' are no longer supported "
+                "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
-            warnings.append(msg)
+            raise errors.ConfigurationError(msg)
 
     return warnings
 
