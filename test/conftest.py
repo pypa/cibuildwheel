@@ -51,29 +51,29 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
     images = [build_options.manylinux_images[arch] for arch in archs] + [
         build_options.musllinux_images[arch] for arch in archs
     ]
+    # exclude GraalPy as it's not a target for cibuildwheel
+    command = (
+        "manylinux-interpreters ensure $(manylinux-interpreters list 2>/dev/null | grep -v graalpy) &&"
+        "cpython3.13 -m pip download -d /tmp setuptools wheel pytest"
+    )
     for image in images:
+        container_id = subprocess.run(
+            ["docker", "create", image, "bash", "-c", command],
+            text=True,
+            check=True,
+            stdout=subprocess.PIPE,
+        ).stdout.strip()
         try:
-            command = (
-                "manylinux-interpreters ensure $(manylinux-interpreters list 2>/dev/null | grep -v graalpy) &&"
-                "cpython3.13 -m pip download -d /tmp setuptools wheel pytest"
-            )
-            container_id = subprocess.run(
-                ["docker", "create", image, "bash", "-c", command],
-                text=True,
-                check=True,
-                stdout=subprocess.PIPE,
-            ).stdout.strip()
             subprocess.run(["docker", "start", container_id], check=True, stdout=subprocess.DEVNULL)
             exit_code = subprocess.run(
                 ["docker", "wait", container_id], text=True, check=True, stdout=subprocess.PIPE
             ).stdout.strip()
-            if exit_code == "0":
-                subprocess.run(
-                    ["docker", "commit", container_id, image], check=True, stdout=subprocess.DEVNULL
-                )
+            assert exit_code == "0"
+            subprocess.run(
+                ["docker", "commit", container_id, image], check=True, stdout=subprocess.DEVNULL
+            )
+        finally:
             subprocess.run(["docker", "rm", container_id], check=True, stdout=subprocess.DEVNULL)
-        except subprocess.CalledProcessError:
-            print(f"failed to warm-up {image} image")
 
 
 @pytest.fixture(scope="session", autouse=True)
