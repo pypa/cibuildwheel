@@ -89,6 +89,7 @@ def docker_warmup_fixture(
 
     if worker_id == "master":
         # not executing with multiple workers
+        # it might be unsafe to write to tmp_path_factory.getbasetemp().parent
         return docker_warmup(request)
 
     # get the temp directory shared by all workers
