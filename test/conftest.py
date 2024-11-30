@@ -34,11 +34,17 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def docker_warmup(request: pytest.FixtureRequest) -> None:
     machine = request.config.getoption("--run-emulation", default=None)
     if machine is None:
-        archs = [arch.value for arch in Architecture.auto_archs("linux")]
+        archs = {arch.value for arch in Architecture.auto_archs("linux")}
     elif machine == "all":
-        archs = EMULATED_ARCHS
+        archs = set(EMULATED_ARCHS)
     else:
-        archs = [machine]
+        archs = {machine}
+
+    # Only include architectures where there are missing pre-installed interpreters
+    archs &= {"x86_64", "i686", "aarch64"}
+    if not archs:
+        return
+
     options = Options(
         platform="linux",
         command_line_arguments=CommandLineArguments.defaults(),
