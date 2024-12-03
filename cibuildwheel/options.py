@@ -684,7 +684,6 @@ class Options:
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
                 )
             )
-            print(f"TEST-SOURCES {test_sources!r}")
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
