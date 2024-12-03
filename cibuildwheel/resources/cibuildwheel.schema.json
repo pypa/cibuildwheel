@@ -426,6 +426,21 @@
       ],
       "title": "CIBW_TEST_EXTRAS"
     },
+    "test-sources": {
+      "description": "Test files that are required by the test environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_TEST_SOURCES"
+    },
     "test-groups": {
       "description": "Install extra groups when testing",
       "oneOf": [
@@ -529,6 +544,9 @@
               "test-extras": {
                 "$ref": "#/$defs/inherit"
               },
+              "test-sources": {
+                "$ref": "#/$defs/inherit"
+              },
               "test-requires": {
                 "$ref": "#/$defs/inherit"
               }
@@ -617,6 +635,9 @@
           },
           "test-extras": {
             "$ref": "#/properties/test-extras"
+          },
+          "test-sources": {
+            "$ref": "#/properties/test-sources"
           },
           "test-groups": {
             "$ref": "#/properties/test-groups"
@@ -728,6 +749,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -775,6 +799,9 @@
         },
         "test-extras": {
           "$ref": "#/properties/test-extras"
+        },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
         },
         "test-groups": {
           "$ref": "#/properties/test-groups"
@@ -837,6 +864,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -884,6 +914,9 @@
         },
         "test-extras": {
           "$ref": "#/properties/test-extras"
+        },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
         },
         "test-groups": {
           "$ref": "#/properties/test-groups"

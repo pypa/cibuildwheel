@@ -24,6 +24,7 @@ skip = ["*musllinux*"]
 environment = {FOO="BAR"}
 
 test-command = "pyproject"
+test-sources = ["test", "other dir"]
 
 manylinux-x86_64-image = "manylinux1"
 
@@ -74,11 +75,13 @@ def test_options_1(tmp_path, monkeypatch):
     local = options.build_options("cp38-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject"
+    assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux1"]
 
     local = options.build_options("cp37-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
+    assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux2014"]
 
 
