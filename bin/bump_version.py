@@ -11,16 +11,12 @@ import glob
 import os
 import subprocess
 import sys
+import tomllib
 import urllib.parse
 from pathlib import Path
 
 import click
 from packaging.version import InvalidVersion, Version
-
-if sys.version_info < (3, 11):
-    import tomli as tomllib
-else:
-    import tomllib
 
 config = [
     # file path, version find/replace format

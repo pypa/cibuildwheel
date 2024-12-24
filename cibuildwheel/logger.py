@@ -5,11 +5,11 @@ import os
 import re
 import sys
 import time
-from typing import IO, AnyStr, Final, Tuple
+from typing import IO, AnyStr, Final
 
 from .util import CIProvider, detect_ci_provider
 
-FoldPattern = Tuple[str, str]
+FoldPattern = tuple[str, str]
 DEFAULT_FOLD_PATTERN: Final[FoldPattern] = ("{name}", "")
 FOLD_PATTERNS: Final[dict[str, FoldPattern]] = {
     "azure": ("##[group]{name}", "##[endgroup]"),
