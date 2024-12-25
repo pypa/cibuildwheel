@@ -21,12 +21,12 @@ from .typing import PathOrStr
 from .util import (
     BuildFrontendConfig,
     BuildSelector,
+    copy_test_sources,
     find_compatible_wheel,
     get_build_verbosity_extra_flags,
     prepare_command,
     read_python_configs,
     split_config_settings,
-    test_fail_cwd_file,
     unwrap,
 )
 
@@ -401,9 +401,19 @@ def build_in_container(
                 package=container_package_dir,
                 wheel=wheel_to_test,
             )
-            test_cwd = testing_temp_dir / "test_cwd"
-            container.call(["mkdir", "-p", test_cwd])
-            container.copy_into(test_fail_cwd_file, test_cwd / "test_fail.py")
+
+            if build_options.test_sources:
+                test_cwd = testing_temp_dir / "test_cwd"
+                container.call(["mkdir", "-p", test_cwd])
+                copy_test_sources(
+                    build_options.test_sources,
+                    build_options.package_dir,
+                    test_cwd,
+                    copy_into=container.copy_into,
+                )
+            else:
+                # There are no test sources. Run the tests in the project directory.
+                test_cwd = PurePosixPath(container_project_path)
 
             container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 

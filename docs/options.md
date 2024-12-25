@@ -1424,16 +1424,21 @@ Platform-specific environment variables are also available:<br/>
 > Execute a shell command to test each built wheel
 
 Shell command to run tests after the build. The wheel will be installed
-automatically and available for import from the tests. To ensure the wheel is
-imported by your tests (instead of your source copy), **tests are not run from
-your project directory**. Use the placeholders `{project}` and `{package}` when
-specifying paths in your project. If this variable is not set, your wheel will
-not be installed after building.
+automatically and available for import from the tests. If this variable is not
+set, your wheel will not be installed after building.
+
+By default, tests are executed from from your project directory. When specifying
+`CIBW_TEST_COMMAND`, you can use the placeholders `{project}` and `{package}` to
+pass in the location of your test code:
 
 - `{project}` is an absolute path to the project root - the working directory
   where cibuildwheel was called.
 - `{package}` is the path to the package being built - the `package_dir`
   argument supplied to cibuildwheel on the command line.
+
+Alternatively, you can use the [`CIBW_TEST_SOURCES`](#test-sources) setting to
+create a temporary folder populated with a specific subset of project files to
+run your test suite.
 
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
@@ -1547,6 +1552,37 @@ Platform-specific environment variables are also available:<br/>
     ```
 
     In configuration files, you can use an array, and the items will be joined with `&&`.
+
+
+### `CIBW_TEST_SOURCES` {: #test-sources}
+> Files and folders from the source tree that are copied into an isolated tree before running the tests
+
+A space-separated list of files and folders, relative to the root of the
+project, required for running the tests. If specified, these files and folders
+will be copied into a temporary folder, and that temporary folder will be used
+as the working directory for running the test suite.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_PYODIDE`
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Copy the "tests" folder, plus "data/test-image.png" from the source folder to the test folder.
+    CIBW_TEST_SOURCES: tests data/test-image.png
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Copy the "tests" folder, plus "data/test-image.png" from the source folder to the test folder.
+    [tool.cibuildwheel]
+    test-sources = ["tests", "data/test-image.png"]
+    ```
+
+    In configuration files, you can use an array, and the items will be joined with a space.
 
 
 ### `CIBW_TEST_REQUIRES` {: #test-requires}
