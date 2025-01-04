@@ -24,11 +24,11 @@ platformdirs==4.3.6
     # via virtualenv
 pyproject-hooks==1.2.0
     # via build
-tomli==2.1.0
+tomli==2.2.1
     # via build
 typing-extensions==4.12.2
     # via delocate
-virtualenv==20.27.1
+virtualenv==20.28.0
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.20.2
     # via importlib-metadata
