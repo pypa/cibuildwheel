@@ -6,7 +6,7 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.architecture import Architecture
-from cibuildwheel.util import EnableGroups
+from cibuildwheel.util import EnableGroup
 
 from ..conftest import MOCK_PACKAGE_DIR
 
@@ -217,7 +217,7 @@ def test_only_argument(intercepted_build_args, monkeypatch, only, plat):
     assert options.globals.build_selector.skip_config == ""
     assert options.platform == plat
     assert options.globals.architectures == Architecture.all_archs(plat)
-    assert EnableGroups.PyPy in options.globals.build_selector.enable
+    assert EnableGroup.PyPy in options.globals.build_selector.enable
 
 
 @pytest.mark.parametrize("only", ("cp311-manylxinux_x86_64", "some_linux_thing"))

@@ -29,7 +29,7 @@ from .util import (
     BuildFrontendConfig,
     BuildSelector,
     DependencyConstraints,
-    EnableGroups,
+    EnableGroup,
     TestSelector,
     format_safe,
     resources_dir,
@@ -50,6 +50,7 @@ class CommandLineArguments:
     print_build_identifiers: bool
     allow_empty: bool
     debug_traceback: bool
+    enable: list[str]
 
     @staticmethod
     def defaults() -> CommandLineArguments:
@@ -63,6 +64,7 @@ class CommandLineArguments:
             package_dir=Path("."),
             print_build_identifiers=False,
             debug_traceback=False,
+            enable=[],
         )
 
 
@@ -615,7 +617,13 @@ class Options:
         enable_groups = self.reader.get(
             "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
         )
-        enable = {EnableGroups(group) for group in enable_groups.split()}
+        try:
+            enable = {EnableGroup(group) for group in enable_groups.split()}
+            for command_line_group in args.enable:
+                enable.add(EnableGroup(command_line_group))
+        except ValueError as e:
+            msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
+            raise errors.ConfigurationError(msg) from e
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
@@ -632,7 +640,7 @@ class Options:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
-            enable = set(EnableGroups)
+            enable = set(EnableGroup)
 
         build_selector = BuildSelector(
             build_config=build_config,

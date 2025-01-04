@@ -30,6 +30,7 @@ from cibuildwheel.util import (
     CIBW_CACHE_PATH,
     BuildSelector,
     CIProvider,
+    EnableGroup,
     Unbuffered,
     detect_ci_provider,
     fix_ansi_codes_for_github_actions,
@@ -97,6 +98,17 @@ def main_inner(global_options: GlobalOptions) -> None:
             via emulation, for example, using binfmt_misc and QEMU.
             Default: auto.
             Choices: auto, auto64, auto32, native, all, {arch_list_str}
+        """,
+    )
+
+    enable_groups_str = ", ".join(g.value for g in EnableGroup)
+    parser.add_argument(
+        "--enable",
+        action="append",
+        default=[],
+        metavar="GROUP",
+        help=f"""
+            Enable an additional category of builds. Use multiple times to select multiple groups. Choices: {enable_groups_str}.
         """,
     )
 
