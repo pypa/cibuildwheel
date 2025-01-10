@@ -196,5 +196,5 @@ python_configurations = [
 
 [pyodide]
 python_configurations = [
-  { identifier = "cp312-pyodide_wasm32", version = "3.12", pyodide_version = "0.26.4", pyodide_build_version = "0.29.0", emscripten_version = "3.1.58", node_version = "v20" },
+  { identifier = "cp312-pyodide_wasm32", version = "3.12", pyodide_version = "0.27.0", pyodide_build_version = "0.29.2", emscripten_version = "3.1.58", node_version = "v20" },
 ]
