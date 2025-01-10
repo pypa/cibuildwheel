@@ -79,6 +79,7 @@ docs = [
 ]
 test = [
     "build",
+    "filelock",
     "jinja2",
     "pytest-timeout",
     "pytest-xdist",

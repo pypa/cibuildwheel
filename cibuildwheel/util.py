@@ -18,7 +18,7 @@ import tomllib
 import typing
 import urllib.request
 from collections import defaultdict
-from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Generator, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from functools import cache, total_ordering
@@ -37,6 +37,7 @@ from packaging.utils import parse_wheel_filename
 from packaging.version import Version
 from platformdirs import user_cache_path
 
+from . import errors
 from .architecture import Architecture
 from .errors import FatalError
 from .typing import PathOrStr, PlatformName
@@ -64,8 +65,6 @@ resources_dir: Final[Path] = Path(__file__).parent / "resources"
 install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 
 free_thread_enable_313: Final[Path] = resources_dir / "free-threaded-enable-313.xml"
-
-test_fail_cwd_file: Final[Path] = resources_dir / "testing_temp_dir_file.py"
 
 
 class EnableGroups(enum.Enum):
@@ -422,6 +421,42 @@ def move_file(src_file: Path, dst_file: Path) -> Path:
     # explicit str() needed for Python 3.8
     resulting_file = shutil.move(str(src_file), str(dst_file))
     return Path(resulting_file).resolve(strict=True)
+
+
+def copy_into_local(src: Path, dst: PurePath) -> None:
+    """Copy a path from src to dst, regardless of whether it's a file or a directory."""
+    # Ensure the target folder location exists
+    Path(dst.parent).mkdir(exist_ok=True, parents=True)
+
+    if src.is_dir():
+        shutil.copytree(src, dst)
+    else:
+        shutil.copy(src, dst)
+
+
+def copy_test_sources(
+    test_sources: list[str],
+    package_dir: Path,
+    test_dir: PurePath,
+    copy_into: Callable[[Path, PurePath], None] = copy_into_local,
+) -> None:
+    """Copy the list of test sources from the package to the test directory.
+
+    :param test_sources: A list of test paths, relative to the package_dir.
+    :param package_dir: The root of the package directory.
+    :param test_dir: The folder where test sources should be placed.
+    :param copy_info: The copy function to use. By default, does a local
+        filesystem copy; but an OCIContainer.copy_info method (or equivalent)
+        can be provided.
+    """
+    for test_path in test_sources:
+        source = package_dir.resolve() / test_path
+
+        if not source.exists():
+            msg = f"Test source {test_path} does not exist."
+            raise errors.FatalError(msg)
+
+        copy_into(source, test_dir / test_path)
 
 
 class DependencyConstraints:

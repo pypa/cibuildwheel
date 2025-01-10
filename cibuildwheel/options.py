@@ -10,7 +10,7 @@ import functools
 import shlex
 import textwrap
 import tomllib
-from collections.abc import Generator, Iterable, Mapping, Sequence, Set
+from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
 from typing import Any, Literal, assert_never
 
@@ -91,6 +91,7 @@ class BuildOptions:
     dependency_constraints: DependencyConstraints | None
     test_command: str | None
     before_test: str | None
+    test_sources: list[str]
     test_requires: list[str]
     test_extras: str
     test_groups: list[str]
@@ -170,11 +171,12 @@ class ListFormat(OptionFormat):
     A format that joins lists with a separator.
     """
 
-    def __init__(self, sep: str) -> None:
+    def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
         self.sep = sep
+        self.quote = quote if quote else lambda s: s
 
     def format_list(self, value: SettingList) -> str:
-        return self.sep.join(str(v) for v in value)
+        return self.sep.join(self.quote(str(v)) for v in value)
 
     def merge_values(self, before: str, after: str) -> str:
         return f"{before}{self.sep}{after}"
@@ -710,6 +712,11 @@ class Options:
             dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
+            test_sources = shlex.split(
+                self.reader.get(
+                    "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
@@ -818,6 +825,7 @@ class Options:
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
+                test_sources=test_sources,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,
