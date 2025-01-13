@@ -129,7 +129,7 @@ def get_python_configurations(
             log.quiet(
                 unwrap(
                     f"""
-                    Note: {ids}  {'was' if len(removed_elements) == 1 else 'were'}
+                    Note: {ids}  {"was" if len(removed_elements) == 1 else "were"}
                     selected, but can't be built on x86_64 so will be skipped automatically.
                     """
                 )
@@ -154,7 +154,7 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
                         Error: CPython {version} is not installed.
                         cibuildwheel will not perform system-wide installs when running outside of CI.
                         To build locally, install CPython {version} on this machine, or, disable this
-                        version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*
+                        version of Python using CIBW_SKIP=cp{version.replace(".", "")}-macosx_*
                         For portable builds, cibuildwheel needs the official builds from python.org.
                         Download link: {url}
                     """
@@ -229,9 +229,9 @@ def setup_python(
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
-    assert (
-        base_python.exists()
-    ), f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
+    assert base_python.exists(), (
+        f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
+    )
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"

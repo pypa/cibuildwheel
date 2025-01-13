@@ -271,7 +271,7 @@ items:
 )
 
 for key, value in schema["properties"].items():
-    value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
+    value["title"] = f"CIBW_{key.replace('-', '_').upper()}"
 
 non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
