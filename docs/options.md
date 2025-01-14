@@ -1427,7 +1427,7 @@ Shell command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
-By default, tests are executed from from your project directory. When specifying
+By default, tests are executed from your project directory. When specifying
 `CIBW_TEST_COMMAND`, you can use the placeholders `{project}` and `{package}` to
 pass in the location of your test code:
 
