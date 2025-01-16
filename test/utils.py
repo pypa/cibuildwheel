@@ -295,12 +295,12 @@ def expected_wheels(
 
             if machine_arch == "arm64":
                 arm64_macosx = _floor_macosx(min_macosx, "11.0")
-                platform_tags = [f'macosx_{arm64_macosx.replace(".", "_")}_arm64']
+                platform_tags = [f"macosx_{arm64_macosx.replace('.', '_')}_arm64"]
             else:
-                platform_tags = [f'macosx_{min_macosx.replace(".", "_")}_x86_64']
+                platform_tags = [f"macosx_{min_macosx.replace('.', '_')}_x86_64"]
 
             if include_universal2:
-                platform_tags.append(f'macosx_{min_macosx.replace(".", "_")}_universal2')
+                platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)

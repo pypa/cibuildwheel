@@ -77,7 +77,7 @@ def test_simple(tmp_path):
         assert os.path.exists('{package}/setup.py')
         """,
     )
-    setup_py_assertion_cmd = f'python -c "{setup_py_assertion_snippet !s}"'
+    setup_py_assertion_cmd = f'python -c "{setup_py_assertion_snippet!s}"'
 
     # build the wheels from sdist
     actual_wheels = cibuildwheel_from_sdist_run(

@@ -188,7 +188,7 @@ def build_in_container(
         log.step("Running before_all...")
 
         env = container.get_environment()
-        env["PATH"] = f'/opt/python/cp39-cp39/bin:{env["PATH"]}'
+        env["PATH"] = f"/opt/python/cp39-cp39/bin:{env['PATH']}"
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
         env["PIP_ROOT_USER_ACTION"] = "ignore"
         env = before_all_options.environment.as_dictionary(
@@ -230,7 +230,7 @@ def build_in_container(
 
         # put this config's python top of the list
         python_bin = config.path / "bin"
-        env["PATH"] = f'{python_bin}:{env["PATH"]}'
+        env["PATH"] = f"{python_bin}:{env['PATH']}"
 
         env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
 
