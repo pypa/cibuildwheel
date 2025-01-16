@@ -284,7 +284,11 @@ List of builds to build and skip. Each build has an identifier like `cp38-manyli
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
 
-When setting the options, you can use shell-style globbing syntax, as per [fnmatch](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [bracex](https://pypi.org/project/bracex/). All the build identifiers supported by cibuildwheel are shown below:
+When setting the options, you can use shell-style globbing syntax, as per [fnmatch](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [bracex](https://pypi.org/project/bracex/).
+
+Separate multiple selectors with a space, e.g. `cp36-macosx_x86_64 pp*`.
+
+All the build identifiers supported by cibuildwheel are shown below:
 
 <div class="build-id-table-marker"></div>
 
@@ -361,8 +365,6 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for
     CIBW_SKIP: pp*
     ```
 
-    Separate multiple selectors with a space.
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -427,6 +429,7 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for
 > Change the architectures built on your machine by default.
 
 A list of architectures to build.
+Separate multiple architectures with a space.
 
 On macOS, this option can be used to [cross-compile](faq.md#cross-compiling)
 between `x86_64`, `universal2` and `arm64`.
@@ -485,8 +488,6 @@ This option can also be set using the [command-line option](#command-line)
     # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
     CIBW_ARCHS_LINUX: "auto aarch64"
     ```
-
-    Separate multiple archs with a space.
 
 !!! tab examples "pyproject.toml"
 
@@ -826,8 +827,6 @@ Platform-specific environment variables are also available:<br/>
     CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
     ```
 
-    Separate multiple values with a space.
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -894,8 +893,6 @@ To specify more than one environment variable, separate the variable names by sp
     # Set two flags variables
     CIBW_ENVIRONMENT_PASS_LINUX: BUILD_TIME SAMPLE_TEXT
     ```
-
-    Separate multiple values with a space.
 
 !!! tab examples "pyproject.toml"
 
@@ -1630,6 +1627,9 @@ tests. This can be used to avoid having to redefine test dependencies in
 `CIBW_TEST_REQUIRES` if they are already defined in `pyproject.toml`,
 `setup.cfg` or `setup.py`.
 
+Separate multiple items with a comma, e.g. `bar,baz,quux`,
+just like you would when installing extras with `pip install foo[bar,baz,quux]`.
+
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX` | `CIBW_TEST_EXTRAS_PYODIDE`
 
@@ -1641,8 +1641,6 @@ Platform-specific environment variables are also available:<br/>
     # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
     CIBW_TEST_EXTRAS: "test,qt"
     ```
-
-    Separate multiple items with a comma.
 
 !!! tab examples "pyproject.toml"
 
