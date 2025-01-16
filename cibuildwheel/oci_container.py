@@ -16,9 +16,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, Literal
+from typing import IO, Literal, Self, assert_never
 
-from ._compat.typing import Self, assert_never
 from .errors import OCIEngineTooOldError
 from .logger import log
 from .typing import PathOrStr, PopenBytes
@@ -489,7 +488,7 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return typing.cast(Dict[str, str], env)
+        return typing.cast(dict[str, str], env)
 
     def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output

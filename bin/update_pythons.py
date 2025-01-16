@@ -5,9 +5,10 @@ from __future__ import annotations
 import copy
 import difflib
 import logging
+import tomllib
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
-from typing import Any, Final, Literal, TypedDict, Union
+from typing import Any, Final, Literal, TypedDict
 
 import click
 import requests
@@ -17,7 +18,6 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel._compat import tomllib
 from cibuildwheel.extra import dump_python_configurations
 
 log = logging.getLogger("cibw")
@@ -50,7 +50,7 @@ class ConfigMacOS(TypedDict):
     url: str
 
 
-AnyConfig = Union[ConfigWinCP, ConfigWinPP, ConfigMacOS]
+AnyConfig = ConfigWinCP | ConfigWinPP | ConfigMacOS
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to

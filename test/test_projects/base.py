@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any
 
 import jinja2
 
-FilesDict = Dict[str, Union[str, jinja2.Template]]
-TemplateContext = Dict[str, Any]
+FilesDict = dict[str, str | jinja2.Template]
+TemplateContext = dict[str, Any]
 
 
 class TestProject:
