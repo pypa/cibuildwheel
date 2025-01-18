@@ -27,8 +27,8 @@ jobs:
       id: generate-token
       if: github.ref == 'refs/heads/main' && github.repository == 'pypa/cibuildwheel'
       with:
-        app_id: ${{ secrets.CIBUILDWHEEL_BOT_APP_ID }}
-        private_key: ${{ secrets.CIBUILDWHEEL_BOT_APP_PRIVATE_KEY }}
+        app-id: ${{ secrets.CIBUILDWHEEL_BOT_APP_ID }}
+        private-key: ${{ secrets.CIBUILDWHEEL_BOT_APP_PRIVATE_KEY }}
 
     - uses: actions/checkout@v4
 
