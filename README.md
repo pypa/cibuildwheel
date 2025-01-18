@@ -59,7 +59,7 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅¹       | ✅        | ✅²         |
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         |
 | Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             |
 | AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |
@@ -88,7 +88,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
