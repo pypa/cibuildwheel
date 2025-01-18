@@ -119,11 +119,6 @@ properties:
     description: Set environment variables on the host to pass-through to the container
       during the build.
     type: string_array
-  free-threaded-support:
-    type: boolean
-    default: false
-    description: The project supports free-threaded builds of Python (PEP703)
-    deprecated: Use the `enable` option instead.
   manylinux-aarch64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
@@ -277,7 +272,6 @@ non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properti
 del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["test-skip"]
-del non_global_options["free-threaded-support"]
 del non_global_options["enable"]
 
 overrides["items"]["properties"]["select"]["oneOf"] = string_array

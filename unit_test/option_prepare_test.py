@@ -14,20 +14,8 @@ from cibuildwheel import linux, util
 from cibuildwheel.__main__ import main
 from cibuildwheel.oci_container import OCIPlatform
 
-ALL_IDS = {
-    "cp36",
-    "cp37",
-    "cp38",
-    "cp39",
-    "cp310",
-    "cp311",
-    "cp312",
-    "cp313",
-    "pp37",
-    "pp38",
-    "pp39",
-    "pp310",
-}
+DEFAULT_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
+ALL_IDS = DEFAULT_IDS | {"cp313t", "pp37", "pp38", "pp39", "pp310"}
 
 
 @pytest.fixture
@@ -77,7 +65,7 @@ def test_build_default_launches(monkeypatch):
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-manylinux_x86_64" for x in ALL_IDS}
+    assert identifiers == {f"{x}-manylinux_x86_64" for x in DEFAULT_IDS}
 
     kwargs = build_in_container.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_i686" in kwargs["container"]["image"]
@@ -85,7 +73,7 @@ def test_build_default_launches(monkeypatch):
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
+    assert identifiers == {f"{x}-manylinux_i686" for x in DEFAULT_IDS}
 
     kwargs = build_in_container.call_args_list[2][1]
     assert "quay.io/pypa/musllinux_1_2_x86_64" in kwargs["container"]["image"]
@@ -93,9 +81,7 @@ def test_build_default_launches(monkeypatch):
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {
-        f"{x}-musllinux_x86_64" for x in ALL_IDS for x in ALL_IDS if "pp" not in x
-    }
+    assert identifiers == {f"{x}-musllinux_x86_64" for x in DEFAULT_IDS}
 
     kwargs = build_in_container.call_args_list[3][1]
     assert "quay.io/pypa/musllinux_1_2_i686" in kwargs["container"]["image"]
@@ -103,7 +89,7 @@ def test_build_default_launches(monkeypatch):
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x}
+    assert identifiers == {f"{x}-musllinux_i686" for x in DEFAULT_IDS}
 
 
 @pytest.mark.usefixtures("mock_build_container")
@@ -117,6 +103,7 @@ def test_build_with_override_launches(monkeypatch, tmp_path):
 [tool.cibuildwheel]
 manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
+enable = ["pypy", "cpython-freethreading"]
 
 # Before Python 3.10, use manylinux2014, musllinux_1_1
 [[tool.cibuildwheel.overrides]]
@@ -158,7 +145,7 @@ before-all = "true"
     assert identifiers == {
         f"{x}-manylinux_x86_64"
         for x in ALL_IDS
-        - {"cp36", "cp310", "cp311", "cp312", "cp313", "pp37", "pp38", "pp39", "pp310"}
+        - {"cp36", "cp310", "cp311", "cp312", "cp313", "cp313t", "pp37", "pp38", "pp39", "pp310"}
     }
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
@@ -169,7 +156,7 @@ before-all = "true"
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
         f"{x}-manylinux_x86_64"
-        for x in ["cp310", "cp311", "cp312", "cp313", "pp37", "pp38", "pp39", "pp310"]
+        for x in ["cp310", "cp311", "cp312", "cp313", "cp313t", "pp37", "pp38", "pp39", "pp310"]
     }
 
     kwargs = build_in_container.call_args_list[3][1]

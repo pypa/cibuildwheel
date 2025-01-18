@@ -30,6 +30,7 @@ from cibuildwheel.util import (
     CIBW_CACHE_PATH,
     BuildSelector,
     CIProvider,
+    EnableGroup,
     Unbuffered,
     detect_ci_provider,
     fix_ansi_codes_for_github_actions,
@@ -100,6 +101,17 @@ def main_inner(global_options: GlobalOptions) -> None:
         """,
     )
 
+    enable_groups_str = ", ".join(g.value for g in EnableGroup)
+    parser.add_argument(
+        "--enable",
+        action="append",
+        default=[],
+        metavar="GROUP",
+        help=f"""
+            Enable an additional category of builds. Use multiple times to select multiple groups. Choices: {enable_groups_str}.
+        """,
+    )
+
     parser.add_argument(
         "--only",
         default=None,
@@ -154,12 +166,6 @@ def main_inner(global_options: GlobalOptions) -> None:
         "--allow-empty",
         action="store_true",
         help="Do not report an error code if the build does not match any wheels.",
-    )
-
-    parser.add_argument(
-        "--prerelease-pythons",
-        action="store_true",
-        help="Enable pre-release Python versions if available.",
     )
 
     parser.add_argument(

@@ -29,10 +29,9 @@ from .util import (
     BuildFrontendConfig,
     BuildSelector,
     DependencyConstraints,
-    EnableGroups,
+    EnableGroup,
     TestSelector,
     format_safe,
-    read_python_configs,
     resources_dir,
     selector_matches,
     strtobool,
@@ -50,8 +49,8 @@ class CommandLineArguments:
     package_dir: Path
     print_build_identifiers: bool
     allow_empty: bool
-    prerelease_pythons: bool
     debug_traceback: bool
+    enable: list[str]
 
     @staticmethod
     def defaults() -> CommandLineArguments:
@@ -63,9 +62,9 @@ class CommandLineArguments:
             config_file="",
             output_dir=Path("wheelhouse"),
             package_dir=Path("."),
-            prerelease_pythons=False,
             print_build_identifiers=False,
             debug_traceback=False,
+            enable=[],
         )
 
 
@@ -618,28 +617,13 @@ class Options:
         enable_groups = self.reader.get(
             "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
         )
-        enable = {EnableGroups(group) for group in enable_groups.split()}
-
-        free_threaded_support = strtobool(
-            self.reader.get("free-threaded-support", env_plat=False, ignore_empty=True)
-        )
-
-        prerelease_pythons = args.prerelease_pythons or strtobool(
-            self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
-        )
-
-        if free_threaded_support or prerelease_pythons:
-            msg = (
-                "free-threaded-support and prerelease-pythons should be specified by enable instead"
-            )
-            if enable:
-                raise OptionsReaderError(msg)
-            log.warning(msg)
-
-        if free_threaded_support:
-            enable.add(EnableGroups.CPythonFreeThreading)
-        if prerelease_pythons:
-            enable.add(EnableGroups.CPythonPrerelease)
+        try:
+            enable = {EnableGroup(group) for group in enable_groups.split()}
+            for command_line_group in args.enable:
+                enable.add(EnableGroup(command_line_group))
+        except ValueError as e:
+            msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
+            raise errors.ConfigurationError(msg) from e
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
@@ -656,29 +640,15 @@ class Options:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
-            enable = set(EnableGroups)
+            enable = set(EnableGroup)
 
         build_selector = BuildSelector(
             build_config=build_config,
             skip_config=skip_config,
             requires_python=requires_python,
-            enable=frozenset(
-                enable | {EnableGroups.PyPy}
-            ),  # For backwards compatibility, we are adding PyPy for now
+            enable=frozenset(enable),
         )
         test_selector = TestSelector(skip_config=test_skip)
-
-        all_configs = read_python_configs(self.platform)
-        all_pypy_ids = {
-            config["identifier"] for config in all_configs if config["identifier"].startswith("pp")
-        }
-        if (
-            not self._defaults
-            and EnableGroups.PyPy not in enable
-            and any(build_selector(build_id) for build_id in all_pypy_ids)
-        ):
-            msg = "PyPy builds will be disabled by default in version 3. Enabling PyPy builds should be specified by enable"
-            log.warning(msg)
 
         return GlobalOptions(
             package_dir=package_dir,
