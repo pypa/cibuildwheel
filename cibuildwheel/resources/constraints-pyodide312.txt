@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 annotated-types==0.7.0
     # via pydantic
-anyio==4.7.0
+anyio==4.8.0
     # via httpx
 auditwheel-emscripten==0.0.16
     # via pyodide-build
@@ -19,7 +19,7 @@ charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via typer
-cmake==3.31.2
+cmake==3.31.4
     # via pyodide-build
 distlib==0.3.9
     # via virtualenv
@@ -52,13 +52,13 @@ pip==24.3.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.6
     # via virtualenv
-pydantic==2.10.4
+pydantic==2.10.5
     # via
     #   pyodide-build
     #   pyodide-lock
 pydantic-core==2.27.2
     # via pydantic
-pygments==2.18.0
+pygments==2.19.1
     # via rich
 pyodide-build==0.29.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
@@ -79,7 +79,7 @@ rich==13.9.4
     #   pyodide-build
     #   pyodide-cli
     #   typer
-ruamel-yaml==0.18.7
+ruamel-yaml==0.18.10
     # via pyodide-build
 ruamel-yaml-clib==0.2.12
     # via ruamel-yaml
@@ -102,7 +102,7 @@ unearth==0.17.2
     # via pyodide-build
 urllib3==2.3.0
     # via requests
-virtualenv==20.28.0
+virtualenv==20.29.1
     # via
     #   build
     #   pyodide-build
