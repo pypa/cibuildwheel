@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel import linux, macos, util, windows
+from cibuildwheel import linux, macos, pyodide, util, windows
 
 
 class ArgsInterceptor:
@@ -42,6 +42,7 @@ def mock_protection(monkeypatch):
     monkeypatch.setattr(windows, "build", fail_on_call)
     monkeypatch.setattr(linux, "build", fail_on_call)
     monkeypatch.setattr(macos, "build", fail_on_call)
+    monkeypatch.setattr(pyodide, "build", fail_on_call)
 
     monkeypatch.setattr(Path, "mkdir", ignore_call)
 
@@ -88,6 +89,7 @@ def intercepted_build_args(monkeypatch):
     monkeypatch.setattr(linux, "build", intercepted)
     monkeypatch.setattr(macos, "build", intercepted)
     monkeypatch.setattr(windows, "build", intercepted)
+    monkeypatch.setattr(pyodide, "build", intercepted)
 
     yield intercepted
 

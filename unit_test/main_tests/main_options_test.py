@@ -10,7 +10,7 @@ import pytest
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
-from cibuildwheel.util import BuildSelector, resources_dir, split_config_settings
+from cibuildwheel.util import BuildSelector, EnableGroup, resources_dir, split_config_settings
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -126,7 +126,7 @@ def get_default_repair_command(platform: str) -> str:
         return "auditwheel repair -w {dest_dir} {wheel}"
     elif platform == "macos":
         return "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-    elif platform == "windows":
+    elif platform == "windows" or platform == "pyodide":
         return ""
     else:
         msg = f"Unknown platform: {platform!r}"
@@ -366,6 +366,45 @@ def test_debug_traceback(monkeypatch, method, capfd):
         assert "Traceback (most recent call last)" not in err
     else:
         assert "Traceback (most recent call last)" in err
+
+
+@pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
+def test_enable(method, intercepted_build_args, monkeypatch):
+    if method == "command_line":
+        monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "pypy"])
+    elif method == "env_var":
+        monkeypatch.setenv("CIBW_ENABLE", "pypy")
+
+    main()
+
+    enable_groups = intercepted_build_args.args[0].globals.build_selector.enable
+
+    if method == "unset":
+        assert enable_groups == frozenset()
+    else:
+        assert enable_groups == frozenset([EnableGroup.PyPy])
+
+
+def test_enable_arg_inherits(intercepted_build_args, monkeypatch):
+    monkeypatch.setenv("CIBW_ENABLE", "pypy")
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "cpython-prerelease"])
+
+    main()
+
+    enable_groups = intercepted_build_args.args[0].globals.build_selector.enable
+
+    assert enable_groups == frozenset((EnableGroup.PyPy, EnableGroup.CPythonPrerelease))
+
+
+def test_enable_arg_error_message(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "invalid_group"])
+
+    with pytest.raises(SystemExit) as ex:
+        main()
+    assert ex.value.code == 2
+
+    _, err = capsys.readouterr()
+    assert "Valid group names are:" in err
 
 
 def test_defaults(platform, intercepted_build_args):

@@ -44,7 +44,7 @@ from .typing import PathOrStr, PlatformName
 
 __all__ = [
     "MANYLINUX_ARCHS",
-    "EnableGroups",
+    "EnableGroup",
     "call",
     "combine_constraints",
     "find_compatible_wheel",
@@ -67,7 +67,7 @@ install_certifi_script: Final[Path] = resources_dir / "install_certifi.py"
 free_thread_enable_313: Final[Path] = resources_dir / "free-threaded-enable-313.xml"
 
 
-class EnableGroups(enum.Enum):
+class EnableGroup(enum.Enum):
     """
     Groups of build selectors that are not enabled by default.
     """
@@ -278,7 +278,7 @@ class BuildSelector:
     build_config: str
     skip_config: str
     requires_python: SpecifierSet | None = None
-    enable: frozenset[EnableGroups] = frozenset()
+    enable: frozenset[EnableGroup] = frozenset()
 
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
@@ -293,15 +293,15 @@ class BuildSelector:
                 return False
 
         # filter out groups that are not enabled
-        if EnableGroups.CPythonFreeThreading not in self.enable and selector_matches(
+        if EnableGroup.CPythonFreeThreading not in self.enable and selector_matches(
             "cp3??t-*", build_id
         ):
             return False
-        if EnableGroups.CPythonPrerelease not in self.enable and selector_matches(
+        if EnableGroup.CPythonPrerelease not in self.enable and selector_matches(
             "cp314*", build_id
         ):
             return False
-        if EnableGroups.PyPy not in self.enable and selector_matches("pp*", build_id):
+        if EnableGroup.PyPy not in self.enable and selector_matches("pp*", build_id):
             return False
 
         should_build = selector_matches(self.build_config, build_id)

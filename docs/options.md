@@ -567,17 +567,14 @@ values are:
 
 
 - `cpython-prerelease`: Enables beta versions of Pythons if any are available
-  (May-July, approximately). For backward compatibility, `CIBW_PRERELEASE_PYTHONS`
-  is also supported until cibuildwheel 3.
+  (May-July, approximately).
 - `cpython-freethreading`: [PEP 703](https://www.python.org/dev/peps/pep-0703)
   introduced variants of CPython that can be built without the Global
   Interpreter Lock (GIL).  Those variants are also known as free-threaded /
   no-gil. This will enable building these wheels while they are experimental.
   The build identifiers for those variants have a `t` suffix in their
-  `python_tag` (e.g. `cp313t-manylinux_x86_64`).  For backward compatibility,
-  `CIBW_FREE_THREADED_SUPPORT` is also supported until cibuildwheel 3.
-- `pypy`: Enable PyPy. For backward compatibility, this is always enabled until
-  cibuildwheel 3 is released.
+  `python_tag` (e.g. `cp313t-manylinux_x86_64`).
+- `pypy`: Enable PyPy.
 
 
 !!! caution
@@ -591,7 +588,7 @@ values are:
 !!! note
     Free threading is experimental: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)
 
-Default: empty (`pypy` is always injected).
+Default: empty.
 
 This option doesn't support overrides or platform specific variants; it is
 intended as a way to acknowledge that a project is aware that these extra

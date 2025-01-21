@@ -81,8 +81,7 @@ jobs:
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: 'build[uv]'
-        CIBW_FREE_THREADED_SUPPORT: 1
-        CIBW_PRERELEASE_PYTHONS: 1
+        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./

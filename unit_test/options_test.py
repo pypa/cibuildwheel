@@ -15,7 +15,7 @@ from cibuildwheel.options import (
     Options,
     _get_pinned_container_images,
 )
-from cibuildwheel.util import EnableGroups
+from cibuildwheel.util import EnableGroup
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -429,24 +429,32 @@ def test_override_inherit_environment_with_references(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("toml_assignment", "env", "expected_result"),
+    ("toml_assignment", "env", "enable_args", "expected_result"),
     [
-        ("", {}, False),
-        ("free-threaded-support = true", {}, True),
-        ("free-threaded-support = false", {}, False),
-        ("", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
-        ("", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
-        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
-        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
-        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": ""}, True),
-        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": ""}, False),
+        ("", {}, [], False),
+        ("enable = ['cpython-freethreading']", {}, [], True),
+        ("enable = []", {}, [], False),
+        ("", {}, ["cpython-freethreading"], True),
+        ("", {}, ["cpython-freethreading", "pypy"], True),
+        ("", {"CIBW_ENABLE": "pypy"}, [], False),
+        ("", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
+        ("enable = []", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
+        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": "pypy"}, [], True),
+        ("enable = ['cpython-freethreading']", {}, ["pypy"], True),
+        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": ""}, [], True),
+        ("enable = []", {"CIBW_ENABLE": ""}, [], False),
     ],
 )
 def test_free_threaded_support(
-    tmp_path: Path, toml_assignment: str, env: dict[str, str], expected_result: bool
+    tmp_path: Path,
+    toml_assignment: str,
+    env: dict[str, str],
+    enable_args: list[str],
+    expected_result: bool,
 ) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
+    args.enable = enable_args
 
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
@@ -459,6 +467,6 @@ def test_free_threaded_support(
     )
     options = Options(platform="linux", command_line_arguments=args, env=env)
     if expected_result:
-        assert EnableGroups.CPythonFreeThreading in options.globals.build_selector.enable
+        assert EnableGroup.CPythonFreeThreading in options.globals.build_selector.enable
     else:
-        assert EnableGroups.CPythonFreeThreading not in options.globals.build_selector.enable
+        assert EnableGroup.CPythonFreeThreading not in options.globals.build_selector.enable
