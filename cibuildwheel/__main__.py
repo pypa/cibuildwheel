@@ -8,12 +8,13 @@ import shutil
 import sys
 import tarfile
 import textwrap
+import time
 import traceback
 import typing
-from collections.abc import Iterable, Sequence, Set
+from collections.abc import Generator, Iterable, Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Protocol, assert_never
+from typing import Any, Protocol, TextIO, assert_never
 
 import cibuildwheel
 import cibuildwheel.linux
@@ -23,24 +24,41 @@ import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
+from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
+from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.typing import PLATFORMS, GenericPythonConfiguration, PlatformName
-from cibuildwheel.util import (
-    CIBW_CACHE_PATH,
-    BuildSelector,
-    CIProvider,
-    EnableGroup,
-    Unbuffered,
-    detect_ci_provider,
-    fix_ansi_codes_for_github_actions,
-    strtobool,
-)
+from cibuildwheel.util.file import CIBW_CACHE_PATH
+from cibuildwheel.util.helpers import strtobool
 
 
 @dataclasses.dataclass
 class GlobalOptions:
     print_traceback_on_error: bool = True  # decides what happens when errors are hit.
+
+
+@dataclasses.dataclass(frozen=True)
+class FileReport:
+    name: str
+    size: str
+
+
+# Taken from https://stackoverflow.com/a/107717
+class Unbuffered:
+    def __init__(self, stream: TextIO) -> None:
+        self.stream = stream
+
+    def write(self, data: str) -> None:
+        self.stream.write(data)
+        self.stream.flush()
+
+    def writelines(self, data: Iterable[str]) -> None:
+        self.stream.writelines(data)
+        self.stream.flush()
+
+    def __getattr__(self, attr: str) -> Any:
+        return getattr(self.stream, attr)
 
 
 def main() -> None:
@@ -288,6 +306,42 @@ def get_platform_module(platform: PlatformName) -> PlatformModule:
     assert_never(platform)
 
 
+@contextlib.contextmanager
+def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
+    """
+    Prints the new items in a directory upon exiting. The message to display
+    can include {n} for number of wheels, {s} for total number of seconds,
+    and/or {m} for total number of minutes. Does not print anything if this
+    exits via exception.
+    """
+
+    start_time = time.time()
+    existing_contents = set(output_dir.iterdir())
+    yield
+    final_contents = set(output_dir.iterdir())
+
+    new_contents = [
+        FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
+        for wheel in final_contents - existing_contents
+    ]
+
+    if not new_contents:
+        return
+
+    max_name_len = max(len(f.name) for f in new_contents)
+    max_size_len = max(len(f.size) for f in new_contents)
+    n = len(new_contents)
+    s = time.time() - start_time
+    m = s / 60
+    print(
+        msg.format(n=n, s=s, m=m),
+        *sorted(
+            f"  {f.name:<{max_name_len}s}   {f.size:>{max_size_len}s} kB" for f in new_contents
+        ),
+        sep="\n",
+    )
+
+
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
     if platform == "pyodide" and sys.platform == "win32":
@@ -350,9 +404,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
-        with cibuildwheel.util.print_new_wheels(
-            "\n{n} wheels produced in {m:.0f} minutes:", output_dir
-        ):
+        with print_new_wheels("\n{n} wheels produced in {m:.0f} minutes:", output_dir):
             platform_module.build(options, tmp_path)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing

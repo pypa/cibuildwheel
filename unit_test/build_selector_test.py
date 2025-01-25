@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from packaging.specifiers import SpecifierSet
 
-from cibuildwheel.util import BuildSelector, EnableGroup
+from cibuildwheel.selector import BuildSelector, EnableGroup
 
 
 def test_build():
@@ -162,7 +162,7 @@ def test_build_free_threaded_python():
 
 def test_testing_selector():
     # local import to avoid pytest trying to collect this as a test class!
-    from cibuildwheel.util import TestSelector
+    from cibuildwheel.selector import TestSelector
 
     test_selector = TestSelector(skip_config="cp36-*")
 

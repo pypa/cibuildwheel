@@ -19,34 +19,29 @@ from packaging.version import Version
 
 from . import errors
 from .architecture import Architecture
+from .ci import detect_ci_provider
 from .environment import ParsedEnvironment
-from .logger import log
-from .options import Options
-from .typing import PathOrStr
-from .util import (
-    CIBW_CACHE_PATH,
+from .frontend import (
     BuildFrontendConfig,
     BuildFrontendName,
-    BuildSelector,
-    call,
-    combine_constraints,
-    copy_test_sources,
-    detect_ci_provider,
-    download,
-    find_compatible_wheel,
-    find_uv,
-    free_thread_enable_313,
     get_build_verbosity_extra_flags,
-    get_pip_version,
-    install_certifi_script,
-    move_file,
-    prepare_command,
-    read_python_configs,
-    shell,
     split_config_settings,
-    unwrap,
-    virtualenv,
 )
+from .logger import log
+from .options import Options
+from .selector import BuildSelector
+from .typing import PathOrStr
+from .util import resources
+from .util.cmd import call, shell
+from .util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    move_file,
+)
+from .util.helpers import prepare_command, unwrap
+from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from .venv import find_uv, virtualenv
 
 
 @functools.cache
@@ -99,7 +94,7 @@ class PythonConfiguration:
 def get_python_configurations(
     build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[PythonConfiguration]:
-    full_python_configs = read_python_configs("macos")
+    full_python_configs = resources.read_python_configs("macos")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
@@ -167,7 +162,7 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
             args = []
             if version.startswith("3.13"):
                 # Python 3.13 is the first version to have a free-threading option
-                args += ["-applyChoiceChangesXML", str(free_thread_enable_313.resolve())]
+                args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_313.resolve())]
             call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
@@ -175,9 +170,13 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
 
             if free_threading:
                 call(installation_path / f"bin/python{version}t", "-m", "ensurepip", env=env)
-                call(installation_path / f"bin/python{version}t", install_certifi_script, env=env)
+                call(
+                    installation_path / f"bin/python{version}t",
+                    resources.INSTALL_CERTIFI_SCRIPT,
+                    env=env,
+                )
             else:
-                call(installation_path / "bin/python3", install_certifi_script, env=env)
+                call(installation_path / "bin/python3", resources.INSTALL_CERTIFI_SCRIPT, env=env)
 
     return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
@@ -477,6 +476,9 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_options.config_settings, build_frontend.name
                 )
                 extra_flags += build_frontend.args
+                extra_flags += get_build_verbosity_extra_flags(
+                    build_options.build_verbosity, build_frontend.name
+                )
 
                 build_env = env.copy()
                 if not use_uv:
@@ -490,7 +492,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
 
                 if build_frontend.name == "pip":
-                    extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
                     call(
@@ -505,9 +506,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=build_env,
                     )
                 elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                    if not 0 <= build_options.build_verbosity < 2:
-                        msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
-                        log.warning(msg)
                     if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                         extra_flags.append("--installer=uv")
                     call(

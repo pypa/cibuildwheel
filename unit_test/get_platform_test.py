@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 import setuptools._distutils.util
 
+from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import FatalError
-from cibuildwheel.util import CIProvider, detect_ci_provider
 from cibuildwheel.windows import PythonConfiguration, setup_setuptools_cross_compile
 
 # monkeypatching os.name is too flaky. E.g. It works on my machine, but fails in pipeline

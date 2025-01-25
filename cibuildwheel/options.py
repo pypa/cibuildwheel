@@ -12,30 +12,42 @@ import textwrap
 import tomllib
 from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Literal, assert_never
+from typing import Any, Final, Literal, assert_never
 
 from packaging.specifiers import SpecifierSet
 
 from . import errors
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from .frontend import BuildFrontendConfig
 from .logger import log
 from .oci_container import OCIContainerEngineConfig
 from .projectfiles import get_requires_python_str, resolve_dependency_groups
+from .selector import BuildSelector, EnableGroup, TestSelector, selector_matches
 from .typing import PLATFORMS, PlatformName
-from .util import (
-    MANYLINUX_ARCHS,
-    MUSLLINUX_ARCHS,
-    BuildFrontendConfig,
-    BuildSelector,
-    DependencyConstraints,
-    EnableGroup,
-    TestSelector,
-    format_safe,
-    resources_dir,
-    selector_matches,
-    strtobool,
-    unwrap,
+from .util import resources
+from .util.helpers import format_safe, strtobool, unwrap
+from .util.packaging import DependencyConstraints
+
+MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
+    "x86_64",
+    "i686",
+    "pypy_x86_64",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+    "armv7l",
+    "pypy_aarch64",
+    "pypy_i686",
+)
+
+MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
+    "x86_64",
+    "i686",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+    "armv7l",
 )
 
 
@@ -395,8 +407,7 @@ class OptionsReader:
         self.disallow = disallow or {}
 
         # Open defaults.toml, loading both global and platform sections
-        defaults_path = resources_dir / "defaults.toml"
-        self.default_options, self.default_platform_options = self._load_file(defaults_path)
+        self.default_options, self.default_platform_options = self._load_file(resources.DEFAULTS)
 
         # Load the project config file
         config_options: dict[str, Any] = {}
@@ -962,10 +973,8 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
       'pypy_x86_64': {'manylinux2010': '...' }
       ... }
     """
-
-    pinned_images_file = resources_dir / "pinned_docker_images.cfg"
     all_pinned_images = configparser.ConfigParser()
-    all_pinned_images.read(pinned_images_file)
+    all_pinned_images.read(resources.PINNED_DOCKER_IMAGES)
     return all_pinned_images
 
 

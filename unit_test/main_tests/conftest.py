@@ -8,7 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel import linux, macos, pyodide, util, windows
+from cibuildwheel import __main__, linux, macos, pyodide, windows
+from cibuildwheel.util import file
 
 
 class ArgsInterceptor:
@@ -38,7 +39,7 @@ def mock_protection(monkeypatch):
         pass
 
     monkeypatch.setattr(subprocess, "Popen", fail_on_call)
-    monkeypatch.setattr(util, "download", fail_on_call)
+    monkeypatch.setattr(file, "download", fail_on_call)
     monkeypatch.setattr(windows, "build", fail_on_call)
     monkeypatch.setattr(linux, "build", fail_on_call)
     monkeypatch.setattr(macos, "build", fail_on_call)
@@ -58,7 +59,7 @@ def disable_print_wheels(monkeypatch):
     def empty_cm(*args, **kwargs):
         yield
 
-    monkeypatch.setattr(util, "print_new_wheels", empty_cm)
+    monkeypatch.setattr(__main__, "print_new_wheels", empty_cm)
 
 
 @pytest.fixture

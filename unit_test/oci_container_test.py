@@ -15,6 +15,7 @@ import pytest
 import tomli_w
 
 import cibuildwheel.oci_container
+from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.environment import EnvironmentAssignmentBash
 from cibuildwheel.errors import OCIEngineTooOldError
 from cibuildwheel.oci_container import (
@@ -23,7 +24,6 @@ from cibuildwheel.oci_container import (
     OCIPlatform,
     _check_engine_version,
 )
-from cibuildwheel.util import CIProvider, detect_ci_provider
 
 # Test utilities
 

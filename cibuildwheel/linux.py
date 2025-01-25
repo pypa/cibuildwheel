@@ -14,21 +14,16 @@ from packaging.version import Version
 
 from . import errors
 from .architecture import Architecture
+from .frontend import BuildFrontendConfig, get_build_verbosity_extra_flags, split_config_settings
 from .logger import log
 from .oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from .options import BuildOptions, Options
+from .selector import BuildSelector
 from .typing import PathOrStr
-from .util import (
-    BuildFrontendConfig,
-    BuildSelector,
-    copy_test_sources,
-    find_compatible_wheel,
-    get_build_verbosity_extra_flags,
-    prepare_command,
-    read_python_configs,
-    split_config_settings,
-    unwrap,
-)
+from .util import resources
+from .util.file import copy_test_sources
+from .util.helpers import prepare_command, unwrap
+from .util.packaging import find_compatible_wheel
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
@@ -63,7 +58,7 @@ def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
 ) -> list[PythonConfiguration]:
-    full_python_configs = read_python_configs("linux")
+    full_python_configs = resources.read_python_configs("linux")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
@@ -277,9 +272,11 @@ def build_in_container(
 
             extra_flags = split_config_settings(build_options.config_settings, build_frontend.name)
             extra_flags += build_frontend.args
+            extra_flags += get_build_verbosity_extra_flags(
+                build_options.build_verbosity, build_frontend.name
+            )
 
             if build_frontend.name == "pip":
-                extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                 container.call(
                     [
                         "python",
@@ -294,9 +291,6 @@ def build_in_container(
                     env=env,
                 )
             elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                if not 0 <= build_options.build_verbosity < 2:
-                    msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
-                    log.warning(msg)
                 if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                     extra_flags += ["--installer=uv"]
                 container.call(

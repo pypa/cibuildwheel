@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-import cibuildwheel.util
+from cibuildwheel.util import resources
 
 from . import test_projects, utils
 
@@ -69,7 +69,7 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
     build_environment = {}
     build_pattern = f"[cp]p{version_no_dot}-*"
     constraint_filename = f"constraints-python{version_no_dot}.txt"
-    constraint_file = cibuildwheel.util.resources_dir / constraint_filename
+    constraint_file = resources.PATH / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 
     build_environment["EXPECTED_PIP_VERSION"] = constraint_versions["pip"]
