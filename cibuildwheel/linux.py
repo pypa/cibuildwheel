@@ -14,7 +14,7 @@ from packaging.version import Version
 
 from . import errors
 from .architecture import Architecture
-from .frontend import BuildFrontendConfig, get_build_verbosity_extra_flags, split_config_settings
+from .frontend import BuildFrontendConfig, get_build_frontend_extra_flags
 from .logger import log
 from .oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from .options import BuildOptions, Options
@@ -270,10 +270,8 @@ def build_in_container(
             container.call(["rm", "-rf", built_wheel_dir])
             container.call(["mkdir", "-p", built_wheel_dir])
 
-            extra_flags = split_config_settings(build_options.config_settings, build_frontend.name)
-            extra_flags += build_frontend.args
-            extra_flags += get_build_verbosity_extra_flags(
-                build_options.build_verbosity, build_frontend.name
+            extra_flags = get_build_frontend_extra_flags(
+                build_frontend, build_options.build_verbosity, build_options.config_settings
             )
 
             if build_frontend.name == "pip":

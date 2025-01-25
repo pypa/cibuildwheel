@@ -37,7 +37,7 @@ class BuildFrontendConfig:
             return {"name": self.name, "args": repr(self.args)}
 
 
-def get_build_verbosity_extra_flags(level: int, frontend: BuildFrontendName) -> list[str]:
+def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
     if frontend == "pip":
         if level > 0:
             return ["-" + level * "v"]
@@ -49,7 +49,17 @@ def get_build_verbosity_extra_flags(level: int, frontend: BuildFrontendName) -> 
     return []
 
 
-def split_config_settings(config_settings: str, frontend: BuildFrontendName) -> list[str]:
+def _split_config_settings(config_settings: str, frontend: BuildFrontendName) -> list[str]:
     config_settings_list = shlex.split(config_settings)
     s = "s" if frontend == "pip" else ""
     return [f"--config-setting{s}={setting}" for setting in config_settings_list]
+
+
+def get_build_frontend_extra_flags(
+    build_frontend: BuildFrontendConfig, verbosity_level: int, config_settings: str
+) -> list[str]:
+    return [
+        *_split_config_settings(config_settings, build_frontend.name),
+        *build_frontend.args,
+        *_get_verbosity_flags(verbosity_level, build_frontend.name),
+    ]

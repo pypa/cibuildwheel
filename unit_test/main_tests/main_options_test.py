@@ -9,7 +9,7 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import split_config_settings
+from cibuildwheel.frontend import _split_config_settings
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
@@ -283,13 +283,13 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
 
     assert build_options.config_settings == config_settings
 
-    assert split_config_settings(config_settings, "build") == [
+    assert _split_config_settings(config_settings, "build") == [
         "--config-setting=setting=value",
         "--config-setting=setting=value2",
         "--config-setting=other=something else",
     ]
 
-    assert split_config_settings(config_settings, "pip") == [
+    assert _split_config_settings(config_settings, "pip") == [
         "--config-settings=setting=value",
         "--config-settings=setting=value2",
         "--config-settings=other=something else",

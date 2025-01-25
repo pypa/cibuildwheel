@@ -17,12 +17,7 @@ from packaging.version import Version
 from . import errors
 from .architecture import Architecture
 from .environment import ParsedEnvironment
-from .frontend import (
-    BuildFrontendConfig,
-    BuildFrontendName,
-    get_build_verbosity_extra_flags,
-    split_config_settings,
-)
+from .frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
 from .logger import log
 from .options import Options
 from .selector import BuildSelector
@@ -413,12 +408,8 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
 
-                extra_flags = split_config_settings(
-                    build_options.config_settings, build_frontend.name
-                )
-                extra_flags += build_frontend.args
-                extra_flags += get_build_verbosity_extra_flags(
-                    build_options.build_verbosity, build_frontend.name
+                extra_flags = get_build_frontend_extra_flags(
+                    build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
 
                 build_env = env.copy()
