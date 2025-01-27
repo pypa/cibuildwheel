@@ -6,7 +6,7 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.architecture import Architecture
-from cibuildwheel.util import EnableGroup
+from cibuildwheel.selector import EnableGroup
 
 from ..conftest import MOCK_PACKAGE_DIR
 

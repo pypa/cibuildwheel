@@ -17,31 +17,17 @@ from packaging.version import Version
 from . import errors
 from .architecture import Architecture
 from .environment import ParsedEnvironment
+from .frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
 from .logger import log
 from .options import Options
+from .selector import BuildSelector
 from .typing import PathOrStr
-from .util import (
-    CIBW_CACHE_PATH,
-    BuildFrontendConfig,
-    BuildFrontendName,
-    BuildSelector,
-    call,
-    combine_constraints,
-    copy_test_sources,
-    download,
-    extract_zip,
-    find_compatible_wheel,
-    find_uv,
-    get_build_verbosity_extra_flags,
-    get_pip_version,
-    move_file,
-    prepare_command,
-    read_python_configs,
-    shell,
-    split_config_settings,
-    unwrap,
-    virtualenv,
-)
+from .util import resources
+from .util.cmd import call, shell
+from .util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
+from .util.helpers import prepare_command, unwrap
+from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from .venv import find_uv, virtualenv
 
 
 def get_nuget_args(
@@ -80,7 +66,7 @@ def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
 ) -> list[PythonConfiguration]:
-    full_python_configs = read_python_configs("windows")
+    full_python_configs = resources.read_python_configs("windows")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
@@ -422,10 +408,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
 
-                extra_flags = split_config_settings(
-                    build_options.config_settings, build_frontend.name
+                extra_flags = get_build_frontend_extra_flags(
+                    build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
-                extra_flags += build_frontend.args
 
                 build_env = env.copy()
                 if not use_uv:
@@ -438,7 +423,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
                 if build_frontend.name == "pip":
-                    extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
                     call(
@@ -453,9 +437,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=build_env,
                     )
                 elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                    if not 0 <= build_options.build_verbosity < 2:
-                        msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
-                        log.warning(msg)
                     if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                         extra_flags.append("--installer=uv")
                     call(

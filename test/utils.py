@@ -18,7 +18,7 @@ from typing import Any, Final
 import pytest
 
 from cibuildwheel.architecture import Architecture
-from cibuildwheel.util import CIBW_CACHE_PATH
+from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))

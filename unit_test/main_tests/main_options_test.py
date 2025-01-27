@@ -9,8 +9,10 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
+from cibuildwheel.frontend import _split_config_settings
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
-from cibuildwheel.util import BuildSelector, EnableGroup, resources_dir, split_config_settings
+from cibuildwheel.selector import BuildSelector, EnableGroup
+from cibuildwheel.util import resources
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -281,13 +283,13 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
 
     assert build_options.config_settings == config_settings
 
-    assert split_config_settings(config_settings, "build") == [
+    assert _split_config_settings(config_settings, "build") == [
         "--config-setting=setting=value",
         "--config-setting=setting=value2",
         "--config-setting=other=something else",
     ]
 
-    assert split_config_settings(config_settings, "pip") == [
+    assert _split_config_settings(config_settings, "pip") == [
         "--config-settings=setting=value",
         "--config-settings=setting=value2",
         "--config-settings=other=something else",
@@ -411,8 +413,7 @@ def test_defaults(platform, intercepted_build_args):
     main()
 
     build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
-    defaults_config_path = resources_dir / "defaults.toml"
-    with defaults_config_path.open("rb") as f:
+    with resources.DEFAULTS.open("rb") as f:
         defaults_toml = tomllib.load(f)
 
     root_defaults = defaults_toml["tool"]["cibuildwheel"]

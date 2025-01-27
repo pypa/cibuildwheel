@@ -10,9 +10,10 @@ from unittest import mock
 
 import pytest
 
-from cibuildwheel import linux, util
+from cibuildwheel import linux
 from cibuildwheel.__main__ import main
 from cibuildwheel.oci_container import OCIPlatform
+from cibuildwheel.util import file
 
 DEFAULT_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
 ALL_IDS = DEFAULT_IDS | {"cp313t", "pp37", "pp38", "pp39", "pp310"}
@@ -39,13 +40,13 @@ def mock_build_container(monkeypatch):
 
     monkeypatch.setattr(subprocess, "Popen", fail_on_call)
     monkeypatch.setattr(subprocess, "run", ignore_call)
-    monkeypatch.setattr(util, "download", fail_on_call)
+    monkeypatch.setattr(file, "download", fail_on_call)
     monkeypatch.setattr("cibuildwheel.linux.OCIContainer", ignore_context_call)
 
     monkeypatch.setattr(
         "cibuildwheel.linux.build_in_container", mock.Mock(spec=linux.build_in_container)
     )
-    monkeypatch.setattr("cibuildwheel.util.print_new_wheels", ignore_context_call)
+    monkeypatch.setattr("cibuildwheel.__main__.print_new_wheels", ignore_context_call)
 
 
 @pytest.mark.usefixtures("mock_build_container", "fake_package_dir")

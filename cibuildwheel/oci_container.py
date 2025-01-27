@@ -18,17 +18,12 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Literal, Self, assert_never
 
+from .ci import CIProvider, detect_ci_provider
 from .errors import OCIEngineTooOldError
 from .logger import log
 from .typing import PathOrStr, PopenBytes
-from .util import (
-    CIProvider,
-    FlexibleVersion,
-    call,
-    detect_ci_provider,
-    parse_key_value_string,
-    strtobool,
-)
+from .util.cmd import call
+from .util.helpers import FlexibleVersion, parse_key_value_string, strtobool
 
 ContainerEngineName = Literal["docker", "podman"]
 

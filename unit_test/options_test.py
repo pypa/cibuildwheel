@@ -15,7 +15,7 @@ from cibuildwheel.options import (
     Options,
     _get_pinned_container_images,
 )
-from cibuildwheel.util import EnableGroup
+from cibuildwheel.selector import EnableGroup
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]

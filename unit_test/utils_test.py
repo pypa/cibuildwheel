@@ -7,15 +7,15 @@ from unittest.mock import Mock, call
 import pytest
 
 from cibuildwheel import errors
-from cibuildwheel.util import (
+from cibuildwheel.ci import fix_ansi_codes_for_github_actions
+from cibuildwheel.util.file import copy_test_sources
+from cibuildwheel.util.helpers import (
     FlexibleVersion,
-    copy_test_sources,
-    find_compatible_wheel,
-    fix_ansi_codes_for_github_actions,
     format_safe,
     parse_key_value_string,
     prepare_command,
 )
+from cibuildwheel.util.packaging import find_compatible_wheel
 
 
 def test_format_safe():

@@ -7,7 +7,7 @@ import sys
 import time
 from typing import IO, AnyStr, Final
 
-from .util import CIProvider, detect_ci_provider
+from .ci import CIProvider, detect_ci_provider
 
 FoldPattern = tuple[str, str]
 DEFAULT_FOLD_PATTERN: Final[FoldPattern] = ("{name}", "")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from cibuildwheel.util import print_new_wheels
+from cibuildwheel.__main__ import print_new_wheels
 
 
 def test_printout_wheels(tmp_path, capsys):

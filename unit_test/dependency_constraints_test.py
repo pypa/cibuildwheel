@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cibuildwheel.util import DependencyConstraints
+from cibuildwheel.util.packaging import DependencyConstraints
 
 
 def test_defaults():

@@ -6,7 +6,8 @@ import textwrap
 
 import pytest
 
-from cibuildwheel.util import CIBW_CACHE_PATH, CIProvider, detect_ci_provider
+from cibuildwheel.ci import CIProvider, detect_ci_provider
+from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 from . import test_projects, utils
 

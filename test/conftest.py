@@ -8,8 +8,9 @@ import pytest
 from filelock import FileLock
 
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.ci import detect_ci_provider
 from cibuildwheel.options import CommandLineArguments, Options
-from cibuildwheel.util import detect_ci_provider, find_uv
+from cibuildwheel.venv import find_uv
 
 from .utils import EMULATED_ARCHS, platform
 
