@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import time
 from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
 
@@ -138,14 +139,28 @@ def test_cwd(container_engine):
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
-@pytest.mark.skipif(
-    pm == "s390x" and detect_ci_provider() == CIProvider.travis_ci,
-    reason="test is flaky on this platform, see https://github.com/pypa/cibuildwheel/pull/1961#issuecomment-2334678966",
-)
 def test_container_removed(container_engine):
+    # test is flaky on some platforms, implement retry for 5 second
+    timeout = 50  # * 100 ms = 5s
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
+        assert container.name is not None
+        container_name = container.name
+        for _ in range(timeout):
+            docker_containers_listing = subprocess.run(
+                f"{container.engine.name} container ls",
+                shell=True,
+                check=True,
+                stdout=subprocess.PIPE,
+                text=True,
+            ).stdout
+            if container_name in docker_containers_listing:
+                break
+            time.sleep(0.1)
+        assert container_name in docker_containers_listing
+
+    for _ in range(timeout):
         docker_containers_listing = subprocess.run(
             f"{container.engine.name} container ls",
             shell=True,
@@ -153,18 +168,10 @@ def test_container_removed(container_engine):
             stdout=subprocess.PIPE,
             text=True,
         ).stdout
-        assert container.name is not None
-        assert container.name in docker_containers_listing
-        old_container_name = container.name
-
-    docker_containers_listing = subprocess.run(
-        f"{container.engine.name} container ls",
-        shell=True,
-        check=True,
-        stdout=subprocess.PIPE,
-        text=True,
-    ).stdout
-    assert old_container_name not in docker_containers_listing
+        if container_name not in docker_containers_listing:
+            break
+        time.sleep(0.1)
+    assert container_name not in docker_containers_listing
 
 
 def test_large_environment(container_engine):
