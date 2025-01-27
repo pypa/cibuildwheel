@@ -193,7 +193,7 @@ class OCIContainer:
         if oci_platform is None:
             oci_platform = self.oci_platform
 
-        # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
+        # we need '--pull=always' otherwise some images with the wrong platform get reused (e.g. 386 image for amd64)
         # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
         pull = "always"
         try:
