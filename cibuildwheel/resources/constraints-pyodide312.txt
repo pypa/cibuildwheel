@@ -23,7 +23,7 @@ cmake==3.31.4
     # via pyodide-build
 distlib==0.3.9
     # via virtualenv
-filelock==3.16.1
+filelock==3.17.0
     # via virtualenv
 h11==0.14.0
     # via httpcore
@@ -48,11 +48,11 @@ packaging==24.2
     #   build
     #   pyodide-build
     #   unearth
-pip==24.3.1
+pip==25.0
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.6
     # via virtualenv
-pydantic==2.10.5
+pydantic==2.10.6
     # via
     #   pyodide-build
     #   pyodide-lock
