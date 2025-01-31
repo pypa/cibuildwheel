@@ -66,9 +66,9 @@ class DependencyConstraints:
             constraint_file.write_text("\n".join(self.packages))
             return constraint_file
 
-        assert (
-            self.base_file_path is not None
-        ), "DependencyConstraints should have either a file or packages"
+        assert self.base_file_path is not None, (
+            "DependencyConstraints should have either a file or packages"
+        )
 
         version_parts = version.split(".")
 
@@ -89,9 +89,9 @@ class DependencyConstraints:
         elif self.packages:
             return {"packages": " ".join(shlex.quote(p) for p in self.packages)}
         else:
-            assert (
-                self.base_file_path is not None
-            ), "DependencyConstraints should have either a file or packages"
+            assert self.base_file_path is not None, (
+                "DependencyConstraints should have either a file or packages"
+            )
             return self.base_file_path.name
 
 
