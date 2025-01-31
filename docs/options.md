@@ -1406,6 +1406,10 @@ Platform-specific environment variables are also available:<br/>
 
     # Choose a specific pyodide-build version
     CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.29.1"
+
+    # Use shell-style quoting around spaces in paths or package specifiers
+    CIBW_DEPENDENCY_VERSIONS: "'./constraints file.txt'"
+    CIBW_DEPENDENCY_VERSIONS: "packages: 'pip >=16.0.0, !=17'"
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1419,7 +1423,7 @@ Platform-specific environment variables are also available:<br/>
     dependency-versions = "latest"
 
     # Use your own pip constraints file
-    dependency-versions = "./constraints.txt"
+    dependency-versions = { file = "./constraints.txt" }
 
     # Specify requirements inline
     dependency-versions = { packages = ["auditwheel==6.2.0"] }

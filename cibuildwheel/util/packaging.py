@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import shlex
 from collections.abc import Mapping, MutableMapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path, PurePath
 from typing import Any, Literal, TypeVar
 
@@ -8,20 +10,66 @@ from packaging.utils import parse_wheel_filename
 
 from . import resources
 from .cmd import call
+from .helpers import parse_key_value_string
 
 
+@dataclass()
 class DependencyConstraints:
-    def __init__(self, base_file_path: Path):
-        assert base_file_path.exists()
-        self.base_file_path = base_file_path.resolve()
+    base_file_path: Path | None = None
+    packages: list[str] | None = None
+
+    def __post_init__(self) -> None:
+        if self.packages is not None and self.base_file_path is not None:
+            msg = "Cannot specify both a file and packages in the dependency constraints"
+            raise ValueError(msg)
+
+        if self.base_file_path is not None:
+            assert self.base_file_path.exists()
+            self.base_file_path = self.base_file_path.resolve()
 
     @staticmethod
     def with_defaults() -> DependencyConstraints:
         return DependencyConstraints(base_file_path=resources.CONSTRAINTS)
 
+    @staticmethod
+    def from_config_string(config_string: str) -> DependencyConstraints | None:
+        config_dict = parse_key_value_string(config_string, ["file"], ["packages"])
+        file_or_keywords = config_dict.get("file")
+        packages = config_dict.get("packages")
+
+        if file_or_keywords and packages:
+            msg = "Cannot specify both a file and packages in dependency-versions"
+            raise ValueError(msg)
+
+        if packages:
+            return DependencyConstraints(packages=packages)
+
+        if file_or_keywords and len(file_or_keywords) > 1:
+            msg = "Only one file or keyword can be specified in dependency-versions"
+            raise ValueError(msg)
+
+        file_or_keyword = file_or_keywords[0] if file_or_keywords else None
+
+        if file_or_keyword == "latest":
+            return None
+
+        if file_or_keyword == "pinned" or not file_or_keyword:
+            return DependencyConstraints.with_defaults()
+
+        return DependencyConstraints(base_file_path=Path(file_or_keyword))
+
     def get_for_python_version(
-        self, version: str, *, variant: Literal["python", "pyodide"] = "python"
+        self, *, version: str, variant: Literal["python", "pyodide"] = "python", tmp_dir: Path
     ) -> Path:
+        if self.packages:
+            constraint_file = tmp_dir / "constraints.txt"
+            constraint_file.write_text("\n".join(self.packages))
+            return constraint_file
+
+        assert (
+            self.base_file_path is not None
+        ), "DependencyConstraints should have either a file or packages"
+
         version_parts = version.split(".")
 
         # try to find a version-specific dependency file e.g. if
@@ -35,19 +83,15 @@ class DependencyConstraints:
         else:
             return self.base_file_path
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.base_file_path!r})"
-
-    def __eq__(self, o: object) -> bool:
-        if not isinstance(o, DependencyConstraints):
-            return False
-
-        return self.base_file_path == o.base_file_path
-
     def options_summary(self) -> Any:
         if self == DependencyConstraints.with_defaults():
             return "pinned"
+        elif self.packages:
+            return {"packages": " ".join(shlex.quote(p) for p in self.packages)}
         else:
+            assert (
+                self.base_file_path is not None
+            ), "DependencyConstraints should have either a file or packages"
             return self.base_file_path.name
 
 

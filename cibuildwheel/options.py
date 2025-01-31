@@ -690,7 +690,6 @@ class Options:
                 "config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="=")
             )
 
-            dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
             test_sources = shlex.split(
@@ -736,15 +735,18 @@ class Options:
                     with contextlib.suppress(KeyError):
                         environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
-            if dependency_versions == "pinned":
-                dependency_constraints: None | (
-                    DependencyConstraints
-                ) = DependencyConstraints.with_defaults()
-            elif dependency_versions == "latest":
-                dependency_constraints = None
-            else:
-                dependency_versions_path = Path(dependency_versions)
-                dependency_constraints = DependencyConstraints(dependency_versions_path)
+            dependency_versions_str = self.reader.get(
+                "dependency-versions",
+                env_plat=True,
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+            )
+            try:
+                dependency_constraints = DependencyConstraints.from_config_string(
+                    dependency_versions_str
+                )
+            except ValueError as e:
+                msg = f"Failed to parse dependency versions. {e}"
+                raise errors.ConfigurationError(msg) from e
 
             if test_extras:
                 test_extras = f"[{test_extras}]"

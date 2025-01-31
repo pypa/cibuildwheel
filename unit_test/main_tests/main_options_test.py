@@ -13,6 +13,7 @@ from cibuildwheel.frontend import _split_config_settings
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
+from cibuildwheel.util.packaging import DependencyConstraints
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -346,6 +347,45 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
     build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
     assert build_options.before_all == (before_all or "")
+
+
+@pytest.mark.parametrize(
+    "dependency_versions",
+    [None, "pinned", "latest", "FILE", "packages: pip==21.0.0"],
+)
+@pytest.mark.parametrize("platform_specific", [False, True])
+def test_dependency_versions(
+    dependency_versions, platform_specific, platform, intercepted_build_args, monkeypatch, tmp_path
+):
+    option_value = dependency_versions
+
+    if dependency_versions == "FILE":
+        constraints_file = tmp_path / "constraints.txt"
+        constraints_file.write_text("foo==1.2.3\nbar==4.5.6")
+        option_value = str(constraints_file)
+
+    if option_value is not None:
+        if platform_specific:
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS_" + platform.upper(), option_value)
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS", "overwritten")
+        else:
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS", option_value)
+
+    main()
+
+    build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
+    dependency_constraints = build_options.dependency_constraints
+    if dependency_versions is None or dependency_versions == "pinned":
+        assert dependency_constraints == DependencyConstraints.with_defaults()
+    elif dependency_versions == "latest":
+        assert dependency_constraints is None
+    elif dependency_versions == "FILE":
+        assert dependency_constraints
+        assert dependency_constraints.base_file_path
+        assert dependency_constraints.base_file_path.samefile(Path(option_value))
+    elif dependency_versions.startswith("packages:"):
+        assert dependency_constraints
+        assert dependency_constraints.packages == ["pip==21.0.0"]
 
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])

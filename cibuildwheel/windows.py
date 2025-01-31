@@ -373,7 +373,10 @@ def build(options: Options, tmp_path: Path) -> None:
             if build_options.dependency_constraints:
                 dependency_constraint_flags = [
                     "-c",
-                    build_options.dependency_constraints.get_for_python_version(config.version),
+                    build_options.dependency_constraints.get_for_python_version(
+                        version=config.version,
+                        tmp_dir=identifier_tmp_dir,
+                    ),
                 ]
 
             # install Python
@@ -418,7 +421,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if build_options.dependency_constraints:
                     constraints_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
+                        version=config.version,
+                        tmp_dir=identifier_tmp_dir,
                     )
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 

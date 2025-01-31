@@ -168,6 +168,7 @@ def build_in_container(
     container: OCIContainer,
     container_project_path: PurePath,
     container_package_dir: PurePath,
+    local_tmp_dir: Path,
 ) -> None:
     container_output_dir = PurePosixPath("/output")
 
@@ -201,6 +202,7 @@ def build_in_container(
 
     for config in platform_configs:
         log.build_start(config.identifier)
+        local_identifier_tmp_dir = local_tmp_dir / config.identifier
         build_options = options.build_options(config.identifier)
         build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
         use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version("3.8")
@@ -211,12 +213,13 @@ def build_in_container(
         log.step("Setting up build environment...")
 
         if build_options.dependency_constraints:
-            constraints_file = build_options.dependency_constraints.get_for_python_version(
-                config.version
+            local_constraints_file = build_options.dependency_constraints.get_for_python_version(
+                version=config.version,
+                tmp_dir=local_identifier_tmp_dir,
             )
             container_constraints_file = PurePosixPath("/constraints.txt")
 
-            container.copy_into(constraints_file, container_constraints_file)
+            container.copy_into(local_constraints_file, container_constraints_file)
             dependency_constraint_flags = ["-c", container_constraints_file]
 
         env = container.get_environment()
@@ -428,7 +431,7 @@ def build_in_container(
     log.step_end()
 
 
-def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
+def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
@@ -482,6 +485,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                     container=container,
                     container_project_path=container_project_path,
                     container_package_dir=container_package_dir,
+                    local_tmp_dir=tmp_path,
                 )
 
         except subprocess.CalledProcessError as error:
