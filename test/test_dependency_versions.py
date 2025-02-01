@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import platform
 import re
-import shlex
 import textwrap
 from pathlib import Path
 
@@ -120,7 +119,7 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
                 """.format(**tool_versions)
             )
         )
-        dependency_version_option = shlex.quote(str(constraints_file))
+        dependency_version_option = str(constraints_file)
     elif method == "inline":
         dependency_version_option = "packages: " + " ".join(
             f"{k}=={v}" for k, v in tool_versions.items()
