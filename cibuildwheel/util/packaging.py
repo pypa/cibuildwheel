@@ -10,7 +10,7 @@ from packaging.utils import parse_wheel_filename
 
 from . import resources
 from .cmd import call
-from .helpers import parse_key_value_string
+from .helpers import parse_key_value_string, unwrap
 
 
 @dataclass()
@@ -33,30 +33,41 @@ class DependencyConstraints:
 
     @staticmethod
     def from_config_string(config_string: str) -> DependencyConstraints | None:
+        if config_string == "pinned":
+            return DependencyConstraints.with_defaults()
+
+        if config_string == "latest":
+            return None
+
+        if config_string.startswith(("file:", "packages:")):
+            return DependencyConstraints.from_table_style_config_string(config_string)
+
+        return DependencyConstraints(base_file_path=Path(config_string))
+
+    @staticmethod
+    def from_table_style_config_string(config_string: str) -> DependencyConstraints | None:
         config_dict = parse_key_value_string(config_string, ["file"], ["packages"])
-        file_or_keywords = config_dict.get("file")
+        files = config_dict.get("file")
         packages = config_dict.get("packages")
 
-        if file_or_keywords and packages:
+        if files and packages:
             msg = "Cannot specify both a file and packages in dependency-versions"
             raise ValueError(msg)
 
         if packages:
             return DependencyConstraints(packages=packages)
 
-        if file_or_keywords and len(file_or_keywords) > 1:
-            msg = "Only one file or keyword can be specified in dependency-versions"
-            raise ValueError(msg)
-
-        file_or_keyword = file_or_keywords[0] if file_or_keywords else None
-
-        if file_or_keyword == "latest":
-            return None
-
-        if file_or_keyword == "pinned" or not file_or_keyword:
+        if not files:
             return DependencyConstraints.with_defaults()
 
-        return DependencyConstraints(base_file_path=Path(file_or_keyword))
+        if len(files) > 1:
+            msg = unwrap("""
+                Only one file can be specified in dependency-versions.
+                If you intended to pass only one, perhaps you need to quote the path?
+            """)
+            raise ValueError(msg)
+
+        return DependencyConstraints(base_file_path=Path(files[0]))
 
     def get_for_python_version(
         self, *, version: str, variant: Literal["python", "pyodide"] = "python", tmp_dir: Path
