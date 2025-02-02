@@ -173,7 +173,7 @@ def expected_wheels(
             machine_arch = "aarch64"
 
     if manylinux_versions is None:
-        if machine_arch == "armv7l":
+        if machine_arch in ("armv7l", "aarch64"):
             manylinux_versions = ["manylinux_2_17", "manylinux2014", "manylinux_2_31"]
         elif machine_arch == "x86_64":
             manylinux_versions = [
@@ -250,14 +250,23 @@ def expected_wheels(
         if platform == "linux":
             architectures = [arch_name_for_linux(machine_arch)]
 
-            if machine_arch == "x86_64" and not single_arch:
-                architectures.append("i686")
+            if not single_arch:
+                if machine_arch == "x86_64":
+                    architectures.append("i686")
+                elif (
+                    machine_arch == "aarch64"
+                    and sys.platform.startswith("linux")
+                    and not python_abi_tag.startswith("pp")
+                ):
+                    # we assume all CI providers are able to run aarch32 EL0 on aarch64
+                    architectures.append("armv7l")
 
             if len(manylinux_versions) > 0:
                 platform_tags = [
                     ".".join(
                         f"{manylinux_version}_{architecture}"
                         for manylinux_version in manylinux_versions
+                        if (manylinux_version, architecture) != ("manylinux_2_31", "aarch64")
                     )
                     for architecture in architectures
                 ]
