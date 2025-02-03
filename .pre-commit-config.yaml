@@ -14,7 +14,7 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.9.3
+  rev: v0.9.4
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
@@ -73,7 +73,7 @@ repos:
     files: ^docs/changelog.md$
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.4.0
+  rev: v2.4.1
   hooks:
   - id: codespell
     args: ["-L", "sur,assertin,hep", "-w"]
@@ -81,7 +81,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.31.0
+  rev: 0.31.1
   hooks:
     - id: check-dependabot
     - id: check-github-actions
