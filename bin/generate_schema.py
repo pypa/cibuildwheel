@@ -176,6 +176,9 @@ properties:
   test-extras:
     description: Install your wheel for testing using `extras_require`
     type: string_array
+  test-sources:
+    description: Test files that are required by the test environment
+    type: string_array
   test-groups:
     description: Install extra groups when testing
     type: string_array
@@ -261,6 +264,7 @@ items:
         repair-wheel-command: {"$ref": "#/$defs/inherit"}
         test-command: {"$ref": "#/$defs/inherit"}
         test-extras: {"$ref": "#/$defs/inherit"}
+        test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
 """
 )
