@@ -18,12 +18,18 @@ from typing import Any, Final
 import pytest
 
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
 )
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
+
+_AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
+    None: Architecture.armv7l.value not in EMULATED_ARCHS,
+    CIProvider.travis_ci: False,
+}.get(detect_ci_provider(), True)
 
 platform = os.environ.get("CIBW_PLATFORM", "")
 if platform:
@@ -257,8 +263,8 @@ def expected_wheels(
                     machine_arch == "aarch64"
                     and sys.platform.startswith("linux")
                     and not python_abi_tag.startswith("pp")
+                    and _AARCH64_CAN_RUN_ARMV7
                 ):
-                    # we assume all CI providers are able to run aarch32 EL0 on aarch64
                     architectures.append("armv7l")
 
             if len(manylinux_versions) > 0:

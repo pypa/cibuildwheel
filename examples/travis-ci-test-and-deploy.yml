@@ -6,7 +6,7 @@
 # distribution is also created.
 
 os: linux
-dist: focal
+dist: jammy
 language: python
 python: "3.12"
 
