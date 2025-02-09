@@ -62,7 +62,7 @@ images = [
     PyPAImage("manylinux_2_28", "pypy_x86_64", None),
     PyPAImage("manylinux_2_28", "pypy_aarch64", None),
     # manylinux_2_31 images
-    Image("manylinux_2_31", "armv7l", "ghcr.io/mayeut/manylinux_2_31", None),
+    PyPAImage("manylinux_2_31", "armv7l", None),
     # manylinux_2_34 images
     PyPAImage("manylinux_2_34", "x86_64", None),
     PyPAImage("manylinux_2_34", "aarch64", None),
