@@ -16,7 +16,7 @@ from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
 DEFAULT_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
-ALL_IDS = DEFAULT_IDS | {"cp313t", "pp37", "pp38", "pp39", "pp310"}
+ALL_IDS = DEFAULT_IDS | {"cp313t", "pp37", "pp38", "pp39", "pp310", "pp311"}
 
 
 @pytest.fixture
@@ -146,7 +146,19 @@ before-all = "true"
     assert identifiers == {
         f"{x}-manylinux_x86_64"
         for x in ALL_IDS
-        - {"cp36", "cp310", "cp311", "cp312", "cp313", "cp313t", "pp37", "pp38", "pp39", "pp310"}
+        - {
+            "cp36",
+            "cp310",
+            "cp311",
+            "cp312",
+            "cp313",
+            "cp313t",
+            "pp37",
+            "pp38",
+            "pp39",
+            "pp310",
+            "pp311",
+        }
     }
     assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
 
@@ -157,7 +169,18 @@ before-all = "true"
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
         f"{x}-manylinux_x86_64"
-        for x in ["cp310", "cp311", "cp312", "cp313", "cp313t", "pp37", "pp38", "pp39", "pp310"]
+        for x in [
+            "cp310",
+            "cp311",
+            "cp312",
+            "cp313",
+            "cp313t",
+            "pp37",
+            "pp38",
+            "pp39",
+            "pp310",
+            "pp311",
+        ]
     }
 
     kwargs = build_in_container.call_args_list[3][1]
