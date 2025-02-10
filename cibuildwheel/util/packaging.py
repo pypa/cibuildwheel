@@ -102,10 +102,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
                     continue
                 if not tag.platform.endswith(f"_{arch}"):
                     continue
-            else:
-                # Windows should exactly match
-                if tag.platform != platform:
-                    continue
+            # Windows should exactly match
+            elif tag.platform != platform:
+                continue
 
             # If all the filters above pass, then the wheel is a previously built compatible wheel.
             return wheel

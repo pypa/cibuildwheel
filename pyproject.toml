@@ -200,12 +200,14 @@ extend-select = [
   "PYI",         # flake8-pyi
 ]
 ignore = [
-  "PLR",    # Design related pylint codes
-  "E501",   # Line too long
+  "PLR09",   # Design related pylint codes
+  "PLR2004", # Magic value
+  "PLR1714", # This recommendation breaks mypy's narrowing
   "RET504", "RET505", "RET508",  # else after control flow
-  "PT007",  # False positive
-  "PYI025", # Set as AbstractSet
-  "ISC001", # Conflicts with formatter
+  "PT007",   # Lists of tuples in Pytest
+  "PYI025",  # Set as AbstractSet
+  "ISC001",  # Conflicts with formatter
+  "EXE003",  # Ruff doesn't like uv?
 ]
 flake8-unused-arguments.ignore-variadic-names = true
 
