@@ -73,7 +73,7 @@ class CommandLineArguments:
             only=None,
             config_file="",
             output_dir=Path("wheelhouse"),
-            package_dir=Path("."),
+            package_dir=Path(),
             print_build_identifiers=False,
             debug_traceback=False,
             enable=[],
@@ -184,7 +184,7 @@ class ListFormat(OptionFormat):
 
     def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
         self.sep = sep
-        self.quote = quote if quote else lambda s: s
+        self.quote = quote or (lambda s: s)
 
     def format_list(self, value: SettingList) -> str:
         return self.sep.join(self.quote(str(v)) for v in value)
@@ -265,10 +265,12 @@ class EnvironmentFormat(OptionFormat):
     values may contain variables or command substitutions.
     """
 
-    def format_table(self, table: SettingTable) -> str:
+    @staticmethod
+    def format_table(table: SettingTable) -> str:
         return " ".join(f'{k}="{v}"' for k, v in table.items())
 
-    def merge_values(self, before: str, after: str) -> str:
+    @staticmethod
+    def merge_values(before: str, after: str) -> str:
         return f"{before} {after}"
 
 
@@ -630,8 +632,7 @@ class Options:
         )
         try:
             enable = {EnableGroup(group) for group in enable_groups.split()}
-            for command_line_group in args.enable:
-                enable.add(EnableGroup(command_line_group))
+            enable.update(EnableGroup(command_line_group) for command_line_group in args.enable)
         except ValueError as e:
             msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
             raise errors.ConfigurationError(msg) from e
@@ -737,9 +738,9 @@ class Options:
                         environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
             if dependency_versions == "pinned":
-                dependency_constraints: None | (
-                    DependencyConstraints
-                ) = DependencyConstraints.with_defaults()
+                dependency_constraints: DependencyConstraints | None = (
+                    DependencyConstraints.with_defaults()
+                )
             elif dependency_versions == "latest":
                 dependency_constraints = None
             else:
@@ -932,13 +933,15 @@ class Options:
 
         return result
 
-    def indent_if_multiline(self, value: str, indent: str) -> str:
+    @staticmethod
+    def indent_if_multiline(value: str, indent: str) -> str:
         if "\n" in value:
             return "\n" + textwrap.indent(value.strip(), indent)
         else:
             return value
 
-    def option_summary_value(self, option_value: Any) -> str:
+    @staticmethod
+    def option_summary_value(option_value: Any) -> str:
         if hasattr(option_value, "options_summary"):
             option_value = option_value.options_summary()
 
