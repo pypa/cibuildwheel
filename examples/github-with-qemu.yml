@@ -26,10 +26,7 @@ jobs:
           # configure cibuildwheel on Linux to build native archs ('auto'),
           # and to split the remaining architectures between the x86_64 and
           # ARM runners
-          # armv7l can be built without QEMU on GitHub Actions ARM runners but that's
-          # not the case on all ARM64 hardware hence 'auto armv7l' for native archs
-          # on the GHA ARM64 runner
-          CIBW_ARCHS_LINUX: ${{ runner.arch == 'X64' && 'auto ppc64le s390x' || 'auto armv7l' }}
+          CIBW_ARCHS_LINUX: ${{ runner.arch == 'X64' && 'auto ppc64le s390x' || 'auto' }}
 
       - uses: actions/upload-artifact@v4
         with:

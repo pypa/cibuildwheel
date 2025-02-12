@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import platform as platform_module
+import shutil
 import sys
 
 import pytest
 
+import cibuildwheel.architecture
 from cibuildwheel.architecture import Architecture
 
 
@@ -24,6 +26,7 @@ def platform_machine(request, monkeypatch):
     platform_name, platform_value, machine_value, machine_name = request.param
     monkeypatch.setattr(sys, "platform", platform_value)
     monkeypatch.setattr(platform_module, "machine", lambda: machine_value)
+    monkeypatch.setattr(cibuildwheel.architecture, "_check_aarch32_el0", lambda: True)
     return platform_name, machine_name
 
 
@@ -34,7 +37,7 @@ def test_arch_auto(platform_machine):
     expected = {
         "32": {Architecture.i686},
         "64": {Architecture.x86_64, Architecture.i686},
-        "arm": {Architecture.aarch64},
+        "arm": {Architecture.aarch64, Architecture.armv7l},
     }
     assert arch_set == expected[machine_name]
 
@@ -71,7 +74,7 @@ def test_arch_auto32(platform_machine):
     platform_name, machine_name = platform_machine
 
     arch_set = Architecture.parse_config("auto32", "linux")
-    expected = {"32": {Architecture.i686}, "64": {Architecture.i686}, "arm": set()}
+    expected = {"32": {Architecture.i686}, "64": {Architecture.i686}, "arm": {Architecture.armv7l}}
     assert arch_set == expected[machine_name]
 
     arch_set = Architecture.parse_config("auto32", "macos")
@@ -80,3 +83,18 @@ def test_arch_auto32(platform_machine):
     arch_set = Architecture.parse_config("auto32", "windows")
     expected = {"32": {Architecture.x86}, "64": {Architecture.x86}, "arm": set()}
     assert arch_set == expected[machine_name]
+
+
+def test_arch_auto_no_aarch32(monkeypatch):
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.setattr(platform_module, "machine", lambda: "aarch64")
+    monkeypatch.setattr(shutil, "which", lambda *args, **kwargs: None)
+
+    arch_set = Architecture.parse_config("auto", "linux")
+    assert arch_set == {Architecture.aarch64}
+
+    arch_set = Architecture.parse_config("auto64", "linux")
+    assert arch_set == {Architecture.aarch64}
+
+    arch_set = Architecture.parse_config("auto32", "linux")
+    assert len(arch_set) == 0

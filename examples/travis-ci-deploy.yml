@@ -2,7 +2,7 @@
 # commit, but will only push to PyPI on tagged commits.
 
 os: linux
-dist: focal
+dist: jammy
 language: python
 python: "3.12"
 

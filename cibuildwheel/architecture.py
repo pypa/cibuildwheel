@@ -3,6 +3,8 @@ from __future__ import annotations
 import functools
 import platform as platform_module
 import re
+import shutil
+import subprocess
 import sys
 from collections.abc import Set
 from enum import Enum
@@ -22,6 +24,19 @@ ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
     {"linux": "i686", "macos": None, "windows": "x86"},
     {"linux": "aarch64", "macos": "arm64", "windows": "ARM64"},
 ]
+
+
+def _check_aarch32_el0() -> bool:
+    """Check if running armv7l natively on aarch64 is supported"""
+    if not sys.platform.startswith("linux"):
+        return False
+    if platform_module.machine() != "aarch64":
+        return False
+    executable = shutil.which("linux32")
+    if executable is None:
+        return False
+    check = subprocess.run([executable, "uname", "-m"], check=False, capture_output=True, text=True)
+    return check.returncode == 0 and check.stdout.startswith("armv")
 
 
 @functools.total_ordering
@@ -114,9 +129,12 @@ class Architecture(Enum):
             return set()  # can't build anything on this platform
         result = {native_arch}
 
-        if platform == "linux" and Architecture.x86_64 in result:
-            # x86_64 machines can run i686 containers
-            result.add(Architecture.i686)
+        if platform == "linux":
+            if Architecture.x86_64 in result:
+                # x86_64 machines can run i686 containers
+                result.add(Architecture.i686)
+            elif Architecture.aarch64 in result and _check_aarch32_el0():
+                result.add(Architecture.armv7l)
 
         if platform == "windows" and Architecture.AMD64 in result:
             result.add(Architecture.x86)

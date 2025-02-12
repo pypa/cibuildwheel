@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel import __main__, linux, macos, pyodide, windows
+from cibuildwheel import __main__, architecture, linux, macos, pyodide, windows
 from cibuildwheel.util import file
 
 
@@ -44,8 +44,8 @@ def mock_protection(monkeypatch):
     monkeypatch.setattr(linux, "build", fail_on_call)
     monkeypatch.setattr(macos, "build", fail_on_call)
     monkeypatch.setattr(pyodide, "build", fail_on_call)
-
     monkeypatch.setattr(Path, "mkdir", ignore_call)
+    monkeypatch.setattr(architecture, "_check_aarch32_el0", lambda: True)
 
 
 @pytest.fixture(autouse=True)

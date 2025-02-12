@@ -555,7 +555,7 @@ def test_local_image(
 ) -> None:
     if (
         detect_ci_provider() in {CIProvider.travis_ci}
-        and pm in {"s390x", "ppc64le"}
+        and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
@@ -585,7 +585,7 @@ def test_local_image(
 def test_multiarch_image(container_engine, platform):
     if (
         detect_ci_provider() in {CIProvider.travis_ci}
-        and pm in {"s390x", "ppc64le"}
+        and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
