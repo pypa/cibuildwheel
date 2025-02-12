@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import functools
 import platform as platform_module
 import re
 import shutil
 import subprocess
 import sys
 from collections.abc import Set
-from enum import Enum
+from enum import StrEnum, auto
 from typing import Final, Literal, assert_never
 
 from .typing import PlatformName
@@ -39,38 +38,28 @@ def _check_aarch32_el0() -> bool:
     return check.returncode == 0 and check.stdout.startswith("armv")
 
 
-@functools.total_ordering
-class Architecture(Enum):
-    value: str
-
+class Architecture(StrEnum):
     # mac/linux archs
-    x86_64 = "x86_64"
+    x86_64 = auto()
 
     # linux archs
-    i686 = "i686"
-    aarch64 = "aarch64"
-    ppc64le = "ppc64le"
-    s390x = "s390x"
-    armv7l = "armv7l"
+    i686 = auto()
+    aarch64 = auto()
+    ppc64le = auto()
+    s390x = auto()
+    armv7l = auto()
 
     # mac archs
-    universal2 = "universal2"
-    arm64 = "arm64"
+    universal2 = auto()
+    arm64 = auto()
 
     # windows archs
-    x86 = "x86"
+    x86 = auto()
     AMD64 = "AMD64"
     ARM64 = "ARM64"
 
     # WebAssembly
-    wasm32 = "wasm32"
-
-    # Allow this to be sorted
-    def __lt__(self, other: Architecture) -> bool:
-        return self.value < other.value
-
-    def __str__(self) -> str:
-        return self.name
+    wasm32 = auto()
 
     @staticmethod
     def parse_config(config: str, platform: PlatformName) -> set[Architecture]:
