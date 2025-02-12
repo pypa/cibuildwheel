@@ -210,6 +210,7 @@ def expected_wheels(
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
+                "pp311-pypy311_pp73",
             ]
 
         if platform == "macos" and machine_arch == "arm64":
@@ -225,6 +226,7 @@ def expected_wheels(
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
+                "pp311-pypy311_pp73",
             ]
 
     if single_python:
