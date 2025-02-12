@@ -22,7 +22,7 @@ else:
 
 
 PlatformName = Literal["linux", "macos", "windows", "pyodide"]
-PLATFORMS: Final[set[PlatformName]] = {"linux", "macos", "windows", "pyodide"}
+PLATFORMS: Final[frozenset[PlatformName]] = frozenset(typing.get_args(PlatformName))
 
 
 class GenericPythonConfiguration(Protocol):
