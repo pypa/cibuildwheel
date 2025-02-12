@@ -1220,6 +1220,21 @@ If setting a custom image, you'll need to make sure it can be used in the same w
 
 Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
 
+!!! warning
+    On x86_64, `manylinux_2_34` is using [x86-64-v2](https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels) target architecture.
+
+    While manylinux worked around that when building extensions from sources by intercepting compiler calls
+    to target x86_64 instead, every library installed with dnf will most likely target the more
+    recent x86-64-v2 which, if grafted into a wheel, will fail to run on older hardware.
+
+    The workaround does not work for executables as they are always being linked with x86-64-v2 object files.
+
+    There's no PEP to handle micro-architecture variants yet when it comes to packaging or
+    installing wheels. Auditwheel doesn't detect this either.
+
+    Please check the tracking issue in [pypa/manylinux](https://github.com/pypa/manylinux/issues/1725)
+
+
 #### Examples
 
 
