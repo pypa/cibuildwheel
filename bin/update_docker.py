@@ -55,7 +55,7 @@ images = [
     Image("manylinux_2_28", "pypy_x86_64", "quay.io/pypa/manylinux_2_28_x86_64", None),
     Image("manylinux_2_28", "pypy_aarch64", "quay.io/pypa/manylinux_2_28_aarch64", None),
     # manylinux_2_31 images
-    Image("manylinux_2_31", "armv7l", "ghcr.io/mayeut/manylinux_2_31", None),
+    Image("manylinux_2_31", "armv7l", "quay.io/pypa/manylinux_2_31_armv7l", None),
     # musllinux_1_1 images
     Image("musllinux_1_1", "x86_64", "quay.io/pypa/musllinux_1_1_x86_64", None),
     Image("musllinux_1_1", "i686", "quay.io/pypa/musllinux_1_1_i686", None),
