@@ -710,7 +710,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     # and not the repo code)
                     test_command_prepared = prepare_command(
                         build_options.test_command,
-                        project=Path(".").resolve(),
+                        project=Path.cwd(),
                         package=build_options.package_dir.resolve(),
                         wheel=repaired_wheel,
                     )
@@ -728,7 +728,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             )
                     else:
                         # There are no test sources. Run the tests in the project directory.
-                        test_cwd = Path(".").resolve()
+                        test_cwd = Path.cwd()
 
                     shell_with_arch(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
@@ -738,7 +738,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 moved_wheel = move_file(repaired_wheel, output_wheel)
                 if moved_wheel != output_wheel.resolve():
                     log.warning(
-                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
 

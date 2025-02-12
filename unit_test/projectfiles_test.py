@@ -269,10 +269,10 @@ def test_read_dep_groups():
 
 
 def test_dep_group_no_file_error():
-    with pytest.raises(FileNotFoundError, match="pyproject.toml"):
+    with pytest.raises(FileNotFoundError, match=r"pyproject\.toml"):
         resolve_dependency_groups(None, "test")
 
 
 def test_dep_group_no_section_error():
-    with pytest.raises(KeyError, match="pyproject.toml"):
+    with pytest.raises(KeyError, match=r"pyproject\.toml"):
         resolve_dependency_groups({}, "test")
