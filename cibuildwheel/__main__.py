@@ -160,7 +160,7 @@ def main_inner(global_options: GlobalOptions) -> None:
     parser.add_argument(
         "package_dir",
         metavar="PACKAGE",
-        default=Path("."),
+        default=Path(),
         type=Path,
         nargs="?",
         help="""
