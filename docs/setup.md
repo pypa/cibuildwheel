@@ -76,7 +76,7 @@ they're perfectly reproducible.
 
 The only side effect to your system will be docker images being pulled.
 
-### macOS / Windows builds
+### macOS / Windows builds {: #macos-windows}
 
 Pre-requisite: you need to have native build tools installed.
 
@@ -107,6 +107,34 @@ You can override the cache folder using the ``CIBW_CACHE_PATH`` environment vari
     Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
     ```
 
+### iOS builds
+
+Pre-requisite: You must be building on a macOS machine, with Xcode installed.
+The Xcode installation must have an iOS SDK available. To check if an iOS SDK
+is available, open the Xcode settings panel, and check the Platforms tab.
+
+To build iOS wheels, pass in `--platform ios` when invoking `cibuildwheel`. This will
+build three wheels:
+
+* An ARM64 wheel for iOS devices;
+* An ARM64 wheel for the iOS simulator; and
+* An x86_64 wheel for the iOS simulator.
+
+Alternatively, you can build only wheels for iOS devices by using
+`--platform iphoneos`; or only wheels for iOS simulators by using
+`--platform iphonesimulator`.
+
+Building iOS wheel also requires a working macOS Python configuration. See the notes
+on [macOS builds](setup.md#macos-windows) for details about configuration.
+
+iOS builds will honor the `IPHONEOS_DEPLOYMENT_TARGET` environment variable to set the
+minimum supported API version for generated wheels. This will default to `13.0` if the
+environment variable isn't set.
+
+If tests have been configured, the test suite will be executed on the simulator
+matching the architecture of the build machine - that is, if you're building on
+an ARM64 macOS machine, the ARM64 wheel will be tested on an ARM64 simulator.
+
 ### Pyodide (WebAssembly) builds (experimental)
 
 Pre-requisite: you need to have a matching host version of Python (unlike all
@@ -119,7 +147,7 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 ### GitHub Actions [linux/mac/windows] {: #github-actions}
 
-To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
+To build Linux, Windows, macOS, iOS and pyodide wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
 
 !!! tab "Action"
     For GitHub Actions, `cibuildwheel` provides an action you can use. This is
@@ -132,10 +160,6 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     {% include "../examples/github-minimal.yml" %}
     ```
 
-    Use `env:` to pass [build options](options.md) and `with:` to set
-    `package-dir: .`, `output-dir: wheelhouse` and `config-file: ''`
-    locations (those values are the defaults).
-
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in
     just one line. This is internally how the action works; the main benefit of
@@ -144,29 +168,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     > .github/workflows/build_wheels.yml
 
     ```yaml
-    name: Build
-
-    on: [push, pull_request]
-
-    jobs:
-      build_wheels:
-        name: Build wheels on ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-          matrix:
-            # macos-13 is an intel runner, macos-14 is apple silicon
-            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-
-        steps:
-          - uses: actions/checkout@v4
-
-          - name: Build wheels
-            run: pipx run cibuildwheel==2.22.0
-
-          - uses: actions/upload-artifact@v4
-            with:
-              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-              path: ./wheelhouse/*.whl
+    {% include "../examples/github-pipx.yml" %}
     ```
 
 !!! tab "Generic"
@@ -176,39 +178,11 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     appeal to you.
 
     > .github/workflows/build_wheels.yml
-
-    ```yaml
-    name: Build
-
-    on: [push, pull_request]
-
-    jobs:
-      build_wheels:
-        name: Build wheels on ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-          matrix:
-            # macos-13 is an intel runner, macos-14 is apple silicon
-            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-
-        steps:
-          - uses: actions/checkout@v4
-
-          # Used to host cibuildwheel
-          - uses: actions/setup-python@v5
-
-          - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.22.0
-
-          - name: Build wheels
-            run: python -m cibuildwheel --output-dir wheelhouse
-
-          - uses: actions/upload-artifact@v4
-            with:
-              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-              path: ./wheelhouse/*.whl
-    ```
-
+    {%
+       include-markdown "../README.md"
+       start="<!--generic-github-start-->"
+       end="<!--generic-github-end-->"
+    %}
 
 Commit this file, and push to GitHub - either to your default branch, or to a PR branch. The build should start automatically.
 

@@ -198,3 +198,14 @@ python_configurations = [
 python_configurations = [
   { identifier = "cp312-pyodide_wasm32", version = "3.12", pyodide_version = "0.27.0", pyodide_build_version = "0.29.2", emscripten_version = "3.1.58", node_version = "v20" },
 ]
+
+[iphoneos]
+python_configurations = [
+  { identifier = "cp313-ios_arm64_iphoneos", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b4/Python-3.13-iOS-support.b4.tar.gz" },
+]
+
+[iphonesimulator]
+python_configurations = [
+  { identifier = "cp313-ios_x86_64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b4/Python-3.13-iOS-support.b4.tar.gz" },
+  { identifier = "cp313-ios_arm64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b4/Python-3.13-iOS-support.b4.tar.gz" },
+]

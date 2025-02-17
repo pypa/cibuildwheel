@@ -24,21 +24,21 @@ What does it do?
 
 While cibuildwheel itself requires a recent Python version to run (we support the last three releases), it can target the following versions to build wheels:
 
-|                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | Pyodide |
-|----------------|----|-----|-----|-----|-----|----|-----|----|-----|-----|---|-----|
-| CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.7    | ✅ | N/A | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.12   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | ✅⁴ |
-| CPython 3.13³  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A |
-| PyPy 3.7 v7.3  | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.11 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
+|                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | iOS | Pyodide |
+|----------------|----|-----|-----|-----|-----|----|-----|----|-----|-----|---|-----|-----|
+| CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.7    | ✅ | N/A | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.12   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A | ✅⁴ |
+| CPython 3.13³  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | ✅ | N/A |
+| PyPy 3.7 v7.3  | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.11 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
@@ -58,26 +58,28 @@ Usage
 
 `cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
-|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM |
-|-----------------|-------|-------|---------|-----------|-----------|-------------|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |
-| Travis CI       | ✅    |       | ✅      | ✅        |           |             |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             |
-| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             |
-| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |
+|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | iOS |
+|-----------------|-------|-------|---------|-----------|-----------|-------------|-----|
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅³  |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |     |
+| Travis CI       | ✅    |       | ✅      | ✅        |           |             |     |
+| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |     |
+| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             |     |
+| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             |     |
+| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |     |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
-<sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
+<sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
+<sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture.</sup>
 
 <!--intro-end-->
 
 Example setup
 -------------
 
-To build manylinux, musllinux, macOS, and Windows wheels on GitHub Actions, you could use this `.github/workflows/wheels.yml`:
+To build manylinux, musllinux, macOS (producing x86_64, ARM64 and universal2 wheels), Windows, iOS and pyodide wheels on GitHub Actions, you could use this `.github/workflows/wheels.yml`:
 
+<!--generic-github-start-->
 ```yaml
 name: Build
 
@@ -85,11 +87,33 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build wheels for ${{ matrix.os }}
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-latest]
+        os: [ linux-intel, linux-arm, windows, macOS-intel, macOS-arm, iOS, pyodide ]
+        include:
+          - archs: auto
+            platform: auto
+          - os: linux-intel
+            runs-on: ubuntu-latest
+          - os: linux-arm
+            runs-on: ubuntu-24.04-arm
+          - os: windows
+            runs-on: windows-latest
+          - os: macOS-intel
+            # macos-13 was the last x86_64 runner
+            runs-on: macos-13
+          - os: macOS-arm
+            # macos-14+ (including latest) are ARM64 runners
+            runs-on: macos-latest
+            archs: auto,universal2
+          - os: iOS
+            runs-on: macos-latest
+            platform: ios
+          - os: pyodide
+            runs-on: ubuntu-latest
+            platform: pyodide
 
     steps:
       - uses: actions/checkout@v4
@@ -102,15 +126,21 @@ jobs:
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
-        # to supply options, put them in 'env', like:
-        # env:
-        #   CIBW_SOME_OPTION: value
+        env:
+          CIBW_PLATFORM: ${{ matrix.platform }}
+          CIBW_ARCHS: ${{ matrix.archs }}
+        # Can also be configured directly, using `with:`
+        # with:
+        #   package-dir: .
+        #   output-dir: wheelhouse
+        #   config-file: "{package}/pyproject.toml"
 
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 ```
+<!--generic-github-end-->
 
 For more information, including PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.pypa.io) and the [examples](https://github.com/pypa/cibuildwheel/tree/main/examples).
 

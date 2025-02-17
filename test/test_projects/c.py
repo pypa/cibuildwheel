@@ -18,7 +18,7 @@ spam_system(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &command))
         return NULL;
 
-    sts = system(command);
+    sts = printf("Running system command: %s\n", command);
 
     {{ spam_c_function_add | indent(4) }}
 
