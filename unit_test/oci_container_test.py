@@ -554,7 +554,7 @@ def test_local_image(
     container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
 ) -> None:
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
+        detect_ci_provider() == CIProvider.travis_ci
         and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
@@ -584,7 +584,7 @@ def test_local_image(
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine, platform):
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
+        detect_ci_provider() == CIProvider.travis_ci
         and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):

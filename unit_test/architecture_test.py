@@ -31,7 +31,7 @@ def platform_machine(request, monkeypatch):
 
 
 def test_arch_auto(platform_machine):
-    platform_name, machine_name = platform_machine
+    _, machine_name = platform_machine
 
     arch_set = Architecture.auto_archs("linux")
     expected = {
@@ -55,7 +55,7 @@ def test_arch_auto(platform_machine):
 
 
 def test_arch_auto64(platform_machine):
-    platform_name, machine_name = platform_machine
+    _, machine_name = platform_machine
 
     arch_set = Architecture.parse_config("auto64", "linux")
     expected = {"32": set(), "64": {Architecture.x86_64}, "arm": {Architecture.aarch64}}
@@ -71,7 +71,7 @@ def test_arch_auto64(platform_machine):
 
 
 def test_arch_auto32(platform_machine):
-    platform_name, machine_name = platform_machine
+    _, machine_name = platform_machine
 
     arch_set = Architecture.parse_config("auto32", "linux")
     expected = {"32": {Architecture.i686}, "64": {Architecture.i686}, "arm": {Architecture.armv7l}}

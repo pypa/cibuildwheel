@@ -283,16 +283,10 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
 
     assert build_options.config_settings == config_settings
 
-    assert _split_config_settings(config_settings, "build") == [
-        "--config-setting=setting=value",
-        "--config-setting=setting=value2",
-        "--config-setting=other=something else",
-    ]
-
-    assert _split_config_settings(config_settings, "pip") == [
-        "--config-settings=setting=value",
-        "--config-settings=setting=value2",
-        "--config-settings=other=something else",
+    assert _split_config_settings(config_settings) == [
+        "-Csetting=value",
+        "-Csetting=value2",
+        "-Cother=something else",
     ]
 
 

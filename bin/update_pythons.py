@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import difflib
 import logging
+import operator
 import tomllib
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
@@ -133,7 +134,7 @@ class PyPyVersions:
 
     def update_version_windows(self, spec: Specifier) -> ConfigWinCP:
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
-        releases = sorted(releases, key=lambda r: r["pypy_version"])
+        releases = sorted(releases, key=operator.itemgetter("pypy_version"))
         releases = [r for r in releases if self.get_arch_file(r)]
 
         if not releases:
@@ -160,7 +161,7 @@ class PyPyVersions:
             raise RuntimeError(msg)
 
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
-        releases = sorted(releases, key=lambda r: r["pypy_version"])
+        releases = sorted(releases, key=operator.itemgetter("pypy_version"))
 
         if not releases:
             msg = f"PyPy macOS {self.arch} not found for {spec}!"
