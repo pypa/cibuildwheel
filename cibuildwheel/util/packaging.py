@@ -40,13 +40,19 @@ class DependencyConstraints:
             return None
 
         if config_string.startswith(("file:", "packages:")):
+            # we only do the table-style parsing if it looks like a table,
+            # because this option used to be only a file path. We don't want
+            # to break existing configurations, whose file paths might include
+            # special characters like ':' or ' ', which would require quoting
+            # if they were to be passed as a parse_key_value_string positional
+            # argument.
             return DependencyConstraints.from_table_style_config_string(config_string)
 
         return DependencyConstraints(base_file_path=Path(config_string))
 
     @staticmethod
     def from_table_style_config_string(config_string: str) -> DependencyConstraints | None:
-        config_dict = parse_key_value_string(config_string, ["file"], ["packages"])
+        config_dict = parse_key_value_string(config_string, kw_arg_names=["file", "packages"])
         files = config_dict.get("file")
         packages = config_dict.get("packages")
 
