@@ -270,7 +270,7 @@ def build(options: Options, tmp_path: Path) -> None:
             dependency_constraint_flags: Sequence[PathOrStr] = []
             if build_options.dependency_constraints:
                 constraints_path = build_options.dependency_constraints.get_for_python_version(
-                    config.version, variant="pyodide"
+                    version=config.version, variant="pyodide", tmp_dir=identifier_tmp_dir
                 )
                 dependency_constraint_flags = ["-c", constraints_path]
 
