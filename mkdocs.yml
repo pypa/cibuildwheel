@@ -20,14 +20,18 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - setup.md
-  - options.md
-  - deliver-to-pypi.md
-  - cpp_standards.md
-  - faq.md
-  - working-examples.md
-  - contributing.md
-  - changelog.md
+  - Guide:
+    - setup.md
+    - configuration.md
+    - deliver-to-pypi.md
+    - faq.md
+    - cpp_standards.md
+  - Reference:
+    - options.md
+    - working-examples.md
+  - About:
+    - contributing.md
+    - changelog.md
 
 markdown_extensions:
   - md_in_html
