@@ -203,7 +203,7 @@ def build_in_container(
         log.build_start(config.identifier)
         build_options = options.build_options(config.identifier)
         build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-        use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version("3.8")
+        use_uv = build_frontend.name == "build[uv]"
         pip = ["uv", "pip"] if use_uv else ["pip"]
 
         dependency_constraint_flags: list[PathOrStr] = []
