@@ -302,6 +302,7 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                |
 | PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                               |
+| PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                               |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
@@ -1188,23 +1189,23 @@ Platform-specific environment variables are also available:<br/>
 
 The available options are:
 
-| Option                            | Default                                                                                      | Future default*                                                 |
-|-----------------------------------|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| CIBW_MANYLINUX_X86_64_IMAGE       | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)                                 | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
-| CIBW_MANYLINUX_I686_IMAGE         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)                                   |                                                                 |
-| CIBW_MANYLINUX_PYPY_X86_64_IMAGE  | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)                                 | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
-| CIBW_MANYLINUX_AARCH64_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)                                | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
-| CIBW_MANYLINUX_PPC64LE_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le)                                | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
-| CIBW_MANYLINUX_S390X_IMAGE        | [`manylinux2014`](https://quay.io/pypa/manylinux2014_s390x)                                  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
-| CIBW_MANYLINUX_ARMV7L_IMAGE       | [`manylinux_2_31`](https://github.com/mayeut/manylinux-ubuntu/pkgs/container/manylinux_2_31) |                                                                 |
-| CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)                                | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
-| CIBW_MANYLINUX_PYPY_I686_IMAGE    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)                                   |                                                                 |
-| CIBW_MUSLLINUX_X86_64_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)                                 |                                                                 |
-| CIBW_MUSLLINUX_I686_IMAGE         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)                                   |                                                                 |
-| CIBW_MUSLLINUX_AARCH64_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)                                |                                                                 |
-| CIBW_MUSLLINUX_PPC64LE_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)                                |                                                                 |
-| CIBW_MUSLLINUX_S390X_IMAGE        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)                                  |                                                                 |
-| CIBW_MUSLLINUX_ARMV7L_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)                                 |                                                                 |
+| Option                            | Default                                                        | Future default*                                                 |
+|-----------------------------------|----------------------------------------------------------------|-----------------------------------------------------------------|
+| CIBW_MANYLINUX_X86_64_IMAGE       | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)   | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| CIBW_MANYLINUX_I686_IMAGE         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)     |                                                                 |
+| CIBW_MANYLINUX_PYPY_X86_64_IMAGE  | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)   | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| CIBW_MANYLINUX_AARCH64_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| CIBW_MANYLINUX_PPC64LE_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
+| CIBW_MANYLINUX_S390X_IMAGE        | [`manylinux2014`](https://quay.io/pypa/manylinux2014_s390x)    | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
+| CIBW_MANYLINUX_ARMV7L_IMAGE       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l) |                                                                 |
+| CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| CIBW_MANYLINUX_PYPY_I686_IMAGE    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)     |                                                                 |
+| CIBW_MUSLLINUX_X86_64_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)   |                                                                 |
+| CIBW_MUSLLINUX_I686_IMAGE         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)     |                                                                 |
+| CIBW_MUSLLINUX_AARCH64_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)  |                                                                 |
+| CIBW_MUSLLINUX_PPC64LE_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)  |                                                                 |
+| CIBW_MUSLLINUX_S390X_IMAGE        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)    |                                                                 |
+| CIBW_MUSLLINUX_ARMV7L_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)   |                                                                 |
 
 <small>* The default is scheduled to change in a cibuildwheel release on or after 6th May 2025 - if you don't want the new default, you should set the value to `manylinux2014`.</small>
 

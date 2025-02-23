@@ -37,7 +37,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
         python_version: ['3.13']
         include:
         - os: ubuntu-latest
@@ -89,7 +89,7 @@ jobs:
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
-        only: cp312-${{ runner.os == 'Linux' && 'manylinux_x86_64' || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
+        only: cp312-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
 
     - name: Create custom configuration file
       shell: bash
@@ -124,7 +124,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        uv run bin/run_tests.py --run-podman
+        uv run bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures

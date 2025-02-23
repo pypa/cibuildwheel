@@ -38,6 +38,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 | PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
 | PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
 | PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
+| PyPy 3.11 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
@@ -59,7 +60,7 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅¹       | ✅        | ✅²         |
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         |
 | Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             |
 | AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |
@@ -88,7 +89,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-latest]
 
     steps:
       - uses: actions/checkout@v4

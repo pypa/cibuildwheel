@@ -4,13 +4,13 @@ altgraph==0.17.4
     # via macholib
 build==1.2.2.post1
     # via -r cibuildwheel/resources/constraints.in
-delocate==0.12.0
+delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.3.9
     # via virtualenv
-filelock==3.16.1
+filelock==3.17.0
     # via virtualenv
-importlib-metadata==8.5.0
+importlib-metadata==8.6.1
     # via build
 macholib==1.16.3
     # via delocate
@@ -18,17 +18,17 @@ packaging==24.2
     # via
     #   build
     #   delocate
-pip==24.3.1
+pip==25.0.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.3.6
     # via virtualenv
 pyproject-hooks==1.2.0
     # via build
-tomli==2.1.0
+tomli==2.2.1
     # via build
 typing-extensions==4.12.2
     # via delocate
-virtualenv==20.27.1
+virtualenv==20.29.2
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.21.0
     # via importlib-metadata

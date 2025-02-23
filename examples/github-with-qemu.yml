@@ -9,13 +9,13 @@ jobs:
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up QEMU
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && runner.arch == 'X64'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
@@ -23,9 +23,13 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
-          # configure cibuildwheel to build native archs ('auto'), and some
-          # emulated ones
-          CIBW_ARCHS_LINUX: auto aarch64 ppc64le s390x
+          # configure cibuildwheel on Linux to build native archs ('auto'),
+          # and to split the remaining architectures between the x86_64 and
+          # ARM runners
+          # armv7l can be built without QEMU on GitHub Actions ARM runners but that's
+          # not the case on all ARM64 hardware hence 'auto armv7l' for native archs
+          # on the GHA ARM64 runner
+          CIBW_ARCHS_LINUX: ${{ runner.arch == 'X64' && 'auto ppc64le s390x' || 'auto armv7l' }}
 
       - uses: actions/upload-artifact@v4
         with:
