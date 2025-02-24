@@ -65,7 +65,7 @@ def test_cross_compiled_build(tmp_path):
         },
         # Nominate the set of test sources to copy
         {
-            "CIBW_TEST_COMMAND": "python -m unittest discover tests",
+            "CIBW_TEST_COMMAND": "python tests/test_suite.py",
             "CIBW_TEST_SOURCES": "tests",
         },
     ],
