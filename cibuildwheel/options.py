@@ -265,12 +265,10 @@ class EnvironmentFormat(OptionFormat):
     values may contain variables or command substitutions.
     """
 
-    @staticmethod
-    def format_table(table: SettingTable) -> str:
+    def format_table(self, table: SettingTable) -> str:
         return " ".join(f'{k}="{v}"' for k, v in table.items())
 
-    @staticmethod
-    def merge_values(before: str, after: str) -> str:
+    def merge_values(self, before: str, after: str) -> str:
         return f"{before} {after}"
 
 
