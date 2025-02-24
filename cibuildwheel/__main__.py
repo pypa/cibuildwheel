@@ -399,8 +399,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     output_dir = options.globals.output_dir
 
-    if not output_dir.exists():
-        output_dir.mkdir(parents=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:

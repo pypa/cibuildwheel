@@ -42,8 +42,7 @@ def main() -> None:
     )
 
     dest_path = Path("docs/data/how-it-works.png")
-    if dest_path.exists():
-        dest_path.unlink()
+    dest_path.unlink(missing_ok=True)
 
     Path(screenshot).rename(dest_path)
 
