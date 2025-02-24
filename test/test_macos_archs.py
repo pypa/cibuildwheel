@@ -51,7 +51,21 @@ def test_cross_compiled_build(tmp_path):
 
 
 @pytest.mark.parametrize("build_universal2", [False, True])
-def test_cross_compiled_test(tmp_path, capfd, build_universal2):
+@pytest.mark.parametrize(
+    "test_config",
+    [
+        # Run the test suite in the project folder
+        {
+            "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
+        },
+        # Nominate the set of test sources to copy
+        {
+            "CIBW_TEST_COMMAND": "python tests/test_suite.py",
+            "CIBW_TEST_SOURCES": "tests",
+        },
+    ],
+)
+def test_cross_compiled_test(tmp_path, capfd, build_universal2, test_config):
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
     if get_xcode_version() < (12, 2):
@@ -62,12 +76,12 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
 
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={
-            "CIBW_BUILD": "cp310-*" if build_universal2 else "*p310-*",
-            "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
-            "CIBW_ARCHS": "universal2" if build_universal2 else "x86_64 arm64",
-            "CIBW_BUILD_VERBOSITY": "3",
-        },
+        add_env=dict(
+            CIBW_BUILD="cp310-*" if build_universal2 else "*p310-*",
+            CIBW_ARCHS="universal2" if build_universal2 else "x86_64 arm64",
+            CIBW_BUILD_VERBOSITY="3",
+            **test_config,
+        ),
     )
 
     captured = capfd.readouterr()
