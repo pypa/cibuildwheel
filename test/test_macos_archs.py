@@ -8,6 +8,11 @@ import pytest
 from . import test_projects, utils
 
 basic_project = test_projects.new_c_project()
+basic_project.files["tests/test_suite.py"] = r"""
+import platform
+print("running tests on " + platform.machine())
+"""
+
 
 ALL_MACOS_WHEELS = {
     *utils.expected_wheels("spam", "0.1.0", machine_arch="x86_64"),
@@ -60,7 +65,7 @@ def test_cross_compiled_build(tmp_path):
         },
         # Nominate the set of test sources to copy
         {
-            "CIBW_TEST_COMMAND": "python tests/test_suite.py",
+            "CIBW_TEST_COMMAND": "python -m unittest discover tests",
             "CIBW_TEST_SOURCES": "tests",
         },
     ],

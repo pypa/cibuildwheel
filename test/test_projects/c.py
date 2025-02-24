@@ -76,12 +76,6 @@ version = 0.1.0
 """
 
 
-TEST_SUITE_TEMPLATE = r"""
-import platform
-print("running tests on " + platform.machine())
-"""
-
-
 def new_c_project(
     *,
     spam_c_top_level_add: str = "",
@@ -98,7 +92,6 @@ def new_c_project(
             "spam.c": jinja2.Template(SPAM_C_TEMPLATE),
             "setup.py": jinja2.Template(SETUP_PY_TEMPLATE),
             "setup.cfg": jinja2.Template(SETUP_CFG_TEMPLATE),
-            "tests/test_suite.py": jinja2.Template(TEST_SUITE_TEMPLATE),
         }
     )
 
