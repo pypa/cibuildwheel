@@ -81,12 +81,12 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2, test_config):
 
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env=dict(
-            CIBW_BUILD="cp310-*" if build_universal2 else "*p310-*",
-            CIBW_ARCHS="universal2" if build_universal2 else "x86_64 arm64",
-            CIBW_BUILD_VERBOSITY="3",
+        add_env={
+            "CIBW_BUILD": "cp310-*" if build_universal2 else "*p310-*",
+            "CIBW_ARCHS": "universal2" if build_universal2 else "x86_64 arm64",
+            "CIBW_BUILD_VERBOSITY": "3",
             **test_config,
-        ),
+        },
     )
 
     captured = capfd.readouterr()
