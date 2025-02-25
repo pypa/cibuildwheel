@@ -269,62 +269,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* expand all the toctree entries */
-.wy-menu-vertical .toctree-l1.current .toctree-l2>ul,
-.wy-menu-vertical .toctree-l2.current .toctree-l3>ul,
-.wy-menu-vertical .toctree-l3.current .toctree-l4>ul,
-.wy-menu-vertical .toctree-l4.current .toctree-l5>ul,
-.wy-menu-vertical .toctree-l5.current .toctree-l6>ul,
-.wy-menu-vertical .toctree-l6.current .toctree-l7>ul,
-.wy-menu-vertical .toctree-l7.current .toctree-l8>ul,
-.wy-menu-vertical .toctree-l8.current .toctree-l9>ul,
-.wy-menu-vertical .toctree-l9.current .toctree-l10>ul,
-.wy-menu-vertical .toctree-l10.current .toctree-l11>ul {
-  display: block;
-}
-
-/* hide all the buttons */
-.wy-menu-vertical li.current>a button.toctree-expand,
-.wy-menu-vertical li.on a button.toctree-expand,
-.wy-menu-vertical li.toctree-l2 button.toctree-expand,
-.wy-menu-vertical li a button.toctree-expand {
+/* hide the l1 buttons */
+.wy-menu-vertical li.toctree-l1.current>a button.toctree-expand,
+.wy-menu-vertical li.toctree-l1.on>a button.toctree-expand,
+.wy-menu-vertical li.toctree-l1>a button.toctree-expand {
   display: none;
 }
 
-/* toctree layout improvements */
-.wy-menu-vertical a {
-  padding: 0.4em 1.2em;
-}
-.wy-menu-vertical li.current>a,
-.wy-menu-vertical li.on a {
-  font-weight: normal;
-  padding: 0.4em 1.2em;
-  /* border-right: 1px solid #f0f0f0; */
-}
-.wy-menu-vertical li.current a {
-  padding: 0.4em 1.2em;
-}
-.wy-menu-vertical li.toctree-l3 a,
-.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a {
-  padding-left: 1.8em;
-}
-.wy-menu-vertical li.toctree-l2.current>a {
-  padding: 0.4em 1.2em;
-}
-.wy-menu-vertical li.toctree-l2.current>a,
-.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a {
-  background: transparent;
-}
-.wy-menu-vertical li.toctree-l2.current>a:hover,
-.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a:hover {
-  background: #d6d6d6;
-}
-.wy-menu-vertical li.current>a.current {
-  background: #fafafa !important;
-}
-.wy-menu-vertical li.current a {
-
-}
 
 /* word wrap in table cells */
 .wy-table-responsive table td, .wy-table-responsive table th {
