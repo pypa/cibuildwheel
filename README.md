@@ -77,7 +77,7 @@ Usage
 Example setup
 -------------
 
-To build manylinux, musllinux, macOS (producing x86_64, ARM64 and universal2 wheels), Windows, iOS and pyodide wheels on GitHub Actions, you could use this `.github/workflows/wheels.yml`:
+To build manylinux, musllinux, macOS, and Windows wheels on GitHub Actions, you could use this `.github/workflows/wheels.yml`:
 
 <!--generic-github-start-->
 ```yaml

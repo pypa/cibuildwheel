@@ -31,4 +31,4 @@ You can override the cache folder using the `CIBW_CACHE_PATH` environment variab
 
 ## Universal builds
 
-By default, macOS builds will build a single architecture wheel, using the build machine's architecture. If you need to support both x86_64 and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal` to build a multi-architecture wheel. cibuildwheel can test x86_64 wheels (or the x86_64 slice of a universal wheel) when running on Apple Silicon hardware, but it is *not* possible to test Apple Silicon wheels on x86_64 hardware.
+By default, macOS builds will build a single architecture wheel, using the build machine's architecture. If you need to support both x86_64 and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel can test x86_64 wheels (or the x86_64 slice of a `universal2` wheel) when running on Apple Silicon hardware, but it is *not* possible to test Apple Silicon wheels on x86_64 hardware.
