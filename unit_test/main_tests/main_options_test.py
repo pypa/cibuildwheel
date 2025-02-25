@@ -309,6 +309,7 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     [
         "cp27-*",
         "cp35-*",
+        "?p36-*",
         "?p27*",
         "?p2*",
         "?p35*",
@@ -327,7 +328,8 @@ def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys)
         main()
 
     stderr = capsys.readouterr().err
-    msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {selector}"
+    series = "2" if "6" in pattern else "1"
+    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update {selector}"
     assert msg in stderr
 
 
