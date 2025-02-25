@@ -436,7 +436,9 @@ def build(options: Options, tmp_path: Path) -> None:
             if build_options.dependency_constraints:
                 dependency_constraint_flags = [
                     "-c",
-                    build_options.dependency_constraints.get_for_python_version(config.version),
+                    build_options.dependency_constraints.get_for_python_version(
+                        version=config.version, tmp_dir=identifier_tmp_dir
+                    ),
                 ]
 
             base_python, env = setup_python(
@@ -476,7 +478,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_env["VIRTUALENV_PIP"] = pip_version
                 if build_options.dependency_constraints:
                     constraint_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
+                        version=config.version, tmp_dir=identifier_tmp_dir
                     )
                     combine_constraints(
                         build_env, constraint_path, identifier_tmp_dir if use_uv else None

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import shlex
 from collections.abc import Mapping, MutableMapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path, PurePath
 from typing import Any, Literal, TypeVar
 
@@ -8,20 +10,83 @@ from packaging.utils import parse_wheel_filename
 
 from . import resources
 from .cmd import call
+from .helpers import parse_key_value_string, unwrap
 
 
+@dataclass()
 class DependencyConstraints:
-    def __init__(self, base_file_path: Path):
-        assert base_file_path.exists()
-        self.base_file_path = base_file_path.resolve()
+    base_file_path: Path | None = None
+    packages: list[str] | None = None
+
+    def __post_init__(self) -> None:
+        if self.packages is not None and self.base_file_path is not None:
+            msg = "Cannot specify both a file and packages in the dependency constraints"
+            raise ValueError(msg)
+
+        if self.base_file_path is not None:
+            assert self.base_file_path.exists()
+            self.base_file_path = self.base_file_path.resolve()
 
     @staticmethod
     def with_defaults() -> DependencyConstraints:
         return DependencyConstraints(base_file_path=resources.CONSTRAINTS)
 
+    @staticmethod
+    def from_config_string(config_string: str) -> DependencyConstraints | None:
+        if config_string == "pinned":
+            return DependencyConstraints.with_defaults()
+
+        if config_string == "latest":
+            return None
+
+        if config_string.startswith(("file:", "packages:")):
+            # we only do the table-style parsing if it looks like a table,
+            # because this option used to be only a file path. We don't want
+            # to break existing configurations, whose file paths might include
+            # special characters like ':' or ' ', which would require quoting
+            # if they were to be passed as a parse_key_value_string positional
+            # argument.
+            return DependencyConstraints.from_table_style_config_string(config_string)
+
+        return DependencyConstraints(base_file_path=Path(config_string))
+
+    @staticmethod
+    def from_table_style_config_string(config_string: str) -> DependencyConstraints | None:
+        config_dict = parse_key_value_string(config_string, kw_arg_names=["file", "packages"])
+        files = config_dict.get("file")
+        packages = config_dict.get("packages")
+
+        if files and packages:
+            msg = "Cannot specify both a file and packages in dependency-versions"
+            raise ValueError(msg)
+
+        if packages:
+            return DependencyConstraints(packages=packages)
+
+        if not files:
+            return DependencyConstraints.with_defaults()
+
+        if len(files) > 1:
+            msg = unwrap("""
+                Only one file can be specified in dependency-versions.
+                If you intended to pass only one, perhaps you need to quote the path?
+            """)
+            raise ValueError(msg)
+
+        return DependencyConstraints(base_file_path=Path(files[0]))
+
     def get_for_python_version(
-        self, version: str, *, variant: Literal["python", "pyodide"] = "python"
+        self, *, version: str, variant: Literal["python", "pyodide"] = "python", tmp_dir: Path
     ) -> Path:
+        if self.packages:
+            constraint_file = tmp_dir / "constraints.txt"
+            constraint_file.write_text("\n".join(self.packages))
+            return constraint_file
+
+        assert self.base_file_path is not None, (
+            "DependencyConstraints should have either a file or packages"
+        )
+
         version_parts = version.split(".")
 
         # try to find a version-specific dependency file e.g. if
@@ -35,19 +100,15 @@ class DependencyConstraints:
         else:
             return self.base_file_path
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.base_file_path!r})"
-
-    def __eq__(self, o: object) -> bool:
-        if not isinstance(o, DependencyConstraints):
-            return False
-
-        return self.base_file_path == o.base_file_path
-
     def options_summary(self) -> Any:
         if self == DependencyConstraints.with_defaults():
             return "pinned"
+        elif self.packages:
+            return {"packages": " ".join(shlex.quote(p) for p in self.packages)}
         else:
+            assert self.base_file_path is not None, (
+                "DependencyConstraints should have either a file or packages"
+            )
             return self.base_file_path.name
 
 
