@@ -30,7 +30,7 @@ repos:
     additional_dependencies: &mypy-dependencies
       - bracex
       - dependency-groups>=1.2
-      - nox
+      - nox>=2025.2.9
       - orjson
       - packaging
       - pygithub
