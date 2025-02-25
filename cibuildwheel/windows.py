@@ -212,10 +212,7 @@ def setup_rust_cross_compile(
 
 
 def can_use_uv(python_configuration: PythonConfiguration) -> bool:
-    conditions = (
-        Version(python_configuration.version) >= Version("3.8"),
-        not python_configuration.identifier.startswith("pp38-"),
-    )
+    conditions = (not python_configuration.identifier.startswith("pp38-"),)
     return all(conditions)
 
 

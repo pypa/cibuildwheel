@@ -15,8 +15,8 @@ from cibuildwheel.__main__ import main
 from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
-DEFAULT_IDS = {"cp36", "cp37", "cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
-ALL_IDS = DEFAULT_IDS | {"cp313t", "pp37", "pp38", "pp39", "pp310", "pp311"}
+DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
+ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311"}
 
 
 @pytest.fixture
@@ -114,7 +114,7 @@ manylinux-i686-image = "manylinux2014"
 musllinux-x86_64-image = "musllinux_1_1"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp36-manylinux_x86_64"
+select = "cp38-manylinux_x86_64"
 before-all = "true"
 """
     )
@@ -134,8 +134,8 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {"cp36-manylinux_x86_64"}
-    assert kwargs["options"].build_options("cp36-manylinux_x86_64").before_all == "true"
+    assert identifiers == {"cp38-manylinux_x86_64"}
+    assert kwargs["options"].build_options("cp38-manylinux_x86_64").before_all == "true"
 
     kwargs = build_in_container.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
@@ -147,20 +147,19 @@ before-all = "true"
         f"{x}-manylinux_x86_64"
         for x in ALL_IDS
         - {
-            "cp36",
+            "cp38",
             "cp310",
             "cp311",
             "cp312",
             "cp313",
             "cp313t",
-            "pp37",
             "pp38",
             "pp39",
             "pp310",
             "pp311",
         }
     }
-    assert kwargs["options"].build_options("cp37-manylinux_x86_64").before_all == ""
+    assert kwargs["options"].build_options("cp39-manylinux_x86_64").before_all == ""
 
     kwargs = build_in_container.call_args_list[2][1]
     assert "quay.io/pypa/manylinux_2_28_x86_64" in kwargs["container"]["image"]
@@ -175,7 +174,6 @@ before-all = "true"
             "cp312",
             "cp313",
             "cp313t",
-            "pp37",
             "pp38",
             "pp39",
             "pp310",
@@ -198,7 +196,7 @@ before-all = "true"
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-musllinux_x86_64" for x in ALL_IDS & {"cp36", "cp37", "cp38", "cp39"} if "pp" not in x
+        f"{x}-musllinux_x86_64" for x in ALL_IDS & {"cp38", "cp39"} if "pp" not in x
     }
 
     kwargs = build_in_container.call_args_list[5][1]
@@ -207,7 +205,7 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-musllinux_x86_64" for x in ALL_IDS - {"cp36", "cp37", "cp38", "cp39"} if "pp" not in x
+        f"{x}-musllinux_x86_64" for x in ALL_IDS - {"cp38", "cp39"} if "pp" not in x
     }
 
     kwargs = build_in_container.call_args_list[6][1]

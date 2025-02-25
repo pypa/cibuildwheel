@@ -191,11 +191,6 @@ def install_pypy(tmp: Path, url: str) -> Path:
     return installation_path / "bin" / "pypy3"
 
 
-def can_use_uv(python_configuration: PythonConfiguration) -> bool:
-    conditions = (Version(python_configuration.version) >= Version("3.8"),)
-    return all(conditions)
-
-
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -203,9 +198,6 @@ def setup_python(
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
 ) -> tuple[Path, dict[str, str]]:
-    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
-        build_frontend = "build"
-
     uv_path = find_uv()
     use_uv = build_frontend == "build[uv]"
 
@@ -315,20 +307,19 @@ def setup_python(
         )
         env["MACOSX_DEPLOYMENT_TARGET"] = default_target
 
-    if python_configuration.version not in {"3.6", "3.7"}:
-        if config_is_arm64:
-            # macOS 11 is the first OS with arm64 support, so the wheels
-            # have that as a minimum.
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
-            env.setdefault("ARCHFLAGS", "-arch arm64")
-        elif config_is_universal2:
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
-            env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
-        elif python_configuration.identifier.endswith("x86_64"):
-            # even on the macos11.0 Python installer, on the x86_64 side it's
-            # compatible back to 10.9.
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
-            env.setdefault("ARCHFLAGS", "-arch x86_64")
+    if config_is_arm64:
+        # macOS 11 is the first OS with arm64 support, so the wheels
+        # have that as a minimum.
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
+        env.setdefault("ARCHFLAGS", "-arch arm64")
+    elif config_is_universal2:
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
+        env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+    elif python_configuration.identifier.endswith("x86_64"):
+        # even on the macos11.0 Python installer, on the x86_64 side it's
+        # compatible back to 10.9.
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
+        env.setdefault("ARCHFLAGS", "-arch x86_64")
 
     building_arm64 = config_is_arm64 or config_is_universal2
     if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in env:
@@ -416,7 +407,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-            use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
+            use_uv = build_frontend.name == "build[uv]"
             uv_path = find_uv()
             if use_uv and uv_path is None:
                 msg = "uv not found"

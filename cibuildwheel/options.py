@@ -980,7 +980,12 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
 
 def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
     if "p2" in selector or "p35" in selector:
-        msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
+        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update {name}"
+        if error:
+            raise errors.DeprecationError(msg)
+        log.warning(msg)
+    if "p36" in selector or "p37" in selector:
+        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update {name}"
         if error:
             raise errors.DeprecationError(msg)
         log.warning(msg)

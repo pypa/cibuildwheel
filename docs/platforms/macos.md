@@ -22,11 +22,11 @@ You can override the cache folder using the `CIBW_CACHE_PATH` environment variab
     CPython:
 
     ```console
-    Error: CPython 3.6 is not installed.
+    Error: CPython 3.9 is not installed.
     cibuildwheel will not perform system-wide installs when running outside of CI.
-    To build locally, install CPython 3.6 on this machine, or, disable this version of Python using CIBW_SKIP=cp36-macosx_*
+    To build locally, install CPython 3.9 on this machine, or, disable this version of Python using CIBW_SKIP=cp39-macosx_*
 
-    Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
+    Download link: https://www.python.org/ftp/python/3.9.8/python-3.9.8-macosx10.9.pkg
     ```
 
 ## Universal builds
