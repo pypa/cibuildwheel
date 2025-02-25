@@ -13,8 +13,8 @@ project_with_a_test.files["test/spam_test.py"] = r"""
 import spam
 
 def test_spam():
-    assert spam.system('python -c "exit(0)"') == 0
-    assert spam.system('python -c "exit(1)"') != 0
+    assert spam.filter("spam") == 0
+    assert spam.filter("ham") != 0
 """
 
 
