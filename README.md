@@ -87,33 +87,11 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels for ${{ matrix.os }}
-    runs-on: ${{ matrix.runs-on }}
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ linux-intel, linux-arm, windows, macOS-intel, macOS-arm, iOS, pyodide ]
-        include:
-          - archs: auto
-            platform: auto
-          - os: linux-intel
-            runs-on: ubuntu-latest
-          - os: linux-arm
-            runs-on: ubuntu-24.04-arm
-          - os: windows
-            runs-on: windows-latest
-          - os: macOS-intel
-            # macos-13 was the last x86_64 runner
-            runs-on: macos-13
-          - os: macOS-arm
-            # macos-14+ (including latest) are ARM64 runners
-            runs-on: macos-latest
-            archs: auto,universal2
-          - os: iOS
-            runs-on: macos-latest
-            platform: ios
-          - os: pyodide
-            runs-on: ubuntu-latest
-            platform: pyodide
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -126,14 +104,10 @@ jobs:
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_PLATFORM: ${{ matrix.platform }}
-          CIBW_ARCHS: ${{ matrix.archs }}
-        # Can also be configured directly, using `with:`
-        # with:
-        #   package-dir: .
-        #   output-dir: wheelhouse
-        #   config-file: "{package}/pyproject.toml"
+        # to supply options, put them in 'env', like:
+        # env:
+        #   CIBW_SOME_OPTION: value
+        #   ...
 
       - uses: actions/upload-artifact@v4
         with:

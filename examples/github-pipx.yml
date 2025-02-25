@@ -4,41 +4,18 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels for ${{ matrix.os }}
-    runs-on: ${{ matrix.runs-on }}
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ linux, windows, macOS-intel, macOS-arm, iOS, pyodide ]
-        include:
-          - archs: auto
-            platform: auto
-          - os: linux
-            runs-on: ubuntu-latest
-          - os: windows
-            runs-on: windows-latest
-          - os: macOS-intel
-            # macos-13 was the last x86_64 runner
-            runs-on: macos-13
-          - os: macOS-arm
-            # macos-14+ (including latest) are ARM64 runners
-            runs-on: macos-latest
-            archs: auto,universal2
-          - os: iOS
-            runs-on: macos-latest
-            platform: ios
-          - os: pyodide
-            runs-on: ubuntu-latest
-            platform: pyodide
+        # macos-13 is an intel runner, macos-14 is apple silicon
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Build wheels
         run: pipx run cibuildwheel==2.22.0
-        # To supply options, put them in 'env'
-        env:
-          CIBW_PLATFORM: ${{ matrix.platform }}
-          CIBW_ARCHS: ${{ matrix.archs }}
 
       - uses: actions/upload-artifact@v4
         with:

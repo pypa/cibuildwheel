@@ -147,7 +147,7 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 ### GitHub Actions [linux/mac/windows] {: #github-actions}
 
-To build Linux, Windows, macOS, iOS and pyodide wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
+To build Linux, macOS, and Windows wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
 
 !!! tab "Action"
     For GitHub Actions, `cibuildwheel` provides an action you can use. This is
@@ -159,6 +159,10 @@ To build Linux, Windows, macOS, iOS and pyodide wheels using GitHub Actions, cre
     ```yaml
     {% include "../examples/github-minimal.yml" %}
     ```
+
+    Use `env:` to pass [build options](options.md) and `with:` to set
+    `package-dir: .`, `output-dir: wheelhouse` and `config-file: ''`
+    locations (those values are the defaults).
 
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in
@@ -188,7 +192,7 @@ Commit this file, and push to GitHub - either to your default branch, or to a PR
 
 For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
 
-[`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
+[`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml) extends this minimal example to include iOS and Pyodide builds, and a demonstration of how to automatically upload the built wheels to PyPI.
 
 
 ### Azure Pipelines [linux/mac/windows] {: #azure-pipelines}
