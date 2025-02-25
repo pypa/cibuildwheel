@@ -4,6 +4,16 @@ title: 'Setup'
 
 # Setup
 
+## Platform support
+
+Each platform that cibuildwheel supports has its own prerequisites and platform-specific behaviors. cibuildwheel supports the following platforms:
+
+* [Linux](./platforms/linux.md)
+* [Windows](./platforms/windows.md)
+* [macOS](./platforms/macos.md)
+* [iOS](./platforms/ios.md)
+* [Experimental: Pyodide (WebAssembly)](./platforms/pyodide.md)
+
 ## Run cibuildwheel locally (optional) {: #local}
 
 Before getting to CI setup, it can be convenient to test cibuildwheel
@@ -59,89 +69,6 @@ You should see the builds taking place. You can experiment with options using en
     ```console
     cibuildwheel
     ```
-
-### Linux builds
-
-If you've got [Docker](https://www.docker.com/products/docker-desktop) installed on
-your development machine, you can run a Linux build.
-
-!!! tip
-    You can run the Linux build on any platform. Even Windows can run
-    Linux containers these days, but there are a few  hoops to jump
-    through. Check [this document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
-    for more info.
-
-Because the builds are happening in manylinux Docker containers,
-they're perfectly reproducible.
-
-The only side effect to your system will be docker images being pulled.
-
-### macOS / Windows builds {: #macos-windows}
-
-Pre-requisite: you need to have native build tools installed.
-
-Because the builds are happening without full isolation, there might be some
-differences compared to CI builds (Xcode version, Visual Studio version,
-OS version, local files, ...) that might prevent you from finding an issue only
-seen in CI.
-
-In order to speed-up builds, cibuildwheel will cache the tools it needs to be
-reused for future builds. The folder used for caching is system/user dependent and is
-reported in the printed preamble of each run (e.g. "Cache folder: /Users/Matt/Library/Caches/cibuildwheel").
-
-You can override the cache folder using the ``CIBW_CACHE_PATH`` environment variable.
-
-!!! warning
-    cibuildwheel uses official python.org macOS installers for CPython but
-    those can only be installed globally.
-
-    In order not to mess with your system, cibuildwheel won't install those if they are
-    missing. Instead, it will error out with a message to let you install the missing
-    CPython:
-
-    ```console
-    Error: CPython 3.6 is not installed.
-    cibuildwheel will not perform system-wide installs when running outside of CI.
-    To build locally, install CPython 3.6 on this machine, or, disable this version of Python using CIBW_SKIP=cp36-macosx_*
-
-    Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
-    ```
-
-### iOS builds
-
-Pre-requisite: You must be building on a macOS machine, with Xcode installed.
-The Xcode installation must have an iOS SDK available. To check if an iOS SDK
-is available, open the Xcode settings panel, and check the Platforms tab.
-
-To build iOS wheels, pass in `--platform ios` when invoking `cibuildwheel`. This will
-build three wheels:
-
-* An ARM64 wheel for iOS devices;
-* An ARM64 wheel for the iOS simulator; and
-* An x86_64 wheel for the iOS simulator.
-
-Alternatively, you can build only wheels for iOS devices by using
-`--platform iphoneos`; or only wheels for iOS simulators by using
-`--platform iphonesimulator`.
-
-Building iOS wheel also requires a working macOS Python configuration. See the notes
-on [macOS builds](setup.md#macos-windows) for details about configuration.
-
-iOS builds will honor the `IPHONEOS_DEPLOYMENT_TARGET` environment variable to set the
-minimum supported API version for generated wheels. This will default to `13.0` if the
-environment variable isn't set.
-
-If tests have been configured, the test suite will be executed on the simulator
-matching the architecture of the build machine - that is, if you're building on
-an ARM64 macOS machine, the ARM64 wheel will be tested on an ARM64 simulator.
-
-### Pyodide (WebAssembly) builds (experimental)
-
-Pre-requisite: you need to have a matching host version of Python (unlike all
-other cibuildwheel platforms). Linux host highly recommended; macOS hosts may
-work (e.g. invoking `pytest` directly in [`CIBW_TEST_COMMAND`](options.md#test-command) is [currently failing](https://github.com/pyodide/pyodide/issues/4802)) and Windows hosts will not work.
-
-You must target pyodide with `--platform pyodide` (or use `--only` on the identifier).
 
 ## Configure a CI service
 
