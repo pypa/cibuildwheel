@@ -46,9 +46,9 @@ def path_contains(parent, child):
 
 
 class TestSpam(TestCase):
-    def test_system(self):
-        self.assertEqual(0, spam.system('python -c "exit(0)"'))
-        self.assertNotEqual(0, spam.system('python -c "exit(1)"'))
+    def test_filter(self):
+        self.assertEqual(0, spam.filter("spam"))
+        self.assertNotEqual(0, spam.filter("ham"))
 
     def test_virtualenv(self):
         # sys.prefix is different from sys.base_prefix when running a virtualenv

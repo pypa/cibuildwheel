@@ -36,7 +36,7 @@ So, if we can, I'd like to improve the experience on errors as well. In [this](h
 
 ### Running the tests
 
-When making a change to the codebase, you can run tests locally for quicker feedback than the CI runs on a PR. You can [run them directly](#making-a-venv), but the easiest way to run tests is using [nox](https://nox.thea.codes/).
+When making a change to the codebase, you can run tests locally for quicker feedback than the CI runs on a PR. You can run them directly, but the easiest way to run tests is using [nox](https://nox.thea.codes/).
 
 You can run all the tests locally by doing:
 

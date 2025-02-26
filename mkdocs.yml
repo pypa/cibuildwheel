@@ -20,14 +20,22 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - setup.md
-  - options.md
-  - deliver-to-pypi.md
-  - cpp_standards.md
-  - faq.md
-  - working-examples.md
-  - contributing.md
-  - changelog.md
+  - User guide:
+    - setup.md
+    - options.md
+    - deliver-to-pypi.md
+    - cpp_standards.md
+    - faq.md
+    - working-examples.md
+  - Supported Platforms:
+    - platforms/linux.md
+    - platforms/windows.md
+    - platforms/macos.md
+    - platforms/ios.md
+    - platforms/pyodide.md
+  - About the project:
+    - contributing.md
+    - changelog.md
 
 markdown_extensions:
   - md_in_html

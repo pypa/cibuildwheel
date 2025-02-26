@@ -17,6 +17,9 @@ PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "macos": "macOS",
     "windows": "Windows",
     "pyodide": "Pyodide",
+    "ios": "iOS",
+    "iphoneos": "iOS (Device)",
+    "iphonesimulator": "iOS (Simulator)",
 }
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
@@ -94,8 +97,8 @@ class Architecture(Enum):
 
     @staticmethod
     def native_arch(platform: PlatformName) -> Architecture | None:
-        if platform == "pyodide":
-            return Architecture.wasm32
+        native_machine = platform_module.machine()
+        native_architecture = Architecture(native_machine)
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
@@ -104,8 +107,22 @@ class Architecture(Enum):
             else ("macos" if sys.platform.startswith("darwin") else "linux")
         )
 
-        native_machine = platform_module.machine()
-        native_architecture = Architecture(native_machine)
+        if platform == "pyodide":
+            return Architecture.wasm32
+        elif platform in {"ios", "iphonesimulator"}:
+            # Can only build for iOS on macOS
+            if host_platform == "macos":
+                # iOS Simulators matches the platform architecture.
+                return native_architecture
+            else:
+                return None
+        elif platform == "iphoneos":
+            # Can only build for iOS devices on macOS
+            if host_platform == "macos":
+                # iOS devices only support arm64
+                return Architecture.arm64
+            else:
+                return None
 
         # we might need to rename the native arch to the machine we're running
         # on, as the same arch can have different names on different platforms
@@ -129,14 +146,22 @@ class Architecture(Enum):
             return set()  # can't build anything on this platform
         result = {native_arch}
 
-        if platform == "linux":
+        if platform == "iphoneos":
+            # iOS devices only support 1 architecture
+            result = {Architecture.arm64}
+
+        elif platform in {"ios", "iphonesimulator"}:
+            # iOS defaults to building all architectures
+            result = {Architecture.x86_64, Architecture.arm64}
+
+        elif platform == "linux":
             if Architecture.x86_64 in result:
                 # x86_64 machines can run i686 containers
                 result.add(Architecture.i686)
             elif Architecture.aarch64 in result and _check_aarch32_el0():
                 result.add(Architecture.armv7l)
 
-        if platform == "windows" and Architecture.AMD64 in result:
+        elif platform == "windows" and Architecture.AMD64 in result:
             result.add(Architecture.x86)
 
         return result
@@ -155,7 +180,10 @@ class Architecture(Enum):
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
             "pyodide": {Architecture.wasm32},
+            "iphoneos": {Architecture.arm64},
+            "iphonesimulator": {Architecture.arm64, Architecture.x86_64},
         }
+        all_archs_map["ios"] = all_archs_map["iphoneos"] | all_archs_map["iphonesimulator"]
         return all_archs_map[platform]
 
     @staticmethod
