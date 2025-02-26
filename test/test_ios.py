@@ -37,6 +37,13 @@ def get_xcode_version() -> tuple[int, int]:
     return (int(version_parts[0]), int(version_parts[1]))
 
 
+# iOS tests can't be run in parallel, because they're dependent on starting a
+# simulator. It's *possible* to start multiple simulators, but probably not
+# advisable to start as many simulators as there are CPUs on the test machine.
+# There's also an underlying issue with the testbed starting multiple simulators
+# in parallel (https://github.com/python/cpython/issues/129200); even if that
+# issue is resolved, it's probably desirable to *not* parallelize iOS tests.
+@pytest.mark.xdist_group(name="ios")
 @pytest.mark.parametrize(
     "build_config",
     [
