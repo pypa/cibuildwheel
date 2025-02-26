@@ -717,12 +717,15 @@ def build(options: Options, tmp_path: Path) -> None:
 
                     if build_options.test_sources:
                         test_cwd = identifier_tmp_dir / "test_cwd"
-                        test_cwd.mkdir(exist_ok=True)
-                        copy_test_sources(
-                            build_options.test_sources,
-                            build_options.package_dir,
-                            test_cwd,
-                        )
+                        # only create test_cwd if it doesn't already exist - it
+                        # may have been created during a previous `testing_arch`
+                        if not test_cwd.exists():
+                            test_cwd.mkdir()
+                            copy_test_sources(
+                                build_options.test_sources,
+                                build_options.package_dir,
+                                test_cwd,
+                            )
                     else:
                         # There are no test sources. Run the tests in the project directory.
                         test_cwd = Path(".").resolve()
