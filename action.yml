@@ -29,7 +29,7 @@ runs:
       id: python
       with:
         python-version: "3.12"
-        update-environment: false
+        update-environment: true
 
     - id: cibw
       run: |
