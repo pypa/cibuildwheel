@@ -11,24 +11,21 @@ import textwrap
 import time
 import traceback
 import typing
-from collections.abc import Generator, Iterable, Sequence, Set
+from collections.abc import Generator, Iterable, Sequence
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Any, Protocol, TextIO, assert_never
+from typing import Any, TextIO
 
 import cibuildwheel
-import cibuildwheel.linux
-import cibuildwheel.macos
-import cibuildwheel.pyodide
 import cibuildwheel.util
-import cibuildwheel.windows
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
-from cibuildwheel.selector import BuildSelector, EnableGroup
-from cibuildwheel.typing import PLATFORMS, GenericPythonConfiguration, PlatformName
+from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers, get_platform_module
+from cibuildwheel.selector import BuildSelector, EnableGroup, selector_matches
+from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 from cibuildwheel.util.helpers import strtobool
 
@@ -284,28 +281,6 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     return _compute_platform_auto()
 
 
-class PlatformModule(Protocol):
-    # note that as per PEP544, the self argument is ignored when the protocol
-    # is applied to a module
-    def get_python_configurations(
-        self, build_selector: BuildSelector, architectures: Set[Architecture]
-    ) -> Sequence[GenericPythonConfiguration]: ...
-
-    def build(self, options: Options, tmp_path: Path) -> None: ...
-
-
-def get_platform_module(platform: PlatformName) -> PlatformModule:
-    if platform == "linux":
-        return cibuildwheel.linux
-    if platform == "windows":
-        return cibuildwheel.windows
-    if platform == "macos":
-        return cibuildwheel.macos
-    if platform == "pyodide":
-        return cibuildwheel.pyodide
-    assert_never(platform)
-
-
 @contextlib.contextmanager
 def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     """
@@ -445,15 +420,6 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
     print("Here we go!\n")
 
 
-def get_build_identifiers(
-    platform_module: PlatformModule,
-    build_selector: BuildSelector,
-    architectures: Set[Architecture],
-) -> list[str]:
-    python_configurations = platform_module.get_python_configurations(build_selector, architectures)
-    return [config.identifier for config in python_configurations]
-
-
 def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str]:
     warnings = []
 
@@ -478,6 +444,48 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
                 "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
             raise errors.ConfigurationError(msg)
+
+    build_selector = options.globals.build_selector
+    test_selector = options.globals.test_selector
+
+    warnings += check_for_invalid_selectors("build", build_selector.build_config, error=True)
+    warnings += check_for_invalid_selectors("skip", build_selector.skip_config)
+    warnings += check_for_invalid_selectors("test_skip", test_selector.skip_config)
+
+    return warnings
+
+
+def check_for_invalid_selectors(
+    selector_name: str, selector_value: str, *, error: bool = False
+) -> list[str]:
+    warnings = []
+
+    all_valid_identifiers = [
+        identifier
+        for name, module in ALL_PLATFORM_MODULES.items()
+        for identifier in get_build_identifiers(
+            platform_module=module,
+            architectures=Architecture.all_archs(name),
+            build_selector=BuildSelector(build_config="*", skip_config=""),
+        )
+    ]
+
+    for selector in selector_value.split():
+        if not any(selector_matches(selector, i) for i in all_valid_identifiers):
+            msg = f"Invalid `{selector_name}` selector: {selector!r}. "
+            error_type: type = errors.ConfigurationError
+
+            if "p2" in selector or "p35" in selector:
+                msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update `{selector_name}`"
+                error_type = errors.DeprecationError
+            if "p36" in selector or "p37" in selector:
+                msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`"
+                error_type = errors.DeprecationError
+
+            if error:
+                raise error_type(msg)
+
+            warnings.append(msg)
 
     return warnings
 

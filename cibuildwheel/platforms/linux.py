@@ -12,18 +12,18 @@ from typing import assert_never
 
 from packaging.version import Version
 
-from . import errors
-from .architecture import Architecture
-from .frontend import BuildFrontendConfig, get_build_frontend_extra_flags
-from .logger import log
-from .oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
-from .options import BuildOptions, Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.file import copy_test_sources
-from .util.helpers import prepare_command, unwrap
-from .util.packaging import find_compatible_wheel
+from .. import errors
+from ..architecture import Architecture
+from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from ..logger import log
+from ..oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
+from ..options import BuildOptions, Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.file import copy_test_sources
+from ..util.helpers import prepare_command, unwrap
+from ..util.packaging import find_compatible_wheel
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
