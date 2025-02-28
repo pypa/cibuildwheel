@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import platform as platform_module
 import subprocess
 import sys

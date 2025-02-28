@@ -1,13 +1,12 @@
-from __future__ import annotations
-
 import platform as platform_module
 import re
 import shutil
 import subprocess
 import sys
+import typing
 from collections.abc import Set
 from enum import StrEnum, auto
-from typing import Final, Literal, assert_never
+from typing import Final, Literal
 
 from .typing import PlatformName
 
@@ -38,6 +37,7 @@ def _check_aarch32_el0() -> bool:
     return check.returncode == 0 and check.stdout.startswith("armv")
 
 
+@typing.final
 class Architecture(StrEnum):
     # mac/linux archs
     x86_64 = auto()
@@ -62,7 +62,7 @@ class Architecture(StrEnum):
     wasm32 = auto()
 
     @staticmethod
-    def parse_config(config: str, platform: PlatformName) -> set[Architecture]:
+    def parse_config(config: str, platform: PlatformName) -> "set[Architecture]":
         result = set()
         for arch_str in re.split(r"[\s,]+", config):
             if arch_str == "auto":
@@ -82,7 +82,7 @@ class Architecture(StrEnum):
         return result
 
     @staticmethod
-    def native_arch(platform: PlatformName) -> Architecture | None:
+    def native_arch(platform: PlatformName) -> "Architecture | None":
         if platform == "pyodide":
             return Architecture.wasm32
 
@@ -112,7 +112,7 @@ class Architecture(StrEnum):
         return native_architecture
 
     @staticmethod
-    def auto_archs(platform: PlatformName) -> set[Architecture]:
+    def auto_archs(platform: PlatformName) -> "set[Architecture]":
         native_arch = Architecture.native_arch(platform)
         if native_arch is None:
             return set()  # can't build anything on this platform
@@ -131,7 +131,7 @@ class Architecture(StrEnum):
         return result
 
     @staticmethod
-    def all_archs(platform: PlatformName) -> set[Architecture]:
+    def all_archs(platform: PlatformName) -> "set[Architecture]":
         all_archs_map = {
             "linux": {
                 Architecture.x86_64,
@@ -148,7 +148,7 @@ class Architecture(StrEnum):
         return all_archs_map[platform]
 
     @staticmethod
-    def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> set[Architecture]:
+    def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> "set[Architecture]":
         archs_32 = {Architecture.i686, Architecture.x86, Architecture.armv7l}
         auto_archs = Architecture.auto_archs(platform)
 
@@ -156,7 +156,7 @@ class Architecture(StrEnum):
             return auto_archs - archs_32
         if bitness == "32":
             return auto_archs & archs_32
-        assert_never(bitness)
+        typing.assert_never(bitness)
 
 
 def allowed_architectures_check(

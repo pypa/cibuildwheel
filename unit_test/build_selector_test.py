@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from packaging.specifiers import SpecifierSet
 
 from cibuildwheel.selector import BuildSelector, EnableGroup
