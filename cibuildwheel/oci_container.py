@@ -21,7 +21,7 @@ from typing import IO, Literal, Self, assert_never
 from .ci import CIProvider, detect_ci_provider
 from .errors import OCIEngineTooOldError
 from .logger import log
-from .typing import PathOrStr, PopenBytes
+from .typing import PathOrStr
 from .util.cmd import call
 from .util.helpers import FlexibleVersion, parse_key_value_string, strtobool
 
@@ -164,7 +164,7 @@ class OCIContainer:
 
     UTILITY_PYTHON = "/opt/python/cp39-cp39/bin/python"
 
-    process: PopenBytes
+    process: subprocess.Popen[bytes]
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 
