@@ -215,15 +215,16 @@ def setup_python(
     return env
 
 
+def all_python_configurations() -> list[PythonConfiguration]:
+    full_python_configs = resources.read_python_configs("pyodide")
+    return [PythonConfiguration(**item) for item in full_python_configs]
+
+
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],  # noqa: ARG001
 ) -> list[PythonConfiguration]:
-    full_python_configs = resources.read_python_configs("pyodide")
-
-    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
-    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
-    return python_configurations
+    return [c for c in all_python_configurations() if build_selector(c.identifier)]
 
 
 def build(options: Options, tmp_path: Path) -> None:
