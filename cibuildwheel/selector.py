@@ -3,7 +3,7 @@ from __future__ import annotations
 import fnmatch
 import itertools
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import bracex
@@ -25,7 +25,7 @@ def selector_matches(patterns: str, string: str) -> bool:
     return any(fnmatch.fnmatch(string, pat) for pat in expanded_patterns)
 
 
-class EnableGroup(Enum):
+class EnableGroup(StrEnum):
     """
     Groups of build selectors that are not enabled by default.
     """
@@ -33,6 +33,10 @@ class EnableGroup(Enum):
     CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     PyPy = "pypy"
+
+    @classmethod
+    def all_groups(cls) -> frozenset[EnableGroup]:
+        return frozenset(cls)
 
 
 @dataclass(frozen=True, kw_only=True)

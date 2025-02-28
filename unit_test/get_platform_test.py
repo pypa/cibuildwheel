@@ -7,7 +7,7 @@ import setuptools._distutils.util
 
 from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import FatalError
-from cibuildwheel.windows import PythonConfiguration, setup_setuptools_cross_compile
+from cibuildwheel.platforms.windows import PythonConfiguration, setup_setuptools_cross_compile
 
 # monkeypatching os.name is too flaky. E.g. It works on my machine, but fails in pipeline
 if not sys.platform.startswith("win"):
