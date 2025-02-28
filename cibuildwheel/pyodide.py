@@ -292,7 +292,7 @@ def build(options: Options, tmp_path: Path) -> None:
             # directory.
             oldmounts = ""
             extra_mounts = [str(identifier_tmp_dir)]
-            if str(Path.cwd()).startswith("/tmp"):
+            if Path.cwd().is_relative_to("/tmp"):
                 extra_mounts.append(str(Path.cwd()))
 
             if "_PYODIDE_EXTRA_MOUNTS" in env:

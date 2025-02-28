@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -16,8 +17,8 @@ def skip_if_no_msvc(arm64: bool = False) -> None:
     if not programfiles:
         pytest.skip("Requires %PROGRAMFILES(X86)% variable to be set")
 
-    vswhere = os.path.join(programfiles, "Microsoft Visual Studio", "Installer", "vswhere.exe")
-    if not os.path.isfile(vswhere):
+    vswhere = Path(programfiles, "Microsoft Visual Studio", "Installer", "vswhere.exe")
+    if not vswhere.is_file():
         pytest.skip("Requires Visual Studio installation")
 
     require = "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
