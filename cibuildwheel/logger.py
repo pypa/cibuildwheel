@@ -135,24 +135,24 @@ class Logger:
 
     def notice(self, message: str) -> None:
         if self.fold_mode == "github":
-            print(f"::notice::{message}\n", file=sys.stderr)
+            print(f"::notice::cibuildwheel: {message}\n", file=sys.stderr)
         else:
             c = self.colors
-            print(f"{c.bold}Note{c.end}: {message}\n", file=sys.stderr)
+            print(f"cibuildwheel: {c.bold}note{c.end}: {message}\n", file=sys.stderr)
 
     def warning(self, message: str) -> None:
         if self.fold_mode == "github":
-            print(f"::warning::{message}\n", file=sys.stderr)
+            print(f"::warning::cibuildwheel: {message}\n", file=sys.stderr)
         else:
             c = self.colors
-            print(f"{c.yellow}Warning{c.end}: {message}\n", file=sys.stderr)
+            print(f"cibuildwheel: {c.yellow}warning{c.end}: {message}\n", file=sys.stderr)
 
     def error(self, error: BaseException | str) -> None:
         if self.fold_mode == "github":
-            print(f"::error::{error}\n", file=sys.stderr)
+            print(f"::error::cibuildwheel: {error}\n", file=sys.stderr)
         else:
             c = self.colors
-            print(f"{c.bright_red}Error{c.end}: {error}\n", file=sys.stderr)
+            print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
 
     @property
     def step_active(self) -> bool:

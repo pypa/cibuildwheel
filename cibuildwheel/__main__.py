@@ -70,7 +70,7 @@ def main() -> None:
         if log.step_active:
             log.step_end_with_error(message)
         else:
-            print(f"cibuildwheel: {message}", file=sys.stderr)
+            log.error(message)
 
         if global_options.print_traceback_on_error:
             traceback.print_exc(file=sys.stderr)
