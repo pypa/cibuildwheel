@@ -448,20 +448,36 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
 
+    all_valid_identifiers = [
+        config.identifier
+        for module in ALL_PLATFORM_MODULES.values()
+        for config in module.all_python_configurations()
+    ]
+
+    enabled_selector = BuildSelector(
+        build_config="*", skip_config="", enable=options.globals.build_selector.enable
+    )
+    all_enabled_identifiers = [
+        identifier for identifier in all_valid_identifiers if enabled_selector(identifier)
+    ]
+
     warnings += check_for_invalid_selectors(
         selector_name="build",
         selector_value=build_selector.build_config,
-        enable=options.globals.build_selector.enable,
+        all_valid_identifiers=all_valid_identifiers,
+        all_enabled_identifiers=all_enabled_identifiers,
     )
     warnings += check_for_invalid_selectors(
         selector_name="skip",
         selector_value=build_selector.skip_config,
-        enable=options.globals.build_selector.enable,
+        all_valid_identifiers=all_valid_identifiers,
+        all_enabled_identifiers=all_enabled_identifiers,
     )
     warnings += check_for_invalid_selectors(
         selector_name="test_skip",
         selector_value=test_selector.skip_config,
-        enable=options.globals.build_selector.enable,
+        all_valid_identifiers=all_valid_identifiers,
+        all_enabled_identifiers=all_enabled_identifiers,
     )
 
     return warnings
@@ -471,31 +487,10 @@ def check_for_invalid_selectors(
     *,
     selector_name: Literal["build", "skip", "test_skip"],
     selector_value: str,
-    enable: frozenset[EnableGroup],
+    all_valid_identifiers: Sequence[str],
+    all_enabled_identifiers: Sequence[str],
 ) -> list[str]:
     warnings = []
-
-    all_enabled_identifiers = [
-        identifier
-        for name, module in ALL_PLATFORM_MODULES.items()
-        for identifier in get_build_identifiers(
-            platform_module=module,
-            architectures=Architecture.all_archs(name),
-            build_selector=BuildSelector(build_config="*", skip_config="", enable=enable),
-        )
-    ]
-
-    all_valid_identifiers = [
-        identifier
-        for name, module in ALL_PLATFORM_MODULES.items()
-        for identifier in get_build_identifiers(
-            platform_module=module,
-            architectures=Architecture.all_archs(name),
-            build_selector=BuildSelector(
-                build_config="*", skip_config="", enable=EnableGroup.all_groups()
-            ),
-        )
-    ]
 
     for selector in selector_value.split():
         if not any(selector_matches(selector, i) for i in all_enabled_identifiers):

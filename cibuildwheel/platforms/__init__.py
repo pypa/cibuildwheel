@@ -14,6 +14,8 @@ from cibuildwheel.typing import GenericPythonConfiguration, PlatformName
 class PlatformModule(Protocol):
     # note that as per PEP544, the self argument is ignored when the protocol
     # is applied to a module
+    def all_python_configurations(self) -> Sequence[GenericPythonConfiguration]: ...
+
     def get_python_configurations(
         self, build_selector: BuildSelector, architectures: set[Architecture]
     ) -> Sequence[GenericPythonConfiguration]: ...
