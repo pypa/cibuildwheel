@@ -15,26 +15,26 @@ from typing import Literal, assert_never
 from filelock import FileLock
 from packaging.version import Version
 
-from . import errors
-from .architecture import Architecture
-from .ci import detect_ci_provider
-from .environment import ParsedEnvironment
-from .frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
-from .logger import log
-from .options import Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.cmd import call, shell
-from .util.file import (
+from .. import errors
+from ..architecture import Architecture
+from ..ci import detect_ci_provider
+from ..environment import ParsedEnvironment
+from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
+from ..logger import log
+from ..options import Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.cmd import call, shell
+from ..util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
     move_file,
 )
-from .util.helpers import prepare_command, unwrap
-from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from .venv import find_uv, virtualenv
+from ..util.helpers import prepare_command, unwrap
+from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..venv import find_uv, virtualenv
 
 
 @functools.cache

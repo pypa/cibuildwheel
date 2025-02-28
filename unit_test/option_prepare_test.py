@@ -8,7 +8,7 @@ from unittest import mock
 
 import pytest
 
-from cibuildwheel import linux
+from cibuildwheel import platforms
 from cibuildwheel.__main__ import main
 from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
@@ -39,10 +39,11 @@ def mock_build_container(monkeypatch):
     monkeypatch.setattr(subprocess, "Popen", fail_on_call)
     monkeypatch.setattr(subprocess, "run", ignore_call)
     monkeypatch.setattr(file, "download", fail_on_call)
-    monkeypatch.setattr("cibuildwheel.linux.OCIContainer", ignore_context_call)
+    monkeypatch.setattr("cibuildwheel.platforms.linux.OCIContainer", ignore_context_call)
 
     monkeypatch.setattr(
-        "cibuildwheel.linux.build_in_container", mock.Mock(spec=linux.build_in_container)
+        "cibuildwheel.platforms.linux.build_in_container",
+        mock.Mock(spec=platforms.linux.build_in_container),
     )
     monkeypatch.setattr("cibuildwheel.__main__.print_new_wheels", ignore_context_call)
 
@@ -53,7 +54,7 @@ def test_build_default_launches(monkeypatch):
 
     main()
 
-    build_in_container = typing.cast(mock.Mock, linux.build_in_container)
+    build_in_container = typing.cast(mock.Mock, platforms.linux.build_in_container)
 
     assert build_in_container.call_count == 4
 
@@ -121,7 +122,7 @@ before-all = "true"
 
     main()
 
-    build_in_container = typing.cast(mock.Mock, linux.build_in_container)
+    build_in_container = typing.cast(mock.Mock, platforms.linux.build_in_container)
 
     assert build_in_container.call_count == 6
 

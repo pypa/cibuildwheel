@@ -83,7 +83,7 @@ def test_allow_empty(tmp_path, add_args, env_allow_empty):
     # without error
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env={"CIBW_BUILD": "BUILD_NOTHING_AT_ALL", **env_allow_empty},
+        add_env={"CIBW_SKIP": "*", **env_allow_empty},
         add_args=add_args,
     )
 

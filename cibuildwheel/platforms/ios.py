@@ -12,34 +12,34 @@ from typing import assert_never
 
 from filelock import FileLock
 
-from . import errors
-from .architecture import Architecture
-from .environment import ParsedEnvironment
-from .frontend import (
+from .. import errors
+from ..architecture import Architecture
+from ..environment import ParsedEnvironment
+from ..frontend import (
     BuildFrontendConfig,
     BuildFrontendName,
     get_build_frontend_extra_flags,
 )
-from .logger import log
-from .macos import install_cpython as install_build_cpython
-from .options import Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.cmd import call, shell
-from .util.file import (
+from ..logger import log
+from ..options import Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.cmd import call, shell
+from ..util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
     move_file,
 )
-from .util.helpers import prepare_command
-from .util.packaging import (
+from ..util.helpers import prepare_command
+from ..util.packaging import (
     combine_constraints,
     find_compatible_wheel,
     get_pip_version,
 )
-from .venv import virtualenv
+from ..venv import virtualenv
+from .macos import install_cpython as install_build_cpython
 
 
 @dataclass(frozen=True)
