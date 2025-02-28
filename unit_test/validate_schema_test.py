@@ -12,15 +12,22 @@ from cibuildwheel.util import resources
 DIR = Path(__file__).parent.resolve()
 
 
-def test_validate_default_schema():
+@pytest.fixture(scope="session")
+def validator() -> validate_pyproject.api.Validator:
+    """
+    Reuse the validator for all tests, to keep unit tests fast.
+    """
+    return validate_pyproject.api.Validator()
+
+
+def test_validate_default_schema(validator: validate_pyproject.api.Validator) -> None:
     with resources.DEFAULTS.open("rb") as f:
         example = tomllib.load(f)
 
-    validator = validate_pyproject.api.Validator()
     assert validator(example) is not None
 
 
-def test_validate_container_engine():
+def test_validate_container_engine(validator: validate_pyproject.api.Validator) -> None:
     """
     This test checks container engine can be overridden - it used to be a
     global option but is now a build option.
@@ -40,12 +47,13 @@ def test_validate_container_engine():
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     assert validator(example) is not None
 
 
 @pytest.mark.parametrize("platform", ["macos", "windows"])
-def test_validate_bad_container_engine(platform: str) -> None:
+def test_validate_bad_container_engine(
+    validator: validate_pyproject.api.Validator, platform: str
+) -> None:
     """
     container-engine is not a valid option for macos or windows
     """
@@ -56,12 +64,11 @@ def test_validate_bad_container_engine(platform: str) -> None:
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     with pytest.raises(validate_pyproject.error_reporting.ValidationError):
         validator(example)
 
 
-def test_overrides_select():
+def test_overrides_select(validator: validate_pyproject.api.Validator) -> None:
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
@@ -70,11 +77,10 @@ def test_overrides_select():
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     assert validator(example) is not None
 
 
-def test_overrides_no_select():
+def test_overrides_no_select(validator: validate_pyproject.api.Validator) -> None:
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
@@ -82,12 +88,11 @@ def test_overrides_no_select():
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     with pytest.raises(validate_pyproject.error_reporting.ValidationError):
         validator(example)
 
 
-def test_overrides_only_select():
+def test_overrides_only_select(validator: validate_pyproject.api.Validator) -> None:
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
@@ -95,12 +100,11 @@ def test_overrides_only_select():
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     with pytest.raises(validate_pyproject.error_reporting.ValidationError):
         validator(example)
 
 
-def test_overrides_valid_inherit():
+def test_overrides_valid_inherit(validator: validate_pyproject.api.Validator) -> None:
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
@@ -110,11 +114,10 @@ def test_overrides_valid_inherit():
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     assert validator(example) is not None
 
 
-def test_overrides_invalid_inherit():
+def test_overrides_invalid_inherit(validator: validate_pyproject.api.Validator) -> None:
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
@@ -124,12 +127,11 @@ def test_overrides_invalid_inherit():
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     with pytest.raises(validate_pyproject.error_reporting.ValidationError):
         validator(example)
 
 
-def test_overrides_invalid_inherit_value():
+def test_overrides_invalid_inherit_value(validator: validate_pyproject.api.Validator) -> None:
     example = tomllib.loads(
         """
         [[tool.cibuildwheel.overrides]]
@@ -139,12 +141,11 @@ def test_overrides_invalid_inherit_value():
         """
     )
 
-    validator = validate_pyproject.api.Validator()
     with pytest.raises(validate_pyproject.error_reporting.ValidationError):
         validator(example)
 
 
-def test_docs_examples():
+def test_docs_examples(validator: validate_pyproject.api.Validator) -> None:
     """
     Parse out all the configuration examples, build valid TOML out of them, and
     make sure they pass.
@@ -184,5 +185,5 @@ def test_docs_examples():
         print(example_txt)
         print()
         example = tomllib.loads(example_txt)
-        validator = validate_pyproject.api.Validator()
+
         assert validator(example) is not None
