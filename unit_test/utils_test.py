@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import textwrap
 from pathlib import PurePath
 from unittest.mock import Mock, call

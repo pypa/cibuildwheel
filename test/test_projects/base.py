@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import jinja2
 
@@ -37,8 +35,8 @@ class TestProject:
 
                 f.write(content)
 
-    def copy(self) -> TestProject:
-        other = TestProject()
+    def copy(self) -> Self:
+        other = self.__class__()
         other.files = self.files.copy()
         other.template_context = self.template_context.copy()
         return other

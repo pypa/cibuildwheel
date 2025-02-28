@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import dataclasses
 from collections.abc import Mapping, Sequence
 from typing import Any, Protocol

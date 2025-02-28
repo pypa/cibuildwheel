@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import io
 import json
 import os
@@ -21,7 +19,7 @@ from typing import IO, Literal, Self, assert_never
 from .ci import CIProvider, detect_ci_provider
 from .errors import OCIEngineTooOldError
 from .logger import log
-from .typing import PathOrStr, PopenBytes
+from .typing import PathOrStr
 from .util.cmd import call
 from .util.helpers import FlexibleVersion, parse_key_value_string, strtobool
 
@@ -44,8 +42,8 @@ class OCIContainerEngineConfig:
     create_args: tuple[str, ...] = field(default_factory=tuple)
     disable_host_mount: bool = False
 
-    @staticmethod
-    def from_config_string(config_string: str) -> OCIContainerEngineConfig:
+    @classmethod
+    def from_config_string(cls, config_string: str) -> Self:
         config_dict = parse_key_value_string(
             config_string,
             ["name"],
@@ -75,9 +73,7 @@ class OCIContainerEngineConfig:
             else:
                 create_args = [arg for arg in create_args if not arg.startswith("--platform=")]
 
-        return OCIContainerEngineConfig(
-            name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount
-        )
+        return cls(name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount)
 
     def options_summary(self) -> str | dict[str, str]:
         if not self.create_args:
@@ -164,7 +160,7 @@ class OCIContainer:
 
     UTILITY_PYTHON = "/opt/python/cp39-cp39/bin/python"
 
-    process: PopenBytes
+    process: subprocess.Popen[bytes]
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 

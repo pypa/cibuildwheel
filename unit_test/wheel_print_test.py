@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from cibuildwheel.__main__ import print_new_wheels

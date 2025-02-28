@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path, PurePath
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
@@ -15,9 +13,9 @@ class DependencyConstraints:
         assert base_file_path.exists()
         self.base_file_path = base_file_path.resolve()
 
-    @staticmethod
-    def with_defaults() -> DependencyConstraints:
-        return DependencyConstraints(base_file_path=resources.CONSTRAINTS)
+    @classmethod
+    def with_defaults(cls) -> Self:
+        return cls(base_file_path=resources.CONSTRAINTS)
 
     def get_for_python_version(
         self, version: str, *, variant: Literal["python", "pyodide"] = "python"

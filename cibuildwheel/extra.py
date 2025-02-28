@@ -2,8 +2,6 @@
 These are utilities for the `/bin` scripts, not for the `cibuildwheel` program.
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping, Sequence
 from io import StringIO
 from typing import Protocol

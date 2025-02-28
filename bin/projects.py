@@ -17,8 +17,6 @@ Suggested usage:
     git diff
 """
 
-from __future__ import annotations
-
 import builtins
 import functools
 import textwrap
@@ -28,7 +26,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, Self, TextIO
 
 import click
 import yaml
@@ -85,7 +83,7 @@ class Project:
         name_len = len(self.name) + 4
         self.__class__.NAME = max(self.__class__.NAME, name_len)
 
-    def __lt__(self, other: Project) -> bool:
+    def __lt__(self, other: Self) -> bool:
         if self.online:
             return self.num_stars < other.num_stars
         else:

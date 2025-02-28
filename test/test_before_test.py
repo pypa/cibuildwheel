@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from . import test_projects, utils
 
 before_test_project = test_projects.new_c_project()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from __future__ import annotations
 
 import configparser
 from dataclasses import dataclass
@@ -22,7 +21,7 @@ class Image:
 
 class PyPAImage(Image):
     def __init__(self, manylinux_version: str, platform: str, tag: str | None):
-        platform_no_pypy = platform[5:] if platform.startswith("pypy_") else platform
+        platform_no_pypy = platform.removeprefix("pypy_")
         image_name = f"quay.io/pypa/{manylinux_version}_{platform_no_pypy}"
         super().__init__(manylinux_version, platform, image_name, tag)
 

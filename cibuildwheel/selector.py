@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import fnmatch
 import itertools
 from dataclasses import dataclass
@@ -53,8 +51,7 @@ class BuildSelector:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
             py_ver_str = build_id.split("-")[0]
-            if py_ver_str.endswith("t"):
-                py_ver_str = py_ver_str[:-1]
+            py_ver_str = py_ver_str.removesuffix("t")
             major = int(py_ver_str[2])
             minor = int(py_ver_str[3:])
             version = Version(f"{major}.{minor}.99")
