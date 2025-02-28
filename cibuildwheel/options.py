@@ -593,6 +593,10 @@ class Options:
         except FileNotFoundError:
             self.pyproject_toml = None
 
+        # cache the build options method so repeated calls don't need to
+        # resolve the options again
+        self.build_options = functools.lru_cache()(self.build_options)  # type: ignore[method-assign]
+
     @functools.cached_property
     def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
@@ -670,6 +674,7 @@ class Options:
             allow_empty=allow_empty,
         )
 
+    # pylint: disable-next=method-hidden
     def build_options(self, identifier: str | None) -> BuildOptions:
         """
         Compute BuildOptions for a single run configuration.
