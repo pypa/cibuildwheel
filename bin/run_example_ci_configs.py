@@ -9,11 +9,12 @@ import sys
 import textwrap
 import time
 import typing
-from glob import glob
 from pathlib import Path
 from urllib.parse import quote
 
 import click
+
+DIR = Path(__file__).parent.resolve()
 
 
 def shell(cmd: str, *, check: bool, **kwargs: object) -> subprocess.CompletedProcess[str]:
@@ -79,9 +80,8 @@ services = [
 ]
 
 
-def ci_service_for_config_file(config_file: str) -> CIService:
-    filename = Path(config_file).name
-
+def ci_service_for_config_file(config_file: Path) -> CIService:
+    filename = config_file.name
     try:
         return next(s for s in services if filename.startswith(s.name))
     except StopIteration:
@@ -98,16 +98,16 @@ def run_example_ci_configs(config_files=None):
     """
 
     if len(config_files) == 0:
-        config_files = glob("examples/*-minimal.yml")
+        config_files = Path("examples").glob("*-minimal.yml")
 
     # check each CI service has at most 1 config file
-    configs_by_service = {}
+    configs_by_service = set()
     for config_file in config_files:
         service = ci_service_for_config_file(config_file)
         if service.name in configs_by_service:
             msg = "You cannot specify more than one config per CI service"
             raise Exception(msg)
-        configs_by_service[service.name] = config_file
+        configs_by_service.add(service.name)
 
     if git_repo_has_changes():
         print("Your git repo has uncommitted changes. Commit or stash before continuing.")
@@ -128,18 +128,17 @@ def run_example_ci_configs(config_files=None):
 
         for config_file in config_files:
             service = ci_service_for_config_file(config_file)
-            src_config_file = Path(config_file)
             dst_config_file = example_project / service.dst_config_path
 
             dst_config_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(src_config_file, dst_config_file)
+            shutil.copyfile(config_file, dst_config_file)
 
         subprocess.run(["git", "add", example_project], check=True)
         message = textwrap.dedent(
             f"""\
             Test example minimal configs
 
-            Testing files: {config_files}
+            Testing files: {[str(f) for f in config_files]}
             Generated from branch: {previous_branch}
             Time: {timestamp}
             """
@@ -174,6 +173,5 @@ def run_example_ci_configs(config_files=None):
 
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(__file__))
-    os.chdir("..")
+    os.chdir(DIR)
     run_example_ci_configs(standalone_mode=True)

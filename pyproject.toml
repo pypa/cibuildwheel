@@ -190,6 +190,7 @@ extend-select = [
   "PIE",         # flake8-pie
   "PL",          # pylint
   "PT",          # flake8-pytest-style
+  "PTH",         # flake8-use-pathlib
   "RET",         # flake8-return
   "RUF",         # Ruff-specific
   "SIM",         # flake8-simplify
@@ -206,6 +207,7 @@ ignore = [
   "PYI025",  # Set as AbstractSet
   "ISC001",  # Conflicts with formatter
   "EXE003",  # Ruff doesn't like uv?
+  "PTH123",  # open -> Path.open
 ]
 flake8-unused-arguments.ignore-variadic-names = true
 
@@ -219,9 +221,10 @@ flake8-unused-arguments.ignore-variadic-names = true
 [tool.ruff.lint.per-file-ignores]
 "unit_test/*" = ["PLC1901"]
 "bin/*" = ["TID251"]
+"cibuildwheel/resources/install_certifi.py" = ["PTH"]
 
 [tool.repo-review]
 ignore = ["PC170", "PP303"]
 
 [tool.check-wheel-contents]
-ignore = ["W002"]  # requirements-*.txt are allowed to be duplicates of one another
+ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one another
