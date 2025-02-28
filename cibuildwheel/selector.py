@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import fnmatch
 import itertools
 from dataclasses import dataclass

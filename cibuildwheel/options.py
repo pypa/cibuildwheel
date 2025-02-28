@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import configparser
 import contextlib
@@ -12,7 +10,7 @@ import textwrap
 import tomllib
 from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Final, Literal, assert_never
+from typing import Any, Final, Literal, Self, assert_never
 
 from packaging.specifiers import SpecifierSet
 
@@ -64,9 +62,9 @@ class CommandLineArguments:
     debug_traceback: bool
     enable: list[str]
 
-    @staticmethod
-    def defaults() -> CommandLineArguments:
-        return CommandLineArguments(
+    @classmethod
+    def defaults(cls) -> Self:
+        return cls(
             platform="auto",
             allow_empty=False,
             archs=None,
@@ -136,6 +134,12 @@ SettingLeaf = str | int | bool
 SettingList = Sequence[SettingLeaf]
 SettingTable = Mapping[str, SettingLeaf | SettingList]
 SettingValue = SettingTable | SettingList | SettingLeaf
+
+
+class InheritRule(enum.Enum):
+    NONE = enum.auto()
+    APPEND = enum.auto()
+    PREPEND = enum.auto()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -270,12 +274,6 @@ class EnvironmentFormat(OptionFormat):
 
     def merge_values(self, before: str, after: str) -> str:
         return f"{before} {after}"
-
-
-class InheritRule(enum.Enum):
-    NONE = enum.auto()
-    APPEND = enum.auto()
-    PREPEND = enum.auto()
 
 
 def _resolve_cascade(
@@ -847,8 +845,8 @@ class Options:
         deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
     @functools.cached_property
-    def defaults(self) -> Options:
-        return Options(
+    def defaults(self) -> Self:
+        return self.__class__(
             platform=self.platform,
             command_line_arguments=CommandLineArguments.defaults(),
             env={},

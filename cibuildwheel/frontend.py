@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 import shlex
 import typing
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal, get_args
+from typing import Literal, Self, get_args
 
 from .logger import log
 from .util.helpers import parse_key_value_string
@@ -17,8 +15,8 @@ class BuildFrontendConfig:
     name: BuildFrontendName
     args: Sequence[str] = ()
 
-    @staticmethod
-    def from_config_string(config_string: str) -> BuildFrontendConfig:
+    @classmethod
+    def from_config_string(cls, config_string: str) -> Self:
         config_dict = parse_key_value_string(config_string, ["name"], ["args"])
         name = " ".join(config_dict["name"])
         if name not in get_args(BuildFrontendName):
@@ -29,7 +27,7 @@ class BuildFrontendConfig:
         name = typing.cast(BuildFrontendName, name)
 
         args = config_dict.get("args") or []
-        return BuildFrontendConfig(name=name, args=args)
+        return cls(name=name, args=args)
 
     def options_summary(self) -> str | dict[str, str]:
         if not self.args:
