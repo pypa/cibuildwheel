@@ -8,6 +8,8 @@ from collections.abc import Set
 from enum import StrEnum, auto
 from typing import Final, Literal
 
+from cibuildwheel import errors
+
 from .typing import PlatformName
 
 PRETTY_NAMES: Final[dict[PlatformName, str]] = {
@@ -78,7 +80,11 @@ class Architecture(StrEnum):
             elif arch_str == "auto32":
                 result |= Architecture.bitness_archs(platform=platform, bitness="32")
             else:
-                result.add(Architecture(arch_str))
+                try:
+                    result.add(Architecture(arch_str))
+                except ValueError as e:
+                    msg = f"Invalid architecture '{arch_str}'"
+                    raise errors.ConfigurationError(msg) from e
         return result
 
     @staticmethod
