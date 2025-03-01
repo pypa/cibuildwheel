@@ -26,7 +26,7 @@ jobs:
         - ln -s /c/Python312/python.exe /c/Python312/python3.exe
 
 install:
-  - python3 -m pip install cibuildwheel==2.22.0
+  - python3 -m pip install cibuildwheel==2.23.0
 
 script:
   # build the wheels, put them into './wheelhouse'
