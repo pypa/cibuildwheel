@@ -24,7 +24,7 @@ from .logger import log
 from .macos import install_cpython as install_build_cpython
 from .options import Options
 from .selector import BuildSelector
-from .typing import GenericPythonConfiguration, PathOrStr, PlatformName
+from .typing import PathOrStr
 from .util import resources
 from .util.cmd import call, shell
 from .util.file import (
@@ -52,32 +52,28 @@ class PythonConfiguration:
 
     @property
     def sdk(self) -> str:
-        return self.identifier.split("-")[1].rsplit("_", 1)[1]
+        return self.multiarch.rsplit("-", 1)[1]
 
     @property
     def arch(self) -> str:
-        return self.identifier.split("-")[1].split("_", 1)[1].rsplit("_", 1)[0]
+        return self.multiarch.rsplit("-", 1)[0]
 
     @property
     def multiarch(self) -> str:
-        return f"{self.arch}-{self.sdk}"
+        return self.identifier.split("-ios_")[1]
 
     @property
     def is_simulator(self) -> bool:
-        return self.sdk.endswith("simulator")
+        return self.identifier.endswith("-iphonesimulator")
 
     @property
     def slice(self) -> str:
-        return {
-            "iphoneos": "ios-arm64",
-            "iphonesimulator": "ios-arm64_x86_64-simulator",
-        }[self.sdk]
+        return "ios-arm64_x86_64-simulator" if self.is_simulator else "ios-arm64"
 
 
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
-    sdk: PlatformName | None = None,
 ) -> list[PythonConfiguration]:
     # iOS builds are always cross builds; we need to install a macOS Python as
     # well. Rather than duplicate the location of the URL of macOS installers,
@@ -90,20 +86,15 @@ def get_python_configurations(
         # The iOS item will be something like cp313-ios_arm64_iphoneos. Drop
         # the iphoneos suffix, then replace ios with macosx to yield
         # cp313-macosx_arm64, which will be a macOS configuration item.
-        macos_identifier = item["identifier"].rsplit("_", 1)[0]
-        macos_identifier = macos_identifier.replace("ios", "macosx")
+        parts = item["identifier"].split("-")
+        macos_identifier = f"{parts[0]}-{parts[1].replace('ios', 'macosx')}"
         matching = [
             config for config in macos_python_configs if config["identifier"] == macos_identifier
         ]
         return matching[0]["url"]
 
     # Load the platform configuration
-    if sdk:
-        full_python_configs = resources.read_python_configs(sdk)
-    else:
-        full_python_configs = resources.read_python_configs("iphoneos")
-        full_python_configs += resources.read_python_configs("iphonesimulator")
-
+    full_python_configs = resources.read_python_configs("ios")
     # Build the configurations, annotating with macOS URL details.
     python_configurations = [
         PythonConfiguration(
@@ -117,7 +108,7 @@ def get_python_configurations(
     python_configurations = [
         c
         for c in python_configurations
-        if any(c.identifier.rsplit("_", 1)[0].endswith(a.value) for a in architectures)
+        if any(c.identifier.endswith(f"-ios_{a.value}") for a in architectures)
     ]
 
     # Skip builds as required by BUILD/SKIP
@@ -211,23 +202,22 @@ def cross_virtualenv(
     #
     # To prevent problems, set the PATH to isolate the build environment from
     # sources that could introduce incompatible binaries.
-    if sys.platform == "darwin":
-        env["PATH"] = os.pathsep.join(
-            [
-                # The host python's binary directory
-                str(host_python.parent),
-                # The cross-platform environments binary directory
-                str(venv_path / "bin"),
-                # Cargo's binary directory (to allow for Rust compilation)
-                str(Path.home() / ".cargo" / "bin"),
-                # The bare minimum Apple system paths.
-                "/usr/bin",
-                "/bin",
-                "/usr/sbin",
-                "/sbin",
-                "/Library/Apple/usr/bin",
-            ]
-        )
+    env["PATH"] = os.pathsep.join(
+        [
+            # The host python's binary directory
+            str(host_python.parent),
+            # The cross-platform environments binary directory
+            str(venv_path / "bin"),
+            # Cargo's binary directory (to allow for Rust compilation)
+            str(Path.home() / ".cargo" / "bin"),
+            # The bare minimum Apple system paths.
+            "/usr/bin",
+            "/bin",
+            "/usr/sbin",
+            "/sbin",
+            "/Library/Apple/usr/bin",
+        ]
+    )
 
     return env
 
@@ -365,11 +355,14 @@ def setup_python(
     return host_install_path, env
 
 
-def build(options: Options, tmp_path: Path, sdk: PlatformName | None = None) -> None:
+def build(options: Options, tmp_path: Path) -> None:
+    if sys.platform != "darwin":
+        msg = "iOS binaries can only be built on macOS"
+        raise ValueError(msg)
+
     python_configurations = get_python_configurations(
         build_selector=options.globals.build_selector,
         architectures=options.globals.architectures,
-        sdk=sdk,
     )
 
     if not python_configurations:
@@ -608,28 +601,3 @@ def build(options: Options, tmp_path: Path, sdk: PlatformName | None = None) -> 
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
         raise errors.FatalError(msg) from error
-
-
-# The default iOS platform will build for all SDKs on the platform (both
-# iphoneos and iphonesimulator). PlatformSDKModule allows the construction of an
-# interface that behaves just like the iOS platform, but only exposes a single
-# SDK.
-class PlatformSDKModule:
-    def __init__(self, sdk: PlatformName):
-        self.sdk = sdk
-
-    def get_python_configurations(
-        self, build_selector: BuildSelector, architectures: Set[Architecture]
-    ) -> Sequence[GenericPythonConfiguration]:
-        return get_python_configurations(
-            build_selector=build_selector,
-            architectures=architectures,
-            sdk=self.sdk,
-        )
-
-    def build(self, options: Options, tmp_path: Path) -> None:
-        build(
-            options=options,
-            tmp_path=tmp_path,
-            sdk=self.sdk,
-        )

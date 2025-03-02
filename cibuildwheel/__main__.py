@@ -94,24 +94,14 @@ def main_inner(global_options: GlobalOptions) -> None:
 
     parser.add_argument(
         "--platform",
-        choices=[
-            "auto",
-            "linux",
-            "macos",
-            "windows",
-            "pyodide",
-            "ios",
-            "iphoneos",
-            "iphonesimulator",
-        ],
+        choices=["auto", "linux", "macos", "windows", "pyodide", "ios"],
         default=None,
         help="""
             Platform to build for. Use this option to override the auto-detected
             platform. Specifying "macos" or "windows" only works on that
             operating system. "linux" works on any desktop OS, as long as
             Docker/Podman is installed. "pyodide" only works on linux and macOS.
-            "ios", "iphoneos" and "iphonesimulator" only work on macOS. Default:
-            auto.
+            "ios" only work on macOS. Default: auto.
         """,
     )
 
@@ -253,10 +243,7 @@ def _compute_platform_only(only: str) -> PlatformName:
     if "pyodide_" in only:
         return "pyodide"
     if "ios_" in only:
-        if "_iphonesimulator" in only:
-            return "iphonesimulator"
-        else:
-            return "iphoneos"
+        return "ios"
     msg = f"Invalid --only='{only}', must be a build selector with a known platform"
     raise errors.ConfigurationError(msg)
 
@@ -320,8 +307,6 @@ def get_platform_module(platform: PlatformName) -> PlatformModule:
         return cibuildwheel.pyodide
     if platform == "ios":
         return cibuildwheel.ios
-    if platform == "iphoneos" or platform == "iphonesimulator":
-        return cibuildwheel.ios.PlatformSDKModule(platform)
     assert_never(platform)
 
 

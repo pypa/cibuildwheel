@@ -70,7 +70,7 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     specified by `identifier` that is previously built.
     """
 
-    interpreter, platform = identifier.split("-")
+    interpreter, platform = identifier.split("-", 1)
     free_threaded = interpreter.endswith("t")
     if free_threaded:
         interpreter = interpreter[:-1]
