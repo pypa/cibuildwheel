@@ -22,21 +22,17 @@ print("running tests on " + platform.machine())
 """
 
 
-# iOS tests can't be run in parallel, because they're dependent on starting a
-# simulator. It's *possible* to start multiple simulators, but probably not
-# advisable to start as many simulators as there are CPUs on the test machine.
-# There's also an underlying issue with the testbed starting multiple simulators
-# in parallel (https://github.com/python/cpython/issues/129200); even if that
-# issue is resolved, it's probably desirable to *not* parallelize iOS tests.
+# iOS tests shouldn't be run in parallel, because they're dependent on starting
+# a simulator. It's *possible* to start multiple simulators, but not advisable
+# to start as many simulators as there are CPUs on the test machine.
 @pytest.mark.xdist_group(name="ios")
 @pytest.mark.parametrize(
     "build_config",
     [
+        # Default to the pip build frontend.
         {"CIBW_PLATFORM": "ios"},
-        {"CIBW_PLATFORM": "iphonesimulator"},
-        {"CIBW_PLATFORM": "iphoneos"},
         # Also check the build frontend
-        {"CIBW_PLATFORM": "iphonesimulator", "CIBW_BUILD_FRONTEND": "build"},
+        {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
     ],
 )
 def test_ios_platforms(tmp_path, capfd, build_config):
@@ -62,30 +58,18 @@ def test_ios_platforms(tmp_path, capfd, build_config):
 
     platform_machine = platform.machine()
     # Tests are only executed on device
-    if build_config["CIBW_PLATFORM"] != "iphoneos":
-        if platform_machine == "x86_64":
-            # Ensure that tests were run on arm64.
-            assert "running tests on x86_64" in captured.out
-        elif platform_machine == "arm64":
-            # Ensure that tests were run on arm64.
-            assert "running tests on arm64" in captured.out
+    if platform_machine == "x86_64":
+        # Ensure that tests were run on arm64.
+        assert "running tests on x86_64" in captured.out
+    elif platform_machine == "arm64":
+        # Ensure that tests were run on arm64.
+        assert "running tests on arm64" in captured.out
 
-    expected_wheels = set()
     ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
-
-    if build_config["CIBW_PLATFORM"] in {"ios", "iphoneos"}:
-        expected_wheels.update(
-            {
-                f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
-            }
-        )
-
-    if build_config["CIBW_PLATFORM"] in {"ios", "iphonesimulator"}:
-        expected_wheels.update(
-            {
-                f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
-                f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
-            }
-        )
+    expected_wheels = {
+        f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
+        f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
+        f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
+    }
 
     assert set(actual_wheels) == expected_wheels
