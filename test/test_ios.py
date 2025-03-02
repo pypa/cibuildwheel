@@ -14,11 +14,12 @@ import platform
 import time
 
 # Workaround for CPython#130294
-for i in range(0, 5):
+for i in range(0, 10):
     time.sleep(1)
     print("Ensure logger is running...")
 
-print("running tests on " + platform.machine())
+for i in range(0, 5):
+    print("running tests on " + platform.machine())
 """
 
 
