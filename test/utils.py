@@ -335,6 +335,21 @@ def get_macos_version() -> tuple[int, int]:
     return tuple(map(int, version_str.split(".")[:2]))  # type: ignore[return-value]
 
 
+def get_xcode_version() -> tuple[int, int]:
+    """Calls `xcodebuild -version` to retrieve the Xcode version as a 2-tuple."""
+    output = subprocess.run(
+        ["xcodebuild", "-version"],
+        text=True,
+        check=True,
+        stdout=subprocess.PIPE,
+    ).stdout
+    lines = output.splitlines()
+    _, version_str = lines[0].split()
+
+    version_parts = version_str.split(".")
+    return (int(version_parts[0]), int(version_parts[1]))
+
+
 def skip_if_pyodide(reason: str) -> Any:
     return pytest.mark.skipif(platform == "pyodide", reason=reason)
 

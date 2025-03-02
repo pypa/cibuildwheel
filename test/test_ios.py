@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import platform
-import subprocess
 
 import pytest
 
@@ -21,20 +20,6 @@ for i in range(0, 5):
 
 print("running tests on " + platform.machine())
 """
-
-
-def get_xcode_version() -> tuple[int, int]:
-    output = subprocess.run(
-        ["xcodebuild", "-version"],
-        text=True,
-        check=True,
-        stdout=subprocess.PIPE,
-    ).stdout
-    lines = output.splitlines()
-    _, version_str = lines[0].split()
-
-    version_parts = version_str.split(".")
-    return (int(version_parts[0]), int(version_parts[1]))
 
 
 # iOS tests can't be run in parallel, because they're dependent on starting a
@@ -57,7 +42,7 @@ def get_xcode_version() -> tuple[int, int]:
 def test_ios_platforms(tmp_path, capfd, build_config):
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
-    if get_xcode_version() < (13, 0):
+    if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
 
     project_dir = tmp_path / "project"
