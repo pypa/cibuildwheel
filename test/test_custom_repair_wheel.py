@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import subprocess
 from contextlib import nullcontext as does_not_raise
 
@@ -21,8 +19,7 @@ platform = wheel.stem.split("-")[-1]
 name = f"spam-0.1.0-py2-none-{platform}.whl"
 dest = dest_dir / name
 dest_dir.mkdir(parents=True, exist_ok=True)
-if dest.exists():
-    dest.unlink()
+dest.unlink(missing_ok=True)
 shutil.copy(wheel, dest)
 """
 

@@ -1,24 +1,15 @@
-from __future__ import annotations
-
 import os
-import subprocess
 import typing
-from typing import Final, Literal, Protocol, Union
+from typing import Final, Literal, Protocol
 
 __all__ = (
     "PLATFORMS",
     "PathOrStr",
     "PlatformName",
-    "PopenBytes",
 )
 
 
-if typing.TYPE_CHECKING:
-    PopenBytes = subprocess.Popen[bytes]
-    PathOrStr = str | os.PathLike[str]
-else:
-    PopenBytes = subprocess.Popen
-    PathOrStr = Union[str, "os.PathLike[str]"]
+PathOrStr = str | os.PathLike[str]
 
 
 PlatformName = Literal[
@@ -30,15 +21,7 @@ PlatformName = Literal[
     "iphoneos",
     "iphonesimulator",
 ]
-PLATFORMS: Final[set[PlatformName]] = {
-    "linux",
-    "macos",
-    "windows",
-    "pyodide",
-    "ios",
-    "iphoneos",
-    "iphonesimulator",
-}
+PLATFORMS: Final[frozenset[PlatformName]] = frozenset(typing.get_args(PlatformName))
 
 
 class GenericPythonConfiguration(Protocol):

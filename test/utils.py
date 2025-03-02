@@ -4,8 +4,6 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
-from __future__ import annotations
-
 import os
 import platform as pm
 import subprocess
@@ -29,6 +27,7 @@ SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
     None: Architecture.armv7l.value not in EMULATED_ARCHS,
     CIProvider.travis_ci: False,
+    CIProvider.cirrus_ci: False,
 }.get(detect_ci_provider(), True)
 
 platform = os.environ.get("CIBW_PLATFORM", "")

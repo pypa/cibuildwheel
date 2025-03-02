@@ -4,6 +4,15 @@ title: Changelog
 
 # Changelog
 
+### v2.23.0
+
+_1 March 2025_
+
+- ✨ Adds official support for the new GitHub Actions Arm runners. In fact these worked out-of-the-box, now we include them in our tests and example configs. (#2135 via #2281)
+- ✨ Adds support for building PyPy 3.11 wheels (#2268 via #2281)
+- 🛠 Adopts the beta pypa/manylinux image for armv7l builds (#2269 via #2281)
+- 🛠 Dependency updates, including Pyodide 0.27 (#2117 and #2281)
+
 ### v2.22.0
 
 _23 November 2024_

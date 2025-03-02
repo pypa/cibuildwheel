@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import configparser
 import contextlib
@@ -12,7 +10,7 @@ import textwrap
 import tomllib
 from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Final, Literal, assert_never
+from typing import Any, Final, Literal, Self, assert_never
 
 from packaging.specifiers import SpecifierSet
 
@@ -64,16 +62,16 @@ class CommandLineArguments:
     debug_traceback: bool
     enable: list[str]
 
-    @staticmethod
-    def defaults() -> CommandLineArguments:
-        return CommandLineArguments(
+    @classmethod
+    def defaults(cls) -> Self:
+        return cls(
             platform="auto",
             allow_empty=False,
             archs=None,
             only=None,
             config_file="",
             output_dir=Path("wheelhouse"),
-            package_dir=Path("."),
+            package_dir=Path(),
             print_build_identifiers=False,
             debug_traceback=False,
             enable=[],
@@ -138,6 +136,12 @@ SettingTable = Mapping[str, SettingLeaf | SettingList]
 SettingValue = SettingTable | SettingList | SettingLeaf
 
 
+class InheritRule(enum.Enum):
+    NONE = enum.auto()
+    APPEND = enum.auto()
+    PREPEND = enum.auto()
+
+
 @dataclasses.dataclass(frozen=True)
 class Override:
     select_pattern: str
@@ -184,7 +188,7 @@ class ListFormat(OptionFormat):
 
     def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
         self.sep = sep
-        self.quote = quote if quote else lambda s: s
+        self.quote = quote or (lambda s: s)
 
     def format_list(self, value: SettingList) -> str:
         return self.sep.join(self.quote(str(v)) for v in value)
@@ -270,12 +274,6 @@ class EnvironmentFormat(OptionFormat):
 
     def merge_values(self, before: str, after: str) -> str:
         return f"{before} {after}"
-
-
-class InheritRule(enum.Enum):
-    NONE = enum.auto()
-    APPEND = enum.auto()
-    PREPEND = enum.auto()
 
 
 def _resolve_cascade(
@@ -630,8 +628,7 @@ class Options:
         )
         try:
             enable = {EnableGroup(group) for group in enable_groups.split()}
-            for command_line_group in args.enable:
-                enable.add(EnableGroup(command_line_group))
+            enable.update(EnableGroup(command_line_group) for command_line_group in args.enable)
         except ValueError as e:
             msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
             raise errors.ConfigurationError(msg) from e
@@ -737,9 +734,9 @@ class Options:
                         environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
             if dependency_versions == "pinned":
-                dependency_constraints: None | (
-                    DependencyConstraints
-                ) = DependencyConstraints.with_defaults()
+                dependency_constraints: DependencyConstraints | None = (
+                    DependencyConstraints.with_defaults()
+                )
             elif dependency_versions == "latest":
                 dependency_constraints = None
             else:
@@ -848,8 +845,8 @@ class Options:
         deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
     @functools.cached_property
-    def defaults(self) -> Options:
-        return Options(
+    def defaults(self) -> Self:
+        return self.__class__(
             platform=self.platform,
             command_line_arguments=CommandLineArguments.defaults(),
             env={},
@@ -932,13 +929,15 @@ class Options:
 
         return result
 
-    def indent_if_multiline(self, value: str, indent: str) -> str:
+    @staticmethod
+    def indent_if_multiline(value: str, indent: str) -> str:
         if "\n" in value:
             return "\n" + textwrap.indent(value.strip(), indent)
         else:
             return value
 
-    def option_summary_value(self, option_value: Any) -> str:
+    @staticmethod
+    def option_summary_value(option_value: Any) -> str:
         if hasattr(option_value, "options_summary"):
             option_value = option_value.options_summary()
 
