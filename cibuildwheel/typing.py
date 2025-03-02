@@ -12,7 +12,7 @@ __all__ = (
 PathOrStr = str | os.PathLike[str]
 
 
-PlatformName = Literal["linux", "macos", "windows", "pyodide"]
+PlatformName = Literal["linux", "macos", "windows", "pyodide", "ios"]
 PLATFORMS: Final[frozenset[PlatformName]] = frozenset(typing.get_args(PlatformName))
 
 
