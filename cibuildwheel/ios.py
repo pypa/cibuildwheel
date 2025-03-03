@@ -218,6 +218,9 @@ def cross_virtualenv(
             "/Library/Apple/usr/bin",
         ]
     )
+    # Also unset DYLD_LIBRARY_PATH to ensure that no macOS libraries will be
+    # found and linked.
+    env.pop("DYLD_LIBRARY_PATH", None)
 
     return env
 
