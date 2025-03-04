@@ -288,11 +288,34 @@ If you build Rust wheels, you need to download the Rust compilers in manylinux.
 If you support 32-bit Windows, you need to add this as a potential target. You
 can do this on GitHub Actions, for example, with:
 
-```yaml
-CIBW_BEFORE_ALL_LINUX: curl -sSf https://sh.rustup.rs | sh -s -- -y
-CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
-CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
-```
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_BEFORE_ALL_LINUX: curl -sSf https://sh.rustup.rs | sh -s -- -y && rustup show active-toolchain &>/dev/null || rustup toolchain install
+    CIBW_BEFORE_ALL_WINDOWS: rustup show active-toolchain || rustup toolchain install && rustup target add i686-pc-windows-msvc
+    CIBW_BEFORE_ALL_MACOS: rustup show active-toolchain &>/dev/null || rustup toolchain install
+    CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.linux]
+    before-all = [
+    "curl -sSf https://sh.rustup.rs | sh -s -- -y",
+    "rustup show active-toolchain &>/dev/null || rustup toolchain install",
+    ]
+    environment = { PATH = "$HOME/.cargo/bin:$PATH" }
+
+    [tool.cibuildwheel.macos]
+    before-all = "rustup show active-toolchain &>/dev/null || rustup toolchain install"
+
+    [tool.cibuildwheel.windows]
+    before-all = [
+    "rustup show active-toolchain || rustup toolchain install",
+    "rustup target add i686-pc-windows-msvc",
+    ]
+    ```
 
 Rust does not provide Cargo for musllinux 32-bit, so that needs to be skipped:
 
