@@ -31,7 +31,6 @@ from .util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
-    extract_tar,
     move_file,
 )
 from .util.helpers import prepare_command
@@ -513,35 +512,19 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=build_env,
                     )
 
-                    if build_options.test_sources:
-                        copy_test_sources(
-                            build_options.test_sources,
-                            build_options.package_dir,
-                            testbed_path / "iOSTestbed" / "app",
-                        )
-                    else:
-                        # There is no explicit list of test sources. Copy *all*
-                        # the test sources; however use the sdist to do this so
-                        # that we avoid copying any .git or venv folders.
+                    if not build_options.test_sources:
+                        # iOS requires an explicit test-sources, as the project directory
+                        # isn't visible on the simulator.
 
-                        # Build a sdist of the project
-                        call(
-                            "python",
-                            "-m",
-                            "build",
-                            build_options.package_dir,
-                            "--sdist",
-                            f"--outdir={identifier_tmp_dir}",
-                            capture_stdout=True,
-                        )
-                        src_tarball = next(identifier_tmp_dir.glob("*.tar.gz"))
+                        msg = "Testing on iOS requires a definition of test-sources."
+                        raise ValueError(msg)
 
-                        # Unpack the source tarball into the stub testbed
-                        extract_tar(
-                            src_tarball,
-                            testbed_path / "iOSTestbed" / "app",
-                            strip=1,
-                        )
+                    # Copy the test sources to the testbed app
+                    copy_test_sources(
+                        build_options.test_sources,
+                        build_options.package_dir,
+                        testbed_path / "iOSTestbed" / "app",
+                    )
 
                     log.step("Installing test requirements...")
                     # Install the compiled wheel (with any test extras), plus

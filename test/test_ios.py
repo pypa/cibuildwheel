@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import platform
+import subprocess
 
 import pytest
 
@@ -47,12 +48,12 @@ def test_ios_platforms(tmp_path, capfd, build_config):
 
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        add_env=dict(
-            CIBW_BUILD="cp313-*",
-            CIBW_TEST_SOURCES="tests",
-            CIBW_TEST_COMMAND="tests",
+        add_env={
+            "CIBW_BUILD": "cp313-*",
+            "CIBW_TEST_SOURCES": "tests",
+            "CIBW_TEST_COMMAND": "tests",
             **build_config,
-        ),
+        },
     )
 
     captured = capfd.readouterr()
@@ -74,3 +75,27 @@ def test_ios_platforms(tmp_path, capfd, build_config):
     }
 
     assert set(actual_wheels) == expected_wheels
+
+
+@pytest.mark.xdist_group(name="ios")
+def test_no_test_sources(tmp_path, capfd):
+    if utils.platform != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(
+            project_dir,
+            add_env={
+                "CIBW_PLATFORM": "ios",
+                "CIBW_BUILD": "cp313-*",
+                "CIBW_TEST_COMMAND": "tests",
+            },
+        )
+
+    captured = capfd.readouterr()
+    assert "Testing on iOS requires a definition of test-sources." in captured.err

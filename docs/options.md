@@ -1574,8 +1574,12 @@ project, required for running the tests. If specified, these files and folders
 will be copied into a temporary folder, and that temporary folder will be used
 as the working directory for running the test suite.
 
+The use of `CIBW_TEST_SOURCES` is *required* for iOS builds. This is because the
+simulator does not have access to the project directory, as it is not stored on
+the simulator device.
+
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_PYODIDE`
+`CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_IOS` | `CIBW_TEST_SOURCES_PYODIDE`
 
 #### Examples
 
