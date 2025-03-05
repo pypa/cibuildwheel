@@ -17,7 +17,7 @@ You can override the cache folder using the `CIBW_CACHE_PATH` environment variab
 !!! warning
     cibuildwheel uses official python.org macOS installers for CPython but those can only be installed globally.
 
-    In order not to mess with your system, cibuildwheel won't install those if they are missing. Instead, it will error out with a message to let you install th missing CPython:
+    In order not to mess with your system, cibuildwheel won't install those if they are missing. Instead, it will error out with a message to let you install the missing CPython:
 
     ```console
     Error: CPython 3.9 is not installed.
@@ -26,6 +26,20 @@ You can override the cache folder using the `CIBW_CACHE_PATH` environment variab
 
     Download link: https://www.python.org/ftp/python/3.9.8/python-3.9.8-macosx10.9.pkg
     ```
+
+## macOS Version Compatibility
+
+macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to control the minimum supported macOS version for generated wheels. The lowest value you can set `MACOSX_DEPLOYMENT_TARGET` is as follows:
+
+| Arch  | Python version range | Minimum target |
+|-------|----------------------|----------------|
+| Intel | CPython 3.8-3.11     | 10.9           |
+| Intel | CPython 3.12+        | 10.13          |
+| AS    | CPython or PyPy      | 11             |
+| Intel | PyPy 3.8             | 10.13          |
+| Intel | PyPy 3.9+            | 10.15          |
+
+If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
 
 ## Universal builds
 

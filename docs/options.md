@@ -305,18 +305,6 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
-The lowest value you can set `MACOSX_DEPLOYMENT_TARGET` is as follows:
-
-| Arch  | Python version range | Minimum target |
-|-------|----------------------|----------------|
-| Intel | CPython 3.8-3.11     | 10.9           |
-| Intel | CPython 3.12+        | 10.13          |
-| AS    | CPython or PyPy      | 11             |
-| Intel | PyPy 3.8             | 10.13          |
-| Intel | PyPy 3.9+            | 10.15          |
-
-If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
-
 Windows arm64 platform support is experimental.
 
 For an experimental WebAssembly build with `--platform pyodide`,
@@ -1448,11 +1436,9 @@ Alternatively, you can use the [`CIBW_TEST_SOURCES`](#test-sources) setting to
 create a temporary folder populated with a specific subset of project files to
 run your test suite.
 
-On all platforms other than iOS, the command is run in a shell, so you can write
-things like `cmd1 && cmd2`.
+On all platforms other than iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On iOS, the value of the `CIBW_TEST_COMMAND` setting is interpreted as the arguments
-to pass to `python -m`. Shell commands cannot be used.
+On iOS, the value of the `CIBW_TEST_COMMAND` setting is interpreted as the arguments to pass to `python -m` - that is, a Python module name, followed by arguments that will be assigned to `sys.argv`. Shell commands cannot be used.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
@@ -1576,7 +1562,8 @@ as the working directory for running the test suite.
 
 The use of `CIBW_TEST_SOURCES` is *required* for iOS builds. This is because the
 simulator does not have access to the project directory, as it is not stored on
-the simulator device.
+the simulator device. On iOS, the files will be copied into the test application,
+rather than a temporary folder.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_IOS` | `CIBW_TEST_SOURCES_PYODIDE`

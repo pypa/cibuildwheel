@@ -26,14 +26,14 @@ jobs:
             runs-on: ubuntu-24.04-arm
           - os: windows
             runs-on: windows-latest
-          - os: macOS-intel
+          - os: macos-intel
             # macos-13 was the last x86_64 runner
             runs-on: macos-13
-          - os: macOS-arm
+          - os: macos-arm
             # macos-14+ (including latest) are ARM64 runners
             runs-on: macos-latest
             archs: auto,universal2
-          - os: iOS
+          - os: ios
             runs-on: macos-latest
             platform: ios
           - os: pyodide
