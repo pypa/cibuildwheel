@@ -66,7 +66,8 @@ class PythonConfiguration:
         return self.identifier.endswith("-iphonesimulator")
 
     @property
-    def slice(self) -> str:
+    def xcframework_slice(self) -> str:
+        "XCframeworks include binaries for multiple ABIs; which ABI section should be used?"
         return "ios-arm64_x86_64-simulator" if self.is_simulator else "ios-arm64"
 
 
@@ -264,7 +265,7 @@ def setup_python(
         host_python = (
             host_install_path
             / "Python.xcframework"
-            / python_configuration.slice
+            / python_configuration.xcframework_slice
             / "bin"
             / f"python{python_configuration.version}"
         )
