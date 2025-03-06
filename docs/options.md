@@ -442,8 +442,8 @@ Default: `auto`
 | Windows / ARM64 | `ARM64` | `ARM64` | `ARM64` | |
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
-| iOS on macOS / Intel | `x86_64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator` |  |
-| iOS on macOS / Apple Silicon | `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator` |  |
+| iOS on macOS / Intel | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` |  |
+| iOS on macOS / Apple Silicon | `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` |  |
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt

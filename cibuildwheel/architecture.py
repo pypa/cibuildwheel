@@ -152,12 +152,16 @@ class Architecture(StrEnum):
             result.add(Architecture.x86)
 
         elif platform == "ios":
-            # iOS defaults to building all architectures
-            result = {
-                Architecture.x86_64_simulator,
-                Architecture.arm64_simulator,
-                Architecture.arm64_device,
-            }
+            # iOS defaults to building all targets with the same CPU architecture
+            if native_arch == Architecture.x86_64:
+                result = {
+                    Architecture.x86_64_simulator,
+                }
+            else:
+                result = {
+                    Architecture.arm64_simulator,
+                    Architecture.arm64_device,
+                }
 
         return result
 
