@@ -58,21 +58,24 @@ def test_ios_platforms(tmp_path, capfd, build_config):
 
     captured = capfd.readouterr()
 
+    ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
     platform_machine = platform.machine()
     # Tests are only executed on device
     if platform_machine == "x86_64":
         # Ensure that tests were run on arm64.
         assert "running tests on x86_64" in captured.out
+        expected_wheels = {
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
+        }
+
     elif platform_machine == "arm64":
         # Ensure that tests were run on arm64.
         assert "running tests on arm64" in captured.out
 
-    ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
-    expected_wheels = {
-        f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
-        f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
-        f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
-    }
+        expected_wheels = {
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
+        }
 
     assert set(actual_wheels) == expected_wheels
 
