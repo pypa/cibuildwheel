@@ -9,6 +9,7 @@ branches:
 jobs:
   include:
     - name: Linux | x86_64 + i686 | Python 3.12
+      if: (type = "push") OR (commit_message =~ /travis-ci/)
       python: 3.12
       services: docker
       env: PYTHON=python
@@ -31,6 +32,7 @@ jobs:
         - PYTEST_ADDOPTS='-k "not test_manylinuxXXXX_only"'
 
     - name: Windows | x86_64 | Python 3.12
+      if: (type = "push") OR (commit_message =~ /travis-ci/)
       os: windows
       language: shell
       before_install:
