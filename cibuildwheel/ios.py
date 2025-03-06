@@ -59,11 +59,12 @@ class PythonConfiguration:
 
     @property
     def multiarch(self) -> str:
-        return self.identifier.split("-ios_")[1]
+        # The multiarch identifier, as reported by `sys.implementation._multiarch`
+        return "-".join(self.identifier.split("-ios_")[1].rsplit("_", 1))
 
     @property
     def is_simulator(self) -> bool:
-        return self.identifier.endswith("-iphonesimulator")
+        return self.identifier.endswith("_iphonesimulator")
 
     @property
     def xcframework_slice(self) -> str:
@@ -86,7 +87,7 @@ def get_python_configurations(
         # The iOS item will be something like cp313-ios_arm64_iphoneos. Drop
         # the iphoneos suffix, then replace ios with macosx to yield
         # cp313-macosx_arm64, which will be a macOS configuration item.
-        parts = item["identifier"].split("-")
+        parts = item["identifier"].rsplit("_", 1)[0].split("-")
         macos_identifier = f"{parts[0]}-{parts[1].replace('ios', 'macosx')}"
         matching = [
             config for config in macos_python_configs if config["identifier"] == macos_identifier

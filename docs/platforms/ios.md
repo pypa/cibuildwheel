@@ -12,11 +12,11 @@ Building iOS wheels also requires a working macOS Python installation. See the n
 
 ## Specifying an iOS build
 
-iOS is effectively 2 platforms - physical devices, and simulators. While the API for these two platforms are identical, the ABI is not compatible, even when dealing with a device and simulator with the same CPU architecture. For this reason, the architecture specification for iOS builds includes *both* the CPU architecture *and* the ABI that is being targeted. There are three possible values for architecture on iOS; the values match those used by `sys.implementation._multiarch` when running on iOS:
+iOS is effectively 2 platforms - physical devices, and simulators. While the API for these two platforms are identical, the ABI is not compatible, even when dealing with a device and simulator with the same CPU architecture. For this reason, the architecture specification for iOS builds includes *both* the CPU architecture *and* the ABI that is being targeted. There are three possible values for architecture on iOS; the values match those used by `sys.implementation._multiarch` when running on iOS (with hyphens replaced with underscores, matching wheel filename normalization):
 
-* `arm64-iphoneos` (for physical iOS devices);
-* `arm64-iphonesimulator` (for iOS simulators running on Apple Silicon macOS machines); and
-* `x64_64-iphonesimulator` (for iOS simulators running on Intel macOS machines).
+* `arm64_iphoneos` (for physical iOS devices);
+* `arm64_iphonesimulator` (for iOS simulators running on Apple Silicon macOS machines); and
+* `x64_64_iphonesimulator` (for iOS simulators running on Intel macOS machines).
 
 By default, cibuildwheel will build wheels for all three of these targets.
 
@@ -28,11 +28,11 @@ test-sources = ["tests"]
 test-requires = ["pytest"]
 
 [[tool.cibuildwheel.overrides]]
-select = "*-iphoneos"
+select = "*_iphoneos"
 environment.PATH = "/path/to/special/device/details:..."
 
 [[tool.cibuildwheel.overrides]]
-select = "*-arm64-iphone*"
+select = "*-ios_arm64_*"
 inherit.test-requires = "append"
 test-requires = ["arm64-testing-helper"]
 ```

@@ -66,9 +66,9 @@ class Architecture(StrEnum):
 
     # iOS "multiarch" architectures that include both
     # the CPU architecture and the ABI.
-    arm64_device = "arm64-iphoneos"
-    arm64_simulator = "arm64-iphonesimulator"
-    x86_64_simulator = "x86_64-iphonesimulator"
+    arm64_device = "arm64_iphoneos"
+    arm64_simulator = "arm64_iphonesimulator"
+    x86_64_simulator = "x86_64_iphonesimulator"
 
     @staticmethod
     def parse_config(config: str, platform: PlatformName) -> "set[Architecture]":
