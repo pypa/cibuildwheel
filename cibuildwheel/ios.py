@@ -83,12 +83,12 @@ def get_python_configurations(
     # configuration.
     macos_python_configs = resources.read_python_configs("macos")
 
-    def build_url(item: dict[str, str]) -> str:
-        # The iOS item will be something like cp313-ios_arm64_iphoneos. Drop
-        # the iphoneos suffix, then replace ios with macosx to yield
-        # cp313-macosx_arm64, which will be a macOS configuration item.
-        parts = item["identifier"].rsplit("_", 1)[0].split("-")
-        macos_identifier = f"{parts[0]}-{parts[1].replace('ios', 'macosx')}"
+    def build_url(config_dict: dict[str, str]) -> str:
+        # The iOS identifier will be something like cp313-ios_arm64_iphoneos.
+        # Drop the iphoneos suffix, then replace ios with macosx to yield
+        # cp313-macosx_arm64, which will be a macOS build identifier.
+        modified_ios_identifier = config_dict["identifier"].rsplit("_", 1)[0]
+        macos_identifier = modified_ios_identifier.replace("ios", "macosx")
         matching = [
             config for config in macos_python_configs if config["identifier"] == macos_identifier
         ]
@@ -338,8 +338,7 @@ def setup_python(
     call("pip", "--version", env=env)
 
     # Ensure that IPHONEOS_DEPLOYMENT_TARGET is set in the environment
-    ios_deployment_target = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
-    env["IPHONEOS_DEPLOYMENT_TARGET"] = ios_deployment_target
+    env.setdefault("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
 
     log.step("Installing build tools...")
     if build_frontend == "pip":
