@@ -140,6 +140,7 @@ def install_host_cpython(tmp: Path, config: PythonConfiguration, free_threading:
 
 
 def cross_virtualenv(
+    *,
     py_version: str,
     host_python: Path,
     multiarch: str,
@@ -150,9 +151,9 @@ def cross_virtualenv(
     """Create a cross-compilation virtual environment.
 
     In a cross-compilation environment, the *host* is the platform you're
-    targeting the *build* is the platform where you're running the compilation.
-    When building iOS wheels, iOS is the host machine and macOS is the build
-    machine.
+    targeting, and the *build* is the platform where you're running the
+    compilation. When building iOS wheels, iOS is the host machine and macOS is
+    the build machine.
 
     A cross-compilation virtualenv is an environment that is based on the
     *build* python (so that binaries can execute); but it modifies the
