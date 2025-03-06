@@ -66,9 +66,9 @@ class Architecture(StrEnum):
 
     # iOS "multiarch" architectures that include both
     # the CPU architecture and the ABI.
-    arm64_device = "arm64_iphoneos"
-    arm64_simulator = "arm64_iphonesimulator"
-    x86_64_simulator = "x86_64_iphonesimulator"
+    arm64_iphoneos = auto()
+    arm64_iphonesimulator = auto()
+    x86_64_iphonesimulator = auto()
 
     @staticmethod
     def parse_config(config: str, platform: PlatformName) -> "set[Architecture]":
@@ -113,9 +113,9 @@ class Architecture(StrEnum):
             # simulator for the macOS native platform.
             if host_platform == "macos":
                 if native_architecture == Architecture.x86_64:
-                    return Architecture.x86_64_simulator
+                    return Architecture.x86_64_iphonesimulator
                 else:
-                    return Architecture.arm64_simulator
+                    return Architecture.arm64_iphonesimulator
             else:
                 return None
 
@@ -155,12 +155,12 @@ class Architecture(StrEnum):
             # iOS defaults to building all targets with the same CPU architecture
             if native_arch == Architecture.x86_64:
                 result = {
-                    Architecture.x86_64_simulator,
+                    Architecture.x86_64_iphonesimulator,
                 }
             else:
                 result = {
-                    Architecture.arm64_simulator,
-                    Architecture.arm64_device,
+                    Architecture.arm64_iphonesimulator,
+                    Architecture.arm64_iphoneos,
                 }
 
         return result
@@ -180,9 +180,9 @@ class Architecture(StrEnum):
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
             "pyodide": {Architecture.wasm32},
             "ios": {
-                Architecture.x86_64_simulator,
-                Architecture.arm64_simulator,
-                Architecture.arm64_device,
+                Architecture.x86_64_iphonesimulator,
+                Architecture.arm64_iphonesimulator,
+                Architecture.arm64_iphoneos,
             },
         }
         return all_archs_map[platform]
