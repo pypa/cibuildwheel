@@ -20,7 +20,7 @@ iOS is effectively 2 platforms - physical devices, and simulators. While the API
 
 By default, cibuildwheel will build wheels for all three of these targets.
 
-If you need to specify different compilation flags or other properties on a per-ABI or per-CPU basis, you can use [configuration overrides](/options/#overrides) with a `select` clause that targets the specific ABI or architecture. For example, consider the following example:
+If you need to specify different compilation flags or other properties on a per-ABI or per-CPU basis, you can use [configuration overrides](../../options/#overrides) with a `select` clause that targets the specific ABI or architecture. For example, consider the following example:
 
 ```
 [tool.cibuildwheel.ios]
@@ -63,6 +63,6 @@ The environment used to run builds does not inherit the full user environment - 
 
 If tests have been configured, the test suite will be executed on the simulator matching the architecture of the build machine - that is, if you're building on an ARM64 macOS machine, the ARM64 wheel will be tested on an ARM64 simulator. It is not possible to use cibuildwheel to test wheels on other simulators, or on physical devices.
 
-The iOS test environment can't support running shell scripts, so the [`CIBW_TEST_COMMAND`](/options#test-command) value must be specified as if it were a command line being passed to `python -m ...`. In addition, the project must use [`CIBW_TEST_SOURCES`](/options#test-sources) to specify the minimum subset of files that should be copied to the test environment. This is because the test must be run "on device", and the simulator device will not have access to the local project directory.
+The iOS test environment can't support running shell scripts, so the [`CIBW_TEST_COMMAND`](../../options#test-command) value must be specified as if it were a command line being passed to `python -m ...`. In addition, the project must use [`CIBW_TEST_SOURCES`](../../options#test-sources) to specify the minimum subset of files that should be copied to the test environment. This is because the test must be run "on device", and the simulator device will not have access to the local project directory.
 
 The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <CIBW_TEST_COMMAND>`.
