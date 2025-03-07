@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
+from cibuildwheel.options import ShlexTableFormat
 from cibuildwheel.util.packaging import DependencyConstraints
 
 
@@ -34,3 +36,14 @@ def test_inline_packages(tmp_path: Path) -> None:
     constraints_file_contents = constraint_file.read_text()
 
     assert constraints_file_contents == "foo==1.2.3\nbar==4.5.6"
+
+
+def test_empty_packages() -> None:
+    option_value: dict[str, Any] = {"packages": []}
+    stringified_option = ShlexTableFormat().format_table(option_value)
+    print("so", stringified_option)
+    dependency_constraints = DependencyConstraints.from_config_string(stringified_option)
+
+    assert dependency_constraints
+    assert not dependency_constraints.packages
+    assert not dependency_constraints.base_file_path
