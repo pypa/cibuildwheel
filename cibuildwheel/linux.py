@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import contextlib
 import subprocess
 import sys
@@ -205,7 +203,7 @@ def build_in_container(
         local_identifier_tmp_dir = local_tmp_dir / config.identifier
         build_options = options.build_options(config.identifier)
         build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-        use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version("3.8")
+        use_uv = build_frontend.name == "build[uv]"
         pip = ["uv", "pip"] if use_uv else ["pip"]
 
         log.step("Setting up build environment...")
@@ -454,12 +452,12 @@ def build(options: Options, tmp_path: Path) -> None:
         except subprocess.CalledProcessError as error:
             msg = unwrap(
                 f"""
-                cibuildwheel: {build_step.container_engine.name} not found. An
-                OCI exe like Docker or Podman is required to run Linux builds.
-                If you're building on Travis CI, add `services: [docker]` to
-                your .travis.yml. If you're building on Circle CI in Linux,
-                add a `setup_remote_docker` step to your .circleci/config.yml.
-                If you're building on Cirrus CI, use `docker_builder` task.
+                {build_step.container_engine.name} not found. An OCI exe like
+                Docker or Podman is required to run Linux builds. If you're
+                building on Travis CI, add `services: [docker]` to your
+                .travis.yml. If you're building on Circle CI in Linux, add a
+                `setup_remote_docker` step to your .circleci/config.yml. If
+                you're building on Cirrus CI, use `docker_builder` task.
                 """
             )
             raise errors.ConfigurationError(msg) from error

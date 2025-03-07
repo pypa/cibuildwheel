@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import os
 import platform
@@ -554,8 +552,8 @@ def test_local_image(
     container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
 ) -> None:
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
-        and pm in {"s390x", "ppc64le"}
+        detect_ci_provider() == CIProvider.travis_ci
+        and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
@@ -584,8 +582,8 @@ def test_local_image(
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine, platform):
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
-        and pm in {"s390x", "ppc64le"}
+        detect_ci_provider() == CIProvider.travis_ci
+        and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")

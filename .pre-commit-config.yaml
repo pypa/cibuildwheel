@@ -14,23 +14,23 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.9.3
+  rev: v0.9.9
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.14.1
+  rev: v1.15.0
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
-    exclude: ^cibuildwheel/resources/.*py|bin/generate_schema.py$
+    exclude: ^cibuildwheel/resources/.*py$
     args: ["--python-version=3.11"]
     additional_dependencies: &mypy-dependencies
       - bracex
       - dependency-groups>=1.2
-      - nox
+      - nox>=2025.2.9
       - orjson
       - packaging
       - pygithub
@@ -73,7 +73,7 @@ repos:
     files: ^docs/changelog.md$
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.4.0
+  rev: v2.4.1
   hooks:
   - id: codespell
     args: ["-L", "sur,assertin,hep", "-w"]
@@ -81,7 +81,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.31.0
+  rev: 0.31.2
   hooks:
     - id: check-dependabot
     - id: check-github-actions

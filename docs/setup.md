@@ -100,11 +100,11 @@ You can override the cache folder using the ``CIBW_CACHE_PATH`` environment vari
     CPython:
 
     ```console
-    Error: CPython 3.6 is not installed.
+    Error: CPython 3.9 is not installed.
     cibuildwheel will not perform system-wide installs when running outside of CI.
-    To build locally, install CPython 3.6 on this machine, or, disable this version of Python using CIBW_SKIP=cp36-macosx_*
+    To build locally, install CPython 3.9 on this machine, or, disable this version of Python using CIBW_SKIP=cp39-macosx_*
 
-    Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
+    Download link: https://www.python.org/ftp/python/3.9.8/python-3.9.8-macosx10.9.pkg
     ```
 
 ### Pyodide (WebAssembly) builds (experimental)
@@ -161,7 +161,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/checkout@v4
 
           - name: Build wheels
-            run: pipx run cibuildwheel==2.22.0
+            run: pipx run cibuildwheel==2.23.0
 
           - uses: actions/upload-artifact@v4
             with:
@@ -198,7 +198,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
           - uses: actions/setup-python@v5
 
           - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.22.0
+            run: python -m pip install cibuildwheel==2.23.0
 
           - name: Build wheels
             run: python -m cibuildwheel --output-dir wheelhouse

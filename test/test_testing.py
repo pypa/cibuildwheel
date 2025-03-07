@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import inspect
 import os
 import subprocess
@@ -68,7 +66,7 @@ class TestSpam(TestCase):
         # See #336 for more info.
         bits = struct.calcsize("P") * 8
         if bits == 32:
-            self.assertIn(platform.machine(), ["i686", "wasm32"])
+            self.assertIn(platform.machine(), ["i686", "armv7l","armv8l", "wasm32"])
 '''
 
 

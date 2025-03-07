@@ -18,7 +18,7 @@ packaging==24.2
     # via
     #   build
     #   delocate
-pip==25.0
+pip==25.0.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.3.6
     # via virtualenv
@@ -28,7 +28,7 @@ tomli==2.2.1
     # via build
 typing-extensions==4.12.2
     # via delocate
-virtualenv==20.29.1
+virtualenv==20.29.2
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.20.2
     # via importlib-metadata

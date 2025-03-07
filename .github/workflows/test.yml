@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 2.x
   pull_request:
     paths-ignore:
       - 'docs/**'
@@ -26,8 +27,6 @@ jobs:
       with:
         python-version: "3.x"
     - uses: pre-commit/action@v3.0.1
-    - name: Check manifest
-      run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s check_manifest
     - name: PyLint checks
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 

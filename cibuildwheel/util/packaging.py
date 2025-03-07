@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 import shlex
 from collections.abc import Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
@@ -29,21 +27,21 @@ class DependencyConstraints:
                 raise FileNotFoundError(msg)
             self.base_file_path = self.base_file_path.resolve()
 
-    @staticmethod
-    def pinned() -> DependencyConstraints:
-        return DependencyConstraints(base_file_path=resources.CONSTRAINTS)
+    @classmethod
+    def pinned(cls) -> Self:
+        return cls(base_file_path=resources.CONSTRAINTS)
 
-    @staticmethod
-    def latest() -> DependencyConstraints:
-        return DependencyConstraints()
+    @classmethod
+    def latest(cls) -> Self:
+        return cls()
 
-    @staticmethod
-    def from_config_string(config_string: str) -> DependencyConstraints:
+    @classmethod
+    def from_config_string(cls, config_string: str) -> Self:
         if config_string == "pinned":
-            return DependencyConstraints.pinned()
+            return cls.pinned()
 
         if config_string == "latest" or not config_string:
-            return DependencyConstraints.latest()
+            return cls.latest()
 
         if config_string.startswith(("file:", "packages:")):
             # we only do the table-style parsing if it looks like a table,
@@ -52,12 +50,12 @@ class DependencyConstraints:
             # special characters like ':' or ' ', which would require quoting
             # if they were to be passed as a parse_key_value_string positional
             # argument.
-            return DependencyConstraints.from_table_style_config_string(config_string)
+            return cls.from_table_style_config_string(config_string)
 
-        return DependencyConstraints(base_file_path=Path(config_string))
+        return cls(base_file_path=Path(config_string))
 
-    @staticmethod
-    def from_table_style_config_string(config_string: str) -> DependencyConstraints:
+    @classmethod
+    def from_table_style_config_string(cls, config_string: str) -> Self:
         config_dict = parse_key_value_string(config_string, kw_arg_names=["file", "packages"])
         files = config_dict.get("file")
         packages = config_dict.get("packages") or []
@@ -74,9 +72,9 @@ class DependencyConstraints:
                 """)
                 raise ValueError(msg)
 
-            return DependencyConstraints(base_file_path=Path(files[0]))
+            return cls(base_file_path=Path(files[0]))
 
-        return DependencyConstraints(packages=packages)
+        return cls(packages=packages)
 
     def get_for_python_version(
         self, *, version: str, variant: Literal["python", "pyodide"] = "python", tmp_dir: Path

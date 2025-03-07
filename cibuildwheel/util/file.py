@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 import shutil
 import ssl
@@ -25,8 +23,7 @@ CIBW_CACHE_PATH: Final[Path] = Path(
 def download(url: str, dest: Path) -> None:
     print(f"+ Download {url} to {dest}")
     dest_dir = dest.parent
-    if not dest_dir.exists():
-        dest_dir.mkdir(parents=True)
+    dest_dir.mkdir(parents=True, exist_ok=True)
 
     # we've had issues when relying on the host OS' CA certificates on Windows,
     # so we use certifi (this sounds odd but requests also does this by default)

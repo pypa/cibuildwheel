@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 import platform as platform_module
 import textwrap
@@ -21,7 +19,7 @@ from cibuildwheel.util.packaging import DependencyConstraints
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
-build = ["cp38*", "cp37*"]
+build = ["cp38-*", "cp313-*"]
 skip = ["*musllinux*"]
 environment = {FOO="BAR"}
 
@@ -36,7 +34,7 @@ environment-pass = ["EXAMPLE_ENV"]
 test-requires = "else"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp37*"
+select = "cp313-*"
 test-command = "pyproject-override"
 manylinux-x86_64-image = "manylinux2014"
 """
@@ -62,7 +60,7 @@ def test_options_1(tmp_path, monkeypatch):
 
     override_display = """\
   *: pyproject
-  cp37-manylinux_x86_64, cp37-manylinux_i686: pyproject-override"""
+  cp313-manylinux_x86_64, cp313-manylinux_i686: pyproject-override"""
     print(options.summary(identifiers))
 
     assert override_display in options.summary(identifiers)
@@ -80,7 +78,7 @@ def test_options_1(tmp_path, monkeypatch):
     assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux1"]
 
-    local = options.build_options("cp37-manylinux_x86_64")
+    local = options.build_options("cp313-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
     assert local.test_sources == ["test", "other dir"]

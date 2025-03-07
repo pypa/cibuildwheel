@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import argparse
 import contextlib
 import dataclasses
@@ -70,7 +68,7 @@ def main() -> None:
         if log.step_active:
             log.step_end_with_error(message)
         else:
-            print(f"cibuildwheel: {message}", file=sys.stderr)
+            log.error(message)
 
         if global_options.print_traceback_on_error:
             traceback.print_exc(file=sys.stderr)
@@ -160,7 +158,7 @@ def main_inner(global_options: GlobalOptions) -> None:
     parser.add_argument(
         "package_dir",
         metavar="PACKAGE",
-        default=Path("."),
+        default=Path(),
         type=Path,
         nargs="?",
         help="""
@@ -255,7 +253,7 @@ def _compute_platform_auto() -> PlatformName:
         return "windows"
     else:
         msg = (
-            'cibuildwheel: Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
+            'Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
             "support building wheels for this platform. You might be able to build for a different "
             "platform using the --platform argument. Check --help output for more information."
         )
@@ -345,9 +343,8 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
     if platform == "pyodide" and sys.platform == "win32":
-        msg = "cibuildwheel: Building for pyodide is not supported on Windows"
-        print(msg, file=sys.stderr)
-        sys.exit(2)
+        msg = "Building for pyodide is not supported on Windows"
+        raise errors.ConfigurationError(msg)
 
     options = compute_options(platform=platform, command_line_arguments=args, env=os.environ)
 
@@ -399,8 +396,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     output_dir = options.globals.output_dir
 
-    if not output_dir.exists():
-        output_dir.mkdir(parents=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:

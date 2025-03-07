@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
@@ -29,10 +27,10 @@ def test_defaults(tmp_path: Path) -> None:
     assert constraints_file.samefile(resources_dir / "constraints-python39.txt")
 
     constraints_file = dependency_constraints.get_for_python_version(
-        version="3.6", tmp_dir=tmp_path
+        version="3.13", tmp_dir=tmp_path
     )
     assert constraints_file
-    assert constraints_file.samefile(resources_dir / "constraints-python36.txt")
+    assert constraints_file.samefile(resources_dir / "constraints-python313.txt")
 
 
 def test_inline_packages(tmp_path: Path) -> None:

@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-import platform
 import re
 import textwrap
 from pathlib import Path
@@ -53,12 +50,10 @@ def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
     return dict(re.findall(VERSION_REGEX, constraint_file_text))
 
 
-@pytest.mark.parametrize("python_version", ["3.6", "3.8", "3.12"])
+@pytest.mark.parametrize("python_version", ["3.8", "3.12"])
 def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
-    if python_version == "3.6" and utils.platform == "macos" and platform.machine() == "arm64":
-        pytest.skip("macOS arm64 does not support Python 3.6")
     if python_version != "3.12" and utils.platform == "pyodide":
         pytest.skip(f"pyodide does not support Python {python_version}")
 
@@ -142,12 +137,11 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
         add_env={
             "CIBW_ENVIRONMENT": cibw_environment_option,
             "CIBW_DEPENDENCY_VERSIONS": dependency_version_option,
-            "CIBW_SKIP": "cp36-*",
             **build_frontend_env_nouv,
         },
     )
 
     # also check that we got the right wheels
-    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "-cp36" not in w]
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
 
     assert set(actual_wheels) == set(expected_wheels)

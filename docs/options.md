@@ -161,15 +161,15 @@ which means it can be given multiple times.
 manylinux-x86_64-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp36-*"
+select = "cp38-*"
 manylinux-x86_64-image = "manylinux1"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp3{7,8,9}-*"
+select = "cp3{9,10}-*"
 manylinux-x86_64-image = "manylinux2010"
 ```
 
-This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
+This example will build CPython 3.8 wheels on manylinux1, CPython 3.9-3.10
 wheels on manylinux2010, and manylinux2014 wheels for any newer Python
 (like 3.10).
 
@@ -290,18 +290,16 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 
 |               | macOS                                                                  | Windows                                             | Linux Intel                                                                                         | Linux Other                                                                                                                                                                                                           |
 |---------------|------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Python 3.6    | cp36-macosx_x86_64                                                     | cp36-win_amd64<br/>cp36-win32                       | cp36-manylinux_x86_64<br/>cp36-manylinux_i686<br/>cp36-musllinux_x86_64<br/>cp36-musllinux_i686     | cp36-manylinux_aarch64<br/>cp36-manylinux_ppc64le<br/>cp36-manylinux_s390x<br/>cp36-manylinux_armv7l<br/>cp36-musllinux_aarch64<br/>cp36-musllinux_ppc64le<br/>cp36-musllinux_s390x<br/>cp36-musllinux_armv7l         |
-| Python 3.7    | cp37-macosx_x86_64                                                     | cp37-win_amd64<br/>cp37-win32                       | cp37-manylinux_x86_64<br/>cp37-manylinux_i686<br/>cp37-musllinux_x86_64<br/>cp37-musllinux_i686     | cp37-manylinux_aarch64<br/>cp37-manylinux_ppc64le<br/>cp37-manylinux_s390x<br/>cp37-manylinux_armv7l<br/>cp37-musllinux_aarch64<br/>cp37-musllinux_ppc64le<br/>cp37-musllinux_s390x<br/>cp37-musllinux_armv7l         |
 | Python 3.8    | cp38-macosx_x86_64<br/>cp38-macosx_universal2<br/>cp38-macosx_arm64    | cp38-win_amd64<br/>cp38-win32                       | cp38-manylinux_x86_64<br/>cp38-manylinux_i686<br/>cp38-musllinux_x86_64<br/>cp38-musllinux_i686     | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x<br/>cp38-manylinux_armv7l<br/>cp38-musllinux_aarch64<br/>cp38-musllinux_ppc64le<br/>cp38-musllinux_s390x<br/>cp38-musllinux_armv7l         |
 | Python 3.9    | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64    | cp39-win_amd64<br/>cp39-win32<br/>cp39-win_arm64    | cp39-manylinux_x86_64<br/>cp39-manylinux_i686<br/>cp39-musllinux_x86_64<br/>cp39-musllinux_i686     | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x<br/>cp39-manylinux_armv7l<br/>cp39-musllinux_aarch64<br/>cp39-musllinux_ppc64le<br/>cp39-musllinux_s390x<br/>cp39-musllinux_armv7l         |
 | Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l |
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l                             |
 | Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l |
-| PyPy3.7 v7.3  | pp37-macosx_x86_64                                                     | pp37-win_amd64                                      | pp37-manylinux_x86_64<br/>pp37-manylinux_i686                                                       | pp37-manylinux_aarch64                                                                                                                                                                                                |
 | PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                |
 | PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                               |
+| PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                               |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
@@ -310,10 +308,10 @@ The lowest value you can set `MACOSX_DEPLOYMENT_TARGET` is as follows:
 
 | Arch  | Python version range | Minimum target |
 |-------|----------------------|----------------|
-| Intel | CPython 3.6-3.11     | 10.9           |
+| Intel | CPython 3.8-3.11     | 10.9           |
 | Intel | CPython 3.12+        | 10.13          |
 | AS    | CPython or PyPy      | 11             |
-| Intel | PyPy 3.7-3.8         | 10.13          |
+| Intel | PyPy 3.8             | 10.13          |
 | Intel | PyPy 3.9+            | 10.15          |
 
 If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
@@ -330,29 +328,26 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Only build on CPython 3.6
-    CIBW_BUILD: cp36-*
-
-    # Skip building on CPython 3.6 on the Mac
-    CIBW_SKIP: cp36-macosx_x86_64
+    # Only build on CPython 3.8
+    CIBW_BUILD: cp38-*
 
     # Skip building on CPython 3.8 on the Mac
     CIBW_SKIP: cp38-macosx_x86_64
 
-    # Skip building on CPython 3.6 on all platforms
-    CIBW_SKIP: cp36-*
+    # Skip building on CPython 3.8 on all platforms
+    CIBW_SKIP: cp38-*
 
-    # Skip CPython 3.6 on Windows
-    CIBW_SKIP: cp36-win*
+    # Skip CPython 3.8 on Windows
+    CIBW_SKIP: cp38-win*
 
-    # Skip CPython 3.6 on 32-bit Windows
-    CIBW_SKIP: cp36-win32
+    # Skip CPython 3.8 on 32-bit Windows
+    CIBW_SKIP: cp38-win32
 
-    # Skip CPython 3.6 and CPython 3.7
-    CIBW_SKIP: cp36-* cp37-*
+    # Skip CPython 3.8 and CPython 3.9
+    CIBW_SKIP: cp38-* cp39-*
 
-    # Skip Python 3.6 on Linux
-    CIBW_SKIP: cp36-manylinux*
+    # Skip Python 3.8 on Linux
+    CIBW_SKIP: cp38-manylinux*
 
     # Skip 32-bit builds
     CIBW_SKIP: "*-win32 *-manylinux_i686"
@@ -367,29 +362,26 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for
 
     ```toml
     [tool.cibuildwheel]
-    # Only build on CPython 3.6
-    build = "cp36-*"
-
-    # Skip building on CPython 3.6 on the Mac
-    skip = "cp36-macosx_x86_64"
+    # Only build on CPython 3.8
+    build = "cp38-*"
 
     # Skip building on CPython 3.8 on the Mac
     skip = "cp38-macosx_x86_64"
 
-    # Skip building on CPython 3.6 on all platforms
-    skip = "cp36-*"
+    # Skip building on CPython 3.8 on all platforms
+    skip = "cp38-*"
 
-    # Skip CPython 3.6 on Windows
-    skip = "cp36-win*"
+    # Skip CPython 3.8 on Windows
+    skip = "cp38-win*"
 
-    # Skip CPython 3.6 on 32-bit Windows
-    skip = "cp36-win32"
+    # Skip CPython 3.8 on 32-bit Windows
+    skip = "cp38-win32"
 
-    # Skip CPython 3.6 and CPython 3.7
-    skip = ["cp36-*", "cp37-*"]
+    # Skip CPython 3.8 and CPython 3.9
+    skip = ["cp38-*", "cp39-*"]
 
-    # Skip Python 3.6 on Linux
-    skip = "cp36-manylinux*"
+    # Skip Python 3.8 on Linux
+    skip = "cp38-manylinux*"
 
     # Skip 32-bit builds
     skip = ["*-win32", "*-manylinux_i686"]
@@ -517,7 +509,7 @@ simple keyword assignment in a top level function call. If you need to override
 this behaviour for some reason, you can use this option.
 
 When setting this option, the syntax is the same as `project.requires-python`,
-using 'version specifiers' like `>=3.6`, according to
+using 'version specifiers' like `>=3.8`, according to
 [PEP440](https://www.python.org/dev/peps/pep-0440/#version-specifiers).
 
 Default: reads your package's Python compatibility from `pyproject.toml`
@@ -538,7 +530,7 @@ the package is compatible with all versions of Python that it can build.
         ```toml
         [project]
         ...
-        requires-python = ">=3.6"
+        requires-python = ">=3.8"
         ```
 
         Note that not all build backends fully support using a `[project]` table yet;
@@ -554,7 +546,7 @@ the package is compatible with all versions of Python that it can build.
 !!! tab examples "Environment variables"
 
     ```yaml
-    CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6"
+    CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
     ```
 
 ###  `CIBW_ENABLE` {: #enable}
@@ -682,10 +674,9 @@ possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
 pre-installing it, or installing cibuildwheel with the uv extra,
-`cibuildwheel[uv]`. `uv` will not be used for Python 3.6 or Python 3.7. You
-cannot use uv currently on Windows for ARM or for musllinux on s390x as
-binaries are not provided by uv. Legacy dependencies like setuptools on Python
-< 3.12 and pip are not installed if using uv.
+`cibuildwheel[uv]`. You cannot use uv currently on Windows for ARM or for
+musllinux on s390x as binaries are not provided by uv. Legacy dependencies like
+setuptools on Python < 3.12 and pip are not installed if using uv.
 
 Pyodide ignores this setting, as only "build" is supported.
 
@@ -1185,23 +1176,23 @@ Platform-specific environment variables are also available:<br/>
 
 The available options are:
 
-| Option                            | Default                                                                                      | Future default*                                                 |
-|-----------------------------------|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| CIBW_MANYLINUX_X86_64_IMAGE       | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)                                 | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
-| CIBW_MANYLINUX_I686_IMAGE         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)                                   |                                                                 |
-| CIBW_MANYLINUX_PYPY_X86_64_IMAGE  | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)                                 | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
-| CIBW_MANYLINUX_AARCH64_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)                                | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
-| CIBW_MANYLINUX_PPC64LE_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le)                                | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
-| CIBW_MANYLINUX_S390X_IMAGE        | [`manylinux2014`](https://quay.io/pypa/manylinux2014_s390x)                                  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
-| CIBW_MANYLINUX_ARMV7L_IMAGE       | [`manylinux_2_31`](https://github.com/mayeut/manylinux-ubuntu/pkgs/container/manylinux_2_31) |                                                                 |
-| CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)                                | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
-| CIBW_MANYLINUX_PYPY_I686_IMAGE    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)                                   |                                                                 |
-| CIBW_MUSLLINUX_X86_64_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)                                 |                                                                 |
-| CIBW_MUSLLINUX_I686_IMAGE         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)                                   |                                                                 |
-| CIBW_MUSLLINUX_AARCH64_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)                                |                                                                 |
-| CIBW_MUSLLINUX_PPC64LE_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)                                |                                                                 |
-| CIBW_MUSLLINUX_S390X_IMAGE        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)                                  |                                                                 |
-| CIBW_MUSLLINUX_ARMV7L_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)                                 |                                                                 |
+| Option                            | Default                                                        | Future default*                                                 |
+|-----------------------------------|----------------------------------------------------------------|-----------------------------------------------------------------|
+| CIBW_MANYLINUX_X86_64_IMAGE       | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)   | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| CIBW_MANYLINUX_I686_IMAGE         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)     |                                                                 |
+| CIBW_MANYLINUX_PYPY_X86_64_IMAGE  | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)   | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| CIBW_MANYLINUX_AARCH64_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| CIBW_MANYLINUX_PPC64LE_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
+| CIBW_MANYLINUX_S390X_IMAGE        | [`manylinux2014`](https://quay.io/pypa/manylinux2014_s390x)    | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
+| CIBW_MANYLINUX_ARMV7L_IMAGE       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l) |                                                                 |
+| CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| CIBW_MANYLINUX_PYPY_I686_IMAGE    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)     |                                                                 |
+| CIBW_MUSLLINUX_X86_64_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)   |                                                                 |
+| CIBW_MUSLLINUX_I686_IMAGE         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)     |                                                                 |
+| CIBW_MUSLLINUX_AARCH64_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)  |                                                                 |
+| CIBW_MUSLLINUX_PPC64LE_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)  |                                                                 |
+| CIBW_MUSLLINUX_S390X_IMAGE        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)    |                                                                 |
+| CIBW_MUSLLINUX_ARMV7L_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)   |                                                                 |
 
 <small>* The default is scheduled to change in a cibuildwheel release on or after 6th May 2025 - if you don't want the new default, you should set the value to `manylinux2014`.</small>
 
@@ -1218,6 +1209,21 @@ If this option is blank, it will fall though to the next available definition (e
 If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/manylinux_2_34/musllinux_1_1/musllinux_1_2 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
 
 Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
+
+!!! warning
+    On x86_64, `manylinux_2_34` is using [x86-64-v2](https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels) target architecture.
+
+    While manylinux worked around that when building extensions from sources by intercepting compiler calls
+    to target x86_64 instead, every library installed with dnf will most likely target the more
+    recent x86-64-v2 which, if grafted into a wheel, will fail to run on older hardware.
+
+    The workaround does not work for executables as they are always being linked with x86-64-v2 object files.
+
+    There's no PEP to handle micro-architecture variants yet when it comes to packaging or
+    installing wheels. Auditwheel doesn't detect this either.
+
+    Please check the tracking issue in [pypa/manylinux](https://github.com/pypa/manylinux/issues/1725)
+
 
 #### Examples
 
@@ -1375,7 +1381,7 @@ specifiers inline with the `packages: SPECIFIER...` syntax.
     If you need different dependencies for each python version, provide them
     in the same folder with a `-pythonXY` suffix. e.g. if your
     `CIBW_DEPENDENCY_VERSIONS=./constraints.txt`, cibuildwheel will use
-    `./constraints-python37.txt` on Python 3.7, or fallback to
+    `./constraints-python38.txt` on Python 3.8, or fallback to
     `./constraints.txt` if that's not found.
 
 Platform-specific environment variables are also available:<br/>
