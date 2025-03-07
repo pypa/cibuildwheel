@@ -14,6 +14,8 @@ from cibuildwheel.options import (
     _get_pinned_container_images,
 )
 from cibuildwheel.selector import EnableGroup
+from cibuildwheel.util import resources
+from cibuildwheel.util.packaging import DependencyConstraints
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -468,3 +470,62 @@ def test_free_threaded_support(
         assert EnableGroup.CPythonFreeThreading in options.globals.build_selector.enable
     else:
         assert EnableGroup.CPythonFreeThreading not in options.globals.build_selector.enable
+
+
+@pytest.mark.parametrize(
+    ("toml_assignment", "base_file_path", "packages"),
+    [
+        ("", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'pinned'", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'latest'", None, []),
+        ("dependency-versions = 'constraints file.txt'", Path("constraints file.txt"), []),
+        (
+            "dependency-versions = \"file:'constraints file.txt'\"",
+            Path("constraints file.txt"),
+            [],
+        ),
+        (
+            "dependency-versions = {file = 'constraints file.txt'}",
+            Path("constraints file.txt"),
+            [],
+        ),
+        (
+            "dependency-versions = 'packages: foo==1.2.3 bar==4.5.6'",
+            None,
+            ["foo==1.2.3", "bar==4.5.6"],
+        ),
+    ],
+)
+def test_dependency_versions_toml(
+    tmp_path: Path,
+    toml_assignment: str,
+    base_file_path: Path | None,
+    packages: list[str] | None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    (tmp_path / "constraints file.txt").write_text("")
+    monkeypatch.chdir(tmp_path)
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {toml_assignment}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    parsed_dependency_constraints = options.build_options(None).dependency_constraints
+    if base_file_path is None and packages is None:
+        assert parsed_dependency_constraints == DependencyConstraints.latest()
+    else:
+        if parsed_dependency_constraints.base_file_path and base_file_path:
+            assert parsed_dependency_constraints.base_file_path.samefile(base_file_path)
+        else:
+            assert parsed_dependency_constraints.base_file_path == base_file_path
+        assert parsed_dependency_constraints.packages == packages

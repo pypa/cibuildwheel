@@ -364,12 +364,13 @@ def build(options: Options, tmp_path: Path) -> None:
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
             repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
 
-            dependency_constraint_flags: Sequence[PathOrStr] = []
-            if build_options.dependency_constraints:
-                dependency_constraint_flags = [
-                    "-c",
-                    build_options.dependency_constraints.get_for_python_version(config.version),
-                ]
+            constraints_path = build_options.dependency_constraints.get_for_python_version(
+                version=config.version,
+                tmp_dir=identifier_tmp_dir,
+            )
+            dependency_constraint_flags: Sequence[PathOrStr] = (
+                ["-c", constraints_path] if constraints_path else []
+            )
 
             # install Python
             base_python, env = setup_python(
@@ -411,10 +412,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 if not use_uv:
                     build_env["VIRTUALENV_PIP"] = pip_version
 
-                if build_options.dependency_constraints:
-                    constraints_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
-                    )
+                if constraints_path:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
                 if build_frontend.name == "pip":
