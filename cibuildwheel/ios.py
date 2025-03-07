@@ -246,7 +246,7 @@ def setup_python(
     implementation_id = python_configuration.identifier.split("-")[0]
     log.step(f"Installing Build Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        free_threading = "t-iphone" in python_configuration.identifier
+        free_threading = "t-ios" in python_configuration.identifier
         build_python = install_build_cpython(
             tmp,
             python_configuration.version,
