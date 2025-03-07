@@ -267,12 +267,12 @@ def build(options: Options, tmp_path: Path) -> None:
             built_wheel_dir.mkdir()
             repaired_wheel_dir.mkdir()
 
-            dependency_constraint_flags: Sequence[PathOrStr] = []
-            if build_options.dependency_constraints:
-                constraints_path = build_options.dependency_constraints.get_for_python_version(
-                    version=config.version, variant="pyodide", tmp_dir=identifier_tmp_dir
-                )
-                dependency_constraint_flags = ["-c", constraints_path]
+            constraints_path = build_options.dependency_constraints.get_for_python_version(
+                version=config.version, variant="pyodide", tmp_dir=identifier_tmp_dir
+            )
+            dependency_constraint_flags: Sequence[PathOrStr] = (
+                ["-c", constraints_path] if constraints_path else []
+            )
 
             env = setup_python(
                 identifier_tmp_dir / "build",
@@ -321,7 +321,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 build_env = env.copy()
-                if build_options.dependency_constraints:
+                if constraints_path:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
                 build_env["VIRTUALENV_PIP"] = pip_version
                 call(

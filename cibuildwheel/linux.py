@@ -208,17 +208,15 @@ def build_in_container(
         use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version("3.8")
         pip = ["uv", "pip"] if use_uv else ["pip"]
 
-        dependency_constraint_flags: list[PathOrStr] = []
-
         log.step("Setting up build environment...")
 
-        if build_options.dependency_constraints:
-            local_constraints_file = build_options.dependency_constraints.get_for_python_version(
-                version=config.version,
-                tmp_dir=local_identifier_tmp_dir,
-            )
+        dependency_constraint_flags: list[PathOrStr] = []
+        local_constraints_file = build_options.dependency_constraints.get_for_python_version(
+            version=config.version,
+            tmp_dir=local_identifier_tmp_dir,
+        )
+        if local_constraints_file:
             container_constraints_file = PurePosixPath("/constraints.txt")
-
             container.copy_into(local_constraints_file, container_constraints_file)
             dependency_constraint_flags = ["-c", container_constraints_file]
 

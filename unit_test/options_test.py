@@ -17,6 +17,7 @@ from cibuildwheel.options import (
 )
 from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util import resources
+from cibuildwheel.util.packaging import DependencyConstraints
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -476,19 +477,19 @@ def test_free_threaded_support(
 @pytest.mark.parametrize(
     ("toml_assignment", "base_file_path", "packages"),
     [
-        ("", resources.CONSTRAINTS, None),
-        ("dependency-versions = 'pinned'", resources.CONSTRAINTS, None),
-        ("dependency-versions = 'latest'", None, None),
-        ("dependency-versions = 'constraints file.txt'", Path("constraints file.txt"), None),
+        ("", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'pinned'", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'latest'", None, []),
+        ("dependency-versions = 'constraints file.txt'", Path("constraints file.txt"), []),
         (
             "dependency-versions = \"file:'constraints file.txt'\"",
             Path("constraints file.txt"),
-            None,
+            [],
         ),
         (
             "dependency-versions = {file = 'constraints file.txt'}",
             Path("constraints file.txt"),
-            None,
+            [],
         ),
         (
             "dependency-versions = 'packages: foo==1.2.3 bar==4.5.6'",
@@ -523,9 +524,8 @@ def test_dependency_versions_toml(
     options = Options(platform="linux", command_line_arguments=args, env={})
     parsed_dependency_constraints = options.build_options(None).dependency_constraints
     if base_file_path is None and packages is None:
-        assert parsed_dependency_constraints is None
+        assert parsed_dependency_constraints == DependencyConstraints.latest()
     else:
-        assert parsed_dependency_constraints
         if parsed_dependency_constraints.base_file_path and base_file_path:
             assert parsed_dependency_constraints.base_file_path.samefile(base_file_path)
         else:

@@ -376,15 +376,13 @@ def test_dependency_versions(
     build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
     dependency_constraints = build_options.dependency_constraints
     if dependency_versions is None or dependency_versions == "pinned":
-        assert dependency_constraints == DependencyConstraints.with_defaults()
+        assert dependency_constraints == DependencyConstraints.pinned()
     elif dependency_versions == "latest":
-        assert dependency_constraints is None
+        assert dependency_constraints == DependencyConstraints.latest()
     elif dependency_versions == "FILE":
-        assert dependency_constraints
         assert dependency_constraints.base_file_path
         assert dependency_constraints.base_file_path.samefile(Path(option_value))
     elif dependency_versions.startswith("packages:"):
-        assert dependency_constraints
         assert dependency_constraints.packages == ["pip==21.0.0"]
 
 

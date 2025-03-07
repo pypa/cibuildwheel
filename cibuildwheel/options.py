@@ -99,7 +99,7 @@ class BuildOptions:
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
-    dependency_constraints: DependencyConstraints | None
+    dependency_constraints: DependencyConstraints
     test_command: str | None
     before_test: str | None
     test_sources: list[str]
@@ -744,7 +744,7 @@ class Options:
                 dependency_constraints = DependencyConstraints.from_config_string(
                     dependency_versions_str
                 )
-            except ValueError as e:
+            except (ValueError, OSError) as e:
                 msg = f"Failed to parse dependency versions. {e}"
                 raise errors.ConfigurationError(msg) from e
 

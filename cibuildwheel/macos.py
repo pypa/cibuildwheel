@@ -432,14 +432,12 @@ def build(options: Options, tmp_path: Path) -> None:
             config_is_arm64 = config.identifier.endswith("arm64")
             config_is_universal2 = config.identifier.endswith("universal2")
 
-            dependency_constraint_flags: Sequence[PathOrStr] = []
-            if build_options.dependency_constraints:
-                dependency_constraint_flags = [
-                    "-c",
-                    build_options.dependency_constraints.get_for_python_version(
-                        version=config.version, tmp_dir=identifier_tmp_dir
-                    ),
-                ]
+            constraints_path = build_options.dependency_constraints.get_for_python_version(
+                version=config.version, tmp_dir=identifier_tmp_dir
+            )
+            dependency_constraint_flags: Sequence[PathOrStr] = (
+                ["-c", constraints_path] if constraints_path else []
+            )
 
             base_python, env = setup_python(
                 identifier_tmp_dir / "build",
@@ -476,12 +474,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_env = env.copy()
                 if not use_uv:
                     build_env["VIRTUALENV_PIP"] = pip_version
-                if build_options.dependency_constraints:
-                    constraint_path = build_options.dependency_constraints.get_for_python_version(
-                        version=config.version, tmp_dir=identifier_tmp_dir
-                    )
+                if constraints_path:
                     combine_constraints(
-                        build_env, constraint_path, identifier_tmp_dir if use_uv else None
+                        build_env, constraints_path, identifier_tmp_dir if use_uv else None
                     )
 
                 if build_frontend.name == "pip":

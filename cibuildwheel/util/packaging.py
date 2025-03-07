@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import shlex
 from collections.abc import Mapping, MutableMapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import Any, Literal, TypeVar
 
@@ -16,28 +16,34 @@ from .helpers import parse_key_value_string, unwrap
 @dataclass()
 class DependencyConstraints:
     base_file_path: Path | None = None
-    packages: list[str] | None = None
+    packages: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        if self.packages is not None and self.base_file_path is not None:
+        if self.packages and self.base_file_path is not None:
             msg = "Cannot specify both a file and packages in the dependency constraints"
             raise ValueError(msg)
 
         if self.base_file_path is not None:
-            assert self.base_file_path.exists()
+            if not self.base_file_path.exists():
+                msg = f"Dependency constraints file not found: {self.base_file_path}"
+                raise FileNotFoundError(msg)
             self.base_file_path = self.base_file_path.resolve()
 
     @staticmethod
-    def with_defaults() -> DependencyConstraints:
+    def pinned() -> DependencyConstraints:
         return DependencyConstraints(base_file_path=resources.CONSTRAINTS)
 
     @staticmethod
-    def from_config_string(config_string: str) -> DependencyConstraints | None:
-        if config_string == "pinned":
-            return DependencyConstraints.with_defaults()
+    def latest() -> DependencyConstraints:
+        return DependencyConstraints()
 
-        if config_string == "latest":
-            return None
+    @staticmethod
+    def from_config_string(config_string: str) -> DependencyConstraints:
+        if config_string == "pinned":
+            return DependencyConstraints.pinned()
+
+        if config_string == "latest" or not config_string:
+            return DependencyConstraints.latest()
 
         if config_string.startswith(("file:", "packages:")):
             # we only do the table-style parsing if it looks like a table,
@@ -51,65 +57,62 @@ class DependencyConstraints:
         return DependencyConstraints(base_file_path=Path(config_string))
 
     @staticmethod
-    def from_table_style_config_string(config_string: str) -> DependencyConstraints | None:
+    def from_table_style_config_string(config_string: str) -> DependencyConstraints:
         config_dict = parse_key_value_string(config_string, kw_arg_names=["file", "packages"])
         files = config_dict.get("file")
-        packages = config_dict.get("packages")
+        packages = config_dict.get("packages") or []
 
         if files and packages:
             msg = "Cannot specify both a file and packages in dependency-versions"
             raise ValueError(msg)
 
-        if packages:
-            return DependencyConstraints(packages=packages)
+        if files:
+            if len(files) > 1:
+                msg = unwrap("""
+                    Only one file can be specified in dependency-versions.
+                    If you intended to pass only one, perhaps you need to quote the path?
+                """)
+                raise ValueError(msg)
 
-        if not files:
-            return DependencyConstraints.with_defaults()
+            return DependencyConstraints(base_file_path=Path(files[0]))
 
-        if len(files) > 1:
-            msg = unwrap("""
-                Only one file can be specified in dependency-versions.
-                If you intended to pass only one, perhaps you need to quote the path?
-            """)
-            raise ValueError(msg)
-
-        return DependencyConstraints(base_file_path=Path(files[0]))
+        return DependencyConstraints(packages=packages)
 
     def get_for_python_version(
         self, *, version: str, variant: Literal["python", "pyodide"] = "python", tmp_dir: Path
-    ) -> Path:
+    ) -> Path | None:
         if self.packages:
             constraint_file = tmp_dir / "constraints.txt"
             constraint_file.write_text("\n".join(self.packages))
             return constraint_file
 
-        assert self.base_file_path is not None, (
-            "DependencyConstraints should have either a file or packages"
-        )
+        if self.base_file_path is not None:
+            version_parts = version.split(".")
 
-        version_parts = version.split(".")
+            # try to find a version-specific dependency file e.g. if
+            # ./constraints.txt is the base, look for ./constraints-python36.txt
+            specific_stem = (
+                self.base_file_path.stem + f"-{variant}{version_parts[0]}{version_parts[1]}"
+            )
+            specific_name = specific_stem + self.base_file_path.suffix
+            specific_file_path = self.base_file_path.with_name(specific_name)
 
-        # try to find a version-specific dependency file e.g. if
-        # ./constraints.txt is the base, look for ./constraints-python36.txt
-        specific_stem = self.base_file_path.stem + f"-{variant}{version_parts[0]}{version_parts[1]}"
-        specific_name = specific_stem + self.base_file_path.suffix
-        specific_file_path = self.base_file_path.with_name(specific_name)
+            if specific_file_path.exists():
+                return specific_file_path
+            else:
+                return self.base_file_path
 
-        if specific_file_path.exists():
-            return specific_file_path
-        else:
-            return self.base_file_path
+        return None
 
     def options_summary(self) -> Any:
-        if self == DependencyConstraints.with_defaults():
+        if self == DependencyConstraints.pinned():
             return "pinned"
         elif self.packages:
             return {"packages": " ".join(shlex.quote(p) for p in self.packages)}
-        else:
-            assert self.base_file_path is not None, (
-                "DependencyConstraints should have either a file or packages"
-            )
+        elif self.base_file_path is not None:
             return self.base_file_path.name
+        else:
+            return "latest"
 
 
 def get_pip_version(env: Mapping[str, str]) -> str:
