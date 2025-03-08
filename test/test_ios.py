@@ -9,18 +9,14 @@ import pytest
 from . import test_projects, utils
 
 basic_project = test_projects.new_c_project()
-basic_project.files["tests/__init__.py"] = ""
-basic_project.files["tests/__main__.py"] = r"""
+basic_project.files["tests/test_platform.py"] = f"""
 import platform
-import time
+from unittest import TestCase
 
-# Workaround for CPython#130294
-for i in range(0, 10):
-    time.sleep(1)
-    print("Ensure logger is running...")
+class TestPlatform(TestCase):
+    def test_platform(self):
+        self.assertEqual(platform.machine(), "{platform.machine()}")
 
-for i in range(0, 5):
-    print("running tests on " + platform.machine())
 """
 
 
@@ -37,7 +33,7 @@ for i in range(0, 5):
         {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
     ],
 )
-def test_ios_platforms(tmp_path, capfd, build_config):
+def test_ios_platforms(tmp_path, build_config):
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
@@ -51,27 +47,22 @@ def test_ios_platforms(tmp_path, capfd, build_config):
         add_env={
             "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_SOURCES": "tests",
-            "CIBW_TEST_COMMAND": "tests",
+            "CIBW_TEST_COMMAND": "unittest discover tests test_platform.py",
             **build_config,
         },
     )
 
-    captured = capfd.readouterr()
-
     ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
     platform_machine = platform.machine()
-    # Tests are only executed on device
+
+    # Tests are only executed on simulator. The test suite passes if it's
+    # running on the same architecture as the current platform.
     if platform_machine == "x86_64":
-        # Ensure that tests were run on arm64.
-        assert "running tests on x86_64" in captured.out
         expected_wheels = {
             f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
         }
 
     elif platform_machine == "arm64":
-        # Ensure that tests were run on arm64.
-        assert "running tests on arm64" in captured.out
-
         expected_wheels = {
             f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
             f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
