@@ -121,7 +121,7 @@ def get_python_configurations(
 def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threading: bool) -> Path:
     if free_threading:
         msg = "Free threading builds aren't available for iOS (yet)"
-        raise ValueError(msg)
+        raise errors.FatalError(msg)
 
     # Install an iOS build of CPython
     ios_python_tar_gz = config.url.rsplit("/", 1)[-1]
@@ -238,7 +238,7 @@ def setup_python(
 ) -> tuple[Path, dict[str, str]]:
     if build_frontend == "build[uv]":
         msg = "uv doesn't support iOS"
-        raise ValueError(msg)
+        raise errors.FatalError(msg)
 
     # An iOS environment requires 2 python installs - one for the build machine
     # (macOS), and one for the target (iOS). We'll only ever interact with the
@@ -256,8 +256,8 @@ def setup_python(
             free_threading,
         )
     else:
-        msg = "Unknown Python implementation"
-        raise ValueError(msg)
+        msg = f"Unknown Python implementation: {implementation_id}"
+        raise errors.FatalError(msg)
 
     assert build_python.exists(), (
         f"{build_python.name} not found, has {list(build_python.parent.iterdir())}"
@@ -364,7 +364,7 @@ def setup_python(
 def build(options: Options, tmp_path: Path) -> None:
     if sys.platform != "darwin":
         msg = "iOS binaries can only be built on macOS"
-        raise ValueError(msg)
+        raise errors.FatalError(msg)
 
     python_configurations = get_python_configurations(
         build_selector=options.globals.build_selector,
@@ -397,7 +397,7 @@ def build(options: Options, tmp_path: Path) -> None:
             # uv doesn't support iOS
             if build_frontend.name == "build[uv]":
                 msg = "uv doesn't support iOS"
-                raise ValueError(msg)
+                raise errors.FatalError(msg)
 
             log.build_start(config.identifier)
 
@@ -521,7 +521,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         # isn't visible on the simulator.
 
                         msg = "Testing on iOS requires a definition of test-sources."
-                        raise ValueError(msg)
+                        raise errors.FatalError(msg)
 
                     # Copy the test sources to the testbed app
                     copy_test_sources(
