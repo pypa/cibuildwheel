@@ -20,7 +20,7 @@ CIBUILDWHEEL_SCHEMA: Final[Path] = PATH / "cibuildwheel.schema.json"
 
 
 # this value is cached because it's used a lot in unit tests
-@functools.lru_cache
+@functools.cache
 def read_python_configs(config: PlatformName) -> list[dict[str, str]]:
     with BUILD_PLATFORMS.open("rb") as f:
         loaded_file = tomllib.load(f)

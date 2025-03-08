@@ -595,7 +595,7 @@ class Options:
 
         # cache the build options method so repeated calls don't need to
         # resolve the options again
-        self.build_options = functools.lru_cache()(self.build_options)  # type: ignore[method-assign]
+        self.build_options = functools.cache(self.build_options)  # type: ignore[method-assign]
 
     @functools.cached_property
     def config_file_path(self) -> Path | None:
