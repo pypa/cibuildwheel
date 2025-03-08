@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import itertools
 import os
 import re
@@ -151,7 +149,8 @@ class FlexibleVersion:
         # Normalize by removing trailing zeros
         self.version_parts = self._remove_trailing_zeros(self.version_parts)
 
-    def _remove_trailing_zeros(self, parts: tuple[int, ...]) -> tuple[int, ...]:
+    @staticmethod
+    def _remove_trailing_zeros(parts: tuple[int, ...]) -> tuple[int, ...]:
         # Remove trailing zeros for accurate comparisons
         # without this, "3.0" would be considered greater than "3"
         while parts and parts[-1] == 0:

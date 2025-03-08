@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import functools
 import tomllib
 from pathlib import Path

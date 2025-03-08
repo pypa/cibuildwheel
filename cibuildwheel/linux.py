@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import contextlib
 import subprocess
 import sys
@@ -453,12 +451,12 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
         except subprocess.CalledProcessError as error:
             msg = unwrap(
                 f"""
-                cibuildwheel: {build_step.container_engine.name} not found. An
-                OCI exe like Docker or Podman is required to run Linux builds.
-                If you're building on Travis CI, add `services: [docker]` to
-                your .travis.yml. If you're building on Circle CI in Linux,
-                add a `setup_remote_docker` step to your .circleci/config.yml.
-                If you're building on Cirrus CI, use `docker_builder` task.
+                {build_step.container_engine.name} not found. An OCI exe like
+                Docker or Podman is required to run Linux builds. If you're
+                building on Travis CI, add `services: [docker]` to your
+                .travis.yml. If you're building on Circle CI in Linux, add a
+                `setup_remote_docker` step to your .circleci/config.yml. If
+                you're building on Cirrus CI, use `docker_builder` task.
                 """
             )
             raise errors.ConfigurationError(msg) from error

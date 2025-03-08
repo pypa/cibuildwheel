@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import jinja2
 
 from .base import TestProject
