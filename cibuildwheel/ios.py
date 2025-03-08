@@ -264,18 +264,14 @@ def setup_python(
     )
 
     log.step(f"Installing Target Python {implementation_id}...")
-    if implementation_id.startswith("cp"):
-        target_install_path = install_target_cpython(tmp, python_configuration, free_threading)
-        target_python = (
-            target_install_path
-            / "Python.xcframework"
-            / python_configuration.xcframework_slice
-            / "bin"
-            / f"python{python_configuration.version}"
-        )
-    else:
-        msg = "Unknown Python implementation"
-        raise ValueError(msg)
+    target_install_path = install_target_cpython(tmp, python_configuration, free_threading)
+    target_python = (
+        target_install_path
+        / "Python.xcframework"
+        / python_configuration.xcframework_slice
+        / "bin"
+        / f"python{python_configuration.version}"
+    )
 
     assert target_python.exists(), (
         f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
