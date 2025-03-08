@@ -118,7 +118,7 @@ def get_python_configurations(
     return python_configurations
 
 
-def install_host_cpython(tmp: Path, config: PythonConfiguration, free_threading: bool) -> Path:
+def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threading: bool) -> Path:
     if free_threading:
         msg = "Free threading builds aren't available for iOS (yet)"
         raise ValueError(msg)
@@ -142,7 +142,7 @@ def install_host_cpython(tmp: Path, config: PythonConfiguration, free_threading:
 def cross_virtualenv(
     *,
     py_version: str,
-    host_python: Path,
+    target_python: Path,
     multiarch: str,
     build_python: Path,
     venv_path: Path,
@@ -150,22 +150,24 @@ def cross_virtualenv(
 ) -> dict[str, str]:
     """Create a cross-compilation virtual environment.
 
-    In a cross-compilation environment, the *host* is the platform you're
-    targeting, and the *build* is the platform where you're running the
-    compilation. When building iOS wheels, iOS is the host machine and macOS is
-    the build machine.
+    In a cross-compilation environment, the *target* is the platform where the
+    code will ultimately run, and the *build* is the platform where you're
+    running the compilation. When building iOS wheels, iOS is the target machine
+    and macOS is the build machine. The terminology around these machines varies
+    between build tools (configure uses "host" and "build"; cmake uses "target" and
+    "build host").
 
     A cross-compilation virtualenv is an environment that is based on the
     *build* python (so that binaries can execute); but it modifies the
     environment at startup so that any request for platform details (such as
-    `sys.platform` or `sysconfig.get_platform()`) return details of the host
+    `sys.platform` or `sysconfig.get_platform()`) return details of the target
     platform. It also applies a loader patch so that any virtualenv created by
     the cross-compilation environment will also be a cross-compilation
     environment.
 
     :param py_version: The Python version (major.minor) in use
-    :param host_python: The path to the python binary for the host platform
-    :param multiarch: The multiarch tag for the host platform (i.e., the value
+    :param target_python: The path to the python binary for the targret platform
+    :param multiarch: The multiarch tag for the target platform (i.e., the value
         of `sys.implementation._multiarch`)
     :param build_python: The path to the python binary for the build platform
     :param venv_path: The path where the cross virtual environment should be
@@ -185,9 +187,9 @@ def cross_virtualenv(
     # Convert the macOS virtual environment into an iOS virtual environment
     # using the cross-platform conversion script in the iOS distribution.
 
-    # host_python is the path to the Python binary;
+    # target_python is the path to the Python binary;
     # determine the root of the XCframework slice that is being used.
-    slice_path = host_python.parent.parent
+    slice_path = target_python.parent.parent
     call(
         "python",
         str(slice_path / f"platform-config/{multiarch}/make_cross_venv.py"),
@@ -197,17 +199,17 @@ def cross_virtualenv(
     )
 
     # When running on macOS, it's easy for the build environment to leak into
-    # the host environment, especially when building for ARM64 (because the
-    # architecture is the same as the host architecture). The primary culprit
-    # for this is Homebrew libraries leaking in as dependencies for iOS
+    # the target environment, especially when building for ARM64 (because the
+    # build architecture is the same as the target architecture). The primary
+    # culprit for this is Homebrew libraries leaking in as dependencies for iOS
     # libraries.
     #
     # To prevent problems, set the PATH to isolate the build environment from
     # sources that could introduce incompatible binaries.
     env["PATH"] = os.pathsep.join(
         [
-            # The host python's binary directory
-            str(host_python.parent),
+            # The target python's binary directory
+            str(target_python.parent),
             # The cross-platform environments binary directory
             str(venv_path / "bin"),
             # Cargo's binary directory (to allow for Rust compilation)
@@ -239,8 +241,8 @@ def setup_python(
         raise ValueError(msg)
 
     # An iOS environment requires 2 python installs - one for the build machine
-    # (macOS), and one for the host (iOS). We'll only ever interact with the
-    # *host* python, but the build Python needs to exist to act as the base
+    # (macOS), and one for the target (iOS). We'll only ever interact with the
+    # *target* python, but the build Python needs to exist to act as the base
     # for a cross venv.
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
@@ -261,11 +263,11 @@ def setup_python(
         f"{build_python.name} not found, has {list(build_python.parent.iterdir())}"
     )
 
-    log.step(f"Installing Host Python {implementation_id}...")
+    log.step(f"Installing Target Python {implementation_id}...")
     if implementation_id.startswith("cp"):
-        host_install_path = install_host_cpython(tmp, python_configuration, free_threading)
-        host_python = (
-            host_install_path
+        target_install_path = install_target_cpython(tmp, python_configuration, free_threading)
+        target_python = (
+            target_install_path
             / "Python.xcframework"
             / python_configuration.xcframework_slice
             / "bin"
@@ -275,8 +277,8 @@ def setup_python(
         msg = "Unknown Python implementation"
         raise ValueError(msg)
 
-    assert host_python.exists(), (
-        f"{host_python.name} not found, has {list(host_install_path.iterdir())}"
+    assert target_python.exists(), (
+        f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
     )
 
     log.step("Creating cross build environment...")
@@ -284,7 +286,7 @@ def setup_python(
     venv_path = tmp / "venv"
     env = cross_virtualenv(
         py_version=python_configuration.version,
-        host_python=host_python,
+        target_python=target_python,
         multiarch=python_configuration.multiarch,
         build_python=build_python,
         venv_path=venv_path,
@@ -356,7 +358,7 @@ def setup_python(
     else:
         assert_never(build_frontend)
 
-    return host_install_path, env
+    return target_install_path, env
 
 
 def build(options: Options, tmp_path: Path) -> None:
@@ -410,7 +412,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_options.dependency_constraints.get_for_python_version(config.version),
                 ]
 
-            host_install_path, env = setup_python(
+            target_install_path, env = setup_python(
                 identifier_tmp_dir / "build",
                 config,
                 dependency_constraint_flags,
@@ -508,7 +510,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     testbed_path = identifier_tmp_dir / "testbed"
                     call(
                         "python",
-                        host_install_path / "testbed",
+                        target_install_path / "testbed",
                         "clone",
                         testbed_path,
                         env=build_env,
