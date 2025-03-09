@@ -28,6 +28,7 @@ ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.ppc64le: OCIPlatform.PPC64LE,
     Architecture.s390x: OCIPlatform.S390X,
     Architecture.armv7l: OCIPlatform.ARMV7,
+    Architecture.riscv64: OCIPlatform.RISCV64,
 }
 
 

@@ -157,6 +157,9 @@ properties:
   manylinux-pypy_x86_64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
+  manylinux-riscv64-image:
+    type: string
+    description: Specify alternative manylinux / musllinux container images
   manylinux-s390x-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
@@ -173,6 +176,9 @@ properties:
     type: string
     description: Specify alternative manylinux / musllinux container images
   musllinux-ppc64le-image:
+    type: string
+    description: Specify alternative manylinux / musllinux container images
+  musllinux-riscv64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
   musllinux-s390x-image:
