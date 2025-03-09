@@ -26,7 +26,7 @@ environment = {FOO="BAR"}
 test-command = "pyproject"
 test-sources = ["test", "other dir"]
 
-manylinux-x86_64-image = "manylinux1"
+manylinux-x86_64-image = "manylinux_2_28"
 
 environment-pass = ["EXAMPLE_ENV"]
 
@@ -36,7 +36,7 @@ test-requires = "else"
 [[tool.cibuildwheel.overrides]]
 select = "cp313-*"
 test-command = "pyproject-override"
-manylinux-x86_64-image = "manylinux2014"
+manylinux-x86_64-image = "manylinux_2_34"
 """
 
 
@@ -76,13 +76,13 @@ def test_options_1(tmp_path, monkeypatch):
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject"
     assert local.test_sources == ["test", "other dir"]
-    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux1"]
+    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_28"]
 
     local = options.build_options("cp313-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
     assert local.test_sources == ["test", "other dir"]
-    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux2014"]
+    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_34"]
 
 
 def test_passthrough(tmp_path, monkeypatch):
@@ -532,19 +532,22 @@ def test_dependency_versions_toml(
 
 
 @pytest.mark.parametrize(
-    ("image", "deprecated"),
+    ("image", "deprecated", "raises"),
     [
-        ("manylinux1", True),
-        ("manylinux2010", True),
-        ("manylinux2014", False),
-        ("manylinux_2_24", True),
-        ("manylinux_2_28", False),
-        ("manylinux_2_34", False),
-        ("musllinux_1_1", True),
-        ("musllinux_1_2", False),
+        ("manylinux1", True, True),
+        ("manylinux2010", True, True),
+        ("manylinux2014", False, False),
+        ("manylinux_2_24", True, True),
+        ("manylinux_2_28", False, False),
+        ("manylinux_2_34", False, False),
+        ("musllinux_1_1", True, True),
+        ("musllinux_1_2", False, False),
     ],
 )
-def test_deprecated_image(image: str, deprecated: bool, capsys: pytest.CaptureFixture[str]) -> None:
+def test_deprecated_image(
+    image: str, deprecated: bool, raises: bool, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert not raises or deprecated
     args = CommandLineArguments.defaults()
     env = {
         "CIBW_ARCHS": "x86_64",
@@ -552,7 +555,12 @@ def test_deprecated_image(image: str, deprecated: bool, capsys: pytest.CaptureFi
         "CIBW_MUSLLINUX_X86_64_IMAGE": image if image.startswith("musllinux") else "",
     }
     options = Options(platform="linux", command_line_arguments=args, env=env)
-    bo = options.build_options(None)
+    try:
+        bo = options.build_options(None)
+        assert not raises
+    except errors.DeprecationError:
+        assert raises
+        return
     images = bo.manylinux_images if image.startswith("manylinux") else bo.musllinux_images
     assert images is not None
     resolved_image = images["x86_64"]

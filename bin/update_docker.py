@@ -27,14 +27,6 @@ class PyPAImage(Image):
 
 
 images = [
-    # manylinux1 images, EOL -> use tag
-    PyPAImage("manylinux1", "x86_64", "2024-04-29-76807b8"),
-    PyPAImage("manylinux1", "i686", "2024-04-29-76807b8"),
-    # manylinux2010 images, EOL -> use tag
-    PyPAImage("manylinux2010", "x86_64", "2022-08-05-4535177"),
-    PyPAImage("manylinux2010", "i686", "2022-08-05-4535177"),
-    PyPAImage("manylinux2010", "pypy_x86_64", "2022-08-05-4535177"),
-    PyPAImage("manylinux2010", "pypy_i686", "2022-08-05-4535177"),
     # manylinux2014 images
     PyPAImage("manylinux2014", "x86_64", None),
     PyPAImage("manylinux2014", "i686", None),
@@ -44,15 +36,6 @@ images = [
     PyPAImage("manylinux2014", "pypy_x86_64", None),
     PyPAImage("manylinux2014", "pypy_i686", None),
     PyPAImage("manylinux2014", "pypy_aarch64", None),
-    # manylinux_2_24 images, EOL -> use tag
-    PyPAImage("manylinux_2_24", "x86_64", "2022-12-26-0d38463"),
-    PyPAImage("manylinux_2_24", "i686", "2022-12-26-0d38463"),
-    PyPAImage("manylinux_2_24", "aarch64", "2022-12-26-0d38463"),
-    PyPAImage("manylinux_2_24", "ppc64le", "2022-12-26-0d38463"),
-    PyPAImage("manylinux_2_24", "s390x", "2022-12-26-0d38463"),
-    PyPAImage("manylinux_2_24", "pypy_x86_64", "2022-12-26-0d38463"),
-    PyPAImage("manylinux_2_24", "pypy_i686", "2022-12-26-0d38463"),
-    PyPAImage("manylinux_2_24", "pypy_aarch64", "2022-12-26-0d38463"),
     # manylinux_2_28 images
     PyPAImage("manylinux_2_28", "x86_64", None),
     PyPAImage("manylinux_2_28", "aarch64", None),
@@ -69,12 +52,6 @@ images = [
     PyPAImage("manylinux_2_34", "s390x", None),
     PyPAImage("manylinux_2_34", "pypy_x86_64", None),
     PyPAImage("manylinux_2_34", "pypy_aarch64", None),
-    # musllinux_1_1 images, EOL -> use tag
-    PyPAImage("musllinux_1_1", "x86_64", "2024.10.26-1"),
-    PyPAImage("musllinux_1_1", "i686", "2024.10.26-1"),
-    PyPAImage("musllinux_1_1", "aarch64", "2024.10.26-1"),
-    PyPAImage("musllinux_1_1", "ppc64le", "2024.10.26-1"),
-    PyPAImage("musllinux_1_1", "s390x", "2024.10.26-1"),
     # musllinux_1_2 images
     PyPAImage("musllinux_1_2", "x86_64", None),
     PyPAImage("musllinux_1_2", "i686", None),

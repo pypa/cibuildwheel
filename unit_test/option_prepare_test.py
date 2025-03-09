@@ -104,12 +104,11 @@ manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
 enable = ["pypy", "cpython-freethreading"]
 
-# Before Python 3.10, use manylinux2014, musllinux_1_1
+# Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]
 select = "cp3?-*"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
-musllinux-x86_64-image = "musllinux_1_1"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp38-manylinux_x86_64"
@@ -124,7 +123,7 @@ before-all = "true"
 
     build_in_container = typing.cast(mock.Mock, linux.build_in_container)
 
-    assert build_in_container.call_count == 7
+    assert build_in_container.call_count == 6
 
     kwargs = build_in_container.call_args_list[0][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
@@ -188,25 +187,13 @@ before-all = "true"
     assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
 
     kwargs = build_in_container.call_args_list[4][1]
-    assert "quay.io/pypa/musllinux_1_1_x86_64" in kwargs["container"]["image"]
-    assert kwargs["container"]["cwd"] == PurePosixPath("/project")
-    assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
-
-    identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {
-        f"{x}-musllinux_x86_64" for x in ALL_IDS & {"cp38", "cp39"} if "pp" not in x
-    }
-
-    kwargs = build_in_container.call_args_list[5][1]
     assert "quay.io/pypa/musllinux_1_2_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {
-        f"{x}-musllinux_x86_64" for x in ALL_IDS - {"cp38", "cp39"} if "pp" not in x
-    }
+    assert identifiers == {f"{x}-musllinux_x86_64" for x in ALL_IDS if "pp" not in x}
 
-    kwargs = build_in_container.call_args_list[6][1]
+    kwargs = build_in_container.call_args_list[5][1]
     assert "quay.io/pypa/musllinux_1_2_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386

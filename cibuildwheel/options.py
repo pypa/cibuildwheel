@@ -673,10 +673,17 @@ class Options:
         )
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
-        if (
-            value in {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
-            and value not in self._image_warnings
-        ):
+        error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
+        warning_set = error_set  # shall include error_set
+
+        if value in warning_set and value not in self._image_warnings:
+            if value in error_set:
+                msg = (
+                    f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
+                    "supported image or continue using the image by pinning it directly with"
+                    " its full OCI registry '<name>{:<tag>|@<digest>}'."
+                )
+                raise errors.DeprecationError(msg)
             self._image_warnings.add(value)
             msg = (
                 f"Deprecated image {value!r}. This value will not work"
@@ -783,35 +790,29 @@ class Options:
 
                 for build_platform in MANYLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
-
                     config_value = self.reader.get(
                         f"manylinux-{build_platform}-image", ignore_empty=True
                     )
-
+                    self._check_pinned_image(config_value, pinned_images)
                     if not config_value:
                         # default to manylinux2014
                         image = pinned_images["manylinux2014"]
                     elif config_value in pinned_images:
-                        self._check_pinned_image(config_value, pinned_images)
                         image = pinned_images[config_value]
                     else:
                         image = config_value
-
                     manylinux_images[build_platform] = image
 
                 for build_platform in MUSLLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
-
                     config_value = self.reader.get(f"musllinux-{build_platform}-image")
-
+                    self._check_pinned_image(config_value, pinned_images)
                     if not config_value:
                         image = pinned_images["musllinux_1_2"]
                     elif config_value in pinned_images:
-                        self._check_pinned_image(config_value, pinned_images)
                         image = pinned_images[config_value]
                     else:
                         image = config_value
-
                     musllinux_images[build_platform] = image
 
             container_engine_str = self.reader.get(
