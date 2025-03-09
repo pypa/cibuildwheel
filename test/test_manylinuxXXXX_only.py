@@ -19,7 +19,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
         #error "Must run on a glibc linux environment"
         #endif
 
-        #if !__GLIBC_PREREQ(2, 5)  /* manylinux1 is glibc 2.5 */
+        #if !__GLIBC_PREREQ(2, 17)  /* manylinux2014 is glibc 2.17 */
         #error "Must run on a glibc >= 2.5 linux environment"
         #endif
 
@@ -46,9 +46,6 @@ project_with_manylinux_symbols = test_projects.new_c_project(
         #elif __GLIBC_PREREQ(2, 17)  /* manylinux2014 is glibc 2.17 */
             // secure_getenv is only available in manylinux2014+
             sts = (int)(intptr_t)secure_getenv("NON_EXISTING_ENV_VARIABLE");
-        #elif __GLIBC_PREREQ(2, 10)  /* manylinux2010 is glibc 2.12 */
-            // malloc_info is only available on manylinux2010+
-            sts = malloc_info(0, stdout);
         #endif
         """
     ),
@@ -58,10 +55,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 @pytest.mark.parametrize(
     "manylinux_image",
     [
-        "manylinux1",
-        "manylinux2010",
         "manylinux2014",
-        "manylinux_2_24",
         "manylinux_2_28",
         "manylinux_2_34",
     ],
@@ -70,9 +64,6 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 def test(manylinux_image, tmp_path):
     if utils.platform != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
-    elif platform.machine() not in {"x86_64", "i686"}:
-        if manylinux_image in {"manylinux1", "manylinux2010"}:
-            pytest.skip(f"{manylinux_image} doesn't exist for non-x86 architectures")
     elif manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "i686":
         pytest.skip(f"{manylinux_image} doesn't exist for i686 architecture")
 
@@ -80,7 +71,7 @@ def test(manylinux_image, tmp_path):
     project_with_manylinux_symbols.generate(project_dir)
 
     # build the wheels
-    # CFLAGS environment variable is necessary to fail on 'malloc_info' (on manylinux1) during compilation/linking,
+    # CFLAGS environment variable is necessary to fail at build time,
     # rather than when dynamically loading the Python
     add_env = {
         "CIBW_BUILD": "*-manylinux*",
@@ -94,15 +85,6 @@ def test(manylinux_image, tmp_path):
         "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE": manylinux_image,
         "CIBW_MANYLINUX_PYPY_I686_IMAGE": manylinux_image,
     }
-    if manylinux_image == "manylinux1":
-        # We don't have a manylinux1 image for PyPy & CPython 3.10 and above
-        add_env["CIBW_SKIP"] = "pp* cp31*"
-    if manylinux_image == "manylinux2010":
-        # We don't have a manylinux2010 image for PyPy 3.9+, CPython 3.11+
-        add_env["CIBW_SKIP"] = "pp39* pp31* cp311* cp312* cp313*"
-    if manylinux_image == "manylinux_2_24":
-        # We don't have a manylinux_2_24 image for PyPy 3.10+, CPython 3.12+
-        add_env["CIBW_SKIP"] = "pp31* cp312* cp313*"
     if manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "x86_64":
         # We don't have a manylinux_2_28+ image for i686
         add_env["CIBW_ARCHS"] = "x86_64"
@@ -113,8 +95,6 @@ def test(manylinux_image, tmp_path):
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
     platform_tag_map = {
-        "manylinux1": ["manylinux_2_5", "manylinux1"],
-        "manylinux2010": ["manylinux_2_12", "manylinux2010"],
         "manylinux2014": ["manylinux_2_17", "manylinux2014"],
     }
     expected_wheels = utils.expected_wheels(
@@ -123,29 +103,6 @@ def test(manylinux_image, tmp_path):
         manylinux_versions=platform_tag_map.get(manylinux_image, [manylinux_image]),
         musllinux_versions=[],
     )
-    if manylinux_image == "manylinux1":
-        # remove PyPy & CPython 3.10 and above
-        expected_wheels = [w for w in expected_wheels if "-pp" not in w and "-cp31" not in w]
-
-    if manylinux_image == "manylinux2010":
-        # remove PyPy 3.9+ & CPython 3.11
-        expected_wheels = [
-            w
-            for w in expected_wheels
-            if "-pp39" not in w
-            and "-pp31" not in w
-            and "-cp311" not in w
-            and "-cp312" not in w
-            and "-cp313" not in w
-        ]
-
-    if manylinux_image == "manylinux_2_24":
-        # remove PyPy 3.10+ & CPython 3.11 and above
-        expected_wheels = [
-            w
-            for w in expected_wheels
-            if "-pp31" not in w and "-cp312" not in w and "-cp313" not in w
-        ]
 
     if manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "x86_64":
         # We don't have a manylinux_2_28+ image for i686

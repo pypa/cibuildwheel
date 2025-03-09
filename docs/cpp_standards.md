@@ -7,10 +7,11 @@ title: Modern C++ standards
 Building Python wheels with modern C++ standards (C++11 and later) requires a few tricks.
 
 
-## manylinux1 and C++14
-The past end-of-life `manylinux1` image (based on CentOS 5) contains a version of GCC and libstdc++ that only supports C++11 and earlier standards. There are however ways to compile wheels with the C++14 standard (and later): https://github.com/pypa/manylinux/issues/118
+## manylinux2014 and C++20
 
-`manylinux2010` and `manylinux2014` are newer and support all C++ standards (up to C++17).
+The past end-of-life `manylinux2014` image (based on CentOS 7) contains a version of GCC and libstdc++ that only supports C++17 and earlier standards.
+
+`manylinux_2_28` are newer and support all C++ standards (up to C++20).
 
 ## macOS and deployment target versions
 
