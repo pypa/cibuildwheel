@@ -781,8 +781,13 @@ class Options:
                             "manylinux_2_24",
                             "musllinux_1_1",
                         }:
-                            msg = f"Unmaintained image, either upgrade to a supported image or pin directly to {pinned_images[config_value]!r}"
-                            log.warning(msg)
+                            msg = (
+                                f"Deprecated image {config_value!r}. This value will not work"
+                                " in a future version of cibuildwheel. Either upgrade to a supported"
+                                " image or continue using the deprecated image by pinning directly"
+                                f" to {pinned_images[config_value]!r}."
+                            )
+                            log.warning(msg, deduplicate=True)
                         image = pinned_images[config_value]
                     else:
                         image = config_value

@@ -1,4 +1,5 @@
 import codecs
+import dataclasses
 import os
 import re
 import sys
@@ -64,16 +65,18 @@ class Symbols:
         self.error = "✕" if unicode else "failed"
 
 
+@dataclasses.dataclass
 class Logger:
-    fold_mode: str
-    colors_enabled: bool
-    unicode_enabled: bool
+    fold_mode: str = "disabled"
+    colors_enabled: bool = False
+    unicode_enabled: bool = False
     active_build_identifier: str | None = None
     build_start_time: float | None = None
     step_start_time: float | None = None
     active_fold_group_name: str | None = None
+    dedupiclate: set[str] = dataclasses.field(default_factory=set)
 
-    def __init__(self) -> None:
+    def __post_init__(self) -> None:
         if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
             # the encoding on Windows can be a 1-byte charmap, but all CIs
             # support utf8, so we hardcode that
@@ -96,11 +99,9 @@ class Logger:
             self.colors_enabled = True
 
         elif ci_provider == CIProvider.appveyor:
-            self.fold_mode = "disabled"
             self.colors_enabled = True
 
         else:
-            self.fold_mode = "disabled"
             self.colors_enabled = file_supports_color(sys.stdout)
 
     def build_start(self, identifier: str) -> None:
@@ -164,7 +165,11 @@ class Logger:
             c = self.colors
             print(f"cibuildwheel: {c.bold}note{c.end}: {message}\n", file=sys.stderr)
 
-    def warning(self, message: str) -> None:
+    def warning(self, message: str, *, deduplicate: bool = False) -> None:
+        if deduplicate and message in self.dedupiclate:
+            return
+        self.dedupiclate.add(message)
+
         if self.fold_mode == "github":
             print(f"::warning::cibuildwheel: {message}\n", file=sys.stderr)
         else:
