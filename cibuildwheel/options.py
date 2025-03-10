@@ -775,6 +775,14 @@ class Options:
                         # default to manylinux2014
                         image = pinned_images["manylinux2014"]
                     elif config_value in pinned_images:
+                        if config_value in {
+                            "manylinux1",
+                            "manylinux2010",
+                            "manylinux_2_24",
+                            "musllinux_1_1",
+                        }:
+                            msg = f"Unmaintained image, either upgrade to a supported image or pin directly to {pinned_images[config_value]!r}"
+                            log.warning(msg)
                         image = pinned_images[config_value]
                     else:
                         image = config_value
