@@ -58,12 +58,12 @@ Usage
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | iOS |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|-----|
 | GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅³  |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |     |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅³  |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             |     |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |     |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             |     |
-| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             |     |
-| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |     |
+| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         | ✅³  |
+| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅³  |
+| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅³  |
+| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅³  |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
