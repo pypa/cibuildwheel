@@ -154,15 +154,9 @@ class Architecture(StrEnum):
         elif platform == "ios":
             # iOS defaults to building all targets with the same CPU architecture
             # as the native simulator architecture
-            if native_arch == Architecture.x86_64_iphonesimulator:
-                result = {
-                    Architecture.x86_64_iphonesimulator,
-                }
-            else:
-                result = {
-                    Architecture.arm64_iphonesimulator,
-                    Architecture.arm64_iphoneos,
-                }
+            # build actual iOS wheels on arm64
+            if native_arch == Architecture.arm64_iphonesimulator:
+                result.add(Architecture.arm64_iphoneos)
 
         return result
 

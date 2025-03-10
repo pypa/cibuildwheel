@@ -166,7 +166,7 @@ def cross_virtualenv(
     environment.
 
     :param py_version: The Python version (major.minor) in use
-    :param target_python: The path to the python binary for the targret platform
+    :param target_python: The path to the python binary for the target platform
     :param multiarch: The multiarch tag for the target platform (i.e., the value
         of `sys.implementation._multiarch`)
     :param build_python: The path to the python binary for the build platform
