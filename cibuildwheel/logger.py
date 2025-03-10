@@ -74,7 +74,7 @@ class Logger:
     build_start_time: float | None = None
     step_start_time: float | None = None
     active_fold_group_name: str | None = None
-    dedupiclate: set[str] = dataclasses.field(default_factory=set)
+    deduplicate: set[str] = dataclasses.field(default_factory=set)
 
     def __post_init__(self) -> None:
         if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
@@ -166,9 +166,9 @@ class Logger:
             print(f"cibuildwheel: {c.bold}note{c.end}: {message}\n", file=sys.stderr)
 
     def warning(self, message: str, *, deduplicate: bool = False) -> None:
-        if deduplicate and message in self.dedupiclate:
+        if deduplicate and message in self.deduplicate:
             return
-        self.dedupiclate.add(message)
+        self.deduplicate.add(message)
 
         if self.fold_mode == "github":
             print(f"::warning::cibuildwheel: {message}\n", file=sys.stderr)
