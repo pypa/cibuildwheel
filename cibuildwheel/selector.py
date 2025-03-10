@@ -1,7 +1,7 @@
-import fnmatch
 import itertools
 from dataclasses import dataclass
 from enum import Enum
+from fnmatch import fnmatch
 from typing import Any
 
 import bracex
@@ -18,9 +18,10 @@ def selector_matches(patterns: str, string: str) -> bool:
     expansion. For example, 'cp{36,37}-*' would match either of 'cp36-*' or
     'cp37-*'.
     """
+
     patterns_list = patterns.split()
     expanded_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in patterns_list)
-    return any(fnmatch.fnmatch(string, pat) for pat in expanded_patterns)
+    return any(fnmatch(string, pat) for pat in expanded_patterns)
 
 
 class EnableGroup(Enum):
@@ -59,15 +60,11 @@ class BuildSelector:
                 return False
 
         # filter out groups that are not enabled
-        if EnableGroup.CPythonFreeThreading not in self.enable and selector_matches(
-            "cp3??t-*", build_id
-        ):
+        if EnableGroup.CPythonFreeThreading not in self.enable and fnmatch(build_id, "cp3??t-*"):
             return False
-        if EnableGroup.CPythonPrerelease not in self.enable and selector_matches(
-            "cp314*", build_id
-        ):
+        if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp314*"):
             return False
-        if EnableGroup.PyPy not in self.enable and selector_matches("pp*", build_id):
+        if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp*"):
             return False
 
         should_build = selector_matches(self.build_config, build_id)

@@ -591,6 +591,10 @@ class Options:
         except FileNotFoundError:
             self.pyproject_toml = None
 
+        # cache the build options method so repeated calls don't need to
+        # resolve the options again
+        self.build_options = functools.cache(self._compute_build_options)
+
     @functools.cached_property
     def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
@@ -667,9 +671,11 @@ class Options:
             allow_empty=allow_empty,
         )
 
-    def build_options(self, identifier: str | None) -> BuildOptions:
+    def _compute_build_options(self, identifier: str | None) -> BuildOptions:
         """
-        Compute BuildOptions for a single run configuration.
+        Compute BuildOptions for a single run configuration. Normally accessed
+        through the `build_options` method, which is the same but the result
+        is cached.
         """
 
         with self.reader.identifier(identifier):
