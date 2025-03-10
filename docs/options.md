@@ -1356,9 +1356,10 @@ Options can be supplied after the name.
 
 
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
-> Specify how cibuildwheel controls the versions of the tools it uses
 
-Options: `pinned` `latest` `<your constraints file>`
+> Control the versions of the tools cibuildwheel uses
+
+Options: `pinned` `latest` `packages: SPECIFIER...` `<your constraints file>`
 
 Default: `pinned`
 
@@ -1373,7 +1374,8 @@ fixes that can't wait for a new cibuildwheel release.
 
 To control the versions of dependencies yourself, you can supply a [pip
 constraints](https://pip.pypa.io/en/stable/user_guide/#constraints-files) file
-here and it will be used instead.
+here and it will be used instead. Alternatively, you can list constraint
+specifiers inline with the `packages: SPECIFIER...` syntax.
 
 !!! note
     If you need different dependencies for each python version, provide them
@@ -1404,6 +1406,15 @@ Platform-specific environment variables are also available:<br/>
 
     # Use your own pip constraints file
     CIBW_DEPENDENCY_VERSIONS: ./constraints.txt
+
+    # Specify requirements inline
+    CIBW_DEPENDENCY_VERSIONS: "packages: auditwheel==6.2.0"
+
+    # Choose a specific pyodide-build version
+    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.29.1"
+
+    # Use shell-style quoting around spaces package specifiers
+    CIBW_DEPENDENCY_VERSIONS: "packages: 'pip >=16.0.0, !=17'"
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1417,7 +1428,14 @@ Platform-specific environment variables are also available:<br/>
     dependency-versions = "latest"
 
     # Use your own pip constraints file
-    dependency-versions = "./constraints.txt"
+    dependency-versions = { file = "./constraints.txt" }
+
+    # Specify requirements inline
+    dependency-versions = { packages = ["auditwheel==6.2.0"] }
+
+    [tool.cibuildwheel.pyodide]
+    # Choose a specific pyodide-build version
+    dependency-versions = { packages = ["pyodide-build==0.29.1"] }
     ```
 
 

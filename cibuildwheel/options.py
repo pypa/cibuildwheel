@@ -97,7 +97,7 @@ class BuildOptions:
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
-    dependency_constraints: DependencyConstraints | None
+    dependency_constraints: DependencyConstraints
     test_command: str | None
     before_test: str | None
     test_sources: list[str]
@@ -693,7 +693,6 @@ class Options:
                 "config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="=")
             )
 
-            dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
             test_sources = shlex.split(
@@ -739,15 +738,18 @@ class Options:
                     with contextlib.suppress(KeyError):
                         environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
-            if dependency_versions == "pinned":
-                dependency_constraints: DependencyConstraints | None = (
-                    DependencyConstraints.with_defaults()
+            dependency_versions_str = self.reader.get(
+                "dependency-versions",
+                env_plat=True,
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+            )
+            try:
+                dependency_constraints = DependencyConstraints.from_config_string(
+                    dependency_versions_str
                 )
-            elif dependency_versions == "latest":
-                dependency_constraints = None
-            else:
-                dependency_versions_path = Path(dependency_versions)
-                dependency_constraints = DependencyConstraints(dependency_versions_path)
+            except (ValueError, OSError) as e:
+                msg = f"Failed to parse dependency versions. {e}"
+                raise errors.ConfigurationError(msg) from e
 
             if test_extras:
                 test_extras = f"[{test_extras}]"
