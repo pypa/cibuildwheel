@@ -91,7 +91,8 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_dependency_constraints_file(tmp_path, build_frontend_env_nouv):
+@pytest.mark.parametrize("method", ["inline", "file"])
+def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
     if utils.platform == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 
@@ -103,15 +104,24 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env_nouv):
         "delocate": "0.10.3",
     }
 
-    constraints_file = tmp_path / "constraints file.txt"
-    constraints_file.write_text(
-        textwrap.dedent(
-            """
-            pip=={pip}
-            delocate=={delocate}
-            """.format(**tool_versions)
+    if method == "file":
+        constraints_file = tmp_path / "constraints file.txt"
+        constraints_file.write_text(
+            textwrap.dedent(
+                """
+                pip=={pip}
+                delocate=={delocate}
+                """.format(**tool_versions)
+            )
         )
-    )
+        dependency_version_option = str(constraints_file)
+    elif method == "inline":
+        dependency_version_option = "packages: " + " ".join(
+            f"{k}=={v}" for k, v in tool_versions.items()
+        )
+    else:
+        msg = f"Unknown method: {method}"
+        raise ValueError(msg)
 
     build_environment = {}
 
@@ -126,7 +136,7 @@ def test_dependency_constraints_file(tmp_path, build_frontend_env_nouv):
         project_dir,
         add_env={
             "CIBW_ENVIRONMENT": cibw_environment_option,
-            "CIBW_DEPENDENCY_VERSIONS": str(constraints_file),
+            "CIBW_DEPENDENCY_VERSIONS": dependency_version_option,
             **build_frontend_env_nouv,
         },
     )

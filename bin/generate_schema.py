@@ -104,7 +104,24 @@ properties:
   dependency-versions:
     default: pinned
     description: Specify how cibuildwheel controls the versions of the tools it uses
-    type: string
+    oneOf:
+      - enum: [pinned, latest]
+      - type: string
+        description: Path to a file containing dependency versions, or inline package specifications, starting with "packages:"
+        not:
+          enum: [pinned, latest]
+      - type: object
+        additionalProperties: false
+        properties:
+          file:
+            type: string
+      - type: object
+        additionalProperties: false
+        properties:
+          packages:
+            type: array
+            items:
+              type: string
   enable:
     description: Enable or disable certain builds.
     oneOf:

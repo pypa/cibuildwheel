@@ -97,7 +97,7 @@ class BuildOptions:
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
-    dependency_constraints: DependencyConstraints | None
+    dependency_constraints: DependencyConstraints
     test_command: str | None
     before_test: str | None
     test_sources: list[str]
@@ -591,6 +591,10 @@ class Options:
         except FileNotFoundError:
             self.pyproject_toml = None
 
+        # cache the build options method so repeated calls don't need to
+        # resolve the options again
+        self.build_options = functools.cache(self._compute_build_options)
+
     @functools.cached_property
     def config_file_path(self) -> Path | None:
         args = self.command_line_arguments
@@ -667,9 +671,11 @@ class Options:
             allow_empty=allow_empty,
         )
 
-    def build_options(self, identifier: str | None) -> BuildOptions:
+    def _compute_build_options(self, identifier: str | None) -> BuildOptions:
         """
-        Compute BuildOptions for a single run configuration.
+        Compute BuildOptions for a single run configuration. Normally accessed
+        through the `build_options` method, which is the same but the result
+        is cached.
         """
 
         with self.reader.identifier(identifier):
@@ -687,7 +693,6 @@ class Options:
                 "config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="=")
             )
 
-            dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
             test_sources = shlex.split(
@@ -733,15 +738,18 @@ class Options:
                     with contextlib.suppress(KeyError):
                         environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
-            if dependency_versions == "pinned":
-                dependency_constraints: DependencyConstraints | None = (
-                    DependencyConstraints.with_defaults()
+            dependency_versions_str = self.reader.get(
+                "dependency-versions",
+                env_plat=True,
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+            )
+            try:
+                dependency_constraints = DependencyConstraints.from_config_string(
+                    dependency_versions_str
                 )
-            elif dependency_versions == "latest":
-                dependency_constraints = None
-            else:
-                dependency_versions_path = Path(dependency_versions)
-                dependency_constraints = DependencyConstraints(dependency_versions_path)
+            except (ValueError, OSError) as e:
+                msg = f"Failed to parse dependency versions. {e}"
+                raise errors.ConfigurationError(msg) from e
 
             if test_extras:
                 test_extras = f"[{test_extras}]"
