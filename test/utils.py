@@ -320,8 +320,10 @@ def _expected_wheels(
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
 
-        for platform_tag in platform_tags:
-            wheels.append(f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl")
+        wheels.extend(
+            f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
+            for platform_tag in platform_tags
+        )
 
     return wheels
 

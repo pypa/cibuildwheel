@@ -221,8 +221,7 @@ class ShlexTableFormat(OptionFormat):
             if isinstance(v, str):
                 assignments.append((k, v))
             elif isinstance(v, Sequence):
-                for inner_v in v:
-                    assignments.append((k, str(inner_v)))
+                assignments.extend((k, str(inner_v)) for inner_v in v)
             else:
                 assignments.append((k, str(v)))
 
