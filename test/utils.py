@@ -240,7 +240,7 @@ def expected_wheels(
             )
         ]
 
-    wheels = []
+    wheels: list[str] = []
 
     if platform == "pyodide":
         assert len(python_abi_tags) == 1
