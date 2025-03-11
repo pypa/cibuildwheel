@@ -27,7 +27,7 @@ class TestPlatform(TestCase):
 @pytest.mark.parametrize(
     "build_config",
     [
-        # Default to the pip build frontend.
+        # Default to the pip build frontend
         {"CIBW_PLATFORM": "ios"},
         # Also check the build frontend
         {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
