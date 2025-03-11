@@ -322,6 +322,7 @@ oses = {
     "windows": as_object(not_linux),
     "macos": as_object(not_linux),
     "pyodide": as_object(not_linux),
+    "ios": as_object(not_linux),
 }
 
 oses["linux"]["properties"]["repair-wheel-command"] = {

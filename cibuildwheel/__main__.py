@@ -15,6 +15,7 @@ from tempfile import mkdtemp
 from typing import Any, Protocol, TextIO, assert_never
 
 import cibuildwheel
+import cibuildwheel.ios
 import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.pyodide
@@ -93,13 +94,14 @@ def main_inner(global_options: GlobalOptions) -> None:
 
     parser.add_argument(
         "--platform",
-        choices=["auto", "linux", "macos", "windows", "pyodide"],
+        choices=["auto", "linux", "macos", "windows", "pyodide", "ios"],
         default=None,
         help="""
-            Platform to build for. Use this option to override the
-            auto-detected platform. Specifying "macos" or "windows" only works
-            on that operating system, but "linux" works on all three, as long
-            as Docker/Podman is installed. Default: auto.
+            Platform to build for. Use this option to override the auto-detected
+            platform. Specifying "macos" or "windows" only works on that
+            operating system. "linux" works on any desktop OS, as long as
+            Docker/Podman is installed. "pyodide" only works on linux and macOS.
+            "ios" only work on macOS. Default: auto.
         """,
     )
 
@@ -240,6 +242,8 @@ def _compute_platform_only(only: str) -> PlatformName:
         return "windows"
     if "pyodide_" in only:
         return "pyodide"
+    if "ios_" in only:
+        return "ios"
     msg = f"Invalid --only='{only}', must be a build selector with a known platform"
     raise errors.ConfigurationError(msg)
 
@@ -301,6 +305,8 @@ def get_platform_module(platform: PlatformName) -> PlatformModule:
         return cibuildwheel.macos
     if platform == "pyodide":
         return cibuildwheel.pyodide
+    if platform == "ios":
+        return cibuildwheel.ios
     assert_never(platform)
 
 

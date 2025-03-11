@@ -17,6 +17,7 @@ PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "macos": "macOS",
     "windows": "Windows",
     "pyodide": "Pyodide",
+    "ios": "iOS",
 }
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
@@ -63,6 +64,12 @@ class Architecture(StrEnum):
     # WebAssembly
     wasm32 = auto()
 
+    # iOS "multiarch" architectures that include both
+    # the CPU architecture and the ABI.
+    arm64_iphoneos = auto()
+    arm64_iphonesimulator = auto()
+    x86_64_iphonesimulator = auto()
+
     @staticmethod
     def parse_config(config: str, platform: PlatformName) -> "set[Architecture]":
         result = set()
@@ -89,8 +96,8 @@ class Architecture(StrEnum):
 
     @staticmethod
     def native_arch(platform: PlatformName) -> "Architecture | None":
-        if platform == "pyodide":
-            return Architecture.wasm32
+        native_machine = platform_module.machine()
+        native_architecture = Architecture(native_machine)
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
@@ -99,8 +106,18 @@ class Architecture(StrEnum):
             else ("macos" if sys.platform.startswith("darwin") else "linux")
         )
 
-        native_machine = platform_module.machine()
-        native_architecture = Architecture(native_machine)
+        if platform == "pyodide":
+            return Architecture.wasm32
+        elif platform == "ios":
+            # Can only build for iOS on macOS. The "native" architecture is the
+            # simulator for the macOS native platform.
+            if host_platform == "macos":
+                if native_architecture == Architecture.x86_64:
+                    return Architecture.x86_64_iphonesimulator
+                else:
+                    return Architecture.arm64_iphonesimulator
+            else:
+                return None
 
         # we might need to rename the native arch to the machine we're running
         # on, as the same arch can have different names on different platforms
@@ -131,8 +148,12 @@ class Architecture(StrEnum):
             elif Architecture.aarch64 in result and _check_aarch32_el0():
                 result.add(Architecture.armv7l)
 
-        if platform == "windows" and Architecture.AMD64 in result:
+        elif platform == "windows" and Architecture.AMD64 in result:
             result.add(Architecture.x86)
+
+        elif platform == "ios" and native_arch == Architecture.arm64_iphonesimulator:
+            # Also build the device wheel if we're on ARM64.
+            result.add(Architecture.arm64_iphoneos)
 
         return result
 
@@ -150,6 +171,11 @@ class Architecture(StrEnum):
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
             "pyodide": {Architecture.wasm32},
+            "ios": {
+                Architecture.x86_64_iphonesimulator,
+                Architecture.arm64_iphonesimulator,
+                Architecture.arm64_iphoneos,
+            },
         }
         return all_archs_map[platform]
 

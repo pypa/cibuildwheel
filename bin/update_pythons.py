@@ -44,13 +44,13 @@ class ConfigWinPP(TypedDict):
     url: str
 
 
-class ConfigMacOS(TypedDict):
+class ConfigApple(TypedDict):
     identifier: str
     version: str
     url: str
 
 
-AnyConfig = ConfigWinCP | ConfigWinPP | ConfigMacOS
+AnyConfig = ConfigWinCP | ConfigWinPP | ConfigApple
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to
@@ -154,7 +154,7 @@ class PyPyVersions:
             url=url,
         )
 
-    def update_version_macos(self, spec: Specifier) -> ConfigMacOS:
+    def update_version_macos(self, spec: Specifier) -> ConfigApple:
         if self.arch not in {"64", "ARM64"}:
             msg = f"'{self.arch}' arch not supported yet on macOS"
             raise RuntimeError(msg)
@@ -178,7 +178,7 @@ class PyPyVersions:
             if "" in rf["platform"] == "darwin" and rf["arch"] == arch
         )
 
-        return ConfigMacOS(
+        return ConfigApple(
             identifier=identifier,
             version=f"{version.major}.{version.minor}",
             url=url,
@@ -204,7 +204,7 @@ class CPythonVersions:
 
     def update_version_macos(
         self, identifier: str, version: Version, spec: Specifier
-    ) -> ConfigMacOS | None:
+    ) -> ConfigApple | None:
         # see note above on Specifier.filter
         unsorted_versions = spec.filter(self.versions_dict)
         sorted_versions = sorted(unsorted_versions, reverse=True)
@@ -223,11 +223,53 @@ class CPythonVersions:
 
             urls = [rf["url"] for rf in file_info if file_ident in rf["url"]]
             if urls:
-                return ConfigMacOS(
+                return ConfigApple(
                     identifier=identifier,
                     version=f"{new_version.major}.{new_version.minor}",
                     url=urls[0],
                 )
+
+        return None
+
+
+class CPythonIOSVersions:
+    def __init__(self) -> None:
+        response = requests.get(
+            "https://api.github.com/repos/beeware/Python-Apple-support/releases",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "X-Github-Api-Version": "2022-11-28",
+            },
+        )
+        response.raise_for_status()
+
+        releases_info = response.json()
+        self.versions_dict: dict[Version, dict[int, str]] = {}
+
+        # Each release has a name like "3.13-b4"
+        for release in releases_info:
+            py_version, build = release["name"].split("-")
+            version = Version(py_version)
+            self.versions_dict.setdefault(version, {})
+
+            # There are several release assets associated with each release;
+            # The name of the asset will be something like
+            # "Python-3.11-iOS-support.b4.tar.gz". Store all builds that are
+            # "-iOS-support" builds, retaining the download URL.
+            for asset in release["assets"]:
+                filename, build, _, _ = asset["name"].rsplit(".", 3)
+                if filename.endswith("-iOS-support"):
+                    self.versions_dict[version][int(build[1:])] = asset["browser_download_url"]
+
+    def update_version_ios(self, identifier: str, version: Version) -> ConfigApple | None:
+        # Return a config using the highest build number for the given version.
+        urls = [url for _, url in sorted(self.versions_dict.get(version, {}).items())]
+        if urls:
+            return ConfigApple(
+                identifier=identifier,
+                version=str(version),
+                url=urls[-1],
+            )
 
         return None
 
@@ -249,6 +291,8 @@ class AllVersions:
         self.macos_cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
         self.macos_pypy_arm64 = PyPyVersions("ARM64")
+
+        self.ios_cpython = CPythonIOSVersions()
 
     def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]
@@ -282,6 +326,8 @@ class AllVersions:
             config_update = self.windows_t_arm64.update_version_windows(spec)
         elif "win_arm64" in identifier and identifier.startswith("cp"):
             config_update = self.windows_arm64.update_version_windows(spec)
+        elif "ios" in identifier:
+            config_update = self.ios_cpython.update_version_ios(identifier, version)
 
         assert config_update is not None, f"{identifier} not found!"
         config.update(**config_update)
@@ -315,6 +361,9 @@ def update_pythons(force: bool, level: str) -> None:
         all_versions.update_config(config)
 
     for config in configs["macos"]["python_configurations"]:
+        all_versions.update_config(config)
+
+    for config in configs["ios"]["python_configurations"]:
         all_versions.update_config(config)
 
     result_toml = dump_python_configurations(configs)

@@ -956,6 +956,51 @@
           "$ref": "#/properties/test-requires"
         }
       }
+    },
+    "ios": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "archs": {
+          "$ref": "#/properties/archs"
+        },
+        "before-all": {
+          "$ref": "#/properties/before-all"
+        },
+        "before-build": {
+          "$ref": "#/properties/before-build"
+        },
+        "before-test": {
+          "$ref": "#/properties/before-test"
+        },
+        "build-frontend": {
+          "$ref": "#/properties/build-frontend"
+        },
+        "build-verbosity": {
+          "$ref": "#/properties/build-verbosity"
+        },
+        "config-settings": {
+          "$ref": "#/properties/config-settings"
+        },
+        "dependency-versions": {
+          "$ref": "#/properties/dependency-versions"
+        },
+        "environment": {
+          "$ref": "#/properties/environment"
+        },
+        "repair-wheel-command": {
+          "$ref": "#/properties/repair-wheel-command"
+        },
+        "test-command": {
+          "$ref": "#/properties/test-command"
+        },
+        "test-extras": {
+          "$ref": "#/properties/test-extras"
+        },
+        "test-requires": {
+          "$ref": "#/properties/test-requires"
+        }
+       }
     }
   }
 }
