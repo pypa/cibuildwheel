@@ -401,12 +401,12 @@ def build(options: Options, tmp_path: Path) -> None:
             identifier_tmp_dir.mkdir()
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
 
-            dependency_constraint_flags: Sequence[PathOrStr] = []
-            if build_options.dependency_constraints:
-                dependency_constraint_flags = [
-                    "-c",
-                    build_options.dependency_constraints.get_for_python_version(config.version),
-                ]
+            constraints_path = build_options.dependency_constraints.get_for_python_version(
+                version=config.version, tmp_dir=identifier_tmp_dir
+            )
+            dependency_constraint_flags: Sequence[PathOrStr] = (
+                ["-c", constraints_path] if constraints_path else []
+            )
 
             target_install_path, env = setup_python(
                 identifier_tmp_dir / "build",
@@ -445,11 +445,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 build_env = env.copy()
                 build_env["VIRTUALENV_PIP"] = pip_version
-                if build_options.dependency_constraints:
-                    constraint_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
-                    )
-                    combine_constraints(build_env, constraint_path, None)
+                if constraints_path:
+                    combine_constraints(build_env, constraints_path, None)
 
                 if build_frontend.name == "pip":
                     # Path.resolve() is needed. Without it pip wheel may try to
