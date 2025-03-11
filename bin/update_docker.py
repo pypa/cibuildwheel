@@ -14,51 +14,45 @@ RESOURCES = DIR.parent / "cibuildwheel/resources"
 @dataclass(frozen=True)
 class Image:
     manylinux_version: str
-    platform: str
+    platforms: list[str]
     image_name: str
-    tag: str | None  # Set this to pin the image
+    tag: str | None = None  # Set this to pin the image
+    use_platform_suffix: bool = False
 
 
 class PyPAImage(Image):
-    def __init__(self, manylinux_version: str, platform: str, tag: str | None):
-        platform_no_pypy = platform.removeprefix("pypy_")
-        image_name = f"quay.io/pypa/{manylinux_version}_{platform_no_pypy}"
-        super().__init__(manylinux_version, platform, image_name, tag)
+    def __init__(self, manylinux_version: str, platforms: list[str], tag: str | None = None):
+        image_name = f"quay.io/pypa/{manylinux_version}"
+        super().__init__(manylinux_version, platforms, image_name, tag, True)
 
 
 images = [
     # manylinux2014 images
-    PyPAImage("manylinux2014", "x86_64", None),
-    PyPAImage("manylinux2014", "i686", None),
-    PyPAImage("manylinux2014", "aarch64", None),
-    PyPAImage("manylinux2014", "ppc64le", None),
-    PyPAImage("manylinux2014", "s390x", None),
-    PyPAImage("manylinux2014", "pypy_x86_64", None),
-    PyPAImage("manylinux2014", "pypy_i686", None),
-    PyPAImage("manylinux2014", "pypy_aarch64", None),
+    PyPAImage(
+        "manylinux2014",
+        [
+            "x86_64",
+            "i686",
+            "aarch64",
+            "ppc64le",
+            "s390x",
+            "pypy_x86_64",
+            "pypy_i686",
+            "pypy_aarch64",
+        ],
+    ),
     # manylinux_2_28 images
-    PyPAImage("manylinux_2_28", "x86_64", None),
-    PyPAImage("manylinux_2_28", "aarch64", None),
-    PyPAImage("manylinux_2_28", "ppc64le", None),
-    PyPAImage("manylinux_2_28", "s390x", None),
-    PyPAImage("manylinux_2_28", "pypy_x86_64", None),
-    PyPAImage("manylinux_2_28", "pypy_aarch64", None),
+    PyPAImage(
+        "manylinux_2_28", ["x86_64", "aarch64", "ppc64le", "s390x", "pypy_x86_64", "pypy_aarch64"]
+    ),
     # manylinux_2_31 images
-    PyPAImage("manylinux_2_31", "armv7l", None),
+    PyPAImage("manylinux_2_31", ["armv7l"]),
     # manylinux_2_34 images
-    PyPAImage("manylinux_2_34", "x86_64", None),
-    PyPAImage("manylinux_2_34", "aarch64", None),
-    PyPAImage("manylinux_2_34", "ppc64le", None),
-    PyPAImage("manylinux_2_34", "s390x", None),
-    PyPAImage("manylinux_2_34", "pypy_x86_64", None),
-    PyPAImage("manylinux_2_34", "pypy_aarch64", None),
+    PyPAImage(
+        "manylinux_2_34", ["x86_64", "aarch64", "ppc64le", "s390x", "pypy_x86_64", "pypy_aarch64"]
+    ),
     # musllinux_1_2 images
-    PyPAImage("musllinux_1_2", "x86_64", None),
-    PyPAImage("musllinux_1_2", "i686", None),
-    PyPAImage("musllinux_1_2", "aarch64", None),
-    PyPAImage("musllinux_1_2", "ppc64le", None),
-    PyPAImage("musllinux_1_2", "s390x", None),
-    PyPAImage("musllinux_1_2", "armv7l", None),
+    PyPAImage("musllinux_1_2", ["x86_64", "i686", "aarch64", "ppc64le", "s390x", "armv7l"]),
 ]
 
 config = configparser.ConfigParser()
@@ -114,10 +108,13 @@ for image in images:
         )
         tag_name = pinned_tag["name"]
 
-    if not config.has_section(image.platform):
-        config[image.platform] = {}
-
-    config[image.platform][image.manylinux_version] = f"{image.image_name}:{tag_name}"
+    for platform in image.platforms:
+        if not config.has_section(platform):
+            config[platform] = {}
+        suffix = ""
+        if image.use_platform_suffix:
+            suffix = f"_{platform.removeprefix('pypy_')}"
+        config[platform][image.manylinux_version] = f"{image.image_name}{suffix}:{tag_name}"
 
 with open(RESOURCES / "pinned_docker_images.cfg", "w") as f:
     config.write(f)
