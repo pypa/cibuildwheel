@@ -529,3 +529,36 @@ def test_dependency_versions_toml(
         else:
             assert parsed_dependency_constraints.base_file_path == base_file_path
         assert parsed_dependency_constraints.packages == packages
+
+
+@pytest.mark.parametrize(
+    ("image", "deprecated"),
+    [
+        ("manylinux1", True),
+        ("manylinux2010", True),
+        ("manylinux2014", False),
+        ("manylinux_2_24", True),
+        ("manylinux_2_28", False),
+        ("manylinux_2_34", False),
+        ("musllinux_1_1", True),
+        ("musllinux_1_2", False),
+    ],
+)
+def test_deprecated_image(image: str, deprecated: bool, capsys: pytest.CaptureFixture[str]) -> None:
+    args = CommandLineArguments.defaults()
+    env = {
+        "CIBW_ARCHS": "x86_64",
+        "CIBW_MANYLINUX_X86_64_IMAGE": image if image.startswith("manylinux") else "",
+        "CIBW_MUSLLINUX_X86_64_IMAGE": image if image.startswith("musllinux") else "",
+    }
+    options = Options(platform="linux", command_line_arguments=args, env=env)
+    bo = options.build_options(None)
+    images = bo.manylinux_images if image.startswith("manylinux") else bo.musllinux_images
+    assert images is not None
+    resolved_image = images["x86_64"]
+    captured = capsys.readouterr()
+    if deprecated:
+        assert f"Deprecated image {image!r}" in captured.err
+        assert f"{resolved_image!r}" in captured.err
+    else:
+        assert captured.err == ""
