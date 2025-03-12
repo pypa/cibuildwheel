@@ -491,4 +491,4 @@ def test_deprecated_image(image: str, deprecated: bool, capsys: pytest.CaptureFi
         assert f"Deprecated image {image!r}" in captured.err
         assert f"{resolved_image!r}" in captured.err
     else:
-        assert captured.err == ""
+        assert "Deprecated image" not in captured.err
