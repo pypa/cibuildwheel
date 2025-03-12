@@ -672,6 +672,20 @@ class Options:
             allow_empty=allow_empty,
         )
 
+    def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
+        if (
+            value in {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
+            and value not in self._image_warnings
+        ):
+            self._image_warnings.add(value)
+            msg = (
+                f"Deprecated image {value!r}. This value will not work"
+                " in a future version of cibuildwheel. Either upgrade to a supported"
+                " image or continue using the deprecated image by pinning directly"
+                f" to {pinned_images[value]!r}."
+            )
+            log.warning(msg)
+
     def _compute_build_options(self, identifier: str | None) -> BuildOptions:
         """
         Compute BuildOptions for a single run configuration. Normally accessed
@@ -778,24 +792,7 @@ class Options:
                         # default to manylinux2014
                         image = pinned_images["manylinux2014"]
                     elif config_value in pinned_images:
-                        if (
-                            config_value
-                            in {
-                                "manylinux1",
-                                "manylinux2010",
-                                "manylinux_2_24",
-                                "musllinux_1_1",
-                            }
-                            and config_value not in self._image_warnings
-                        ):
-                            self._image_warnings.add(config_value)
-                            msg = (
-                                f"Deprecated image {config_value!r}. This value will not work"
-                                " in a future version of cibuildwheel. Either upgrade to a supported"
-                                " image or continue using the deprecated image by pinning directly"
-                                f" to {pinned_images[config_value]!r}."
-                            )
-                            log.warning(msg)
+                        self._check_pinned_image(config_value, pinned_images)
                         image = pinned_images[config_value]
                     else:
                         image = config_value
@@ -810,6 +807,7 @@ class Options:
                     if not config_value:
                         image = pinned_images["musllinux_1_2"]
                     elif config_value in pinned_images:
+                        self._check_pinned_image(config_value, pinned_images)
                         image = pinned_images[config_value]
                     else:
                         image = config_value
