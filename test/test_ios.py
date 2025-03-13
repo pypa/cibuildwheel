@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import platform
+import shutil
 import subprocess
 
 import pytest
@@ -40,6 +41,8 @@ def test_ios_platforms(tmp_path, build_config):
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
+    if "CIBW_SAFE_TOOLS" in build_config and shutil.which("cmake") is None:
+        pytest.xfail("test machine doesn't have cmake installed")
 
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
