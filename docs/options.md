@@ -1044,6 +1044,35 @@ Platform-specific environment variables are also available:<br/>
     [PEP 517]: https://www.python.org/dev/peps/pep-0517/
     [PEP 518]: https://www.python.org/dev/peps/pep-0517/
 
+### `CIBW_SAFE_TOOLS` {: #safe-tools}
+> Binaries on the path that are safe to include in an isolated cross-build environment.
+
+When building in a cross-platform environment, it is sometimes necessary to isolate the ``PATH`` so that binaries from the build machine don't accidentally get linked into the cross-platform binary. However, this isolation process will also hide tools that might be required to build your wheel.
+
+If there are binaries present on the `PATH` when you invoke cibuildwheel, and those binaries are required to build your wheels, those binaries can be explicitly declared as "safe" using `CIBW_SAFE_TOOLS`. These binaries will be linked into an isolated location, and that isolated location will be put on the `PATH` of the isolated environment. You do not need to provide the full path to the binary - only the executable name that would be found by the shell.
+
+If you declare a tool as safe, and that tool cannot be found in the runtime environment, an error will be raised.
+
+Platform-specific environment variables are also available on platforms that use cross-platform environment isolation:<br/>
+ `CIBW_SAFE_TOOLS_IOS`
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Allow access to the cmake, ninja and rustc binaries in the isolated cross-build environment.
+    CIBW_SAFE_TOOLS: cmake ninja rustc
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+
+    # Allow access to the cmake, ninja and rustc binaries in the isolated cross-build environment.
+    safe-tools = ["cmake", "ninja", "rustc"]
+    ```
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
 > Execute a shell command to repair each built wheel

@@ -147,6 +147,7 @@ def cross_virtualenv(
     build_python: Path,
     venv_path: Path,
     dependency_constraint_flags: Sequence[PathOrStr],
+    safe_tools: Sequence[str],
 ) -> dict[str, str]:
     """Create a cross-compilation virtual environment.
 
@@ -174,6 +175,8 @@ def cross_virtualenv(
         created.
     :param dependency_constraint_flags: Any flags that should be used when
         constraining dependencies in the environment.
+    :param safe_tools: A list of executable names (without paths) that are
+        on the path, but must be preserved in the cross environment.
     """
     # Create an initial macOS virtual environment
     env = virtualenv(
@@ -206,14 +209,33 @@ def cross_virtualenv(
     #
     # To prevent problems, set the PATH to isolate the build environment from
     # sources that could introduce incompatible binaries.
+    #
+    # However, there may be some tools on the path that are needed for the
+    # build. Find their location on the path, and link the underlying binaries
+    # (fully resolving symlinks) to a "safe" location that will *only* contain
+    # those tools. This avoids needing to add *all* of Homebrew to the path just
+    # to get access to (for example) cmake for build purposes.
+    safe_tools_path = venv_path / "cibw_safe_tools"
+    safe_tools_path.mkdir()
+    for tool in safe_tools:
+        tool_path = shutil.which(tool)
+        if tool_path is None:
+            msg = f"Could not find a {tool!r} executable on the path."
+            raise errors.FatalError(msg)
+
+        # Link the binary into the safe tools directory
+        original = Path(tool_path).resolve()
+        print(f"{tool!r} is a safe tool in the cross-build environment (using {original})")
+        (safe_tools_path / tool).symlink_to(original)
+
     env["PATH"] = os.pathsep.join(
         [
             # The target python's binary directory
             str(target_python.parent),
-            # The cross-platform environments binary directory
+            # The cross-platform environment's binary directory
             str(venv_path / "bin"),
-            # Cargo's binary directory (to allow for Rust compilation)
-            str(Path.home() / ".cargo" / "bin"),
+            # The directory of safe tools
+            str(safe_tools_path),
             # The bare minimum Apple system paths.
             "/usr/bin",
             "/bin",
@@ -235,6 +257,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
+    safe_tools: Sequence[str],
 ) -> tuple[Path, dict[str, str]]:
     if build_frontend == "build[uv]":
         msg = "uv doesn't support iOS"
@@ -287,6 +310,7 @@ def setup_python(
         build_python=build_python,
         venv_path=venv_path,
         dependency_constraint_flags=dependency_constraint_flags,
+        safe_tools=safe_tools,
     )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
@@ -414,6 +438,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 dependency_constraint_flags,
                 build_options.environment,
                 build_frontend.name,
+                safe_tools=build_options.safe_tools,
             )
             pip_version = get_pip_version(env)
 

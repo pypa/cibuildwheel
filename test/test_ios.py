@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import platform
+import shutil
 import subprocess
 
 import pytest
@@ -31,6 +32,8 @@ class TestPlatform(TestCase):
         {"CIBW_PLATFORM": "ios"},
         # Also check the build frontend
         {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
+        # With a safe tool declaration
+        {"CIBW_PLATFORM": "ios", "CIBW_SAFE_TOOLS": "cmake"},
     ],
 )
 def test_ios_platforms(tmp_path, build_config):
@@ -38,6 +41,8 @@ def test_ios_platforms(tmp_path, build_config):
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
+    if "CIBW_SAFE_TOOLS" in build_config and shutil.which("cmake") is None:
+        pytest.xfail("test machine doesn't have cmake installed")
 
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
@@ -71,7 +76,6 @@ def test_ios_platforms(tmp_path, build_config):
     assert set(actual_wheels) == expected_wheels
 
 
-@pytest.mark.xdist_group(name="ios")
 def test_no_test_sources(tmp_path, capfd):
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
@@ -93,3 +97,27 @@ def test_no_test_sources(tmp_path, capfd):
 
     captured = capfd.readouterr()
     assert "Testing on iOS requires a definition of test-sources." in captured.err
+
+
+def test_missing_safe_tool(tmp_path, capfd):
+    if utils.platform != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(
+            project_dir,
+            add_env={
+                "CIBW_PLATFORM": "ios",
+                "CIBW_BUILD": "cp313-*",
+                "CIBW_TEST_COMMAND": "tests",
+                "CIBW_SAFE_TOOLS": "does-not-exist",
+            },
+        )
+
+    captured = capfd.readouterr()
+    assert "Could not find a 'does-not-exist' executable on the path." in captured.err
