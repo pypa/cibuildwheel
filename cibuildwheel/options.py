@@ -94,6 +94,7 @@ class BuildOptions:
     environment: ParsedEnvironment
     before_all: str
     before_build: str | None
+    safe_tools: list[str]
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
@@ -696,6 +697,9 @@ class Options:
 
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
+            safe_tools = shlex.split(
+                self.reader.get("safe-tools", option_format=ListFormat(sep=" ", quote=shlex.quote))
+            )
             test_sources = shlex.split(
                 self.reader.get(
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
@@ -838,6 +842,7 @@ class Options:
                 before_build=before_build,
                 before_all=before_all,
                 build_verbosity=build_verbosity,
+                safe_tools=safe_tools,
                 repair_command=repair_command,
                 environment=environment,
                 dependency_constraints=dependency_constraints,
