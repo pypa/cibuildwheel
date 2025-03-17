@@ -236,7 +236,7 @@ def setup_python(
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
 ) -> tuple[Path, dict[str, str]]:
-    if build_frontend == "build[uv]":
+    if build_frontend == "build[uv]" or build_frontend == "uv":
         msg = "uv doesn't support iOS"
         raise errors.FatalError(msg)
 
@@ -391,7 +391,7 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
             # uv doesn't support iOS
-            if build_frontend.name == "build[uv]":
+            if build_frontend.name == "build[uv]" or build_frontend.name == "uv":
                 msg = "uv doesn't support iOS"
                 raise errors.FatalError(msg)
 
