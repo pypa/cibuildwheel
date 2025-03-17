@@ -253,6 +253,7 @@ def cross_virtualenv(
 
 def setup_python(
     tmp: Path,
+    *,
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
@@ -434,10 +435,10 @@ def build(options: Options, tmp_path: Path) -> None:
 
             target_install_path, env = setup_python(
                 identifier_tmp_dir / "build",
-                config,
-                dependency_constraint_flags,
-                build_options.environment,
-                build_frontend.name,
+                python_configuration=config,
+                dependency_constraint_flags=dependency_constraint_flags,
+                environment=build_options.environment,
+                build_frontend=build_frontend.name,
                 safe_tools=build_options.safe_tools,
             )
             pip_version = get_pip_version(env)
