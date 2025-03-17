@@ -1,5 +1,4 @@
 import inspect
-import os
 import subprocess
 import textwrap
 from pathlib import Path
@@ -180,7 +179,7 @@ def test_failing_test(tmp_path):
             },
         )
 
-    assert len(os.listdir(output_dir)) == 0
+    assert len(list(output_dir.iterdir())) == 0
 
 
 @pytest.mark.parametrize("test_runner", ["pytest", "unittest"])

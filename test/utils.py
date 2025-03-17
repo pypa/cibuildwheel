@@ -140,8 +140,8 @@ def cibuildwheel_run(
             cwd=project_path,
             check=True,
         )
-        wheels = os.listdir(output_dir or tmp_output_dir)
-    return wheels
+        wheels = (output_dir or Path(tmp_output_dir)).iterdir()
+    return [str(p) for p in wheels]
 
 
 def _floor_macosx(*args: str) -> str:
