@@ -329,6 +329,11 @@ def test_environment_pass_references():
             [],
         ),
         (
+            'build-frontend = "uv"',
+            "uv",
+            [],
+        ),
+        (
             'build-frontend = {name = "build"}',
             "build",
             [],

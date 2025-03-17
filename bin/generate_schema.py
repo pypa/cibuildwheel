@@ -57,21 +57,23 @@ properties:
     type: string_array
   build-frontend:
     default: default
-    description: Set the tool to use to build, either "build" (default), "build[uv]", or "pip"
+    description: Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip"
     oneOf:
-      - enum: [pip, build, "build[uv]", default]
+      - enum: [pip, build, "build[uv]", uv, default]
       - type: string
         pattern: '^pip; ?args:'
       - type: string
         pattern: '^build; ?args:'
       - type: string
         pattern: '^build\\[uv\\]; ?args:'
+      - type: string
+        pattern: '^uv; ?args:'
       - type: object
         additionalProperties: false
         required: [name]
         properties:
           name:
-            enum: [pip, build, "build[uv]"]
+            enum: [pip, build, "build[uv]", uv]
           args:
             type: array
             items:

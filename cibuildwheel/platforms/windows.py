@@ -268,10 +268,10 @@ def setup_python(
         raise ValueError(msg)
     assert base_python.exists()
 
-    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
+    if build_frontend in {"build[uv]", "uv"} and not can_use_uv(python_configuration):
         build_frontend = "build"
 
-    use_uv = build_frontend == "build[uv]"
+    use_uv = build_frontend in {"build[uv]", "uv"}
     uv_path = find_uv()
 
     log.step("Setting up build environment...")
@@ -403,8 +403,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
-
-            use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
+            use_uv = build_frontend.name in {"build[uv]", "uv"} and can_use_uv(config)
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -498,6 +497,17 @@ def build(options: Options, tmp_path: Path) -> None:
                             build_options.package_dir,
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                            env=env,
+                        )
+                    case "uv":
+                        call(
+                            "uv",
+                            "build",
+                            "--python=python",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--out-dir={built_wheel_dir}",
                             *extra_flags,
                             env=env,
                         )
