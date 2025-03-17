@@ -207,7 +207,7 @@ def build_in_container(
         local_identifier_tmp_dir = local_tmp_dir / config.identifier
         build_options = options.build_options(config.identifier)
         build_frontend = build_options.build_frontend
-        use_uv = build_frontend.name == "build[uv]"
+        use_uv = build_frontend.name in {"build[uv]", "uv"}
         pip = ["uv", "pip"] if use_uv else ["pip"]
 
         log.step("Setting up build environment...")
@@ -303,6 +303,19 @@ def build_in_container(
                             container_package_dir,
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                        ],
+                        env=env,
+                    )
+                case "uv":
+                    container.call(
+                        [
+                            "uv",
+                            "build",
+                            "--python=python",
+                            container_package_dir,
+                            "--wheel",
+                            f"--out-dir={built_wheel_dir}",
                             *extra_flags,
                         ],
                         env=env,
