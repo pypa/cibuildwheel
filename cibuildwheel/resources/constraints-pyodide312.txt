@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 annotated-types==0.7.0
     # via pydantic
-anyio==4.8.0
+anyio==4.9.0
     # via httpx
 auditwheel-emscripten==0.0.16
     # via pyodide-build
@@ -23,7 +23,7 @@ cmake==3.31.6
     # via pyodide-build
 distlib==0.3.9
     # via virtualenv
-filelock==3.17.0
+filelock==3.18.0
     # via virtualenv
 h11==0.14.0
     # via httpcore
@@ -98,7 +98,7 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   typer
-unearth==0.17.2
+unearth==0.17.3
     # via pyodide-build
 urllib3==2.3.0
     # via requests
