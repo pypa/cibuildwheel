@@ -202,7 +202,7 @@ def build_in_container(
         log.build_start(config.identifier)
         local_identifier_tmp_dir = local_tmp_dir / config.identifier
         build_options = options.build_options(config.identifier)
-        build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
+        build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
         use_uv = build_frontend.name == "build[uv]"
         pip = ["uv", "pip"] if use_uv else ["pip"]
 
