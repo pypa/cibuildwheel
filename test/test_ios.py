@@ -9,8 +9,8 @@ import pytest
 
 from . import test_projects, utils
 
-basic_project = test_projects.new_c_project()
-basic_project.files["tests/test_platform.py"] = f"""
+basic_project_files = {
+    "tests/test_platform.py": f"""
 import platform
 from unittest import TestCase
 
@@ -19,6 +19,7 @@ class TestPlatform(TestCase):
         self.assertEqual(platform.machine(), "{platform.machine()}")
 
 """
+}
 
 
 # iOS tests shouldn't be run in parallel, because they're dependent on starting
@@ -32,11 +33,9 @@ class TestPlatform(TestCase):
         {"CIBW_PLATFORM": "ios"},
         # Also check the build frontend
         {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
-        # With a safe tool declaration
-        {"CIBW_PLATFORM": "ios", "CIBW_SAFE_TOOLS": "cmake"},
     ],
 )
-def test_ios_platforms(tmp_path, build_config):
+def test_ios_platforms(tmp_path, build_config, monkeypatch):
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
@@ -44,13 +43,31 @@ def test_ios_platforms(tmp_path, build_config):
     if "CIBW_SAFE_TOOLS" in build_config and shutil.which("cmake") is None:
         pytest.xfail("test machine doesn't have cmake installed")
 
+    # Create a temporary "bin" directory, symlink a tool that we know eixsts
+    # (/usr/bin/true) into that location under a name that should be unique,
+    # and add the temp bin directory to the PATH.
+    tools_dir = tmp_path / "bin"
+    tools_dir.mkdir()
+    tools_dir.joinpath("does-exist").symlink_to(shutil.which("true"))
+
+    monkeypatch.setenv("PATH", str(tools_dir), prepend=os.pathsep)
+
+    # Generate a test project that has an additional before-build step using the
+    # known-to-exist tool.
     project_dir = tmp_path / "project"
+    setup_py_add = "import subprocess\nsubprocess.run('does-exist', check=True)\n"
+    basic_project = test_projects.new_c_project(setup_py_add=setup_py_add)
+    basic_project.files.update(basic_project_files)
     basic_project.generate(project_dir)
 
+    # Build the wheels. Mark the "does-exist" tool as safe, and invoke it during
+    # a `before-build` step. It will also be invoked when `setup.py` is invoked.
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
+            "CIBW_BEFORE_BUILD": "does-exist",
             "CIBW_BUILD": "cp313-*",
+            "CIBW_SAFE_TOOLS": "does-exist",
             "CIBW_TEST_SOURCES": "tests",
             "CIBW_TEST_COMMAND": "unittest discover tests test_platform.py",
             **build_config,
@@ -83,6 +100,8 @@ def test_no_test_sources(tmp_path, capfd):
         pytest.skip("this test only works with Xcode 13.0 or greater")
 
     project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
     basic_project.generate(project_dir)
 
     with pytest.raises(subprocess.CalledProcessError):
@@ -106,6 +125,8 @@ def test_missing_safe_tool(tmp_path, capfd):
         pytest.skip("this test only works with Xcode 13.0 or greater")
 
     project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
     basic_project.generate(project_dir)
 
     with pytest.raises(subprocess.CalledProcessError):
