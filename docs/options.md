@@ -1053,6 +1053,8 @@ If there are binaries present on the `PATH` when you invoke cibuildwheel, and th
 
 If you declare a tool as a cross-build tool, and that tool cannot be found in the runtime environment, an error will be raised.
 
+*Any* tool used by the build process must be included in the `CIBW_XBUILD_TOOLS` list, not just tools that cibuildwheel will invoke directly. For example, if your build invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your safe tools list.
+
 Platform-specific environment variables are also available on platforms that use cross-platform environment isolation:<br/>
  `CIBW_XBUILD_TOOLS_IOS`
 
