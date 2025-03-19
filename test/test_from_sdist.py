@@ -53,7 +53,7 @@ def cibuildwheel_from_sdist_run(
             env=env,
             check=True,
         )
-        return [str(p) for p in Path(tmp_output_dir).iterdir()]
+        return [p.name for p in Path(tmp_output_dir).iterdir()]
 
 
 # tests
