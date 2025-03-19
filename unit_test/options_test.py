@@ -22,7 +22,7 @@ PYPROJECT_1 = """
 build = ["cp38-*", "cp313-*"]
 skip = ["*musllinux*"]
 environment = {FOO="BAR"}
-safe-tools = ["cmake", "rustc"]
+xbuild-tools = ["cmake", "rustc"]
 
 test-command = "pyproject"
 test-sources = ["test", "other dir"]
@@ -74,14 +74,14 @@ def test_options_1(tmp_path, monkeypatch):
     pinned_x86_64_container_image = all_pinned_container_images["x86_64"]
 
     local = options.build_options("cp38-manylinux_x86_64")
-    assert local.safe_tools == ["cmake", "rustc"]
+    assert local.xbuild_tools == ["cmake", "rustc"]
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject"
     assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux1"]
 
     local = options.build_options("cp313-manylinux_x86_64")
-    assert local.safe_tools == ["cmake", "rustc"]
+    assert local.xbuild_tools == ["cmake", "rustc"]
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
     assert local.test_sources == ["test", "other dir"]

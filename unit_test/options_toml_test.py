@@ -89,7 +89,7 @@ def test_envvar_override(tmp_path, platform):
         env={
             "CIBW_BUILD": "cp38*",
             "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux_2_24",
-            "CIBW_SAFE_TOOLS": "cmake rustc",
+            "CIBW_XBUILD_TOOLS": "cmake rustc",
             "CIBW_TEST_COMMAND": "mytest",
             "CIBW_TEST_REQUIRES": "docs",
             "CIBW_TEST_GROUPS": "mgroup two",
@@ -106,7 +106,7 @@ def test_envvar_override(tmp_path, platform):
     assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
     assert (
-        options_reader.get("safe-tools", option_format=ListFormat(" ", quote=shlex.quote))
+        options_reader.get("xbuild-tools", option_format=ListFormat(" ", quote=shlex.quote))
         == "cmake rustc"
     )
     assert (

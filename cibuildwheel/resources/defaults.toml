@@ -14,7 +14,7 @@ build-verbosity = 0
 
 before-all = ""
 before-build = ""
-safe-tools = []
+xbuild-tools = []
 repair-wheel-command = ""
 
 test-command = ""

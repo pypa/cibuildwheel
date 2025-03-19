@@ -58,14 +58,15 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch):
     basic_project.files.update(basic_project_files)
     basic_project.generate(project_dir)
 
-    # Build the wheels. Mark the "does-exist" tool as safe, and invoke it during
-    # a `before-build` step. It will also be invoked when `setup.py` is invoked.
+    # Build the wheels. Mark the "does-exist" tool as a cross-build tool, and
+    # invoke it during a `before-build` step. It will also be invoked when
+    # `setup.py` is invoked.
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
             "CIBW_BEFORE_BUILD": "does-exist",
             "CIBW_BUILD": "cp313-*",
-            "CIBW_SAFE_TOOLS": "does-exist",
+            "CIBW_XBUILD_TOOLS": "does-exist",
             "CIBW_TEST_SOURCES": "tests",
             "CIBW_TEST_COMMAND": "unittest discover tests test_platform.py",
             **build_config,
@@ -116,7 +117,7 @@ def test_no_test_sources(tmp_path, capfd):
     assert "Testing on iOS requires a definition of test-sources." in captured.err
 
 
-def test_missing_safe_tool(tmp_path, capfd):
+def test_missing_xbuild_tool(tmp_path, capfd):
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
@@ -134,7 +135,7 @@ def test_missing_safe_tool(tmp_path, capfd):
                 "CIBW_PLATFORM": "ios",
                 "CIBW_BUILD": "cp313-*",
                 "CIBW_TEST_COMMAND": "tests",
-                "CIBW_SAFE_TOOLS": "does-not-exist",
+                "CIBW_XBUILD_TOOLS": "does-not-exist",
             },
         )
 

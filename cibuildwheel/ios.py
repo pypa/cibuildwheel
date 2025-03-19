@@ -147,7 +147,7 @@ def cross_virtualenv(
     build_python: Path,
     venv_path: Path,
     dependency_constraint_flags: Sequence[PathOrStr],
-    safe_tools: Sequence[str],
+    xbuild_tools: Sequence[str],
 ) -> dict[str, str]:
     """Create a cross-compilation virtual environment.
 
@@ -175,7 +175,7 @@ def cross_virtualenv(
         created.
     :param dependency_constraint_flags: Any flags that should be used when
         constraining dependencies in the environment.
-    :param safe_tools: A list of executable names (without paths) that are
+    :param xbuild_tools: A list of executable names (without paths) that are
         on the path, but must be preserved in the cross environment.
     """
     # Create an initial macOS virtual environment
@@ -215,9 +215,9 @@ def cross_virtualenv(
     # (fully resolving symlinks) to a "safe" location that will *only* contain
     # those tools. This avoids needing to add *all* of Homebrew to the path just
     # to get access to (for example) cmake for build purposes.
-    safe_tools_path = venv_path / "cibw_safe_tools"
-    safe_tools_path.mkdir()
-    for tool in safe_tools:
+    xbuild_tools_path = venv_path / "cibw_xbuild_tools"
+    xbuild_tools_path.mkdir()
+    for tool in xbuild_tools:
         tool_path = shutil.which(tool)
         if tool_path is None:
             msg = f"Could not find a {tool!r} executable on the path."
@@ -225,8 +225,8 @@ def cross_virtualenv(
 
         # Link the binary into the safe tools directory
         original = Path(tool_path).resolve()
-        print(f"{tool!r} is a safe tool in the cross-build environment (using {original})")
-        (safe_tools_path / tool).symlink_to(original)
+        print(f"{tool!r} will be included in the cross-build environment (using {original})")
+        (xbuild_tools_path / tool).symlink_to(original)
 
     env["PATH"] = os.pathsep.join(
         [
@@ -234,8 +234,8 @@ def cross_virtualenv(
             str(target_python.parent),
             # The cross-platform environment's binary directory
             str(venv_path / "bin"),
-            # The directory of safe tools
-            str(safe_tools_path),
+            # The directory of cross-build tools
+            str(xbuild_tools_path),
             # The bare minimum Apple system paths.
             "/usr/bin",
             "/bin",
@@ -258,7 +258,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
-    safe_tools: Sequence[str],
+    xbuild_tools: Sequence[str],
 ) -> tuple[Path, dict[str, str]]:
     if build_frontend == "build[uv]":
         msg = "uv doesn't support iOS"
@@ -311,7 +311,7 @@ def setup_python(
         build_python=build_python,
         venv_path=venv_path,
         dependency_constraint_flags=dependency_constraint_flags,
-        safe_tools=safe_tools,
+        xbuild_tools=xbuild_tools,
     )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
@@ -439,7 +439,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 dependency_constraint_flags=dependency_constraint_flags,
                 environment=build_options.environment,
                 build_frontend=build_frontend.name,
-                safe_tools=build_options.safe_tools,
+                xbuild_tools=build_options.xbuild_tools,
             )
             pip_version = get_pip_version(env)
 

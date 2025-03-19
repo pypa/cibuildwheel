@@ -397,8 +397,8 @@
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MUSLLINUX_X86_64_IMAGE"
     },
-    "safe-tools": {
-      "description": "Binaries on the path that are safe to include in an isolated cross-build environment",
+    "xbuild-tools": {
+      "description": "Binaries on the path that should be included in an isolated cross-build environment",
       "oneOf": [
         {
           "type": "string"
@@ -410,7 +410,7 @@
           }
         }
       ],
-      "title": "CIBW_SAFE_TOOLS"
+      "title": "CIBW_XBUILD_TOOLS"
     },
     "repair-wheel-command": {
       "description": "Execute a shell command to repair each built wheel.",
@@ -581,7 +581,7 @@
               "environment-pass": {
                 "$ref": "#/$defs/inherit"
               },
-              "safe-tools": {
+              "xbuild-tools": {
                 "$ref": "#/$defs/inherit"
               },
               "repair-wheel-command": {
@@ -1009,8 +1009,8 @@
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
-        "safe-tools": {
-          "$ref": "#/properties/safe-tools"
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
         },
         "test-command": {
           "$ref": "#/properties/test-command"
