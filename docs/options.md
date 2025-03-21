@@ -649,7 +649,7 @@ This option can also be set using the [command-line option](#command-line)
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
-> Set the tool to use to build, either "pip" (default for now), "build", or "build\[uv\]"
+> Set the tool to use to build, either "build" (default), "build/[uv/]", or "pip"
 
 Options:
 
@@ -658,8 +658,8 @@ Options:
 
 Default: `pip`
 
-Choose which build frontend to use. Can either be "pip", which will run
-`python -m pip wheel`, or "build", which will run `python -m build --wheel`.
+Choose which build frontend to use. Can either be "build", which will run
+`python -m build --wheel`, or "pip", which will run `python -m pip wheel`.
 
 You can also use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making

@@ -389,7 +389,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
+            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
             # uv doesn't support iOS
             if build_frontend.name == "build[uv]":
                 msg = "uv doesn't support iOS"
