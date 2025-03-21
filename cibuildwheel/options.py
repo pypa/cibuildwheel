@@ -108,6 +108,7 @@ class BuildOptions:
     build_frontend: BuildFrontendConfig | None
     config_settings: str
     container_engine: OCIContainerEngineConfig
+    pyodide_version: str | None
 
     @property
     def package_dir(self) -> Path:
@@ -825,6 +826,8 @@ class Options:
                 msg = f"Failed to parse container config. {e}"
                 raise errors.ConfigurationError(msg) from e
 
+            pyodide_version = self.reader.get("pyodide-version", env_plat=False)
+
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
@@ -844,6 +847,7 @@ class Options:
                 build_frontend=build_frontend,
                 config_settings=config_settings,
                 container_engine=container_engine,
+                pyodide_version=pyodide_version or None,
             )
 
     def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:
