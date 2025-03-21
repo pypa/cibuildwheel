@@ -41,8 +41,11 @@ macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to c
 
 If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
 
-Note:
-For Rust-based extensions, `Rustc` requires `MACOSX_DEPLOYMENT_TARGET` to be at least 10.12. However, `cibuildwheel` defaults to 10.9 for **Intel / CPython 3.8-3.11** builds. Users must manually set `MACOSX_DEPLOYMENT_TARGET` to 10.12 or higher when building Rust extensions.
+!!! note
+    For Rust-based extensions, `Rustc` requires `MACOSX_DEPLOYMENT_TARGET` to be at
+    least 10.12. However, `cibuildwheel` defaults to 10.9 for
+    **Intel / CPython 3.8-3.11** builds. Users must manually set
+    `MACOSX_DEPLOYMENT_TARGET` to 10.12 or higher when building Rust extensions.
 
 ## Universal builds
 
