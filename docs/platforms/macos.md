@@ -41,6 +41,9 @@ macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to c
 
 If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
 
+Note:
+For Rust-based extensions, `Rustc` requires `MACOSX_DEPLOYMENT_TARGET` to be at least 10.12. However, `cibuildwheel` defaults to 10.9 for **Intel / CPython 3.8-3.11** builds. Users must manually set `MACOSX_DEPLOYMENT_TARGET` to 10.12 or higher when building Rust extensions.
+
 ## Universal builds
 
 By default, macOS builds will build a single architecture wheel, using the build machine's architecture. If you need to support both x86_64 and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel will test x86_64 wheels (or the x86_64 slice of a `universal2` wheel) when running on Apple Silicon hardware, but it is *not* possible to test Apple Silicon wheels on x86_64 hardware.
