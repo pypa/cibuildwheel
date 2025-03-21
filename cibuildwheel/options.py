@@ -674,16 +674,17 @@ class Options:
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
         error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
-        warning_set = error_set  # shall include error_set
+        warning_set: set[str] = set()
+
+        if value in error_set:
+            msg = (
+                f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
+                "supported image or continue using the image by pinning it directly with"
+                " its full OCI registry '<name>{:<tag>|@<digest>}'."
+            )
+            raise errors.DeprecationError(msg)
 
         if value in warning_set and value not in self._image_warnings:
-            if value in error_set:
-                msg = (
-                    f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
-                    "supported image or continue using the image by pinning it directly with"
-                    " its full OCI registry '<name>{:<tag>|@<digest>}'."
-                )
-                raise errors.DeprecationError(msg)
             self._image_warnings.add(value)
             msg = (
                 f"Deprecated image {value!r}. This value will not work"
