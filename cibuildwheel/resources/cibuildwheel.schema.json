@@ -397,6 +397,11 @@
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MUSLLINUX_X86_64_IMAGE"
     },
+    "pyodide-version": {
+      "type": "string",
+      "description": "Specify the version of Pyodide to use",
+      "title": "CIBW_PYODIDE_VERSION"
+    },
     "repair-wheel-command": {
       "description": "Execute a shell command to repair each built wheel.",
       "oneOf": [
@@ -658,6 +663,9 @@
           "musllinux-x86_64-image": {
             "$ref": "#/properties/musllinux-x86_64-image"
           },
+          "pyodide-version": {
+            "$ref": "#/properties/pyodide-version"
+          },
           "repair-wheel-command": {
             "$ref": "#/properties/repair-wheel-command"
           },
@@ -758,6 +766,9 @@
         "musllinux-x86_64-image": {
           "$ref": "#/properties/musllinux-x86_64-image"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
           "oneOf": [
@@ -822,6 +833,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -872,6 +886,9 @@
         },
         "environment": {
           "$ref": "#/properties/environment"
+        },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
         },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
@@ -937,6 +954,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -954,11 +974,6 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
-        },
-        "pyodide-version": {
-          "description": "Specify the Pyodide xbuildenv version to use for building",
-          "type": "string",
-          "title": "CIBW_PYODIDE_VERSION"
         }
       }
     },
@@ -993,6 +1008,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -1002,10 +1020,16 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
+        },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
+        },
         "test-requires": {
           "$ref": "#/properties/test-requires"
         }
-       }
+      }
     }
   }
 }
