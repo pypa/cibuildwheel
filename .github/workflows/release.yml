@@ -33,7 +33,7 @@ jobs:
         path: dist
 
     - name: Generate artifact attestation for sdist and wheel
-      uses: actions/attest-build-provenance@ef244123eb79f2f7a7e75d99086184180e6d0018 # v1.4.4
+      uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
       with:
         subject-path: "dist/cibuildwheel-*"
 

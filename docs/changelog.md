@@ -4,6 +4,41 @@ title: Changelog
 
 # Changelog
 
+### v2.23.1
+
+_15 March 2025_
+
+- ⚠️ Added warnings when the shorthand values `manylinux1`, `manylinux2010`, `manylinux_2_24`, and `musllinux_1_1` are used to specify the images in linux builds. The shorthand to these (unmaintainted) images will be removed in v3.0. If you want to keep using these images, explicitly opt-in using the full image URL, which can be found in [this file](https://github.com/pypa/cibuildwheel/blob/v2.23.1/cibuildwheel/resources/pinned_docker_images.cfg). (#2312)
+- 🛠 Dependency updates, including a manylinux update which fixes an [issue with rustup](https://github.com/pypa/cibuildwheel/issues/2303). (#2315)
+
+### v2.23.0
+
+_1 March 2025_
+
+- ✨ Adds official support for the new GitHub Actions Arm runners. In fact these worked out-of-the-box, now we include them in our tests and example configs. (#2135 via #2281)
+- ✨ Adds support for building PyPy 3.11 wheels (#2268 via #2281)
+- 🛠 Adopts the beta pypa/manylinux image for armv7l builds (#2269 via #2281)
+- 🛠 Dependency updates, including Pyodide 0.27 (#2117 and #2281)
+
+### v2.22.0
+
+_23 November 2024_
+
+- 🌟 Added a new `CIBW_ENABLE`/`enable` feature that replaces `CIBW_FREETHREADED_SUPPORT`/`free-threaded-support` and `CIBW_PRERELEASE_PYTHONS` with a system that supports both. In cibuildwheel 3, this will also include a PyPy setting and the deprecated options will be removed. (#2048)
+- 🌟 [Dependency groups](https://peps.python.org/pep-0735/) are now supported for tests. Use `CIBW_TEST_GROUPS`/`test-groups` to specify groups in `[dependency-groups]` for testing. (#2063)
+- 🌟 Support for the experimental Ubuntu-based ARMv7l manylinux image (#2052)
+- ✨ Show a warning when cibuildwheel is run from Python 3.10 or older; cibuildwheel 3.0 will require Python 3.11 or newer as host (#2050)
+- 🐛 Fix issue with stderr interfering with checking the docker version (#2074)
+- 🛠 Python 3.9 is now used in `CIBW_BEFORE_ALL`/`before-all` on linux, replacing 3.8, which is now EoL (#2043)
+- 🛠 Error messages for producing a pure-Python wheel are slightly more informative (#2044)
+- 🛠 Better error when `uname -m` fails on ARM (#2049)
+- 🛠 Better error when repair fails and docs for abi3audit on Windows (#2058)
+- 🛠 Better error when `manylinux-interpreters ensure` fails (#2066)
+- 🛠 Update Pyodide to 0.26.4, and adapt to the unbundled pyodide-build (now 0.29) (#2090)
+- 🛠 Now cibuildwheel uses dependency-groups for development dependencies (#2064, #2085)
+- 📚 Docs updates and tidy ups (#2061, #2067, #2072)
+
+
 ### v2.21.3
 
 _9 October 2024_

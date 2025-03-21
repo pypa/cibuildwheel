@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 import platform as platform_module
 import textwrap
@@ -15,15 +13,18 @@ from cibuildwheel.options import (
     Options,
     _get_pinned_container_images,
 )
-from cibuildwheel.util import EnableGroups
+from cibuildwheel.selector import EnableGroup
+from cibuildwheel.util import resources
+from cibuildwheel.util.packaging import DependencyConstraints
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
-build = ["cp38*", "cp37*"]
+build = ["cp38-*", "cp313-*"]
 skip = ["*musllinux*"]
 environment = {FOO="BAR"}
 
 test-command = "pyproject"
+test-sources = ["test", "other dir"]
 
 manylinux-x86_64-image = "manylinux1"
 
@@ -33,7 +34,7 @@ environment-pass = ["EXAMPLE_ENV"]
 test-requires = "else"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp37*"
+select = "cp313-*"
 test-command = "pyproject-override"
 manylinux-x86_64-image = "manylinux2014"
 """
@@ -59,7 +60,7 @@ def test_options_1(tmp_path, monkeypatch):
 
     override_display = """\
   *: pyproject
-  cp37-manylinux_x86_64, cp37-manylinux_i686: pyproject-override"""
+  cp313-manylinux_x86_64, cp313-manylinux_i686: pyproject-override"""
     print(options.summary(identifiers))
 
     assert override_display in options.summary(identifiers)
@@ -74,11 +75,13 @@ def test_options_1(tmp_path, monkeypatch):
     local = options.build_options("cp38-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject"
+    assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux1"]
 
-    local = options.build_options("cp37-manylinux_x86_64")
+    local = options.build_options("cp313-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
+    assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux2014"]
 
 
@@ -426,24 +429,32 @@ def test_override_inherit_environment_with_references(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("toml_assignment", "env", "expected_result"),
+    ("toml_assignment", "env", "enable_args", "expected_result"),
     [
-        ("", {}, False),
-        ("free-threaded-support = true", {}, True),
-        ("free-threaded-support = false", {}, False),
-        ("", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
-        ("", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
-        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": "1"}, True),
-        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": "0"}, False),
-        ("free-threaded-support = true", {"CIBW_FREE_THREADED_SUPPORT": ""}, True),
-        ("free-threaded-support = false", {"CIBW_FREE_THREADED_SUPPORT": ""}, False),
+        ("", {}, [], False),
+        ("enable = ['cpython-freethreading']", {}, [], True),
+        ("enable = []", {}, [], False),
+        ("", {}, ["cpython-freethreading"], True),
+        ("", {}, ["cpython-freethreading", "pypy"], True),
+        ("", {"CIBW_ENABLE": "pypy"}, [], False),
+        ("", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
+        ("enable = []", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
+        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": "pypy"}, [], True),
+        ("enable = ['cpython-freethreading']", {}, ["pypy"], True),
+        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": ""}, [], True),
+        ("enable = []", {"CIBW_ENABLE": ""}, [], False),
     ],
 )
 def test_free_threaded_support(
-    tmp_path: Path, toml_assignment: str, env: dict[str, str], expected_result: bool
+    tmp_path: Path,
+    toml_assignment: str,
+    env: dict[str, str],
+    enable_args: list[str],
+    expected_result: bool,
 ) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
+    args.enable = enable_args
 
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
@@ -456,6 +467,98 @@ def test_free_threaded_support(
     )
     options = Options(platform="linux", command_line_arguments=args, env=env)
     if expected_result:
-        assert EnableGroups.CPythonFreeThreading in options.globals.build_selector.enable
+        assert EnableGroup.CPythonFreeThreading in options.globals.build_selector.enable
     else:
-        assert EnableGroups.CPythonFreeThreading not in options.globals.build_selector.enable
+        assert EnableGroup.CPythonFreeThreading not in options.globals.build_selector.enable
+
+
+@pytest.mark.parametrize(
+    ("toml_assignment", "base_file_path", "packages"),
+    [
+        ("", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'pinned'", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'latest'", None, []),
+        ("dependency-versions = 'constraints file.txt'", Path("constraints file.txt"), []),
+        (
+            "dependency-versions = \"file:'constraints file.txt'\"",
+            Path("constraints file.txt"),
+            [],
+        ),
+        (
+            "dependency-versions = {file = 'constraints file.txt'}",
+            Path("constraints file.txt"),
+            [],
+        ),
+        (
+            "dependency-versions = 'packages: foo==1.2.3 bar==4.5.6'",
+            None,
+            ["foo==1.2.3", "bar==4.5.6"],
+        ),
+    ],
+)
+def test_dependency_versions_toml(
+    tmp_path: Path,
+    toml_assignment: str,
+    base_file_path: Path | None,
+    packages: list[str] | None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    (tmp_path / "constraints file.txt").write_text("")
+    monkeypatch.chdir(tmp_path)
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {toml_assignment}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    parsed_dependency_constraints = options.build_options(None).dependency_constraints
+    if base_file_path is None and packages is None:
+        assert parsed_dependency_constraints == DependencyConstraints.latest()
+    else:
+        if parsed_dependency_constraints.base_file_path and base_file_path:
+            assert parsed_dependency_constraints.base_file_path.samefile(base_file_path)
+        else:
+            assert parsed_dependency_constraints.base_file_path == base_file_path
+        assert parsed_dependency_constraints.packages == packages
+
+
+@pytest.mark.parametrize(
+    ("image", "deprecated"),
+    [
+        ("manylinux1", True),
+        ("manylinux2010", True),
+        ("manylinux2014", False),
+        ("manylinux_2_24", True),
+        ("manylinux_2_28", False),
+        ("manylinux_2_34", False),
+        ("musllinux_1_1", True),
+        ("musllinux_1_2", False),
+    ],
+)
+def test_deprecated_image(image: str, deprecated: bool, capsys: pytest.CaptureFixture[str]) -> None:
+    args = CommandLineArguments.defaults()
+    env = {
+        "CIBW_ARCHS": "x86_64",
+        "CIBW_MANYLINUX_X86_64_IMAGE": image if image.startswith("manylinux") else "",
+        "CIBW_MUSLLINUX_X86_64_IMAGE": image if image.startswith("musllinux") else "",
+    }
+    options = Options(platform="linux", command_line_arguments=args, env=env)
+    bo = options.build_options(None)
+    images = bo.manylinux_images if image.startswith("manylinux") else bo.musllinux_images
+    assert images is not None
+    resolved_image = images["x86_64"]
+    captured = capsys.readouterr()
+    if deprecated:
+        assert f"Deprecated image {image!r}" in captured.err
+        assert f"{resolved_image!r}" in captured.err
+    else:
+        assert "Deprecated image" not in captured.err

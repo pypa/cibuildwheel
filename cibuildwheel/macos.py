@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import functools
 import inspect
 import os
@@ -12,45 +10,34 @@ import typing
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Tuple
+from typing import Literal, assert_never
 
 from filelock import FileLock
 from packaging.version import Version
 
 from . import errors
-from ._compat.typing import assert_never
 from .architecture import Architecture
+from .ci import detect_ci_provider
 from .environment import ParsedEnvironment
+from .frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
 from .logger import log
 from .options import Options
+from .selector import BuildSelector
 from .typing import PathOrStr
-from .util import (
+from .util import resources
+from .util.cmd import call, shell
+from .util.file import (
     CIBW_CACHE_PATH,
-    BuildFrontendConfig,
-    BuildFrontendName,
-    BuildSelector,
-    call,
-    combine_constraints,
-    detect_ci_provider,
+    copy_test_sources,
     download,
-    find_compatible_wheel,
-    find_uv,
-    free_thread_enable_313,
-    get_build_verbosity_extra_flags,
-    get_pip_version,
-    install_certifi_script,
     move_file,
-    prepare_command,
-    read_python_configs,
-    shell,
-    split_config_settings,
-    test_fail_cwd_file,
-    unwrap,
-    virtualenv,
 )
+from .util.helpers import prepare_command, unwrap
+from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from .venv import find_uv, virtualenv
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def get_macos_version() -> tuple[int, int]:
     """
     Returns the macOS major/minor version, as a tuple, e.g. (10, 15) or (11, 0)
@@ -74,10 +61,10 @@ def get_macos_version() -> tuple[int, int]:
             capture_stdout=True,
         )
         version = tuple(map(int, version_str.split(".")[:2]))
-    return typing.cast(Tuple[int, int], version)
+    return typing.cast(tuple[int, int], version)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def get_test_macosx_deployment_target() -> str:
     version = get_macos_version()
     if version >= (11, 0):
@@ -100,7 +87,7 @@ class PythonConfiguration:
 def get_python_configurations(
     build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[PythonConfiguration]:
-    full_python_configs = read_python_configs("macos")
+    full_python_configs = resources.read_python_configs("macos")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
@@ -130,7 +117,7 @@ def get_python_configurations(
             log.quiet(
                 unwrap(
                     f"""
-                    Note: {ids}  {'was' if len(removed_elements) == 1 else 'were'}
+                    Note: {ids}  {"was" if len(removed_elements) == 1 else "were"}
                     selected, but can't be built on x86_64 so will be skipped automatically.
                     """
                 )
@@ -139,7 +126,7 @@ def get_python_configurations(
     return python_configurations
 
 
-def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> Path:
+def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) -> Path:
     ft = "T" if free_threading else ""
     installation_path = Path(f"/Library/Frameworks/Python{ft}.framework/Versions/{version}")
     with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
@@ -155,20 +142,20 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
                         Error: CPython {version} is not installed.
                         cibuildwheel will not perform system-wide installs when running outside of CI.
                         To build locally, install CPython {version} on this machine, or, disable this
-                        version of Python using CIBW_SKIP=cp{version.replace('.', '')}-macosx_*
+                        version of Python using CIBW_SKIP=cp{version.replace(".", "")}-macosx_*
                         For portable builds, cibuildwheel needs the official builds from python.org.
                         Download link: {url}
                     """
                 )
                 raise errors.FatalError(msg)
-            pkg_path = tmp / "Python.pkg"
-            # download the pkg
-            download(url, pkg_path)
-            # install
+            python_filename = url.split("/")[-1]
+            pkg_path = CIBW_CACHE_PATH / "cpython-installer" / python_filename
+            if not pkg_path.exists():
+                download(url, pkg_path)
             args = []
             if version.startswith("3.13"):
                 # Python 3.13 is the first version to have a free-threading option
-                args += ["-applyChoiceChangesXML", str(free_thread_enable_313.resolve())]
+                args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_313.resolve())]
             call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
@@ -176,9 +163,13 @@ def install_cpython(tmp: Path, version: str, url: str, free_threading: bool) -> 
 
             if free_threading:
                 call(installation_path / f"bin/python{version}t", "-m", "ensurepip", env=env)
-                call(installation_path / f"bin/python{version}t", install_certifi_script, env=env)
+                call(
+                    installation_path / f"bin/python{version}t",
+                    resources.INSTALL_CERTIFI_SCRIPT,
+                    env=env,
+                )
             else:
-                call(installation_path / "bin/python3", install_certifi_script, env=env)
+                call(installation_path / "bin/python3", resources.INSTALL_CERTIFI_SCRIPT, env=env)
 
     return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
@@ -198,11 +189,6 @@ def install_pypy(tmp: Path, url: str) -> Path:
     return installation_path / "bin" / "pypy3"
 
 
-def can_use_uv(python_configuration: PythonConfiguration) -> bool:
-    conditions = (Version(python_configuration.version) >= Version("3.8"),)
-    return all(conditions)
-
-
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -210,9 +196,6 @@ def setup_python(
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
 ) -> tuple[Path, dict[str, str]]:
-    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
-        build_frontend = "build"
-
     uv_path = find_uv()
     use_uv = build_frontend == "build[uv]"
 
@@ -230,9 +213,9 @@ def setup_python(
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
-    assert (
-        base_python.exists()
-    ), f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
+    assert base_python.exists(), (
+        f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
+    )
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -282,7 +265,7 @@ def setup_python(
     which_python = call("which", "python", env=env, capture_stdout=True).strip()
     print(which_python)
     if which_python != str(venv_bin_path / "python"):
-        msg = "cibuildwheel: python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+        msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
         raise errors.FatalError(msg)
     call("python", "--version", env=env)
 
@@ -292,7 +275,7 @@ def setup_python(
         which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
         print(which_pip)
         if which_pip != str(venv_bin_path / "pip"):
-            msg = "cibuildwheel: pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+            msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
             raise errors.FatalError(msg)
         call("pip", "--version", env=env)
 
@@ -322,20 +305,19 @@ def setup_python(
         )
         env["MACOSX_DEPLOYMENT_TARGET"] = default_target
 
-    if python_configuration.version not in {"3.6", "3.7"}:
-        if config_is_arm64:
-            # macOS 11 is the first OS with arm64 support, so the wheels
-            # have that as a minimum.
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
-            env.setdefault("ARCHFLAGS", "-arch arm64")
-        elif config_is_universal2:
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
-            env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
-        elif python_configuration.identifier.endswith("x86_64"):
-            # even on the macos11.0 Python installer, on the x86_64 side it's
-            # compatible back to 10.9.
-            env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
-            env.setdefault("ARCHFLAGS", "-arch x86_64")
+    if config_is_arm64:
+        # macOS 11 is the first OS with arm64 support, so the wheels
+        # have that as a minimum.
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
+        env.setdefault("ARCHFLAGS", "-arch arm64")
+    elif config_is_universal2:
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
+        env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+    elif python_configuration.identifier.endswith("x86_64"):
+        # even on the macos11.0 Python installer, on the x86_64 side it's
+        # compatible back to 10.9.
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
+        env.setdefault("ARCHFLAGS", "-arch x86_64")
 
     building_arm64 = config_is_arm64 or config_is_universal2
     if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in env:
@@ -423,7 +405,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-            use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
+            use_uv = build_frontend.name == "build[uv]"
             uv_path = find_uv()
             if use_uv and uv_path is None:
                 msg = "uv not found"
@@ -439,12 +421,12 @@ def build(options: Options, tmp_path: Path) -> None:
             config_is_arm64 = config.identifier.endswith("arm64")
             config_is_universal2 = config.identifier.endswith("universal2")
 
-            dependency_constraint_flags: Sequence[PathOrStr] = []
-            if build_options.dependency_constraints:
-                dependency_constraint_flags = [
-                    "-c",
-                    build_options.dependency_constraints.get_for_python_version(config.version),
-                ]
+            constraints_path = build_options.dependency_constraints.get_for_python_version(
+                version=config.version, tmp_dir=identifier_tmp_dir
+            )
+            dependency_constraint_flags: Sequence[PathOrStr] = (
+                ["-c", constraints_path] if constraints_path else []
+            )
 
             base_python, env = setup_python(
                 identifier_tmp_dir / "build",
@@ -474,24 +456,19 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
 
-                extra_flags = split_config_settings(
-                    build_options.config_settings, build_frontend.name
+                extra_flags = get_build_frontend_extra_flags(
+                    build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
-                extra_flags += build_frontend.args
 
                 build_env = env.copy()
                 if not use_uv:
                     build_env["VIRTUALENV_PIP"] = pip_version
-                if build_options.dependency_constraints:
-                    constraint_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
-                    )
+                if constraints_path:
                     combine_constraints(
-                        build_env, constraint_path, identifier_tmp_dir if use_uv else None
+                        build_env, constraints_path, identifier_tmp_dir if use_uv else None
                     )
 
                 if build_frontend.name == "pip":
-                    extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                     # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
                     # see https://github.com/pypa/cibuildwheel/pull/369
                     call(
@@ -506,9 +483,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=build_env,
                     )
                 elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                    if not 0 <= build_options.build_verbosity < 2:
-                        msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
-                        log.warning(msg)
                     if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                         extra_flags.append("--installer=uv")
                     call(
@@ -731,14 +705,25 @@ def build(options: Options, tmp_path: Path) -> None:
                     # and not the repo code)
                     test_command_prepared = prepare_command(
                         build_options.test_command,
-                        project=Path(".").resolve(),
+                        project=Path.cwd(),
                         package=build_options.package_dir.resolve(),
                         wheel=repaired_wheel,
                     )
 
-                    test_cwd = identifier_tmp_dir / "test_cwd"
-                    test_cwd.mkdir(exist_ok=True)
-                    (test_cwd / "test_fail.py").write_text(test_fail_cwd_file.read_text())
+                    if build_options.test_sources:
+                        test_cwd = identifier_tmp_dir / "test_cwd"
+                        # only create test_cwd if it doesn't already exist - it
+                        # may have been created during a previous `testing_arch`
+                        if not test_cwd.exists():
+                            test_cwd.mkdir()
+                            copy_test_sources(
+                                build_options.test_sources,
+                                build_options.package_dir,
+                                test_cwd,
+                            )
+                    else:
+                        # There are no test sources. Run the tests in the project directory.
+                        test_cwd = Path.cwd()
 
                     shell_with_arch(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
@@ -748,7 +733,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 moved_wheel = move_file(repaired_wheel, output_wheel)
                 if moved_wheel != output_wheel.resolve():
                     log.warning(
-                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
 

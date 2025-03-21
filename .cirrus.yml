@@ -7,7 +7,6 @@ run_tests: &RUN_TESTS
   run_cibuildwheel_tests_script:
     - python ./bin/run_tests.py
 
-
 linux_x86_task:
   timeout_in: 120m
   compute_engine_instance:
@@ -16,10 +15,15 @@ linux_x86_task:
     platform: linux
     cpu: 8
     memory: 8G
-
+  env:
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
   install_pre_requirements_script:
     - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-    - apt install -y python3-venv python-is-python3
+    - add-apt-repository -y ppa:deadsnakes/ppa
+    - apt-get update
+    - apt-get install -y python3.12-venv
+    - python3.12 -m venv ${VENV_ROOT}
   <<: *RUN_TESTS
 
 linux_aarch64_task:
@@ -30,10 +34,15 @@ linux_aarch64_task:
     platform: linux
     cpu: 4
     memory: 4G
-
+  env:
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
   install_pre_requirements_script:
     - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-    - apt install -y python3-venv python-is-python3
+    - add-apt-repository -y ppa:deadsnakes/ppa
+    - apt-get update
+    - apt-get install -y python3.12-venv
+    - python3.12 -m venv ${VENV_ROOT}
   <<: *RUN_TESTS
 
 windows_x86_task:
@@ -46,7 +55,7 @@ windows_x86_task:
     memory: 8G
 
   install_pre_requirements_script:
-    - choco install -y --no-progress python3 --version 3.10.6
+    - choco install -y --no-progress python3 --version 3.12.4
     - refreshenv
     - echo PATH=%PATH% >> "%CIRRUS_ENV%"
   <<: *RUN_TESTS
@@ -54,22 +63,24 @@ windows_x86_task:
 macos_arm64_task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-runner:sonoma
-
   env:
-    PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
   install_pre_requirements_script:
-    - brew install python@3.10
+    - brew install python@3.12
+    - python3.12 -m venv ${VENV_ROOT}
   <<: *RUN_TESTS
 
 macos_arm64_cp38_task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-runner:sonoma
-
   env:
-    PATH: /opt/homebrew/opt/python@3.10/libexec/bin:$PATH
+    VENV_ROOT: ${HOME}/venv-cibuildwheel
+    PATH: ${VENV_ROOT}/bin:${PATH}
     PYTEST_ADDOPTS: --run-cp38-universal2 -k 'test_cp38_arm64_testing_universal2_installer or test_arch_auto'
   install_pre_requirements_script:
-    - brew install python@3.10
+    - brew install python@3.12
+    - python3.12 -m venv ${VENV_ROOT}
     - curl -fsSLO https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
     - sudo installer -pkg python-3.8.10-macos11.pkg -target /
     - rm python-3.8.10-macos11.pkg

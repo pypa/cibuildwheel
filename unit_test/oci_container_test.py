@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import os
 import platform
@@ -8,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import time
 from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
 
@@ -15,6 +14,7 @@ import pytest
 import tomli_w
 
 import cibuildwheel.oci_container
+from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.environment import EnvironmentAssignmentBash
 from cibuildwheel.errors import OCIEngineTooOldError
 from cibuildwheel.oci_container import (
@@ -23,7 +23,6 @@ from cibuildwheel.oci_container import (
     OCIPlatform,
     _check_engine_version,
 )
-from cibuildwheel.util import CIProvider, detect_ci_provider
 
 # Test utilities
 
@@ -138,14 +137,28 @@ def test_cwd(container_engine):
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
-@pytest.mark.skipif(
-    pm == "s390x" and detect_ci_provider() == CIProvider.travis_ci,
-    reason="test is flaky on this platform, see https://github.com/pypa/cibuildwheel/pull/1961#issuecomment-2334678966",
-)
 def test_container_removed(container_engine):
+    # test is flaky on some platforms, implement retry for 5 second
+    timeout = 50  # * 100 ms = 5s
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
+        assert container.name is not None
+        container_name = container.name
+        for _ in range(timeout):
+            docker_containers_listing = subprocess.run(
+                f"{container.engine.name} container ls",
+                shell=True,
+                check=True,
+                stdout=subprocess.PIPE,
+                text=True,
+            ).stdout
+            if container_name in docker_containers_listing:
+                break
+            time.sleep(0.1)
+        assert container_name in docker_containers_listing
+
+    for _ in range(timeout):
         docker_containers_listing = subprocess.run(
             f"{container.engine.name} container ls",
             shell=True,
@@ -153,18 +166,10 @@ def test_container_removed(container_engine):
             stdout=subprocess.PIPE,
             text=True,
         ).stdout
-        assert container.name is not None
-        assert container.name in docker_containers_listing
-        old_container_name = container.name
-
-    docker_containers_listing = subprocess.run(
-        f"{container.engine.name} container ls",
-        shell=True,
-        check=True,
-        stdout=subprocess.PIPE,
-        text=True,
-    ).stdout
-    assert old_container_name not in docker_containers_listing
+        if container_name not in docker_containers_listing:
+            break
+        time.sleep(0.1)
+    assert container_name not in docker_containers_listing
 
 
 def test_large_environment(container_engine):
@@ -547,8 +552,8 @@ def test_local_image(
     container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
 ) -> None:
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
-        and pm in {"s390x", "ppc64le"}
+        detect_ci_provider() == CIProvider.travis_ci
+        and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
@@ -577,8 +582,8 @@ def test_local_image(
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine, platform):
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
-        and pm in {"s390x", "ppc64le"}
+        detect_ci_provider() == CIProvider.travis_ci
+        and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")

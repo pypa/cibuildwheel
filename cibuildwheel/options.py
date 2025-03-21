@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import configparser
 import contextlib
@@ -9,35 +7,45 @@ import enum
 import functools
 import shlex
 import textwrap
-from collections.abc import Generator, Iterable, Set
+import tomllib
+from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence, Union  # noqa: TID251
+from typing import Any, Final, Literal, Self, assert_never
 
 from packaging.specifiers import SpecifierSet
 
 from . import errors
-from ._compat import tomllib
-from ._compat.typing import assert_never
 from .architecture import Architecture
 from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from .frontend import BuildFrontendConfig
 from .logger import log
 from .oci_container import OCIContainerEngineConfig
 from .projectfiles import get_requires_python_str, resolve_dependency_groups
+from .selector import BuildSelector, EnableGroup, TestSelector, selector_matches
 from .typing import PLATFORMS, PlatformName
-from .util import (
-    MANYLINUX_ARCHS,
-    MUSLLINUX_ARCHS,
-    BuildFrontendConfig,
-    BuildSelector,
-    DependencyConstraints,
-    EnableGroups,
-    TestSelector,
-    format_safe,
-    read_python_configs,
-    resources_dir,
-    selector_matches,
-    strtobool,
-    unwrap,
+from .util import resources
+from .util.helpers import format_safe, strtobool, unwrap
+from .util.packaging import DependencyConstraints
+
+MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
+    "x86_64",
+    "i686",
+    "pypy_x86_64",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+    "armv7l",
+    "pypy_aarch64",
+    "pypy_i686",
+)
+
+MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
+    "x86_64",
+    "i686",
+    "aarch64",
+    "ppc64le",
+    "s390x",
+    "armv7l",
 )
 
 
@@ -51,22 +59,22 @@ class CommandLineArguments:
     package_dir: Path
     print_build_identifiers: bool
     allow_empty: bool
-    prerelease_pythons: bool
     debug_traceback: bool
+    enable: list[str]
 
-    @staticmethod
-    def defaults() -> CommandLineArguments:
-        return CommandLineArguments(
+    @classmethod
+    def defaults(cls) -> Self:
+        return cls(
             platform="auto",
             allow_empty=False,
             archs=None,
             only=None,
             config_file="",
             output_dir=Path("wheelhouse"),
-            package_dir=Path("."),
-            prerelease_pythons=False,
+            package_dir=Path(),
             print_build_identifiers=False,
             debug_traceback=False,
+            enable=[],
         )
 
 
@@ -89,9 +97,10 @@ class BuildOptions:
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
-    dependency_constraints: DependencyConstraints | None
+    dependency_constraints: DependencyConstraints
     test_command: str | None
     before_test: str | None
+    test_sources: list[str]
     test_requires: list[str]
     test_extras: str
     test_groups: list[str]
@@ -121,10 +130,16 @@ class BuildOptions:
         return self.globals.architectures
 
 
-SettingLeaf = Union[str, int, bool]
+SettingLeaf = str | int | bool
 SettingList = Sequence[SettingLeaf]
-SettingTable = Mapping[str, Union[SettingLeaf, SettingList]]
-SettingValue = Union[SettingTable, SettingList, SettingLeaf]
+SettingTable = Mapping[str, SettingLeaf | SettingList]
+SettingValue = SettingTable | SettingList | SettingLeaf
+
+
+class InheritRule(enum.Enum):
+    NONE = enum.auto()
+    APPEND = enum.auto()
+    PREPEND = enum.auto()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -171,11 +186,12 @@ class ListFormat(OptionFormat):
     A format that joins lists with a separator.
     """
 
-    def __init__(self, sep: str) -> None:
+    def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
         self.sep = sep
+        self.quote = quote or (lambda s: s)
 
     def format_list(self, value: SettingList) -> str:
-        return self.sep.join(str(v) for v in value)
+        return self.sep.join(self.quote(str(v)) for v in value)
 
     def merge_values(self, before: str, after: str) -> str:
         return f"{before}{self.sep}{after}"
@@ -258,12 +274,6 @@ class EnvironmentFormat(OptionFormat):
 
     def merge_values(self, before: str, after: str) -> str:
         return f"{before} {after}"
-
-
-class InheritRule(enum.Enum):
-    NONE = enum.auto()
-    APPEND = enum.auto()
-    PREPEND = enum.auto()
 
 
 def _resolve_cascade(
@@ -359,7 +369,7 @@ def _stringify_setting(
             msg = f"Error converting {setting!r} to a string: this setting doesn't accept a list"
             raise OptionsReaderError(msg) from None
 
-    if isinstance(setting, (bool, int)):
+    if isinstance(setting, bool | int):
         return str(setting)
 
     return setting
@@ -395,8 +405,7 @@ class OptionsReader:
         self.disallow = disallow or {}
 
         # Open defaults.toml, loading both global and platform sections
-        defaults_path = resources_dir / "defaults.toml"
-        self.default_options, self.default_platform_options = self._load_file(defaults_path)
+        self.default_options, self.default_platform_options = self._load_file(resources.DEFAULTS)
 
         # Load the project config file
         config_options: dict[str, Any] = {}
@@ -567,6 +576,7 @@ class Options:
         self.command_line_arguments = command_line_arguments
         self.env = env
         self._defaults = defaults
+        self._image_warnings = set[str]()
 
         self.reader = OptionsReader(
             None if defaults else self.config_file_path,
@@ -581,6 +591,10 @@ class Options:
                 self.pyproject_toml = tomllib.load(f)
         except FileNotFoundError:
             self.pyproject_toml = None
+
+        # cache the build options method so repeated calls don't need to
+        # resolve the options again
+        self.build_options = functools.cache(self._compute_build_options)
 
     @functools.cached_property
     def config_file_path(self) -> Path | None:
@@ -617,28 +631,12 @@ class Options:
         enable_groups = self.reader.get(
             "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
         )
-        enable = {EnableGroups(group) for group in enable_groups.split()}
-
-        free_threaded_support = strtobool(
-            self.reader.get("free-threaded-support", env_plat=False, ignore_empty=True)
-        )
-
-        prerelease_pythons = args.prerelease_pythons or strtobool(
-            self.env.get("CIBW_PRERELEASE_PYTHONS", "0")
-        )
-
-        if free_threaded_support or prerelease_pythons:
-            msg = (
-                "free-threaded-support and prerelease-pythons should be specified by enable instead"
-            )
-            if enable:
-                raise OptionsReaderError(msg)
-            log.warning(msg)
-
-        if free_threaded_support:
-            enable.add(EnableGroups.CPythonFreeThreading)
-        if prerelease_pythons:
-            enable.add(EnableGroups.CPythonPrerelease)
+        try:
+            enable = {EnableGroup(group) for group in enable_groups.split()}
+            enable.update(EnableGroup(command_line_group) for command_line_group in args.enable)
+        except ValueError as e:
+            msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
+            raise errors.ConfigurationError(msg) from e
 
         # This is not supported in tool.cibuildwheel, as it comes from a standard location.
         # Passing this in as an environment variable will override pyproject.toml, setup.cfg, or setup.py
@@ -655,29 +653,15 @@ class Options:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
-            enable = set(EnableGroups)
+            enable = set(EnableGroup)
 
         build_selector = BuildSelector(
             build_config=build_config,
             skip_config=skip_config,
             requires_python=requires_python,
-            enable=frozenset(
-                enable | {EnableGroups.PyPy}
-            ),  # For backwards compatibility, we are adding PyPy for now
+            enable=frozenset(enable),
         )
         test_selector = TestSelector(skip_config=test_skip)
-
-        all_configs = read_python_configs(self.platform)
-        all_pypy_ids = {
-            config["identifier"] for config in all_configs if config["identifier"].startswith("pp")
-        }
-        if (
-            not self._defaults
-            and EnableGroups.PyPy not in enable
-            and any(build_selector(build_id) for build_id in all_pypy_ids)
-        ):
-            msg = "PyPy builds will be disabled by default in version 3. Enabling PyPy builds should be specified by enable"
-            log.warning(msg)
 
         return GlobalOptions(
             package_dir=package_dir,
@@ -688,9 +672,25 @@ class Options:
             allow_empty=allow_empty,
         )
 
-    def build_options(self, identifier: str | None) -> BuildOptions:
+    def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
+        if (
+            value in {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
+            and value not in self._image_warnings
+        ):
+            self._image_warnings.add(value)
+            msg = (
+                f"Deprecated image {value!r}. This value will not work"
+                " in a future version of cibuildwheel. Either upgrade to a supported"
+                " image or continue using the deprecated image by pinning directly"
+                f" to {pinned_images[value]!r}."
+            )
+            log.warning(msg)
+
+    def _compute_build_options(self, identifier: str | None) -> BuildOptions:
         """
-        Compute BuildOptions for a single run configuration.
+        Compute BuildOptions for a single run configuration. Normally accessed
+        through the `build_options` method, which is the same but the result
+        is cached.
         """
 
         with self.reader.identifier(identifier):
@@ -708,9 +708,13 @@ class Options:
                 "config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="=")
             )
 
-            dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
+            test_sources = shlex.split(
+                self.reader.get(
+                    "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
@@ -749,15 +753,18 @@ class Options:
                     with contextlib.suppress(KeyError):
                         environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
-            if dependency_versions == "pinned":
-                dependency_constraints: None | (
-                    DependencyConstraints
-                ) = DependencyConstraints.with_defaults()
-            elif dependency_versions == "latest":
-                dependency_constraints = None
-            else:
-                dependency_versions_path = Path(dependency_versions)
-                dependency_constraints = DependencyConstraints(dependency_versions_path)
+            dependency_versions_str = self.reader.get(
+                "dependency-versions",
+                env_plat=True,
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+            )
+            try:
+                dependency_constraints = DependencyConstraints.from_config_string(
+                    dependency_versions_str
+                )
+            except (ValueError, OSError) as e:
+                msg = f"Failed to parse dependency versions. {e}"
+                raise errors.ConfigurationError(msg) from e
 
             if test_extras:
                 test_extras = f"[{test_extras}]"
@@ -785,6 +792,7 @@ class Options:
                         # default to manylinux2014
                         image = pinned_images["manylinux2014"]
                     elif config_value in pinned_images:
+                        self._check_pinned_image(config_value, pinned_images)
                         image = pinned_images[config_value]
                     else:
                         image = config_value
@@ -799,6 +807,7 @@ class Options:
                     if not config_value:
                         image = pinned_images["musllinux_1_2"]
                     elif config_value in pinned_images:
+                        self._check_pinned_image(config_value, pinned_images)
                         image = pinned_images[config_value]
                     else:
                         image = config_value
@@ -819,6 +828,7 @@ class Options:
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
+                test_sources=test_sources,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,
@@ -860,8 +870,8 @@ class Options:
         deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
     @functools.cached_property
-    def defaults(self) -> Options:
-        return Options(
+    def defaults(self) -> Self:
+        return self.__class__(
             platform=self.platform,
             command_line_arguments=CommandLineArguments.defaults(),
             env={},
@@ -944,13 +954,15 @@ class Options:
 
         return result
 
-    def indent_if_multiline(self, value: str, indent: str) -> str:
+    @staticmethod
+    def indent_if_multiline(value: str, indent: str) -> str:
         if "\n" in value:
             return "\n" + textwrap.indent(value.strip(), indent)
         else:
             return value
 
-    def option_summary_value(self, option_value: Any) -> str:
+    @staticmethod
+    def option_summary_value(option_value: Any) -> str:
         if hasattr(option_value, "options_summary"):
             option_value = option_value.options_summary()
 
@@ -976,7 +988,7 @@ def compute_options(
     return options
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     """
     This looks like a dict of dicts, e.g.
@@ -985,16 +997,19 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
       'pypy_x86_64': {'manylinux2010': '...' }
       ... }
     """
-
-    pinned_images_file = resources_dir / "pinned_docker_images.cfg"
     all_pinned_images = configparser.ConfigParser()
-    all_pinned_images.read(pinned_images_file)
+    all_pinned_images.read(resources.PINNED_DOCKER_IMAGES)
     return all_pinned_images
 
 
 def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
     if "p2" in selector or "p35" in selector:
-        msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
+        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update {name}"
+        if error:
+            raise errors.DeprecationError(msg)
+        log.warning(msg)
+    if "p36" in selector or "p37" in selector:
+        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update {name}"
         if error:
             raise errors.DeprecationError(msg)
         log.warning(msg)

@@ -1,18 +1,19 @@
-from __future__ import annotations
-
 import textwrap
 from pathlib import PurePath
+from unittest.mock import Mock, call
 
 import pytest
 
-from cibuildwheel.util import (
+from cibuildwheel import errors
+from cibuildwheel.ci import fix_ansi_codes_for_github_actions
+from cibuildwheel.util.file import copy_test_sources
+from cibuildwheel.util.helpers import (
     FlexibleVersion,
-    find_compatible_wheel,
-    fix_ansi_codes_for_github_actions,
     format_safe,
     parse_key_value_string,
     prepare_command,
 )
+from cibuildwheel.util.packaging import find_compatible_wheel
 
 
 def test_format_safe():
@@ -221,3 +222,144 @@ def test_flexible_version_comparisons():
     assert FlexibleVersion("1.0.1-rhel") > FlexibleVersion("1.0")
     assert FlexibleVersion("1.0.1-rhel") < FlexibleVersion("1.1")
     assert FlexibleVersion("1.0.1") == FlexibleVersion("v1.0.1")
+
+
+@pytest.fixture
+def sample_project(tmp_path):
+    """Create a directory structure that contains a range of files."""
+    project_path = tmp_path / "project"
+
+    (project_path / "src/deep").mkdir(parents=True)
+    (project_path / "tests/deep").mkdir(parents=True)
+    (project_path / "other").mkdir(parents=True)
+
+    (project_path / "pyproject.toml").write_text("A pyproject.toml file")
+    (project_path / "test.cfg").write_text("A test config file")
+
+    (project_path / "src/__init__.py").write_text("source init")
+    (project_path / "src/module.py").write_text("source module")
+    (project_path / "src/deep/__init__.py").write_text("deep source init")
+
+    (project_path / "tests/test_module.py").write_text("test module")
+    (project_path / "tests/deep/test_module.py").write_text("deep test module")
+    (project_path / "tests/deep/__init__.py").write_text("deep test init")
+
+    (project_path / "other/module.py").write_text("other module")
+
+    return project_path
+
+
+@pytest.mark.parametrize(
+    ("test_sources", "expected", "not_expected"),
+    [
+        # Empty test_sources copies nothing.
+        pytest.param(
+            [],
+            [],
+            [
+                "pyproject.toml",
+                "test.cfg",
+                "other/module.py",
+                "src/__init__.py",
+                "src/module.py",
+                "src/deep/__init__.py",
+                "tests/test_module.py",
+                "tests/deep/__init__.py",
+                "tests/deep/test_module.py",
+            ],
+            id="empty",
+        ),
+        # Single standalone files
+        pytest.param(
+            ["pyproject.toml", "tests/deep/test_module.py"],
+            ["pyproject.toml", "tests/deep/test_module.py"],
+            [
+                "test.cfg",
+                "other/module.py",
+                "src/__init__.py",
+                "src/module.py",
+                "src/deep/__init__.py",
+                "tests/test_module.py",
+                "tests/deep/__init__.py",
+            ],
+            id="single-file",
+        ),
+        # A full Directory
+        pytest.param(
+            ["tests"],
+            [
+                "tests/test_module.py",
+                "tests/deep/__init__.py",
+                "tests/deep/test_module.py",
+            ],
+            [
+                "pyproject.toml",
+                "test.cfg",
+                "other/module.py",
+                "src/__init__.py",
+                "src/module.py",
+                "src/deep/__init__.py",
+            ],
+            id="top-level-directory",
+        ),
+        # A partial deep directory
+        pytest.param(
+            ["tests/deep"],
+            [
+                "tests/deep/__init__.py",
+                "tests/deep/test_module.py",
+            ],
+            [
+                "pyproject.toml",
+                "test.cfg",
+                "other/module.py",
+                "src/__init__.py",
+                "src/module.py",
+                "src/deep/__init__.py",
+                "tests/test_module.py",
+            ],
+            id="partial-directory",
+        ),
+    ],
+)
+def test_copy_test_sources(tmp_path, sample_project, test_sources, expected, not_expected):
+    """Test sources can be copied into the test directory."""
+    target = tmp_path / "somewhere/test_cwd"
+    copy_test_sources(test_sources, sample_project, target)
+
+    for path in expected:
+        assert (tmp_path / "somewhere/test_cwd" / path).is_file()
+
+    for path in not_expected:
+        assert not (tmp_path / "somewhere/test_cwd" / path).exists()
+
+
+def test_copy_test_sources_missing_file(tmp_path, sample_project):
+    """If test_sources references a folder that doesn't exist, an error is raised."""
+
+    with pytest.raises(
+        errors.FatalError,
+        match=r"Test source tests/does_not_exist.py does not exist.",
+    ):
+        copy_test_sources(
+            ["pyproject.toml", "tests/does_not_exist.py"],
+            sample_project,
+            tmp_path / "somewhere/test_cwd",
+        )
+
+
+def test_copy_test_sources_alternate_copy_into(sample_project):
+    """If an alternate copy_into method is provided, it is used."""
+
+    target = PurePath("/container/test_cwd")
+    copy_into = Mock()
+
+    copy_test_sources(["pyproject.toml", "tests"], sample_project, target, copy_into=copy_into)
+
+    copy_into.assert_has_calls(
+        [
+            call(sample_project / "pyproject.toml", target / "pyproject.toml"),
+            call(sample_project / "tests", target / "tests"),
+        ],
+        any_order=True,
+    )

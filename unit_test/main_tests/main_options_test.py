@@ -1,16 +1,17 @@
-from __future__ import annotations
-
 import sys
+import tomllib
 from fnmatch import fnmatch
 from pathlib import Path
 
 import pytest
 
 from cibuildwheel.__main__ import main
-from cibuildwheel._compat import tomllib
 from cibuildwheel.environment import ParsedEnvironment
+from cibuildwheel.frontend import _split_config_settings
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
-from cibuildwheel.util import BuildSelector, resources_dir, split_config_settings
+from cibuildwheel.selector import BuildSelector, EnableGroup
+from cibuildwheel.util import resources
+from cibuildwheel.util.packaging import DependencyConstraints
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -84,6 +85,7 @@ def test_empty_selector(monkeypatch):
         ("x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
         ("x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
+        ("x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
         ("x86_64", "custom_image", "custom_image"),
         ("i686", None, "quay.io/pypa/manylinux2014_i686:*"),
         ("i686", "manylinux1", "quay.io/pypa/manylinux1_i686:*"),
@@ -97,6 +99,7 @@ def test_empty_selector(monkeypatch):
         ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
+        ("pypy_x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
         ("pypy_x86_64", "custom_image", "custom_image"),
     ],
 )
@@ -124,7 +127,7 @@ def get_default_repair_command(platform: str) -> str:
         return "auditwheel repair -w {dest_dir} {wheel}"
     elif platform == "macos":
         return "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-    elif platform == "windows":
+    elif platform == "windows" or platform == "pyodide":
         return ""
     else:
         msg = f"Unknown platform: {platform!r}"
@@ -279,16 +282,10 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
 
     assert build_options.config_settings == config_settings
 
-    assert split_config_settings(config_settings, "build") == [
-        "--config-setting=setting=value",
-        "--config-setting=setting=value2",
-        "--config-setting=other=something else",
-    ]
-
-    assert split_config_settings(config_settings, "pip") == [
-        "--config-settings=setting=value",
-        "--config-settings=setting=value2",
-        "--config-settings=other=something else",
+    assert _split_config_settings(config_settings) == [
+        "-Csetting=value",
+        "-Csetting=value2",
+        "-Cother=something else",
     ]
 
 
@@ -305,6 +302,7 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     [
         "cp27-*",
         "cp35-*",
+        "?p36-*",
         "?p27*",
         "?p2*",
         "?p35*",
@@ -323,7 +321,8 @@ def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys)
         main()
 
     stderr = capsys.readouterr().err
-    msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {selector}"
+    series = "2" if "6" in pattern else "1"
+    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update {selector}"
     assert msg in stderr
 
 
@@ -342,6 +341,43 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
     build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
     assert build_options.before_all == (before_all or "")
+
+
+@pytest.mark.parametrize(
+    "dependency_versions",
+    [None, "pinned", "latest", "FILE", "packages: pip==21.0.0"],
+)
+@pytest.mark.parametrize("platform_specific", [False, True])
+def test_dependency_versions(
+    dependency_versions, platform_specific, platform, intercepted_build_args, monkeypatch, tmp_path
+):
+    option_value = dependency_versions
+
+    if dependency_versions == "FILE":
+        constraints_file = tmp_path / "constraints.txt"
+        constraints_file.write_text("foo==1.2.3\nbar==4.5.6")
+        option_value = str(constraints_file)
+
+    if option_value is not None:
+        if platform_specific:
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS_" + platform.upper(), option_value)
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS", "overwritten")
+        else:
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS", option_value)
+
+    main()
+
+    build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
+    dependency_constraints = build_options.dependency_constraints
+    if dependency_versions is None or dependency_versions == "pinned":
+        assert dependency_constraints == DependencyConstraints.pinned()
+    elif dependency_versions == "latest":
+        assert dependency_constraints == DependencyConstraints.latest()
+    elif dependency_versions == "FILE":
+        assert dependency_constraints.base_file_path
+        assert dependency_constraints.base_file_path.samefile(Path(option_value))
+    elif dependency_versions.startswith("packages:"):
+        assert dependency_constraints.packages == ["pip==21.0.0"]
 
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
@@ -366,12 +402,50 @@ def test_debug_traceback(monkeypatch, method, capfd):
         assert "Traceback (most recent call last)" in err
 
 
+@pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
+def test_enable(method, intercepted_build_args, monkeypatch):
+    if method == "command_line":
+        monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "pypy"])
+    elif method == "env_var":
+        monkeypatch.setenv("CIBW_ENABLE", "pypy")
+
+    main()
+
+    enable_groups = intercepted_build_args.args[0].globals.build_selector.enable
+
+    if method == "unset":
+        assert enable_groups == frozenset()
+    else:
+        assert enable_groups == frozenset([EnableGroup.PyPy])
+
+
+def test_enable_arg_inherits(intercepted_build_args, monkeypatch):
+    monkeypatch.setenv("CIBW_ENABLE", "pypy")
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "cpython-prerelease"])
+
+    main()
+
+    enable_groups = intercepted_build_args.args[0].globals.build_selector.enable
+
+    assert enable_groups == frozenset((EnableGroup.PyPy, EnableGroup.CPythonPrerelease))
+
+
+def test_enable_arg_error_message(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "invalid_group"])
+
+    with pytest.raises(SystemExit) as ex:
+        main()
+    assert ex.value.code == 2
+
+    _, err = capsys.readouterr()
+    assert "Valid group names are:" in err
+
+
 def test_defaults(platform, intercepted_build_args):
     main()
 
     build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
-    defaults_config_path = resources_dir / "defaults.toml"
-    with defaults_config_path.open("rb") as f:
+    with resources.DEFAULTS.open("rb") as f:
         defaults_toml = tomllib.load(f)
 
     root_defaults = defaults_toml["tool"]["cibuildwheel"]

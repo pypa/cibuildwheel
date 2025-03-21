@@ -13,10 +13,9 @@
     },
     "enable": {
       "enum": [
-        "cpython-eol",
         "cpython-freethreading",
         "cpython-prerelease",
-        "pypy-eol"
+        "pypy"
       ]
     },
     "description": "A Python version or flavor to enable."
@@ -234,7 +233,45 @@
     "dependency-versions": {
       "default": "pinned",
       "description": "Specify how cibuildwheel controls the versions of the tools it uses",
-      "type": "string",
+      "oneOf": [
+        {
+          "enum": [
+            "pinned",
+            "latest"
+          ]
+        },
+        {
+          "type": "string",
+          "description": "Path to a file containing dependency versions, or inline package specifications, starting with \"packages:\"",
+          "not": {
+            "enum": [
+              "pinned",
+              "latest"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "packages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
       "title": "CIBW_DEPENDENCY_VERSIONS"
     },
     "enable": {
@@ -284,12 +321,6 @@
         }
       ],
       "title": "CIBW_ENVIRONMENT_PASS"
-    },
-    "free-threaded-support": {
-      "type": "boolean",
-      "default": false,
-      "description": "The project supports free-threaded builds of Python (PEP703)",
-      "title": "CIBW_FREE_THREADED_SUPPORT"
     },
     "manylinux-aarch64-image": {
       "type": "string",
@@ -426,6 +457,21 @@
       ],
       "title": "CIBW_TEST_EXTRAS"
     },
+    "test-sources": {
+      "description": "Test files that are required by the test environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_TEST_SOURCES"
+    },
     "test-groups": {
       "description": "Install extra groups when testing",
       "oneOf": [
@@ -529,6 +575,9 @@
               "test-extras": {
                 "$ref": "#/$defs/inherit"
               },
+              "test-sources": {
+                "$ref": "#/$defs/inherit"
+              },
               "test-requires": {
                 "$ref": "#/$defs/inherit"
               }
@@ -617,6 +666,9 @@
           },
           "test-extras": {
             "$ref": "#/properties/test-extras"
+          },
+          "test-sources": {
+            "$ref": "#/properties/test-sources"
           },
           "test-groups": {
             "$ref": "#/properties/test-groups"
@@ -728,6 +780,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -775,6 +830,9 @@
         },
         "test-extras": {
           "$ref": "#/properties/test-extras"
+        },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
         },
         "test-groups": {
           "$ref": "#/properties/test-groups"
@@ -837,6 +895,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -885,6 +946,9 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -897,6 +961,51 @@
           "title": "CIBW_PYODIDE_VERSION"
         }
       }
+    },
+    "ios": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "archs": {
+          "$ref": "#/properties/archs"
+        },
+        "before-all": {
+          "$ref": "#/properties/before-all"
+        },
+        "before-build": {
+          "$ref": "#/properties/before-build"
+        },
+        "before-test": {
+          "$ref": "#/properties/before-test"
+        },
+        "build-frontend": {
+          "$ref": "#/properties/build-frontend"
+        },
+        "build-verbosity": {
+          "$ref": "#/properties/build-verbosity"
+        },
+        "config-settings": {
+          "$ref": "#/properties/config-settings"
+        },
+        "dependency-versions": {
+          "$ref": "#/properties/dependency-versions"
+        },
+        "environment": {
+          "$ref": "#/properties/environment"
+        },
+        "repair-wheel-command": {
+          "$ref": "#/properties/repair-wheel-command"
+        },
+        "test-command": {
+          "$ref": "#/properties/test-command"
+        },
+        "test-extras": {
+          "$ref": "#/properties/test-extras"
+        },
+        "test-requires": {
+          "$ref": "#/properties/test-requires"
+        }
+       }
     }
   }
 }

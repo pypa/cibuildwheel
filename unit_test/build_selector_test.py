@@ -1,13 +1,11 @@
-from __future__ import annotations
-
 from packaging.specifiers import SpecifierSet
 
-from cibuildwheel.util import BuildSelector, EnableGroups
+from cibuildwheel.selector import BuildSelector, EnableGroup
 
 
 def test_build():
     build_selector = BuildSelector(
-        build_config="cp3*-* *-manylinux*", skip_config="", enable=frozenset([EnableGroups.PyPy])
+        build_config="cp3*-* *-manylinux*", skip_config="", enable=frozenset([EnableGroup.PyPy])
     )
 
     assert build_selector("cp36-manylinux_x86_64")
@@ -45,7 +43,7 @@ def test_build_filter_pre():
     build_selector = BuildSelector(
         build_config="cp3*-* *-manylinux*",
         skip_config="",
-        enable=frozenset([EnableGroups.CPythonPrerelease, EnableGroups.PyPy]),
+        enable=frozenset([EnableGroup.CPythonPrerelease, EnableGroup.PyPy]),
     )
 
     assert build_selector("cp37-manylinux_x86_64")
@@ -59,7 +57,7 @@ def test_skip():
     build_selector = BuildSelector(
         build_config="*",
         skip_config="pp36-* cp3?-manylinux_i686 cp36-win* *-win32",
-        enable=frozenset([EnableGroups.PyPy]),
+        enable=frozenset([EnableGroup.PyPy]),
     )
 
     assert not build_selector("pp36-manylinux_x86_64")
@@ -85,7 +83,7 @@ def test_build_and_skip():
     build_selector = BuildSelector(
         build_config="cp36-* cp37-macosx* *-manylinux*",
         skip_config="pp37-* cp37-manylinux_i686",
-        enable=frozenset([EnableGroups.PyPy]),
+        enable=frozenset([EnableGroup.PyPy]),
     )
 
     assert not build_selector("pp37-manylinux_x86_64")
@@ -119,7 +117,7 @@ def test_build_limited_python():
         build_config="*",
         skip_config="",
         requires_python=SpecifierSet(">=3.7"),
-        enable=frozenset([EnableGroups.PyPy]),
+        enable=frozenset([EnableGroup.PyPy]),
     )
 
     assert not build_selector("cp36-manylinux_x86_64")
@@ -155,14 +153,14 @@ def test_build_limited_python_patch():
 
 
 def test_build_free_threaded_python():
-    build_selector = BuildSelector(build_config="*", skip_config="", enable=frozenset(EnableGroups))
+    build_selector = BuildSelector(build_config="*", skip_config="", enable=frozenset(EnableGroup))
 
     assert build_selector("cp313t-manylinux_x86_64")
 
 
 def test_testing_selector():
     # local import to avoid pytest trying to collect this as a test class!
-    from cibuildwheel.util import TestSelector
+    from cibuildwheel.selector import TestSelector
 
     test_selector = TestSelector(skip_config="cp36-*")
 

@@ -5,22 +5,15 @@
 # ///
 
 
-from __future__ import annotations
-
-import glob
 import os
 import subprocess
 import sys
+import tomllib
 import urllib.parse
 from pathlib import Path
 
 import click
 from packaging.version import InvalidVersion, Version
-
-if sys.version_info < (3, 11):
-    import tomli as tomllib
-else:
-    import tomllib
 
 config = [
     # file path, version find/replace format
@@ -90,7 +83,7 @@ def bump_version() -> None:
     actions = []
 
     for path_pattern, version_pattern in config:
-        paths = [Path(p) for p in glob.glob(path_pattern)]
+        paths = list(Path().glob(path_pattern))
 
         if not paths:
             print(f"error: Pattern {path_pattern} didn't match any files")

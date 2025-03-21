@@ -5,37 +5,37 @@ pr:
       - .pre-commit-config.yaml
 
 jobs:
-- job: linux_38
+- job: linux_311
   timeoutInMinutes: 120
   pool: {vmImage: 'Ubuntu-20.04'}
   steps:
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '3.8'
+        versionSpec: '3.11'
     - bash: |
         docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
         python ./bin/run_tests.py
 
-- job: macos_38
-  pool: {vmImage: 'macOS-12'}
+- job: macos_311
+  pool: {vmImage: 'macOS-13'}
   steps:
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '3.8'
+        versionSpec: '3.11'
     - bash: |
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
         python ./bin/run_tests.py --num-processes 2
 
-- job: windows_38
+- job: windows_311
   pool: {vmImage: 'windows-2019'}
   timeoutInMinutes: 180
   steps:
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '3.8'
+        versionSpec: '3.11'
     - bash: |
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.

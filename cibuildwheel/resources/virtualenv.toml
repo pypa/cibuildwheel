@@ -1,2 +1,1 @@
-py36 = { version = "20.21.1", url = "https://github.com/pypa/get-virtualenv/blob/20.21.1/public/virtualenv.pyz?raw=true" }
-default = { version = "20.27.1", url = "https://github.com/pypa/get-virtualenv/blob/20.27.1/public/virtualenv.pyz?raw=true" }
+default = { version = "20.29.3", url = "https://github.com/pypa/get-virtualenv/blob/20.29.3/public/virtualenv.pyz?raw=true" }

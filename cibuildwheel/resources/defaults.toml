@@ -2,7 +2,6 @@
 build = "*"
 skip = ""
 test-skip = ""
-free-threaded-support = false
 enable = []
 
 archs = ["auto"]
@@ -19,6 +18,7 @@ repair-wheel-command = ""
 
 test-command = ""
 before-test = ""
+test-sources = []
 test-requires = []
 test-extras = []
 test-groups = []
@@ -50,5 +50,7 @@ repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
 
 [tool.cibuildwheel.windows]
+
+[tool.cibuildwheel.ios]
 
 [tool.cibuildwheel.pyodide]

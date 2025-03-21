@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import textwrap
 from pathlib import Path
 from pprint import pprint
@@ -30,7 +28,7 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
                 archs = "x86_64 i686"
 
                 [[tool.cibuildwheel.overrides]]
-                select = "cp{37,38,39,310}-*"
+                select = "cp{38,39,310}-*"
                 manylinux-x86_64-image = "other_container_image"
                 manylinux-i686-image = "other_container_image"
 
@@ -68,29 +66,28 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
     default_container_engine = OCIContainerEngineConfig(name="docker")
 
-    assert build_steps[0].container_image == "normal_container_image"
-    assert identifiers(build_steps[0]) == [
-        "cp36-manylinux_x86_64",
+    assert build_steps[0].container_image == "other_container_image"
+    assert identifiers(build_steps[0]) == ["cp38-manylinux_x86_64"]
+    assert before_alls(build_steps[0]) == [""]
+    assert container_engines(build_steps[0]) == [default_container_engine]
+
+    assert build_steps[1].container_image == "other_container_image"
+    assert identifiers(build_steps[1]) == ["cp39-manylinux_x86_64"]
+    assert before_alls(build_steps[1]) == ["echo 'a cp39-only command'"]
+    assert container_engines(build_steps[1]) == [default_container_engine]
+
+    assert build_steps[2].container_image == "other_container_image"
+    assert identifiers(build_steps[2]) == ["cp310-manylinux_x86_64"]
+    assert before_alls(build_steps[2]) == [""]
+    assert container_engines(build_steps[2]) == [
+        OCIContainerEngineConfig(name="docker", create_args=("--privileged",))
+    ]
+
+    assert build_steps[3].container_image == "normal_container_image"
+    assert identifiers(build_steps[3]) == [
         "cp311-manylinux_x86_64",
         "cp312-manylinux_x86_64",
         "cp313-manylinux_x86_64",
     ]
-    assert before_alls(build_steps[0]) == [""] * 4
-    assert container_engines(build_steps[0]) == [default_container_engine] * 4
-
-    assert build_steps[1].container_image == "other_container_image"
-    assert identifiers(build_steps[1]) == ["cp37-manylinux_x86_64", "cp38-manylinux_x86_64"]
-    assert before_alls(build_steps[1]) == [""] * 2
-    assert container_engines(build_steps[1]) == [default_container_engine] * 2
-
-    assert build_steps[2].container_image == "other_container_image"
-    assert identifiers(build_steps[2]) == ["cp39-manylinux_x86_64"]
-    assert before_alls(build_steps[2]) == ["echo 'a cp39-only command'"]
-    assert container_engines(build_steps[2]) == [default_container_engine]
-
-    assert build_steps[3].container_image == "other_container_image"
-    assert identifiers(build_steps[3]) == ["cp310-manylinux_x86_64"]
-    assert before_alls(build_steps[3]) == [""]
-    assert container_engines(build_steps[3]) == [
-        OCIContainerEngineConfig(name="docker", create_args=("--privileged",))
-    ]
+    assert before_alls(build_steps[3]) == [""] * 3
+    assert container_engines(build_steps[3]) == [default_container_engine] * 3

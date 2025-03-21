@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import platform
 import textwrap
 
@@ -40,7 +38,7 @@ def test(tmp_path):
         add_env={
             "CIBW_MANYLINUX_X86_64_IMAGE": "dockcross/manylinux2014-x64",
             "CIBW_MANYLINUX_I686_IMAGE": "dockcross/manylinux2014-x86",
-            "CIBW_BUILD": "cp3{6,7,8,9}-manylinux*",
+            "CIBW_BUILD": "cp3{8,9}-manylinux*",
         },
     )
 
@@ -48,6 +46,6 @@ def test(tmp_path):
     expected_wheels = [
         w
         for w in utils.expected_wheels("spam", "0.1.0", musllinux_versions=[])
-        if "-cp36-" in w or "-cp37-" in w or "-cp38-" in w or "-cp39-" in w
+        if "-cp38-" in w or "-cp39-" in w
     ]
     assert set(actual_wheels) == set(expected_wheels)

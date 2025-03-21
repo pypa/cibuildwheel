@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "2.21.3"
+version = "2.23.1"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 authors = [
     { name = "Joe Rickerby", email = "joerick@mac.com" },
 ]
@@ -30,9 +30,6 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -46,9 +43,7 @@ dependencies = [
     "dependency-groups>=1.2",
     "filelock",
     "packaging>=20.9",
-    "platformdirs",
-    "tomli;python_version < '3.11'",
-    "typing-extensions>=4.1.0;python_version < '3.11'",
+    "platformdirs"
 ]
 
 [project.optional-dependencies]
@@ -84,6 +79,7 @@ docs = [
 ]
 test = [
     "build",
+    "filelock",
     "jinja2",
     "pytest-timeout",
     "pytest-xdist",
@@ -109,7 +105,7 @@ log_cli_level = "info"
 
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 files = [
     "cibuildwheel/*.py",
     "test/**/*.py",
@@ -141,7 +137,7 @@ ignore_missing_imports = true
 
 
 [tool.pylint]
-py-version = "3.8"
+py-version = "3.11"
 jobs = "0"
 fail-on = ["E", "F"]
 fail-under = "9.8"
@@ -194,6 +190,7 @@ extend-select = [
   "PIE",         # flake8-pie
   "PL",          # pylint
   "PT",          # flake8-pytest-style
+  "PTH",         # flake8-use-pathlib
   "RET",         # flake8-return
   "RUF",         # Ruff-specific
   "SIM",         # flake8-simplify
@@ -204,14 +201,14 @@ extend-select = [
   "PYI",         # flake8-pyi
 ]
 ignore = [
-  "PLR",    # Design related pylint codes
-  "E501",   # Line too long
+  "PLR",     # Design related pylint codes
   "RET504", "RET505", "RET508",  # else after control flow
-  "PT007",  # False positive
-  "PYI025", # Set as AbstractSet
-  "ISC001", # Conflicts with formatter
+  "PT007",   # Lists of tuples in Pytest
+  "PYI025",  # Set as AbstractSet
+  "ISC001",  # Conflicts with formatter
+  "EXE003",  # Ruff doesn't like uv?
+  "PTH123",  # open -> Path.open
 ]
-typing-modules = ["cibuildwheel._compat.typing"]
 flake8-unused-arguments.ignore-variadic-names = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
@@ -220,18 +217,14 @@ flake8-unused-arguments.ignore-variadic-names = true
 "typing.Iterator".msg = "Use collections.abc.Iterator instead."
 "typing.Sequence".msg = "Use collections.abc.Sequence instead."
 "typing.Set".msg = "Use collections.abc.Set instead."
-"typing.NotRequired".msg = "Use cibuildwheel._compat.typing.NotRequired instead."
-"typing.assert_never".msg = "Use cibuildwheel._compat.typing.assert_never instead."
-"tomllib".msg = "Use cibuildwheel._compat.tomllib instead."
-"tomli".msg = "Use cibuildwheel._compat.tomllib instead."
 
 [tool.ruff.lint.per-file-ignores]
 "unit_test/*" = ["PLC1901"]
-"cibuildwheel/_compat/**.py" = ["TID251"]
 "bin/*" = ["TID251"]
+"cibuildwheel/resources/install_certifi.py" = ["PTH"]
 
 [tool.repo-review]
 ignore = ["PC170", "PP303"]
 
 [tool.check-wheel-contents]
-ignore = ["W002"]  # requirements-*.txt are allowed to be duplicates of one another
+ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one another

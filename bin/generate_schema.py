@@ -104,7 +104,24 @@ properties:
   dependency-versions:
     default: pinned
     description: Specify how cibuildwheel controls the versions of the tools it uses
-    type: string
+    oneOf:
+      - enum: [pinned, latest]
+      - type: string
+        description: Path to a file containing dependency versions, or inline package specifications, starting with "packages:"
+        not:
+          enum: [pinned, latest]
+      - type: object
+        additionalProperties: false
+        properties:
+          file:
+            type: string
+      - type: object
+        additionalProperties: false
+        properties:
+          packages:
+            type: array
+            items:
+              type: string
   enable:
     description: Enable or disable certain builds.
     oneOf:
@@ -119,11 +136,6 @@ properties:
     description: Set environment variables on the host to pass-through to the container
       during the build.
     type: string_array
-  free-threaded-support:
-    type: boolean
-    default: false
-    description: The project supports free-threaded builds of Python (PEP703)
-    deprecated: Use the `enable` option instead.
   manylinux-aarch64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
@@ -180,6 +192,9 @@ properties:
     type: string_array
   test-extras:
     description: Install your wheel for testing using `extras_require`
+    type: string_array
+  test-sources:
+    description: Test files that are required by the test environment
     type: string_array
   test-groups:
     description: Install extra groups when testing
@@ -266,18 +281,18 @@ items:
         repair-wheel-command: {"$ref": "#/$defs/inherit"}
         test-command: {"$ref": "#/$defs/inherit"}
         test-extras: {"$ref": "#/$defs/inherit"}
+        test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
 """
 )
 
 for key, value in schema["properties"].items():
-    value["title"] = f'CIBW_{key.replace("-", "_").upper()}'
+    value["title"] = f"CIBW_{key.replace('-', '_').upper()}"
 
 non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["test-skip"]
-del non_global_options["free-threaded-support"]
 del non_global_options["enable"]
 
 overrides["items"]["properties"]["select"]["oneOf"] = string_array
@@ -307,6 +322,7 @@ oses = {
     "windows": as_object(not_linux),
     "macos": as_object(not_linux),
     "pyodide": as_object(not_linux),
+    "ios": as_object(not_linux),
 }
 
 oses["linux"]["properties"]["repair-wheel-command"] = {

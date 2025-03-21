@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+import shlex
 from pathlib import Path
 
 import pytest
@@ -23,6 +22,7 @@ test-command = "pyproject"
 test-requires = "something"
 test-extras = ["one", "two"]
 test-groups = ["three", "four"]
+test-sources = ["five", "six and seven"]
 
 manylinux-x86_64-image = "manylinux1"
 
@@ -50,6 +50,10 @@ def test_simple_settings(tmp_path, platform, fname):
 
     assert options_reader.get("test-command") == "pyproject"
     assert options_reader.get("archs", option_format=ListFormat(" ")) == "auto"
+    assert (
+        options_reader.get("test-sources", option_format=ListFormat(" ", quote=shlex.quote))
+        == "five 'six and seven'"
+    )
     assert (
         options_reader.get("test-requires", option_format=ListFormat(" "))
         == {"windows": "something", "macos": "else", "linux": "other many"}[platform]
@@ -90,6 +94,7 @@ def test_envvar_override(tmp_path, platform):
             "CIBW_TEST_GROUPS": "mgroup two",
             "CIBW_TEST_REQUIRES_LINUX": "scod",
             "CIBW_TEST_GROUPS_LINUX": "lgroup",
+            "CIBW_TEST_SOURCES": 'first "second third"',
         },
     )
 
@@ -99,6 +104,10 @@ def test_envvar_override(tmp_path, platform):
     assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_24"
     assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
+    assert (
+        options_reader.get("test-sources", option_format=ListFormat(" ", quote=shlex.quote))
+        == 'first "second third"'
+    )
     assert (
         options_reader.get("test-requires", option_format=ListFormat(" "))
         == {"windows": "docs", "macos": "docs", "linux": "scod"}[platform]

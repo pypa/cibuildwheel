@@ -1,13 +1,12 @@
 import contextlib
 import sys
 from pathlib import Path
-from typing import Dict
 
 import pytest
 import setuptools._distutils.util
 
+from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import FatalError
-from cibuildwheel.util import CIProvider, detect_ci_provider
 from cibuildwheel.windows import PythonConfiguration, setup_setuptools_cross_compile
 
 # monkeypatching os.name is too flaky. E.g. It works on my machine, but fails in pipeline
@@ -16,7 +15,7 @@ if not sys.platform.startswith("win"):
 
 
 @contextlib.contextmanager
-def patched_environment(monkeypatch: pytest.MonkeyPatch, environment: Dict[str, str]):
+def patched_environment(monkeypatch: pytest.MonkeyPatch, environment: dict[str, str]):
     with monkeypatch.context() as mp:
         for envvar, val in environment.items():
             mp.setenv(name=envvar, value=val)
@@ -25,7 +24,7 @@ def patched_environment(monkeypatch: pytest.MonkeyPatch, environment: Dict[str, 
 
 def test_x86(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     arch = "32"
-    environment: Dict[str, str] = {}
+    environment: dict[str, str] = {}
 
     configuration = PythonConfiguration("irrelevant", arch, "irrelevant", None)
 
@@ -39,7 +38,7 @@ def test_x86(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
 def test_x64(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     arch = "64"
-    environment: Dict[str, str] = {}
+    environment: dict[str, str] = {}
 
     configuration = PythonConfiguration("irrelevant", arch, "irrelevant", None)
 
@@ -56,7 +55,7 @@ def test_x64(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 )
 def test_arm(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     arch = "ARM64"
-    environment: Dict[str, str] = {}
+    environment: dict[str, str] = {}
 
     configuration = PythonConfiguration("irrelevant", arch, "irrelevant", None)
 

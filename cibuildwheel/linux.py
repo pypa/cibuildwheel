@@ -1,34 +1,27 @@
-from __future__ import annotations
-
 import contextlib
 import subprocess
 import sys
 import textwrap
+from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
-from typing import OrderedDict, Tuple
+from typing import assert_never
 
 from packaging.version import Version
 
 from . import errors
-from ._compat.typing import assert_never
 from .architecture import Architecture
+from .frontend import BuildFrontendConfig, get_build_frontend_extra_flags
 from .logger import log
 from .oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from .options import BuildOptions, Options
+from .selector import BuildSelector
 from .typing import PathOrStr
-from .util import (
-    BuildFrontendConfig,
-    BuildSelector,
-    find_compatible_wheel,
-    get_build_verbosity_extra_flags,
-    prepare_command,
-    read_python_configs,
-    split_config_settings,
-    test_fail_cwd_file,
-    unwrap,
-)
+from .util import resources
+from .util.file import copy_test_sources
+from .util.helpers import prepare_command, unwrap
+from .util.packaging import find_compatible_wheel
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
@@ -63,7 +56,7 @@ def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
 ) -> list[PythonConfiguration]:
-    full_python_configs = read_python_configs("linux")
+    full_python_configs = resources.read_python_configs("linux")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
 
@@ -104,7 +97,7 @@ def get_build_steps(
     Groups PythonConfigurations into BuildSteps. Each BuildStep represents a
     separate container instance.
     """
-    steps = OrderedDict[Tuple[str, str, str, OCIContainerEngineConfig], BuildStep]()
+    steps = OrderedDict[tuple[str, str, str, OCIContainerEngineConfig], BuildStep]()
 
     for config in python_configurations:
         _, platform_tag = config.identifier.split("-", 1)
@@ -173,6 +166,7 @@ def build_in_container(
     container: OCIContainer,
     container_project_path: PurePath,
     container_package_dir: PurePath,
+    local_tmp_dir: Path,
 ) -> None:
     container_output_dir = PurePosixPath("/output")
 
@@ -188,7 +182,7 @@ def build_in_container(
         log.step("Running before_all...")
 
         env = container.get_environment()
-        env["PATH"] = f'/opt/python/cp39-cp39/bin:{env["PATH"]}'
+        env["PATH"] = f"/opt/python/cp39-cp39/bin:{env['PATH']}"
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
         env["PIP_ROOT_USER_ACTION"] = "ignore"
         env = before_all_options.environment.as_dictionary(
@@ -206,22 +200,22 @@ def build_in_container(
 
     for config in platform_configs:
         log.build_start(config.identifier)
+        local_identifier_tmp_dir = local_tmp_dir / config.identifier
         build_options = options.build_options(config.identifier)
         build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
-        use_uv = build_frontend.name == "build[uv]" and Version(config.version) >= Version("3.8")
+        use_uv = build_frontend.name == "build[uv]"
         pip = ["uv", "pip"] if use_uv else ["pip"]
-
-        dependency_constraint_flags: list[PathOrStr] = []
 
         log.step("Setting up build environment...")
 
-        if build_options.dependency_constraints:
-            constraints_file = build_options.dependency_constraints.get_for_python_version(
-                config.version
-            )
+        dependency_constraint_flags: list[PathOrStr] = []
+        local_constraints_file = build_options.dependency_constraints.get_for_python_version(
+            version=config.version,
+            tmp_dir=local_identifier_tmp_dir,
+        )
+        if local_constraints_file:
             container_constraints_file = PurePosixPath("/constraints.txt")
-
-            container.copy_into(constraints_file, container_constraints_file)
+            container.copy_into(local_constraints_file, container_constraints_file)
             dependency_constraint_flags = ["-c", container_constraints_file]
 
         env = container.get_environment()
@@ -230,7 +224,7 @@ def build_in_container(
 
         # put this config's python top of the list
         python_bin = config.path / "bin"
-        env["PATH"] = f'{python_bin}:{env["PATH"]}'
+        env["PATH"] = f"{python_bin}:{env['PATH']}"
 
         env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
 
@@ -275,11 +269,11 @@ def build_in_container(
             container.call(["rm", "-rf", built_wheel_dir])
             container.call(["mkdir", "-p", built_wheel_dir])
 
-            extra_flags = split_config_settings(build_options.config_settings, build_frontend.name)
-            extra_flags += build_frontend.args
+            extra_flags = get_build_frontend_extra_flags(
+                build_frontend, build_options.build_verbosity, build_options.config_settings
+            )
 
             if build_frontend.name == "pip":
-                extra_flags += get_build_verbosity_extra_flags(build_options.build_verbosity)
                 container.call(
                     [
                         "python",
@@ -294,9 +288,6 @@ def build_in_container(
                     env=env,
                 )
             elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                if not 0 <= build_options.build_verbosity < 2:
-                    msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
-                    log.warning(msg)
                 if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                     extra_flags += ["--installer=uv"]
                 container.call(
@@ -401,9 +392,19 @@ def build_in_container(
                 package=container_package_dir,
                 wheel=wheel_to_test,
             )
-            test_cwd = testing_temp_dir / "test_cwd"
-            container.call(["mkdir", "-p", test_cwd])
-            container.copy_into(test_fail_cwd_file, test_cwd / "test_fail.py")
+
+            if build_options.test_sources:
+                test_cwd = testing_temp_dir / "test_cwd"
+                container.call(["mkdir", "-p", test_cwd])
+                copy_test_sources(
+                    build_options.test_sources,
+                    build_options.package_dir,
+                    test_cwd,
+                    copy_into=container.copy_into,
+                )
+            else:
+                # There are no test sources. Run the tests in the project directory.
+                test_cwd = PurePosixPath(container_project_path)
 
             container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 
@@ -426,7 +427,7 @@ def build_in_container(
     log.step_end()
 
 
-def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
+def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
@@ -451,12 +452,12 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
         except subprocess.CalledProcessError as error:
             msg = unwrap(
                 f"""
-                cibuildwheel: {build_step.container_engine.name} not found. An
-                OCI exe like Docker or Podman is required to run Linux builds.
-                If you're building on Travis CI, add `services: [docker]` to
-                your .travis.yml. If you're building on Circle CI in Linux,
-                add a `setup_remote_docker` step to your .circleci/config.yml.
-                If you're building on Cirrus CI, use `docker_builder` task.
+                {build_step.container_engine.name} not found. An OCI exe like
+                Docker or Podman is required to run Linux builds. If you're
+                building on Travis CI, add `services: [docker]` to your
+                .travis.yml. If you're building on Circle CI in Linux, add a
+                `setup_remote_docker` step to your .circleci/config.yml. If
+                you're building on Cirrus CI, use `docker_builder` task.
                 """
             )
             raise errors.ConfigurationError(msg) from error
@@ -480,6 +481,7 @@ def build(options: Options, tmp_path: Path) -> None:  # noqa: ARG001
                     container=container,
                     container_project_path=container_project_path,
                     container_package_dir=container_package_dir,
+                    local_tmp_dir=tmp_path,
                 )
 
         except subprocess.CalledProcessError as error:

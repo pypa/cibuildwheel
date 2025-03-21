@@ -1,17 +1,15 @@
-from __future__ import annotations
+import tomllib
 
 from packaging.version import Version
 
-from cibuildwheel._compat import tomllib
 from cibuildwheel.extra import Printable, dump_python_configurations
-from cibuildwheel.util import resources_dir
+from cibuildwheel.util import resources
 
 
 def test_compare_configs():
-    with open(resources_dir / "build-platforms.toml") as f1:
-        txt = f1.read()
+    txt = resources.BUILD_PLATFORMS.read_text()
 
-    with open(resources_dir / "build-platforms.toml", "rb") as f2:
+    with resources.BUILD_PLATFORMS.open("rb") as f2:
         dict_txt = tomllib.load(f2)
 
     new_txt = dump_python_configurations(dict_txt)

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from __future__ import annotations
 
 import difflib
 import logging
 import subprocess
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
@@ -14,8 +14,6 @@ import rich
 from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
-
-from cibuildwheel._compat import tomllib
 
 log = logging.getLogger("cibw")
 

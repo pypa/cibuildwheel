@@ -1,10 +1,8 @@
-from __future__ import annotations
-
+import tomllib
 from textwrap import dedent
 
 import pytest
 
-from cibuildwheel._compat import tomllib
 from cibuildwheel.projectfiles import (
     get_requires_python_str,
     resolve_dependency_groups,
@@ -269,10 +267,10 @@ def test_read_dep_groups():
 
 
 def test_dep_group_no_file_error():
-    with pytest.raises(FileNotFoundError, match="pyproject.toml"):
+    with pytest.raises(FileNotFoundError, match=r"pyproject\.toml"):
         resolve_dependency_groups(None, "test")
 
 
 def test_dep_group_no_section_error():
-    with pytest.raises(KeyError, match="pyproject.toml"):
+    with pytest.raises(KeyError, match=r"pyproject\.toml"):
         resolve_dependency_groups({}, "test")

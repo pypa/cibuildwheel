@@ -1,40 +1,40 @@
-from __future__ import annotations
-
+import functools
 import json
 import os
 import shutil
 import sys
+import tomllib
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Final
 
 from filelock import FileLock
 
 from . import errors
 from .architecture import Architecture
 from .environment import ParsedEnvironment
+from .frontend import BuildFrontendConfig, get_build_frontend_extra_flags
 from .logger import log
 from .options import Options
+from .selector import BuildSelector
 from .typing import PathOrStr
-from .util import (
+from .util import resources
+from .util.cmd import call, shell
+from .util.file import (
     CIBW_CACHE_PATH,
-    BuildFrontendConfig,
-    BuildSelector,
-    call,
-    combine_constraints,
+    copy_test_sources,
     download,
-    ensure_node,
+    extract_tar,
     extract_zip,
-    find_compatible_wheel,
-    get_pip_version,
     move_file,
-    prepare_command,
-    read_python_configs,
-    shell,
-    split_config_settings,
-    test_fail_cwd_file,
-    virtualenv,
 )
+from .util.helpers import prepare_command
+from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from .venv import virtualenv
+
+IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
 @dataclass(frozen=True)
@@ -45,6 +45,37 @@ class PythonConfiguration:
     pyodide_build_version: str
     emscripten_version: str
     node_version: str
+
+
+@functools.cache
+def ensure_node(major_version: str) -> Path:
+    with resources.NODEJS.open("rb") as f:
+        loaded_file = tomllib.load(f)
+    version = str(loaded_file[major_version])
+    base_url = str(loaded_file["url"])
+    ext = "zip" if IS_WIN else "tar.xz"
+    platform = "win" if IS_WIN else ("darwin" if sys.platform.startswith("darwin") else "linux")
+    linux_arch = Architecture.native_arch("linux")
+    assert linux_arch is not None
+    arch = {"x86_64": "x64", "i686": "x86", "aarch64": "arm64"}.get(
+        linux_arch.value, linux_arch.value
+    )
+    name = f"node-{version}-{platform}-{arch}"
+    path = CIBW_CACHE_PATH / name
+    with FileLock(str(path) + ".lock"):
+        if not path.exists():
+            url = f"{base_url}{version}/{name}.{ext}"
+            with TemporaryDirectory() as tmp_path:
+                archive = Path(tmp_path) / f"{name}.{ext}"
+                download(url, archive)
+                if ext == "zip":
+                    extract_zip(archive, path.parent)
+                else:
+                    extract_tar(archive, path.parent)
+    assert path.exists()
+    if not IS_WIN:
+        return path / "bin"
+    return path
 
 
 def install_emscripten(tmp: Path, version: str) -> Path:
@@ -248,7 +279,7 @@ def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],  # noqa: ARG001
 ) -> list[PythonConfiguration]:
-    full_python_configs = read_python_configs("pyodide")
+    full_python_configs = resources.read_python_configs("pyodide")
 
     python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
@@ -297,12 +328,12 @@ def build(options: Options, tmp_path: Path) -> None:
             built_wheel_dir.mkdir()
             repaired_wheel_dir.mkdir()
 
-            dependency_constraint_flags: Sequence[PathOrStr] = []
-            if build_options.dependency_constraints:
-                constraints_path = build_options.dependency_constraints.get_for_python_version(
-                    config.version, variant="pyodide"
-                )
-                dependency_constraint_flags = ["-c", constraints_path]
+            constraints_path = build_options.dependency_constraints.get_for_python_version(
+                version=config.version, variant="pyodide", tmp_dir=identifier_tmp_dir
+            )
+            dependency_constraint_flags: Sequence[PathOrStr] = (
+                ["-c", constraints_path] if constraints_path else []
+            )
 
             env = setup_python(
                 identifier_tmp_dir / "build",
@@ -322,8 +353,8 @@ def build(options: Options, tmp_path: Path) -> None:
             # directory.
             oldmounts = ""
             extra_mounts = [str(identifier_tmp_dir)]
-            if str(Path(".").resolve()).startswith("/tmp"):
-                extra_mounts.append(str(Path(".").resolve()))
+            if Path.cwd().is_relative_to("/tmp"):
+                extra_mounts.append(str(Path.cwd()))
 
             if "_PYODIDE_EXTRA_MOUNTS" in env:
                 oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
@@ -346,15 +377,12 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 log.step("Building wheel...")
 
-                extra_flags = split_config_settings(build_options.config_settings, "build")
-                extra_flags += build_frontend.args
-
-                if not 0 <= build_options.build_verbosity < 2:
-                    msg = f"build_verbosity {build_options.build_verbosity} is not supported for build frontend. Ignoring."
-                    log.warning(msg)
+                extra_flags = get_build_frontend_extra_flags(
+                    build_frontend, build_options.build_verbosity, build_options.config_settings
+                )
 
                 build_env = env.copy()
-                if build_options.dependency_constraints:
+                if constraints_path:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
                 build_env["VIRTUALENV_PIP"] = pip_version
                 call(
@@ -446,13 +474,21 @@ def build(options: Options, tmp_path: Path) -> None:
                 # and not the repo code)
                 test_command_prepared = prepare_command(
                     build_options.test_command,
-                    project=Path(".").resolve(),
+                    project=Path.cwd(),
                     package=build_options.package_dir.resolve(),
                 )
 
-                test_cwd = identifier_tmp_dir / "test_cwd"
-                test_cwd.mkdir(exist_ok=True)
-                (test_cwd / "test_fail.py").write_text(test_fail_cwd_file.read_text())
+                if build_options.test_sources:
+                    test_cwd = identifier_tmp_dir / "test_cwd"
+                    test_cwd.mkdir(exist_ok=True)
+                    copy_test_sources(
+                        build_options.test_sources,
+                        build_options.package_dir,
+                        test_cwd,
+                    )
+                else:
+                    # There are no test sources. Run the tests in the project directory.
+                    test_cwd = Path.cwd()
 
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
@@ -462,7 +498,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 moved_wheel = move_file(repaired_wheel, output_wheel)
                 if moved_wheel != output_wheel.resolve():
                     log.warning(
-                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
 

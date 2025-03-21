@@ -1,46 +1,63 @@
-from __future__ import annotations
-
 import argparse
+import contextlib
 import dataclasses
 import os
 import shutil
 import sys
 import tarfile
 import textwrap
+import time
 import traceback
 import typing
-from collections.abc import Iterable, Sequence, Set
+from collections.abc import Generator, Iterable, Sequence, Set
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Protocol
+from typing import Any, Protocol, TextIO, assert_never
 
 import cibuildwheel
+import cibuildwheel.ios
 import cibuildwheel.linux
 import cibuildwheel.macos
 import cibuildwheel.pyodide
 import cibuildwheel.util
 import cibuildwheel.windows
 from cibuildwheel import errors
-from cibuildwheel._compat.typing import assert_never
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
+from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
+from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.typing import PLATFORMS, GenericPythonConfiguration, PlatformName
-from cibuildwheel.util import (
-    CIBW_CACHE_PATH,
-    BuildSelector,
-    CIProvider,
-    Unbuffered,
-    chdir,
-    detect_ci_provider,
-    fix_ansi_codes_for_github_actions,
-    strtobool,
-)
+from cibuildwheel.util.file import CIBW_CACHE_PATH
+from cibuildwheel.util.helpers import strtobool
 
 
 @dataclasses.dataclass
 class GlobalOptions:
     print_traceback_on_error: bool = True  # decides what happens when errors are hit.
+
+
+@dataclasses.dataclass(frozen=True)
+class FileReport:
+    name: str
+    size: str
+
+
+# Taken from https://stackoverflow.com/a/107717
+class Unbuffered:
+    def __init__(self, stream: TextIO) -> None:
+        self.stream = stream
+
+    def write(self, data: str) -> None:
+        self.stream.write(data)
+        self.stream.flush()
+
+    def writelines(self, data: Iterable[str]) -> None:
+        self.stream.writelines(data)
+        self.stream.flush()
+
+    def __getattr__(self, attr: str) -> Any:
+        return getattr(self.stream, attr)
 
 
 def main() -> None:
@@ -52,7 +69,7 @@ def main() -> None:
         if log.step_active:
             log.step_end_with_error(message)
         else:
-            print(f"cibuildwheel: {message}", file=sys.stderr)
+            log.error(message)
 
         if global_options.print_traceback_on_error:
             traceback.print_exc(file=sys.stderr)
@@ -77,13 +94,14 @@ def main_inner(global_options: GlobalOptions) -> None:
 
     parser.add_argument(
         "--platform",
-        choices=["auto", "linux", "macos", "windows", "pyodide"],
+        choices=["auto", "linux", "macos", "windows", "pyodide", "ios"],
         default=None,
         help="""
-            Platform to build for. Use this option to override the
-            auto-detected platform. Specifying "macos" or "windows" only works
-            on that operating system, but "linux" works on all three, as long
-            as Docker/Podman is installed. Default: auto.
+            Platform to build for. Use this option to override the auto-detected
+            platform. Specifying "macos" or "windows" only works on that
+            operating system. "linux" works on any desktop OS, as long as
+            Docker/Podman is installed. "pyodide" only works on linux and macOS.
+            "ios" only work on macOS. Default: auto.
         """,
     )
 
@@ -98,6 +116,17 @@ def main_inner(global_options: GlobalOptions) -> None:
             via emulation, for example, using binfmt_misc and QEMU.
             Default: auto.
             Choices: auto, auto64, auto32, native, all, {arch_list_str}
+        """,
+    )
+
+    enable_groups_str = ", ".join(g.value for g in EnableGroup)
+    parser.add_argument(
+        "--enable",
+        action="append",
+        default=[],
+        metavar="GROUP",
+        help=f"""
+            Enable an additional category of builds. Use multiple times to select multiple groups. Choices: {enable_groups_str}.
         """,
     )
 
@@ -131,7 +160,7 @@ def main_inner(global_options: GlobalOptions) -> None:
     parser.add_argument(
         "package_dir",
         metavar="PACKAGE",
-        default=Path("."),
+        default=Path(),
         type=Path,
         nargs="?",
         help="""
@@ -155,12 +184,6 @@ def main_inner(global_options: GlobalOptions) -> None:
         "--allow-empty",
         action="store_true",
         help="Do not report an error code if the build does not match any wheels.",
-    )
-
-    parser.add_argument(
-        "--prerelease-pythons",
-        action="store_true",
-        help="Enable pre-release Python versions if available.",
     )
 
     parser.add_argument(
@@ -200,7 +223,7 @@ def main_inner(global_options: GlobalOptions) -> None:
         # This is now the new package dir
         args.package_dir = project_dir.resolve()
 
-        with chdir(project_dir):
+        with contextlib.chdir(project_dir):
             build_in_directory(args)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
@@ -219,6 +242,8 @@ def _compute_platform_only(only: str) -> PlatformName:
         return "windows"
     if "pyodide_" in only:
         return "pyodide"
+    if "ios_" in only:
+        return "ios"
     msg = f"Invalid --only='{only}', must be a build selector with a known platform"
     raise errors.ConfigurationError(msg)
 
@@ -232,7 +257,7 @@ def _compute_platform_auto() -> PlatformName:
         return "windows"
     else:
         msg = (
-            'cibuildwheel: Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
+            'Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
             "support building wheels for this platform. You might be able to build for a different "
             "platform using the --platform argument. Check --help output for more information."
         )
@@ -280,15 +305,52 @@ def get_platform_module(platform: PlatformName) -> PlatformModule:
         return cibuildwheel.macos
     if platform == "pyodide":
         return cibuildwheel.pyodide
+    if platform == "ios":
+        return cibuildwheel.ios
     assert_never(platform)
+
+
+@contextlib.contextmanager
+def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
+    """
+    Prints the new items in a directory upon exiting. The message to display
+    can include {n} for number of wheels, {s} for total number of seconds,
+    and/or {m} for total number of minutes. Does not print anything if this
+    exits via exception.
+    """
+
+    start_time = time.time()
+    existing_contents = set(output_dir.iterdir())
+    yield
+    final_contents = set(output_dir.iterdir())
+
+    new_contents = [
+        FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
+        for wheel in final_contents - existing_contents
+    ]
+
+    if not new_contents:
+        return
+
+    max_name_len = max(len(f.name) for f in new_contents)
+    max_size_len = max(len(f.size) for f in new_contents)
+    n = len(new_contents)
+    s = time.time() - start_time
+    m = s / 60
+    print(
+        msg.format(n=n, s=s, m=m),
+        *sorted(
+            f"  {f.name:<{max_name_len}s}   {f.size:>{max_size_len}s} kB" for f in new_contents
+        ),
+        sep="\n",
+    )
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
     if platform == "pyodide" and sys.platform == "win32":
-        msg = "cibuildwheel: Building for pyodide is not supported on Windows"
-        print(msg, file=sys.stderr)
-        sys.exit(2)
+        msg = "Building for pyodide is not supported on Windows"
+        raise errors.ConfigurationError(msg)
 
     options = compute_options(platform=platform, command_line_arguments=args, env=os.environ)
 
@@ -340,14 +402,11 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     output_dir = options.globals.output_dir
 
-    if not output_dir.exists():
-        output_dir.mkdir(parents=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
-        with cibuildwheel.util.print_new_wheels(
-            "\n{n} wheels produced in {m:.0f} minutes:", output_dir
-        ):
+        with print_new_wheels("\n{n} wheels produced in {m:.0f} minutes:", output_dir):
             platform_module.build(options, tmp_path)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
@@ -418,10 +477,10 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
         if any(o and ("{python}" in o or "{pip}" in o) for o in option_values):
             # Reminder: in an f-string, double braces means literal single brace
             msg = (
-                f"{option_name}: '{{python}}' and '{{pip}}' are no longer needed, "
-                "and will be removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
+                f"{option_name}: '{{python}}' and '{{pip}}' are no longer supported "
+                "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
-            warnings.append(msg)
+            raise errors.ConfigurationError(msg)
 
     return warnings
 

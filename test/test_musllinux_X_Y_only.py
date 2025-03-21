@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import textwrap
 
 import pytest
@@ -38,7 +36,7 @@ def test(musllinux_image, tmp_path):
 
     # build the wheels
     add_env = {
-        "CIBW_SKIP": "*-manylinux*",
+        "CIBW_SKIP": "*-manylinux* *_armv7l",
         "CIBW_MUSLLINUX_X86_64_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_I686_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_AARCH64_IMAGE": musllinux_image,
@@ -54,4 +52,5 @@ def test(musllinux_image, tmp_path):
         musllinux_versions=[musllinux_image],
         single_python=True,
     )
+    expected_wheels = [w for w in expected_wheels if "armv7l" not in w]
     assert set(actual_wheels) == set(expected_wheels)

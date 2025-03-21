@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import io
 import json
 import os
@@ -16,20 +14,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
-from typing import IO, Dict, Literal
+from typing import IO, Literal, Self, assert_never
 
-from ._compat.typing import Self, assert_never
+from .ci import CIProvider, detect_ci_provider
 from .errors import OCIEngineTooOldError
 from .logger import log
-from .typing import PathOrStr, PopenBytes
-from .util import (
-    CIProvider,
-    FlexibleVersion,
-    call,
-    detect_ci_provider,
-    parse_key_value_string,
-    strtobool,
-)
+from .typing import PathOrStr
+from .util.cmd import call
+from .util.helpers import FlexibleVersion, parse_key_value_string, strtobool
 
 ContainerEngineName = Literal["docker", "podman"]
 
@@ -50,8 +42,8 @@ class OCIContainerEngineConfig:
     create_args: tuple[str, ...] = field(default_factory=tuple)
     disable_host_mount: bool = False
 
-    @staticmethod
-    def from_config_string(config_string: str) -> OCIContainerEngineConfig:
+    @classmethod
+    def from_config_string(cls, config_string: str) -> Self:
         config_dict = parse_key_value_string(
             config_string,
             ["name"],
@@ -81,9 +73,7 @@ class OCIContainerEngineConfig:
             else:
                 create_args = [arg for arg in create_args if not arg.startswith("--platform=")]
 
-        return OCIContainerEngineConfig(
-            name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount
-        )
+        return cls(name=name, create_args=tuple(create_args), disable_host_mount=disable_host_mount)
 
     def options_summary(self) -> str | dict[str, str]:
         if not self.create_args:
@@ -170,7 +160,7 @@ class OCIContainer:
 
     UTILITY_PYTHON = "/opt/python/cp39-cp39/bin/python"
 
-    process: PopenBytes
+    process: subprocess.Popen[bytes]
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 
@@ -199,7 +189,7 @@ class OCIContainer:
         if oci_platform is None:
             oci_platform = self.oci_platform
 
-        # we need '--pull=always' otherwise some images with the wrong platform get re-used (e.g. 386 image for amd64)
+        # we need '--pull=always' otherwise some images with the wrong platform get reused (e.g. 386 image for amd64)
         # c.f. https://github.com/moby/moby/issues/48197#issuecomment-2282802313
         pull = "always"
         try:
@@ -489,7 +479,7 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return typing.cast(Dict[str, str], env)
+        return typing.cast(dict[str, str], env)
 
     def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output

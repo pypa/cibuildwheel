@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 2.x
   pull_request:
     paths-ignore:
       - 'docs/**'
@@ -26,8 +27,6 @@ jobs:
       with:
         python-version: "3.x"
     - uses: pre-commit/action@v3.0.1
-    - name: Check manifest
-      run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s check_manifest
     - name: PyLint checks
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
@@ -37,11 +36,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
         python_version: ['3.13']
         include:
         - os: ubuntu-latest
-          python_version: '3.8'
+          python_version: '3.11'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -51,7 +50,7 @@ jobs:
         python-version: ${{ matrix.python_version }}
         allow-prereleases: true
 
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v5
 
     # free some space to prevent reaching GHA disk space limits
     - name: Clean docker images
@@ -64,6 +63,11 @@ jobs:
     - name: Set up QEMU
       if: runner.os == 'Linux'
       uses: docker/setup-qemu-action@v3
+      with:
+        # This should be temporary
+        # xref https://github.com/docker/setup-qemu-action/issues/188
+        # xref https://github.com/tonistiigi/binfmt/issues/215
+        image: tonistiigi/binfmt:qemu-v8.1.5
 
     - name: Install dependencies
       run: |
@@ -81,15 +85,14 @@ jobs:
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: 'build[uv]'
-        CIBW_FREE_THREADED_SUPPORT: 1
-        CIBW_PRERELEASE_PYTHONS: 1
+        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
-        only: cp312-${{ runner.os == 'Linux' && 'manylinux_x86_64' || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
+        only: cp312-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
 
     - name: Create custom configuration file
       shell: bash
@@ -124,7 +127,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        uv run bin/run_tests.py --run-podman
+        uv run bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures
@@ -137,7 +140,7 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: uv sync --no-dev --group test
     - name: Get qemu emulated architectures
@@ -160,12 +163,17 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
+      with:
+        # This should be temporary
+        # xref https://github.com/docker/setup-qemu-action/issues/188
+        # xref https://github.com/tonistiigi/binfmt/issues/215
+        image: tonistiigi/binfmt:qemu-v8.1.5
 
     - name: Run the emulation tests
       run: uv run pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
@@ -185,7 +193,7 @@ jobs:
       name: Install Python 3.12
       with:
         python-version: '3.12'
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v5
 
     - name: Install dependencies
       run: uv sync --no-dev --group test

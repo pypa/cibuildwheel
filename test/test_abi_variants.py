@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import textwrap
 
 from . import test_projects, utils
@@ -101,18 +99,19 @@ ctypes_project.files["setup.py"] = textwrap.dedent(
     setup(
         name="ctypesexample",
         version="1.0.0",
+        package_dir = {"": "src"},
         py_modules = ["ctypesexample.summing"],
         ext_modules=[
             CTypesExtension(
                 "ctypesexample.csumlib",
-                ["ctypesexample/csumlib.c"],
+                ["src/ctypesexample/csumlib.c"],
             ),
         ],
         cmdclass={'build_ext': build_ext, 'bdist_wheel': bdist_wheel_abi_none},
     )
     """
 )
-ctypes_project.files["ctypesexample/csumlib.c"] = textwrap.dedent(
+ctypes_project.files["src/ctypesexample/csumlib.c"] = textwrap.dedent(
     """
     #ifdef _WIN32
     #define LIBRARY_API __declspec(dllexport)
@@ -136,7 +135,7 @@ ctypes_project.files["ctypesexample/csumlib.c"] = textwrap.dedent(
     }
     """
 )
-ctypes_project.files["ctypesexample/summing.py"] = textwrap.dedent(
+ctypes_project.files["src/ctypesexample/summing.py"] = textwrap.dedent(
     """
     import ctypes
     import pathlib

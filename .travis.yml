@@ -1,36 +1,29 @@
 os: linux
-dist: focal
+dist: jammy
 language: python
 
 branches:
   only:
   - main
 
+# only build the main branch or PR that explicitely want to test with Travis CI
+if: (type = "push") OR (commit_message =~ /travis-ci/)
+
 jobs:
   include:
-    - name: Linux | x86_64 + i686 | Python 3.9
-      python: 3.9
+    - name: Linux | x86_64 + i686 | Python 3.12
+      python: 3.12
       services: docker
       env: PYTHON=python
 
-    - name: Linux | arm64 | Python 3.9
-      python: 3.9
+    - name: Linux | arm64 | Python 3.12
+      python: 3.12
       services: docker
-      arch: arm64-graviton2
-      group: edge
-      virt: vm
+      arch: arm64
       env: PYTHON=python
-      # docker is outdated in the arm64-graviton2 vm focal image (19.x)
-      # we need to upgrade to get >= 24.0
-      addons:
-        apt:
-          sources:
-            - sourceline: 'deb https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable'
-          packages:
-            - docker-ce docker-ce-cli containerd.io
 
-    - name: Linux | ppc64le | Python 3.9
-      python: 3.9
+    - name: Linux | ppc64le | Python 3.12
+      python: 3.12
       services: docker
       arch: ppc64le
       allow_failure: True
@@ -40,16 +33,16 @@ jobs:
         # c.f. https://travis-ci.community/t/running-out-of-disk-space-quota-when-using-docker-on-ppc64le/11634
         - PYTEST_ADDOPTS='-k "not test_manylinuxXXXX_only"'
 
-    - name: Windows | x86_64 | Python 3.9
+    - name: Windows | x86_64 | Python 3.12
       os: windows
       language: shell
       before_install:
-        - choco upgrade python3 -y --version 3.9.13 --limit-output --params "/InstallDir:C:\\Python39"
+        - choco upgrade python3 -y --version 3.12.8 --limit-output --params "/InstallDir:C:\\Python312"
       env:
-        - PYTHON=C:\\Python39\\python
+        - PYTHON=C:\\Python312\\python
 
-    - name: Linux | s390x | Python 3.9
-      python: 3.9
+    - name: Linux | s390x | Python 3.12
+      python: 3.12
       services: docker
       arch: s390x
       allow_failure: True

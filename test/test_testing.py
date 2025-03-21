@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import inspect
 import os
 import subprocess
@@ -46,9 +44,9 @@ def path_contains(parent, child):
 
 
 class TestSpam(TestCase):
-    def test_system(self):
-        self.assertEqual(0, spam.system('python -c "exit(0)"'))
-        self.assertNotEqual(0, spam.system('python -c "exit(1)"'))
+    def test_filter(self):
+        self.assertEqual(0, spam.filter("spam"))
+        self.assertNotEqual(0, spam.filter("ham"))
 
     def test_virtualenv(self):
         # sys.prefix is different from sys.base_prefix when running a virtualenv
@@ -68,7 +66,7 @@ class TestSpam(TestCase):
         # See #336 for more info.
         bits = struct.calcsize("P") * 8
         if bits == 32:
-            self.assertIn(platform.machine(), ["i686", "wasm32"])
+            self.assertIn(platform.machine(), ["i686", "armv7l","armv8l", "wasm32"])
 '''
 
 
@@ -186,34 +184,43 @@ def test_failing_test(tmp_path):
 
 
 @pytest.mark.parametrize("test_runner", ["pytest", "unittest"])
-def test_bare_pytest_invocation(
-    tmp_path: Path, capfd: pytest.CaptureFixture[str], test_runner: str
-) -> None:
-    """Check that if a user runs pytest in the the test cwd, it raises a helpful error"""
+def test_bare_pytest_invocation(tmp_path: Path, test_runner: str) -> None:
+    """Check that if a user runs a bare test suite, it runs in the project folder"""
     project_dir = tmp_path / "project"
-    output_dir = tmp_path / "output"
     project_with_a_test.generate(project_dir)
 
-    with pytest.raises(subprocess.CalledProcessError):
-        utils.cibuildwheel_run(
-            project_dir,
-            output_dir=output_dir,
-            add_env={
-                "CIBW_TEST_REQUIRES": "pytest" if test_runner == "pytest" else "",
-                "CIBW_TEST_COMMAND": (
-                    "python -m pytest" if test_runner == "pytest" else "python -m unittest"
-                ),
-                # Skip CPython 3.8 on macOS arm64, see comment above in
-                # 'test_failing_test'
-                "CIBW_SKIP": "cp38-macosx_arm64",
-            },
-        )
-
-    assert len(os.listdir(output_dir)) == 0
-
-    captured = capfd.readouterr()
-
-    assert (
-        "Please specify a path to your tests when invoking pytest using the {project} placeholder"
-        in captured.out + captured.err
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_TEST_REQUIRES": "pytest" if test_runner == "pytest" else "",
+            "CIBW_TEST_COMMAND": (
+                "python -m pytest"
+                if test_runner == "pytest"
+                else "python -m unittest discover test spam_test.py"
+            ),
+        },
     )
+
+    # check that we got the right wheels
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_test_sources(tmp_path):
+    project_dir = tmp_path / "project"
+    project_with_a_test.generate(project_dir)
+
+    # build and test the wheels in the test cwd, after copying in the test sources.
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_TEST_REQUIRES": "pytest",
+            "CIBW_TEST_COMMAND": "pytest",
+            "CIBW_TEST_COMMAND_WINDOWS": "pytest",
+            "CIBW_TEST_SOURCES": "test",
+        },
+    )
+
+    # also check that we got the right wheels
+    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    assert set(actual_wheels) == set(expected_wheels)
