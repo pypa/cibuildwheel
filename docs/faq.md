@@ -294,7 +294,16 @@ CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
 CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
 ```
 
-Rust does not provide Cargo for musllinux 32-bit, so that needs to be skipped:
+Rust's minimum macOS target is 10.12, while CPython supports 10.9 before
+Python 3.12, so you'll need to raise the minimum:
+
+```toml
+[tool.cibuildwheel.macos.environment]
+MACOSX_DEPLOYMENT_TARGET = "10.12"
+```
+
+And Rust does not provide Cargo for musllinux 32-bit, so that needs to be
+skipped:
 
 ```toml
 [tool.cibuildwheel]
