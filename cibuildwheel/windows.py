@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
-from packaging.version import Version
 
 from . import errors
 from .architecture import Architecture
@@ -497,10 +496,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     call("uv", "venv", venv_dir, f"--python={base_python}", env=env)
                 else:
                     # Use pip version from the initial env to ensure determinism
-                    venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
-                    # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
-                    if Version(config.version) < Version("3.12"):
-                        venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                    venv_args = [
+                        "--no-periodic-update",
+                        f"--pip={pip_version}",
+                        "--no-setuptools",
+                        "--no-wheel",
+                    ]
                     call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                 virtualenv_env = env.copy()
