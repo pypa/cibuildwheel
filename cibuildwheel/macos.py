@@ -373,6 +373,17 @@ def setup_python(
             *dependency_constraint_flags,
             env=env,
         )
+    elif build_frontend == "uv":
+        assert uv_path is not None
+        call(
+            uv_path,
+            "pip",
+            "install",
+            "--upgrade",
+            "delocate",
+            *dependency_constraint_flags,
+            env=env,
+        )
     else:
         assert_never(build_frontend)
 
@@ -405,7 +416,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
-            use_uv = build_frontend.name == "build[uv]"
+            use_uv = build_frontend.name in {"build[uv]", "uv"}
             uv_path = find_uv()
             if use_uv and uv_path is None:
                 msg = "uv not found"
@@ -492,6 +503,16 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.package_dir,
                         "--wheel",
                         f"--outdir={built_wheel_dir}",
+                        *extra_flags,
+                        env=build_env,
+                    )
+                elif build_frontend.name == "uv":
+                    call(
+                        "uv",
+                        "build",
+                        build_options.package_dir,
+                        "--wheel",
+                        f"--out-dir={built_wheel_dir}",
                         *extra_flags,
                         env=build_env,
                     )
