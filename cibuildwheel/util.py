@@ -705,6 +705,10 @@ def virtualenv(
     dependency_constraint_flags are ignored since nothing is installed in the
     venv. Otherwise, pip is installed, and setuptools + wheel if Python < 3.12.
     """
+
+    # virtualenv may fail if this is a symlink.
+    python = python.resolve()
+
     assert python.exists()
 
     if use_uv:
