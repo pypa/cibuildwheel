@@ -276,7 +276,7 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-i686-image") == ""
     assert options_reader.get("manylinux-aarch64-image") == "manylinux1"
 
-    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux2014"
+    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux_2_28"
     assert options_reader.get("manylinux-i686-image", ignore_empty=True) == "manylinux1"
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
 

@@ -43,9 +43,12 @@ def test(tmp_path):
     )
 
     # also check that we got the right wheels built
+    manylinux_versions = ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"]
     expected_wheels = [
         w
-        for w in utils.expected_wheels("spam", "0.1.0", musllinux_versions=[])
+        for w in utils.expected_wheels(
+            "spam", "0.1.0", manylinux_versions=manylinux_versions, musllinux_versions=[]
+        )
         if "-cp38-" in w or "-cp39-" in w
     ]
     assert set(actual_wheels) == set(expected_wheels)
