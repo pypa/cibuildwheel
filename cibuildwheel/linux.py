@@ -8,8 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
-from packaging.version import Version
-
 from . import errors
 from .architecture import Architecture
 from .frontend import BuildFrontendConfig, get_build_frontend_extra_flags
@@ -351,10 +349,7 @@ def build_in_container(
                 container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
             else:
                 # Use embedded dependencies from virtualenv to ensure determinism
-                venv_args = ["--no-periodic-update", "--pip=embed"]
-                # In Python<3.12, setuptools & wheel are installed as well
-                if Version(config.version) < Version("3.12"):
-                    venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                venv_args = ["--no-periodic-update", "--pip=embed", "--no-setuptools", "--no-wheel"]
                 container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
 
             virtualenv_env = env.copy()

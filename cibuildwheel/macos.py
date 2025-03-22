@@ -643,10 +643,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     else:
                         pip_install = functools.partial(call_with_arch, *pip, "install")
                         # Use pip version from the initial env to ensure determinism
-                        venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
-                        # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
-                        if Version(config.version) < Version("3.12"):
-                            venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                        venv_args = [
+                            "--no-periodic-update",
+                            f"--pip={pip_version}",
+                            "--no-setuptools",
+                            "--no-wheel",
+                        ]
                         call_with_arch("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                     virtualenv_env = env.copy()
