@@ -795,10 +795,7 @@ class Options:
                         f"manylinux-{build_platform}-image", ignore_empty=True
                     )
                     self._check_pinned_image(config_value, pinned_images)
-                    if not config_value:
-                        # default to manylinux2014
-                        image = pinned_images["manylinux2014"]
-                    elif config_value in pinned_images:
+                    if config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
                         image = config_value
@@ -806,11 +803,11 @@ class Options:
 
                 for build_platform in MUSLLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
-                    config_value = self.reader.get(f"musllinux-{build_platform}-image")
+                    config_value = self.reader.get(
+                        f"musllinux-{build_platform}-image", ignore_empty=True
+                    )
                     self._check_pinned_image(config_value, pinned_images)
-                    if not config_value:
-                        image = pinned_images["musllinux_1_2"]
-                    elif config_value in pinned_images:
+                    if config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
                         image = config_value

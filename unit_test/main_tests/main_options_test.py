@@ -79,7 +79,7 @@ def test_empty_selector(monkeypatch):
 @pytest.mark.parametrize(
     ("architecture", "image", "full_image"),
     [
-        ("x86_64", None, "quay.io/pypa/manylinux2014_x86_64:*"),
+        ("x86_64", None, "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
@@ -87,7 +87,7 @@ def test_empty_selector(monkeypatch):
         ("i686", None, "quay.io/pypa/manylinux2014_i686:*"),
         ("i686", "manylinux2014", "quay.io/pypa/manylinux2014_i686:*"),
         ("i686", "custom_image", "custom_image"),
-        ("pypy_x86_64", None, "quay.io/pypa/manylinux2014_x86_64:*"),
+        ("pypy_x86_64", None, "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
