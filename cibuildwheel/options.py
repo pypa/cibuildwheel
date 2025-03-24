@@ -674,10 +674,18 @@ class Options:
         )
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
-        if (
-            value in {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
-            and value not in self._image_warnings
-        ):
+        error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
+        warning_set: set[str] = set()
+
+        if value in error_set:
+            msg = (
+                f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
+                "supported image or continue using the image by pinning it directly with"
+                " its full OCI registry '<name>{:<tag>|@<digest>}'."
+            )
+            raise errors.DeprecationError(msg)
+
+        if value in warning_set and value not in self._image_warnings:
             self._image_warnings.add(value)
             msg = (
                 f"Deprecated image {value!r}. This value will not work"
@@ -784,35 +792,26 @@ class Options:
 
                 for build_platform in MANYLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
-
                     config_value = self.reader.get(
                         f"manylinux-{build_platform}-image", ignore_empty=True
                     )
-
-                    if not config_value:
-                        # default to manylinux2014
-                        image = pinned_images["manylinux2014"]
-                    elif config_value in pinned_images:
-                        self._check_pinned_image(config_value, pinned_images)
+                    self._check_pinned_image(config_value, pinned_images)
+                    if config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
                         image = config_value
-
                     manylinux_images[build_platform] = image
 
                 for build_platform in MUSLLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
-
-                    config_value = self.reader.get(f"musllinux-{build_platform}-image")
-
-                    if not config_value:
-                        image = pinned_images["musllinux_1_2"]
-                    elif config_value in pinned_images:
-                        self._check_pinned_image(config_value, pinned_images)
+                    config_value = self.reader.get(
+                        f"musllinux-{build_platform}-image", ignore_empty=True
+                    )
+                    self._check_pinned_image(config_value, pinned_images)
+                    if config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
                         image = config_value
-
                     musllinux_images[build_platform] = image
 
             container_engine_str = self.reader.get(
@@ -864,14 +863,6 @@ class Options:
                         """
                     )
                 )
-
-    def check_for_deprecated_options(self) -> None:
-        build_selector = self.globals.build_selector
-        test_selector = self.globals.test_selector
-
-        deprecated_selectors("CIBW_BUILD", build_selector.build_config, error=True)
-        deprecated_selectors("CIBW_SKIP", build_selector.skip_config)
-        deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
 
     @functools.cached_property
     def defaults(self) -> Self:
@@ -987,9 +978,7 @@ def compute_options(
     command_line_arguments: CommandLineArguments,
     env: Mapping[str, str],
 ) -> Options:
-    options = Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
-    options.check_for_deprecated_options()
-    return options
+    return Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
 
 
 @functools.cache
@@ -1004,16 +993,3 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     all_pinned_images = configparser.ConfigParser()
     all_pinned_images.read(resources.PINNED_DOCKER_IMAGES)
     return all_pinned_images
-
-
-def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
-    if "p2" in selector or "p35" in selector:
-        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update {name}"
-        if error:
-            raise errors.DeprecationError(msg)
-        log.warning(msg)
-    if "p36" in selector or "p37" in selector:
-        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update {name}"
-        if error:
-            raise errors.DeprecationError(msg)
-        log.warning(msg)

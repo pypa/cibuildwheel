@@ -158,19 +158,19 @@ which means it can be given multiple times.
 ```toml
 [tool.cibuildwheel]
 # Normal options, etc.
-manylinux-x86_64-image = "manylinux2014"
+manylinux-x86_64-image = "manylinux_2_34"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp38-*"
-manylinux-x86_64-image = "manylinux1"
+manylinux-x86_64-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
 select = "cp3{9,10}-*"
-manylinux-x86_64-image = "manylinux2010"
+manylinux-x86_64-image = "manylinux_2_28"
 ```
 
-This example will build CPython 3.8 wheels on manylinux1, CPython 3.9-3.10
-wheels on manylinux2010, and manylinux2014 wheels for any newer Python
+This example will build CPython 3.8 wheels on manylinux2014, CPython 3.9-3.10
+wheels on manylinux_2_28, and manylinux_2_34 wheels for any newer Python
 (like 3.10).
 
 ```toml
@@ -649,7 +649,7 @@ This option can also be set using the [command-line option](#command-line)
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
-> Set the tool to use to build, either "pip" (default for now), "build", or "build\[uv\]"
+> Set the tool to use to build, either "build" (default), "build/[uv/]", or "pip"
 
 Options:
 
@@ -658,8 +658,8 @@ Options:
 
 Default: `pip`
 
-Choose which build frontend to use. Can either be "pip", which will run
-`python -m pip wheel`, or "build", which will run `python -m build --wheel`.
+Choose which build frontend to use. Can either be "build", which will run
+`python -m build --wheel`, or "pip", which will run `python -m pip wheel`.
 
 You can also use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
@@ -955,10 +955,9 @@ Platform-specific environment variables also available:<br/>
 
     In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
 
-Note that manylinux_2_24/manylinux_2_31 builds occur inside a debian derivative docker container, where
-manylinux2010 and manylinux2014 builds occur inside a CentOS one. So for
-`manylinux_2_24`/`manylinux_2_31` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
-instead.
+Note that manylinux_2_31 builds occur inside a debian derivative docker container, where
+manylinux2014 builds occur inside a CentOS one. So for `manylinux_2_31` the `CIBW_BEFORE_ALL_LINUX` command
+must use `apt-get -y` instead.
 
 ### `CIBW_BEFORE_BUILD` {: #before-build}
 > Execute a shell command preparing each wheel's build
@@ -1169,39 +1168,38 @@ Platform-specific environment variables are also available:<br/>
 
 The available options are:
 
-| Option                            | Default                                                        | Future default*                                                 |
-|-----------------------------------|----------------------------------------------------------------|-----------------------------------------------------------------|
-| CIBW_MANYLINUX_X86_64_IMAGE       | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)   | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
-| CIBW_MANYLINUX_I686_IMAGE         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)     |                                                                 |
-| CIBW_MANYLINUX_PYPY_X86_64_IMAGE  | [`manylinux2014`](https://quay.io/pypa/manylinux2014_x86_64)   | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
-| CIBW_MANYLINUX_AARCH64_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
-| CIBW_MANYLINUX_PPC64LE_IMAGE      | [`manylinux2014`](https://quay.io/pypa/manylinux2014_ppc64le)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
-| CIBW_MANYLINUX_S390X_IMAGE        | [`manylinux2014`](https://quay.io/pypa/manylinux2014_s390x)    | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
-| CIBW_MANYLINUX_ARMV7L_IMAGE       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l) |                                                                 |
-| CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux2014`](https://quay.io/pypa/manylinux2014_aarch64)  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
-| CIBW_MANYLINUX_PYPY_I686_IMAGE    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)     |                                                                 |
-| CIBW_MUSLLINUX_X86_64_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)   |                                                                 |
-| CIBW_MUSLLINUX_I686_IMAGE         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)     |                                                                 |
-| CIBW_MUSLLINUX_AARCH64_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)  |                                                                 |
-| CIBW_MUSLLINUX_PPC64LE_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)  |                                                                 |
-| CIBW_MUSLLINUX_S390X_IMAGE        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)    |                                                                 |
-| CIBW_MUSLLINUX_ARMV7L_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)   |                                                                 |
-
-<small>* The default is scheduled to change in a cibuildwheel release on or after 6th May 2025 - if you don't want the new default, you should set the value to `manylinux2014`.</small>
+| Option                            | Default                                                         |
+|-----------------------------------|-----------------------------------------------------------------|
+| CIBW_MANYLINUX_X86_64_IMAGE       | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| CIBW_MANYLINUX_I686_IMAGE         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| CIBW_MANYLINUX_PYPY_X86_64_IMAGE  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| CIBW_MANYLINUX_AARCH64_IMAGE      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| CIBW_MANYLINUX_PPC64LE_IMAGE      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
+| CIBW_MANYLINUX_S390X_IMAGE        | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
+| CIBW_MANYLINUX_ARMV7L_IMAGE       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l)  |
+| CIBW_MANYLINUX_PYPY_AARCH64_IMAGE | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| CIBW_MANYLINUX_PYPY_I686_IMAGE    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| CIBW_MUSLLINUX_X86_64_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)    |
+| CIBW_MUSLLINUX_I686_IMAGE         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)      |
+| CIBW_MUSLLINUX_AARCH64_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)   |
+| CIBW_MUSLLINUX_PPC64LE_IMAGE      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)   |
+| CIBW_MUSLLINUX_S390X_IMAGE        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)     |
+| CIBW_MUSLLINUX_ARMV7L_IMAGE       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)    |
 
 Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
-For `CIBW_MANYLINUX_*_IMAGE`, except `CIBW_MANYLINUX_ARMV7L_IMAGE`, the value of this option can either be set to `manylinux1`, `manylinux2010`, `manylinux2014`, `manylinux_2_24` or `manylinux_2_28` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name. For PyPy, the `manylinux1` image is not available. For architectures other
-than x86 (x86\_64 and i686) `manylinux2014`, `manylinux_2_24`, `manylinux_2_28` or `manylinux_2_34` must be used, because the first version of the manylinux specification that supports additional architectures is `manylinux2014`. `manylinux_2_28` and `manylinux_2_34` are not supported for `i686` architecture.
+For `CIBW_MANYLINUX_*_IMAGE`, except `CIBW_MANYLINUX_ARMV7L_IMAGE`, the value of this option can either be set to `manylinux2014`, `manylinux_2_28` or `manylinux_2_34` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name.
+`manylinux_2_28` and `manylinux_2_34` are not supported for `i686` architecture.
+
 For `CIBW_MANYLINUX_ARMV7L_IMAGE`, the value of this option can either be set to `manylinux_2_31` or a custom image. Support is experimental for now. The `manylinux_2_31` value is only available for `armv7`.
 
-For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `musllinux_1_1` or `musllinux_1_2` to use a pinned version of the [official musllinux images](https://github.com/pypa/musllinux). Alternatively, set these options to any other valid Docker image name.
+For `CIBW_MUSLLINUX_*_IMAGE`, the value of this option can either be set to `musllinux_1_2` or a custom image.
 
 If this option is blank, it will fall though to the next available definition (environment variable -> pyproject.toml -> default).
 
-If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux1/manylinux2010/manylinux2014/manylinux_2_24/manylinux_2_28/manylinux_2_34/musllinux_1_1/musllinux_1_2 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 513](https://www.python.org/dev/peps/pep-0513/), [PEP 571](https://www.python.org/dev/peps/pep-0571/), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
+If setting a custom image, you'll need to make sure it can be used in the same way as the default images: all necessary Python and pip versions need to be present in `/opt/python/`, and the auditwheel tool needs to be present for cibuildwheel to work. Apart from that, the architecture and relevant shared system libraries need to be compatible to the relevant standard to produce valid manylinux2014/manylinux_2_28/manylinux_2_34/musllinux_1_2 wheels (see [pypa/manylinux on GitHub](https://github.com/pypa/manylinux), [PEP 599](https://www.python.org/dev/peps/pep-0599/), [PEP 600](https://www.python.org/dev/peps/pep-0600/) and [PEP 656](https://www.python.org/dev/peps/pep-0656/) for more details).
 
-Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2010_$(uname -m)"'`).
+Auditwheel detects the version of the manylinux / musllinux standard in the image through the `AUDITWHEEL_PLAT` environment variable, as cibuildwheel has no way of detecting the correct `--plat` command line argument to pass to auditwheel for a custom image. If a custom image does not correctly set this `AUDITWHEEL_PLAT` environment variable, the `CIBW_ENVIRONMENT` option can be used to do so (e.g., `CIBW_ENVIRONMENT='AUDITWHEEL_PLAT="manylinux2014_$(uname -m)"'`).
 
 !!! warning
     On x86_64, `manylinux_2_34` is using [x86-64-v2](https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels) target architecture.
@@ -1224,50 +1222,38 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Build using the manylinux1 image to ensure manylinux1 wheels are produced
-    # Not setting PyPy to manylinux1, since there is no manylinux1 PyPy image.
-    CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
-    CIBW_MANYLINUX_I686_IMAGE: manylinux1
-
     # Build using the manylinux2014 image
     CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
     CIBW_MANYLINUX_I686_IMAGE: manylinux2014
     CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
     CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux2014
 
-    # Build using the latest manylinux2014 release, instead of the cibuildwheel
-    # pinned version
-    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64:latest
-    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2014_i686:latest
-    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64:latest
-    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2014_i686:latest
+    # Build using the latest manylinux2010 release
+    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
+    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
+    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
+    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
 
     # Build using a different image from the docker registry
     CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
     CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
 
     # Build musllinux wheels using the musllinux_1_1 image
-    CIBW_MUSLLINUX_X86_64_IMAGE: musllinux_1_1
-    CIBW_MUSLLINUX_I686_IMAGE: musllinux_1_1
+    CIBW_MUSLLINUX_X86_64_IMAGE: quay.io/pypa/musllinux_1_1_x86_64:latest
+    CIBW_MUSLLINUX_I686_IMAGE: quay.io/pypa/musllinux_1_1_i686:latest
     ```
 
 !!! tab examples "pyproject.toml"
 
     ```toml
     [tool.cibuildwheel]
-    # Build using the manylinux1 image to ensure manylinux1 wheels are produced
-    # Not setting PyPy to manylinux1, since there is no manylinux1 PyPy image.
-    manylinux-x86_64-image = "manylinux1"
-    manylinux-i686-image = "manylinux1"
-
     # Build using the manylinux2014 image
     manylinux-x86_64-image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
     manylinux-pypy_x86_64-image = "manylinux2014"
     manylinux-pypy_i686-image = "manylinux2014"
 
-    # Build using the latest manylinux2010 release, instead of the cibuildwheel
-    # pinned version
+    # Build using the latest manylinux2010 release
     manylinux-x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
     manylinux-i686-image = "quay.io/pypa/manylinux2010_i686:latest"
     manylinux-pypy_x86_64-image = "quay.io/pypa/manylinux2010_x86_64:latest"
@@ -1278,8 +1264,8 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     manylinux-i686-image = "dockcross/manylinux-x86"
 
     # Build musllinux wheels using the musllinux_1_1 image
-    musllinux-x86_64-image = "musllinux_1_1"
-    musllinux-i686-image = "musllinux_1_1"
+    musllinux-x86_64-image = "quay.io/pypa/musllinux_1_1_x86_64:latest"
+    musllinux-i686-image = "quay.io/pypa/musllinux_1_1_i686:latest"
     ```
 
     Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
