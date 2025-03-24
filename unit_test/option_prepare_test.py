@@ -60,7 +60,7 @@ def test_build_default_launches(monkeypatch):
 
     # In Python 3.8+, this can be simplified to [0].kwargs
     kwargs = build_in_container.call_args_list[0][1]
-    assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
+    assert "quay.io/pypa/manylinux_2_28_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
