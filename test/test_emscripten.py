@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 import sys
 import textwrap
 
@@ -84,3 +85,30 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
     print("expected_wheels", expected_wheels)
 
     assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_pyodide_version_incompatible(tmp_path, capfd):
+    if sys.platform == "win32":
+        pytest.skip("emsdk doesn't work correctly on Windows")
+
+    if not shutil.which("python3.12"):
+        pytest.skip("Python 3.12 not installed")
+
+    if detect_ci_provider() == CIProvider.travis_ci:
+        pytest.skip("Python 3.12 is just a non-working pyenv shim")
+
+    basic_project.generate(tmp_path)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(
+            tmp_path,
+            add_args=["--platform", "pyodide"],
+            add_env={
+                "CIBW_DEPENDENCY_VERSIONS": "packages: pyodide-build==0.29.3",
+                "CIBW_PYODIDE_VERSION": "0.26.0a6",
+            },
+        )
+
+    out, err = capfd.readouterr()
+
+    assert "is not compatible with the pyodide-build version" in err

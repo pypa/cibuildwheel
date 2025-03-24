@@ -30,6 +30,8 @@ manylinux-x86_64-image = "manylinux1"
 
 environment-pass = ["EXAMPLE_ENV"]
 
+pyodide-version = "0.26.4"
+
 [tool.cibuildwheel.macos]
 test-requires = "else"
 
@@ -83,6 +85,9 @@ def test_options_1(tmp_path, monkeypatch):
     assert local.test_command == "pyproject-override"
     assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux2014"]
+
+    local = options.build_options("cp312-pyodide_wasm32")
+    assert local.pyodide_version == "0.26.4"
 
 
 def test_passthrough(tmp_path, monkeypatch):
