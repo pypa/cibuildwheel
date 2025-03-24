@@ -15,26 +15,26 @@ from typing import Literal, assert_never
 from filelock import FileLock
 from packaging.version import Version
 
-from . import errors
-from .architecture import Architecture
-from .ci import detect_ci_provider
-from .environment import ParsedEnvironment
-from .frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
-from .logger import log
-from .options import Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.cmd import call, shell
-from .util.file import (
+from .. import errors
+from ..architecture import Architecture
+from ..ci import detect_ci_provider
+from ..environment import ParsedEnvironment
+from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
+from ..logger import log
+from ..options import Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.cmd import call, shell
+from ..util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
     move_file,
 )
-from .util.helpers import prepare_command, unwrap
-from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from .venv import find_uv, virtualenv
+from ..util.helpers import prepare_command, unwrap
+from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..venv import find_uv, virtualenv
 
 
 @functools.cache
@@ -84,12 +84,15 @@ class PythonConfiguration:
     url: str
 
 
+def all_python_configurations() -> list[PythonConfiguration]:
+    config_dicts = resources.read_python_configs("macos")
+    return [PythonConfiguration(**item) for item in config_dicts]
+
+
 def get_python_configurations(
     build_selector: BuildSelector, architectures: Set[Architecture]
 ) -> list[PythonConfiguration]:
-    full_python_configs = resources.read_python_configs("macos")
-
-    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
+    python_configurations = all_python_configurations()
 
     # filter out configs that don't match any of the selected architectures
     python_configurations = [

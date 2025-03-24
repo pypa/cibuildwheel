@@ -6,13 +6,13 @@ from pathlib import Path
 import pytest
 
 from cibuildwheel import errors
-from cibuildwheel.__main__ import get_build_identifiers, get_platform_module
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.options import (
     CommandLineArguments,
     Options,
     _get_pinned_container_images,
 )
+from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
 from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
@@ -51,7 +51,7 @@ def test_options_1(tmp_path, monkeypatch):
 
     options = Options(platform="linux", command_line_arguments=args, env={})
 
-    module = get_platform_module("linux")
+    module = ALL_PLATFORM_MODULES["linux"]
     identifiers = get_build_identifiers(
         platform_module=module,
         build_selector=options.globals.build_selector,

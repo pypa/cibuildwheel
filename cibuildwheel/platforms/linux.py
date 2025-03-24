@@ -8,18 +8,18 @@ from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
-from . import errors
-from .architecture import Architecture
-from .frontend import BuildFrontendConfig, get_build_frontend_extra_flags
-from .logger import log
-from .oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
-from .options import BuildOptions, Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.file import copy_test_sources
-from .util.helpers import prepare_command, unwrap
-from .util.packaging import find_compatible_wheel
+from .. import errors
+from ..architecture import Architecture
+from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from ..logger import log
+from ..oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
+from ..options import BuildOptions, Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.file import copy_test_sources
+from ..util.helpers import prepare_command, unwrap
+from ..util.packaging import find_compatible_wheel
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
@@ -50,13 +50,16 @@ class BuildStep:
     container_image: str
 
 
+def all_python_configurations() -> list[PythonConfiguration]:
+    config_dicts = resources.read_python_configs("linux")
+    return [PythonConfiguration(**item) for item in config_dicts]
+
+
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
 ) -> list[PythonConfiguration]:
-    full_python_configs = resources.read_python_configs("linux")
-
-    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
+    python_configurations = all_python_configurations()
 
     # return all configurations whose arch is in our `architectures` set,
     # and match the build/skip rules

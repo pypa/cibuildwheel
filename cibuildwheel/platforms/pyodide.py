@@ -11,17 +11,17 @@ from typing import Final
 
 from filelock import FileLock
 
-from . import errors
-from .architecture import Architecture
-from .environment import ParsedEnvironment
-from .frontend import BuildFrontendConfig, get_build_frontend_extra_flags
-from .logger import log
-from .options import Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.cmd import call, shell
-from .util.file import (
+from .. import errors
+from ..architecture import Architecture
+from ..environment import ParsedEnvironment
+from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from ..logger import log
+from ..options import Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.cmd import call, shell
+from ..util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
@@ -29,9 +29,9 @@ from .util.file import (
     extract_zip,
     move_file,
 )
-from .util.helpers import prepare_command
-from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from .venv import virtualenv
+from ..util.helpers import prepare_command
+from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..venv import virtualenv
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
@@ -215,15 +215,16 @@ def setup_python(
     return env
 
 
+def all_python_configurations() -> list[PythonConfiguration]:
+    full_python_configs = resources.read_python_configs("pyodide")
+    return [PythonConfiguration(**item) for item in full_python_configs]
+
+
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],  # noqa: ARG001
 ) -> list[PythonConfiguration]:
-    full_python_configs = resources.read_python_configs("pyodide")
-
-    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
-    python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
-    return python_configurations
+    return [c for c in all_python_configurations() if build_selector(c.identifier)]
 
 
 def build(options: Options, tmp_path: Path) -> None:

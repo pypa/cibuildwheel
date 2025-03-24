@@ -17,6 +17,7 @@ import pytest
 
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.ci import CIProvider, detect_ci_provider
+from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 EMULATED_ARCHS: Final[list[str]] = sorted(
@@ -120,7 +121,7 @@ def cibuildwheel_run(
 
     _update_pip_cache_dir(env)
 
-    env["CIBW_ENABLE"] = "cpython-prerelease cpython-freethreading pypy"
+    env["CIBW_ENABLE"] = " ".join(EnableGroup.all_groups())
 
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)

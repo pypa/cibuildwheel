@@ -863,14 +863,6 @@ class Options:
                     )
                 )
 
-    def check_for_deprecated_options(self) -> None:
-        build_selector = self.globals.build_selector
-        test_selector = self.globals.test_selector
-
-        deprecated_selectors("CIBW_BUILD", build_selector.build_config, error=True)
-        deprecated_selectors("CIBW_SKIP", build_selector.skip_config)
-        deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
-
     @functools.cached_property
     def defaults(self) -> Self:
         return self.__class__(
@@ -985,9 +977,7 @@ def compute_options(
     command_line_arguments: CommandLineArguments,
     env: Mapping[str, str],
 ) -> Options:
-    options = Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
-    options.check_for_deprecated_options()
-    return options
+    return Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
 
 
 @functools.cache
@@ -1002,16 +992,3 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     all_pinned_images = configparser.ConfigParser()
     all_pinned_images.read(resources.PINNED_DOCKER_IMAGES)
     return all_pinned_images
-
-
-def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
-    if "p2" in selector or "p35" in selector:
-        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update {name}"
-        if error:
-            raise errors.DeprecationError(msg)
-        log.warning(msg)
-    if "p36" in selector or "p37" in selector:
-        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update {name}"
-        if error:
-            raise errors.DeprecationError(msg)
-        log.warning(msg)
