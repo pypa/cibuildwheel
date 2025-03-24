@@ -1431,6 +1431,45 @@ Platform-specific environment variables are also available:<br/>
     dependency-versions = { packages = ["pyodide-build==0.29.1"] }
     ```
 
+### `CIBW_PYODIDE_VERSION` {: #pyodide-version}
+
+> Specify the Pyodide version to use for `pyodide` platform builds
+
+This option allows you to specify a specific version of Pyodide to be used when building wheels for the `pyodide` platform. By default, cibuildwheel will use a default Pyodide version compatible with the current cibuildwheel and `pyodide-build` versions.
+
+This option is particularly useful for:
+
+- Testing against specific Pyodide alpha or older releases.
+- Ensuring reproducibility by targeting a known Pyodide version.
+
+The available Pyodide versions are determined by the version of `pyodide-build` being used. You can list the compatible versions using the command `pyodide xbuildenv search --all` as described in the [Pyodide platform documentation](platforms/pyodide.md#choosing-a-version).
+
+!!! tip
+    You can set the version of `pyodide-build` using the [`CIBW_DEPENDENCY_VERSIONS`](#dependency-versions) option.
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Build Pyodide wheels using Pyodide version 0.26.4
+    CIBW_PYODIDE_VERSION: 0.26.4
+
+    # Build Pyodide wheels using a specific alpha release
+    CIBW_PYODIDE_VERSION: 0.27.0a2
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.pyodide]
+    # Build Pyodide wheels using Pyodide version 0.26.4
+    pyodide-version = "0.26.4"
+
+    [tool.cibuildwheel.pyodide]
+    # Build Pyodide wheels using a specific alpha release
+    pyodide-version = "0.27.0a2"
+    ```
 
 ## Testing
 
