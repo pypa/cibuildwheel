@@ -1435,7 +1435,7 @@ Platform-specific environment variables are also available:<br/>
 
 > Specify the Pyodide version to use for `pyodide` platform builds
 
-This option allows you to specify a specific version of Pyodide to be used when building wheels for the `pyodide` platform. By default, cibuildwheel will use a default Pyodide version compatible with the current cibuildwheel and `pyodide-build` versions.
+This option allows you to specify a specific version of Pyodide to be used when building wheels for the `pyodide` platform. If unset, cibuildwheel will use a pinned Pyodide version.
 
 This option is particularly useful for:
 
