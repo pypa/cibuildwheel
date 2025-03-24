@@ -50,7 +50,7 @@ packaging==24.2
     #   unearth
 pip==25.0.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.3.6
+platformdirs==4.3.7
     # via virtualenv
 pydantic==2.10.6
     # via
