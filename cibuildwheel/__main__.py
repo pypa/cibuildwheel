@@ -21,7 +21,7 @@ from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
-from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers, get_platform_module
+from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
 from cibuildwheel.selector import BuildSelector, EnableGroup, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util.file import CIBW_CACHE_PATH
@@ -334,7 +334,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
         msg = f"Could not find any of {{{names}}} at root of package"
         raise errors.ConfigurationError(msg)
 
-    platform_module = get_platform_module(platform)
+    platform_module = ALL_PLATFORM_MODULES[platform]
     identifiers = get_build_identifiers(
         platform_module=platform_module,
         build_selector=options.globals.build_selector,

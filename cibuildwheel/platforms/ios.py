@@ -72,10 +72,7 @@ class PythonConfiguration:
         return "ios-arm64_x86_64-simulator" if self.is_simulator else "ios-arm64"
 
 
-def get_python_configurations(
-    build_selector: BuildSelector,
-    architectures: Set[Architecture],
-) -> list[PythonConfiguration]:
+def all_python_configurations() -> list[PythonConfiguration]:
     # iOS builds are always cross builds; we need to install a macOS Python as
     # well. Rather than duplicate the location of the URL of macOS installers,
     # load the macos configurations, determine the macOS configuration that
@@ -97,13 +94,20 @@ def get_python_configurations(
     # Load the platform configuration
     full_python_configs = resources.read_python_configs("ios")
     # Build the configurations, annotating with macOS URL details.
-    python_configurations = [
+    return [
         PythonConfiguration(
             **item,
             build_url=build_url(item),
         )
         for item in full_python_configs
     ]
+
+
+def get_python_configurations(
+    build_selector: BuildSelector,
+    architectures: Set[Architecture],
+) -> list[PythonConfiguration]:
+    python_configurations = all_python_configurations()
 
     # Filter out configs that don't match any of the selected architectures
     python_configurations = [

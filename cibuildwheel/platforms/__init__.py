@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Final, Protocol, assert_never
+from typing import Final, Protocol
 
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.options import Options
@@ -21,20 +21,6 @@ class PlatformModule(Protocol):
     ) -> Sequence[GenericPythonConfiguration]: ...
 
     def build(self, options: Options, tmp_path: Path) -> None: ...
-
-
-def get_platform_module(platform: PlatformName) -> PlatformModule:
-    if platform == "linux":
-        return linux
-    if platform == "windows":
-        return windows
-    if platform == "macos":
-        return macos
-    if platform == "pyodide":
-        return pyodide
-    if platform == "ios":
-        return ios
-    assert_never(platform)
 
 
 ALL_PLATFORM_MODULES: Final[dict[PlatformName, PlatformModule]] = {
