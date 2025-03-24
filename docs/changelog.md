@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v2.23.2
+
+_24 March 2025_
+
+- 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
+- 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
+
 ### v2.23.1
 
 _15 March 2025_
