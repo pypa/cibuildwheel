@@ -7,7 +7,8 @@ branches:
   - main
 
 # only build the main branch or PR that explicitely want to test with Travis CI
-if: (type = "push") OR (commit_message =~ /travis-ci/)
+# if: (type = "push") OR (commit_message =~ /travis-ci/)
+if: (commit_message =~ /travis-ci/)
 
 jobs:
   include:

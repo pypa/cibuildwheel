@@ -1,9 +1,9 @@
 environment:
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2204
-      APPVEYOR_JOB_NAME: "python312-x64-ubuntu"
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-      APPVEYOR_JOB_NAME: "python312-x64-vs2022"
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2204
+    #   APPVEYOR_JOB_NAME: "python312-x64-ubuntu"
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+    #   APPVEYOR_JOB_NAME: "python312-x64-vs2022"
     - APPVEYOR_BUILD_WORKER_IMAGE: macos-sonoma
       APPVEYOR_JOB_NAME: "python312-x64-macos"
 

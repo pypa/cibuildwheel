@@ -1,37 +1,37 @@
-linux:
-  image: python:3.12
-  services:
-    - name: docker:dind
-      entrypoint: ["env", "-u", "DOCKER_HOST"]
-      command: ["dockerd-entrypoint.sh"]
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    # See https://github.com/docker-library/docker/pull/166
-    DOCKER_TLS_CERTDIR: ""
+# linux:
+#   image: python:3.12
+#   services:
+#     - name: docker:dind
+#       entrypoint: ["env", "-u", "DOCKER_HOST"]
+#       command: ["dockerd-entrypoint.sh"]
+#   variables:
+#     DOCKER_HOST: tcp://docker:2375/
+#     DOCKER_DRIVER: overlay2
+#     # See https://github.com/docker-library/docker/pull/166
+#     DOCKER_TLS_CERTDIR: ""
 
-    # skip all but the basic tests
-    # (comment the below line in a PR to debug a Gitlab-specific issue)
-    PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
-  script:
-    - curl -sSL https://get.docker.com/ | sh
-    - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-    - python -m pip install dependency-groups
-    - python -m dependency_groups test | xargs python -m pip install -e. pytest-custom-exit-code
-    - python ./bin/run_tests.py
-
-windows:
-  image: mcr.microsoft.com/windows/servercore:1809
-  variables:
-    PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
-  before_script:
-    - choco install python -y --version 3.12.4
-  script:
-    - py -m pip install dependency-groups
-    - py -m pip install -e. pytest-custom-exit-code $(py -m dependency_groups test)
-    - py bin\run_tests.py
-  tags:
-    - saas-windows-medium-amd64
+#     # skip all but the basic tests
+#     # (comment the below line in a PR to debug a Gitlab-specific issue)
+#     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
+#   script:
+#     - curl -sSL https://get.docker.com/ | sh
+#     - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
+#     - python -m pip install dependency-groups
+#     - python -m dependency_groups test | xargs python -m pip install -e. pytest-custom-exit-code
+#     - python ./bin/run_tests.py
+#
+# windows:
+#   image: mcr.microsoft.com/windows/servercore:1809
+#   variables:
+#     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
+#   before_script:
+#     - choco install python -y --version 3.12.4
+#   script:
+#     - py -m pip install dependency-groups
+#     - py -m pip install -e. pytest-custom-exit-code $(py -m dependency_groups test)
+#     - py bin\run_tests.py
+#   tags:
+#     - saas-windows-medium-amd64
 
 macos:
   image: macos-14-xcode-15

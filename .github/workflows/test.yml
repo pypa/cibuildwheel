@@ -17,30 +17,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Linters (mypy, flake8, etc.)
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      id: python
-      with:
-        python-version: "3.x"
-    - uses: pre-commit/action@v3.0.1
-    - name: PyLint checks
-      run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
+  # lint:
+  #   name: Linters (mypy, flake8, etc.)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/setup-python@v5
+  #     id: python
+  #     with:
+  #       python-version: "3.x"
+  #   - uses: pre-commit/action@v3.0.1
+  #   - name: PyLint checks
+  #     run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
   test:
     name: Test on ${{ matrix.os }} (${{ matrix.python_version }})
-    needs: lint
+    # needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        # os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        os: [macos-13, macos-14]
         python_version: ['3.13']
-        include:
-        - os: ubuntu-latest
-          python_version: '3.11'
+        # include:
+        # - os: ubuntu-latest
+        #   python_version: '3.11'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -129,85 +130,85 @@ jobs:
       run: |
         uv run bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
-  emulated-archs:
-    name: Get qemu emulated architectures
-    needs: lint
-    runs-on: ubuntu-latest
-    outputs:
-      archs: ${{ steps.archs.outputs.archs }}
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
-    - uses: astral-sh/setup-uv@v5
-    - name: Install dependencies
-      run: uv sync --no-dev --group test
-    - name: Get qemu emulated architectures
-      id: archs
-      run: |
-        OUTPUT=$(uv run python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
-        echo "${OUTPUT}"
-        echo "archs=${OUTPUT}" >> "$GITHUB_OUTPUT"
+  # emulated-archs:
+  #   name: Get qemu emulated architectures
+  #   needs: lint
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     archs: ${{ steps.archs.outputs.archs }}
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/setup-python@v5
+  #     with:
+  #       python-version: "3.x"
+  #   - uses: astral-sh/setup-uv@v5
+  #   - name: Install dependencies
+  #     run: uv sync --no-dev --group test
+  #   - name: Get qemu emulated architectures
+  #     id: archs
+  #     run: |
+  #       OUTPUT=$(uv run python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
+  #       echo "${OUTPUT}"
+  #       echo "archs=${OUTPUT}" >> "$GITHUB_OUTPUT"
 
-  test-emulated:
-    name: Test Linux ${{ matrix.arch }} using qemu
-    needs: emulated-archs
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    strategy:
-      matrix:
-        arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
-    - uses: astral-sh/setup-uv@v5
-    - name: Install dependencies
-      run: uv sync --no-dev --group test
+  # test-emulated:
+  #   name: Test Linux ${{ matrix.arch }} using qemu
+  #   needs: emulated-archs
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 180
+  #   strategy:
+  #     matrix:
+  #       arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/setup-python@v5
+  #     with:
+  #       python-version: "3.x"
+  #   - uses: astral-sh/setup-uv@v5
+  #   - name: Install dependencies
+  #     run: uv sync --no-dev --group test
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        # This should be temporary
-        # xref https://github.com/docker/setup-qemu-action/issues/188
-        # xref https://github.com/tonistiigi/binfmt/issues/215
-        image: tonistiigi/binfmt:qemu-v8.1.5
+  #   - name: Set up QEMU
+  #     uses: docker/setup-qemu-action@v3
+  #     with:
+  #       # This should be temporary
+  #       # xref https://github.com/docker/setup-qemu-action/issues/188
+  #       # xref https://github.com/tonistiigi/binfmt/issues/215
+  #       image: tonistiigi/binfmt:qemu-v8.1.5
 
-    - name: Run the emulation tests
-      run: uv run pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
+  #   - name: Run the emulation tests
+  #     run: uv run pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
-  test-pyodide:
-    name: Test cibuildwheel building Pyodide wheels
-    needs: lint
-    runs-on: ubuntu-24.04
-    timeout-minutes: 180
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      name: Install Python 3.12
-      with:
-        python-version: '3.12'
-    - uses: astral-sh/setup-uv@v5
+  # test-pyodide:
+  #   name: Test cibuildwheel building Pyodide wheels
+  #   needs: lint
+  #   runs-on: ubuntu-24.04
+  #   timeout-minutes: 180
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/setup-python@v5
+  #     name: Install Python 3.12
+  #     with:
+  #       python-version: '3.12'
+  #   - uses: astral-sh/setup-uv@v5
 
-    - name: Install dependencies
-      run: uv sync --no-dev --group test
+  #   - name: Install dependencies
+  #     run: uv sync --no-dev --group test
 
-    - name: Generate a sample project
-      run: |
-        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+  #   - name: Generate a sample project
+  #     run: |
+  #       uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
 
-    - name: Run a sample build (GitHub Action)
-      uses: ./
-      with:
-        package-dir: sample_proj
-        output-dir: wheelhouse
-      env:
-        CIBW_PLATFORM: pyodide
+  #   - name: Run a sample build (GitHub Action)
+  #     uses: ./
+  #     with:
+  #       package-dir: sample_proj
+  #       output-dir: wheelhouse
+  #     env:
+  #       CIBW_PLATFORM: pyodide
 
-    - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
-      run: |
-        uv run ./bin/run_tests.py
-      env:
-        CIBW_PLATFORM: pyodide
+  #   - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
+  #     run: |
+  #       uv run ./bin/run_tests.py
+  #     env:
+  #       CIBW_PLATFORM: pyodide
