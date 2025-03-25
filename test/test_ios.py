@@ -48,6 +48,7 @@ def test_ios_platforms(tmp_path, build_config):
             "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_SOURCES": "tests",
             "CIBW_TEST_COMMAND": "unittest discover tests test_platform.py",
+            "CIBW_BUILD_VERBOSITY": "1",
             **build_config,
         },
     )
