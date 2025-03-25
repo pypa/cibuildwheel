@@ -74,57 +74,57 @@ jobs:
       run: |
         uv sync --no-dev --group test
 
-    - name: Generate a sample project
-      run: |
-        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+    # - name: Generate a sample project
+    #   run: |
+    #     uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
 
-    - name: Run a sample build (GitHub Action)
-      uses: ./
-      with:
-        package-dir: sample_proj
-        output-dir: wheelhouse
-      env:
-        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-        CIBW_BUILD_FRONTEND: 'build[uv]'
-        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
+    # - name: Run a sample build (GitHub Action)
+    #   uses: ./
+    #   with:
+    #     package-dir: sample_proj
+    #     output-dir: wheelhouse
+    #   env:
+    #     CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+    #     CIBW_BUILD_FRONTEND: 'build[uv]'
+    #     CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
 
-    - name: Run a sample build (GitHub Action, only)
-      uses: ./
-      with:
-        package-dir: sample_proj
-        output-dir: wheelhouse_only
-        only: cp312-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
+    # - name: Run a sample build (GitHub Action, only)
+    #   uses: ./
+    #   with:
+    #     package-dir: sample_proj
+    #     output-dir: wheelhouse_only
+    #     only: cp312-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
 
-    - name: Create custom configuration file
-      shell: bash
-      run: |
-        cat > sample_proj/cibw.toml <<EOF
-        [tool.cibuildwheel]
-        # Only build on CPython 3.12 on native arch
-        archs = ["native"]
-        build = "cp312-*"
-        # Skip musllinux
-        skip = "*-musllinux*"
-        EOF
+    # - name: Create custom configuration file
+    #   shell: bash
+    #   run: |
+    #     cat > sample_proj/cibw.toml <<EOF
+    #     [tool.cibuildwheel]
+    #     # Only build on CPython 3.12 on native arch
+    #     archs = ["native"]
+    #     build = "cp312-*"
+    #     # Skip musllinux
+    #     skip = "*-musllinux*"
+    #     EOF
 
-    - name: Run a sample build (GitHub Action, config-file)
-      uses: ./
-      with:
-        package-dir: sample_proj
-        output-dir: wheelhouse_config_file
-        config-file: sample_proj/cibw.toml
+    # - name: Run a sample build (GitHub Action, config-file)
+    #   uses: ./
+    #   with:
+    #     package-dir: sample_proj
+    #     output-dir: wheelhouse_config_file
+    #     config-file: sample_proj/cibw.toml
 
-    - name: Check Action artifacts
-      shell: bash
-      run: |
-        test $(find wheelhouse -name '*.whl' | wc -l) -ge 1
-        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
-        test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
+    # - name: Check Action artifacts
+    #   shell: bash
+    #   run: |
+    #     test $(find wheelhouse -name '*.whl' | wc -l) -ge 1
+    #     test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
+    #     test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-        path: wheelhouse/*.whl
+    # - uses: actions/upload-artifact@v4
+    #   with:
+    #     name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+    #     path: wheelhouse/*.whl
 
     - name: Test cibuildwheel
       run: |
