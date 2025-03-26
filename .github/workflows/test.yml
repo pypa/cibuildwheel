@@ -89,6 +89,7 @@ jobs:
     - name: Switch to Xcode 16
       if: matrix.os == 'macos-14'
       run: |
+        # attempt 2
         sudo xcode-select --switch /Applications/Xcode_16.2.app
 
     # - name: Generate a sample project
