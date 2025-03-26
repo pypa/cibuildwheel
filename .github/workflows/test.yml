@@ -75,7 +75,7 @@ jobs:
         uv sync --no-dev --group test
 
     - name: Boot iPhone simulator
-      if: ${{ startsWith(runner.os, 'macos-') }}
+      if: runner.os == 'macOS'
       run: |
         xcrun simctl boot "iPhone SE (3rd generation)"
 
