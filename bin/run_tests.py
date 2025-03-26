@@ -34,7 +34,10 @@ if __name__ == "__main__":
         if args.run_podman:
             unit_test_args += ["--run-podman"]
 
-    print("\n\n==================== UNIT TESTS ====================")
+    print(
+        "\n\n================================== UNIT TESTS ==================================",
+        flush=True,
+    )
     subprocess.run(unit_test_args, check=True)
 
     # Run the serial integration tests without --dist
@@ -51,7 +54,10 @@ if __name__ == "__main__":
         "test",
         "-vv",
     ]
-    print("\n\n==================== SERIAL INTEGRATION TESTS ====================")
+    print(
+        "\n\n=========================== SERIAL INTEGRATION TESTS ===========================",
+        flush=True,
+    )
     subprocess.run(serial_integration_test_args, check=True)
 
     # Non-serial integration tests
@@ -75,5 +81,8 @@ if __name__ == "__main__":
     if sys.platform.startswith("linux") and args.run_podman:
         integration_test_args += ["--run-podman"]
 
-    print("\n\n==================== NON-SERIAL INTEGRATION TESTS ====================")
+    print(
+        "\n\n========================= NON-SERIAL INTEGRATION TESTS =========================",
+        flush=True,
+    )
     subprocess.run(integration_test_args, check=True)
