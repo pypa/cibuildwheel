@@ -36,11 +36,29 @@ if __name__ == "__main__":
 
     subprocess.run(unit_test_args, check=True)
 
-    # integration tests
+    # Run the serial integration tests without --dist
+    serial_integration_test_args = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-m",
+        "serial",
+        "-x",
+        "--durations",
+        "0",
+        "--timeout=2400",
+        "test",
+        "-vv",
+    ]
+    subprocess.run(serial_integration_test_args, check=True)
+
+    # Non-serial integration tests
     integration_test_args = [
         sys.executable,
         "-m",
         "pytest",
+        "-m",
+        "not serial",
         "--dist",
         "loadgroup",
         f"--numprocesses={args.num_processes}",

@@ -150,7 +150,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        uv run bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}${{ (runner.os == 'macOS') && '--num-processes 1' || '' }}
+        uv run bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   # emulated-archs:
   #   name: Get qemu emulated architectures
