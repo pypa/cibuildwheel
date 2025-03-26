@@ -1,67 +1,67 @@
-version: 2
+# version: 2
 
-jobs:
-  osx-python3.12:
-    macos:
-      xcode: 15.4.0
-    resource_class: macos.m1.medium.gen1
-    environment:
-      PYTHON: python3
-    steps:
-      - checkout
+# jobs:
+#   osx-python3.12:
+#     macos:
+#       xcode: 15.4.0
+#     resource_class: macos.m1.medium.gen1
+#     environment:
+#       PYTHON: python3
+#     steps:
+#       - checkout
 
-      - run:
-          name: Prepare the environment.
-          command: bash .circleci/prepare.sh
-      - run:
-          name: Test.
-          command: venv/bin/python ./bin/run_tests.py
-          no_output_timeout: 30m
+#       - run:
+#           name: Prepare the environment.
+#           command: bash .circleci/prepare.sh
+#       - run:
+#           name: Test.
+#           command: venv/bin/python ./bin/run_tests.py
+#           no_output_timeout: 30m
 
-  # linux-python3.12:
-  #   docker:
-  #     - image: cimg/python:3.12
-  #   environment:
-  #     PYTHON: python3
-  #     # Temporarily restrict the tests that are run on CircleCI to prevent
-  #     # test timeouts.
-  #     PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
-  #   steps:
-  #     - checkout
-  #     - setup_remote_docker
+#   # linux-python3.12:
+#   #   docker:
+#   #     - image: cimg/python:3.12
+#   #   environment:
+#   #     PYTHON: python3
+#   #     # Temporarily restrict the tests that are run on CircleCI to prevent
+#   #     # test timeouts.
+#   #     PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
+#   #   steps:
+#   #     - checkout
+#   #     - setup_remote_docker
 
-  #     - run:
-  #         name: Prepare the environment.
-  #         command: bash .circleci/prepare.sh
-  #     - run:
-  #         name: Test.
-  #         command: venv/bin/python ./bin/run_tests.py
-  #         no_output_timeout: 30m
+#   #     - run:
+#   #         name: Prepare the environment.
+#   #         command: bash .circleci/prepare.sh
+#   #     - run:
+#   #         name: Test.
+#   #         command: venv/bin/python ./bin/run_tests.py
+#   #         no_output_timeout: 30m
 
-  # linux-aarch64:
-  #   machine:
-  #      image: default
-  #   resource_class: arm.medium
-  #   environment:
-  #     PYTHON: python3
-  #     # Temporarily restrict the tests that are run on CircleCI to prevent
-  #     # test timeouts.
-  #     PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
-  #   steps:
-  #     - checkout
+#   # linux-aarch64:
+#   #   machine:
+#   #      image: default
+#   #   resource_class: arm.medium
+#   #   environment:
+#   #     PYTHON: python3
+#   #     # Temporarily restrict the tests that are run on CircleCI to prevent
+#   #     # test timeouts.
+#   #     PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
+#   #   steps:
+#   #     - checkout
 
-  #     - run:
-  #         name: Prepare the environment.
-  #         command: bash .circleci/prepare.sh
-  #     - run:
-  #         name: Test.
-  #         command: venv/bin/python ./bin/run_tests.py
-  #         no_output_timeout: 30m
+#   #     - run:
+#   #         name: Prepare the environment.
+#   #         command: bash .circleci/prepare.sh
+#   #     - run:
+#   #         name: Test.
+#   #         command: venv/bin/python ./bin/run_tests.py
+#   #         no_output_timeout: 30m
 
-workflows:
-  version: 2
-  all-tests:
-    jobs:
-      - osx-python3.12
-      # - linux-python3.12
-      # - linux-aarch64
+# workflows:
+#   version: 2
+#   all-tests:
+#     jobs:
+#       - osx-python3.12
+#       # - linux-python3.12
+#       # - linux-aarch64

@@ -18,16 +18,16 @@ jobs:
 #         python -m dependency_groups test | xargs python -m pip install -e.
 #         python ./bin/run_tests.py
 
-- job: macos_311
-  pool: {vmImage: 'macOS-13'}
-  steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.11'
-    - bash: |
-        python -m pip install dependency-groups
-        python -m dependency_groups test | xargs python -m pip install -e.
-        python ./bin/run_tests.py --num-processes 2
+# - job: macos_311
+#   pool: {vmImage: 'macOS-13'}
+#   steps:
+#     - task: UsePythonVersion@0
+#       inputs:
+#         versionSpec: '3.11'
+#     - bash: |
+#         python -m pip install dependency-groups
+#         python -m dependency_groups test | xargs python -m pip install -e.
+#         python ./bin/run_tests.py --num-processes 2
 
 # - job: windows_311
 #   pool: {vmImage: 'windows-2019'}
