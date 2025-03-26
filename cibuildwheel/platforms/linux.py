@@ -308,6 +308,7 @@ def build_in_container(
                     [
                         "uv",
                         "build",
+                        "--python=python",
                         container_package_dir,
                         "--wheel",
                         f"--out-dir={built_wheel_dir}",
