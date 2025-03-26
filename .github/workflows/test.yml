@@ -86,11 +86,6 @@ jobs:
     #     xcrun simctl boot "iPhone SE (3rd generation)"
     #     xcrun simctl list
 
-    - name: Switch to Xcode 16
-      if: matrix.os == 'macos-14'
-      run: |
-        sudo xcode-select --switch /Applications/Xcode_16.2.app
-
     # - name: Generate a sample project
     #   run: |
     #     uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
