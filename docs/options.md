@@ -256,7 +256,7 @@ Default: `auto`
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
 - For `ios` you need to be running on macOS, with Xcode and the iOS simulator installed.
-- For `pyodide` `python3.12` must be available in `PATH` and you need to be on one of the following runners: x86-64 Linux, arm64 Linux. Intel and Silicon macOS hosts may succeed, though there are known bugs. See [the section on Pyodide](setup.md#pyodide-(WebAssembly)-builds-(experimental)) for more information.
+- For `pyodide` `python3.12` must be available in `PATH` and you need to be on one of the following runners: x86-64 Linux, arm64 Linux. Intel and Silicon macOS hosts may succeed, though there are known bugs. See [the section on Pyodide](platforms/pyodide.md) for more information.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
@@ -308,7 +308,7 @@ The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425]
 Windows arm64 platform support is experimental.
 
 For an experimental WebAssembly build with `--platform pyodide`,
-`cp312-pyodide_wasm32` is the only platform identifier, corresponding to [Pyodide version `0.26.4`](https://github.com/pyodide/pyodide/releases/tag/0.26.4).
+`cp312-pyodide_wasm32` is the only platform identifier, corresponding to [Pyodide version `0.27.0`](https://github.com/pyodide/pyodide/releases/tag/0.27.0).
 
 See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
 
