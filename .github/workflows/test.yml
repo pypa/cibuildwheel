@@ -74,19 +74,24 @@ jobs:
       run: |
         uv sync --no-dev --group test
 
-    # - name: Generate a sample project
-    #   run: |
-    #     uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+    - name: Boot iPhone simulator
+      if: ${{ startsWith(runner.os, 'macos-') }}
+      run: |
+        xcrun simctl boot "iPhone SE (3rd generation)"
 
-    # - name: Run a sample build (GitHub Action)
-    #   uses: ./
-    #   with:
-    #     package-dir: sample_proj
-    #     output-dir: wheelhouse
-    #   env:
-    #     CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-    #     CIBW_BUILD_FRONTEND: 'build[uv]'
-    #     CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
+    - name: Generate a sample project
+      run: |
+        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+
+    - name: Run a sample build (GitHub Action)
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse
+      env:
+        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+        CIBW_BUILD_FRONTEND: 'build[uv]'
+        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
 
     # - name: Run a sample build (GitHub Action, only)
     #   uses: ./
