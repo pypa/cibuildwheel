@@ -75,29 +75,35 @@ jobs:
       run: |
         uv sync --no-dev --group test
 
-    - name: Boot iPhone simulator
-      if: runner.os == 'macOS'
-      run: |
-        # Boot an iPhone SE simulator. This will return immediately, but the
-        # actual boot process will take a couple of minutes, during which time,
-        # we can run the sample builds (that won't use the iOS simulator).
-        # Having the simulator pre-warmed will speed up the subsequent simulator
-        # clones produced when running the iOS tests.
-        xcrun simctl boot "iPhone SE (3rd generation)"
+    # - name: Boot iPhone simulator
+    #   if: runner.os == 'macOS'
+    #   run: |
+    #     # Boot an iPhone SE simulator. This will return immediately, but the
+    #     # actual boot process will take a couple of minutes, during which time,
+    #     # we can run the sample builds (that won't use the iOS simulator).
+    #     # Having the simulator pre-warmed will speed up the subsequent simulator
+    #     # clones produced when running the iOS tests.
+    #     xcrun simctl boot "iPhone SE (3rd generation)"
+    #     xcrun simctl list
 
-    - name: Generate a sample project
+    - name: Switch to
+      if: matrix.os == 'macos-14'
       run: |
-        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+        sudo xcode-select --switch /Applications/Xcode_16.2.app
 
-    - name: Run a sample build (GitHub Action)
-      uses: ./
-      with:
-        package-dir: sample_proj
-        output-dir: wheelhouse
-      env:
-        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-        CIBW_BUILD_FRONTEND: 'build[uv]'
-        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
+    # - name: Generate a sample project
+    #   run: |
+    #     uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+
+    # - name: Run a sample build (GitHub Action)
+    #   uses: ./
+    #   with:
+    #     package-dir: sample_proj
+    #     output-dir: wheelhouse
+    #   env:
+    #     CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+    #     CIBW_BUILD_FRONTEND: 'build[uv]'
+    #     CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy"
 
     # - name: Run a sample build (GitHub Action, only)
     #   uses: ./
@@ -136,6 +142,11 @@ jobs:
     #   with:
     #     name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
     #     path: wheelhouse/*.whl
+
+    # - name: Check iOS simulator availability
+    #   if: runner.os == 'macOS'
+    #   run: |
+    #     xcrun simctl list
 
     - name: Test cibuildwheel
       run: |
