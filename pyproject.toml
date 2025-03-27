@@ -102,7 +102,9 @@ junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]
 log_cli_level = "info"
-
+markers = [
+    "serial: tests that must *not* be run in parallel (deselect with '-m \"not serial\"')",
+]
 
 [tool.mypy]
 python_version = "3.11"
