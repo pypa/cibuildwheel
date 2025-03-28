@@ -20,10 +20,12 @@ class TestPlatform(TestCase):
 """
 
 
-# iOS tests shouldn't be run in parallel, because they're dependent on starting
-# a simulator. It's *possible* to start multiple simulators, but not advisable
-# to start as many simulators as there are CPUs on the test machine.
-@pytest.mark.xdist_group(name="ios")
+# iOS tests shouldn't be run in parallel, because they're dependent on calling
+# Xcode, and starting a simulator. These are both multi-threaded operations, and
+# it's easy to overload the CI machine if there are multiple test processes
+# running multithreaded processes. Therefore, they're put in the serial group,
+# which is guaranteed to run single-process.
+@pytest.mark.serial
 @pytest.mark.parametrize(
     "build_config",
     [
@@ -48,6 +50,7 @@ def test_ios_platforms(tmp_path, build_config):
             "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_SOURCES": "tests",
             "CIBW_TEST_COMMAND": "unittest discover tests test_platform.py",
+            "CIBW_BUILD_VERBOSITY": "1",
             **build_config,
         },
     )
@@ -71,7 +74,7 @@ def test_ios_platforms(tmp_path, build_config):
     assert set(actual_wheels) == expected_wheels
 
 
-@pytest.mark.xdist_group(name="ios")
+@pytest.mark.serial
 def test_no_test_sources(tmp_path, capfd):
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
