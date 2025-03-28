@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import tomllib
+import urllib.parse
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
@@ -51,7 +52,13 @@ def _parse_pip_constraint_for_virtualenv(
     assert len(dependency_constraint_flags) in {0, 2}
     if len(dependency_constraint_flags) == 2:
         assert dependency_constraint_flags[0] == "-c"
-        constraint_path = Path(dependency_constraint_flags[1])
+        dep_c = dependency_constraint_flags[1]
+        # Path.from_uri added in 3.13
+        constraint_path = (
+            Path(urllib.parse.unquote(urllib.parse.urlparse(dep_c).path))
+            if isinstance(dep_c, str) and dep_c.startswith("file:")
+            else Path(dep_c)
+        )
         assert constraint_path.exists()
         with constraint_path.open(encoding="utf-8") as constraint_file:
             for line_ in constraint_file:

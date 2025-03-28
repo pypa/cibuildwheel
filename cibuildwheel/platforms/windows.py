@@ -370,8 +370,8 @@ def build(options: Options, tmp_path: Path) -> None:
                 version=config.version,
                 tmp_dir=identifier_tmp_dir,
             )
-            dependency_constraint_flags: Sequence[PathOrStr] = (
-                ["-c", constraints_path] if constraints_path else []
+            dependency_constraint_flags = (
+                ["-c", constraints_path.as_uri()] if constraints_path else []
             )
 
             # install Python

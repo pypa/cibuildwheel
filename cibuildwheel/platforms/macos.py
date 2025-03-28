@@ -438,8 +438,8 @@ def build(options: Options, tmp_path: Path) -> None:
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version, tmp_dir=identifier_tmp_dir
             )
-            dependency_constraint_flags: Sequence[PathOrStr] = (
-                ["-c", constraints_path] if constraints_path else []
+            dependency_constraint_flags = (
+                ["-c", constraints_path.as_uri()] if constraints_path else []
             )
 
             base_python, env = setup_python(
