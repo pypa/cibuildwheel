@@ -4,14 +4,15 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
+import functools
 import os
 import platform as pm
 import subprocess
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Final
+from typing import Any, Final, ParamSpec, TypeVar
 
 import pytest
 
@@ -152,6 +153,19 @@ def _floor_macosx(*args: str) -> str:
     return max(args, key=lambda x: tuple(map(int, x.split("."))))
 
 
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def _listify(func: Callable[P, Generator[R, None, None]]) -> Callable[P, list[R]]:
+    @functools.wraps(func)
+    def listify_return(*args: P.args, **kwargs: P.kwargs) -> list[R]:
+        return list(func(*args, **kwargs))
+
+    return listify_return
+
+
+@_listify
 def expected_wheels(
     package_name: str,
     package_version: str,
@@ -163,9 +177,9 @@ def expected_wheels(
     include_universal2: bool = False,
     single_python: bool = False,
     single_arch: bool = False,
-) -> list[str]:
+) -> Generator[str, None, None]:
     """
-    Returns a list of expected wheels from a run of cibuildwheel.
+    Returns the expected wheels from a run of cibuildwheel.
     """
     if machine_arch is None:
         machine_arch = pm.machine()
@@ -264,13 +278,12 @@ def _expected_wheels(
             )
         ]
 
-    wheels = []
-
     if platform == "pyodide":
         assert len(python_abi_tags) == 1
         python_abi_tag = python_abi_tags[0]
         platform_tag = "pyodide_2024_0_wasm32"
-        return [f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"]
+        yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
+        return
 
     for python_abi_tag in python_abi_tags:
         platform_tags = []
@@ -321,9 +334,7 @@ def _expected_wheels(
             raise Exception(msg)
 
         for platform_tag in platform_tags:
-            wheels.append(f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl")
-
-    return wheels
+            yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
 
 
 def get_macos_version() -> tuple[int, int]:
