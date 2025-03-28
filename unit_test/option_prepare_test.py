@@ -195,9 +195,7 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-musllinux_x86_64"
-        for x in ALL_IDS
-        if "pp" not in x and "gp" not in x
+        f"{x}-musllinux_x86_64" for x in ALL_IDS if "pp" not in x and "gp" not in x
     }
 
     kwargs = build_in_container.call_args_list[5][1]
