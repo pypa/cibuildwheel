@@ -1,13 +1,15 @@
 import functools
+import json
 import os
 import shutil
 import sys
 import tomllib
+import typing
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Final
+from typing import Final, TypedDict
 
 from filelock import FileLock
 
@@ -29,7 +31,7 @@ from ..util.file import (
     extract_zip,
     move_file,
 )
-from ..util.helpers import prepare_command
+from ..util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
 from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
 from ..venv import virtualenv
 
@@ -40,10 +42,21 @@ IS_WIN: Final[bool] = sys.platform.startswith("win")
 class PythonConfiguration:
     version: str
     identifier: str
-    pyodide_version: str
-    pyodide_build_version: str
-    emscripten_version: str
+    default_pyodide_version: str
     node_version: str
+
+
+class PyodideXBuildEnvInfoVersionRange(TypedDict):
+    min: str | None
+    max: str | None
+
+
+class PyodideXBuildEnvInfo(TypedDict):
+    version: str
+    python: str
+    emscripten: str
+    pyodide_build: PyodideXBuildEnvInfoVersionRange
+    compatible: bool
 
 
 @functools.cache
@@ -78,8 +91,6 @@ def ensure_node(major_version: str) -> Path:
 
 
 def install_emscripten(tmp: Path, version: str) -> Path:
-    # We don't need to match the emsdk version to the version we install, but
-    # we do for stability
     url = f"https://github.com/emscripten-core/emsdk/archive/refs/tags/{version}.zip"
     installation_path = CIBW_CACHE_PATH / f"emsdk-{version}"
     emsdk_path = installation_path / f"emsdk-{version}/emsdk"
@@ -97,6 +108,73 @@ def install_emscripten(tmp: Path, version: str) -> Path:
     return emcc_path
 
 
+def get_all_xbuildenv_version_info(env: dict[str, str]) -> list[PyodideXBuildEnvInfo]:
+    xbuildenvs_info_str = call(
+        "pyodide",
+        "xbuildenv",
+        "search",
+        "--json",
+        "--all",
+        env=env,
+        cwd=CIBW_CACHE_PATH,
+        capture_stdout=True,
+    ).strip()
+
+    xbuildenvs_info = json.loads(xbuildenvs_info_str)
+
+    if "environments" not in xbuildenvs_info:
+        msg = f"Invalid xbuildenvs info, got {xbuildenvs_info}"
+        raise ValueError(msg)
+
+    return typing.cast(list[PyodideXBuildEnvInfo], xbuildenvs_info["environments"])
+
+
+def get_xbuildenv_version_info(
+    env: dict[str, str], version: str, pyodide_build_version: str
+) -> PyodideXBuildEnvInfo:
+    xbuildenvs_info = get_all_xbuildenv_version_info(env)
+    for xbuildenv_info in xbuildenvs_info:
+        if xbuildenv_info["version"] == version:
+            return xbuildenv_info
+
+    msg = unwrap(f"""
+        Could not find pyodide xbuildenv version {version} in the available
+        versions as reported by pyodide-build v{pyodide_build_version}.
+        Available pyodide xbuild versions are:
+        {", ".join(e["version"] for e in xbuildenvs_info if e["compatible"])}
+    """)
+    raise errors.FatalError(msg)
+
+
+# The xbuildenv version is brought in sync with the pyodide-build version in
+# the constraints file, which will always be compatible with the version in
+# build-platforms.toml. Hence, this condition really checks only for the case
+# where the version is supplied manually through a CIBW_PYODIDE_VERSION
+# environment variable and raises an error as appropriate.
+def validate_pyodide_build_version(
+    xbuildenv_info: PyodideXBuildEnvInfo, pyodide_build_version: str
+) -> None:
+    """
+    Validate the Pyodide version is compatible with the installed
+    pyodide-build version.
+    """
+
+    pyodide_version = xbuildenv_info["version"]
+
+    if not xbuildenv_info["compatible"]:
+        msg = unwrap_preserving_paragraphs(f"""
+            The Pyodide xbuildenv version {pyodide_version} is not compatible
+            with the pyodide-build version {pyodide_build_version}. Please use
+            the 'pyodide xbuildenv search --all' command to find a compatible
+            version.
+
+            Set the pyodide-build version using the `dependency-constraints`
+            option, or set the Pyodide xbuildenv version using the
+            `pyodide-version` option.
+        """)
+        raise errors.FatalError(msg)
+
+
 def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_version: str) -> str:
     """Install a particular Pyodide xbuildenv version and set a path to the Pyodide root."""
     # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of pyodide-build are
@@ -107,6 +185,7 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
         CIBW_CACHE_PATH
         / f".pyodide-xbuildenv-{pyodide_build_version}/{pyodide_version}/xbuildenv/pyodide-root"
     )
+
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         if pyodide_root.exists():
             return str(pyodide_root)
@@ -115,6 +194,8 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
         # PYODIDE_ROOT so copy it first.
         env = dict(env)
         env.pop("PYODIDE_ROOT", None)
+
+        # Install the xbuildenv
         call(
             "pyodide",
             "xbuildenv",
@@ -147,8 +228,10 @@ def setup_python(
     python_configuration: PythonConfiguration,
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
+    user_pyodide_version: str | None,
 ) -> dict[str, str]:
     base_python = get_base_python(python_configuration.identifier)
+    pyodide_version = user_pyodide_version or python_configuration.default_pyodide_version
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -202,15 +285,28 @@ def setup_python(
         env=env,
     )
 
-    log.step(f"Installing Emscripten version: {python_configuration.emscripten_version} ...")
-    emcc_path = install_emscripten(tmp, python_configuration.emscripten_version)
+    pyodide_build_version = call(
+        "python",
+        "-c",
+        "from importlib.metadata import version; print(version('pyodide-build'))",
+        env=env,
+        capture_stdout=True,
+    ).strip()
+
+    xbuildenv_info = get_xbuildenv_version_info(env, pyodide_version, pyodide_build_version)
+    validate_pyodide_build_version(
+        xbuildenv_info=xbuildenv_info,
+        pyodide_build_version=pyodide_build_version,
+    )
+
+    enscripten_version = xbuildenv_info["emscripten"]
+    log.step(f"Installing Emscripten version: {enscripten_version} ...")
+    emcc_path = install_emscripten(tmp, enscripten_version)
 
     env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
 
-    log.step(f"Installing Pyodide xbuildenv version: {python_configuration.pyodide_version} ...")
-    env["PYODIDE_ROOT"] = install_xbuildenv(
-        env, python_configuration.pyodide_build_version, python_configuration.pyodide_version
-    )
+    log.step(f"Installing Pyodide xbuildenv version: {pyodide_version} ...")
+    env["PYODIDE_ROOT"] = install_xbuildenv(env, pyodide_build_version, pyodide_version)
 
     return env
 
@@ -260,6 +356,7 @@ def build(options: Options, tmp_path: Path) -> None:
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
+
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
             repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
             identifier_tmp_dir.mkdir()
@@ -274,10 +371,11 @@ def build(options: Options, tmp_path: Path) -> None:
             )
 
             env = setup_python(
-                identifier_tmp_dir / "build",
-                config,
-                dependency_constraint_flags,
-                build_options.environment,
+                tmp=identifier_tmp_dir / "build",
+                python_configuration=config,
+                dependency_constraint_flags=dependency_constraint_flags,
+                environment=build_options.environment,
+                user_pyodide_version=build_options.pyodide_version,
             )
             pip_version = get_pip_version(env)
             # The Pyodide command line runner mounts all directories in the host
