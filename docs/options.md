@@ -1760,9 +1760,16 @@ export CIBW_DEBUG_TRACEBACK=TRUE
 ```
 
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
-> Increase/decrease the output of pip wheel
+> Increase/decrease the output of the build
 
-A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
+The setting vary a bit between build backends.
+
+* `-1`: Hide as much build output as possible; passes `-q` to the build backend. Not supported by `build`/`build[uv]`.
+* `0`: The default. On pip, this hides the build output if the build succeeds, other build backends produce output from the build backend.
+* `1`: Produces build backend output. On `pip`, this passes `-v`. Other backends do this by default.
+* `2`: Produces extra output from resolving packages too. On `pip`, this passes `-vv`, other build backends use `-v`.
+* `3`: Even more resolving output from pip with `-vvv`, other build backends continue to just pass `-v`.
+
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
