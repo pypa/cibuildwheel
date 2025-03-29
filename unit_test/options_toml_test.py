@@ -24,7 +24,7 @@ test-extras = ["one", "two"]
 test-groups = ["three", "four"]
 test-sources = ["five", "six and seven"]
 
-manylinux-x86_64-image = "manylinux1"
+manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.macos]
 test-requires = "else"
@@ -67,7 +67,7 @@ def test_simple_settings(tmp_path, platform, fname):
     assert options_reader.get("test-extras", option_format=ListFormat(",")) == "one,two"
     assert options_reader.get("test-groups", option_format=ListFormat(" ")) == "three four"
 
-    assert options_reader.get("manylinux-x86_64-image") == "manylinux1"
+    assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_28"
     assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
     with pytest.raises(OptionsReaderError):
@@ -281,7 +281,7 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-i686-image") == ""
     assert options_reader.get("manylinux-aarch64-image") == "manylinux1"
 
-    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux2014"
+    assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux_2_28"
     assert options_reader.get("manylinux-i686-image", ignore_empty=True) == "manylinux1"
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
 

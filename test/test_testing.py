@@ -1,5 +1,4 @@
 import inspect
-import os
 import subprocess
 import textwrap
 from pathlib import Path
@@ -168,10 +167,6 @@ def test_failing_test(tmp_path):
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
                 "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
-                # manylinux1 has a version of bash that's been shown to have
-                # problems with this, so let's check that.
-                "CIBW_MANYLINUX_I686_IMAGE": "manylinux1",
-                "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux1",
                 # CPython 3.8 when running on macOS arm64 is unusual. The build
                 # always runs in x86_64, so the arm64 tests are not run. See
                 # #1169 for reasons why. That means the build succeeds, which
@@ -180,7 +175,7 @@ def test_failing_test(tmp_path):
             },
         )
 
-    assert len(os.listdir(output_dir)) == 0
+    assert len(list(output_dir.iterdir())) == 0
 
 
 @pytest.mark.parametrize("test_runner", ["pytest", "unittest"])

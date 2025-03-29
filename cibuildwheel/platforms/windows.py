@@ -10,22 +10,21 @@ from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
-from packaging.version import Version
 
-from . import errors
-from .architecture import Architecture
-from .environment import ParsedEnvironment
-from .frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
-from .logger import log
-from .options import Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.cmd import call, shell
-from .util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
-from .util.helpers import prepare_command, unwrap
-from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from .venv import find_uv, virtualenv
+from .. import errors
+from ..architecture import Architecture
+from ..environment import ParsedEnvironment
+from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
+from ..logger import log
+from ..options import Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.cmd import call, shell
+from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
+from ..util.helpers import prepare_command, unwrap
+from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..venv import find_uv, virtualenv
 
 
 def get_nuget_args(
@@ -60,13 +59,16 @@ class PythonConfiguration:
     url: str | None = None
 
 
+def all_python_configurations() -> list[PythonConfiguration]:
+    config_dicts = resources.read_python_configs("windows")
+    return [PythonConfiguration(**item) for item in config_dicts]
+
+
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
 ) -> list[PythonConfiguration]:
-    full_python_configs = resources.read_python_configs("windows")
-
-    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
+    python_configurations = all_python_configurations()
 
     map_arch = {"32": Architecture.x86, "64": Architecture.AMD64, "ARM64": Architecture.ARM64}
 
@@ -355,7 +357,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
+            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
             use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             log.build_start(config.identifier)
 
@@ -497,10 +499,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     call("uv", "venv", venv_dir, f"--python={base_python}", env=env)
                 else:
                     # Use pip version from the initial env to ensure determinism
-                    venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
-                    # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
-                    if Version(config.version) < Version("3.12"):
-                        venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                    venv_args = [
+                        "--no-periodic-update",
+                        f"--pip={pip_version}",
+                        "--no-setuptools",
+                        "--no-wheel",
+                    ]
                     call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                 virtualenv_env = env.copy()

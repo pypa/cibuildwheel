@@ -10,7 +10,7 @@ title: Tips and tricks
 
 Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 600](https://www.python.org/dev/peps/pep-0600/) / [PEP 656](https://www.python.org/dev/peps/pep-0656/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
 
--   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2010` or `manylinux2014`, `apt-get` for `manylinux_2_24`/`manylinux_2_31`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
+-   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2014`, `apt-get` for `manylinux_2_31`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
 
     `cibuildwheel` supports this by providing the [`CIBW_ENVIRONMENT`](options.md#environment) and [`CIBW_BEFORE_ALL`](options.md#before-all) options to setup the build environment inside the running container.
 
@@ -142,7 +142,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v2.23.0
+uses: pypa/cibuildwheel@v2.23.2
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -164,7 +164,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==2.23.0
+cibuildwheel==2.23.2
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -294,7 +294,16 @@ CIBW_BEFORE_ALL_WINDOWS: rustup target add i686-pc-windows-msvc
 CIBW_ENVIRONMENT_LINUX: "PATH=$HOME/.cargo/bin:$PATH"
 ```
 
-Rust does not provide Cargo for musllinux 32-bit, so that needs to be skipped:
+Rust's minimum macOS target is 10.12, while CPython supports 10.9 before
+Python 3.12, so you'll need to raise the minimum:
+
+```toml
+[tool.cibuildwheel.macos.environment]
+MACOSX_DEPLOYMENT_TARGET = "10.12"
+```
+
+And Rust does not provide Cargo for musllinux 32-bit, so that needs to be
+skipped:
 
 ```toml
 [tool.cibuildwheel]
@@ -328,7 +337,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==2.23.0 --output-dir wheelhouse
+pipx run cibuildwheel==2.23.2 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 

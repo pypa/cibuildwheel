@@ -12,34 +12,34 @@ from typing import assert_never
 
 from filelock import FileLock
 
-from . import errors
-from .architecture import Architecture
-from .environment import ParsedEnvironment
-from .frontend import (
+from .. import errors
+from ..architecture import Architecture
+from ..environment import ParsedEnvironment
+from ..frontend import (
     BuildFrontendConfig,
     BuildFrontendName,
     get_build_frontend_extra_flags,
 )
-from .logger import log
-from .macos import install_cpython as install_build_cpython
-from .options import Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.cmd import call, shell
-from .util.file import (
+from ..logger import log
+from ..options import Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.cmd import call, shell
+from ..util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
     move_file,
 )
-from .util.helpers import prepare_command
-from .util.packaging import (
+from ..util.helpers import prepare_command
+from ..util.packaging import (
     combine_constraints,
     find_compatible_wheel,
     get_pip_version,
 )
-from .venv import virtualenv
+from ..venv import virtualenv
+from .macos import install_cpython as install_build_cpython
 
 
 @dataclass(frozen=True)
@@ -72,10 +72,7 @@ class PythonConfiguration:
         return "ios-arm64_x86_64-simulator" if self.is_simulator else "ios-arm64"
 
 
-def get_python_configurations(
-    build_selector: BuildSelector,
-    architectures: Set[Architecture],
-) -> list[PythonConfiguration]:
+def all_python_configurations() -> list[PythonConfiguration]:
     # iOS builds are always cross builds; we need to install a macOS Python as
     # well. Rather than duplicate the location of the URL of macOS installers,
     # load the macos configurations, determine the macOS configuration that
@@ -97,13 +94,20 @@ def get_python_configurations(
     # Load the platform configuration
     full_python_configs = resources.read_python_configs("ios")
     # Build the configurations, annotating with macOS URL details.
-    python_configurations = [
+    return [
         PythonConfiguration(
             **item,
             build_url=build_url(item),
         )
         for item in full_python_configs
     ]
+
+
+def get_python_configurations(
+    build_selector: BuildSelector,
+    architectures: Set[Architecture],
+) -> list[PythonConfiguration]:
+    python_configurations = all_python_configurations()
 
     # Filter out configs that don't match any of the selected architectures
     python_configurations = [
@@ -414,7 +418,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
+            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
             # uv doesn't support iOS
             if build_frontend.name == "build[uv]":
                 msg = "uv doesn't support iOS"

@@ -50,20 +50,47 @@ def test_output_dir_argument(also_set_environment, intercepted_build_args, monke
 
 @pytest.mark.usefixtures("platform", "allow_empty")
 def test_build_selector(intercepted_build_args, monkeypatch):
-    BUILD = "some build* *-selector"
-    SKIP = "some skip* *-selector"
-
-    monkeypatch.setenv("CIBW_BUILD", BUILD)
-    monkeypatch.setenv("CIBW_SKIP", SKIP)
+    monkeypatch.setenv("CIBW_BUILD", "cp313-*")
+    monkeypatch.setenv("CIBW_SKIP", "cp39-*")
 
     main()
 
     intercepted_build_selector = intercepted_build_args.args[0].globals.build_selector
     assert isinstance(intercepted_build_selector, BuildSelector)
-    assert intercepted_build_selector("build24-this")
-    assert not intercepted_build_selector("skip65-that")
+    assert intercepted_build_selector("cp313-something-to-build")
+    assert not intercepted_build_selector("cp39-something-to-skip")
     # This unit test is just testing the options of 'main'
     # Unit tests for BuildSelector are in build_selector_test.py
+
+
+@pytest.mark.usefixtures("platform", "allow_empty")
+def test_invalid_build_selector(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_BUILD", "invalid")
+
+    with pytest.raises(SystemExit) as e:
+        main()
+
+    assert e.value.code == 2
+    _, err = capsys.readouterr()
+    assert "Invalid build selector" in err
+
+
+@pytest.mark.parametrize(
+    ("option_name", "option_env_var"),
+    [
+        ("skip", "CIBW_SKIP"),
+        ("test_skip", "CIBW_TEST_SKIP"),
+    ],
+)
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_invalid_skip_selector(monkeypatch, capsys, option_name, option_env_var):
+    monkeypatch.setenv(option_env_var, "invalid")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert f"Invalid {option_name} selector" in err
 
 
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
@@ -79,25 +106,16 @@ def test_empty_selector(monkeypatch):
 @pytest.mark.parametrize(
     ("architecture", "image", "full_image"),
     [
-        ("x86_64", None, "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("x86_64", "manylinux1", "quay.io/pypa/manylinux1_x86_64:*"),
-        ("x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
+        ("x86_64", None, "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
         ("x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
         ("x86_64", "custom_image", "custom_image"),
         ("i686", None, "quay.io/pypa/manylinux2014_i686:*"),
-        ("i686", "manylinux1", "quay.io/pypa/manylinux1_i686:*"),
-        ("i686", "manylinux2010", "quay.io/pypa/manylinux2010_i686:*"),
         ("i686", "manylinux2014", "quay.io/pypa/manylinux2014_i686:*"),
-        ("i686", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_i686:*"),
         ("i686", "custom_image", "custom_image"),
-        ("pypy_x86_64", None, "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("pypy_x86_64", "manylinux1", "manylinux1"),  # Does not exist
-        ("pypy_x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
+        ("pypy_x86_64", None, "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("pypy_x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
         ("pypy_x86_64", "custom_image", "custom_image"),
@@ -322,7 +340,7 @@ def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys)
 
     stderr = capsys.readouterr().err
     series = "2" if "6" in pattern else "1"
-    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update {selector}"
+    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update"
     assert msg in stderr
 
 

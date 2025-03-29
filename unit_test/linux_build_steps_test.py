@@ -4,7 +4,7 @@ from pprint import pprint
 
 import pytest
 
-import cibuildwheel.linux
+import cibuildwheel.platforms.linux
 from cibuildwheel.oci_container import OCIContainerEngineConfig
 from cibuildwheel.options import CommandLineArguments, Options
 
@@ -46,20 +46,22 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.chdir(tmp_path)
     options = Options("linux", command_line_arguments=args, env={})
 
-    python_configurations = cibuildwheel.linux.get_python_configurations(
+    python_configurations = cibuildwheel.platforms.linux.get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
 
-    build_steps = list(cibuildwheel.linux.get_build_steps(options, python_configurations))
+    build_steps = list(cibuildwheel.platforms.linux.get_build_steps(options, python_configurations))
 
     # helper functions to extract test info
-    def identifiers(step: cibuildwheel.linux.BuildStep) -> list[str]:
+    def identifiers(step: cibuildwheel.platforms.linux.BuildStep) -> list[str]:
         return [c.identifier for c in step.platform_configs]
 
-    def before_alls(step: cibuildwheel.linux.BuildStep) -> list[str]:
+    def before_alls(step: cibuildwheel.platforms.linux.BuildStep) -> list[str]:
         return [options.build_options(c.identifier).before_all for c in step.platform_configs]
 
-    def container_engines(step: cibuildwheel.linux.BuildStep) -> list[OCIContainerEngineConfig]:
+    def container_engines(
+        step: cibuildwheel.platforms.linux.BuildStep,
+    ) -> list[OCIContainerEngineConfig]:
         return [options.build_options(c.identifier).container_engine for c in step.platform_configs]
 
     pprint(build_steps)
