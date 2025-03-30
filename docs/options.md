@@ -1762,13 +1762,13 @@ export CIBW_DEBUG_TRACEBACK=TRUE
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
 > Increase/decrease the output of the build
 
-The setting vary a bit between build backends.
+The setting vary a bit between build frontends.
 
-* `-1`: Hide as much build output as possible; passes `-q` to the build backend. Not supported by `build`/`build[uv]`.
-* `0`: The default. On pip, this hides the build output if the build succeeds, other build backends produce output from the build backend.
-* `1`: Produces build backend output. On `pip`, this passes `-v`. Other backends do this by default.
-* `2`: Produces extra output from resolving packages too. On `pip`, this passes `-vv`, other build backends use `-v`.
-* `3`: Even more resolving output from pip with `-vvv`, other build backends continue to just pass `-v`.
+* `-1`: Hide as much build output as possible; passes `-q` to the build frontend. Not supported by `build`/`build[uv]`.
+* `0`: The default. On pip, this hides the build output if the build succeeds, other build frontends produce output from the build backend.
+* `1`: Produces build backend output. On `pip`, this passes `-v`. Other frontends do this by default.
+* `2`: Produces extra output from resolving packages too. On `pip`, this passes `-vv`, other build frontends use `-v`.
+* `3`: Even more resolving output from pip with `-vvv`, other build frontends continue to just pass `-v`.
 
 
 Platform-specific environment variables are also available:<br/>

@@ -45,8 +45,6 @@ def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
     elif level > 1:
         return ["-v"]
     elif level < 0:
-        if frontend not in {"build", "build[uv]"}:
-            return ["-q"]
         msg = f"build_verbosity {level} is not supported for {frontend} frontend. Ignoring."
         log.warning(msg)
     return []
