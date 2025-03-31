@@ -585,8 +585,8 @@ def test_deprecated_image(
         ("build", 0, ["-Ca", "-Cb", "-1"]),
         ("build", 1, ["-Ca", "-Cb", "-1"]),
         ("build", 2, ["-Ca", "-Cb", "-1", "-v"]),
-        ("build", 3, ["-Ca", "-Cb", "-1", "-v"]),
-        ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-v"]),
+        ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
