@@ -108,8 +108,8 @@ title: Working examples
 | [ninja][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
-| [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
 | [ril][]                           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels. |
+| [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
 | [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
 | [aalink][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Async Python interface for Ableton Link. |
 | [CorrectionLib][]                 | ![github icon][] | ![apple icon][] ![linux icon][] | Structured JSON powered correction library for HEP, designed for the CMS experiment at CERN. |
@@ -218,8 +218,8 @@ title: Working examples
 [ninja]: https://github.com/scikit-build/ninja-python-distributions
 [numpythia]: https://github.com/scikit-hep/numpythia
 [pyjet]: https://github.com/scikit-hep/pyjet
-[SiPM]: https://github.com/EdoPro98/SimSiPM
 [ril]: https://github.com/Cryptex-github/ril-py
+[SiPM]: https://github.com/EdoPro98/SimSiPM
 [GSD]: https://github.com/glotzerlab/gsd
 [aalink]: https://github.com/artfwo/aalink
 [CorrectionLib]: https://github.com/cms-nanoAOD/correctionlib

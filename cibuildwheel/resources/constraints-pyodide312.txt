@@ -105,7 +105,7 @@ unearth==0.17.3
     # via pyodide-build
 urllib3==2.3.0
     # via requests
-virtualenv==20.29.3
+virtualenv==20.30.0
     # via
     #   build
     #   pyodide-build
