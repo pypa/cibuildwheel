@@ -42,6 +42,9 @@ properties:
   before-all:
     description: Execute a shell command on the build system before any wheels are built.
     type: string_array
+  before-build:
+     description: Execute a shell command preparing each wheel's build.
+     type: string_array
   before-test:
     description: Execute a shell command before testing each wheel.
     type: string_array
@@ -178,7 +181,7 @@ properties:
   musllinux-x86_64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
-  before-build:
+  xbuild-tools:
     description: Binaries on the path that should be included in an isolated cross-build environment
     type: string_array
   repair-wheel-command:
