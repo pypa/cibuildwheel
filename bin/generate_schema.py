@@ -43,8 +43,8 @@ properties:
     description: Execute a shell command on the build system before any wheels are built.
     type: string_array
   before-build:
-     description: Execute a shell command preparing each wheel's build.
-     type: string_array
+    description: Execute a shell command preparing each wheel's build.
+    type: string_array
   before-test:
     description: Execute a shell command before testing each wheel.
     type: string_array
