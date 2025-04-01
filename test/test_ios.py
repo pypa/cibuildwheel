@@ -37,7 +37,7 @@ class TestPlatform(TestCase):
         {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
     ],
 )
-def test_ios_platforms(tmp_path, build_config, monkeypatch):
+def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
@@ -60,9 +60,12 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch):
     basic_project.files.update(basic_project_files)
     basic_project.generate(project_dir)
 
-    # Build the wheels. Mark the "does-exist" tool as a cross-build tool, and
-    # invoke it during a `before-build` step. It will also be invoked when
-    # `setup.py` is invoked.
+    # Build and test the wheels. Mark the "does-exist" tool as a cross-build
+    # tool, and invoke it during a `before-build` step. It will also be invoked
+    # when `setup.py` is invoked.
+    #
+    # Tests are only executed on simulator. The test suite passes if it's
+    # running on the same architecture as the current platform.
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
@@ -76,11 +79,10 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch):
         },
     )
 
+    # The expected wheels were produced.
     ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
     platform_machine = platform.machine()
 
-    # Tests are only executed on simulator. The test suite passes if it's
-    # running on the same architecture as the current platform.
     if platform_machine == "x86_64":
         expected_wheels = {
             f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
@@ -94,9 +96,14 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch):
 
     assert set(actual_wheels) == expected_wheels
 
+    # The user was notified that the cross-build tool was found.
+    captured = capfd.readouterr()
+    assert "'does-exist' will be included in the cross-build environment" in captured.out
+
 
 @pytest.mark.serial
 def test_no_test_sources(tmp_path, capfd):
+    """Build will fail if test-sources isn't defined."""
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
@@ -117,12 +124,14 @@ def test_no_test_sources(tmp_path, capfd):
             },
         )
 
+    # The error message indicates the configuration issue.
     captured = capfd.readouterr()
     assert "Testing on iOS requires a definition of test-sources." in captured.err
 
 
 @pytest.mark.serial
 def test_missing_xbuild_tool(tmp_path, capfd):
+    """Build will fail if xbuild-tools references a non-existent tool."""
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
@@ -144,5 +153,99 @@ def test_missing_xbuild_tool(tmp_path, capfd):
             },
         )
 
+    # The error message indicates the problem tool.
     captured = capfd.readouterr()
     assert "Could not find a 'does-not-exist' executable on the path." in captured.err
+
+
+@pytest.mark.serial
+def test_no_xbuild_tool_definition(tmp_path, capfd):
+    """Build will succeed with a warning if there is no xbuild-tools definition."""
+    if utils.platform != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+
+    project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
+    basic_project.generate(project_dir)
+
+    # Build, but don't test the wheels; we're only checking that the right
+    # warning was raised.
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
+            "CIBW_TEST_SKIP": "*",
+        },
+    )
+
+    # The expected wheels were produced.
+    ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
+    platform_machine = platform.machine()
+
+    if platform_machine == "x86_64":
+        expected_wheels = {
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
+        }
+
+    elif platform_machine == "arm64":
+        expected_wheels = {
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
+        }
+
+    assert set(actual_wheels) == expected_wheels
+
+    # The user was notified that there was no cross-build tool definition.
+    captured = capfd.readouterr()
+    assert "Your project configuration does not define any cross-build tools." in captured.err
+
+
+@pytest.mark.serial
+def test_empty_xbuild_tool_definition(tmp_path, capfd):
+    """Build will succeed with no warning if there is an empty xbuild-tools definition."""
+    if utils.platform != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+
+    project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
+    basic_project.generate(project_dir)
+
+    # Build, but don't test the wheels; we're only checking that a warning
+    # wasn't raised.
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
+            "CIBW_TEST_SKIP": "*",
+            "CIBW_XBUILD_TOOLS": "",
+        },
+    )
+
+    # The expected wheels were produced.
+    ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
+    platform_machine = platform.machine()
+
+    if platform_machine == "x86_64":
+        expected_wheels = {
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
+        }
+
+    elif platform_machine == "arm64":
+        expected_wheels = {
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
+            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
+        }
+
+    assert set(actual_wheels) == expected_wheels
+
+    # The warnings about cross-build notifications were silenced.
+    captured = capfd.readouterr()
+    assert "Your project configuration does not define any cross-build tools." not in captured.err

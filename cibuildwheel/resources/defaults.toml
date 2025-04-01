@@ -14,7 +14,8 @@ build-verbosity = 0
 
 before-all = ""
 before-build = ""
-xbuild-tools = []
+# TOML doesn't support explicit NULLs; use ["\u0000"] as a sentinel value.
+xbuild-tools = ["\u0000"]
 repair-wheel-command = ""
 
 test-command = ""

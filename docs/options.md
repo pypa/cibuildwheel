@@ -1052,6 +1052,8 @@ If there are binaries present on the `PATH` when you invoke cibuildwheel, and th
 
 If you declare a tool as a cross-build tool, and that tool cannot be found in the runtime environment, an error will be raised.
 
+If you do not define `CIBW_XBUILD_TOOLS`, and you build for a platform that uses a cross-platform environment, a warning will be raised. If your project does not require any cross-build tools, you can set `CIBW_XBUILD_TOOLS` to an empty list to silence this warning.
+
 *Any* tool used by the build process must be included in the `CIBW_XBUILD_TOOLS` list, not just tools that cibuildwheel will invoke directly. For example, if your build invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your safe tools list.
 
 Platform-specific environment variables are also available on platforms that use cross-platform environment isolation:<br/>
@@ -1066,12 +1068,23 @@ Platform-specific environment variables are also available on platforms that use
     CIBW_XBUILD_TOOLS: cmake rustc
     ```
 
+    ```yaml
+    # No cross-build tools are required
+    CIBW_XBUILD_TOOLS:
+    ```
+
 !!! tab examples "pyproject.toml"
 
     ```toml
     [tool.cibuildwheel]
     # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
     xbuild-tools = ["cmake", "rustc"]
+    ```
+
+    ```toml
+    [tool.cibuildwheel]
+    # No cross-build tools are required
+    xbuild-tools = []
     ```
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}

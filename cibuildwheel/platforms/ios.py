@@ -5,6 +5,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import textwrap
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
@@ -221,16 +222,38 @@ def cross_virtualenv(
     # to get access to (for example) cmake for build purposes.
     xbuild_tools_path = venv_path / "cibw_xbuild_tools"
     xbuild_tools_path.mkdir()
-    for tool in xbuild_tools:
-        tool_path = shutil.which(tool)
-        if tool_path is None:
-            msg = f"Could not find a {tool!r} executable on the path."
-            raise errors.FatalError(msg)
+    # ["\u0000"] is a sentinel value used as a default, because TOML doesn't
+    # have an explicit NULL value. If xbuild-tools is set to the sentinel, it
+    # indicates that the user hasn't defined xbuild_tools *at all* (not even an
+    # `xbuild_tools = []` definition).
+    if xbuild_tools == ["\u0000"]:
+        log.warning(
+            textwrap.dedent(
+                """
+                Your project configuration does not define any cross-build tools.
 
-        # Link the binary into the safe tools directory
-        original = Path(tool_path).resolve()
-        print(f"{tool!r} will be included in the cross-build environment (using {original})")
-        (xbuild_tools_path / tool).symlink_to(original)
+                iOS builds use an isolated build environment; if your build process requires any
+                third-party tools (such as cmake, ninja, or rustc), you must explicitly declare
+                that those tools are required using xbuild-tools/CIBW_XBUILD_TOOLS. This will
+                likely manifest as a "somebuildtool: command not found" error.
+
+                If the build succeeds, you can silence this warning by setting adding
+                `xbuild-tools = []` to your pyproject.toml configuration, or exporting
+                CIBW_XBUILD_TOOLS as an empty string into your environment.
+                """
+            )
+        )
+    else:
+        for tool in xbuild_tools:
+            tool_path = shutil.which(tool)
+            if tool_path is None:
+                msg = f"Could not find a {tool!r} executable on the path."
+                raise errors.FatalError(msg)
+
+            # Link the binary into the safe tools directory
+            original = Path(tool_path).resolve()
+            print(f"{tool!r} will be included in the cross-build environment (using {original})")
+            (xbuild_tools_path / tool).symlink_to(original)
 
     env["PATH"] = os.pathsep.join(
         [
