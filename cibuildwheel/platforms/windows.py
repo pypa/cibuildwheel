@@ -330,6 +330,49 @@ def setup_python(
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
+    if implementation_id.startswith("gp"):
+        # GraalPy fails to discover compilers, setup the relevant environment
+        # variables. Adapted from
+        # https://github.com/microsoft/vswhere/wiki/Start-Developer-Command-Prompt
+        # Remove when https://github.com/oracle/graalpython/issues/492 is fixed.
+        vcpath = subprocess.check_output(
+            [
+                Path(os.environ["PROGRAMFILES(X86)"])
+                / "Microsoft Visual Studio"
+                / "Installer"
+                / "vswhere.exe",
+                "-products",
+                "*",
+                "-latest",
+                "-property",
+                "installationPath",
+            ],
+            text=True,
+        ).strip()
+        log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
+        env.update(
+            dict(
+                [
+                    envvar.strip().split("=", 1)
+                    for envvar in subprocess.check_output(
+                        [
+                            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
+                            "-no_logo",
+                            "-arch=amd64",
+                            "-host_arch=amd64",
+                            "&&",
+                            "set",
+                        ],
+                        shell=True,
+                        text=True,
+                        env=env,
+                    )
+                    .strip()
+                    .split("\n")
+                ]
+            )
+        )
+
     return base_python, env
 
 
