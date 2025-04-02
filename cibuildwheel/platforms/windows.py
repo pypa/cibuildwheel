@@ -401,6 +401,19 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+
+            if (
+                config.identifier.startswith("gp")
+                and build_frontend.name == "build"
+                and "--no-isolation" not in build_frontend.args
+                and "-n" not in build_frontend.args
+            ):
+                # GraalPy fails to discover its standard library when a venv is created
+                # from a virtualenv seeded executable. See
+                # https://github.com/oracle/graalpython/issues/491 and remove this once
+                # fixed upstream.
+                build_frontend = BuildFrontendConfig("build[uv]", build_frontend.args)
+
             use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             log.build_start(config.identifier)
 
@@ -473,6 +486,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
                     if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                         extra_flags.append("--installer=uv")
+
                     call(
                         "python",
                         "-m",
