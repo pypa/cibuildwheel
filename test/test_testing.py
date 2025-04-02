@@ -81,7 +81,9 @@ def test(tmp_path):
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
             "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+            # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
+            # until https://github.com/oracle/graalpython/issues/490 is fixed
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest {project}/test",
         },
     )
 
@@ -102,7 +104,9 @@ def test_extras_require(tmp_path):
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
             "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+            # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
+            # until https://github.com/oracle/graalpython/issues/490 is fixed
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest {project}/test",
         },
         single_python=True,
     )
@@ -134,7 +138,9 @@ def test_dependency_groups(tmp_path):
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
             "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+            # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
+            # until https://github.com/oracle/graalpython/issues/490 is fixed
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest {project}/test",
         },
         single_python=True,
     )
@@ -189,7 +195,9 @@ def test_bare_pytest_invocation(tmp_path: Path, test_runner: str) -> None:
         add_env={
             "CIBW_TEST_REQUIRES": "pytest" if test_runner == "pytest" else "",
             "CIBW_TEST_COMMAND": (
-                "python -m pytest"
+                # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
+                # until https://github.com/oracle/graalpython/issues/490 fixed
+                "graalpy.exe -c 1 || python -m pytest"
                 if test_runner == "pytest"
                 else "python -m unittest discover test spam_test.py"
             ),
@@ -211,7 +219,9 @@ def test_test_sources(tmp_path):
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
             "CIBW_TEST_COMMAND": "pytest",
-            "CIBW_TEST_COMMAND_WINDOWS": "pytest",
+            # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
+            # until https://github.com/oracle/graalpython/issues/490 is fixed
+            "CIBW_TEST_COMMAND_WINDOWS": "where graalpy || pytest",
             "CIBW_TEST_SOURCES": "test",
         },
     )
