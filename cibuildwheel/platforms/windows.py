@@ -268,7 +268,7 @@ def setup_python(
         raise ValueError(msg)
     assert base_python.exists()
 
-    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
+    if build_frontend in {"build[uv]", "uv"} and not can_use_uv(python_configuration):
         build_frontend = "build"
 
     use_uv = build_frontend in {"build[uv]", "uv"}
