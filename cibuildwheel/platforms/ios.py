@@ -24,7 +24,6 @@ from ..frontend import (
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
-from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import (
@@ -39,7 +38,7 @@ from ..util.packaging import (
     find_compatible_wheel,
     get_pip_version,
 )
-from ..venv import virtualenv
+from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
 
 
@@ -151,7 +150,7 @@ def cross_virtualenv(
     multiarch: str,
     build_python: Path,
     venv_path: Path,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    dependency_constraint: Path | None,
     xbuild_tools: Sequence[str] | None,
 ) -> dict[str, str]:
     """Create a cross-compilation virtual environment.
@@ -188,7 +187,7 @@ def cross_virtualenv(
         py_version,
         build_python,
         venv_path,
-        dependency_constraint_flags,
+        dependency_constraint,
         use_uv=False,
     )
 
@@ -279,7 +278,7 @@ def setup_python(
     tmp: Path,
     *,
     python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    dependency_constraint: Path | None,
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
     xbuild_tools: Sequence[str] | None,
@@ -327,6 +326,8 @@ def setup_python(
 
     log.step("Creating cross build environment...")
 
+    dependency_constraint_flags = constraint_flags(dependency_constraint)
+
     venv_path = tmp / "venv"
     env = cross_virtualenv(
         py_version=python_configuration.version,
@@ -334,7 +335,7 @@ def setup_python(
         multiarch=python_configuration.multiarch,
         build_python=build_python,
         venv_path=venv_path,
-        dependency_constraint_flags=dependency_constraint_flags,
+        dependency_constraint=dependency_constraint,
         xbuild_tools=xbuild_tools,
     )
     venv_bin_path = venv_path / "bin"
@@ -453,14 +454,11 @@ def build(options: Options, tmp_path: Path) -> None:
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version, tmp_dir=identifier_tmp_dir
             )
-            dependency_constraint_flags: Sequence[PathOrStr] = (
-                ["-c", constraints_path] if constraints_path else []
-            )
 
             target_install_path, env = setup_python(
                 identifier_tmp_dir / "build",
                 python_configuration=config,
-                dependency_constraint_flags=dependency_constraint_flags,
+                dependency_constraint=constraints_path,
                 environment=build_options.environment,
                 build_frontend=build_frontend.name,
                 xbuild_tools=build_options.xbuild_tools,
