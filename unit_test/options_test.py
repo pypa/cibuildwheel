@@ -22,7 +22,6 @@ PYPROJECT_1 = """
 build = ["cp38-*", "cp313-*"]
 skip = ["*musllinux*"]
 environment = {FOO="BAR"}
-xbuild-tools = ["cmake", "rustc"]
 
 test-command = "pyproject"
 test-sources = ["test", "other dir"]
@@ -74,14 +73,12 @@ def test_options_1(tmp_path, monkeypatch):
     pinned_x86_64_container_image = all_pinned_container_images["x86_64"]
 
     local = options.build_options("cp38-manylinux_x86_64")
-    assert local.xbuild_tools == ["cmake", "rustc"]
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject"
     assert local.test_sources == ["test", "other dir"]
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_28"]
 
     local = options.build_options("cp313-manylinux_x86_64")
-    assert local.xbuild_tools == ["cmake", "rustc"]
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
     assert local.test_sources == ["test", "other dir"]
@@ -573,3 +570,31 @@ def test_deprecated_image(
         assert f"{resolved_image!r}" in captured.err
     else:
         assert "Deprecated image" not in captured.err
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", None),
+        ("xbuild-tools = []", []),
+        ('xbuild-tools = ["cmake", "rustc"]', ["cmake", "rustc"]),
+    ],
+)
+def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[str] | None) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+
+    local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
+    assert local.xbuild_tools == expected

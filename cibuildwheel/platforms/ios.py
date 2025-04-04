@@ -152,7 +152,7 @@ def cross_virtualenv(
     build_python: Path,
     venv_path: Path,
     dependency_constraint_flags: Sequence[PathOrStr],
-    xbuild_tools: Sequence[str],
+    xbuild_tools: Sequence[str] | None,
 ) -> dict[str, str]:
     """Create a cross-compilation virtual environment.
 
@@ -219,14 +219,11 @@ def cross_virtualenv(
     # build. Find their location on the path, and link the underlying binaries
     # (fully resolving symlinks) to a "safe" location that will *only* contain
     # those tools. This avoids needing to add *all* of Homebrew to the path just
-    # to get access to (for example) cmake for build purposes.
+    # to get access to (for example) cmake for build purposes. A value of None
+    # means the user hasn't provided a list of xbuild tools.
     xbuild_tools_path = venv_path / "cibw_xbuild_tools"
     xbuild_tools_path.mkdir()
-    # ["\u0000"] is a sentinel value used as a default, because TOML doesn't
-    # have an explicit NULL value. If xbuild-tools is set to the sentinel, it
-    # indicates that the user hasn't defined xbuild_tools *at all* (not even an
-    # `xbuild_tools = []` definition).
-    if xbuild_tools == ["\u0000"]:
+    if xbuild_tools is None:
         log.warning(
             textwrap.dedent(
                 """
@@ -285,7 +282,7 @@ def setup_python(
     dependency_constraint_flags: Sequence[PathOrStr],
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
-    xbuild_tools: Sequence[str],
+    xbuild_tools: Sequence[str] | None,
 ) -> tuple[Path, dict[str, str]]:
     if build_frontend == "build[uv]":
         msg = "uv doesn't support iOS"

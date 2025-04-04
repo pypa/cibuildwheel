@@ -17,6 +17,7 @@ PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = "cp39*"
 environment = {THING = "OTHER", FOO="BAR"}
+xbuild-tools = ["first"]
 
 test-command = "pyproject"
 test-requires = "something"
@@ -274,6 +275,7 @@ manylinux-x86_64-image = ""
         env={
             "CIBW_MANYLINUX_I686_IMAGE": "",
             "CIBW_MANYLINUX_AARCH64_IMAGE": "manylinux1",
+            "CIBW_XBUILD_TOOLS": "",
         },
     )
 
@@ -284,6 +286,10 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux_2_28"
     assert options_reader.get("manylinux-i686-image", ignore_empty=True) == "manylinux1"
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
+
+    assert (
+        options_reader.get("xbuild-tools", option_format=ListFormat(" ", quote=shlex.quote)) == ""
+    )
 
 
 @pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
