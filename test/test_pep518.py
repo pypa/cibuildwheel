@@ -37,10 +37,7 @@ def test_pep518(tmp_path, build_frontend_env):
     # from a virtualenv seeded executable. See
     # https://github.com/oracle/graalpython/issues/491 and remove this once
     # fixed upstream.
-    if (
-        build_frontend_env["CIBW_BUILD_FRONTEND"] == "build"
-        and utils.platform == "windows"
-    ):
+    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "build" and utils.platform == "windows":
         build_frontend_env["CIBW_SKIP"] = "gp*"
 
     # build the wheels
@@ -53,10 +50,7 @@ def test_pep518(tmp_path, build_frontend_env):
     # from a virtualenv seeded executable. See
     # https://github.com/oracle/graalpython/issues/491 and remove this once
     # fixed upstream.
-    if (
-        build_frontend_env["CIBW_BUILD_FRONTEND"] == "build"
-        and utils.platform == "windows"
-    ):
+    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "build" and utils.platform == "windows":
         expected_wheels = [w for w in expected_wheels if "graalpy" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
