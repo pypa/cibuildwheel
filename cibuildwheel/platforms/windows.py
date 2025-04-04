@@ -402,18 +402,6 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
 
-            if (
-                config.identifier.startswith("gp")
-                and build_frontend.name == "build"
-                and "--no-isolation" not in build_frontend.args
-                and "-n" not in build_frontend.args
-            ):
-                # GraalPy fails to discover its standard library when a venv is created
-                # from a virtualenv seeded executable. See
-                # https://github.com/oracle/graalpython/issues/491 and remove this once
-                # fixed upstream.
-                build_frontend = BuildFrontendConfig("build[uv]", build_frontend.args)
-
             use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             log.build_start(config.identifier)
 
@@ -461,6 +449,22 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags = get_build_frontend_extra_flags(
                     build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
+
+                if (
+                    config.identifier.startswith("gp")
+                    and build_frontend.name == "build"
+                    and "--no-isolation" not in extra_flags
+                    and "-n" not in extra_flags
+                ):
+                    # GraalPy fails to discover its standard library when a venv is created
+                    # from a virtualenv seeded executable. See
+                    # https://github.com/oracle/graalpython/issues/491 and remove this once
+                    # fixed upstream.
+                    log.notice(
+                        "Disabling build isolation to workaround GraalPy bug. If the build fails, consider using pip or build[uv] as build frontend."
+                    )
+                    shell("graalpy -m pip install setuptools wheel", env=env)
+                    extra_flags = [*extra_flags, "-n"]
 
                 build_env = env.copy()
                 if pip_version is not None:
