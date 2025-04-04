@@ -570,3 +570,31 @@ def test_deprecated_image(
         assert f"{resolved_image!r}" in captured.err
     else:
         assert "Deprecated image" not in captured.err
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", None),
+        ("xbuild-tools = []", []),
+        ('xbuild-tools = ["cmake", "rustc"]', ["cmake", "rustc"]),
+    ],
+)
+def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[str] | None) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+
+    local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
+    assert local.xbuild_tools == expected

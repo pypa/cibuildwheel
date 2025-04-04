@@ -17,6 +17,7 @@ PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = "cp39*"
 environment = {THING = "OTHER", FOO="BAR"}
+xbuild-tools = ["first"]
 
 test-command = "pyproject"
 test-requires = "something"
@@ -89,6 +90,7 @@ def test_envvar_override(tmp_path, platform):
         env={
             "CIBW_BUILD": "cp38*",
             "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux_2_24",
+            "CIBW_XBUILD_TOOLS": "cmake rustc",
             "CIBW_TEST_COMMAND": "mytest",
             "CIBW_TEST_REQUIRES": "docs",
             "CIBW_TEST_GROUPS": "mgroup two",
@@ -104,6 +106,10 @@ def test_envvar_override(tmp_path, platform):
     assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_24"
     assert options_reader.get("manylinux-i686-image") == "manylinux2014"
 
+    assert (
+        options_reader.get("xbuild-tools", option_format=ListFormat(" ", quote=shlex.quote))
+        == "cmake rustc"
+    )
     assert (
         options_reader.get("test-sources", option_format=ListFormat(" ", quote=shlex.quote))
         == 'first "second third"'
@@ -269,6 +275,7 @@ manylinux-x86_64-image = ""
         env={
             "CIBW_MANYLINUX_I686_IMAGE": "",
             "CIBW_MANYLINUX_AARCH64_IMAGE": "manylinux1",
+            "CIBW_XBUILD_TOOLS": "",
         },
     )
 
@@ -279,6 +286,10 @@ manylinux-x86_64-image = ""
     assert options_reader.get("manylinux-x86_64-image", ignore_empty=True) == "manylinux_2_28"
     assert options_reader.get("manylinux-i686-image", ignore_empty=True) == "manylinux1"
     assert options_reader.get("manylinux-aarch64-image", ignore_empty=True) == "manylinux1"
+
+    assert (
+        options_reader.get("xbuild-tools", option_format=ListFormat(" ", quote=shlex.quote)) == ""
+    )
 
 
 @pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
