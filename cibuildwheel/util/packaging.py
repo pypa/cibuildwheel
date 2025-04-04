@@ -157,9 +157,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
                 # If a minor version number is given, it has to be lower than the current one.
                 continue
 
-            if platform.startswith(("manylinux", "musllinux", "macosx", "ios")):
-                # Linux, macOS, and iOS require the beginning and ending match
-                # (macos/manylinux/iOS version number doesn't need to match)
+            if platform.startswith(("manylinux", "musllinux", "macosx", "android", "ios")):
+                # On these platforms the wheel tag includes a platform version number, which we
+                # should ignore.
                 os_, arch = platform.split("_", 1)
                 if not tag.platform.startswith(os_):
                     continue
