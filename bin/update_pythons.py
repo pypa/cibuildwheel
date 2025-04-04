@@ -9,6 +9,7 @@ import tomllib
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Final, Literal, TypedDict
+from xml.etree import ElementTree as ET
 
 import click
 import requests
@@ -50,7 +51,13 @@ class ConfigApple(TypedDict):
     url: str
 
 
-AnyConfig = ConfigWinCP | ConfigWinPP | ConfigApple
+class ConfigAndroid(TypedDict):
+    identifier: str
+    version: str
+    url: str
+
+
+AnyConfig = ConfigWinCP | ConfigWinPP | ConfigApple | ConfigAndroid
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to
@@ -232,6 +239,41 @@ class CPythonVersions:
         return None
 
 
+class AndroidVersions:
+    MAVEN_URL = "https://repo.maven.apache.org/maven2/com/chaquo/python/python"
+
+    def __init__(self) -> None:
+        response = requests.get(f"{self.MAVEN_URL}/maven-metadata.xml")
+        response.raise_for_status()
+        root = ET.fromstring(response.text)
+
+        self.versions: list[Version] = []
+        for version_elem in root.findall("./versioning/versions/version"):
+            version_str = version_elem.text
+            assert isinstance(version_str, str), version_str
+            self.versions.append(Version(version_str))
+
+    def update_version_android(
+        self, identifier: str, version: Version, spec: Specifier
+    ) -> ConfigAndroid | None:
+        sorted_versions = sorted(spec.filter(self.versions), reverse=True)
+
+        # Return a config using the highest version for the given specifier.
+        if sorted_versions:
+            max_version = sorted_versions[0]
+            triplet = {
+                "arm64_v8a": "aarch64-linux-android",
+                "x86_64": "x86_64-linux-android",
+            }[identifier.split("_", 1)[1]]
+            return ConfigAndroid(
+                identifier=identifier,
+                version=str(version),
+                url=f"{self.MAVEN_URL}/{max_version}/python-{max_version}-{triplet}.tar.gz",
+            )
+        else:
+            return None
+
+
 class CPythonIOSVersions:
     def __init__(self) -> None:
         response = requests.get(
@@ -292,6 +334,7 @@ class AllVersions:
         self.macos_pypy = PyPyVersions("64")
         self.macos_pypy_arm64 = PyPyVersions("ARM64")
 
+        self.android = AndroidVersions()
         self.ios_cpython = CPythonIOSVersions()
 
     def update_config(self, config: MutableMapping[str, str]) -> None:
@@ -326,6 +369,8 @@ class AllVersions:
             config_update = self.windows_t_arm64.update_version_windows(spec)
         elif "win_arm64" in identifier and identifier.startswith("cp"):
             config_update = self.windows_arm64.update_version_windows(spec)
+        elif "android" in identifier:
+            config_update = self.android.update_version_android(identifier, version, spec)
         elif "ios" in identifier:
             config_update = self.ios_cpython.update_version_ios(identifier, version)
 
@@ -357,14 +402,9 @@ def update_pythons(force: bool, level: str) -> None:
     with toml_file_path.open("rb") as f:
         configs = tomllib.load(f)
 
-    for config in configs["windows"]["python_configurations"]:
-        all_versions.update_config(config)
-
-    for config in configs["macos"]["python_configurations"]:
-        all_versions.update_config(config)
-
-    for config in configs["ios"]["python_configurations"]:
-        all_versions.update_config(config)
+    for platform in ["windows", "macos", "android", "ios"]:
+        for config in configs[platform]["python_configurations"]:
+            all_versions.update_config(config)
 
     result_toml = dump_python_configurations(configs)
 
