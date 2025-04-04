@@ -213,6 +213,25 @@ Commit this file, enable building of your repo on Cirrus CI, and push.
 
 Cirrus CI will store the built wheels for you - you can access them from the individual task view. Check out the Cirrus CI [docs](https://cirrus-ci.org/guide/writing-tasks/) for more info on this config file.
 
+### Bitbucket Pipelines [linux/mac/windows] {: #bitbucket-pipelines}
+
+To build Linux, Mac, and Windows wheels on Bitbucket Pipelines, create a `bitbucket-pipelines.yml` file in your repo,
+
+> bitbucket-pipelines.yml
+
+```yaml
+{% include "../examples/bitbucket-pipelines-minimal.yml" %}
+```
+
+Commit this file, enable building of your repo on Bitbucket Pipelines, and push.
+
+Bitbucket Pipelines will store the built wheels for you - you can access them from the artifacts tab. Check out the Bitbucket Pipelines [docs](https://support.atlassian.com/bitbucket-cloud/docs/configure-bitbucket-pipelinesyml/) for more info on this config file.
+
+[`examples/bitbucket-pipelines-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/bitbucket-pipelines-deploy.yml) extends this minimal example to include iOS and Pyodide builds, and a demonstration of how to automatically upload the built wheels to PyPI when a tag is pushed.
+
+!!! note
+    To enable Windows and macOS runners in Bitbucket Pipelines, you may need to enable these resources in your Bitbucket settings. See the [Bitbucket documentation](https://support.atlassian.com/bitbucket-cloud/docs/windows-and-macos-build-environments/) for more information.
+
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
 ## Next steps

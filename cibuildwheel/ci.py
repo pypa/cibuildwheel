@@ -13,6 +13,7 @@ class CIProvider(Enum):
     github_actions = "github_actions"
     gitlab = "gitlab"
     cirrus_ci = "cirrus_ci"
+    bitbucket_pipelines = "bitbucket_pipelines"
     other = "other"
 
 
@@ -31,6 +32,8 @@ def detect_ci_provider() -> CIProvider | None:
         return CIProvider.gitlab
     elif "CIRRUS_CI" in os.environ:
         return CIProvider.cirrus_ci
+    elif "BITBUCKET_PIPELINE_UUID" in os.environ:
+        return CIProvider.bitbucket_pipelines
     elif strtobool(os.environ.get("CI", "false")):
         return CIProvider.other
     else:

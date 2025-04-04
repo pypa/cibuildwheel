@@ -1,0 +1,123 @@
+image: python:3.12
+
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: Build Linux Wheels
+            services:
+              - docker
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              - cibuildwheel --output-dir wheelhouse
+            artifacts:
+              - wheelhouse/**
+
+        - step:
+            name: Build Windows Wheels
+            runs-on:
+              - windows
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              - cibuildwheel --output-dir wheelhouse --platform windows
+            artifacts:
+              - wheelhouse/**
+
+        - step:
+            name: Build macOS Wheels
+            runs-on:
+              - macos
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              - cibuildwheel --output-dir wheelhouse --platform macos
+            artifacts:
+              - wheelhouse/**
+
+        - step:
+            name: Build iOS Wheels
+            runs-on:
+              - macos
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              # iOS is only available on macOS runners
+              - cibuildwheel --output-dir wheelhouse --platform ios
+            artifacts:
+              - wheelhouse/**
+
+        - step:
+            name: Build Pyodide Wheels
+            services:
+              - docker
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              # Pyodide can build on any platform, but linux is typically used
+              - cibuildwheel --output-dir wheelhouse --platform pyodide
+            artifacts:
+              - wheelhouse/**
+
+  tags:
+    release-*:
+      - parallel:
+          - step:
+              name: Build Linux Wheels
+              services:
+                - docker
+              script:
+                - python -m pip install cibuildwheel==2.23.2
+                - cibuildwheel --output-dir wheelhouse
+              artifacts:
+                - wheelhouse/**
+
+          - step:
+              name: Build Windows Wheels
+              runs-on:
+                - windows
+              script:
+                - python -m pip install cibuildwheel==2.23.2
+                - cibuildwheel --output-dir wheelhouse --platform windows
+              artifacts:
+                - wheelhouse/**
+
+          - step:
+              name: Build macOS Wheels
+              runs-on:
+                - macos
+              script:
+                - python -m pip install cibuildwheel==2.23.2
+                - cibuildwheel --output-dir wheelhouse --platform macos
+              artifacts:
+                - wheelhouse/**
+
+          - step:
+              name: Build iOS Wheels
+              runs-on:
+                - macos
+              script:
+                - python -m pip install cibuildwheel==2.23.2
+                - cibuildwheel --output-dir wheelhouse --platform ios
+              artifacts:
+                - wheelhouse/**
+
+          - step:
+              name: Build Pyodide Wheels
+              services:
+                - docker
+              script:
+                - python -m pip install cibuildwheel==2.23.2
+                - cibuildwheel --output-dir wheelhouse --platform pyodide
+              artifacts:
+                - wheelhouse/**
+
+      - step:
+          name: Deploy to PyPI
+          trigger: manual  # Requires manual approval
+          script:
+            - python -m pip install twine
+            # Download artifacts from previous parallel steps
+            - twine upload wheelhouse/*.whl
+          deployment: production
+
+definitions:
+  services:
+    docker:
+      memory: 2048

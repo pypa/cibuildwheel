@@ -1,0 +1,42 @@
+image: python:3.12
+
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: Linux Wheels
+            services:
+              - docker
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              - cibuildwheel --output-dir wheelhouse
+            artifacts:
+              - wheelhouse/**
+
+        - step:
+            name: Windows Wheels
+            runs-on:
+              - windows
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              - cibuildwheel --output-dir wheelhouse --platform windows
+            artifacts:
+              - wheelhouse/**
+
+        - step:
+            name: macOS Wheels
+            runs-on:
+              - macos
+            script:
+              - python -m pip install cibuildwheel==2.23.2
+              - cibuildwheel --output-dir wheelhouse --platform macos
+            artifacts:
+              - wheelhouse/**
+
+# To enable Windows and macOS builds, you need to enable these resources in your Bitbucket settings
+# See: https://support.atlassian.com/bitbucket-cloud/docs/windows-and-macos-build-environments/
+
+definitions:
+  services:
+    docker:
+      memory: 2048

@@ -13,6 +13,7 @@ FOLD_PATTERNS: Final[dict[str, FoldPattern]] = {
     "azure": ("##[group]{name}", "##[endgroup]"),
     "travis": ("travis_fold:start:{identifier}\n{name}", "travis_fold:end:{identifier}"),
     "github": ("::group::{name}", "::endgroup::{name}"),
+    "bitbucket": ("--- {name} ---", "--- End {name} ---"),
 }
 
 PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
@@ -96,6 +97,10 @@ class Logger:
 
         elif ci_provider == CIProvider.travis_ci:
             self.fold_mode = "travis"
+            self.colors_enabled = True
+
+        elif ci_provider == CIProvider.bitbucket_pipelines:
+            self.fold_mode = "bitbucket"
             self.colors_enabled = True
 
         elif ci_provider == CIProvider.appveyor:
