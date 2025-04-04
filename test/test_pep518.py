@@ -33,11 +33,32 @@ def test_pep518(tmp_path, build_frontend_env):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
+    # GraalPy fails to discover its standard library when a venv is created
+    # from a virtualenv seeded executable. See
+    # https://github.com/oracle/graalpython/issues/491 and remove this once
+    # fixed upstream.
+    if (
+        build_frontend_env["CIBW_BUILD_FRONTEND"] == "build"
+        and utils.platform == "windows"
+    ):
+        build_frontend_env["CIBW_SKIP"] = "gp*"
+
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=build_frontend_env)
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
+
+    # GraalPy fails to discover its standard library when a venv is created
+    # from a virtualenv seeded executable. See
+    # https://github.com/oracle/graalpython/issues/491 and remove this once
+    # fixed upstream.
+    if (
+        build_frontend_env["CIBW_BUILD_FRONTEND"] == "build"
+        and utils.platform == "windows"
+    ):
+        expected_wheels = [w for w in expected_wheels if "graalpy" not in w]
+
     assert set(actual_wheels) == set(expected_wheels)
 
     # These checks ensure an extra file is not created when using custom
