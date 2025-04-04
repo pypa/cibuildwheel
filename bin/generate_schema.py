@@ -181,6 +181,9 @@ properties:
   musllinux-x86_64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
+  pyodide-version:
+    type: string
+    description: Specify the version of Pyodide to use
   repair-wheel-command:
     type: string_array
     description: Execute a shell command to repair each built wheel.

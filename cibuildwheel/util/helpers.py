@@ -76,6 +76,21 @@ def unwrap(text: str) -> str:
     return re.sub(r"\s+", " ", text)
 
 
+def unwrap_preserving_paragraphs(text: str) -> str:
+    """
+    Unwraps multi-line text to a single line, but preserves paragraphs
+    """
+    # remove initial line indent
+    text = textwrap.dedent(text)
+    # remove leading/trailing whitespace
+    text = text.strip()
+
+    paragraphs = text.split("\n\n")
+    # remove consecutive whitespace
+    paragraphs = [re.sub(r"\s+", " ", paragraph) for paragraph in paragraphs]
+    return "\n\n".join(paragraphs)
+
+
 def parse_key_value_string(
     key_value_string: str,
     positional_arg_names: Sequence[str] | None = None,
