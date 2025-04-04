@@ -16,7 +16,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, Cirrus CI, and Bitbucket Pipelines - and it builds and tests your wheels across all of your platforms.
 
 
 What does it do?
@@ -44,7 +44,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 <sup>⁵ manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+ (10.13+ for Python 3.12+), and Windows wheels for CPython and PyPy
-- Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
+- Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, Cirrus CI, and Bitbucket Pipelines
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
 
@@ -55,15 +55,16 @@ Usage
 
 `cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
-|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | iOS |
-|-----------------|-------|-------|---------|-----------|-----------|-------------|-----|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅³  |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅³  |
-| Travis CI       | ✅    |       | ✅      | ✅        |           |             |     |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         | ✅³  |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅³  |
-| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅³  |
-| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅³  |
+|                      | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | iOS |
+|----------------------|-------|-------|---------|-----------|-----------|-------------|-----|
+| GitHub Actions       | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅³  |
+| Azure Pipelines      | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅³  |
+| Travis CI            | ✅    |       | ✅      | ✅        |           |             |     |
+| AppVeyor             | ✅    | ✅    | ✅      |           | ✅        | ✅²         | ✅³  |
+| CircleCI             | ✅    | ✅    |         | ✅        | ✅        |             | ✅³  |
+| Gitlab CI            | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅³  |
+| Cirrus CI            | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅³  |
+| Bitbucket Pipelines  | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅³  |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
