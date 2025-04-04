@@ -6,7 +6,7 @@ pr:
 
 jobs:
 - job: linux_311
-  timeoutInMinutes: 120
+  timeoutInMinutes: 180
   pool: {vmImage: 'Ubuntu-22.04'}
   steps:
     - task: UsePythonVersion@0
