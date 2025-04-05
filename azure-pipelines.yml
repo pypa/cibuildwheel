@@ -20,6 +20,7 @@ jobs:
 
 - job: macos_311
   pool: {vmImage: 'macOS-13'}
+  timeoutInMinutes: 120
   steps:
     - task: UsePythonVersion@0
       inputs:
