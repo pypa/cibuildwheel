@@ -6,8 +6,8 @@ pr:
 
 jobs:
 - job: linux_311
-  timeoutInMinutes: 120
-  pool: {vmImage: 'Ubuntu-20.04'}
+  timeoutInMinutes: 180
+  pool: {vmImage: 'Ubuntu-22.04'}
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -16,10 +16,11 @@ jobs:
         docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
-        python ./bin/run_tests.py
+        python ./bin/run_tests.py --num-processes 2
 
 - job: macos_311
   pool: {vmImage: 'macOS-13'}
+  timeoutInMinutes: 120
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -27,7 +28,7 @@ jobs:
     - bash: |
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
-        python ./bin/run_tests.py --num-processes 2
+        python ./bin/run_tests.py --num-processes 3
 
 - job: windows_311
   pool: {vmImage: 'windows-2019'}
@@ -39,4 +40,4 @@ jobs:
     - bash: |
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
-        python ./bin/run_tests.py
+        python ./bin/run_tests.py --num-processes 2

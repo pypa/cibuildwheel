@@ -1,3 +1,4 @@
+import re
 import textwrap
 
 import pytest
@@ -41,7 +42,22 @@ def test(tmp_path, build_frontend_env, capfd):
     # Verify pip warning not shown
     captured = capfd.readouterr()
     for stream in (captured.err, captured.out):
-        assert "WARNING: Running pip as the 'root' user can result" not in stream
+        # manylinux-interpreters ensure will run pip on GraalPy as the root
+        # user once, so we will get the warning below. We make sure it is only
+        # because of manylinux and nothing else. We do this by checking that
+        # the error message only occurs directly after a call to graalpy's
+        # ensurepip in the manylinux `/opt/` directory
+        start = 0
+        bad_msg = "WARNING: Running pip as the 'root' user can result"
+        assert_msg = f"{bad_msg} is only tolerated from manylinux's ensure for graalpy"
+        for m in re.finditer(bad_msg, stream):
+            idx = stream.rfind("/opt/", start, m.end())
+            start = m.end()
+            m2 = re.match(
+                "/opt/.*/graalpy.*/bin/python -m ensurepip --default-pip", stream[idx : m.start()]
+            )
+            assert m2 is not None, assert_msg
+            assert idx + m2.end() + 1 == m.start(), assert_msg
         assert "A new release of pip available" not in stream
 
 

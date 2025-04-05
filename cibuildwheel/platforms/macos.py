@@ -104,7 +104,7 @@ def get_python_configurations(
     # skip builds as required by BUILD/SKIP
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
 
-    # filter-out some cross-compilation configs with PyPy:
+    # filter-out some cross-compilation configs with PyPy and GraalPy:
     # can't build arm64 on x86_64
     # rosetta allows to build x86_64 on arm64
     if platform.machine() == "x86_64":
@@ -112,7 +112,7 @@ def get_python_configurations(
         python_configurations = [
             c
             for c in python_configurations
-            if not (c.identifier.startswith("pp") and c.identifier.endswith("arm64"))
+            if not (c.identifier.startswith(("pp", "gp")) and c.identifier.endswith("arm64"))
         ]
         removed_elements = python_configurations_before - set(python_configurations)
         if removed_elements:
@@ -192,6 +192,22 @@ def install_pypy(tmp: Path, url: str) -> Path:
     return installation_path / "bin" / "pypy3"
 
 
+def install_graalpy(tmp: Path, url: str) -> Path:
+    graalpy_archive = url.rsplit("/", 1)[-1]
+    extension = ".tar.gz"
+    assert graalpy_archive.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / graalpy_archive[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            downloaded_archive = tmp / graalpy_archive
+            download(url, downloaded_archive)
+            installation_path.mkdir(parents=True)
+            # GraalPy top-folder name is inconsistent with archive name
+            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
+            downloaded_archive.unlink()
+    return installation_path / "bin" / "graalpy"
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -213,6 +229,8 @@ def setup_python(
 
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
+    elif implementation_id.startswith("gp"):
+        base_python = install_graalpy(tmp, python_configuration.url)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
