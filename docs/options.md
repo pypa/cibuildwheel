@@ -32,7 +32,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
     Linux builds are the easiest to test locally, because all the build tools are supplied in the container, and they run exactly the same locally as in CI.
 
-    This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](#configuration-file).
+    This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](configuration.md#configuration-file).
 
     You can also run a single identifier with `--only <identifier>`. This will
     not require `--platform` or `--arch`, and will override any build/skip

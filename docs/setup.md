@@ -55,7 +55,7 @@ You should see the builds taking place. You can experiment with options using en
 
 !!! tab "pyproject.toml"
 
-    If you write your options into [`pyproject.toml`](options.md#configuration-file), you can work on your options locally, and they'll be automatically picked up when running in CI.
+    If you write your options into [`pyproject.toml`](configuration.md#configuration-file), you can work on your options locally, and they'll be automatically picked up when running in CI.
 
     > pyproject.toml
 
