@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import annotations
 
 import argparse
 import os
@@ -42,12 +41,15 @@ if __name__ == "__main__":
         sys.executable,
         "-m",
         "pytest",
+        "--dist",
+        "loadgroup",
         f"--numprocesses={args.num_processes}",
         "-x",
         "--durations",
         "0",
         "--timeout=2400",
         "test",
+        "-vv",
     ]
 
     if sys.platform.startswith("linux") and args.run_podman:

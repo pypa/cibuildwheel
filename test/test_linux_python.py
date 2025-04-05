@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import platform
 import subprocess
 
@@ -21,12 +19,14 @@ def test_python_exist(tmp_path, capfd):
     basic_project = test_projects.new_c_project()
     basic_project.generate(project_dir)
 
+    image = f"quay.io/pypa/manylinux2010_{machine}:2022-08-05-4535177"
+
     with pytest.raises(subprocess.CalledProcessError):
         utils.cibuildwheel_run(
             project_dir,
             add_env={
-                "CIBW_MANYLINUX_X86_64_IMAGE": "manylinux2010",
-                "CIBW_MANYLINUX_I686_IMAGE": "manylinux2010",
+                "CIBW_MANYLINUX_X86_64_IMAGE": image,
+                "CIBW_MANYLINUX_I686_IMAGE": image,
                 "CIBW_BUILD": "cp3{10,11}-manylinux*",
             },
         )
@@ -37,7 +37,6 @@ def test_python_exist(tmp_path, capfd):
     assert f" to build 'cp310-manylinux_{machine}'." not in captured.err
     message = (
         "'/opt/python/cp311-cp311/bin/python' executable doesn't exist"
-        f" in image 'quay.io/pypa/manylinux2010_{machine}:2022-08-05-4535177'"
-        f" to build 'cp311-manylinux_{machine}'."
+        f" in image '{image}' to build 'cp311-manylinux_{machine}'."
     )
     assert message in captured.err

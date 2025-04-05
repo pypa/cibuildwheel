@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import os
 import platform
@@ -30,14 +28,8 @@ from cibuildwheel.oci_container import (
 
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
-DEFAULT_IMAGE_TEMPLATE = "quay.io/pypa/manylinux2014_{machine}:2023-09-04-0828984"
+DEFAULT_IMAGE = "quay.io/pypa/manylinux2014:2025.03.08-1"
 pm = platform.machine()
-if pm in {"x86_64", "ppc64le", "s390x"}:
-    DEFAULT_IMAGE = DEFAULT_IMAGE_TEMPLATE.format(machine=pm)
-elif pm in {"aarch64", "arm64"}:
-    DEFAULT_IMAGE = DEFAULT_IMAGE_TEMPLATE.format(machine="aarch64")
-else:
-    DEFAULT_IMAGE = ""
 DEFAULT_OCI_PLATFORM = {
     "AMD64": OCIPlatform.AMD64,
     "x86_64": OCIPlatform.AMD64,
@@ -417,9 +409,7 @@ def test_create_args_volume(tmp_path: Path, container_engine: OCIContainerEngine
     )
 
     with OCIContainer(
-        engine=container_engine,
-        image=DEFAULT_IMAGE,
-        oci_platform=DEFAULT_OCI_PLATFORM,
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
         assert container.call(["cat", "/test_mount/test_file.txt"], capture_output=True) == "1234"
 
@@ -499,9 +489,7 @@ def test_parse_engine_config(config, name, create_args, capsys):
 @pytest.mark.skipif(pm != "x86_64", reason="Only runs on x86_64")
 def test_enforce_32_bit(container_engine):
     with OCIContainer(
-        engine=container_engine,
-        image=DEFAULT_IMAGE_TEMPLATE.format(machine="i686"),
-        oci_platform=OCIPlatform.i386,
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=OCIPlatform.i386
     ) as container:
         assert container.call(["uname", "-m"], capture_output=True).strip() == "i686"
         container_args = subprocess.run(
@@ -554,7 +542,7 @@ def test_local_image(
     container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
 ) -> None:
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
+        detect_ci_provider() == CIProvider.travis_ci
         and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):
@@ -584,7 +572,7 @@ def test_local_image(
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine, platform):
     if (
-        detect_ci_provider() in {CIProvider.travis_ci}
+        detect_ci_provider() == CIProvider.travis_ci
         and pm != "x86_64"
         and platform != DEFAULT_OCI_PLATFORM
     ):

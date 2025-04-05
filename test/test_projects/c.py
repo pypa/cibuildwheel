@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import jinja2
 
 from .base import TestProject
@@ -10,15 +8,16 @@ SPAM_C_TEMPLATE = r"""
 {{ spam_c_top_level_add }}
 
 static PyObject *
-spam_system(PyObject *self, PyObject *args)
+spam_filter(PyObject *self, PyObject *args)
 {
-    const char *command;
+    const char *content;
     int sts;
 
-    if (!PyArg_ParseTuple(args, "s", &command))
+    if (!PyArg_ParseTuple(args, "s", &content))
         return NULL;
 
-    sts = system(command);
+    // Spam should not be allowed through the filter.
+    sts = strcmp(content, "spam");
 
     {{ spam_c_function_add | indent(4) }}
 
@@ -27,7 +26,7 @@ spam_system(PyObject *self, PyObject *args)
 
 /* Module initialization */
 static PyMethodDef module_methods[] = {
-    {"system", (PyCFunction)spam_system, METH_VARARGS,
+    {"filter", (PyCFunction)spam_filter, METH_VARARGS,
      "Execute a shell command."},
     {NULL}  /* Sentinel */
 };

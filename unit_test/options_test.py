@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 import platform as platform_module
 import textwrap
@@ -8,25 +6,27 @@ from pathlib import Path
 import pytest
 
 from cibuildwheel import errors
-from cibuildwheel.__main__ import get_build_identifiers, get_platform_module
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.options import (
     CommandLineArguments,
     Options,
     _get_pinned_container_images,
 )
+from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
 from cibuildwheel.selector import EnableGroup
+from cibuildwheel.util import resources
+from cibuildwheel.util.packaging import DependencyConstraints
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
-build = ["cp38*", "cp37*"]
+build = ["cp38-*", "cp313-*"]
 skip = ["*musllinux*"]
 environment = {FOO="BAR"}
 
 test-command = "pyproject"
 test-sources = ["test", "other dir"]
 
-manylinux-x86_64-image = "manylinux1"
+manylinux-x86_64-image = "manylinux_2_28"
 
 environment-pass = ["EXAMPLE_ENV"]
 
@@ -34,9 +34,9 @@ environment-pass = ["EXAMPLE_ENV"]
 test-requires = "else"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp37*"
+select = "cp313-*"
 test-command = "pyproject-override"
-manylinux-x86_64-image = "manylinux2014"
+manylinux-x86_64-image = "manylinux_2_34"
 """
 
 
@@ -51,7 +51,7 @@ def test_options_1(tmp_path, monkeypatch):
 
     options = Options(platform="linux", command_line_arguments=args, env={})
 
-    module = get_platform_module("linux")
+    module = ALL_PLATFORM_MODULES["linux"]
     identifiers = get_build_identifiers(
         platform_module=module,
         build_selector=options.globals.build_selector,
@@ -60,7 +60,7 @@ def test_options_1(tmp_path, monkeypatch):
 
     override_display = """\
   *: pyproject
-  cp37-manylinux_x86_64, cp37-manylinux_i686: pyproject-override"""
+  cp313-manylinux_x86_64, cp313-manylinux_i686: pyproject-override"""
     print(options.summary(identifiers))
 
     assert override_display in options.summary(identifiers)
@@ -76,13 +76,13 @@ def test_options_1(tmp_path, monkeypatch):
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject"
     assert local.test_sources == ["test", "other dir"]
-    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux1"]
+    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_28"]
 
-    local = options.build_options("cp37-manylinux_x86_64")
+    local = options.build_options("cp313-manylinux_x86_64")
     assert local.manylinux_images is not None
     assert local.test_command == "pyproject-override"
     assert local.test_sources == ["test", "other dir"]
-    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux2014"]
+    assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_34"]
 
 
 def test_passthrough(tmp_path, monkeypatch):
@@ -470,3 +470,103 @@ def test_free_threaded_support(
         assert EnableGroup.CPythonFreeThreading in options.globals.build_selector.enable
     else:
         assert EnableGroup.CPythonFreeThreading not in options.globals.build_selector.enable
+
+
+@pytest.mark.parametrize(
+    ("toml_assignment", "base_file_path", "packages"),
+    [
+        ("", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'pinned'", resources.CONSTRAINTS, []),
+        ("dependency-versions = 'latest'", None, []),
+        ("dependency-versions = 'constraints file.txt'", Path("constraints file.txt"), []),
+        (
+            "dependency-versions = \"file:'constraints file.txt'\"",
+            Path("constraints file.txt"),
+            [],
+        ),
+        (
+            "dependency-versions = {file = 'constraints file.txt'}",
+            Path("constraints file.txt"),
+            [],
+        ),
+        (
+            "dependency-versions = 'packages: foo==1.2.3 bar==4.5.6'",
+            None,
+            ["foo==1.2.3", "bar==4.5.6"],
+        ),
+    ],
+)
+def test_dependency_versions_toml(
+    tmp_path: Path,
+    toml_assignment: str,
+    base_file_path: Path | None,
+    packages: list[str] | None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    (tmp_path / "constraints file.txt").write_text("")
+    monkeypatch.chdir(tmp_path)
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {toml_assignment}
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    parsed_dependency_constraints = options.build_options(None).dependency_constraints
+    if base_file_path is None and packages is None:
+        assert parsed_dependency_constraints == DependencyConstraints.latest()
+    else:
+        if parsed_dependency_constraints.base_file_path and base_file_path:
+            assert parsed_dependency_constraints.base_file_path.samefile(base_file_path)
+        else:
+            assert parsed_dependency_constraints.base_file_path == base_file_path
+        assert parsed_dependency_constraints.packages == packages
+
+
+@pytest.mark.parametrize(
+    ("image", "deprecated", "raises"),
+    [
+        ("manylinux1", True, True),
+        ("manylinux2010", True, True),
+        ("manylinux2014", False, False),
+        ("manylinux_2_24", True, True),
+        ("manylinux_2_28", False, False),
+        ("manylinux_2_34", False, False),
+        ("musllinux_1_1", True, True),
+        ("musllinux_1_2", False, False),
+    ],
+)
+def test_deprecated_image(
+    image: str, deprecated: bool, raises: bool, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert not raises or deprecated
+    args = CommandLineArguments.defaults()
+    env = {
+        "CIBW_ARCHS": "x86_64",
+        "CIBW_MANYLINUX_X86_64_IMAGE": image if image.startswith("manylinux") else "",
+        "CIBW_MUSLLINUX_X86_64_IMAGE": image if image.startswith("musllinux") else "",
+    }
+    options = Options(platform="linux", command_line_arguments=args, env=env)
+    try:
+        bo = options.build_options(None)
+        assert not raises
+    except errors.DeprecationError:
+        assert raises
+        return
+    images = bo.manylinux_images if image.startswith("manylinux") else bo.musllinux_images
+    assert images is not None
+    resolved_image = images["x86_64"]
+    captured = capsys.readouterr()
+    if deprecated:
+        assert f"Deprecated image {image!r}" in captured.err
+        assert f"{resolved_image!r}" in captured.err
+    else:
+        assert "Deprecated image" not in captured.err

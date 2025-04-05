@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import configparser
 import contextlib
@@ -12,7 +10,7 @@ import textwrap
 import tomllib
 from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Final, Literal, assert_never
+from typing import Any, Final, Literal, Self, assert_never
 
 from packaging.specifiers import SpecifierSet
 
@@ -64,16 +62,16 @@ class CommandLineArguments:
     debug_traceback: bool
     enable: list[str]
 
-    @staticmethod
-    def defaults() -> CommandLineArguments:
-        return CommandLineArguments(
+    @classmethod
+    def defaults(cls) -> Self:
+        return cls(
             platform="auto",
             allow_empty=False,
             archs=None,
             only=None,
             config_file="",
             output_dir=Path("wheelhouse"),
-            package_dir=Path("."),
+            package_dir=Path(),
             print_build_identifiers=False,
             debug_traceback=False,
             enable=[],
@@ -99,7 +97,7 @@ class BuildOptions:
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
-    dependency_constraints: DependencyConstraints | None
+    dependency_constraints: DependencyConstraints
     test_command: str | None
     before_test: str | None
     test_sources: list[str]
@@ -136,6 +134,12 @@ SettingLeaf = str | int | bool
 SettingList = Sequence[SettingLeaf]
 SettingTable = Mapping[str, SettingLeaf | SettingList]
 SettingValue = SettingTable | SettingList | SettingLeaf
+
+
+class InheritRule(enum.Enum):
+    NONE = enum.auto()
+    APPEND = enum.auto()
+    PREPEND = enum.auto()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -184,7 +188,7 @@ class ListFormat(OptionFormat):
 
     def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
         self.sep = sep
-        self.quote = quote if quote else lambda s: s
+        self.quote = quote or (lambda s: s)
 
     def format_list(self, value: SettingList) -> str:
         return self.sep.join(self.quote(str(v)) for v in value)
@@ -270,12 +274,6 @@ class EnvironmentFormat(OptionFormat):
 
     def merge_values(self, before: str, after: str) -> str:
         return f"{before} {after}"
-
-
-class InheritRule(enum.Enum):
-    NONE = enum.auto()
-    APPEND = enum.auto()
-    PREPEND = enum.auto()
 
 
 def _resolve_cascade(
@@ -578,6 +576,7 @@ class Options:
         self.command_line_arguments = command_line_arguments
         self.env = env
         self._defaults = defaults
+        self._image_warnings = set[str]()
 
         self.reader = OptionsReader(
             None if defaults else self.config_file_path,
@@ -592,6 +591,10 @@ class Options:
                 self.pyproject_toml = tomllib.load(f)
         except FileNotFoundError:
             self.pyproject_toml = None
+
+        # cache the build options method so repeated calls don't need to
+        # resolve the options again
+        self.build_options = functools.cache(self._compute_build_options)
 
     @functools.cached_property
     def config_file_path(self) -> Path | None:
@@ -630,8 +633,7 @@ class Options:
         )
         try:
             enable = {EnableGroup(group) for group in enable_groups.split()}
-            for command_line_group in args.enable:
-                enable.add(EnableGroup(command_line_group))
+            enable.update(EnableGroup(command_line_group) for command_line_group in args.enable)
         except ValueError as e:
             msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
             raise errors.ConfigurationError(msg) from e
@@ -670,9 +672,33 @@ class Options:
             allow_empty=allow_empty,
         )
 
-    def build_options(self, identifier: str | None) -> BuildOptions:
+    def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
+        error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
+        warning_set: set[str] = set()
+
+        if value in error_set:
+            msg = (
+                f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
+                "supported image or continue using the image by pinning it directly with"
+                " its full OCI registry '<name>{:<tag>|@<digest>}'."
+            )
+            raise errors.DeprecationError(msg)
+
+        if value in warning_set and value not in self._image_warnings:
+            self._image_warnings.add(value)
+            msg = (
+                f"Deprecated image {value!r}. This value will not work"
+                " in a future version of cibuildwheel. Either upgrade to a supported"
+                " image or continue using the deprecated image by pinning directly"
+                f" to {pinned_images[value]!r}."
+            )
+            log.warning(msg)
+
+    def _compute_build_options(self, identifier: str | None) -> BuildOptions:
         """
-        Compute BuildOptions for a single run configuration.
+        Compute BuildOptions for a single run configuration. Normally accessed
+        through the `build_options` method, which is the same but the result
+        is cached.
         """
 
         with self.reader.identifier(identifier):
@@ -690,7 +716,6 @@ class Options:
                 "config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="=")
             )
 
-            dependency_versions = self.reader.get("dependency-versions")
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
             test_sources = shlex.split(
@@ -736,15 +761,18 @@ class Options:
                     with contextlib.suppress(KeyError):
                         environment.add(env_var_name, self.env[env_var_name], prepend=True)
 
-            if dependency_versions == "pinned":
-                dependency_constraints: None | (
-                    DependencyConstraints
-                ) = DependencyConstraints.with_defaults()
-            elif dependency_versions == "latest":
-                dependency_constraints = None
-            else:
-                dependency_versions_path = Path(dependency_versions)
-                dependency_constraints = DependencyConstraints(dependency_versions_path)
+            dependency_versions_str = self.reader.get(
+                "dependency-versions",
+                env_plat=True,
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+            )
+            try:
+                dependency_constraints = DependencyConstraints.from_config_string(
+                    dependency_versions_str
+                )
+            except (ValueError, OSError) as e:
+                msg = f"Failed to parse dependency versions. {e}"
+                raise errors.ConfigurationError(msg) from e
 
             if test_extras:
                 test_extras = f"[{test_extras}]"
@@ -763,33 +791,26 @@ class Options:
 
                 for build_platform in MANYLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
-
                     config_value = self.reader.get(
                         f"manylinux-{build_platform}-image", ignore_empty=True
                     )
-
-                    if not config_value:
-                        # default to manylinux2014
-                        image = pinned_images["manylinux2014"]
-                    elif config_value in pinned_images:
+                    self._check_pinned_image(config_value, pinned_images)
+                    if config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
                         image = config_value
-
                     manylinux_images[build_platform] = image
 
                 for build_platform in MUSLLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
-
-                    config_value = self.reader.get(f"musllinux-{build_platform}-image")
-
-                    if not config_value:
-                        image = pinned_images["musllinux_1_2"]
-                    elif config_value in pinned_images:
+                    config_value = self.reader.get(
+                        f"musllinux-{build_platform}-image", ignore_empty=True
+                    )
+                    self._check_pinned_image(config_value, pinned_images)
+                    if config_value in pinned_images:
                         image = pinned_images[config_value]
                     else:
                         image = config_value
-
                     musllinux_images[build_platform] = image
 
             container_engine_str = self.reader.get(
@@ -839,17 +860,9 @@ class Options:
                     )
                 )
 
-    def check_for_deprecated_options(self) -> None:
-        build_selector = self.globals.build_selector
-        test_selector = self.globals.test_selector
-
-        deprecated_selectors("CIBW_BUILD", build_selector.build_config, error=True)
-        deprecated_selectors("CIBW_SKIP", build_selector.skip_config)
-        deprecated_selectors("CIBW_TEST_SKIP", test_selector.skip_config)
-
     @functools.cached_property
-    def defaults(self) -> Options:
-        return Options(
+    def defaults(self) -> Self:
+        return self.__class__(
             platform=self.platform,
             command_line_arguments=CommandLineArguments.defaults(),
             env={},
@@ -932,13 +945,15 @@ class Options:
 
         return result
 
-    def indent_if_multiline(self, value: str, indent: str) -> str:
+    @staticmethod
+    def indent_if_multiline(value: str, indent: str) -> str:
         if "\n" in value:
             return "\n" + textwrap.indent(value.strip(), indent)
         else:
             return value
 
-    def option_summary_value(self, option_value: Any) -> str:
+    @staticmethod
+    def option_summary_value(option_value: Any) -> str:
         if hasattr(option_value, "options_summary"):
             option_value = option_value.options_summary()
 
@@ -959,9 +974,7 @@ def compute_options(
     command_line_arguments: CommandLineArguments,
     env: Mapping[str, str],
 ) -> Options:
-    options = Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
-    options.check_for_deprecated_options()
-    return options
+    return Options(platform=platform, command_line_arguments=command_line_arguments, env=env)
 
 
 @functools.cache
@@ -976,11 +989,3 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
     all_pinned_images = configparser.ConfigParser()
     all_pinned_images.read(resources.PINNED_DOCKER_IMAGES)
     return all_pinned_images
-
-
-def deprecated_selectors(name: str, selector: str, *, error: bool = False) -> None:
-    if "p2" in selector or "p35" in selector:
-        msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {name}"
-        if error:
-            raise errors.DeprecationError(msg)
-        log.warning(msg)

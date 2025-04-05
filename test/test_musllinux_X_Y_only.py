@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import textwrap
 
 import pytest
@@ -26,7 +24,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 
 @pytest.mark.parametrize(
     "musllinux_image",
-    ["musllinux_1_1", "musllinux_1_2"],
+    ["musllinux_1_2"],
 )
 @pytest.mark.usefixtures("docker_cleanup")
 def test(musllinux_image, tmp_path):
@@ -38,12 +36,13 @@ def test(musllinux_image, tmp_path):
 
     # build the wheels
     add_env = {
-        "CIBW_SKIP": "*-manylinux* *_armv7l",
+        "CIBW_SKIP": "*-manylinux*",
         "CIBW_MUSLLINUX_X86_64_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_I686_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_AARCH64_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_PPC64LE_IMAGE": musllinux_image,
         "CIBW_MUSLLINUX_S390X_IMAGE": musllinux_image,
+        "CIBW_MUSLLINUX_ARMV7L_IMAGE": musllinux_image,
     }
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env, single_python=True)
@@ -54,5 +53,4 @@ def test(musllinux_image, tmp_path):
         musllinux_versions=[musllinux_image],
         single_python=True,
     )
-    expected_wheels = [w for w in expected_wheels if "armv7l" not in w]
     assert set(actual_wheels) == set(expected_wheels)

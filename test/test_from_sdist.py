@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 import subprocess
 import sys
@@ -55,7 +53,7 @@ def cibuildwheel_from_sdist_run(
             env=env,
             check=True,
         )
-        return os.listdir(tmp_output_dir)
+        return [p.name for p in Path(tmp_output_dir).iterdir()]
 
 
 # tests

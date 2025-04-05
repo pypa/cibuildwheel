@@ -233,7 +233,45 @@
     "dependency-versions": {
       "default": "pinned",
       "description": "Specify how cibuildwheel controls the versions of the tools it uses",
-      "type": "string",
+      "oneOf": [
+        {
+          "enum": [
+            "pinned",
+            "latest"
+          ]
+        },
+        {
+          "type": "string",
+          "description": "Path to a file containing dependency versions, or inline package specifications, starting with \"packages:\"",
+          "not": {
+            "enum": [
+              "pinned",
+              "latest"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "packages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
       "title": "CIBW_DEPENDENCY_VERSIONS"
     },
     "enable": {
@@ -918,6 +956,51 @@
           "$ref": "#/properties/test-requires"
         }
       }
+    },
+    "ios": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "archs": {
+          "$ref": "#/properties/archs"
+        },
+        "before-all": {
+          "$ref": "#/properties/before-all"
+        },
+        "before-build": {
+          "$ref": "#/properties/before-build"
+        },
+        "before-test": {
+          "$ref": "#/properties/before-test"
+        },
+        "build-frontend": {
+          "$ref": "#/properties/build-frontend"
+        },
+        "build-verbosity": {
+          "$ref": "#/properties/build-verbosity"
+        },
+        "config-settings": {
+          "$ref": "#/properties/config-settings"
+        },
+        "dependency-versions": {
+          "$ref": "#/properties/dependency-versions"
+        },
+        "environment": {
+          "$ref": "#/properties/environment"
+        },
+        "repair-wheel-command": {
+          "$ref": "#/properties/repair-wheel-command"
+        },
+        "test-command": {
+          "$ref": "#/properties/test-command"
+        },
+        "test-extras": {
+          "$ref": "#/properties/test-extras"
+        },
+        "test-requires": {
+          "$ref": "#/properties/test-requires"
+        }
+       }
     }
   }
 }

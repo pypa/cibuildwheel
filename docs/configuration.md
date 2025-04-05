@@ -158,19 +158,19 @@ which means it can be given multiple times.
 ```toml
 [tool.cibuildwheel]
 # Normal options, etc.
+manylinux-x86_64-image = "manylinux_2_34"
+
+[[tool.cibuildwheel.overrides]]
+select = "cp38-*"
 manylinux-x86_64-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp36-*"
-manylinux-x86_64-image = "manylinux1"
-
-[[tool.cibuildwheel.overrides]]
-select = "cp3{7,8,9}-*"
-manylinux-x86_64-image = "manylinux2010"
+select = "cp3{9,10}-*"
+manylinux-x86_64-image = "manylinux_2_28"
 ```
 
-This example will build CPython 3.6 wheels on manylinux1, CPython 3.7-3.9
-wheels on manylinux2010, and manylinux2014 wheels for any newer Python
+This example will build CPython 3.8 wheels on manylinux2014, CPython 3.9-3.10
+wheels on manylinux_2_28, and manylinux_2_34 wheels for any newer Python
 (like 3.10).
 
 ```toml

@@ -4,6 +4,16 @@ title: 'Setup'
 
 # Setup
 
+## Platform support
+
+Each platform that cibuildwheel supports has its own prerequisites and platform-specific behaviors. cibuildwheel supports the following platforms:
+
+* [Linux](./platforms/linux.md)
+* [Windows](./platforms/windows.md)
+* [macOS](./platforms/macos.md)
+* [iOS](./platforms/ios.md)
+* [Experimental: Pyodide (WebAssembly)](./platforms/pyodide.md)
+
 ## Run cibuildwheel locally (optional) {: #local}
 
 Before getting to CI setup, it can be convenient to test cibuildwheel
@@ -60,66 +70,11 @@ You should see the builds taking place. You can experiment with options using en
     cibuildwheel
     ```
 
-### Linux builds
-
-If you've got [Docker](https://www.docker.com/products/docker-desktop) installed on
-your development machine, you can run a Linux build.
-
-!!! tip
-    You can run the Linux build on any platform. Even Windows can run
-    Linux containers these days, but there are a few  hoops to jump
-    through. Check [this document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
-    for more info.
-
-Because the builds are happening in manylinux Docker containers,
-they're perfectly reproducible.
-
-The only side effect to your system will be docker images being pulled.
-
-### macOS / Windows builds
-
-Pre-requisite: you need to have native build tools installed.
-
-Because the builds are happening without full isolation, there might be some
-differences compared to CI builds (Xcode version, Visual Studio version,
-OS version, local files, ...) that might prevent you from finding an issue only
-seen in CI.
-
-In order to speed-up builds, cibuildwheel will cache the tools it needs to be
-reused for future builds. The folder used for caching is system/user dependent and is
-reported in the printed preamble of each run (e.g. "Cache folder: /Users/Matt/Library/Caches/cibuildwheel").
-
-You can override the cache folder using the ``CIBW_CACHE_PATH`` environment variable.
-
-!!! warning
-    cibuildwheel uses official python.org macOS installers for CPython but
-    those can only be installed globally.
-
-    In order not to mess with your system, cibuildwheel won't install those if they are
-    missing. Instead, it will error out with a message to let you install the missing
-    CPython:
-
-    ```console
-    Error: CPython 3.6 is not installed.
-    cibuildwheel will not perform system-wide installs when running outside of CI.
-    To build locally, install CPython 3.6 on this machine, or, disable this version of Python using CIBW_SKIP=cp36-macosx_*
-
-    Download link: https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
-    ```
-
-### Pyodide (WebAssembly) builds (experimental)
-
-Pre-requisite: you need to have a matching host version of Python (unlike all
-other cibuildwheel platforms). Linux host highly recommended; macOS hosts may
-work (e.g. invoking `pytest` directly in [`CIBW_TEST_COMMAND`](options.md#test-command) is [currently failing](https://github.com/pyodide/pyodide/issues/4802)) and Windows hosts will not work.
-
-You must target pyodide with `--platform pyodide` (or use `--only` on the identifier).
-
 ## Configure a CI service
 
 ### GitHub Actions [linux/mac/windows] {: #github-actions}
 
-To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
+To build Linux, macOS, and Windows wheels using GitHub Actions, create a `.github/workflows/build_wheels.yml` file in your repo.
 
 !!! tab "Action"
     For GitHub Actions, `cibuildwheel` provides an action you can use. This is
@@ -144,29 +99,7 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     > .github/workflows/build_wheels.yml
 
     ```yaml
-    name: Build
-
-    on: [push, pull_request]
-
-    jobs:
-      build_wheels:
-        name: Build wheels on ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-          matrix:
-            # macos-13 is an intel runner, macos-14 is apple silicon
-            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-
-        steps:
-          - uses: actions/checkout@v4
-
-          - name: Build wheels
-            run: pipx run cibuildwheel==2.22.0
-
-          - uses: actions/upload-artifact@v4
-            with:
-              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-              path: ./wheelhouse/*.whl
+    {% include "../examples/github-pipx.yml" %}
     ```
 
 !!! tab "Generic"
@@ -176,45 +109,17 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
     appeal to you.
 
     > .github/workflows/build_wheels.yml
-
-    ```yaml
-    name: Build
-
-    on: [push, pull_request]
-
-    jobs:
-      build_wheels:
-        name: Build wheels on ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-          matrix:
-            # macos-13 is an intel runner, macos-14 is apple silicon
-            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-
-        steps:
-          - uses: actions/checkout@v4
-
-          # Used to host cibuildwheel
-          - uses: actions/setup-python@v5
-
-          - name: Install cibuildwheel
-            run: python -m pip install cibuildwheel==2.22.0
-
-          - name: Build wheels
-            run: python -m cibuildwheel --output-dir wheelhouse
-
-          - uses: actions/upload-artifact@v4
-            with:
-              name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-              path: ./wheelhouse/*.whl
-    ```
-
+    {%
+       include-markdown "../README.md"
+       start="<!--generic-github-start-->"
+       end="<!--generic-github-end-->"
+    %}
 
 Commit this file, and push to GitHub - either to your default branch, or to a PR branch. The build should start automatically.
 
 For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
 
-[`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
+[`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml) extends this minimal example to include iOS and Pyodide builds, and a demonstration of how to automatically upload the built wheels to PyPI.
 
 
 ### Azure Pipelines [linux/mac/windows] {: #azure-pipelines}

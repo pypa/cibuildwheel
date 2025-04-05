@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import contextlib
 import platform as platform_module
 import subprocess
@@ -8,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel import __main__, architecture, linux, macos, pyodide, windows
+from cibuildwheel import __main__, architecture
+from cibuildwheel.platforms import linux, macos, pyodide, windows
 from cibuildwheel.util import file
 
 

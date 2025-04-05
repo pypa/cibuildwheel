@@ -1,13 +1,15 @@
-from __future__ import annotations
-
 import platform
-import subprocess
 
 import pytest
 
 from . import test_projects, utils
 
 basic_project = test_projects.new_c_project()
+basic_project.files["tests/test_suite.py"] = r"""
+import platform
+print("running tests on " + platform.machine())
+"""
+
 
 ALL_MACOS_WHEELS = {
     *utils.expected_wheels("spam", "0.1.0", machine_arch="x86_64"),
@@ -17,24 +19,10 @@ ALL_MACOS_WHEELS = {
 DEPLOYMENT_TARGET_TOO_LOW_WARNING = "Bumping MACOSX_DEPLOYMENT_TARGET"
 
 
-def get_xcode_version() -> tuple[int, int]:
-    output = subprocess.run(
-        ["xcodebuild", "-version"],
-        text=True,
-        check=True,
-        stdout=subprocess.PIPE,
-    ).stdout
-    lines = output.splitlines()
-    _, version_str = lines[0].split()
-
-    version_parts = version_str.split(".")
-    return (int(version_parts[0]), int(version_parts[1]))
-
-
 def test_cross_compiled_build(tmp_path):
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
-    if get_xcode_version() < (12, 2):
+    if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
 
     project_dir = tmp_path / "project"
@@ -51,10 +39,24 @@ def test_cross_compiled_build(tmp_path):
 
 
 @pytest.mark.parametrize("build_universal2", [False, True])
-def test_cross_compiled_test(tmp_path, capfd, build_universal2):
+@pytest.mark.parametrize(
+    "test_config",
+    [
+        # Run the test suite in the project folder
+        {
+            "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
+        },
+        # Nominate the set of test sources to copy
+        {
+            "CIBW_TEST_COMMAND": "python tests/test_suite.py",
+            "CIBW_TEST_SOURCES": "tests",
+        },
+    ],
+)
+def test_cross_compiled_test(tmp_path, capfd, build_universal2, test_config):
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
-    if get_xcode_version() < (12, 2):
+    if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
 
     project_dir = tmp_path / "project"
@@ -64,9 +66,9 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2):
         project_dir,
         add_env={
             "CIBW_BUILD": "cp310-*" if build_universal2 else "*p310-*",
-            "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
             "CIBW_ARCHS": "universal2" if build_universal2 else "x86_64 arm64",
             "CIBW_BUILD_VERBOSITY": "3",
+            **test_config,
         },
     )
 
@@ -136,7 +138,7 @@ def test_deployment_target_warning_is_firing(tmp_path, capfd):
 def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
-    if get_xcode_version() < (12, 2):
+    if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
     if platform.machine() != "x86_64":
         pytest.skip("this test only works on x86_64")
@@ -206,7 +208,7 @@ def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
 def test_cp38_arm64_testing(tmp_path, capfd, request):
     if utils.platform != "macos":
         pytest.skip("this test is only relevant to macos")
-    if get_xcode_version() < (12, 2):
+    if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
     if platform.machine() != "arm64":
         pytest.skip("this test only works on arm64")

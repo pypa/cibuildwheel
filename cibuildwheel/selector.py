@@ -1,9 +1,7 @@
-from __future__ import annotations
-
-import fnmatch
 import itertools
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
+from fnmatch import fnmatch
 from typing import Any
 
 import bracex
@@ -20,12 +18,13 @@ def selector_matches(patterns: str, string: str) -> bool:
     expansion. For example, 'cp{36,37}-*' would match either of 'cp36-*' or
     'cp37-*'.
     """
+
     patterns_list = patterns.split()
     expanded_patterns = itertools.chain.from_iterable(bracex.expand(p) for p in patterns_list)
-    return any(fnmatch.fnmatch(string, pat) for pat in expanded_patterns)
+    return any(fnmatch(string, pat) for pat in expanded_patterns)
 
 
-class EnableGroup(Enum):
+class EnableGroup(StrEnum):
     """
     Groups of build selectors that are not enabled by default.
     """
@@ -33,6 +32,10 @@ class EnableGroup(Enum):
     CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     PyPy = "pypy"
+
+    @classmethod
+    def all_groups(cls) -> frozenset["EnableGroup"]:
+        return frozenset(cls)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -53,8 +56,7 @@ class BuildSelector:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
             py_ver_str = build_id.split("-")[0]
-            if py_ver_str.endswith("t"):
-                py_ver_str = py_ver_str[:-1]
+            py_ver_str = py_ver_str.removesuffix("t")
             major = int(py_ver_str[2])
             minor = int(py_ver_str[3:])
             version = Version(f"{major}.{minor}.99")
@@ -62,15 +64,11 @@ class BuildSelector:
                 return False
 
         # filter out groups that are not enabled
-        if EnableGroup.CPythonFreeThreading not in self.enable and selector_matches(
-            "cp3??t-*", build_id
-        ):
+        if EnableGroup.CPythonFreeThreading not in self.enable and fnmatch(build_id, "cp3??t-*"):
             return False
-        if EnableGroup.CPythonPrerelease not in self.enable and selector_matches(
-            "cp314*", build_id
-        ):
+        if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp314*"):
             return False
-        if EnableGroup.PyPy not in self.enable and selector_matches("pp*", build_id):
+        if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp*"):
             return False
 
         should_build = selector_matches(self.build_config, build_id)

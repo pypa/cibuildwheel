@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import contextlib
 import functools
 import os
@@ -38,10 +36,9 @@ def _ensure_virtualenv(version: str) -> Path:
     return path
 
 
-def _parse_constraints_for_virtualenv(
-    seed_packages: list[str],
+def _parse_pip_constraint_for_virtualenv(
     dependency_constraint_flags: Sequence[PathOrStr],
-) -> dict[str, str]:
+) -> str:
     """
     Parses the constraints file referenced by `dependency_constraint_flags` and returns a dict where
     the key is the package name, and the value is the constraint version.
@@ -52,8 +49,6 @@ def _parse_constraints_for_virtualenv(
     {macos|windows}.setup_python function.
     """
     assert len(dependency_constraint_flags) in {0, 2}
-    # only seed pip if other seed packages do not appear in a constraint file
-    constraints_dict = {"pip": "embed"}
     if len(dependency_constraint_flags) == 2:
         assert dependency_constraint_flags[0] == "-c"
         constraint_path = Path(dependency_constraint_flags[1])
@@ -69,7 +64,7 @@ def _parse_constraints_for_virtualenv(
                     requirement = Requirement(line)
                     package = requirement.name
                     if (
-                        package not in seed_packages
+                        package != "pip"
                         or requirement.url is not None
                         or requirement.marker is not None
                         or len(requirement.extras) != 0
@@ -79,10 +74,10 @@ def _parse_constraints_for_virtualenv(
                     specifier = next(iter(requirement.specifier))
                     if specifier.operator != "==":
                         continue
-                    constraints_dict[package] = specifier.version
+                    return specifier.version
                 except InvalidRequirement:
                     continue
-    return constraints_dict
+    return "embed"
 
 
 def virtualenv(
@@ -96,24 +91,20 @@ def virtualenv(
     """
     Create a virtual environment. If `use_uv` is True,
     dependency_constraint_flags are ignored since nothing is installed in the
-    venv. Otherwise, pip is installed, and setuptools + wheel if Python < 3.12.
+    venv. Otherwise, pip is installed.
     """
+
+    # virtualenv may fail if this is a symlink.
+    python = python.resolve()
+
     assert python.exists()
 
     if use_uv:
         call("uv", "venv", venv_path, "--python", python)
     else:
         virtualenv_app = _ensure_virtualenv(version)
-        allowed_seed_packages = ["pip", "setuptools", "wheel"]
-        constraints = _parse_constraints_for_virtualenv(
-            allowed_seed_packages, dependency_constraint_flags
-        )
-        additional_flags: list[str] = []
-        for package in allowed_seed_packages:
-            if package in constraints:
-                additional_flags.append(f"--{package}={constraints[package]}")
-            else:
-                additional_flags.append(f"--no-{package}")
+        pip_constraint = _parse_pip_constraint_for_virtualenv(dependency_constraint_flags)
+        additional_flags = [f"--pip={pip_constraint}", "--no-setuptools", "--no-wheel"]
 
         # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
         # environment. The initial cost is a bit higher but reusing is much faster.
@@ -121,11 +112,7 @@ def virtualenv(
         # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
         # version of pip that will end-up installed.
         # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
-        if (
-            not _IS_WIN
-            and constraints["pip"] != "embed"
-            and Version(constraints["pip"]) >= Version("19.3")
-        ):
+        if not _IS_WIN and pip_constraint != "embed" and Version(pip_constraint) >= Version("19.3"):
             additional_flags.append("--symlink-app-data")
 
         call(

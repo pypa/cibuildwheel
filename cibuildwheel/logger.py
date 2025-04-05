@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import codecs
 import os
 import re
@@ -37,7 +35,36 @@ PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
     "macosx_universal2": "macOS Universal 2 - x86_64 and arm64",
     "macosx_arm64": "macOS arm64 - Apple Silicon",
     "pyodide_wasm32": "Pyodide",
+    "ios_arm64_iphoneos": "iOS Device (ARM64)",
+    "ios_arm64_iphonesimulator": "iOS Simulator (ARM64)",
+    "ios_x86_64_iphonesimulator": "iOS Simulator (x86_64)",
 }
+
+
+class Colors:
+    def __init__(self, *, enabled: bool) -> None:
+        self.red = "\033[31m" if enabled else ""
+        self.green = "\033[32m" if enabled else ""
+        self.yellow = "\033[33m" if enabled else ""
+        self.blue = "\033[34m" if enabled else ""
+        self.cyan = "\033[36m" if enabled else ""
+        self.bright_red = "\033[91m" if enabled else ""
+        self.bright_green = "\033[92m" if enabled else ""
+        self.white = "\033[37m\033[97m" if enabled else ""
+        self.gray = "\033[38;5;244m" if enabled else ""
+
+        self.bg_grey = "\033[48;5;235m" if enabled else ""
+
+        self.bold = "\033[1m" if enabled else ""
+        self.faint = "\033[2m" if enabled else ""
+
+        self.end = "\033[0m" if enabled else ""
+
+
+class Symbols:
+    def __init__(self, *, unicode: bool) -> None:
+        self.done = "✓" if unicode else "done"
+        self.error = "✕" if unicode else "failed"
 
 
 class Logger:
@@ -135,24 +162,24 @@ class Logger:
 
     def notice(self, message: str) -> None:
         if self.fold_mode == "github":
-            print(f"::notice::{message}\n", file=sys.stderr)
+            print(f"::notice::cibuildwheel: {message}\n", file=sys.stderr)
         else:
             c = self.colors
-            print(f"{c.bold}Note{c.end}: {message}\n", file=sys.stderr)
+            print(f"cibuildwheel: {c.bold}note{c.end}: {message}\n", file=sys.stderr)
 
     def warning(self, message: str) -> None:
         if self.fold_mode == "github":
-            print(f"::warning::{message}\n", file=sys.stderr)
+            print(f"::warning::cibuildwheel: {message}\n", file=sys.stderr)
         else:
             c = self.colors
-            print(f"{c.yellow}Warning{c.end}: {message}\n", file=sys.stderr)
+            print(f"cibuildwheel: {c.yellow}warning{c.end}: {message}\n", file=sys.stderr)
 
     def error(self, error: BaseException | str) -> None:
         if self.fold_mode == "github":
-            print(f"::error::{error}\n", file=sys.stderr)
+            print(f"::error::cibuildwheel: {error}\n", file=sys.stderr)
         else:
             c = self.colors
-            print(f"{c.bright_red}Error{c.end}: {error}\n", file=sys.stderr)
+            print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
 
     @property
     def step_active(self) -> bool:
@@ -227,32 +254,6 @@ def build_description_from_identifier(identifier: str) -> str:
         raise Exception(msg) from e
 
     return build_description
-
-
-class Colors:
-    def __init__(self, *, enabled: bool) -> None:
-        self.red = "\033[31m" if enabled else ""
-        self.green = "\033[32m" if enabled else ""
-        self.yellow = "\033[33m" if enabled else ""
-        self.blue = "\033[34m" if enabled else ""
-        self.cyan = "\033[36m" if enabled else ""
-        self.bright_red = "\033[91m" if enabled else ""
-        self.bright_green = "\033[92m" if enabled else ""
-        self.white = "\033[37m\033[97m" if enabled else ""
-        self.gray = "\033[38;5;244m" if enabled else ""
-
-        self.bg_grey = "\033[48;5;235m" if enabled else ""
-
-        self.bold = "\033[1m" if enabled else ""
-        self.faint = "\033[2m" if enabled else ""
-
-        self.end = "\033[0m" if enabled else ""
-
-
-class Symbols:
-    def __init__(self, *, unicode: bool) -> None:
-        self.done = "✓" if unicode else "done"
-        self.error = "✕" if unicode else "failed"
 
 
 def file_supports_color(file_obj: IO[AnyStr]) -> bool:

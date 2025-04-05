@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import subprocess
 import textwrap
 
@@ -46,6 +44,10 @@ def test(tmp_path):
         """python -c "import sys; open('{project}/pythonversion_bb.txt', 'w').write(sys.version)" && """
         f'''python -c "import sys; open('{{project}}/pythonprefix_bb.txt', 'w').write({SYS_PREFIX})"'''
     )
+    frontend = "build"
+    if utils.platform != "pyodide":
+        before_build = f"python -m pip install setuptools && {before_build}"
+        frontend = f"{frontend};args: --no-isolation"
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(
@@ -54,6 +56,7 @@ def test(tmp_path):
             # write python version information to a temporary file, this is
             # checked in setup.py
             "CIBW_BEFORE_BUILD": before_build,
+            "CIBW_BUILD_FRONTEND": frontend,
         },
     )
 

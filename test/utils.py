@@ -4,8 +4,6 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
-from __future__ import annotations
-
 import os
 import platform as pm
 import subprocess
@@ -19,6 +17,7 @@ import pytest
 
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.ci import CIProvider, detect_ci_provider
+from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 EMULATED_ARCHS: Final[list[str]] = sorted(
@@ -29,6 +28,7 @@ SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
     None: Architecture.armv7l.value not in EMULATED_ARCHS,
     CIProvider.travis_ci: False,
+    CIProvider.cirrus_ci: False,
 }.get(detect_ci_provider(), True)
 
 platform = os.environ.get("CIBW_PLATFORM", "")
@@ -121,7 +121,7 @@ def cibuildwheel_run(
 
     _update_pip_cache_dir(env)
 
-    env["CIBW_ENABLE"] = "cpython-prerelease cpython-freethreading pypy"
+    env["CIBW_ENABLE"] = " ".join(EnableGroup.all_groups())
 
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
@@ -141,7 +141,7 @@ def cibuildwheel_run(
             cwd=project_path,
             check=True,
         )
-        wheels = os.listdir(output_dir or tmp_output_dir)
+        wheels = [p.name for p in (output_dir or Path(tmp_output_dir)).iterdir()]
     return wheels
 
 
@@ -167,29 +167,68 @@ def expected_wheels(
     """
     Returns a list of expected wheels from a run of cibuildwheel.
     """
+    if machine_arch is None:
+        machine_arch = pm.machine()
+        if platform == "linux":
+            machine_arch = arch_name_for_linux(machine_arch)
+
+    architectures = [machine_arch]
+    if not single_arch:
+        if platform == "linux":
+            if machine_arch == "x86_64":
+                architectures.append("i686")
+            elif (
+                machine_arch == "aarch64"
+                and sys.platform.startswith("linux")
+                and _AARCH64_CAN_RUN_ARMV7
+            ):
+                architectures.append("armv7l")
+        elif platform == "windows" and machine_arch == "AMD64":
+            architectures.append("x86")
+
+    wheels: list[str] = []
+    for architecture in architectures:
+        wheels.extend(
+            _expected_wheels(
+                package_name,
+                package_version,
+                architecture,
+                manylinux_versions,
+                musllinux_versions,
+                macosx_deployment_target,
+                python_abi_tags,
+                include_universal2,
+                single_python,
+            )
+        )
+    return wheels
+
+
+def _expected_wheels(
+    package_name: str,
+    package_version: str,
+    machine_arch: str,
+    manylinux_versions: list[str] | None,
+    musllinux_versions: list[str] | None,
+    macosx_deployment_target: str,
+    python_abi_tags: list[str] | None,
+    include_universal2: bool,
+    single_python: bool,
+) -> list[str]:
+    """
+    Returns a list of expected wheels from a run of cibuildwheel.
+    """
     # per PEP 425 (https://www.python.org/dev/peps/pep-0425/), wheel files shall have name of the form
     # {distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
-    if machine_arch is None:
-        machine_arch = pm.machine()
-        if platform == "linux" and machine_arch.lower() == "arm64":
-            # we're running linux tests from macOS/Windows arm64, override platform
-            machine_arch = "aarch64"
-
     if manylinux_versions is None:
-        if machine_arch in ("armv7l", "aarch64"):
-            manylinux_versions = ["manylinux_2_17", "manylinux2014", "manylinux_2_31"]
-        elif machine_arch == "x86_64":
-            manylinux_versions = [
-                "manylinux_2_5",
-                "manylinux1",
-                "manylinux_2_17",
-                "manylinux2014",
-            ]
-        else:
-            manylinux_versions = ["manylinux_2_17", "manylinux2014"]
+        manylinux_versions = {
+            "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
+            "i686": ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"],
+            "x86_64": ["manylinux_2_5", "manylinux1", "manylinux_2_28"],
+        }.get(machine_arch, ["manylinux_2_17", "manylinux2014", "manylinux_2_28"])
 
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
@@ -198,8 +237,6 @@ def expected_wheels(
         python_abi_tags = ["cp312-cp312"]
     if python_abi_tags is None:
         python_abi_tags = [
-            "cp36-cp36m",
-            "cp37-cp37m",
             "cp38-cp38",
             "cp39-cp39",
             "cp310-cp310",
@@ -209,25 +246,8 @@ def expected_wheels(
             "cp313-cp313t",
         ]
 
-        if machine_arch in ["x86_64", "AMD64", "x86", "aarch64"]:
+        if machine_arch in ["x86_64", "i686", "AMD64", "aarch64", "arm64"]:
             python_abi_tags += [
-                "pp37-pypy37_pp73",
-                "pp38-pypy38_pp73",
-                "pp39-pypy39_pp73",
-                "pp310-pypy310_pp73",
-                "pp311-pypy311_pp73",
-            ]
-
-        if platform == "macos" and machine_arch == "arm64":
-            # arm64 macs are only supported by cp38+
-            python_abi_tags = [
-                "cp38-cp38",
-                "cp39-cp39",
-                "cp310-cp310",
-                "cp311-cp311",
-                "cp312-cp312",
-                "cp313-cp313",
-                "cp313-cp313t",
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
@@ -256,53 +276,32 @@ def expected_wheels(
         platform_tags = []
 
         if platform == "linux":
-            architectures = [arch_name_for_linux(machine_arch)]
-
-            if not single_arch:
-                if machine_arch == "x86_64":
-                    architectures.append("i686")
-                elif (
-                    machine_arch == "aarch64"
-                    and sys.platform.startswith("linux")
-                    and not python_abi_tag.startswith("pp")
-                    and _AARCH64_CAN_RUN_ARMV7
-                ):
-                    architectures.append("armv7l")
-
             if len(manylinux_versions) > 0:
                 platform_tags = [
                     ".".join(
-                        f"{manylinux_version}_{architecture}"
+                        f"{manylinux_version}_{machine_arch}"
                         for manylinux_version in manylinux_versions
-                        if (manylinux_version, architecture) != ("manylinux_2_31", "aarch64")
                     )
-                    for architecture in architectures
                 ]
             if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
-                platform_tags.extend(
-                    [
-                        ".".join(
-                            f"{musllinux_version}_{architecture}"
-                            for musllinux_version in musllinux_versions
-                        )
-                        for architecture in architectures
-                    ]
+                platform_tags.append(
+                    ".".join(
+                        f"{musllinux_version}_{machine_arch}"
+                        for musllinux_version in musllinux_versions
+                    )
                 )
 
         elif platform == "windows":
-            if python_abi_tag.startswith("pp"):
-                platform_tags = ["win_amd64"]
-            else:
-                platform_tags = ["win32", "win_amd64"]
+            platform_tags = ["win_amd64"] if machine_arch == "AMD64" else ["win32"]
 
         elif platform == "macos":
             if python_abi_tag.startswith("pp"):
-                if python_abi_tag.startswith(("pp37", "pp38")):
+                if python_abi_tag.startswith("pp38"):
                     min_macosx = macosx_deployment_target
                 else:
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
             elif python_abi_tag.startswith("cp"):
-                if python_abi_tag.startswith(("cp36", "cp37", "cp38", "cp39", "cp310", "cp311")):
+                if python_abi_tag.startswith(("cp38", "cp39", "cp310", "cp311")):
                     min_macosx = macosx_deployment_target
                 else:
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
@@ -337,6 +336,21 @@ def get_macos_version() -> tuple[int, int]:
     """
     version_str, _, _ = pm.mac_ver()
     return tuple(map(int, version_str.split(".")[:2]))  # type: ignore[return-value]
+
+
+def get_xcode_version() -> tuple[int, int]:
+    """Calls `xcodebuild -version` to retrieve the Xcode version as a 2-tuple."""
+    output = subprocess.run(
+        ["xcodebuild", "-version"],
+        text=True,
+        check=True,
+        stdout=subprocess.PIPE,
+    ).stdout
+    lines = output.splitlines()
+    _, version_str = lines[0].split()
+
+    version_parts = version_str.split(".")
+    return (int(version_parts[0]), int(version_parts[1]))
 
 
 def skip_if_pyodide(reason: str) -> Any:

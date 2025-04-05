@@ -24,21 +24,18 @@ What does it do?
 
 While cibuildwheel itself requires a recent Python version to run (we support the last three releases), it can target the following versions to build wheels:
 
-|                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | Pyodide |
-|----------------|----|-----|-----|-----|-----|----|-----|----|-----|-----|---|-----|
-| CPython 3.6    | ✅ | N/A | ✅  | ✅  | N/A | ✅  | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.7    | ✅ | N/A | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A |
-| CPython 3.12   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | ✅⁴ |
-| CPython 3.13³  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A |
-| PyPy 3.7 v7.3  | ✅ | N/A | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
-| PyPy 3.11 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A |
+|                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | iOS | Pyodide |
+|----------------|----|-----|-----|-----|-----|----|-----|----|-----|-----|---|-----|-----|
+| CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A |
+| CPython 3.12   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A | ✅⁴ |
+| CPython 3.13³  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | ✅ | N/A |
+| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.11 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A |
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
@@ -58,18 +55,19 @@ Usage
 
 `cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
-|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM |
-|-----------------|-------|-------|---------|-----------|-----------|-------------|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         |
-| Travis CI       | ✅    |       | ✅      | ✅        |           |             |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             |
-| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             |
-| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             |
+|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | iOS |
+|-----------------|-------|-------|---------|-----------|-----------|-------------|-----|
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅³  |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅³  |
+| Travis CI       | ✅    |       | ✅      | ✅        |           |             |     |
+| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         | ✅³  |
+| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅³  |
+| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅³  |
+| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅³  |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
-<sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup>
+<sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
+<sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture.</sup>
 
 <!--intro-end-->
 
@@ -78,6 +76,7 @@ Example setup
 
 To build manylinux, musllinux, macOS, and Windows wheels on GitHub Actions, you could use this `.github/workflows/wheels.yml`:
 
+<!--generic-github-start-->
 ```yaml
 name: Build
 
@@ -98,19 +97,21 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.22.0
+        run: python -m pip install cibuildwheel==2.23.2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         # to supply options, put them in 'env', like:
         # env:
         #   CIBW_SOME_OPTION: value
+        #   ...
 
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 ```
+<!--generic-github-end-->
 
 For more information, including PyPI deployment, and the use of other CI services or the dedicated GitHub Action, check out the [documentation](https://cibuildwheel.pypa.io) and the [examples](https://github.com/pypa/cibuildwheel/tree/main/examples).
 
@@ -216,6 +217,29 @@ Changelog
 
 <!-- this section was generated by bin/update_readme_changelog.py -- do not edit manually -->
 
+### v2.23.2
+
+_24 March 2025_
+
+- 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
+- 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
+
+### v2.23.1
+
+_15 March 2025_
+
+- ⚠️ Added warnings when the shorthand values `manylinux1`, `manylinux2010`, `manylinux_2_24`, and `musllinux_1_1` are used to specify the images in linux builds. The shorthand to these (unmaintainted) images will be removed in v3.0. If you want to keep using these images, explicitly opt-in using the full image URL, which can be found in [this file](https://github.com/pypa/cibuildwheel/blob/v2.23.1/cibuildwheel/resources/pinned_docker_images.cfg). (#2312)
+- 🛠 Dependency updates, including a manylinux update which fixes an [issue with rustup](https://github.com/pypa/cibuildwheel/issues/2303). (#2315)
+
+### v2.23.0
+
+_1 March 2025_
+
+- ✨ Adds official support for the new GitHub Actions Arm runners. In fact these worked out-of-the-box, now we include them in our tests and example configs. (#2135 via #2281)
+- ✨ Adds support for building PyPy 3.11 wheels (#2268 via #2281)
+- 🛠 Adopts the beta pypa/manylinux image for armv7l builds (#2269 via #2281)
+- 🛠 Dependency updates, including Pyodide 0.27 (#2117 and #2281)
+
 ### v2.22.0
 
 _23 November 2024_
@@ -241,37 +265,6 @@ _9 October 2024_
 
 - 🛠 Update CPython 3.13 to 3.13.0 final release (#2032)
 - 📚 Docs updates and tidy ups (#2035)
-
-### v2.21.2
-
-_2 October 2024_
-
-- ✨ Adds support for building 32-bit armv7l wheels on musllinux. On a Linux system with emulation set up, set [CIBW_ARCHS](https://cibuildwheel.pypa.io/en/stable/options/#archs) to `armv7l` on Linux to try it out if you're interested! (#2017)
-- 🐛 Fix Linux Podman builds on some systems (#2016)
-- ✨ Adds official support for running on Python 3.13 (#2026)
-- 🛠 Update CPython 3.13 to 3.13.0rc3 (#2029)
-
-Note: the default [manylinux image](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) is **scheduled to change** from `manylinux2014` to `manylinux_2_28` in a cibuildwheel release on or after **6th May 2025** - you can set the value now to avoid getting upgraded if you want. (#1992)
-
-### v2.21.1
-
-_16 September 2024_
-
-- 🐛 Fix a bug in the Linux build, where files copied to the container would have invalid ownership permissions (#2007)
-- 🐛 Fix a bug on Windows where cibuildwheel would call upon `uv` to install dependencies for versions of CPython that it does not support (#2005)
-- 🐛 Fix a bug where `uv 0.4.10` would not use the right Python when testing on Linux. (#2008)
-- 🛠 Bump our documentation pins, fixes an issue with a missing package (#2011)
-
-### v2.21.0
-
-_13 September 2024_
-
-- ⚠️ Update CPython 3.12 to 3.12.6, which changes the macOS minimum deployment target on CPython 3.12 from macOS 10.9 to macOS 10.13 (#1998)
-- 🛠 Changes the behaviour when inheriting `config-settings` in TOML overrides - rather than extending each key, which is rarely useful, individual keys will override previously set values. (#1803)
-- 🛠 Update CPython 3.13 to 3.13.0rc2 (#1998)
-- ✨ Adds support for multiarch OCI images (#1961)
-- 🐛 Fixes some bugs building Linux wheels on macOS. (#1961)
-- ⚠️ Changes the minimum version of Docker/Podman to Docker API version 1.43, Podman API version 3. The only mainstream runner this should affect is Travis Graviton2 runners - if so you can [upgrade your version of Docker](https://github.com/pypa/cibuildwheel/pull/1961#issuecomment-2304060019). (#1961)
 
 <!-- END bin/update_readme_changelog.py -->
 

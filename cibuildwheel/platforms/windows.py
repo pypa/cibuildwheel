@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 import platform as platform_module
 import shutil
@@ -12,22 +10,21 @@ from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
-from packaging.version import Version
 
-from . import errors
-from .architecture import Architecture
-from .environment import ParsedEnvironment
-from .frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
-from .logger import log
-from .options import Options
-from .selector import BuildSelector
-from .typing import PathOrStr
-from .util import resources
-from .util.cmd import call, shell
-from .util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
-from .util.helpers import prepare_command, unwrap
-from .util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from .venv import find_uv, virtualenv
+from .. import errors
+from ..architecture import Architecture
+from ..environment import ParsedEnvironment
+from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
+from ..logger import log
+from ..options import Options
+from ..selector import BuildSelector
+from ..typing import PathOrStr
+from ..util import resources
+from ..util.cmd import call, shell
+from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
+from ..util.helpers import prepare_command, unwrap
+from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..venv import find_uv, virtualenv
 
 
 def get_nuget_args(
@@ -62,13 +59,16 @@ class PythonConfiguration:
     url: str | None = None
 
 
+def all_python_configurations() -> list[PythonConfiguration]:
+    config_dicts = resources.read_python_configs("windows")
+    return [PythonConfiguration(**item) for item in config_dicts]
+
+
 def get_python_configurations(
     build_selector: BuildSelector,
     architectures: Set[Architecture],
 ) -> list[PythonConfiguration]:
-    full_python_configs = resources.read_python_configs("windows")
-
-    python_configurations = [PythonConfiguration(**item) for item in full_python_configs]
+    python_configurations = all_python_configurations()
 
     map_arch = {"32": Architecture.x86, "64": Architecture.AMD64, "ARM64": Architecture.ARM64}
 
@@ -212,10 +212,7 @@ def setup_rust_cross_compile(
 
 
 def can_use_uv(python_configuration: PythonConfiguration) -> bool:
-    conditions = (
-        Version(python_configuration.version) >= Version("3.8"),
-        not python_configuration.identifier.startswith("pp38-"),
-    )
+    conditions = (not python_configuration.identifier.startswith("pp38-"),)
     return all(conditions)
 
 
@@ -360,7 +357,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("pip")
+            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
             use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             log.build_start(config.identifier)
 
@@ -369,12 +366,13 @@ def build(options: Options, tmp_path: Path) -> None:
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
             repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
 
-            dependency_constraint_flags: Sequence[PathOrStr] = []
-            if build_options.dependency_constraints:
-                dependency_constraint_flags = [
-                    "-c",
-                    build_options.dependency_constraints.get_for_python_version(config.version),
-                ]
+            constraints_path = build_options.dependency_constraints.get_for_python_version(
+                version=config.version,
+                tmp_dir=identifier_tmp_dir,
+            )
+            dependency_constraint_flags: Sequence[PathOrStr] = (
+                ["-c", constraints_path] if constraints_path else []
+            )
 
             # install Python
             base_python, env = setup_python(
@@ -416,10 +414,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 if not use_uv:
                     build_env["VIRTUALENV_PIP"] = pip_version
 
-                if build_options.dependency_constraints:
-                    constraints_path = build_options.dependency_constraints.get_for_python_version(
-                        config.version
-                    )
+                if constraints_path:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
                 if build_frontend.name == "pip":
@@ -504,10 +499,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     call("uv", "venv", venv_dir, f"--python={base_python}", env=env)
                 else:
                     # Use pip version from the initial env to ensure determinism
-                    venv_args = ["--no-periodic-update", f"--pip={pip_version}"]
-                    # In Python<3.12, setuptools & wheel are installed as well, use virtualenv embedded ones
-                    if Version(config.version) < Version("3.12"):
-                        venv_args.extend(("--setuptools=embed", "--wheel=embed"))
+                    venv_args = [
+                        "--no-periodic-update",
+                        f"--pip={pip_version}",
+                        "--no-setuptools",
+                        "--no-wheel",
+                    ]
                     call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
                 virtualenv_env = env.copy()
@@ -549,7 +546,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 # and not the repo code)
                 test_command_prepared = prepare_command(
                     build_options.test_command,
-                    project=Path(".").resolve(),
+                    project=Path.cwd(),
                     package=options.globals.package_dir.resolve(),
                     wheel=repaired_wheel,
                 )
@@ -563,7 +560,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
                 else:
                     # There are no test sources. Run the tests in the project directory.
-                    test_cwd = Path(".").resolve()
+                    test_cwd = Path.cwd()
 
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
@@ -573,7 +570,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 moved_wheel = move_file(repaired_wheel, output_wheel)
                 if moved_wheel != output_wheel.resolve():
                     log.warning(
-                        "{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
 

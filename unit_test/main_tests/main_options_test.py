@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import sys
 import tomllib
 from fnmatch import fnmatch
@@ -13,6 +11,7 @@ from cibuildwheel.frontend import _split_config_settings
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
+from cibuildwheel.util.packaging import DependencyConstraints
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -51,20 +50,47 @@ def test_output_dir_argument(also_set_environment, intercepted_build_args, monke
 
 @pytest.mark.usefixtures("platform", "allow_empty")
 def test_build_selector(intercepted_build_args, monkeypatch):
-    BUILD = "some build* *-selector"
-    SKIP = "some skip* *-selector"
-
-    monkeypatch.setenv("CIBW_BUILD", BUILD)
-    monkeypatch.setenv("CIBW_SKIP", SKIP)
+    monkeypatch.setenv("CIBW_BUILD", "cp313-*")
+    monkeypatch.setenv("CIBW_SKIP", "cp39-*")
 
     main()
 
     intercepted_build_selector = intercepted_build_args.args[0].globals.build_selector
     assert isinstance(intercepted_build_selector, BuildSelector)
-    assert intercepted_build_selector("build24-this")
-    assert not intercepted_build_selector("skip65-that")
+    assert intercepted_build_selector("cp313-something-to-build")
+    assert not intercepted_build_selector("cp39-something-to-skip")
     # This unit test is just testing the options of 'main'
     # Unit tests for BuildSelector are in build_selector_test.py
+
+
+@pytest.mark.usefixtures("platform", "allow_empty")
+def test_invalid_build_selector(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_BUILD", "invalid")
+
+    with pytest.raises(SystemExit) as e:
+        main()
+
+    assert e.value.code == 2
+    _, err = capsys.readouterr()
+    assert "Invalid build selector" in err
+
+
+@pytest.mark.parametrize(
+    ("option_name", "option_env_var"),
+    [
+        ("skip", "CIBW_SKIP"),
+        ("test_skip", "CIBW_TEST_SKIP"),
+    ],
+)
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_invalid_skip_selector(monkeypatch, capsys, option_name, option_env_var):
+    monkeypatch.setenv(option_env_var, "invalid")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert f"Invalid {option_name} selector" in err
 
 
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
@@ -80,25 +106,16 @@ def test_empty_selector(monkeypatch):
 @pytest.mark.parametrize(
     ("architecture", "image", "full_image"),
     [
-        ("x86_64", None, "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("x86_64", "manylinux1", "quay.io/pypa/manylinux1_x86_64:*"),
-        ("x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
+        ("x86_64", None, "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
         ("x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
         ("x86_64", "custom_image", "custom_image"),
         ("i686", None, "quay.io/pypa/manylinux2014_i686:*"),
-        ("i686", "manylinux1", "quay.io/pypa/manylinux1_i686:*"),
-        ("i686", "manylinux2010", "quay.io/pypa/manylinux2010_i686:*"),
         ("i686", "manylinux2014", "quay.io/pypa/manylinux2014_i686:*"),
-        ("i686", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_i686:*"),
         ("i686", "custom_image", "custom_image"),
-        ("pypy_x86_64", None, "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("pypy_x86_64", "manylinux1", "manylinux1"),  # Does not exist
-        ("pypy_x86_64", "manylinux2010", "quay.io/pypa/manylinux2010_x86_64:*"),
+        ("pypy_x86_64", None, "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
-        ("pypy_x86_64", "manylinux_2_24", "quay.io/pypa/manylinux_2_24_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
         ("pypy_x86_64", "custom_image", "custom_image"),
@@ -283,16 +300,10 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
 
     assert build_options.config_settings == config_settings
 
-    assert _split_config_settings(config_settings, "build") == [
-        "--config-setting=setting=value",
-        "--config-setting=setting=value2",
-        "--config-setting=other=something else",
-    ]
-
-    assert _split_config_settings(config_settings, "pip") == [
-        "--config-settings=setting=value",
-        "--config-settings=setting=value2",
-        "--config-settings=other=something else",
+    assert _split_config_settings(config_settings) == [
+        "-Csetting=value",
+        "-Csetting=value2",
+        "-Cother=something else",
     ]
 
 
@@ -309,6 +320,7 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     [
         "cp27-*",
         "cp35-*",
+        "?p36-*",
         "?p27*",
         "?p2*",
         "?p35*",
@@ -327,7 +339,8 @@ def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys)
         main()
 
     stderr = capsys.readouterr().err
-    msg = f"cibuildwheel 2.x no longer supports Python < 3.6. Please use the 1.x series or update {selector}"
+    series = "2" if "6" in pattern else "1"
+    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update"
     assert msg in stderr
 
 
@@ -346,6 +359,43 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
     build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
     assert build_options.before_all == (before_all or "")
+
+
+@pytest.mark.parametrize(
+    "dependency_versions",
+    [None, "pinned", "latest", "FILE", "packages: pip==21.0.0"],
+)
+@pytest.mark.parametrize("platform_specific", [False, True])
+def test_dependency_versions(
+    dependency_versions, platform_specific, platform, intercepted_build_args, monkeypatch, tmp_path
+):
+    option_value = dependency_versions
+
+    if dependency_versions == "FILE":
+        constraints_file = tmp_path / "constraints.txt"
+        constraints_file.write_text("foo==1.2.3\nbar==4.5.6")
+        option_value = str(constraints_file)
+
+    if option_value is not None:
+        if platform_specific:
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS_" + platform.upper(), option_value)
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS", "overwritten")
+        else:
+            monkeypatch.setenv("CIBW_DEPENDENCY_VERSIONS", option_value)
+
+    main()
+
+    build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)
+    dependency_constraints = build_options.dependency_constraints
+    if dependency_versions is None or dependency_versions == "pinned":
+        assert dependency_constraints == DependencyConstraints.pinned()
+    elif dependency_versions == "latest":
+        assert dependency_constraints == DependencyConstraints.latest()
+    elif dependency_versions == "FILE":
+        assert dependency_constraints.base_file_path
+        assert dependency_constraints.base_file_path.samefile(Path(option_value))
+    elif dependency_versions.startswith("packages:"):
+        assert dependency_constraints.packages == ["pip==21.0.0"]
 
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])

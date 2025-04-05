@@ -1,54 +1,116 @@
-from __future__ import annotations
-
+import shlex
 from collections.abc import Mapping, MutableMapping, Sequence
+from dataclasses import dataclass, field
 from pathlib import Path, PurePath
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
 from . import resources
 from .cmd import call
+from .helpers import parse_key_value_string, unwrap
 
 
+@dataclass()
 class DependencyConstraints:
-    def __init__(self, base_file_path: Path):
-        assert base_file_path.exists()
-        self.base_file_path = base_file_path.resolve()
+    base_file_path: Path | None = None
+    packages: list[str] = field(default_factory=list)
 
-    @staticmethod
-    def with_defaults() -> DependencyConstraints:
-        return DependencyConstraints(base_file_path=resources.CONSTRAINTS)
+    def __post_init__(self) -> None:
+        if self.packages and self.base_file_path is not None:
+            msg = "Cannot specify both a file and packages in the dependency constraints"
+            raise ValueError(msg)
+
+        if self.base_file_path is not None:
+            if not self.base_file_path.exists():
+                msg = f"Dependency constraints file not found: {self.base_file_path}"
+                raise FileNotFoundError(msg)
+            self.base_file_path = self.base_file_path.resolve()
+
+    @classmethod
+    def pinned(cls) -> Self:
+        return cls(base_file_path=resources.CONSTRAINTS)
+
+    @classmethod
+    def latest(cls) -> Self:
+        return cls()
+
+    @classmethod
+    def from_config_string(cls, config_string: str) -> Self:
+        if config_string == "pinned":
+            return cls.pinned()
+
+        if config_string == "latest" or not config_string:
+            return cls.latest()
+
+        if config_string.startswith(("file:", "packages:")):
+            # we only do the table-style parsing if it looks like a table,
+            # because this option used to be only a file path. We don't want
+            # to break existing configurations, whose file paths might include
+            # special characters like ':' or ' ', which would require quoting
+            # if they were to be passed as a parse_key_value_string positional
+            # argument.
+            return cls.from_table_style_config_string(config_string)
+
+        return cls(base_file_path=Path(config_string))
+
+    @classmethod
+    def from_table_style_config_string(cls, config_string: str) -> Self:
+        config_dict = parse_key_value_string(config_string, kw_arg_names=["file", "packages"])
+        files = config_dict.get("file")
+        packages = config_dict.get("packages") or []
+
+        if files and packages:
+            msg = "Cannot specify both a file and packages in dependency-versions"
+            raise ValueError(msg)
+
+        if files:
+            if len(files) > 1:
+                msg = unwrap("""
+                    Only one file can be specified in dependency-versions.
+                    If you intended to pass only one, perhaps you need to quote the path?
+                """)
+                raise ValueError(msg)
+
+            return cls(base_file_path=Path(files[0]))
+
+        return cls(packages=packages)
 
     def get_for_python_version(
-        self, version: str, *, variant: Literal["python", "pyodide"] = "python"
-    ) -> Path:
-        version_parts = version.split(".")
+        self, *, version: str, variant: Literal["python", "pyodide"] = "python", tmp_dir: Path
+    ) -> Path | None:
+        if self.packages:
+            constraint_file = tmp_dir / "constraints.txt"
+            constraint_file.write_text("\n".join(self.packages))
+            return constraint_file
 
-        # try to find a version-specific dependency file e.g. if
-        # ./constraints.txt is the base, look for ./constraints-python36.txt
-        specific_stem = self.base_file_path.stem + f"-{variant}{version_parts[0]}{version_parts[1]}"
-        specific_name = specific_stem + self.base_file_path.suffix
-        specific_file_path = self.base_file_path.with_name(specific_name)
+        if self.base_file_path is not None:
+            version_parts = version.split(".")
 
-        if specific_file_path.exists():
-            return specific_file_path
-        else:
-            return self.base_file_path
+            # try to find a version-specific dependency file e.g. if
+            # ./constraints.txt is the base, look for ./constraints-python36.txt
+            specific_stem = (
+                self.base_file_path.stem + f"-{variant}{version_parts[0]}{version_parts[1]}"
+            )
+            specific_name = specific_stem + self.base_file_path.suffix
+            specific_file_path = self.base_file_path.with_name(specific_name)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.base_file_path!r})"
+            if specific_file_path.exists():
+                return specific_file_path
+            else:
+                return self.base_file_path
 
-    def __eq__(self, o: object) -> bool:
-        if not isinstance(o, DependencyConstraints):
-            return False
-
-        return self.base_file_path == o.base_file_path
+        return None
 
     def options_summary(self) -> Any:
-        if self == DependencyConstraints.with_defaults():
+        if self == DependencyConstraints.pinned():
             return "pinned"
-        else:
+        elif self.packages:
+            return {"packages": " ".join(shlex.quote(p) for p in self.packages)}
+        elif self.base_file_path is not None:
             return self.base_file_path.name
+        else:
+            return "latest"
 
 
 def get_pip_version(env: Mapping[str, str]) -> str:
@@ -72,7 +134,7 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     specified by `identifier` that is previously built.
     """
 
-    interpreter, platform = identifier.split("-")
+    interpreter, platform = identifier.split("-", 1)
     free_threaded = interpreter.endswith("t")
     if free_threaded:
         interpreter = interpreter[:-1]
@@ -95,8 +157,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
                 # If a minor version number is given, it has to be lower than the current one.
                 continue
 
-            if platform.startswith(("manylinux", "musllinux", "macosx")):
-                # Linux, macOS require the beginning and ending match (macos/manylinux version doesn't need to)
+            if platform.startswith(("manylinux", "musllinux", "macosx", "ios")):
+                # Linux, macOS, and iOS require the beginning and ending match
+                # (macos/manylinux/iOS version number doesn't need to match)
                 os_, arch = platform.split("_", 1)
                 if not tag.platform.startswith(os_):
                     continue
