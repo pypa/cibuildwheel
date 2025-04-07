@@ -101,7 +101,6 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     assert "'does-exist' will be included in the cross-build environment" in captured.out
 
 
-@pytest.mark.serial
 def test_no_test_sources(tmp_path, capfd):
     """Build will fail if test-sources isn't defined."""
     if utils.platform != "macos":
@@ -129,7 +128,6 @@ def test_no_test_sources(tmp_path, capfd):
     assert "Testing on iOS requires a definition of test-sources." in captured.err
 
 
-@pytest.mark.serial
 def test_missing_xbuild_tool(tmp_path, capfd):
     """Build will fail if xbuild-tools references a non-existent tool."""
     if utils.platform != "macos":
@@ -158,7 +156,6 @@ def test_missing_xbuild_tool(tmp_path, capfd):
     assert "Could not find a 'does-not-exist' executable on the path." in captured.err
 
 
-@pytest.mark.serial
 def test_no_xbuild_tool_definition(tmp_path, capfd):
     """Build will succeed with a warning if there is no xbuild-tools definition."""
     if utils.platform != "macos":
@@ -204,7 +201,6 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
     assert "Your project configuration does not define any cross-build tools." in captured.err
 
 
-@pytest.mark.serial
 def test_empty_xbuild_tool_definition(tmp_path, capfd):
     """Build will succeed with no warning if there is an empty xbuild-tools definition."""
     if utils.platform != "macos":
