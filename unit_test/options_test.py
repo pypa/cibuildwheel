@@ -618,3 +618,31 @@ def test_get_build_frontend_extra_flags_warning(
     )
     assert args == ["-Ca", "-Cb", "-1"]
     mock_warning.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", None),
+        ("xbuild-tools = []", []),
+        ('xbuild-tools = ["cmake", "rustc"]', ["cmake", "rustc"]),
+    ],
+)
+def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[str] | None) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+
+    local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
+    assert local.xbuild_tools == expected

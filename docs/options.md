@@ -1043,6 +1043,49 @@ Platform-specific environment variables are also available:<br/>
     [PEP 517]: https://www.python.org/dev/peps/pep-0517/
     [PEP 518]: https://www.python.org/dev/peps/pep-0517/
 
+### `CIBW_XBUILD_TOOLS` {: #xbuild-tools}
+> Binaries on the path that should be included in an isolated cross-build environment.
+
+When building in a cross-platform environment, it is sometimes necessary to isolate the ``PATH`` so that binaries from the build machine don't accidentally get linked into the cross-platform binary. However, this isolation process will also hide tools that might be required to build your wheel.
+
+If there are binaries present on the `PATH` when you invoke cibuildwheel, and those binaries are required to build your wheels, those binaries can be explicitly included in the isolated cross-build environment using `CIBW_XBUILD_TOOLS`. The binaries listed in this setting will be linked into an isolated location, and that isolated location will be put on the `PATH` of the isolated environment. You do not need to provide the full path to the binary - only the executable name that would be found by the shell.
+
+If you declare a tool as a cross-build tool, and that tool cannot be found in the runtime environment, an error will be raised.
+
+If you do not define `CIBW_XBUILD_TOOLS`, and you build for a platform that uses a cross-platform environment, a warning will be raised. If your project does not require any cross-build tools, you can set `CIBW_XBUILD_TOOLS` to an empty list to silence this warning.
+
+*Any* tool used by the build process must be included in the `CIBW_XBUILD_TOOLS` list, not just tools that cibuildwheel will invoke directly. For example, if your build invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your safe tools list.
+
+Platform-specific environment variables are also available on platforms that use cross-platform environment isolation:<br/>
+ `CIBW_XBUILD_TOOLS_IOS`
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
+    CIBW_XBUILD_TOOLS: cmake rustc
+    ```
+
+    ```yaml
+    # No cross-build tools are required
+    CIBW_XBUILD_TOOLS:
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
+    xbuild-tools = ["cmake", "rustc"]
+    ```
+
+    ```toml
+    [tool.cibuildwheel]
+    # No cross-build tools are required
+    xbuild-tools = []
+    ```
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
 > Execute a shell command to repair each built wheel
