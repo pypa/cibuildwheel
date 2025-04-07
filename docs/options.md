@@ -1803,9 +1803,27 @@ export CIBW_DEBUG_TRACEBACK=TRUE
 ```
 
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
-> Increase/decrease the output of pip wheel
+> Increase/decrease the output of the build
 
-A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
+This setting controls `-v`/`-q` flags to the build frontend. Since there is
+no communication between the build backend and the build frontend, build
+messages from the build backend will always be shown with `1`; higher levels
+will not produce more logging about the build itself. Other levels only affect
+the build frontend output, which is usually things like resolving and
+downloading dependencies. The settings are:
+
+|             | build | pip    | desc                             |
+|-------------|-------|--------|----------------------------------|
+| -2          | N/A   | `-qq`  | even more quiet, where supported |
+| -1          | N/A   | `-q`   | quiet mode, where supported      |
+| 0 (default) |       |        | default for build tool           |
+| 1           |       | `-v`   | print backend output             |
+| 2           | `-v`  | `-vv`  | print log messages e.g. resolving info |
+| 3           | `-vv` | `-vvv` | print even more debug info       |
+
+Settings that are not supported for a specific frontend will log a warning.
+The default build frontend is `build`, which does show build backend output by
+default.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
@@ -1815,7 +1833,7 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Increase pip debugging output
+    # Ensure that the build backend output is present
     CIBW_BUILD_VERBOSITY: 1
     ```
 
@@ -1823,7 +1841,7 @@ Platform-specific environment variables are also available:<br/>
 
     ```toml
     [tool.cibuildwheel]
-    # Increase pip debugging output
+    # Ensure that the build backend output is present
     build-verbosity = 1
     ```
 

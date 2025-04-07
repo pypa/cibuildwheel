@@ -22,7 +22,7 @@ platformdirs==4.3.7
     # via virtualenv
 pyproject-hooks==1.2.0
     # via build
-typing-extensions==4.12.2
+typing-extensions==4.13.0
     # via delocate
-virtualenv==20.29.3
+virtualenv==20.30.0
     # via -r cibuildwheel/resources/constraints.in
