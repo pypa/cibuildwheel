@@ -85,9 +85,9 @@ title: Working examples
 | [matrixprofile][]                 | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python 3 library making time series data mining tasks, utilizing matrix profile algorithms, accessible to everyone. |
 | [Tokenizer][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
 | [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Jupyter-friendly Python interface for C++ MINUIT2 |
+| [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
 | [pillow-heif][]                   | ![github icon][] ![cirrusci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Bindings to libheif library with third party dependencies. Fully automated CI for tests and publishing including Apple Silicon builds. |
 | [keyvi][]                         | ![github icon][] | ![linux icon][] ![apple icon][] | FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime |
-| [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
 | [PyGLM][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Fast OpenGL Mathematics (GLM) for Python |
 | [TgCrypto][]                      | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
 | [iDynTree][]                      | ![github icon][] | ![linux icon][] | Uses manylinux_2_24 |
@@ -195,9 +195,9 @@ title: Working examples
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
 [iminuit]: https://github.com/scikit-hep/iminuit
+[Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
 [pillow-heif]: https://github.com/bigcat88/pillow_heif
 [keyvi]: https://github.com/KeyviDev/keyvi
-[Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
 [PyGLM]: https://github.com/Zuzu-Typ/PyGLM
 [TgCrypto]: https://github.com/pyrogram/tgcrypto
 [iDynTree]: https://github.com/robotology/idyntree
