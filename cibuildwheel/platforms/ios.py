@@ -177,8 +177,8 @@ def cross_virtualenv(
     :param build_python: The path to the python binary for the build platform
     :param venv_path: The path where the cross virtual environment should be
         created.
-    :param dependency_constraint_flags: Any flags that should be used when
-        constraining dependencies in the environment.
+    :param dependency_constraint: A path to a constraint file that should be
+        used when constraining dependencies in the environment.
     :param xbuild_tools: A list of executable names (without paths) that are
         on the path, but must be preserved in the cross environment.
     """
@@ -326,8 +326,6 @@ def setup_python(
 
     log.step("Creating cross build environment...")
 
-    dependency_constraint_flags = constraint_flags(dependency_constraint)
-
     venv_path = tmp / "venv"
     env = cross_virtualenv(
         py_version=python_configuration.version,
@@ -352,7 +350,7 @@ def setup_python(
         "install",
         "--upgrade",
         "pip",
-        *dependency_constraint_flags,
+        *constraint_flags(dependency_constraint),
         env=env,
         cwd=venv_path,
     )
@@ -398,7 +396,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     else:

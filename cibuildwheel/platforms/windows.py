@@ -247,7 +247,7 @@ def setup_python(
     if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
         build_frontend = "build"
 
-    use_uv = build_frontend in {"build[uv]", "uv"}
+    use_uv = build_frontend == "build[uv]"
     uv_path = find_uv()
 
     log.step("Setting up build environment...")
@@ -259,8 +259,6 @@ def setup_python(
         dependency_constraint,
         use_uv=use_uv,
     )
-
-    dependency_constraint_flags = constraint_flags(dependency_constraint)
 
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
@@ -311,7 +309,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     elif build_frontend == "build[uv]":
@@ -322,7 +320,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
 
@@ -370,9 +368,6 @@ def build(options: Options, tmp_path: Path) -> None:
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version,
                 tmp_dir=identifier_tmp_dir,
-            )
-            dependency_constraint_flags = (
-                ["-c", constraints_path.as_uri()] if constraints_path else []
             )
 
             # install Python
@@ -492,7 +487,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
                 if not use_uv:
-                    call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
+                    call(
+                        "pip", "install", "virtualenv", *constraint_flags(constraints_path), env=env
+                    )
 
                 venv_dir = identifier_tmp_dir / "venv-test"
 

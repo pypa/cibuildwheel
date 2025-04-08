@@ -219,8 +219,6 @@ def setup_python(
         f"{base_python.name} not found, has {list(base_python.parent.iterdir())}"
     )
 
-    dependency_constraint_flags = constraint_flags(dependency_constraint)
-
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
     env = virtualenv(
@@ -257,7 +255,7 @@ def setup_python(
             "install",
             "--upgrade",
             "pip",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
             cwd=venv_path,
         )
@@ -352,7 +350,7 @@ def setup_python(
             "install",
             "--upgrade",
             "delocate",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     elif build_frontend == "build":
@@ -362,7 +360,7 @@ def setup_python(
             "--upgrade",
             "delocate",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     elif build_frontend == "build[uv]":
@@ -374,7 +372,7 @@ def setup_python(
             "--upgrade",
             "delocate",
             "build[virtualenv, uv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     else:
@@ -428,7 +426,6 @@ def build(options: Options, tmp_path: Path) -> None:
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version, tmp_dir=identifier_tmp_dir
             )
-            dependency_constraint_flags = constraint_flags(constraints_path)
 
             base_python, env = setup_python(
                 identifier_tmp_dir / "build",
@@ -620,7 +617,13 @@ def build(options: Options, tmp_path: Path) -> None:
                     # set up a virtual environment to install and test from, to make sure
                     # there are no dependencies that were pulled in at build time.
                     if not use_uv:
-                        call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
+                        call(
+                            "pip",
+                            "install",
+                            "virtualenv",
+                            *constraint_flags(constraints_path),
+                            env=env,
+                        )
 
                     venv_dir = identifier_tmp_dir / f"venv-test-{testing_arch}"
 
