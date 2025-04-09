@@ -19,7 +19,7 @@ pip install cibuildwheel
 cibuildwheel
 ```
 
-You can pass the `--platform linux` option to cibuildwheel to build Linux wheels. On most machines, the easiest builds to try are the Linux builds. You don't need any software installed except a Docker daemon. Each platform that cibuildwheel supports has its own prerequisites and platform-specific behaviors. See the [platforms page](platforms.md) for details.
+You can pass the `--platform linux` option to cibuildwheel to build Linux wheels, even if you're not on Linux. On most machines, the easiest builds to try are the Linux builds. You don't need any software installed except a Docker daemon. Each platform that cibuildwheel supports has its own system requirements and platform-specific behaviors. See the [platforms page](platforms.md) for details.
 
 You should see the builds taking place. You can experiment with [options](options.md) using environment variables or pyproject.toml.
 
