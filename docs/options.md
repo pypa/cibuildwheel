@@ -71,7 +71,7 @@ Windows arm64 platform support is experimental.
 For an experimental WebAssembly build with `--platform pyodide`,
 `cp312-pyodide_wasm32` is the only platform identifier.
 
-See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
+See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for past end-of-life versions of Python.
 
 #### Examples
 
@@ -410,19 +410,19 @@ This option can also be set using the [command-line option](#command-line)
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
-> Set the tool to use to build, either "build" (default), "build/[uv/]", or "pip"
+> Set the tool to use to build, either "build" (default), "build\[uv\]", or "pip"
 
 Options:
 
-- `pip[;args: ...]`
 - `build[;args: ...]`
+- `build[uv][;args: ...]`
+- `pip[;args: ...]`
 
-Default: `pip`
+Default: `build`
 
-Choose which build frontend to use. Can either be "build", which will run
-`python -m build --wheel`, or "pip", which will run `python -m pip wheel`.
+Choose which build frontend to use.
 
-You can also use "build\[uv\]", which will use an external [uv][] everywhere
+You can use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
@@ -433,14 +433,8 @@ setuptools on Python < 3.12 and pip are not installed if using uv.
 
 Pyodide ignores this setting, as only "build" is supported.
 
-You can specify extra arguments to pass to `pip wheel` or `build` using the
+You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
-
-!!! tip
-    Until v2.0.0, [pip][] was the only way to build wheels, and is still the
-    default. However, we expect that at some point in the future, cibuildwheel
-    will change the default to [build][], in line with the PyPA's recommendation.
-    If you want to try `build` before this, you can use this option.
 
 !!! warning
     If you are using `build[uv]` and are passing `--no-isolation` or `-n`, we
