@@ -169,7 +169,7 @@ Consider incorporating these into your package, for example, in `setup.py` using
 
 If your wheel didn't compile, you might have a mistake in your config.
 
-To quickly test your config without doing a git push and waiting for your code to build on CI, you can [test the Linux build in a local Docker container](setup.md#local).
+To quickly test your config without doing a git push and waiting for your code to build on CI, you can [test the Linux build in a local Docker container](platforms.md#linux).
 
 ### Missing dependencies
 

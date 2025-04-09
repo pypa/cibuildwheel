@@ -170,14 +170,11 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
 A list of architectures to build.
 
-On macOS, this option can be used to [cross-compile](faq.md#cross-compiling)
-between `x86_64`, `universal2` and `arm64`.
+On macOS, this option can be used to [cross-compile](platforms.md#macos-architectures) between `x86_64`, `universal2` and `arm64`.
 
-On Linux, this option can be used to build non-native architectures under
-emulation. See [this guide](faq.md#emulation) for more information.
+On Linux, this option can be used to build [non-native architectures under emulation](faq.md#emulation).
 
-On Windows, this option can be used to compile for `ARM64` from an Intel
-machine, provided the cross-compiling tools are installed.
+On Windows, this option can be used to [compile for `ARM64` from an Intel machine](platforms.md#windows-arm64), provided the cross-compiling tools are installed.
 
 Options:
 
