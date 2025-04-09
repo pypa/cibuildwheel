@@ -32,6 +32,10 @@ from ..util.file import (
 )
 from ..util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
 from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..util.python_build_standalone import (
+    PythonBuildStandaloneError,
+    create_python_build_standalone_environment,
+)
 from ..venv import constraint_flags, virtualenv
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
@@ -43,6 +47,7 @@ class PythonConfiguration:
     identifier: str
     default_pyodide_version: str
     node_version: str
+    python_build_standalone_tag: str
 
 
 class PyodideXBuildEnvInfoVersionRange(TypedDict):
@@ -206,20 +211,20 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
     return str(pyodide_root)
 
 
-def get_base_python(identifier: str) -> Path:
-    implementation_id = identifier.split("-")[0]
-    majorminor = implementation_id[len("cp") :]
-    version_info = (int(majorminor[0]), int(majorminor[1:]))
-    if version_info == sys.version_info[:2]:
-        return Path(sys.executable)
-
-    major_minor = ".".join(str(v) for v in version_info)
-    python_name = f"python{major_minor}"
-    which_python = shutil.which(python_name)
-    if which_python is None:
-        msg = f"CPython {major_minor} is not installed."
-        raise errors.FatalError(msg)
-    return Path(which_python)
+def get_base_python(tmp: Path, python_configuration: PythonConfiguration) -> Path:
+    try:
+        return create_python_build_standalone_environment(
+            release_tag=python_configuration.python_build_standalone_tag,
+            python_version=python_configuration.version,
+            temp_dir=tmp,
+            cache_dir=CIBW_CACHE_PATH,
+        )
+    except PythonBuildStandaloneError as e:
+        msg = unwrap(f"""
+            Failed to create a Python build environment:
+            {e}
+        """)
+        raise errors.FatalError(msg) from e
 
 
 def setup_python(
@@ -229,7 +234,7 @@ def setup_python(
     environment: ParsedEnvironment,
     user_pyodide_version: str | None,
 ) -> dict[str, str]:
-    base_python = get_base_python(python_configuration.identifier)
+    base_python = get_base_python(tmp / "base", python_configuration)
     pyodide_version = user_pyodide_version or python_configuration.default_pyodide_version
 
     log.step("Setting up build environment...")

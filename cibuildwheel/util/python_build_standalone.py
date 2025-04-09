@@ -155,7 +155,7 @@ def _find_python_executable(extracted_dir: Path) -> Path:
 
 def create_python_build_standalone_environment(
     release_tag: str, python_version: str, temp_dir: Path, cache_dir: Path
-) -> str:
+) -> Path:
     """
     Returns a Python environment from python-build-standalone,
     downloading it if necessary using a cache, and expanding it into a fresh base path.
@@ -200,5 +200,4 @@ def create_python_build_standalone_environment(
     assert not python_base_dir.exists()
     extract_tar(archive_path, python_base_dir)
 
-    executable_path = _find_python_executable(python_base_dir)
-    return str(executable_path)
+    return _find_python_executable(python_base_dir)
