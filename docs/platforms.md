@@ -7,7 +7,7 @@ title: Platforms
 
 ### System requirements
 
-If you've got [Docker](https://www.docker.com/products/docker-desktop) installed on your development machine, you can run a Linux build.
+If you've got [Docker](https://www.docker.com/get-started/) installed on your development machine, you can run a Linux build.
 
 !!! tip
     You can run the Linux build on any platform. Even Windows can run
