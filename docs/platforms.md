@@ -146,9 +146,15 @@ You must have native build tools (i.e., Visual Studio) installed.
 
 Because the builds are happening without full isolation, there might be some differences compared to CI builds (Visual Studio version, OS version, local files, ...) that might prevent you from finding an issue only seen in CI.
 
-In order to speed-up builds, cibuildwheel will cache the tools it needs to be reused for future builds. The folder used for caching is system/user dependent and is reported in the printed preamble of each run (e.g. `Cache folder: C:\Users\Matt\AppData\Local\pypa\cibuildwheel\Cache`).
+In order to speed-up builds, cibuildwheel will cache the tools it needs to be reused for future builds. The folder used for caching is system/user dependent and is reported in the printed preamble of each run (e.g. `Cache folder: C:\Users\Matt\AppData\Local\pypa\cibuildwheel\Cache`). You can override the cache folder using the ``CIBW_CACHE_PATH`` environment variable.
 
-You can override the cache folder using the ``CIBW_CACHE_PATH`` environment variable.
+### Windows ARM64 builds {: #windows-arm64}
+
+`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native ARM64 runner is required for testing. On non-native runners, tests for ARM64 wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `CIBW_TEST_SKIP` setting to suppress the warning.
+
+Cross-compilation on Windows relies on a supported build backend. Supported backends use an environment variable to specify their target platform (the one they are compiling native modules for, as opposed to the one they are running on), which is set in [cibuildwheels/windows.py](https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/windows.py) before building. Currently, `setuptools>=65.4.1` and `setuptools_rust` are the only supported backends.
+
+By default, `ARM64` is not enabled when running on non-ARM64 runners. Use [`CIBW_ARCHS`](options.md#archs) to select it.
 
 ## Pyodide/WebAssembly {: #pyodide}
 

@@ -107,4 +107,5 @@ fragmentRedirect([
 
   { source: 'faq/#linux-builds-in-containers', destination: 'platforms/#linux-containers' },
   { source: 'faq/#apple-silicon', destination: 'platforms/#macos-architectures' },
+  { source: 'faq/#windows-arm64', destination: 'platforms/#windows-arm64' },
 ]);
