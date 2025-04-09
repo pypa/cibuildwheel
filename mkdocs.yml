@@ -22,12 +22,13 @@ nav:
   - Home: index.md
   - Guide:
     - setup.md
-    - configuration.md
+    - ci-services.md
     - deliver-to-pypi.md
     - faq.md
     - cpp_standards.md
   - Reference:
     - platforms.md
+    - configuration.md
     - options.md
     - working-examples.md
   - About:

@@ -1,4 +1,4 @@
-# Configuration
+# Configuration methods
 
 cibuildwheel can either be configured using environment variables, or from
 config file such as `pyproject.toml`.
