@@ -27,14 +27,9 @@ nav:
     - faq.md
     - cpp_standards.md
   - Reference:
+    - platforms.md
     - options.md
     - working-examples.md
-  - Platforms:
-    - platforms/linux.md
-    - platforms/windows.md
-    - platforms/macos.md
-    - platforms/ios.md
-    - platforms/pyodide.md
   - About:
     - contributing.md
     - changelog.md
