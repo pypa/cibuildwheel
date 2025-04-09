@@ -3,7 +3,7 @@ import platform as platform_module
 import shutil
 import subprocess
 import textwrap
-from collections.abc import MutableMapping, Sequence, Set
+from collections.abc import MutableMapping, Set
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -18,13 +18,12 @@ from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_fronten
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
-from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
 from ..util.helpers import prepare_command, unwrap
 from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from ..venv import find_uv, virtualenv
+from ..venv import constraint_flags, find_uv, virtualenv
 
 
 def get_nuget_args(
@@ -219,7 +218,7 @@ def can_use_uv(python_configuration: PythonConfiguration) -> bool:
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    dependency_constraint: Path | None,
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
 ) -> tuple[Path, dict[str, str]]:
@@ -257,7 +256,7 @@ def setup_python(
         python_configuration.version,
         base_python,
         venv_path,
-        dependency_constraint_flags,
+        dependency_constraint,
         use_uv=use_uv,
     )
 
@@ -276,7 +275,7 @@ def setup_python(
             "install",
             "--upgrade",
             "pip",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
             cwd=venv_path,
         )
@@ -310,7 +309,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     elif build_frontend == "build[uv]":
@@ -321,7 +320,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
 
@@ -370,15 +369,12 @@ def build(options: Options, tmp_path: Path) -> None:
                 version=config.version,
                 tmp_dir=identifier_tmp_dir,
             )
-            dependency_constraint_flags: Sequence[PathOrStr] = (
-                ["-c", constraints_path] if constraints_path else []
-            )
 
             # install Python
             base_python, env = setup_python(
                 identifier_tmp_dir / "build",
                 config,
-                dependency_constraint_flags,
+                constraints_path,
                 build_options.environment,
                 build_frontend.name,
             )
@@ -491,7 +487,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
                 if not use_uv:
-                    call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
+                    call(
+                        "pip", "install", "virtualenv", *constraint_flags(constraints_path), env=env
+                    )
 
                 venv_dir = identifier_tmp_dir / "venv-test"
 
