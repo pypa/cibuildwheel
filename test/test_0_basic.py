@@ -18,6 +18,15 @@ basic_project = test_projects.new_c_project(
 )
 
 
+@pytest.mark.serial
+def test_dummy_serial():
+    """A no-op test to ensure that at least one serial test is always found.
+
+    Without this no-op test, CI fails on CircleCI because no serial tests are
+    found, and pytest errors if a test suite finds no tests.
+    """
+
+
 def test(tmp_path, build_frontend_env, capfd):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)

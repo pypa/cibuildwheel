@@ -94,6 +94,7 @@ class BuildOptions:
     environment: ParsedEnvironment
     before_all: str
     before_build: str | None
+    xbuild_tools: list[str] | None
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
@@ -718,6 +719,18 @@ class Options:
 
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
+            xbuild_tools: list[str] | None = shlex.split(
+                self.reader.get(
+                    "xbuild-tools", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
+            # ["\u0000"] is a sentinel value used as a default, because TOML
+            # doesn't have an explicit NULL value. If xbuild-tools is set to the
+            # sentinel, it indicates that the user hasn't defined xbuild-tools
+            # *at all* (not even an `xbuild-tools = []` definition).
+            if xbuild_tools == ["\u0000"]:
+                xbuild_tools = None
+
             test_sources = shlex.split(
                 self.reader.get(
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
@@ -835,6 +848,7 @@ class Options:
                 before_build=before_build,
                 before_all=before_all,
                 build_verbosity=build_verbosity,
+                xbuild_tools=xbuild_tools,
                 repair_command=repair_command,
                 environment=environment,
                 dependency_constraints=dependency_constraints,
