@@ -1625,8 +1625,8 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
   .options-toc {
     display: grid;
     grid-template-columns: fit-content(20%) 1fr;
-    grid-gap: 16px 32px;
-    gap: 16px 32px;
+    grid-gap: 10px 20px;
+    gap: 10px 20px;
     font-size: 90%;
     margin-bottom: 28px;
     margin-top: 28px;
@@ -1646,8 +1646,11 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     margin-top: 0;
   }
   .options-toc a.option {
-    display: block;
-    margin-bottom: 5px;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+  .options-toc a.option code {
+    font-size: 80%;
   }
   h3 code {
     font-size: 100%;
