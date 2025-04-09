@@ -56,6 +56,8 @@ In order to speed-up builds, cibuildwheel will cache the tools it needs to be re
 
 ### macOS Version Compatibility
 
+macOS allows you to specify a "deployment target" version that will ensure backwards compatibility with older versions of macOS. For most projects, the way to do this is to set the `MACOSX_DEPLOYMENT_TARGET` environment variable.
+
 macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to control the minimum supported macOS version for generated wheels. The lowest value you can set `MACOSX_DEPLOYMENT_TARGET` is as follows:
 
 | Arch  | Python version range | Minimum target |
@@ -94,14 +96,10 @@ is required to install a binary wheel on macOS Big Sur.
 
 The native wheel for macOS on Apple Silicon.
 
-Requires Pip 20.3+ (or packaging 20.5+) to install.
-
 ##### `universal2`
 
 This wheel contains both architectures, causing it to be up to twice the
-size (data files do not get doubled, only compiled code). It requires
-Pip 20.3 (Packaging 20.6+) to load on Intel, and Pip 21.0.1 (Packaging 20.9+)
-to load on Apple Silicon.
+size (data files do not get doubled, only compiled code).
 
 The dual-architecture `universal2` has a few benefits, but a key benefit
 to a universal wheel is that a user can bundle these wheels into an
@@ -114,11 +112,6 @@ the universal wheels, because it prefers the most specific wheel
 available.
 
 #### What to provide?
-
-Generally speaking, because Pip 20.3 is required for the `universal2` wheel,
-most packages should provide both `x86_64` and one of `universal2`/`arm64`
-wheels. When Pip 20.3+ is common on macOS, then it might be possible to ship
-only the `universal2` wheel.
 
 Opinions vary on which of arch-specific or `universal2` wheels are best - some packagers prefer `universal2` because it's one wheel for all Mac users, so simpler, and easier to build into apps for downstream users. However, because they contain code for both architectures, their file size is larger, meaning they consume more disk space and bandwidth, and are harder to build for some projects.
 
@@ -157,7 +150,9 @@ In order to speed-up builds, cibuildwheel will cache the tools it needs to be re
 
 You can override the cache folder using the ``CIBW_CACHE_PATH`` environment variable.
 
-## Pyodide (WebAssembly) builds (experimental) {: #pyodide}
+## Pyodide/WebAssembly {: #pyodide}
+
+Pyodide is offered as an experimental feature in cibuildwheel.
 
 ### Prerequisites
 
