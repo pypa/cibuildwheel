@@ -4,15 +4,14 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
-import functools
 import os
 import platform as pm
 import subprocess
 import sys
-from collections.abc import Callable, Generator, Mapping, Sequence
+from collections.abc import Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Final, ParamSpec, TypeVar
+from typing import Any, Final
 
 import pytest
 
@@ -153,19 +152,6 @@ def _floor_macosx(*args: str) -> str:
     return max(args, key=lambda x: tuple(map(int, x.split("."))))
 
 
-P = ParamSpec("P")
-R = TypeVar("R")
-
-
-def _listify(func: Callable[P, Generator[R, None, None]]) -> Callable[P, list[R]]:
-    @functools.wraps(func)
-    def listify_return(*args: P.args, **kwargs: P.kwargs) -> list[R]:
-        return list(func(*args, **kwargs))
-
-    return listify_return
-
-
-@_listify
 def expected_wheels(
     package_name: str,
     package_version: str,
@@ -177,7 +163,7 @@ def expected_wheels(
     include_universal2: bool = False,
     single_python: bool = False,
     single_arch: bool = False,
-) -> Generator[str, None, None]:
+) -> list[str]:
     """
     Returns the expected wheels from a run of cibuildwheel.
     """
@@ -200,8 +186,10 @@ def expected_wheels(
         elif platform == "windows" and machine_arch == "AMD64":
             architectures.append("x86")
 
-    for architecture in architectures:
-        yield from _expected_wheels(
+    return [
+        wheel
+        for architecture in architectures
+        for wheel in _expected_wheels(
             package_name,
             package_version,
             architecture,
@@ -212,6 +200,7 @@ def expected_wheels(
             include_universal2,
             single_python,
         )
+    ]
 
 
 def _expected_wheels(
