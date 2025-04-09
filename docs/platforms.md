@@ -33,15 +33,13 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 
 ## macOS
 
-### Pre-requisites
+### System requirements
 
-Pre-requisite: you need to have native build tools installed.
+You need to have native build tools installed. Use `xcode-select --install` to install the Xcode command line tools.
 
 Because the builds are happening without full isolation, there might be some differences compared to CI builds (Xcode version, OS version, local files, ...) that might prevent you from finding an issue only seen in CI.
 
-In order to speed-up builds, cibuildwheel will cache the tools it needs to be reused for future builds. The folder used for caching is system/user dependent and is reported in the printed preamble of each run (e.g. `Cache folder: /Users/Matt/Library/Caches/cibuildwheel`).
-
-You can override the cache folder using the `CIBW_CACHE_PATH` environment variable.
+In order to speed-up builds, cibuildwheel will cache the tools it needs to be reused for future builds. The folder used for caching is system/user dependent and is reported in the printed preamble of each run (e.g. `Cache folder: /Users/Matt/Library/Caches/cibuildwheel`). You can override the cache folder using the `CIBW_CACHE_PATH` environment variable.
 
 !!! warning
     cibuildwheel uses official python.org macOS installers for CPython but those can only be installed globally.
@@ -76,17 +74,13 @@ If you set the value lower, cibuildwheel will cap it to the lowest supported val
     **Intel / CPython 3.8-3.11** builds. Users must manually set
     `MACOSX_DEPLOYMENT_TARGET` to 10.12 or higher when building Rust extensions.
 
-### Universal builds
+### macOS architectures
 
-By default, macOS builds will build a single architecture wheel, using the build machine's architecture. If you need to support both x86_64 and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel will test x86_64 wheels (or the x86_64 slice of a `universal2` wheel) when running on Apple Silicon hardware, but it is *not* possible to test Apple Silicon wheels on x86_64 hardware.
+`cibuildwheel` supports both native builds and cross-compiling between `arm64` (Apple Silicon) and `x86_64` (Intel) architectures, including the cross-compatible `universal2` format. By default, macOS builds will build a single architecture wheel, using the build machine's architecture.
 
-### Building macOS wheels for Apple Silicon {: #macos-architectures}
-
-`cibuildwheel` supports both native builds and cross-compiling between `arm64` (Apple Silicon) and `x86_64` (Intel) architectures, including the cross-compatible `universal2` format.
+If you need to support both x86_64 and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel _will_ test x86_64 wheels (or the x86_64 slice of a `universal2` wheel) when running on Apple Silicon hardware using Rosetta 2 emulation, but it is *not* possible to test Apple Silicon wheels on x86_64 hardware.
 
 #### Overview of Mac architectures
-
-You have several choices for wheels for Python 3.8+:
 
 ##### `x86_64`
 
@@ -153,7 +147,7 @@ Regarding testing,
 
 ## Windows
 
-### Pre-requisites
+### System requirements
 
 You must have native build tools (i.e., Visual Studio) installed.
 
@@ -175,7 +169,7 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 ## iOS
 
-### Pre-requisites
+### System requirements
 
 You must be building on a macOS machine, with Xcode installed. The Xcode installation must have an iOS SDK available, with all license agreements agreed to by the user. To check if an iOS SDK is available, open the Xcode settings panel, and check the Platforms tab. This will also ensure that license agreements have been acknowledged.
 
