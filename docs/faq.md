@@ -165,10 +165,6 @@ Your build might need some compiler flags to be set through environment variable
 Consider incorporating these into your package, for example, in `setup.py` using [`extra_compile_args` or
 `extra_link_args`](https://docs.python.org/3/distutils/setupscript.html#other-options).
 
-### Python 2.7 / PyPy2 wheels
-
-See the [cibuildwheel version 1 docs](https://cibuildwheel.pypa.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
-
 ## Troubleshooting
 
 If your wheel didn't compile, you might have a mistake in your config.
@@ -229,10 +225,6 @@ skip = ["*-musllinux_i686"]
 ```
 
 Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels, builds the non-Python Rust modules once, and can cross-compile (and can build 32-bit musl, for example).
-
-### macOS: ModuleNotFoundError
-
-Calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/pypa/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
 
 ### macOS: 'No module named XYZ' errors after running cibuildwheel
 
