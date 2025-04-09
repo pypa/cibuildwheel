@@ -12,7 +12,6 @@ from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
 
-from .typing import PathOrStr
 from .util import resources
 from .util.cmd import call
 from .util.file import CIBW_CACHE_PATH, download
@@ -36,8 +35,18 @@ def _ensure_virtualenv(version: str) -> Path:
     return path
 
 
+def constraint_flags(
+    dependency_constraint: Path | None,
+) -> Sequence[str]:
+    """
+    Returns the flags to pass to pip for the given dependency constraint.
+    """
+
+    return ["-c", dependency_constraint.as_uri()] if dependency_constraint else []
+
+
 def _parse_pip_constraint_for_virtualenv(
-    dependency_constraint_flags: Sequence[PathOrStr],
+    constraint_path: Path | None,
 ) -> str:
     """
     Parses the constraints file referenced by `dependency_constraint_flags` and returns a dict where
@@ -48,10 +57,7 @@ def _parse_pip_constraint_for_virtualenv(
     If it can't get an exact version, the real constraint will be handled by the
     {macos|windows}.setup_python function.
     """
-    assert len(dependency_constraint_flags) in {0, 2}
-    if len(dependency_constraint_flags) == 2:
-        assert dependency_constraint_flags[0] == "-c"
-        constraint_path = Path(dependency_constraint_flags[1])
+    if constraint_path:
         assert constraint_path.exists()
         with constraint_path.open(encoding="utf-8") as constraint_file:
             for line_ in constraint_file:
@@ -84,7 +90,7 @@ def virtualenv(
     version: str,
     python: Path,
     venv_path: Path,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    dependency_constraint: Path | None,
     *,
     use_uv: bool,
 ) -> dict[str, str]:
@@ -103,7 +109,7 @@ def virtualenv(
         call("uv", "venv", venv_path, "--python", python)
     else:
         virtualenv_app = _ensure_virtualenv(version)
-        pip_constraint = _parse_pip_constraint_for_virtualenv(dependency_constraint_flags)
+        pip_constraint = _parse_pip_constraint_for_virtualenv(dependency_constraint)
         additional_flags = [f"--pip={pip_constraint}", "--no-setuptools", "--no-wheel"]
 
         # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual

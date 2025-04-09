@@ -5,7 +5,7 @@ import shutil
 import sys
 import tomllib
 import typing
-from collections.abc import Sequence, Set
+from collections.abc import Set
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -20,7 +20,6 @@ from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
-from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import (
@@ -33,7 +32,7 @@ from ..util.file import (
 )
 from ..util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
 from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from ..venv import virtualenv
+from ..venv import constraint_flags, virtualenv
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
@@ -226,7 +225,7 @@ def get_base_python(identifier: str) -> Path:
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    constraints_path: Path | None,
     environment: ParsedEnvironment,
     user_pyodide_version: str | None,
 ) -> dict[str, str]:
@@ -235,7 +234,7 @@ def setup_python(
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
-    env = virtualenv(python_configuration.version, base_python, venv_path, [], use_uv=False)
+    env = virtualenv(python_configuration.version, base_python, venv_path, None, use_uv=False)
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -249,7 +248,7 @@ def setup_python(
         "install",
         "--upgrade",
         "pip",
-        *dependency_constraint_flags,
+        *constraint_flags(constraints_path),
         env=env,
         cwd=venv_path,
     )
@@ -281,7 +280,7 @@ def setup_python(
         "auditwheel-emscripten",
         "build[virtualenv]",
         "pyodide-build",
-        *dependency_constraint_flags,
+        *constraint_flags(constraints_path),
         env=env,
     )
 
@@ -366,14 +365,11 @@ def build(options: Options, tmp_path: Path) -> None:
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version, variant="pyodide", tmp_dir=identifier_tmp_dir
             )
-            dependency_constraint_flags: Sequence[PathOrStr] = (
-                ["-c", constraints_path] if constraints_path else []
-            )
 
             env = setup_python(
                 tmp=identifier_tmp_dir / "build",
                 python_configuration=config,
-                dependency_constraint_flags=dependency_constraint_flags,
+                constraints_path=constraints_path,
                 environment=build_options.environment,
                 user_pyodide_version=build_options.pyodide_version,
             )

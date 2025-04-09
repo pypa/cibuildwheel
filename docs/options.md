@@ -1043,6 +1043,49 @@ Platform-specific environment variables are also available:<br/>
     [PEP 517]: https://www.python.org/dev/peps/pep-0517/
     [PEP 518]: https://www.python.org/dev/peps/pep-0517/
 
+### `CIBW_XBUILD_TOOLS` {: #xbuild-tools}
+> Binaries on the path that should be included in an isolated cross-build environment.
+
+When building in a cross-platform environment, it is sometimes necessary to isolate the ``PATH`` so that binaries from the build machine don't accidentally get linked into the cross-platform binary. However, this isolation process will also hide tools that might be required to build your wheel.
+
+If there are binaries present on the `PATH` when you invoke cibuildwheel, and those binaries are required to build your wheels, those binaries can be explicitly included in the isolated cross-build environment using `CIBW_XBUILD_TOOLS`. The binaries listed in this setting will be linked into an isolated location, and that isolated location will be put on the `PATH` of the isolated environment. You do not need to provide the full path to the binary - only the executable name that would be found by the shell.
+
+If you declare a tool as a cross-build tool, and that tool cannot be found in the runtime environment, an error will be raised.
+
+If you do not define `CIBW_XBUILD_TOOLS`, and you build for a platform that uses a cross-platform environment, a warning will be raised. If your project does not require any cross-build tools, you can set `CIBW_XBUILD_TOOLS` to an empty list to silence this warning.
+
+*Any* tool used by the build process must be included in the `CIBW_XBUILD_TOOLS` list, not just tools that cibuildwheel will invoke directly. For example, if your build invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your safe tools list.
+
+Platform-specific environment variables are also available on platforms that use cross-platform environment isolation:<br/>
+ `CIBW_XBUILD_TOOLS_IOS`
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
+    CIBW_XBUILD_TOOLS: cmake rustc
+    ```
+
+    ```yaml
+    # No cross-build tools are required
+    CIBW_XBUILD_TOOLS:
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
+    xbuild-tools = ["cmake", "rustc"]
+    ```
+
+    ```toml
+    [tool.cibuildwheel]
+    # No cross-build tools are required
+    xbuild-tools = []
+    ```
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
 > Execute a shell command to repair each built wheel
@@ -1799,9 +1842,27 @@ export CIBW_DEBUG_TRACEBACK=TRUE
 ```
 
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
-> Increase/decrease the output of pip wheel
+> Increase/decrease the output of the build
 
-A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
+This setting controls `-v`/`-q` flags to the build frontend. Since there is
+no communication between the build backend and the build frontend, build
+messages from the build backend will always be shown with `1`; higher levels
+will not produce more logging about the build itself. Other levels only affect
+the build frontend output, which is usually things like resolving and
+downloading dependencies. The settings are:
+
+|             | build | pip    | desc                             |
+|-------------|-------|--------|----------------------------------|
+| -2          | N/A   | `-qq`  | even more quiet, where supported |
+| -1          | N/A   | `-q`   | quiet mode, where supported      |
+| 0 (default) |       |        | default for build tool           |
+| 1           |       | `-v`   | print backend output             |
+| 2           | `-v`  | `-vv`  | print log messages e.g. resolving info |
+| 3           | `-vv` | `-vvv` | print even more debug info       |
+
+Settings that are not supported for a specific frontend will log a warning.
+The default build frontend is `build`, which does show build backend output by
+default.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
@@ -1811,7 +1872,7 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Increase pip debugging output
+    # Ensure that the build backend output is present
     CIBW_BUILD_VERBOSITY: 1
     ```
 
@@ -1819,7 +1880,7 @@ Platform-specific environment variables are also available:<br/>
 
     ```toml
     [tool.cibuildwheel]
-    # Increase pip debugging output
+    # Ensure that the build backend output is present
     build-verbosity = 1
     ```
 

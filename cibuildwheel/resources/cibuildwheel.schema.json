@@ -397,6 +397,21 @@
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MUSLLINUX_X86_64_IMAGE"
     },
+    "xbuild-tools": {
+      "description": "Binaries on the path that should be included in an isolated cross-build environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_XBUILD_TOOLS"
+    },
     "pyodide-version": {
       "type": "string",
       "description": "Specify the version of Pyodide to use",
@@ -556,6 +571,9 @@
               "before-build": {
                 "$ref": "#/$defs/inherit"
               },
+              "xbuild-tools": {
+                "$ref": "#/$defs/inherit"
+              },
               "before-test": {
                 "$ref": "#/$defs/inherit"
               },
@@ -663,6 +681,9 @@
           "musllinux-x86_64-image": {
             "$ref": "#/properties/musllinux-x86_64-image"
           },
+          "xbuild-tools": {
+            "$ref": "#/properties/xbuild-tools"
+          },
           "pyodide-version": {
             "$ref": "#/properties/pyodide-version"
           },
@@ -766,6 +787,9 @@
         "musllinux-x86_64-image": {
           "$ref": "#/properties/musllinux-x86_64-image"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -833,6 +857,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -886,6 +913,9 @@
         },
         "environment": {
           "$ref": "#/properties/environment"
+        },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
         },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
@@ -954,6 +984,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -1007,6 +1040,9 @@
         },
         "environment": {
           "$ref": "#/properties/environment"
+        },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
         },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"

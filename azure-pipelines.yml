@@ -7,7 +7,7 @@ pr:
 jobs:
 - job: linux_311
   timeoutInMinutes: 120
-  pool: {vmImage: 'Ubuntu-20.04'}
+  pool: {vmImage: 'Ubuntu-22.04'}
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -27,7 +27,7 @@ jobs:
     - bash: |
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
-        python ./bin/run_tests.py --num-processes 2
+        python ./bin/run_tests.py
 
 - job: windows_311
   pool: {vmImage: 'windows-2019'}
