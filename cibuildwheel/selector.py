@@ -32,6 +32,7 @@ class EnableGroup(StrEnum):
     CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     PyPy = "pypy"
+    GraalPy = "graalpy"
 
     @classmethod
     def all_groups(cls) -> frozenset["EnableGroup"]:
@@ -69,6 +70,8 @@ class BuildSelector:
         if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp314*"):
             return False
         if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp*"):
+            return False
+        if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
             return False
 
         should_build = selector_matches(self.build_config, build_id)

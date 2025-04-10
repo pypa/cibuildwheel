@@ -125,6 +125,17 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
 
     build_environment = {}
 
+    if (
+        utils.platform == "windows"
+        and method == "file"
+        and build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build"
+    ):
+        # GraalPy fails to discover its standard library when a venv is created
+        # from a virtualenv seeded executable. See
+        # https://github.com/oracle/graalpython/issues/491 and remove this once
+        # fixed upstream.
+        build_frontend_env_nouv["CIBW_SKIP"] = "gp*"
+
     for package_name, version in tool_versions.items():
         env_name = f"EXPECTED_{package_name.upper()}_VERSION"
         build_environment[env_name] = version
@@ -143,5 +154,14 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
+
+    if (
+        utils.platform == "windows"
+        and method == "file"
+        and build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build"
+    ):
+        # See reference to https://github.com/oracle/graalpython/issues/491
+        # above
+        expected_wheels = [w for w in expected_wheels if "graalpy" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
