@@ -41,8 +41,8 @@ def test(tmp_path):
     project_with_before_build_asserts.generate(project_dir)
 
     before_build = (
-        """python -c "import sys; f = open('{project}/pythonversion_bb.txt', 'w'); f.write(sys.version); f.close()" && """
-        f'''python -c "import sys; f = open('{{project}}/pythonprefix_bb.txt', 'w'); f.write({SYS_PREFIX}); f.close()"'''
+        """python -c "import pathlib, sys; pathlib.Path('{project}/pythonversion_bb.txt').write_text(sys.version)" && """
+        f'''python -c "import pathlib, sys; pathlib.Path('{{project}}/pythonprefix_bb.txt').write_text({SYS_PREFIX})"'''
     )
     frontend = "build"
     if utils.platform != "pyodide":

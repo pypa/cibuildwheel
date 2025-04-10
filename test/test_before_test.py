@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from unittest import TestCase
 
-PROJECT_DIR = Path(__file__).joinpath("..", "..").resolve()
+PROJECT_DIR = Path(__file__).parent.parent.resolve()
 
 
 class TestBeforeTest(TestCase):
@@ -39,8 +39,8 @@ def test(tmp_path, build_frontend_env):
     test_projects.new_c_project().generate(test_project_dir)
 
     before_test_steps = [
-        '''python -c "import os, sys; f = open('{project}/pythonversion_bt.txt', 'w'); f.write(sys.version); f.close()"''',
-        '''python -c "import os, sys; f = open('{project}/pythonprefix_bt.txt', 'w'); f.write(sys.prefix); f.close()"''',
+        '''python -c "import pathlib, sys; pathlib.Path('{project}/pythonversion_bt.txt').write_text(sys.version)"''',
+        '''python -c "import pathlib, sys; pathlib.Path('{project}/pythonprefix_bt.txt').write_text(sys.prefix)"''',
     ]
 
     if utils.platform == "pyodide":
