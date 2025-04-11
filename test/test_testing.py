@@ -210,8 +210,7 @@ def test_test_sources(tmp_path):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": "pytest",
-            "CIBW_TEST_COMMAND_WINDOWS": "pytest",
+            "CIBW_TEST_COMMAND": utils.invoke_pytest(),
             "CIBW_TEST_SOURCES": "test",
         },
     )
