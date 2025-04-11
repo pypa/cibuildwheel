@@ -234,10 +234,11 @@ def setup_python(
     environment: ParsedEnvironment,
     user_pyodide_version: str | None,
 ) -> dict[str, str]:
+    log.step("Installing a base python environment...")
     base_python = get_base_python(tmp / "base", python_configuration)
-    pyodide_version = user_pyodide_version or python_configuration.default_pyodide_version
 
     log.step("Setting up build environment...")
+    pyodide_version = user_pyodide_version or python_configuration.default_pyodide_version
     venv_path = tmp / "venv"
     env = virtualenv(python_configuration.version, base_python, venv_path, None, use_uv=False)
     venv_bin_path = venv_path / "bin"
