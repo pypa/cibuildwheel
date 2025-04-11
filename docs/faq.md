@@ -6,88 +6,6 @@ title: Tips and tricks
 
 ## Tips
 
-### Linux builds in containers
-
-Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 600](https://www.python.org/dev/peps/pep-0600/) / [PEP 656](https://www.python.org/dev/peps/pep-0656/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
-
--   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2014`, `apt-get` for `manylinux_2_31`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
-
-    `cibuildwheel` supports this by providing the [`CIBW_ENVIRONMENT`](options.md#environment) and [`CIBW_BEFORE_ALL`](options.md#before-all) options to setup the build environment inside the running container.
-
--   The project directory is copied into the container as `/project`, the output directory for the wheels to be copied out is `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that `/host` is not available on CircleCI and GitLab CI due to their Docker policies.
-
--   Alternative Docker images can be specified with the `CIBW_MANYLINUX_*_IMAGE`/`CIBW_MUSLLINUX_*_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#linux-image) for more details.
-
-### Building macOS wheels for Apple Silicon {: #apple-silicon}
-
-`cibuildwheel` supports both native builds and cross-compiling between `arm64` (Apple Silicon) and `x86_64` (Intel) architectures, including the cross-compatible `universal2` format.
-
-#### Overview of Mac architectures
-
-You have several choices for wheels for Python 3.8+:
-
-##### `x86_64`
-
-The traditional wheel for Apple, loads on Intel machines, and on
-Apple Silicon when running Python under Rosetta 2 emulation.
-
-Due to a change in naming, Pip 20.3+ (or an installer using packaging 20.5+)
-is required to install a binary wheel on macOS Big Sur.
-
-##### `arm64`
-
-The native wheel for macOS on Apple Silicon.
-
-Requires Pip 20.3+ (or packaging 20.5+) to install.
-
-##### `universal2`
-
-This wheel contains both architectures, causing it to be up to twice the
-size (data files do not get doubled, only compiled code). It requires
-Pip 20.3 (Packaging 20.6+) to load on Intel, and Pip 21.0.1 (Packaging 20.9+)
-to load on Apple Silicon.
-
-The dual-architecture `universal2` has a few benefits, but a key benefit
-to a universal wheel is that a user can bundle these wheels into an
-application and ship a single binary.
-
-However, if you have a large library, then you might prefer to ship
-the two single-arch wheels instead - `x86_64` and `arm64`. In rare cases,
-you might want to build all three, but in that case, pip will not download
-the universal wheels, because it prefers the most specific wheel
-available.
-
-#### What to provide?
-
-Generally speaking, because Pip 20.3 is required for the `universal2` wheel,
-most packages should provide both `x86_64` and one of `universal2`/`arm64`
-wheels. When Pip 20.3+ is common on macOS, then it might be possible to ship
-only the `universal2` wheel.
-
-Opinions vary on which of arch-specific or `universal2` wheels are best - some packagers prefer `universal2` because it's one wheel for all Mac users, so simpler, and easier to build into apps for downstream users. However, because they contain code for both architectures, their file size is larger, meaning they consume more disk space and bandwidth, and are harder to build for some projects.
-
-See [GitHub issue 1333](https://github.com/pypa/cibuildwheel/issues/1333) for more discussion.
-
-#### How?
-
-It's easiest to build `x86_64` wheels on `x86_64` runners, and `arm64` wheels on `arm64` runners.
-
-On GitHub Actions, `macos-14` runners are `arm64`, and `macos-13` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
-
-#### Cross-compiling
-
-If your CI provider doesn't offer arm64 runners yet, or you want to create `universal2`, you'll have to cross-compile. Cross-compilation can be enabled by adding extra archs to the [`CIBW_ARCHS_MACOS` option](options.md#archs) - e.g. `CIBW_ARCHS_MACOS="x86_64 universal2"`. Cross-compilation is provided by Xcode toolchain v12.2+.
-
-Regarding testing,
-
-- On an arm64 runner, it is possible to test x86_64 wheels and both parts of a universal2 wheel using Rosetta 2 emulation.
-- On an x86_64 runner, arm64 code can be compiled but it can't be tested. `cibuildwheel` will raise a warning to notify you of this - these warnings can be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: "*_arm64 *_universal2:arm64"`.
-
-!!! note
-    If your project uses **Poetry** as a build backend, cross-compiling on macOS [does not currently work](https://github.com/python-poetry/poetry/issues/7107). In some cases arm64 wheels can be built but their tags will be incorrect, with the platform tag showing `x86_64` instead of `arm64`.
-
-    As a workaround, the tag can be fixed before running delocate to repair the wheel. The [`wheel tags`](https://wheel.readthedocs.io/en/stable/reference/wheel_tags.html) command is ideal for this. See [this workflow](https://gist.github.com/anderssonjohan/49f07e33fc5cb2420515a8ac76dc0c95#file-build-pendulum-wheels-yml-L39-L53) for an example usage of `wheel tags`.
-
 ### Building Linux wheels for non-native archs using emulation  {: #emulation}
 
 cibuildwheel supports building non-native architectures on Linux, via
@@ -247,15 +165,11 @@ Your build might need some compiler flags to be set through environment variable
 Consider incorporating these into your package, for example, in `setup.py` using [`extra_compile_args` or
 `extra_link_args`](https://docs.python.org/3/distutils/setupscript.html#other-options).
 
-### Python 2.7 / PyPy2 wheels
-
-See the [cibuildwheel version 1 docs](https://cibuildwheel.pypa.io/en/1.x/) for information about building Python 2.7 or PyPy2 wheels. There are lots of tricks and workaround there that are no longer required for Python 3 in cibuildwheel 2.
-
 ## Troubleshooting
 
 If your wheel didn't compile, you might have a mistake in your config.
 
-To quickly test your config without doing a git push and waiting for your code to build on CI, you can [test the Linux build in a local Docker container](setup.md#local).
+To quickly test your config without doing a git push and waiting for your code to build on CI, you can [test the Linux build in a local Docker container](platforms.md#linux).
 
 ### Missing dependencies
 
@@ -311,10 +225,6 @@ skip = ["*-musllinux_i686"]
 ```
 
 Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels, builds the non-Python Rust modules once, and can cross-compile (and can build 32-bit musl, for example).
-
-### macOS: ModuleNotFoundError
-
-Calling cibuildwheel from a python3 script and getting a `ModuleNotFoundError`? Due to a (fixed) [bug](https://bugs.python.org/issue22490) in CPython, you'll need to [unset the `__PYVENV_LAUNCHER__` variable](https://github.com/pypa/cibuildwheel/issues/133#issuecomment-478288597) before activating a venv.
 
 ### macOS: 'No module named XYZ' errors after running cibuildwheel
 
@@ -420,11 +330,3 @@ To add the `/d2FH4-` flag to a standard `setup.py` using `setuptools`, the `extr
 ```
 
 To investigate the dependencies of a C extension (i.e., the `.pyd` file, a DLL in disguise) on Windows, [Dependency Walker](http://www.dependencywalker.com/) is a great tool. For diagnosing a failing import, the [dlltracer](https://pypi.org/project/dlltracer/) tool may also provide additional details.
-
-### Windows ARM64 builds {: #windows-arm64}
-
-`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native ARM64 runner is required for testing. On non-native runners, tests for ARM64 wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `CIBW_TEST_SKIP` setting to suppress the warning.
-
-Cross-compilation on Windows relies on a supported build backend. Supported backends use an environment variable to specify their target platform (the one they are compiling native modules for, as opposed to the one they are running on), which is set in [cibuildwheels/windows.py](https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/windows.py) before building. Currently, `setuptools>=65.4.1` and `setuptools_rust` are the only supported backends.
-
-By default, `ARM64` is not enabled when running on non-ARM64 runners. Use [`CIBW_ARCHS`](options.md#archs) to select it.

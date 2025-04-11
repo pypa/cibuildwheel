@@ -20,20 +20,18 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - User guide:
+  - Guide:
     - setup.md
-    - options.md
+    - ci-services.md
     - deliver-to-pypi.md
-    - cpp_standards.md
     - faq.md
+    - cpp_standards.md
+  - Reference:
+    - platforms.md
+    - configuration.md
+    - options.md
     - working-examples.md
-  - Supported Platforms:
-    - platforms/linux.md
-    - platforms/windows.md
-    - platforms/macos.md
-    - platforms/ios.md
-    - platforms/pyodide.md
-  - About the project:
+  - About:
     - contributing.md
     - changelog.md
 
