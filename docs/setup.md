@@ -11,6 +11,7 @@ Install cibuildwheel and run a build like this:
 ```sh
 # run using uv
 uvx cibuildwheel
+
 # or pipx
 pipx run cibuildwheel
 
