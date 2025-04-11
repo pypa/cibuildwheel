@@ -1,3 +1,4 @@
+import contextlib
 import shutil
 import subprocess
 import sys
@@ -112,3 +113,43 @@ def test_pyodide_version_incompatible(tmp_path, capfd):
     out, err = capfd.readouterr()
 
     assert "is not compatible with the pyodide-build version" in err
+
+
+@pytest.mark.parametrize("expect_failure", [True, False])
+def test_pyodide_build_and_test(tmp_path, expect_failure):
+    if sys.platform == "win32":
+        pytest.skip("emsdk doesn't work correctly on Windows")
+
+    if expect_failure:
+        basic_project.files["test/spam_test.py"] = textwrap.dedent(r"""
+            def test_filter():
+                assert 0 == 1
+        """)
+    else:
+        basic_project.files["test/spam_test.py"] = textwrap.dedent(r"""
+            import spam
+            def test_filter():
+                assert spam.filter("spam") == 0
+        """)
+    basic_project.generate(tmp_path)
+
+    context = (
+        pytest.raises(subprocess.CalledProcessError) if expect_failure else contextlib.nullcontext()
+    )
+    with context:
+        # build the wheels
+        actual_wheels = utils.cibuildwheel_run(
+            tmp_path,
+            add_args=["--platform", "pyodide"],
+            add_env={
+                "CIBW_TEST_REQUIRES": "pytest",
+                "CIBW_TEST_COMMAND": "python -m pytest",
+            },
+        )
+        # check that the expected wheels are produced
+        expected_wheels = [
+            "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
+        ]
+        print("actual_wheels", actual_wheels)
+        print("expected_wheels", expected_wheels)
+        assert set(actual_wheels) == set(expected_wheels)
