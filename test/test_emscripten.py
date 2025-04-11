@@ -1,12 +1,10 @@
 import contextlib
-import shutil
 import subprocess
 import sys
 import textwrap
 
 import pytest
 
-from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 from . import test_projects, utils
@@ -47,12 +45,6 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
     if sys.platform == "win32":
         pytest.skip("emsdk doesn't work correctly on Windows")
 
-    if not shutil.which("python3.12"):
-        pytest.skip("Python 3.12 not installed")
-
-    if detect_ci_provider() == CIProvider.travis_ci:
-        pytest.skip("Python 3.12 is just a non-working pyenv shim")
-
     if use_pyproject_toml:
         basic_project.files["pyproject.toml"] = textwrap.dedent(
             """
@@ -91,12 +83,6 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
 def test_pyodide_version_incompatible(tmp_path, capfd):
     if sys.platform == "win32":
         pytest.skip("emsdk doesn't work correctly on Windows")
-
-    if not shutil.which("python3.12"):
-        pytest.skip("Python 3.12 not installed")
-
-    if detect_ci_provider() == CIProvider.travis_ci:
-        pytest.skip("Python 3.12 is just a non-working pyenv shim")
 
     basic_project.generate(tmp_path)
 
