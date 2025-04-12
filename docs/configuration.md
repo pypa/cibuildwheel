@@ -17,7 +17,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     ```yaml
     env:
       CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest {project}/tests"
+      CIBW_TEST_COMMAND: "pytest ./tests"
     ```
 
 !!! tab "Azure Pipelines"
@@ -27,7 +27,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     ```yaml
     variables:
       CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest {project}/tests"
+      CIBW_TEST_COMMAND: "pytest ./tests"
     ```
 
 !!! tab "Travis CI"
@@ -38,7 +38,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     env:
       global:
         - CIBW_TEST_REQUIRES=pytest
-        - CIBW_TEST_COMMAND="pytest {project}/tests"
+        - CIBW_TEST_COMMAND="pytest ./tests"
     ```
 
 !!! tab "AppVeyor"
@@ -61,7 +61,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
       job_name:
         environment:
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: "pytest {project}/tests"
+          CIBW_TEST_COMMAND: "pytest ./tests"
     ```
 
 !!! tab "Gitlab CI"
@@ -72,7 +72,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     linux:
       variables:
         CIBW_TEST_REQUIRES: pytest
-        CIBW_TEST_COMMAND: "pytest {project}/tests"
+        CIBW_TEST_COMMAND: "pytest ./tests"
     ```
 
 !!! tab "Cirrus CI"
@@ -82,7 +82,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     ```yaml
     env:
       CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest {project}/tests"
+      CIBW_TEST_COMMAND: "pytest ./tests"
     ```
 
 ## Configuration file {: #configuration-file}
@@ -101,7 +101,7 @@ The example above using environment variables could have been written like this:
 ```toml
 [tool.cibuildwheel]
 test-requires = "pytest"
-test-command = "pytest {project}/tests"
+test-command = "pytest ./tests"
 ```
 
 The complete set of defaults for the current version of cibuildwheel are shown below:

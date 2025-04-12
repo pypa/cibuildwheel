@@ -26,7 +26,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
     ```bash
     export CIBW_BUILD='cp37-*'
-    export CIBW_TEST_COMMAND='pytest {package}/tests'
+    export CIBW_TEST_COMMAND='pytest ./tests'
     cibuildwheel --platform linux .
     ```
 
@@ -1223,13 +1223,18 @@ automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
 By default, tests are executed from your project directory. When specifying
-`CIBW_TEST_COMMAND`, you can use the placeholders `{project}` and `{package}` to
-pass in the location of your test code:
+`CIBW_TEST_COMMAND`, you can optionally use the placeholders `{package}` and
+`{project}` to pass in the location of your test code:
 
-- `{project}` is an absolute path to the project root - the working directory
-  where cibuildwheel was called.
 - `{package}` is the path to the package being built - the `package_dir`
   argument supplied to cibuildwheel on the command line.
+- `{project}` is an absolute path to the project root - the working directory
+  where cibuildwheel was called.
+
+Using `{package}` or `{project}` used to be required, but since cibuildwheel
+3.0, tests are run from the project root by default. This means that you can
+use relative paths in your test command, and they will be relative to the
+project root.
 
 Alternatively, you can use the [`CIBW_TEST_SOURCES`](#test-sources) setting to
 create a temporary folder populated with a specific subset of project files to
@@ -1248,15 +1253,15 @@ Platform-specific environment variables are also available:<br/>
 
     ```yaml
     # Run the package tests using `pytest`
-    CIBW_TEST_COMMAND: pytest {package}/tests
+    CIBW_TEST_COMMAND: pytest ./tests
 
     # Trigger an install of the package, but run nothing of note
     CIBW_TEST_COMMAND: "echo Wheel installed"
 
     # Multi-line example - join with && on all platforms
     CIBW_TEST_COMMAND: >
-      pytest {package}/tests &&
-      python {package}/test.py
+      pytest ./tests &&
+      python ./test.py
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1264,27 +1269,19 @@ Platform-specific environment variables are also available:<br/>
     ```toml
     [tool.cibuildwheel]
     # Run the package tests using `pytest`
-    test-command = "pytest {package}/tests"
+    test-command = "pytest ./tests"
 
     # Trigger an install of the package, but run nothing of note
     test-command = "echo Wheel installed"
 
     # Multiline example
     test-command = [
-      "pytest {package}/tests",
-      "python {package}/test.py",
+      "pytest ./tests",
+      "python ./test.py",
     ]
     ```
 
     In configuration files, you can use an array, and the items will be joined with `&&`.
-
-!!! note
-
-    It isn't recommended to `cd` to your project directory before running tests,
-    because Python might resolve `import yourpackage` relative to the working dir,
-    and we want to test the wheel you just built. However, if you're sure that's not
-    an issue for you and your workflow requires it, on Windows you should do `cd /d`,
-    because the CWD and project dir might be on different drives.
 
 ### `CIBW_BEFORE_TEST` {: #before-test}
 > Execute a shell command before testing each wheel
