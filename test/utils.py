@@ -8,7 +8,7 @@ import os
 import platform as pm
 import subprocess
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Final
@@ -165,7 +165,7 @@ def expected_wheels(
     single_arch: bool = False,
 ) -> list[str]:
     """
-    Returns a list of expected wheels from a run of cibuildwheel.
+    Returns the expected wheels from a run of cibuildwheel.
     """
     if machine_arch is None:
         machine_arch = pm.machine()
@@ -186,22 +186,21 @@ def expected_wheels(
         elif platform == "windows" and machine_arch == "AMD64":
             architectures.append("x86")
 
-    wheels: list[str] = []
-    for architecture in architectures:
-        wheels.extend(
-            _expected_wheels(
-                package_name,
-                package_version,
-                architecture,
-                manylinux_versions,
-                musllinux_versions,
-                macosx_deployment_target,
-                python_abi_tags,
-                include_universal2,
-                single_python,
-            )
+    return [
+        wheel
+        for architecture in architectures
+        for wheel in _expected_wheels(
+            package_name,
+            package_version,
+            architecture,
+            manylinux_versions,
+            musllinux_versions,
+            macosx_deployment_target,
+            python_abi_tags,
+            include_universal2,
+            single_python,
         )
-    return wheels
+    ]
 
 
 def _expected_wheels(
@@ -214,7 +213,7 @@ def _expected_wheels(
     python_abi_tags: list[str] | None,
     include_universal2: bool,
     single_python: bool,
-) -> list[str]:
+) -> Generator[str, None, None]:
     """
     Returns a list of expected wheels from a run of cibuildwheel.
     """
@@ -264,13 +263,12 @@ def _expected_wheels(
             )
         ]
 
-    wheels = []
-
     if platform == "pyodide":
         assert len(python_abi_tags) == 1
         python_abi_tag = python_abi_tags[0]
         platform_tag = "pyodide_2024_0_wasm32"
-        return [f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"]
+        yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
+        return
 
     for python_abi_tag in python_abi_tags:
         platform_tags = []
@@ -321,9 +319,7 @@ def _expected_wheels(
             raise Exception(msg)
 
         for platform_tag in platform_tags:
-            wheels.append(f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl")
-
-    return wheels
+            yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
 
 
 def get_macos_version() -> tuple[int, int]:
