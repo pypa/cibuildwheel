@@ -6,6 +6,11 @@ on:
       - main
       - 2.x
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
     paths-ignore:
       - 'docs/**'
       - .pre-commit-config.yaml
@@ -51,6 +56,15 @@ jobs:
         allow-prereleases: true
 
     - uses: astral-sh/setup-uv@v5
+
+    - uses: joerick/pr-labels-action@v1.0.9
+    - name: Set CIBW_ENABLE
+      run: |
+        CIBW_ENABLE = "cpython-prerelease cpython-freethreading"
+        if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
+          CIBW_ENABLE += " pypy"
+        fi
+        echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
     # free some space to prevent reaching GHA disk space limits
     - name: Clean docker images
