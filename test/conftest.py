@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from collections.abc import Generator
 
@@ -28,6 +29,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="macOS cp38 uses the universal2 installer",
     )
+    parser.addoption(
+        "--enable",
+        action="append",
+        default=["cypython-prerelease", "cpython-freethreading"],
+        help="add an EnableGroup to the test run",
+    )
+
+    # default to just cpython
+    os.environ.setdefault("CIBW_ENABLE", "cpython-freethreading cpython-prerelease")
 
 
 def docker_warmup(request: pytest.FixtureRequest) -> None:

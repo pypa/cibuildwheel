@@ -46,7 +46,8 @@ else:
 
 
 def cibuildwheel_get_build_identifiers(
-    project_path: Path, env: dict[str, str] | None = None, *, prerelease_pythons: bool = False
+    project_path: Path,
+    env: dict[str, str] | None = None,
 ) -> list[str]:
     """
     Returns the list of build identifiers that cibuildwheel will try to build
@@ -55,9 +56,6 @@ def cibuildwheel_get_build_identifiers(
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
     if env is None:
         env = os.environ.copy()
-    env["CIBW_ENABLE"] = "cpython-freethreading pypy"
-    if prerelease_pythons:
-        env["CIBW_ENABLE"] += " cpython-prerelease"
 
     cmd_output = subprocess.run(
         cmd,
@@ -120,8 +118,6 @@ def cibuildwheel_run(
         env.update(add_env)
 
     _update_pip_cache_dir(env)
-
-    env["CIBW_ENABLE"] = " ".join(EnableGroup.all_groups())
 
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
@@ -222,6 +218,8 @@ def _expected_wheels(
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
+    enable_groups = {EnableGroup(e) for e in os.environ["CIBW_ENABLE"].split()}
+
     if manylinux_versions is None:
         manylinux_versions = {
             "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
@@ -242,10 +240,15 @@ def _expected_wheels(
             "cp311-cp311",
             "cp312-cp312",
             "cp313-cp313",
-            "cp313-cp313t",
         ]
 
-        if machine_arch in ["x86_64", "i686", "AMD64", "aarch64", "arm64"]:
+        if EnableGroup.CPythonFreeThreading in enable_groups:
+            python_abi_tags += [
+                "cp313-cp313t",
+            ]
+
+        pypy_archs = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
+        if EnableGroup.PyPy in enable_groups and machine_arch in pypy_archs:
             python_abi_tags += [
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
