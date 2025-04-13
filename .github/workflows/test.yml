@@ -59,10 +59,15 @@ jobs:
 
     - uses: joerick/pr-labels-action@v1.0.9
     - name: Set CIBW_ENABLE
+      shell: bash
       run: |
-        CIBW_ENABLE = "cpython-prerelease cpython-freethreading"
-        if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
-          CIBW_ENABLE += " pypy"
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          CIBW_ENABLE="cpython-prerelease cpython-freethreading pypy"
+        else
+          CIBW_ENABLE="cpython-prerelease cpython-freethreading"
+          if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
+            CIBW_ENABLE+=" pypy"
+          fi
         fi
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
