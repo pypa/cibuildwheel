@@ -43,7 +43,8 @@ def test_abi3(tmp_path):
         add_env={
             # free_threaded and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
             # also limit the number of builds for test performance reasons
-            "CIBW_BUILD": f"cp39-* cp310-* pp310-* {single_python_tag}-* cp313t-*"
+            "CIBW_BUILD": f"cp39-* cp310-* pp310-* {single_python_tag}-* cp313t-*",
+            "CIBW_ENABLE": "all",
         },
     )
 
@@ -183,6 +184,7 @@ def test_abi_none(tmp_path, capfd):
             "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} ./test",
             # limit the number of builds for test performance reasons
             "CIBW_BUILD": "cp38-* cp{}{}-* cp313t-* pp310-*".format(*utils.SINGLE_PYTHON_VERSION),
+            "CIBW_ENABLE": "all",
         },
     )
 
