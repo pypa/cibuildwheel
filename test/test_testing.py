@@ -80,8 +80,8 @@ def test(tmp_path):
             "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest ./test",
         },
     )
 
@@ -101,8 +101,8 @@ def test_extras_require(tmp_path):
             "CIBW_TEST_EXTRAS": "test",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest ./test",
         },
         single_python=True,
     )
@@ -133,8 +133,8 @@ def test_dependency_groups(tmp_path):
             "CIBW_TEST_GROUPS": "dev",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest {project}/test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || pytest ./test",
         },
         single_python=True,
     )
@@ -166,7 +166,7 @@ def test_failing_test(tmp_path):
             output_dir=output_dir,
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
-                "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
+                "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} ./test",
                 # CPython 3.8 when running on macOS arm64 is unusual. The build
                 # always runs in x86_64, so the arm64 tests are not run. See
                 # #1169 for reasons why. That means the build succeeds, which

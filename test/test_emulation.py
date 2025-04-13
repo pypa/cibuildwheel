@@ -32,7 +32,7 @@ def test(tmp_path, request):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": "pytest {project}/test",
+            "CIBW_TEST_COMMAND": "pytest ./test",
             "CIBW_ARCHS": archs,
         },
     )

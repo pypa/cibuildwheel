@@ -58,3 +58,54 @@ while (true) {
   // this will catch infinite loops which can occur when editing the above
   if (tabConversionIterations++ > 1000) throw 'too many iterations'
 }
+
+/**
+ * Redirects the current page based on the path and fragment identifier (hash) in the URL.
+ *
+ * Example usage:
+ * fragmentRedirect([
+ *  { source: 'setup/#github-actions', destination: 'ci-services' }
+ *  { source: 'faq/#macosx', destination: 'platforms#apple' }
+ * ])
+ */
+function fragmentRedirect(redirects) {
+  const href = window.location.href;
+  const hash = window.location.hash;
+
+  for (const redirect of redirects) {
+    const source = redirect.source;
+    const destination = redirect.destination;
+
+    if (endswith(href, source)) {
+      // Redirect to the destination path, with the same fragment identifier
+      // specified in the destination path, otherwise, keep the same hash
+      // from the current URL.
+      const destinationIncludesHash = destination.includes('#');
+      let newUrl = href.replace(source, destination);
+      if (!destinationIncludesHash) {
+        newUrl += hash;
+      }
+      console.log('Redirecting to:', newUrl);
+      window.location.replace(newUrl);
+      return
+    }
+  }
+}
+
+function endswith(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+
+fragmentRedirect([
+  { source: 'setup/#github-actions', destination: 'ci-services/' },
+  { source: 'setup/#azure-pipelines', destination: 'ci-services/' },
+  { source: 'setup/#travis-ci', destination: 'ci-services/' },
+  { source: 'setup/#appveyor', destination: 'ci-services/' },
+  { source: 'setup/#circleci', destination: 'ci-services/' },
+  { source: 'setup/#gitlab-ci', destination: 'ci-services/' },
+  { source: 'setup/#cirrus-ci', destination: 'ci-services/' },
+
+  { source: 'faq/#linux-builds-in-containers', destination: 'platforms/#linux-containers' },
+  { source: 'faq/#apple-silicon', destination: 'platforms/#macos-architectures' },
+  { source: 'faq/#windows-arm64', destination: 'platforms/#windows-arm64' },
+]);
