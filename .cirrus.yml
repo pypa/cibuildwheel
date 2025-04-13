@@ -77,7 +77,7 @@ macos_arm64_cp38_task:
   env:
     VENV_ROOT: ${HOME}/venv-cibuildwheel
     PATH: ${VENV_ROOT}/bin:${PATH}
-    PYTEST_ADDOPTS: --run-cp38-universal2 -k 'test_cp38_arm64_testing_universal2_installer or test_arch_auto'
+    PYTEST_ADDOPTS: --run-cp38-universal2 -k 'test_cp38_arm64_testing_universal2_installer or test_arch_auto or test_dummy_serial'
   install_pre_requirements_script:
     - brew install python@3.12
     - python3.12 -m venv ${VENV_ROOT}
