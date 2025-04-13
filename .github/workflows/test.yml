@@ -62,7 +62,7 @@ jobs:
       shell: bash
       run: |
         if [[ "${{ github.ref_name }}" == "main" ]]; then
-          CIBW_ENABLE="cpython-prerelease cpython-freethreading pypy"
+          CIBW_ENABLE="all"
         else
           CIBW_ENABLE="cpython-prerelease cpython-freethreading"
           if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then

@@ -317,7 +317,7 @@ values are:
   The build identifiers for those variants have a `t` suffix in their
   `python_tag` (e.g. `cp313t-manylinux_x86_64`).
 - `pypy`: Enable PyPy.
-
+- `all`: Enable all of the above.
 
 !!! caution
     `cpython-prerelease` is provided for testing purposes only. It is not

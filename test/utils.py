@@ -218,7 +218,7 @@ def _expected_wheels(
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
-    enable_groups = {EnableGroup(e) for e in os.environ["CIBW_ENABLE"].split()}
+    enable_groups = EnableGroup.parse_option_value(os.environ.get("CIBW_ENABLE", ""))
 
     if manylinux_versions is None:
         manylinux_versions = {
