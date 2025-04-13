@@ -62,7 +62,7 @@ windows_x86_task:
 
 macos_arm64_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-runner:sonoma
+    image: ghcr.io/cirruslabs/macos-runner:sequoia
   env:
     VENV_ROOT: ${HOME}/venv-cibuildwheel
     PATH: ${VENV_ROOT}/bin:${PATH}
@@ -73,7 +73,7 @@ macos_arm64_task:
 
 macos_arm64_cp38_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-runner:sonoma
+    image: ghcr.io/cirruslabs/macos-runner:sequoia
   env:
     VENV_ROOT: ${HOME}/venv-cibuildwheel
     PATH: ${VENV_ROOT}/bin:${PATH}
