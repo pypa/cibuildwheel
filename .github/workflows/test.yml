@@ -64,6 +64,11 @@ jobs:
       if: runner.os == 'Linux'
       uses: docker/setup-qemu-action@v3
 
+    # for Win ARM which doesn't have Cryptography wheels yet
+    - name: Install Rust tools on Windows ARM
+      if: matrix.os == 'windows-11-arm'
+      uses: moonrepo/setup-rust@v1
+
     - name: Install dependencies
       run: |
         uv sync --no-dev --group test
