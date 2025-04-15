@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from unittest import TestCase
 
-PROJECT_DIR = Path(__file__).joinpath("..", "..").resolve()
+PROJECT_DIR = Path(__file__).parent.parent.resolve()
 
 
 class TestBeforeTest(TestCase):
@@ -39,8 +39,8 @@ def test(tmp_path, build_frontend_env):
     test_projects.new_c_project().generate(test_project_dir)
 
     before_test_steps = [
-        '''python -c "import os, sys; open('{project}/pythonversion_bt.txt', 'w').write(sys.version)"''',
-        '''python -c "import os, sys; open('{project}/pythonprefix_bt.txt', 'w').write(sys.prefix)"''',
+        '''python -c "import pathlib, sys; pathlib.Path('{project}/pythonversion_bt.txt').write_text(sys.version)"''',
+        '''python -c "import pathlib, sys; pathlib.Path('{project}/pythonprefix_bt.txt').write_text(sys.prefix)"''',
     ]
 
     if utils.platform == "pyodide":
@@ -63,7 +63,9 @@ def test(tmp_path, build_frontend_env):
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
             "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
-            "CIBW_TEST_COMMAND_WINDOWS": "pytest ./test",
+            # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
+            # until https://github.com/oracle/graalpython/issues/490 is fixed
+            "CIBW_TEST_COMMAND_WINDOWS": "where graalpy || pytest ./test",
             **build_frontend_env,
         },
     )

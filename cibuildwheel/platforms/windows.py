@@ -123,6 +123,20 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     return installation_path / "python.exe"
 
 
+def install_graalpy(tmp: Path, url: str) -> Path:
+    zip_filename = url.rsplit("/", 1)[-1]
+    extension = ".zip"
+    assert zip_filename.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / zip_filename[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            graalpy_zip = tmp / zip_filename
+            download(url, graalpy_zip)
+            # Extract to the parent directory because the zip file still contains a directory
+            extract_zip(graalpy_zip, installation_path.parent)
+    return installation_path / "bin" / "graalpy.exe"
+
+
 def setup_setuptools_cross_compile(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -239,6 +253,8 @@ def setup_python(
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
         base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
+    elif implementation_id.startswith("gp"):
+        base_python = install_graalpy(tmp, python_configuration.url or "")
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
@@ -314,6 +330,49 @@ def setup_python(
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
+    if implementation_id.startswith("gp"):
+        # GraalPy fails to discover compilers, setup the relevant environment
+        # variables. Adapted from
+        # https://github.com/microsoft/vswhere/wiki/Start-Developer-Command-Prompt
+        # Remove when https://github.com/oracle/graalpython/issues/492 is fixed.
+        vcpath = subprocess.check_output(
+            [
+                Path(os.environ["PROGRAMFILES(X86)"])
+                / "Microsoft Visual Studio"
+                / "Installer"
+                / "vswhere.exe",
+                "-products",
+                "*",
+                "-latest",
+                "-property",
+                "installationPath",
+            ],
+            text=True,
+        ).strip()
+        log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
+        env.update(
+            dict(
+                [
+                    envvar.strip().split("=", 1)
+                    for envvar in subprocess.check_output(
+                        [
+                            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
+                            "-no_logo",
+                            "-arch=amd64",
+                            "-host_arch=amd64",
+                            "&&",
+                            "set",
+                        ],
+                        shell=True,
+                        text=True,
+                        env=env,
+                    )
+                    .strip()
+                    .split("\n")
+                ]
+            )
+        )
+
     return base_python, env
 
 
@@ -342,6 +401,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+
             use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             log.build_start(config.identifier)
 
@@ -390,6 +450,22 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
 
+                if (
+                    config.identifier.startswith("gp")
+                    and build_frontend.name == "build"
+                    and "--no-isolation" not in extra_flags
+                    and "-n" not in extra_flags
+                ):
+                    # GraalPy fails to discover its standard library when a venv is created
+                    # from a virtualenv seeded executable. See
+                    # https://github.com/oracle/graalpython/issues/491 and remove this once
+                    # fixed upstream.
+                    log.notice(
+                        "Disabling build isolation to workaround GraalPy bug. If the build fails, consider using pip or build[uv] as build frontend."
+                    )
+                    shell("graalpy -m pip install setuptools wheel", env=env)
+                    extra_flags = [*extra_flags, "-n"]
+
                 build_env = env.copy()
                 if pip_version is not None:
                     build_env["VIRTUALENV_PIP"] = pip_version
@@ -414,6 +490,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
                     if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
                         extra_flags.append("--installer=uv")
+
                     call(
                         "python",
                         "-m",
