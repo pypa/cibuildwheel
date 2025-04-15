@@ -37,6 +37,7 @@ DEFAULT_OCI_PLATFORM = {
     "s390x": OCIPlatform.S390X,
     "aarch64": OCIPlatform.ARM64,
     "arm64": OCIPlatform.ARM64,
+    "ARM64": OCIPlatform.ARM64,
 }[pm]
 
 PODMAN = OCIContainerEngineConfig(name="podman")

@@ -64,18 +64,13 @@ jobs:
       if: runner.os == 'Linux'
       uses: docker/setup-qemu-action@v3
 
-    # for Win ARM which doesn't have Cryptography wheels yet
-    - name: Install Rust tools on Windows ARM
-      if: matrix.os == 'windows-11-arm'
-      uses: actions-rust-lang/setup-rust-toolchain@v1
-
     - name: Install dependencies
       run: |
         uv sync --no-dev --group test
 
     - name: Generate a sample project
       run: |
-        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+        uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -127,7 +122,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        uv run bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
+        uv run --no-sync bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures
@@ -146,7 +141,7 @@ jobs:
     - name: Get qemu emulated architectures
       id: archs
       run: |
-        OUTPUT=$(uv run python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
+        OUTPUT=$(uv run --no-sync python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
         echo "${OUTPUT}"
         echo "archs=${OUTPUT}" >> "$GITHUB_OUTPUT"
 
@@ -171,7 +166,7 @@ jobs:
       uses: docker/setup-qemu-action@v3
 
     - name: Run the emulation tests
-      run: uv run pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
+      run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
     name: Test cibuildwheel building Pyodide wheels
@@ -191,7 +186,7 @@ jobs:
 
     - name: Generate a sample project
       run: |
-        uv run -m test.test_projects test.test_0_basic.basic_project sample_proj
+        uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -203,6 +198,6 @@ jobs:
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |
-        uv run ./bin/run_tests.py
+        uv run --no-sync ./bin/run_tests.py
       env:
         CIBW_PLATFORM: pyodide
