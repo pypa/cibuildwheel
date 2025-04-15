@@ -1242,7 +1242,7 @@ run your test suite.
 
 On all platforms other than iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On iOS, the value of the `CIBW_TEST_COMMAND` setting is interpreted as the arguments to pass to `python -m` - that is, a Python module name, followed by arguments that will be assigned to `sys.argv`. Shell commands cannot be used.
+On iOS, the value of the `CIBW_TEST_COMMAND` setting should follow the format `python -m MODULE [...ARGS]` - where MODULE is a Python module name, followed by arguments that will be assigned to `sys.argv`. Shell commands cannot be used.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
@@ -1262,6 +1262,10 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_COMMAND: >
       pytest ./tests &&
       python ./test.py
+
+    # run tests on ios
+    CIBW_TEST_SOURCES_IOS: tests
+    CIBW_TEST_COMMAND_IOS: python -m pytest ./tests
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1279,6 +1283,11 @@ Platform-specific environment variables are also available:<br/>
       "pytest ./tests",
       "python ./test.py",
     ]
+
+    # run tests on ios
+    [tool.cibuildwheel.ios]
+    test-sources = ["tests"]
+    test-command = "python -m pytest ./tests"
     ```
 
     In configuration files, you can use an array, and the items will be joined with `&&`.

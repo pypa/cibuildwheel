@@ -73,7 +73,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
             "CIBW_BUILD": "cp313-*",
             "CIBW_XBUILD_TOOLS": "does-exist",
             "CIBW_TEST_SOURCES": "tests",
-            "CIBW_TEST_COMMAND": "unittest discover tests test_platform.py",
+            "CIBW_TEST_COMMAND": "python -m unittest discover tests test_platform.py",
             "CIBW_BUILD_VERBOSITY": "1",
             **build_config,
         },
@@ -119,7 +119,7 @@ def test_no_test_sources(tmp_path, capfd):
             add_env={
                 "CIBW_PLATFORM": "ios",
                 "CIBW_BUILD": "cp313-*",
-                "CIBW_TEST_COMMAND": "tests",
+                "CIBW_TEST_COMMAND": "python -m tests",
             },
         )
 
@@ -146,7 +146,7 @@ def test_missing_xbuild_tool(tmp_path, capfd):
             add_env={
                 "CIBW_PLATFORM": "ios",
                 "CIBW_BUILD": "cp313-*",
-                "CIBW_TEST_COMMAND": "tests",
+                "CIBW_TEST_COMMAND": "python -m tests",
                 "CIBW_XBUILD_TOOLS": "does-not-exist",
             },
         )
