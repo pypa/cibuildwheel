@@ -11,6 +11,7 @@ Each platform that cibuildwheel supports has its own prerequisites and platform-
 * [Linux](./platforms/linux.md)
 * [Windows](./platforms/windows.md)
 * [macOS](./platforms/macos.md)
+* [Android](./platforms/android.md)
 * [iOS](./platforms/ios.md)
 * [Experimental: Pyodide (WebAssembly)](./platforms/pyodide.md)
 
@@ -119,7 +120,7 @@ Commit this file, and push to GitHub - either to your default branch, or to a PR
 
 For more info on this file, check out the [docs](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions).
 
-[`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml) extends this minimal example to include iOS and Pyodide builds, and a demonstration of how to automatically upload the built wheels to PyPI.
+[`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml) extends this minimal example to include Android, iOS and Pyodide builds, and a demonstration of how to automatically upload the built wheels to PyPI.
 
 
 ### Azure Pipelines [linux/mac/windows] {: #azure-pipelines}

@@ -31,6 +31,7 @@ nav:
     - platforms/linux.md
     - platforms/windows.md
     - platforms/macos.md
+    - platforms/android.md
     - platforms/ios.md
     - platforms/pyodide.md
   - About the project:
