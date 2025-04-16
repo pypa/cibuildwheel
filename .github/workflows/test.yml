@@ -35,6 +35,7 @@ jobs:
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-15]
         python_version: ['3.13']
