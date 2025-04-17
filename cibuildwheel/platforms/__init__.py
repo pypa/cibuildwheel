@@ -6,7 +6,7 @@ from typing import Final, Protocol
 
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.options import Options
-from cibuildwheel.platforms import ios, linux, macos, pyodide, windows
+from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
 from cibuildwheel.selector import BuildSelector
 from cibuildwheel.typing import GenericPythonConfiguration, PlatformName
 
@@ -28,6 +28,7 @@ ALL_PLATFORM_MODULES: Final[dict[PlatformName, PlatformModule]] = {
     "windows": windows,
     "macos": macos,
     "pyodide": pyodide,
+    "android": android,
     "ios": ios,
 }
 

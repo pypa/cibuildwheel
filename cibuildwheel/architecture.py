@@ -17,13 +17,14 @@ PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "macos": "macOS",
     "windows": "Windows",
     "pyodide": "Pyodide",
+    "android": "Android",
     "ios": "iOS",
 }
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
-    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64"},
+    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64", "android": "x86_64"},
     {"linux": "i686", "macos": None, "windows": "x86"},
-    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64"},
+    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64", "android": "arm64_v8a"},
 ]
 
 
@@ -42,7 +43,7 @@ def _check_aarch32_el0() -> bool:
 
 @typing.final
 class Architecture(StrEnum):
-    # mac/linux archs
+    # mac/linux/android archs
     x86_64 = auto()
 
     # linux archs
@@ -63,6 +64,9 @@ class Architecture(StrEnum):
 
     # WebAssembly
     wasm32 = auto()
+
+    # android archs
+    arm64_v8a = auto()
 
     # iOS "multiarch" architectures that include both
     # the CPU architecture and the ABI.
@@ -171,6 +175,7 @@ class Architecture(StrEnum):
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
             "pyodide": {Architecture.wasm32},
+            "android": {Architecture.x86_64, Architecture.arm64_v8a},
             "ios": {
                 Architecture.x86_64_iphonesimulator,
                 Architecture.arm64_iphonesimulator,
