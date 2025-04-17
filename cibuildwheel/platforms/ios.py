@@ -5,6 +5,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import textwrap
 from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,7 +24,6 @@ from ..frontend import (
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
-from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import (
@@ -38,7 +38,7 @@ from ..util.packaging import (
     find_compatible_wheel,
     get_pip_version,
 )
-from ..venv import virtualenv
+from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
 
 
@@ -150,7 +150,8 @@ def cross_virtualenv(
     multiarch: str,
     build_python: Path,
     venv_path: Path,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    dependency_constraint: Path | None,
+    xbuild_tools: Sequence[str] | None,
 ) -> dict[str, str]:
     """Create a cross-compilation virtual environment.
 
@@ -176,15 +177,17 @@ def cross_virtualenv(
     :param build_python: The path to the python binary for the build platform
     :param venv_path: The path where the cross virtual environment should be
         created.
-    :param dependency_constraint_flags: Any flags that should be used when
-        constraining dependencies in the environment.
+    :param dependency_constraint: A path to a constraint file that should be
+        used when constraining dependencies in the environment.
+    :param xbuild_tools: A list of executable names (without paths) that are
+        on the path, but must be preserved in the cross environment.
     """
     # Create an initial macOS virtual environment
     env = virtualenv(
         py_version,
         build_python,
         venv_path,
-        dependency_constraint_flags,
+        dependency_constraint,
         use_uv=False,
     )
 
@@ -210,14 +213,52 @@ def cross_virtualenv(
     #
     # To prevent problems, set the PATH to isolate the build environment from
     # sources that could introduce incompatible binaries.
+    #
+    # However, there may be some tools on the path that are needed for the
+    # build. Find their location on the path, and link the underlying binaries
+    # (fully resolving symlinks) to a "safe" location that will *only* contain
+    # those tools. This avoids needing to add *all* of Homebrew to the path just
+    # to get access to (for example) cmake for build purposes. A value of None
+    # means the user hasn't provided a list of xbuild tools.
+    xbuild_tools_path = venv_path / "cibw_xbuild_tools"
+    xbuild_tools_path.mkdir()
+    if xbuild_tools is None:
+        log.warning(
+            textwrap.dedent(
+                """
+                Your project configuration does not define any cross-build tools.
+
+                iOS builds use an isolated build environment; if your build process requires any
+                third-party tools (such as cmake, ninja, or rustc), you must explicitly declare
+                that those tools are required using xbuild-tools/CIBW_XBUILD_TOOLS. This will
+                likely manifest as a "somebuildtool: command not found" error.
+
+                If the build succeeds, you can silence this warning by setting adding
+                `xbuild-tools = []` to your pyproject.toml configuration, or exporting
+                CIBW_XBUILD_TOOLS as an empty string into your environment.
+                """
+            )
+        )
+    else:
+        for tool in xbuild_tools:
+            tool_path = shutil.which(tool)
+            if tool_path is None:
+                msg = f"Could not find a {tool!r} executable on the path."
+                raise errors.FatalError(msg)
+
+            # Link the binary into the safe tools directory
+            original = Path(tool_path).resolve()
+            print(f"{tool!r} will be included in the cross-build environment (using {original})")
+            (xbuild_tools_path / tool).symlink_to(original)
+
     env["PATH"] = os.pathsep.join(
         [
             # The target python's binary directory
             str(target_python.parent),
-            # The cross-platform environments binary directory
+            # The cross-platform environment's binary directory
             str(venv_path / "bin"),
-            # Cargo's binary directory (to allow for Rust compilation)
-            str(Path.home() / ".cargo" / "bin"),
+            # The directory of cross-build tools
+            str(xbuild_tools_path),
             # The bare minimum Apple system paths.
             "/usr/bin",
             "/bin",
@@ -235,10 +276,12 @@ def cross_virtualenv(
 
 def setup_python(
     tmp: Path,
+    *,
     python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    dependency_constraint: Path | None,
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
+    xbuild_tools: Sequence[str] | None,
 ) -> tuple[Path, dict[str, str]]:
     if build_frontend == "build[uv]":
         msg = "uv doesn't support iOS"
@@ -290,7 +333,8 @@ def setup_python(
         multiarch=python_configuration.multiarch,
         build_python=build_python,
         venv_path=venv_path,
-        dependency_constraint_flags=dependency_constraint_flags,
+        dependency_constraint=dependency_constraint,
+        xbuild_tools=xbuild_tools,
     )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
@@ -306,7 +350,7 @@ def setup_python(
         "install",
         "--upgrade",
         "pip",
-        *dependency_constraint_flags,
+        *constraint_flags(dependency_constraint),
         env=env,
         cwd=venv_path,
     )
@@ -352,7 +396,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     else:
@@ -408,16 +452,14 @@ def build(options: Options, tmp_path: Path) -> None:
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version, tmp_dir=identifier_tmp_dir
             )
-            dependency_constraint_flags: Sequence[PathOrStr] = (
-                ["-c", constraints_path] if constraints_path else []
-            )
 
             target_install_path, env = setup_python(
                 identifier_tmp_dir / "build",
-                config,
-                dependency_constraint_flags,
-                build_options.environment,
-                build_frontend.name,
+                python_configuration=config,
+                dependency_constraint=constraints_path,
+                environment=build_options.environment,
+                build_frontend=build_frontend.name,
+                xbuild_tools=build_options.xbuild_tools,
             )
             pip_version = get_pip_version(env)
 

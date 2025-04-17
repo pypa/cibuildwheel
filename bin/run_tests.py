@@ -8,7 +8,11 @@ import sys
 from pathlib import Path
 
 if __name__ == "__main__":
-    default_cpu_count = os.cpu_count() or 2
+    if sys.version_info < (3, 13):
+        default_cpu_count = os.cpu_count() or 2
+    else:
+        default_cpu_count = os.process_cpu_count() or 2
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--run-podman", action="store_true", default=False, help="run podman tests (linux only)"

@@ -1,12 +1,16 @@
 import os
 import platform as platform_module
 import textwrap
+import unittest.mock
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.bashlex_eval import local_environment_executor
+from cibuildwheel.frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from cibuildwheel.logger import Logger
 from cibuildwheel.options import (
     CommandLineArguments,
     Options,
@@ -570,3 +574,75 @@ def test_deprecated_image(
         assert f"{resolved_image!r}" in captured.err
     else:
         assert "Deprecated image" not in captured.err
+
+
+@pytest.mark.parametrize(
+    ("frontend", "verbosity", "result"),
+    [
+        ("pip", 3, ["-Ca", "-Cb", "-1", "-vvv"]),
+        ("pip", 2, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pip", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("build", 0, ["-Ca", "-Cb", "-1"]),
+        ("build", 1, ["-Ca", "-Cb", "-1"]),
+        ("build", 2, ["-Ca", "-Cb", "-1", "-v"]),
+        ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+    ],
+)
+def test_get_build_frontend_extra_flags(
+    frontend: Literal["pip", "build", "build[uv]"],
+    verbosity: int,
+    result: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock_warning = unittest.mock.MagicMock()
+    monkeypatch.setattr(Logger, "warning", mock_warning)
+    build_frontend = BuildFrontendConfig(frontend, ["-1"])
+    args = get_build_frontend_extra_flags(
+        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b"
+    )
+
+    assert args == result
+    mock_warning.assert_not_called()
+
+
+@pytest.mark.parametrize("frontend", ["build", "build[uv]"])
+def test_get_build_frontend_extra_flags_warning(
+    frontend: Literal["build", "build[uv]"], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mock_warning = unittest.mock.MagicMock()
+    monkeypatch.setattr(Logger, "warning", mock_warning)
+    build_frontend = BuildFrontendConfig(frontend, ["-1"])
+    args = get_build_frontend_extra_flags(
+        build_frontend=build_frontend, verbosity_level=-1, config_settings="a b"
+    )
+    assert args == ["-Ca", "-Cb", "-1"]
+    mock_warning.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", None),
+        ("xbuild-tools = []", []),
+        ('xbuild-tools = ["cmake", "rustc"]', ["cmake", "rustc"]),
+    ],
+)
+def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[str] | None) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+
+    local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
+    assert local.xbuild_tools == expected

@@ -6,42 +6,23 @@ title: Delivering to PyPI
 
 After you've built your wheels, you'll probably want to deliver them to PyPI.
 
-## Manual method
-
-On your development machine, install [pipx](https://pypa.github.io/pipx/) and do the following:
-
-```bash
-# Either download the SDist from your CI, or make it:
-# Clear out your 'dist' folder.
-rm -rf dist
-# Make a source distribution
-pipx run build --sdist
-
-# 🏃🏻
-# Go and download your wheel files from wherever you put them. e.g. your CI
-# provider can be configured to store them for you. Put them all into the
-# 'dist' folder.
-
-# Upload using 'twine'
-pipx run twine upload dist/*
-```
-
 ## Automatic method
 
 If you don't need much control over the release of a package, you can set up
-cibuildwheel to deliver the wheels straight to PyPI. You just need to bump the
+your CI provider to deliver the wheels straight to PyPI. You just need to bump the
 version and tag it.
 
-### Generic instructions
+The exact way to set it up varies, depending on which CI provider you're using. But generally, the process goes like this:
 
-Make your SDist with the [build](https://github.com/pypa/build) tool, and your wheels with cibuildwheel. If you can make the files available as
-downloadable artifacts, this make testing before releases easier (depending on your CI provider's options). The "publish" job/step should collect the
-files, and then run `twine upload <paths>` (possibly via [pipx](https://github.com/pypa/pipx)); this should only happen on tags or "releases".
+- Build your wheels with cibuildwheel
+- Build an sdist with the [build](https://github.com/pypa/build) tool
+- Check that the current CI run is happening during a release (e.g. it's in response to a vXX tag)
+- Collect these assets together onto one runner
+- Upload them to PyPI using `twine upload <paths>`
 
 ### GitHub Actions
 
-GitHub actions has pipx in all the runners as a supported package manager, as
-well as several useful actions. Alongside your existing job(s) that runs cibuildwheel to make wheels, you will probably want to build an SDist:
+GitHub actions has pipx in all the runners as a supported package manager, as well as `pypa/gh-action-pypi-publish`, which can be used instead of twine. Alongside your existing job(s) that runs cibuildwheel to make wheels, you will probably want to build an sdist:
 
 ```yaml
   make_sdist:
@@ -64,8 +45,6 @@ well as several useful actions. Alongside your existing job(s) that runs cibuild
 
 Then, you need to publish the artifacts that the previous jobs have built. This final job should run only on release or tag, depending on your preference. It gathers the artifacts from the sdist and wheel jobs and uploads them to PyPI. The release environment (`pypi` in the example below) will be created the first time this workflow runs.
 
-This requires setting this GitHub workflow in your project's PyPI settings (for a [new project](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc)/[existing project](https://docs.pypi.org/trusted-publishers/adding-a-publisher)).
-
 ```yaml
   upload_all:
     needs: [build_wheels, make_sdist]
@@ -84,13 +63,11 @@ This requires setting this GitHub workflow in your project's PyPI settings (for 
     - uses: pypa/gh-action-pypi-publish@release/v1
 ```
 
-You should use Dependabot to keep the publish action up to date. In the above
-example, the same name (the default, "artifact" is used for all upload-artifact
-runs, so we can just download all of them in one step into a common directory.
+The above example uses PyPI Trusted Publishing to deliver the wheels, which requires some configuration on the PyPI side for a [new project](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc) or an [existing project](https://docs.pypi.org/trusted-publishers/adding-a-publisher). You can use Dependabot to keep the publish action up to date.
 
 See
 [`examples/github-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml)
-for an example configuration that automatically upload wheels to PyPI. Also see
+for an example configuration that automatically uploads wheels to PyPI. Also see
 [scikit-hep.org/developer/gha_wheels](https://scikit-hep.org/developer/gha_wheels)
 for a complete guide.
 
@@ -99,3 +76,23 @@ for a complete guide.
 See
 [`examples/travis-ci-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/travis-ci-deploy.yml)
 for an example configuration.
+
+## Manual method
+
+On your development machine, install [pipx](https://pypa.github.io/pipx/) and do the following:
+
+```bash
+# Either download the SDist from your CI, or make it:
+# Clear out your 'dist' folder.
+rm -rf dist
+# Make a source distribution
+pipx run build --sdist
+
+# 🏃🏻
+# Go and download your wheel files from wherever you put them. e.g. your CI
+# provider can be configured to store them for you. Put them all into the
+# 'dist' folder.
+
+# Upload using 'twine'
+pipx run twine upload dist/*
+```

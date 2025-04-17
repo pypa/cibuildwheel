@@ -1,244 +1,5 @@
 # Options
 
-## Setting options
-
-cibuildwheel can either be configured using environment variables, or from
-config file such as `pyproject.toml`.
-
-### Environment variables {: #environment-variables}
-
-Environment variables can be set in your CI config. For example, to configure
-cibuildwheel to run tests, add the following YAML to your CI config file:
-
-!!! tab "GitHub Actions"
-
-    > .github/workflows/*.yml ([docs](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables)) (can be global, in job, or in step)
-
-    ```yaml
-    env:
-      CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest {project}/tests"
-    ```
-
-!!! tab "Azure Pipelines"
-
-    > azure-pipelines.yml ([docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables))
-
-    ```yaml
-    variables:
-      CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest {project}/tests"
-    ```
-
-!!! tab "Travis CI"
-
-    > .travis.yml ([docs](https://docs.travis-ci.com/user/environment-variables/))
-
-    ```yaml
-    env:
-      global:
-        - CIBW_TEST_REQUIRES=pytest
-        - CIBW_TEST_COMMAND="pytest {project}/tests"
-    ```
-
-!!! tab "AppVeyor"
-
-    > appveyor.yml ([docs](https://www.appveyor.com/docs/build-configuration/#environment-variables))
-
-    ```yaml
-    environment:
-      global:
-        CIBW_TEST_REQUIRES: pytest
-        CIBW_TEST_COMMAND: "pytest {project}\\tests"
-    ```
-
-!!! tab "CircleCI"
-
-    > .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
-
-    ```yaml
-    jobs:
-      job_name:
-        environment:
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: "pytest {project}/tests"
-    ```
-
-!!! tab "Gitlab CI"
-
-    > .gitlab-ci.yml ([docs](https://docs.gitlab.com/ee/ci/variables/README.html#create-a-custom-variable-in-gitlab-ciyml))
-
-    ```yaml
-    linux:
-      variables:
-        CIBW_TEST_REQUIRES: pytest
-        CIBW_TEST_COMMAND: "pytest {project}/tests"
-    ```
-
-!!! tab "Cirrus CI"
-
-    > .cirrus.yml ([docs](https://cirrus-ci.org/guide/writing-tasks/#environment-variables))
-
-    ```yaml
-    env:
-      CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest {project}/tests"
-    ```
-
-### Configuration file {: #configuration-file}
-
-You can configure cibuildwheel with a config file, such as `pyproject.toml`.
-Options have the same names as the environment variable overrides, but are
-placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
-common [TOML][] practice. Anything placed in subsections `linux`, `windows`,
-`macos`, or `pyodide` will only affect those platforms. Lists can be used
-instead of strings for items that are naturally a list. Multiline strings also
-work just like in the environment variables. Environment variables will take
-precedence if defined.
-
-The example above using environment variables could have been written like this:
-
-```toml
-[tool.cibuildwheel]
-test-requires = "pytest"
-test-command = "pytest {project}/tests"
-```
-
-The complete set of defaults for the current version of cibuildwheel are shown below:
-
-```toml
-{% include "../cibuildwheel/resources/defaults.toml" %}
-```
-
-
-!!! tip
-    Static configuration works across all CI systems, and can be used locally if
-    you run `cibuildwheel --platform linux`. This is preferred, but environment
-    variables are better if you need to change per-matrix element
-    (`CIBW_BUILD` is often in this category, for example), or if you cannot or do
-    not want to change a `pyproject.toml` file. You can specify a different file to
-    use with `--config-file` on the command line, as well.
-
-### Configuration overrides {: #overrides }
-
-One feature specific to the configuration files is the ability to override
-settings based on selectors. To use, add a ``tool.cibuildwheel.overrides``
-array, and specify a ``select`` string. Then any options you set will only
-apply to items that match that selector. These are applied in order, with later
-matches overriding earlier ones if multiple selectors match. Environment
-variables always override static configuration.
-
-A few of the options below have special handling in overrides. A different
-`before-all` will trigger a new container to launch on Linux, and cannot be
-overridden on macOS or Windows.  Overriding the image on linux will also
-trigger new containers, one per image. Some commands are not supported;
-`output-dir`, build/skip/test_skip selectors, and architectures cannot be
-overridden.
-
-You can specify a table of overrides in `inherit={}`, any list or table in this
-list will inherit from previous overrides or the main configuration. The valid
-options are `"none"` (the default), `"append"`, and `"prepend"`.
-
-##### Examples:
-
-```toml
-[tool.cibuildwheel.linux]
-before-all = "yum install mylib"
-test-command = "echo 'installed'"
-
-[[tool.cibuildwheel.overrides]]
-select = "*-musllinux*"
-before-all = "apk add mylib"
-```
-
-This example will override the before-all command on musllinux only, but will
-still run the test-command. Note the double brackets, this is an array in TOML,
-which means it can be given multiple times.
-
-```toml
-[tool.cibuildwheel]
-# Normal options, etc.
-manylinux-x86_64-image = "manylinux_2_34"
-
-[[tool.cibuildwheel.overrides]]
-select = "cp38-*"
-manylinux-x86_64-image = "manylinux2014"
-
-[[tool.cibuildwheel.overrides]]
-select = "cp3{9,10}-*"
-manylinux-x86_64-image = "manylinux_2_28"
-```
-
-This example will build CPython 3.8 wheels on manylinux2014, CPython 3.9-3.10
-wheels on manylinux_2_28, and manylinux_2_34 wheels for any newer Python
-(like 3.10).
-
-```toml
-[tool.cibuildwheel]
-environment = {FOO="BAR", "HAM"="EGGS"}
-test-command = ["pyproject"]
-
-[[tool.cibuildwheel.overrides]]
-select = "cp311*"
-
-inherit.test-command = "prepend"
-test-command = ["pyproject-before"]
-
-inherit.environment="append"
-environment = {FOO="BAZ", "PYTHON"="MONTY"}
-
-[[tool.cibuildwheel.overrides]]
-select = "cp311*"
-inherit.test-command = "append"
-test-command = ["pyproject-after"]
-```
-
-This example will provide the command `"pyproject-before && pyproject && pyproject-after"`
-on Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"="EGGS"}`.
-
-
-### Extending existing options {: #inherit }
-
-In the TOML configuration, you can choose how tables and lists are inherited.
-By default, all values are overridden completely (`"none"`) but sometimes you'd
-rather `"append"` or `"prepend"` to an existing list or table. You can do this
-with the `inherit` table in overrides.  For example, if you want to add an environment
-variable for CPython 3.11, without `inherit` you'd have to repeat all the
-original environment variables in the override. With `inherit`, it's just:
-
-```toml
-[[tool.cibuildwheel.overrides]]
-select = "cp311*"
-inherit.environment = "append"
-environment.NEWVAR = "Added!"
-```
-
-For a table, `"append"` will replace a key if it exists, while `"prepend"` will
-only add a new key, older keys take precedence.
-
-Lists are also supported (and keep in mind that commands are lists). For
-example, you can print a message before and after a wheel is repaired:
-
-```toml
-[[tool.cibuildwheel.overrides]]
-select = "*"
-inherit.repair-wheel-command = "prepend"
-repair-wheel-command = "echo 'Before repair'"
-
-[[tool.cibuildwheel.overrides]]
-select = "*"
-inherit.repair-wheel-command = "append"
-repair-wheel-command = "echo 'After repair'"
-```
-
-As seen in this example, you can have multiple overrides match - they match top
-to bottom, with the config being accumulated. If you need platform-specific
-inheritance, you can use `select = "*-????linux_*"` for Linux, `select =
-"*-win_*"` for Windows, and `select = "*-macosx_*"` for macOS. As always,
-environment variables will completely override any TOML configuration.
-
-## Options summary
-
 <div class="options-toc"></div>
 
 ## Build selection
@@ -266,13 +27,13 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
     ```bash
     export CIBW_BUILD='cp37-*'
-    export CIBW_TEST_COMMAND='pytest {package}/tests'
+    export CIBW_TEST_COMMAND='pytest ./tests'
     cibuildwheel --platform linux .
     ```
 
     Linux builds are the easiest to test locally, because all the build tools are supplied in the container, and they run exactly the same locally as in CI.
 
-    This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](#configuration-file).
+    This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](configuration.md#configuration-file).
 
     You can also run a single identifier with `--only <identifier>`. This will
     not require `--platform` or `--arch`, and will override any build/skip
@@ -311,7 +72,7 @@ Windows arm64 platform support is experimental.
 For an experimental WebAssembly build with `--platform pyodide`,
 `cp312-pyodide_wasm32` is the only platform identifier.
 
-See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for past end-of-life versions of Python, and PyPy2.7.
+See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for past end-of-life versions of Python.
 
 #### Examples
 
@@ -410,14 +171,11 @@ See the [cibuildwheel 1 documentation](https://cibuildwheel.pypa.io/en/1.x/) for
 
 A list of architectures to build.
 
-On macOS, this option can be used to [cross-compile](faq.md#cross-compiling)
-between `x86_64`, `universal2` and `arm64`.
+On macOS, this option can be used to [cross-compile](platforms.md#macos-architectures) between `x86_64`, `universal2` and `arm64`.
 
-On Linux, this option can be used to build non-native architectures under
-emulation. See [this guide](faq.md#emulation) for more information.
+On Linux, this option can be used to build [non-native architectures under emulation](faq.md#emulation).
 
-On Windows, this option can be used to compile for `ARM64` from an Intel
-machine, provided the cross-compiling tools are installed.
+On Windows, this option can be used to [compile for `ARM64` from an Intel machine](platforms.md#windows-arm64), provided the cross-compiling tools are installed.
 
 Options:
 
@@ -651,19 +409,19 @@ This option can also be set using the [command-line option](#command-line)
 ## Build customization
 
 ### `CIBW_BUILD_FRONTEND` {: #build-frontend}
-> Set the tool to use to build, either "build" (default), "build/[uv/]", or "pip"
+> Set the tool to use to build, either "build" (default), "build\[uv\]", or "pip"
 
 Options:
 
-- `pip[;args: ...]`
 - `build[;args: ...]`
+- `build[uv][;args: ...]`
+- `pip[;args: ...]`
 
-Default: `pip`
+Default: `build`
 
-Choose which build frontend to use. Can either be "build", which will run
-`python -m build --wheel`, or "pip", which will run `python -m pip wheel`.
+Choose which build frontend to use.
 
-You can also use "build\[uv\]", which will use an external [uv][] everywhere
+You can use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
@@ -674,14 +432,8 @@ setuptools on Python < 3.12 and pip are not installed if using uv.
 
 On Android and Pyodide, only "build" is supported.
 
-You can specify extra arguments to pass to `pip wheel` or `build` using the
+You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
-
-!!! tip
-    Until v2.0.0, [pip][] was the only way to build wheels, and is still the default
-    on most platforms. However, we expect that at some point in the future, cibuildwheel
-    will change the default to [build][], in line with the PyPA's recommendation.
-    If you want to try `build` before this, you can use this option.
 
 !!! warning
     If you are using `build[uv]` and are passing `--no-isolation` or `-n`, we
@@ -1045,6 +797,49 @@ Platform-specific environment variables are also available:<br/>
     [PEP 517]: https://www.python.org/dev/peps/pep-0517/
     [PEP 518]: https://www.python.org/dev/peps/pep-0517/
 
+### `CIBW_XBUILD_TOOLS` {: #xbuild-tools}
+> Binaries on the path that should be included in an isolated cross-build environment.
+
+When building in a cross-platform environment, it is sometimes necessary to isolate the ``PATH`` so that binaries from the build machine don't accidentally get linked into the cross-platform binary. However, this isolation process will also hide tools that might be required to build your wheel.
+
+If there are binaries present on the `PATH` when you invoke cibuildwheel, and those binaries are required to build your wheels, those binaries can be explicitly included in the isolated cross-build environment using `CIBW_XBUILD_TOOLS`. The binaries listed in this setting will be linked into an isolated location, and that isolated location will be put on the `PATH` of the isolated environment. You do not need to provide the full path to the binary - only the executable name that would be found by the shell.
+
+If you declare a tool as a cross-build tool, and that tool cannot be found in the runtime environment, an error will be raised.
+
+If you do not define `CIBW_XBUILD_TOOLS`, and you build for a platform that uses a cross-platform environment, a warning will be raised. If your project does not require any cross-build tools, you can set `CIBW_XBUILD_TOOLS` to an empty list to silence this warning.
+
+*Any* tool used by the build process must be included in the `CIBW_XBUILD_TOOLS` list, not just tools that cibuildwheel will invoke directly. For example, if your build invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your safe tools list.
+
+Platform-specific environment variables are also available on platforms that use cross-platform environment isolation:<br/>
+ `CIBW_XBUILD_TOOLS_IOS`
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
+    CIBW_XBUILD_TOOLS: cmake rustc
+    ```
+
+    ```yaml
+    # No cross-build tools are required
+    CIBW_XBUILD_TOOLS:
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
+    xbuild-tools = ["cmake", "rustc"]
+    ```
+
+    ```toml
+    [tool.cibuildwheel]
+    # No cross-build tools are required
+    xbuild-tools = []
+    ```
 
 ### `CIBW_REPAIR_WHEEL_COMMAND` {: #repair-wheel-command}
 > Execute a shell command to repair each built wheel
@@ -1428,13 +1223,18 @@ automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
 By default, tests are executed from your project directory. When specifying
-`CIBW_TEST_COMMAND`, you can use the placeholders `{project}` and `{package}` to
-pass in the location of your test code:
+`CIBW_TEST_COMMAND`, you can optionally use the placeholders `{package}` and
+`{project}` to pass in the location of your test code:
 
-- `{project}` is an absolute path to the project root - the working directory
-  where cibuildwheel was called.
 - `{package}` is the path to the package being built - the `package_dir`
   argument supplied to cibuildwheel on the command line.
+- `{project}` is an absolute path to the project root - the working directory
+  where cibuildwheel was called.
+
+Using `{package}` or `{project}` used to be required, but since cibuildwheel
+3.0, tests are run from the project root by default. This means that you can
+use relative paths in your test command, and they will be relative to the
+project root.
 
 Alternatively, you can use the [`CIBW_TEST_SOURCES`](#test-sources) setting to
 create a temporary folder populated with a specific subset of project files to
@@ -1453,15 +1253,15 @@ Platform-specific environment variables are also available:<br/>
 
     ```yaml
     # Run the package tests using `pytest`
-    CIBW_TEST_COMMAND: pytest {package}/tests
+    CIBW_TEST_COMMAND: pytest ./tests
 
     # Trigger an install of the package, but run nothing of note
     CIBW_TEST_COMMAND: "echo Wheel installed"
 
     # Multi-line example - join with && on all platforms
     CIBW_TEST_COMMAND: >
-      pytest {package}/tests &&
-      python {package}/test.py
+      pytest ./tests &&
+      python ./test.py
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1469,27 +1269,19 @@ Platform-specific environment variables are also available:<br/>
     ```toml
     [tool.cibuildwheel]
     # Run the package tests using `pytest`
-    test-command = "pytest {package}/tests"
+    test-command = "pytest ./tests"
 
     # Trigger an install of the package, but run nothing of note
     test-command = "echo Wheel installed"
 
     # Multiline example
     test-command = [
-      "pytest {package}/tests",
-      "python {package}/test.py",
+      "pytest ./tests",
+      "python ./test.py",
     ]
     ```
 
     In configuration files, you can use an array, and the items will be joined with `&&`.
-
-!!! note
-
-    It isn't recommended to `cd` to your project directory before running tests,
-    because Python might resolve `import yourpackage` relative to the working dir,
-    and we want to test the wheel you just built. However, if you're sure that's not
-    an issue for you and your workflow requires it, on Windows you should do `cd /d`,
-    because the CWD and project dir might be on different drives.
 
 ### `CIBW_BEFORE_TEST` {: #before-test}
 > Execute a shell command before testing each wheel
@@ -1760,9 +1552,27 @@ export CIBW_DEBUG_TRACEBACK=TRUE
 ```
 
 ### `CIBW_BUILD_VERBOSITY` {: #build-verbosity}
-> Increase/decrease the output of pip wheel
+> Increase/decrease the output of the build
 
-A number from 1 to 3 to increase the level of verbosity (corresponding to invoking pip with `-v`, `-vv`, and `-vvv`), between -1 and -3 (`-q`, `-qq`, and `-qqq`), or just 0 (default verbosity). These flags are useful while debugging a build when the output of the actual build invoked by `pip wheel` is required. Has no effect on the `build` backend, which produces verbose output by default.
+This setting controls `-v`/`-q` flags to the build frontend. Since there is
+no communication between the build backend and the build frontend, build
+messages from the build backend will always be shown with `1`; higher levels
+will not produce more logging about the build itself. Other levels only affect
+the build frontend output, which is usually things like resolving and
+downloading dependencies. The settings are:
+
+|             | build | pip    | desc                             |
+|-------------|-------|--------|----------------------------------|
+| -2          | N/A   | `-qq`  | even more quiet, where supported |
+| -1          | N/A   | `-q`   | quiet mode, where supported      |
+| 0 (default) |       |        | default for build tool           |
+| 1           |       | `-v`   | print backend output             |
+| 2           | `-v`  | `-vv`  | print log messages e.g. resolving info |
+| 3           | `-vv` | `-vvv` | print even more debug info       |
+
+Settings that are not supported for a specific frontend will log a warning.
+The default build frontend is `build`, which does show build backend output by
+default.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_ANDROID` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
@@ -1772,7 +1582,7 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Increase pip debugging output
+    # Ensure that the build backend output is present
     CIBW_BUILD_VERBOSITY: 1
     ```
 
@@ -1780,7 +1590,7 @@ Platform-specific environment variables are also available:<br/>
 
     ```toml
     [tool.cibuildwheel]
-    # Increase pip debugging output
+    # Ensure that the build backend output is present
     build-verbosity = 1
     ```
 
@@ -1812,8 +1622,8 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
   .options-toc {
     display: grid;
     grid-template-columns: fit-content(20%) 1fr;
-    grid-gap: 16px 32px;
-    gap: 16px 32px;
+    grid-gap: 10px 20px;
+    gap: 10px 20px;
     font-size: 90%;
     margin-bottom: 28px;
     margin-top: 28px;
@@ -1833,8 +1643,11 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     margin-top: 0;
   }
   .options-toc a.option {
-    display: block;
-    margin-bottom: 5px;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+  .options-toc a.option code {
+    font-size: 80%;
   }
   h3 code {
     font-size: 100%;
@@ -1933,5 +1746,3 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     console.log('readme options markdown\n', markdown)
   });
 </script>
-
-[TOML]: https://toml.io

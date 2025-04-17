@@ -3,7 +3,7 @@ import platform as platform_module
 import shutil
 import subprocess
 import textwrap
-from collections.abc import MutableMapping, Sequence, Set
+from collections.abc import MutableMapping, Set
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -18,13 +18,12 @@ from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_fronten
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
-from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
 from ..util.helpers import prepare_command, unwrap
 from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from ..venv import find_uv, virtualenv
+from ..venv import constraint_flags, find_uv, virtualenv
 
 
 def get_nuget_args(
@@ -219,7 +218,7 @@ def can_use_uv(python_configuration: PythonConfiguration) -> bool:
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
-    dependency_constraint_flags: Sequence[PathOrStr],
+    dependency_constraint: Path | None,
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
 ) -> tuple[Path, dict[str, str]]:
@@ -257,7 +256,7 @@ def setup_python(
         python_configuration.version,
         base_python,
         venv_path,
-        dependency_constraint_flags,
+        dependency_constraint,
         use_uv=use_uv,
     )
 
@@ -265,21 +264,6 @@ def setup_python(
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-
-    # upgrade pip to the version matching our constraints
-    # if necessary, reinstall it to ensure that it's available on PATH as 'pip.exe'
-    if not use_uv:
-        call(
-            "python",
-            "-m",
-            "pip",
-            "install",
-            "--upgrade",
-            "pip",
-            *dependency_constraint_flags,
-            env=env,
-            cwd=venv_path,
-        )
 
     # update env with results from CIBW_ENVIRONMENT
     env = environment.as_dictionary(prev_environment=env)
@@ -310,7 +294,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
     elif build_frontend == "build[uv]":
@@ -321,7 +305,7 @@ def setup_python(
             "install",
             "--upgrade",
             "build[virtualenv]",
-            *dependency_constraint_flags,
+            *constraint_flags(dependency_constraint),
             env=env,
         )
 
@@ -370,20 +354,16 @@ def build(options: Options, tmp_path: Path) -> None:
                 version=config.version,
                 tmp_dir=identifier_tmp_dir,
             )
-            dependency_constraint_flags: Sequence[PathOrStr] = (
-                ["-c", constraints_path] if constraints_path else []
-            )
 
             # install Python
             base_python, env = setup_python(
                 identifier_tmp_dir / "build",
                 config,
-                dependency_constraint_flags,
+                constraints_path,
                 build_options.environment,
                 build_frontend.name,
             )
-            if not use_uv:
-                pip_version = get_pip_version(env)
+            pip_version = None if use_uv else get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -411,7 +391,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 build_env = env.copy()
-                if not use_uv:
+                if pip_version is not None:
                     build_env["VIRTUALENV_PIP"] = pip_version
 
                 if constraints_path:
@@ -490,31 +470,16 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Testing wheel...")
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
-                if not use_uv:
-                    call("pip", "install", "virtualenv", *dependency_constraint_flags, env=env)
-
                 venv_dir = identifier_tmp_dir / "venv-test"
-
-                if use_uv:
-                    call("uv", "venv", venv_dir, f"--python={base_python}", env=env)
-                else:
-                    # Use pip version from the initial env to ensure determinism
-                    venv_args = [
-                        "--no-periodic-update",
-                        f"--pip={pip_version}",
-                        "--no-setuptools",
-                        "--no-wheel",
-                    ]
-                    call("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
-
-                virtualenv_env = env.copy()
-                virtualenv_env["PATH"] = os.pathsep.join(
-                    [
-                        str(venv_dir / "Scripts"),
-                        virtualenv_env["PATH"],
-                    ]
+                virtualenv_env = virtualenv(
+                    config.version,
+                    base_python,
+                    venv_dir,
+                    None,
+                    use_uv=use_uv,
+                    env=env,
+                    pip_version=pip_version,
                 )
-                virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
                 # check that we are using the Python from the virtual environment
                 call("where", "python", env=virtualenv_env)

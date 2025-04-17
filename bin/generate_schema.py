@@ -181,9 +181,12 @@ properties:
   musllinux-x86_64-image:
     type: string
     description: Specify alternative manylinux / musllinux container images
-  repair-wheel-command:
+  xbuild-tools:
+    description: Binaries on the path that should be included in an isolated cross-build environment
     type: string_array
+  repair-wheel-command:
     description: Execute a shell command to repair each built wheel.
+    type: string_array
   skip:
     description: Choose the Python versions to skip.
     type: string_array
@@ -273,6 +276,7 @@ items:
       properties:
         before-all: {"$ref": "#/$defs/inherit"}
         before-build: {"$ref": "#/$defs/inherit"}
+        xbuild-tools: {"$ref": "#/$defs/inherit"}
         before-test: {"$ref": "#/$defs/inherit"}
         config-settings: {"$ref": "#/$defs/inherit"}
         container-engine: {"$ref": "#/$defs/inherit"}
