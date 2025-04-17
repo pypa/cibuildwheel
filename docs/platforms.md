@@ -177,8 +177,8 @@ Android development tools, which currently means Linux x86_64, macOS ARM64 or ma
 x86_64.
 
 Building Android wheels requires the build machine to have a working Python executable
-of the same version. See the notes on [Linux](linux.md) and [macOS](macos.md) for
-details of how this is installed.
+of the same version. See the [Linux](#linux) and [macOS](#macos) sections for details
+of how this is installed.
 
 If you already have an Android SDK, export the `ANDROID_HOME` environment variable to
 point at its location. Otherwise, here's how to install it:
@@ -215,7 +215,7 @@ support for iOS or Android wheel tags](https://github.com/astral-sh/uv/issues/80
 ### Cross platform builds
 
 Android builds are *cross platform builds*, as cibuildwheel does not support running
-compilers and other build tools "on device". The supported build platforms (listed
+compilers and other build tools "on device". Any supported build platform (listed
 above) can be used to build wheels for any supported Android architecture. However,
 wheels can only be *tested* on a machine of the same architecture – see the section
 below.
@@ -223,7 +223,7 @@ below.
 ### Tests
 
 If tests have been configured, the test suite will be executed on a Gradle-managed
-emulator matching the architecture of the build machine - for example, if you're
+emulator matching the architecture of the build machine – for example, if you're
 building on an ARM64 machine, an ARM64 wheel can be tested on an ARM64 emulator.
 Cross-architecture testing is not supported.
 
@@ -231,16 +231,16 @@ On Linux, the emulator needs access to the KVM virtualization interface, and a D
 environment variable pointing at an X server. Xvfb is acceptable.
 
 The Android test environment can't support running shell scripts, so the
-[`CIBW_TEST_COMMAND`](../options.md#test-command) value must be specified as if it were
+[`CIBW_TEST_COMMAND`](options.md#test-command) value must be specified as if it were
 a command line being passed to `python -m ...`. In addition, the project must use
-[`CIBW_TEST_SOURCES`](../options.md#test-sources) to specify the minimum subset of files
+[`CIBW_TEST_SOURCES`](options.md#test-sources) to specify the minimum subset of files
 that should be copied to the test environment. This is because the test must be run "on
 device", and the device will not have access to the local project directory.
 
 The test process uses the same testbed used by CPython itself to run the CPython test
-suite. It is a Gradle project that has been configured to have a single JUnit - the
-result of which reports the success or failure of running `python -m
-<CIBW_TEST_COMMAND>`.
+suite. It is a Gradle project that has been configured to have a single JUnit test,
+the result of which reports the success or failure of running
+`python -m <CIBW_TEST_COMMAND>`.
 
 
 ## iOS

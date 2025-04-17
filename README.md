@@ -67,9 +67,8 @@ Usage
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
-<sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture.</sup>
-<sup>⁴ Requires runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Runs tests on the emulator
-for the runner's architecture.</sup>
+<sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture.</sup><br>
+<sup>⁴ Requires runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Runs tests on the emulator for the runner's architecture.</sup><br>
 <!--intro-end-->
 
 Example setup
@@ -140,6 +139,7 @@ Options
 |   | [`CIBW_ENVIRONMENT_PASS_LINUX`](https://cibuildwheel.pypa.io/en/stable/options/#environment-pass)  | Set environment variables on the host to pass-through to the container during the build. |
 |   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.pypa.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
 |   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.pypa.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
+|   | [`CIBW_XBUILD_TOOLS`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-tools)  | Binaries on the path that should be included in an isolated cross-build environment. |
 |   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each built wheel |
 |   | [`CIBW_MANYLINUX_*_IMAGE`<br/>`CIBW_MUSLLINUX_*_IMAGE`](https://cibuildwheel.pypa.io/en/stable/options/#linux-image)  | Specify alternative manylinux / musllinux Docker images |
 |   | [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine)  | Specify which container engine to use when building Linux wheels |

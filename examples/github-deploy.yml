@@ -16,7 +16,8 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
-        os: [ linux-intel, linux-arm, windows, macOS-intel, macOS-arm, iOS, pyodide ]
+        os: [ linux-intel, linux-arm, windows, macos-intel, macos-arm,
+              android-intel, android-arm, ios, pyodide ]
         include:
           - archs: auto
             platform: auto
@@ -33,6 +34,12 @@ jobs:
             # macos-14+ (including latest) are ARM64 runners
             runs-on: macos-latest
             archs: auto,universal2
+          - os: android-intel
+            runs-on: ubuntu-latest
+            platform: android
+          - os: android-arm
+            runs-on: macos-latest
+            platform: android
           - os: ios
             runs-on: macos-latest
             platform: ios

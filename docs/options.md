@@ -16,7 +16,7 @@ Default: `auto`
 
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
-- For `android` you need to be running on Linux or macOS, with an Android SDK installed. See [here](android.md) for more details.
+- For `android` you need to be running on Linux or macOS, with an Android SDK installed. See [here](platforms.md#android) for more details.
 - For `ios` you need to be running on macOS, with Xcode and the iOS simulator installed.
 - For `pyodide` you need to be on an x86-64 linux runner and `python3.12` must be available in `PATH`.
 
