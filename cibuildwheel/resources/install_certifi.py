@@ -26,7 +26,7 @@ STAT_0o775 = (
 )
 
 
-def main():
+def main() -> None:
     openssl_dir, openssl_cafile = os.path.split(ssl.get_default_verify_paths().openssl_cafile)
     print(" -- pip install --upgrade certifi")
     subprocess.check_call(

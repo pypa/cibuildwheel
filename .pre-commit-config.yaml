@@ -25,7 +25,6 @@ repos:
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
-    exclude: ^cibuildwheel/resources/.*py$
     args: ["--python-version=3.11"]
     additional_dependencies: &mypy-dependencies
       - bracex
