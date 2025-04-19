@@ -35,6 +35,7 @@ MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "ppc64le",
     "s390x",
     "armv7l",
+    "riscv64",
     "pypy_aarch64",
     "pypy_i686",
 )
@@ -46,6 +47,7 @@ MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
     "ppc64le",
     "s390x",
     "armv7l",
+    "riscv64",
 )
 
 

@@ -357,6 +357,11 @@
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MANYLINUX_PYPY_X86_64_IMAGE"
     },
+    "manylinux-riscv64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_RISCV64_IMAGE"
+    },
     "manylinux-s390x-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
@@ -386,6 +391,11 @@
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MUSLLINUX_PPC64LE_IMAGE"
+    },
+    "musllinux-riscv64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MUSLLINUX_RISCV64_IMAGE"
     },
     "musllinux-s390x-image": {
       "type": "string",
@@ -652,6 +662,9 @@
           "manylinux-pypy_x86_64-image": {
             "$ref": "#/properties/manylinux-pypy_x86_64-image"
           },
+          "manylinux-riscv64-image": {
+            "$ref": "#/properties/manylinux-riscv64-image"
+          },
           "manylinux-s390x-image": {
             "$ref": "#/properties/manylinux-s390x-image"
           },
@@ -669,6 +682,9 @@
           },
           "musllinux-ppc64le-image": {
             "$ref": "#/properties/musllinux-ppc64le-image"
+          },
+          "musllinux-riscv64-image": {
+            "$ref": "#/properties/musllinux-riscv64-image"
           },
           "musllinux-s390x-image": {
             "$ref": "#/properties/musllinux-s390x-image"
@@ -752,6 +768,9 @@
         "manylinux-pypy_x86_64-image": {
           "$ref": "#/properties/manylinux-pypy_x86_64-image"
         },
+        "manylinux-riscv64-image": {
+          "$ref": "#/properties/manylinux-riscv64-image"
+        },
         "manylinux-s390x-image": {
           "$ref": "#/properties/manylinux-s390x-image"
         },
@@ -769,6 +788,9 @@
         },
         "musllinux-ppc64le-image": {
           "$ref": "#/properties/musllinux-ppc64le-image"
+        },
+        "musllinux-riscv64-image": {
+          "$ref": "#/properties/musllinux-riscv64-image"
         },
         "musllinux-s390x-image": {
           "$ref": "#/properties/musllinux-s390x-image"
