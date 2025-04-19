@@ -270,13 +270,6 @@ def _expected_wheels(
             )
         ]
 
-    if platform == "pyodide":
-        assert len(python_abi_tags) == 1
-        python_abi_tag = python_abi_tags[0]
-        platform_tag = "pyodide_2024_0_wasm32"
-        yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
-        return
-
     for python_abi_tag in python_abi_tags:
         platform_tags = []
 
@@ -321,6 +314,10 @@ def _expected_wheels(
 
             if include_universal2:
                 platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
+
+        elif platform == "pyodide":
+            platform_tags = ["pyodide_2024_0_wasm32"]
+
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
