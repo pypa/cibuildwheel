@@ -93,6 +93,8 @@ def virtualenv(
     dependency_constraint: Path | None,
     *,
     use_uv: bool,
+    env: dict[str, str] | None = None,
+    pip_version: str | None = None,
 ) -> dict[str, str]:
     """
     Create a virtual environment. If `use_uv` is True,
@@ -109,8 +111,9 @@ def virtualenv(
         call("uv", "venv", venv_path, "--python", python)
     else:
         virtualenv_app = _ensure_virtualenv(version)
-        pip_constraint = _parse_pip_constraint_for_virtualenv(dependency_constraint)
-        additional_flags = [f"--pip={pip_constraint}", "--no-setuptools", "--no-wheel"]
+        if pip_version is None:
+            pip_version = _parse_pip_constraint_for_virtualenv(dependency_constraint)
+        additional_flags = [f"--pip={pip_version}", "--no-setuptools", "--no-wheel"]
 
         # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
         # environment. The initial cost is a bit higher but reusing is much faster.
@@ -118,7 +121,7 @@ def virtualenv(
         # Requires pip>=19.3 so disabling for "embed" because this means we don't know what's the
         # version of pip that will end-up installed.
         # c.f. https://virtualenv.pypa.io/en/latest/cli_interface.html#section-seeder
-        if not _IS_WIN and pip_constraint != "embed" and Version(pip_constraint) >= Version("19.3"):
+        if not _IS_WIN and pip_version != "embed" and Version(pip_version) >= Version("19.3"):
             additional_flags.append("--symlink-app-data")
 
         call(
@@ -132,12 +135,21 @@ def virtualenv(
             python,
             venv_path,
         )
-
     paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
-    env = os.environ.copy()
-    env["PATH"] = os.pathsep.join([*paths, env["PATH"]])
-    env["VIRTUAL_ENV"] = str(venv_path)
-    return env
+    venv_env = os.environ.copy() if env is None else env.copy()
+    venv_env["PATH"] = os.pathsep.join([*paths, venv_env["PATH"]])
+    venv_env["VIRTUAL_ENV"] = str(venv_path)
+    if not use_uv and pip_version == "embed":
+        call(
+            "pip",
+            "install",
+            "--upgrade",
+            "pip",
+            *constraint_flags(dependency_constraint),
+            env=venv_env,
+            cwd=venv_path,
+        )
+    return venv_env
 
 
 def find_uv() -> Path | None:

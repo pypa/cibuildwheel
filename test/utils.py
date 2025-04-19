@@ -257,6 +257,10 @@ def _expected_wheels(
                 "pp311-pypy311_pp73",
             ]
 
+    if machine_arch == "ARM64" and platform == "windows":
+        # no CPython 3.8 on Windows ARM64
+        python_abi_tags = [t for t in python_abi_tags if not t.startswith("cp38")]
+
     if machine_arch not in PYPY_ARCHS:
         python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("pp")]
 
@@ -290,7 +294,11 @@ def _expected_wheels(
                 )
 
         elif platform == "windows":
-            platform_tags = ["win_amd64"] if machine_arch == "AMD64" else ["win32"]
+            platform_tags = {
+                "AMD64": ["win_amd64"],
+                "ARM64": ["win_arm64"],
+                "x86": ["win32"],
+            }.get(machine_arch, [])
 
         elif platform == "macos":
             if python_abi_tag.startswith("pp"):
