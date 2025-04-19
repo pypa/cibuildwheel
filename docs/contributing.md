@@ -82,6 +82,8 @@ A few notes-
 
 - Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
 
+- The 'enable groups' run by default are just 'cpython-prerelease' and 'cpython-freethreading'. You can add other groups like pypy or graalpy by setting the [CIBW_ENABLE](options.md#enable) environment variable. On GitHub PRs, you can add a label to the PR to enable these groups.
+
 #### Running pytest directly
 
 More advanced users might prefer to invoke pytest directly. Set up a [dev environment](#setting-up-a-dev-environment), then,

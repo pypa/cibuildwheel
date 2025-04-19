@@ -422,6 +422,8 @@ def test_debug_traceback(monkeypatch, method, capfd):
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
 def test_enable(method, intercepted_build_args, monkeypatch):
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
+
     if method == "command_line":
         monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "pypy"])
     elif method == "env_var":
@@ -435,6 +437,15 @@ def test_enable(method, intercepted_build_args, monkeypatch):
         assert enable_groups == frozenset()
     else:
         assert enable_groups == frozenset([EnableGroup.PyPy])
+
+
+def test_enable_all(intercepted_build_args, monkeypatch):
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "all"])
+
+    main()
+
+    enable_groups = intercepted_build_args.args[0].globals.build_selector.enable
+    assert enable_groups == EnableGroup.all_groups()
 
 
 def test_enable_arg_inherits(intercepted_build_args, monkeypatch):

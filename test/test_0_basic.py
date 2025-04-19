@@ -61,16 +61,19 @@ def test_sample_build(tmp_path, capfd):
             logger.step_end()
 
 
-def test_build_identifiers(tmp_path):
+@pytest.mark.parametrize(
+    "enable_setting", ["", "cpython-prerelease", "pypy", "cpython-freethreading"]
+)
+def test_build_identifiers(tmp_path, enable_setting, monkeypatch):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
+
+    monkeypatch.setenv("CIBW_ENABLE", enable_setting)
 
     # check that the number of expected wheels matches the number of build
     # identifiers
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
-    build_identifiers = utils.cibuildwheel_get_build_identifiers(
-        project_dir, prerelease_pythons=True
-    )
+    build_identifiers = utils.cibuildwheel_get_build_identifiers(project_dir)
     assert len(expected_wheels) == len(build_identifiers), (
         f"{expected_wheels} vs {build_identifiers}"
     )

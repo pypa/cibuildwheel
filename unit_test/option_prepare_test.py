@@ -51,6 +51,7 @@ def mock_build_container(monkeypatch):
 @pytest.mark.usefixtures("mock_build_container", "fake_package_dir")
 def test_build_default_launches(monkeypatch):
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--platform=linux"])
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
 
