@@ -23,6 +23,8 @@ from cibuildwheel.util.file import CIBW_CACHE_PATH
 EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
 )
+PYPY_ARCHS = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
+
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
@@ -247,14 +249,16 @@ def _expected_wheels(
                 "cp313-cp313t",
             ]
 
-        pypy_archs = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
-        if EnableGroup.PyPy in enable_groups and machine_arch in pypy_archs:
+        if EnableGroup.PyPy in enable_groups:
             python_abi_tags += [
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
                 "pp311-pypy311_pp73",
             ]
+
+    if machine_arch not in PYPY_ARCHS:
+        python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("pp")]
 
     if single_python:
         python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
