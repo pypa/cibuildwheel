@@ -31,6 +31,7 @@ $defs:
       - cpython-freethreading
       - cpython-prerelease
       - pypy
+      - cpython-experimental-riscv64
   description: A Python version or flavor to enable.
 additionalProperties: false
 description: cibuildwheel's settings.
