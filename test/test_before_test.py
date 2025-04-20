@@ -62,8 +62,8 @@ def test(tmp_path, build_frontend_env):
             "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
-            "CIBW_TEST_COMMAND_WINDOWS": "pytest {project}/test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND_WINDOWS": "pytest ./test",
             **build_frontend_env,
         },
     )

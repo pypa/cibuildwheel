@@ -1,3 +1,4 @@
+import platform
 import re
 import textwrap
 from pathlib import Path
@@ -56,6 +57,8 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
     if python_version != "3.12" and utils.platform == "pyodide":
         pytest.skip(f"pyodide does not support Python {python_version}")
+    if python_version == "3.8" and utils.platform == "windows" and platform.machine() == "ARM64":
+        pytest.skip(f"Windows ARM64 does not support Python {python_version}")
 
     project_dir = tmp_path / "project"
     project_with_expected_version_checks.generate(project_dir)
