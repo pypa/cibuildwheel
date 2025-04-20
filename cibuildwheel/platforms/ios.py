@@ -32,7 +32,7 @@ from ..util.file import (
     download,
     move_file,
 )
-from ..util.helpers import prepare_command, unwrap
+from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
 from ..util.packaging import (
     combine_constraints,
     find_compatible_wheel,
@@ -597,14 +597,16 @@ def build(options: Options, tmp_path: Path) -> None:
                     test_command_parts = shlex.split(build_options.test_command)
                     if test_command_parts[0:2] != ["python", "-m"]:
                         log.warning(
-                            unwrap(f"""
-                                iOS tests run with test command '{build_options.test_command}' that
-                                doesn't start with 'python -m'. iOS tests must execute python
-                                modules - other entrypoints are not supported.
+                            unwrap_preserving_paragraphs(f"""
+                                iOS tests configured with a test command which doesn't start with
+                                'python -m'. iOS tests must execute python modules - other
+                                entrypoints are not supported.
 
                                 cibuildwheel will try to execute it as if it started with 'python
                                 -m'. If this works, all you need to do is add that to your test
                                 command.
+
+                                Test command: {build_options.test_command}
                             """)
                         )
                     else:

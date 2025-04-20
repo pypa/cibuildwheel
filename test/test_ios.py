@@ -4,6 +4,7 @@ import os
 import platform
 import shutil
 import subprocess
+import textwrap
 
 import pytest
 
@@ -80,21 +81,10 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     )
 
     # The expected wheels were produced.
-    ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
-    platform_machine = platform.machine()
-
-    if platform_machine == "x86_64":
-        expected_wheels = {
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
-        }
-
-    elif platform_machine == "arm64":
-        expected_wheels = {
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
-        }
-
-    assert set(actual_wheels) == expected_wheels
+    expected_wheels = utils.expected_wheels(
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
+    )
+    assert set(actual_wheels) == set(expected_wheels)
 
     # The user was notified that the cross-build tool was found.
     captured = capfd.readouterr()
@@ -180,21 +170,10 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
     )
 
     # The expected wheels were produced.
-    ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
-    platform_machine = platform.machine()
-
-    if platform_machine == "x86_64":
-        expected_wheels = {
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
-        }
-
-    elif platform_machine == "arm64":
-        expected_wheels = {
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
-        }
-
-    assert set(actual_wheels) == expected_wheels
+    expected_wheels = utils.expected_wheels(
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
+    )
+    assert set(actual_wheels) == set(expected_wheels)
 
     # The user was notified that there was no cross-build tool definition.
     captured = capfd.readouterr()
@@ -225,23 +204,48 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
         },
     )
 
-    # The expected wheels were produced.
-    ios_version = os.getenv("IPHONEOS_DEPLOYMENT_TARGET", "13.0").replace(".", "_")
-    platform_machine = platform.machine()
-
-    if platform_machine == "x86_64":
-        expected_wheels = {
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_x86_64_iphonesimulator.whl",
-        }
-
-    elif platform_machine == "arm64":
-        expected_wheels = {
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphoneos.whl",
-            f"spam-0.1.0-cp313-cp313-ios_{ios_version}_arm64_iphonesimulator.whl",
-        }
-
-    assert set(actual_wheels) == expected_wheels
+    expected_wheels = utils.expected_wheels(
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
+    )
+    assert set(actual_wheels) == set(expected_wheels)
 
     # The warnings about cross-build notifications were silenced.
     captured = capfd.readouterr()
     assert "Your project configuration does not define any cross-build tools." not in captured.err
+
+
+def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
+    """Test command should be able to run without python -m."""
+    if utils.platform != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+
+    project_dir = tmp_path / "project"
+    project = test_projects.new_c_project()
+    project.files["tests_module/__init__.py"] = ""
+    project.files["tests_module/__main__.py"] = textwrap.dedent("""
+        if __name__ == "__main__":
+            print("Hello from tests_module")
+    """)
+    project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
+            "CIBW_TEST_COMMAND": "tests_module",
+            "CIBW_TEST_SOURCES": "tests_module",
+            "CIBW_XBUILD_TOOLS": "",
+        },
+    )
+
+    expected_wheels = utils.expected_wheels(
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
+    )
+    assert set(actual_wheels) == set(expected_wheels)
+
+    out, err = capfd.readouterr()
+
+    assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
