@@ -185,10 +185,8 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
     # not guaranteed to match the versions of Pyodide or be in sync with them. Hence, we shall
     # specify the pyodide-build version in the root path, which will set up the xbuildenv for
     # the requested Pyodide version.
-    pyodide_root = (
-        CIBW_CACHE_PATH
-        / f".pyodide-xbuildenv-{pyodide_build_version}/{pyodide_version}/xbuildenv/pyodide-root"
-    )
+    xbuildenv_cache_path = CIBW_CACHE_PATH / f"pyodide-xbuildenv-{pyodide_build_version}"
+    pyodide_root = xbuildenv_cache_path / pyodide_version / "xbuildenv" / "pyodide-root"
 
     with FileLock(CIBW_CACHE_PATH / "xbuildenv.lock"):
         if pyodide_root.exists():
@@ -204,10 +202,14 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
             "pyodide",
             "xbuildenv",
             "install",
+            "--path",
+            str(xbuildenv_cache_path),
             pyodide_version,
             env=env,
             cwd=CIBW_CACHE_PATH,
         )
+        assert pyodide_root.exists()
+
     return str(pyodide_root)
 
 
