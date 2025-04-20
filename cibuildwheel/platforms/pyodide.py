@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 import sys
-import textwrap
 import tomllib
 import typing
 from collections.abc import Set
@@ -476,32 +475,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 virtualenv_create_env["VIRTUALENV_NO_PERIODIC_UPDATE"] = "1"
 
                 call("pyodide", "venv", venv_dir, env=virtualenv_create_env)
-
-                # WORKAROUND (should be upstreamed into pyodide)
-                base_python = (identifier_tmp_dir / "build" / "venv" / "bin" / "python").resolve()
-                (venv_dir / "bin" / "python-host-link").symlink_to(base_python)
-                (venv_dir / "bin" / "python-host").unlink()
-                (venv_dir / "bin" / "python-host").write_text(
-                    textwrap.dedent(f"""
-                        #!/bin/bash
-                        export PYTHONHOME={base_python.parent.parent}
-                        exec {venv_dir / "bin" / "python-host-link"} -s "$@"
-                    """)
-                )
-                (venv_dir / "bin" / "python-host").chmod(0o755)
-
-                # make the python3.12-host bin point to the python-host script
-                (venv_dir / "bin" / "python3.12-host").unlink()
-                (venv_dir / "bin" / "python3.12-host").symlink_to(venv_dir / "bin" / "python-host")
-
-                # make the first line of the pip executable point to the
-                # python-host script the `/usr/bin/env` bit is needed to use a
-                # script as a shebang interpreter, at least on macOS
-                pip_executable = venv_dir / "bin" / "pip"
-                pip_executable_content = pip_executable.read_text().splitlines()
-                pip_executable_content[0] = f"#!/usr/bin/env {venv_dir / 'bin' / 'python-host'}"
-                pip_executable.write_text("\n".join(pip_executable_content))
-                # END WORKAROUND
 
                 virtualenv_env["PATH"] = os.pathsep.join(
                     [
