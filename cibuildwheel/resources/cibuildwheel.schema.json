@@ -566,6 +566,9 @@
               "before-build": {
                 "$ref": "#/$defs/inherit"
               },
+              "xbuild-tools": {
+                "$ref": "#/$defs/inherit"
+              },
               "before-test": {
                 "$ref": "#/$defs/inherit"
               },
@@ -579,9 +582,6 @@
                 "$ref": "#/$defs/inherit"
               },
               "environment-pass": {
-                "$ref": "#/$defs/inherit"
-              },
-              "xbuild-tools": {
                 "$ref": "#/$defs/inherit"
               },
               "repair-wheel-command": {
@@ -675,6 +675,9 @@
           },
           "musllinux-x86_64-image": {
             "$ref": "#/properties/musllinux-x86_64-image"
+          },
+          "xbuild-tools": {
+            "$ref": "#/properties/xbuild-tools"
           },
           "repair-wheel-command": {
             "$ref": "#/properties/repair-wheel-command"
@@ -776,6 +779,9 @@
         "musllinux-x86_64-image": {
           "$ref": "#/properties/musllinux-x86_64-image"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
           "oneOf": [
@@ -840,6 +846,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -890,6 +899,9 @@
         },
         "environment": {
           "$ref": "#/properties/environment"
+        },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
         },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
@@ -955,6 +967,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -1006,11 +1021,11 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
-        "repair-wheel-command": {
-          "$ref": "#/properties/repair-wheel-command"
-        },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "repair-wheel-command": {
+          "$ref": "#/properties/repair-wheel-command"
         },
         "test-command": {
           "$ref": "#/properties/test-command"
@@ -1018,10 +1033,16 @@
         "test-extras": {
           "$ref": "#/properties/test-extras"
         },
+        "test-sources": {
+          "$ref": "#/properties/test-sources"
+        },
+        "test-groups": {
+          "$ref": "#/properties/test-groups"
+        },
         "test-requires": {
           "$ref": "#/properties/test-requires"
         }
-       }
+      }
     }
   }
 }
