@@ -4,7 +4,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.9.0
     # via httpx
-auditwheel-emscripten==0.0.16
+auditwheel-emscripten==0.1.0
     # via pyodide-build
 build==1.2.2.post1
     # via
@@ -19,15 +19,13 @@ charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via typer
-cmake==4.0.0
-    # via pyodide-build
 distlib==0.3.9
     # via virtualenv
 filelock==3.18.0
     # via virtualenv
 h11==0.14.0
     # via httpcore
-httpcore==1.0.7
+httpcore==1.0.8
     # via httpx
 httpx==0.28.1
     # via unearth
@@ -42,7 +40,7 @@ markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-packaging==24.2
+packaging==25.0
     # via
     #   auditwheel-emscripten
     #   build
@@ -51,8 +49,10 @@ packaging==24.2
 pip==25.0.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.7
-    # via virtualenv
-pydantic==2.11.2
+    # via
+    #   pyodide-build
+    #   virtualenv
+pydantic==2.11.3
     # via
     #   pyodide-build
     #   pyodide-lock
@@ -60,9 +60,9 @@ pydantic-core==2.33.1
     # via pydantic
 pygments==2.19.1
     # via rich
-pyodide-build==0.29.2
+pyodide-build @ git+https://github.com/pyodide/pyodide-build.git@71a6d09651814439feb161537888078f7ff68c19
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-pyodide-cli==0.2.4
+pyodide-cli==0.3.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
@@ -92,7 +92,7 @@ typer==0.15.2
     #   auditwheel-emscripten
     #   pyodide-build
     #   pyodide-cli
-typing-extensions==4.13.1
+typing-extensions==4.13.2
     # via
     #   anyio
     #   pydantic
@@ -101,9 +101,9 @@ typing-extensions==4.13.1
     #   typing-inspection
 typing-inspection==0.4.0
     # via pydantic
-unearth==0.17.3
+unearth==0.17.5
     # via pyodide-build
-urllib3==2.3.0
+urllib3==2.4.0
     # via requests
 virtualenv==20.30.0
     # via

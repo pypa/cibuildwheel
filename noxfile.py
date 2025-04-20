@@ -15,9 +15,12 @@ Tags:
 See sessions with `nox -l`
 """
 
+import json
 import os
 import shutil
 import sys
+import textwrap
+import urllib.request
 from pathlib import Path
 
 import nox
@@ -100,10 +103,48 @@ def update_constraints(session: nox.Session) -> None:
     pyodides = build_platforms["pyodide"]["python_configurations"]
     for pyodide in pyodides:
         python_version = ".".join(pyodide["version"].split(".")[:2])
-        pyodide_build_version = pyodide["pyodide_build_version"]
-        output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
+        pyodide_version = pyodide["default_pyodide_version"]
+
+        xbuildenv_info_url = "https://raw.githubusercontent.com/pyodide/pyodide/refs/heads/main/pyodide-cross-build-environments.json"
+        with urllib.request.urlopen(xbuildenv_info_url) as response:
+            xbuildenv_info = json.loads(response.read().decode("utf-8"))
+
+        pyodide_version_xbuildenv_info = xbuildenv_info["releases"][pyodide_version]
+
+        pyodide_build_min_version = pyodide_version_xbuildenv_info.get("min_pyodide_build_version")
+        pyodide_build_max_version = pyodide_version_xbuildenv_info.get("max_pyodide_build_version")
+
+        pyodide_build_specifier_parts: list[str] = []
+
+        if pyodide_build_min_version:
+            pyodide_build_specifier_parts.append(f">={pyodide_build_min_version}")
+        if pyodide_build_max_version:
+            pyodide_build_specifier_parts.append(f"<={pyodide_build_max_version}")
+
+        pyodide_build_specifier = ",".join(pyodide_build_specifier_parts)
+
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
-        tmp_file.write_text(f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_build_version}")
+        # tmp_file.write_text(
+        #     textwrap.dedent(f"""
+        #         pip
+        #         build[virtualenv]
+        #         pyodide-build{pyodide_build_specifier}
+        #     """)
+        # )
+
+        # TODO: remove the pyodide-build git version pinning when the next release is
+        # available
+        print(f"pyodide-build specifier: {pyodide_build_specifier}")
+        tmp_file.write_text(
+            textwrap.dedent("""
+                pip
+                build[virtualenv]
+                git+https://github.com/pyodide/pyodide-build.git@71a6d09651814439feb161537888078f7ff68c19
+            """)
+        )
+        # END TODO
+
+        output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
         session.run(
             "uv",
             "pip",

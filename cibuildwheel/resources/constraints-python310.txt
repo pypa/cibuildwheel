@@ -14,7 +14,7 @@ importlib-metadata==8.6.1
     # via build
 macholib==1.16.3
     # via delocate
-packaging==24.2
+packaging==25.0
     # via
     #   build
     #   delocate
@@ -26,7 +26,7 @@ pyproject-hooks==1.2.0
     # via build
 tomli==2.2.1
     # via build
-typing-extensions==4.13.1
+typing-extensions==4.13.2
     # via delocate
 virtualenv==20.30.0
     # via -r cibuildwheel/resources/constraints.in
