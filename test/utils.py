@@ -363,7 +363,7 @@ def skip_if_pyodide(reason: str) -> Any:
 
 def invoke_pytest() -> str:
     # see https://github.com/pyodide/pyodide/issues/4802
-    if platform == "pyodide" and sys.platform.startswith("darwin"):
+    if platform == "pyodide":
         return "python -m pytest"
     return "pytest"
 
