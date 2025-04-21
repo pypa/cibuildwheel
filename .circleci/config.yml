@@ -1,4 +1,27 @@
-version: 2
+version: 2.1
+
+commands:
+  cibw_prepare_environment:
+    description: "Prepare the environment for testing."
+    steps:
+      - run:
+          name: Prepare the environment.
+          command: bash .circleci/prepare.sh
+  cibw_run_tests:
+    description: "Runs tests, with CIBW_ENABLE=all on the main branch"
+    steps:
+      - run:
+          name: Test
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "main" ]; then
+              echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
+              export CIBW_ENABLE=all
+            else
+              echo "INFO: CIBW_ENABLE not set for this branch test run."
+            fi
+
+            venv/bin/python ./bin/run_tests.py
+          no_output_timeout: 30m
 
 jobs:
   osx-python3.12:
@@ -9,14 +32,8 @@ jobs:
       PYTHON: python3
     steps:
       - checkout
-
-      - run:
-          name: Prepare the environment.
-          command: bash .circleci/prepare.sh
-      - run:
-          name: Test.
-          command: venv/bin/python ./bin/run_tests.py
-          no_output_timeout: 30m
+      - cibw_prepare_environment
+      - cibw_run_tests
 
   linux-python3.12:
     docker:
@@ -29,14 +46,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-
-      - run:
-          name: Prepare the environment.
-          command: bash .circleci/prepare.sh
-      - run:
-          name: Test.
-          command: venv/bin/python ./bin/run_tests.py
-          no_output_timeout: 30m
+      - cibw_prepare_environment
+      - cibw_run_tests
 
   linux-aarch64:
     machine:
@@ -49,14 +60,8 @@ jobs:
       PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic or test_docker_images"
     steps:
       - checkout
-
-      - run:
-          name: Prepare the environment.
-          command: bash .circleci/prepare.sh
-      - run:
-          name: Test.
-          command: venv/bin/python ./bin/run_tests.py
-          no_output_timeout: 30m
+      - cibw_prepare_environment
+      - cibw_run_tests
 
 workflows:
   version: 2
