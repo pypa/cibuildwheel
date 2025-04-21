@@ -249,3 +249,29 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     out, err = capfd.readouterr()
 
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
+
+
+def test_ios_test_command_invalid(tmp_path, capfd):
+    """Test command should raise an error if it's clearly invalid."""
+    if utils.platform != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+
+    project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files["./my_test_script.sh"] = "echo hello"
+    basic_project.generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(
+            project_dir,
+            add_env={
+                "CIBW_PLATFORM": "ios",
+                "CIBW_TEST_COMMAND": "./my_test_script.sh",
+                "CIBW_TEST_SOURCES": "./my_test_script.sh",
+                "CIBW_XBUILD_TOOLS": "",
+            },
+        )
+    out, err = capfd.readouterr()
+    assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
