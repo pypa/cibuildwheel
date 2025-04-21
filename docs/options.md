@@ -17,7 +17,7 @@ Default: `auto`
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
 - For `ios` you need to be running on macOS, with Xcode and the iOS simulator installed.
-- For `pyodide` `python3.12` must be available in `PATH` and you need to be on one of the following runners: x86-64 Linux, arm64 Linux. Intel and Silicon macOS hosts may succeed, though there are known bugs. See [the section on Pyodide](platforms/pyodide.md) for more information.
+- For `pyodide` `python3.12` must be available in `PATH` and you need to be on one of the following runners: x86-64 Linux, arm64 Linux. Intel and Silicon macOS hosts may succeed, though there are known bugs. See [the section on Pyodide](platforms.md#pyodide) for more information.
 
 This option can also be set using the [command-line option](#command-line) `--platform`. This option is not available in the `pyproject.toml` config.
 
@@ -1223,7 +1223,7 @@ This option is particularly useful for:
 - Testing against specific Pyodide alpha or older releases.
 - Ensuring reproducibility by targeting a known Pyodide version.
 
-The available Pyodide versions are determined by the version of `pyodide-build` being used. You can list the compatible versions using the command `pyodide xbuildenv search --all` as described in the [Pyodide platform documentation](platforms/pyodide.md#choosing-a-version).
+The available Pyodide versions are determined by the version of `pyodide-build` being used. You can list the compatible versions using the command `pyodide xbuildenv search --all` as described in the [Pyodide platform documentation](platforms.md#pyodide-choosing-a-version).
 
 !!! tip
     You can set the version of `pyodide-build` using the [`CIBW_DEPENDENCY_VERSIONS`](#dependency-versions) option.
