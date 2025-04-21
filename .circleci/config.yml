@@ -24,7 +24,7 @@ commands:
           no_output_timeout: 30m
 
 jobs:
-  osx-python3.12:
+  osx-python312:
     macos:
       xcode: 15.4.0
     resource_class: macos.m1.medium.gen1
@@ -35,7 +35,7 @@ jobs:
       - cibw_prepare_environment
       - cibw_run_tests
 
-  linux-python3.12:
+  linux-python312:
     docker:
       - image: cimg/python:3.12
     environment:
@@ -67,6 +67,6 @@ workflows:
   version: 2
   all-tests:
     jobs:
-      - osx-python3.12
-      - linux-python3.12
+      - osx-python312
+      - linux-python312
       - linux-aarch64
