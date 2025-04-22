@@ -29,7 +29,7 @@ PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
     "musllinux_ppc64le": "musllinux ppc64le",
     "musllinux_s390x": "musllinux s390x",
     "musllinux_armv7l": "musllinux armv7l",
-    "musllinux_riscv64": "manylinux riscv64",
+    "musllinux_riscv64": "musllinux riscv64",
     "win32": "Windows 32bit",
     "win_amd64": "Windows 64bit",
     "win_arm64": "Windows on ARM 64bit",
