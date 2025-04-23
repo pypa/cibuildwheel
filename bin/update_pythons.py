@@ -20,6 +20,7 @@ from rich.logging import RichHandler
 from rich.syntax import Syntax
 
 from cibuildwheel.extra import dump_python_configurations
+from cibuildwheel.platforms.android import android_triplet
 
 log = logging.getLogger("cibw")
 
@@ -261,10 +262,7 @@ class AndroidVersions:
         # Return a config using the highest version for the given specifier.
         if sorted_versions:
             max_version = sorted_versions[0]
-            triplet = {
-                "arm64_v8a": "aarch64-linux-android",
-                "x86_64": "x86_64-linux-android",
-            }[identifier.split("_", 1)[1]]
+            triplet = android_triplet(identifier)
             return ConfigAndroid(
                 identifier=identifier,
                 version=str(version),

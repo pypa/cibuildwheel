@@ -58,6 +58,22 @@ def _split_config_settings(config_settings: str) -> list[str]:
     return [f"-C{setting}" for setting in config_settings_list]
 
 
+# Based on build.__main__.main.
+def parse_config_settings(config_settings_str: str) -> dict[str, str | list[str]]:
+    config_settings: dict[str, str | list[str]] = {}
+    for arg in shlex.split(config_settings_str):
+        setting, _, value = arg.partition("=")
+        existing_value = config_settings.get(setting)
+        if existing_value is None:
+            config_settings[setting] = value
+        elif isinstance(existing_value, str):
+            config_settings[setting] = [existing_value]
+        else:
+            existing_value.append(value)
+
+    return config_settings
+
+
 def get_build_frontend_extra_flags(
     build_frontend: BuildFrontendConfig, verbosity_level: int, config_settings: str
 ) -> list[str]:

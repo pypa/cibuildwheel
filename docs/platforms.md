@@ -176,10 +176,6 @@ cibuildwheel can build and test Android wheels on any POSIX platform supported b
 Android development tools, which currently means Linux x86_64, macOS ARM64 or macOS
 x86_64.
 
-Building Android wheels requires the build machine to have a working Python executable
-of the same version. See the [Linux](#linux) and [macOS](#macos) sections for details
-of how this is installed.
-
 If you already have an Android SDK, export the `ANDROID_HOME` environment variable to
 point at its location. Otherwise, here's how to install it:
 
@@ -195,6 +191,7 @@ needs.
 
 It also requires the following commands to be on the `PATH`:
 
+* `pythonX.Y`, where `X.Y` is the version of Python you're building for.
 * `curl`
 * `java` (or set the `JAVA_HOME` environment variable)
 

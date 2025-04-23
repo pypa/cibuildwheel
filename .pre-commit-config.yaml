@@ -29,6 +29,7 @@ repos:
     args: ["--python-version=3.11"]
     additional_dependencies: &mypy-dependencies
       - bracex
+      - build
       - dependency-groups>=1.2
       - nox>=2025.2.9
       - orjson
