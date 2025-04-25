@@ -1,6 +1,8 @@
 import os
+import shlex
 import shutil
 import subprocess
+import sys
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -95,7 +97,7 @@ class Builder:
             repaired_wheel = self.build_wheel()
 
         self.test_wheel(repaired_wheel)
-        if compatible_wheel is not None:
+        if compatible_wheel is None:
             self.built_wheels.append(
                 move_file(repaired_wheel, self.build_options.output_dir / repaired_wheel.name)
             )
@@ -149,6 +151,14 @@ class Builder:
                 )
             call(command, "--version", env=self.env)
 
+        # Add cross-venv files, which will be activated by simulate_android.
+        self.site_packages = next(self.venv_dir.glob("lib/python*/site-packages"))
+        for path in [
+            resources.PATH / "_cross_venv.py",
+            next(self.python_dir.glob("prefix/lib/python*/_sysconfigdata_*.py")),
+        ]:
+            shutil.copy(path, self.site_packages)
+
         # Install build tools
         self.build_frontend = self.build_options.build_frontend or BuildFrontendConfig("build")
         if self.build_frontend.name != "build":
@@ -177,31 +187,26 @@ class Builder:
 
     @contextmanager
     def simulate_android(self) -> Generator[None]:
-        site_packages = self.venv_dir / f"lib/python{self.config.version}/site-packages"
-        (site_packages / "_cross_venv.pth").write_text(
-            f"import _cross_venv; _cross_venv.initialize('{self.config.identifier}')"
-        )
-        shutil.copy(resources.PATH / "_cross_venv.py", site_packages)
+        if not hasattr(self, "android_env"):
+            self.android_env = self.env.copy()
+            env_output = call(self.python_dir / "android.py", "env", capture_stdout=True)
+            sys.stdout.write(env_output)
+            for line in env_output.splitlines():
+                key, value = line.removeprefix("export ").split("=", 1)
+                value_split = shlex.split(value)
+                assert len(value_split) == 1, value_split
+                self.android_env[key] = value_split[0]
 
-        env = self.env.copy()
-        for line in call(
-            self.python_dir / "android.py",
-            "env",
-            android_triplet(self.config.identifier),
-            capture_stdout=True,
-        ).splitlines():
-            key, value = line.split("=", 1)
-            env[key] = value
+        original_env = {key: os.environ.get(key) for key in self.android_env}
+        os.environ.update(self.android_env)
 
-        original_env = {key: os.environ.get(key) for key in env}
-        os.environ.update(env)
+        pth_file = self.site_packages / "_cross_venv.pth"
+        pth_file.write_text("import _cross_venv; _cross_venv.initialize()")
 
         try:
             yield
         finally:
-            for name in ["_cross_venv.pth", "_cross_venv.py"]:
-                (site_packages / name).unlink()
-
+            pth_file.unlink()
             for key, original_value in original_env.items():
                 if original_value is None:
                     del os.environ[key]
@@ -224,6 +229,7 @@ class Builder:
                 self.build_options.package_dir,
                 "--wheel",
                 "--no-isolation",
+                "--skip-dependency-check",
                 f"--outdir={built_wheel_dir}",
                 *get_build_frontend_extra_flags(
                     self.build_frontend,
