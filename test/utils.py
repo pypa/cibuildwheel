@@ -233,7 +233,7 @@ def _expected_wheels(
         musllinux_versions = ["musllinux_1_2"]
 
     if platform == "pyodide" and python_abi_tags is None:
-        python_abi_tags = ["cp312-cp312"]
+        python_abi_tags = ["cp312-cp312", "cp313-cp313"]
     if python_abi_tags is None:
         python_abi_tags = [
             "cp38-cp38",
@@ -266,13 +266,6 @@ def _expected_wheels(
                 if tag.startswith(python_tag) and not tag.endswith("t")
             )
         ]
-
-    if platform == "pyodide":
-        assert len(python_abi_tags) == 1
-        python_abi_tag = python_abi_tags[0]
-        platform_tag = "pyodide_2024_0_wasm32"
-        yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
-        return
 
     for python_abi_tag in python_abi_tags:
         platform_tags = []
@@ -322,6 +315,13 @@ def _expected_wheels(
 
             if include_universal2:
                 platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
+
+        elif platform == "pyodide":
+            platform_tags = {
+                "cp312-cp312": ["pyodide_2024_0_wasm32"],
+                "cp313-cp313": ["pyodide_2025_0_wasm32"],
+            }.get(python_abi_tag, [])
+
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
