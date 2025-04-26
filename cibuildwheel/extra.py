@@ -55,6 +55,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
             return typing.cast(dict[str, Any], json.load(response))
 
     except (urllib.error.URLError, TimeoutError) as e:
+        # pylint: disable=E1101
         if max_retries > 0:
             if (
                 isinstance(e, urllib.error.HTTPError)
