@@ -124,25 +124,13 @@ def update_constraints(session: nox.Session) -> None:
         pyodide_build_specifier = ",".join(pyodide_build_specifier_parts)
 
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
-        # tmp_file.write_text(
-        #     textwrap.dedent(f"""
-        #         pip
-        #         build[virtualenv]
-        #         pyodide-build{pyodide_build_specifier}
-        #     """)
-        # )
-
-        # TODO: remove the pyodide-build git version pinning when the next release is
-        # available
-        print(f"pyodide-build specifier: {pyodide_build_specifier}")
         tmp_file.write_text(
-            textwrap.dedent("""
+            textwrap.dedent(f"""
                 pip
                 build[virtualenv]
-                git+https://github.com/pyodide/pyodide-build.git@71a6d09651814439feb161537888078f7ff68c19
+                pyodide-build{pyodide_build_specifier}
             """)
         )
-        # END TODO
 
         output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
         session.run(
