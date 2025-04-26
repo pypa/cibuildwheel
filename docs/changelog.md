@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.23.3
+
+_26 April 2025_
+
+- 🛠 Dependency updates, including Python 3.13.3 (#2371)
+
 ### v2.23.2
 
 _24 March 2025_
