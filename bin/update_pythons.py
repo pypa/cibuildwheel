@@ -18,7 +18,7 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel.extra import dump_python_configurations
+from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
 
 log = logging.getLogger("cibw")
 
@@ -50,7 +50,14 @@ class ConfigApple(TypedDict):
     url: str
 
 
-AnyConfig = ConfigWinCP | ConfigWinPP | ConfigApple
+class ConfigPyodide(TypedDict):
+    identifier: str
+    version: str
+    default_pyodide_version: str
+    node_version: str
+
+
+AnyConfig = ConfigWinCP | ConfigWinPP | ConfigApple | ConfigPyodide
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to
@@ -274,6 +281,39 @@ class CPythonIOSVersions:
         return None
 
 
+class PyodideVersions:
+    def __init__(self) -> None:
+        xbuildenv_info = get_pyodide_xbuildenv_info()
+        self.releases = xbuildenv_info["releases"]
+
+    def update_version_pyodide(
+        self, identifier: str, version: Version, spec: Specifier, node_version: str
+    ) -> ConfigPyodide | None:
+        # get releases that match the python version
+        releases = [
+            r for r in self.releases.values() if spec.contains(Version(r["python_version"]))
+        ]
+        # sort by version, latest first
+        releases.sort(key=lambda r: Version(r["version"]), reverse=True)
+
+        if not releases:
+            msg = f"Pyodide not found for {spec}!"
+            raise ValueError(msg)
+
+        final_releases = [r for r in releases if not Version(r["version"]).is_prerelease]
+
+        # prefer a final release if available, otherwise use the latest
+        # pre-release
+        release = final_releases[0] if final_releases else releases[0]
+
+        return ConfigPyodide(
+            identifier=identifier,
+            version=str(version),
+            default_pyodide_version=release["version"],
+            node_version=node_version,
+        )
+
+
 # This is a universal interface to all the above Versions classes. Given an
 # identifier, it updates a config dict.
 
@@ -293,6 +333,8 @@ class AllVersions:
         self.macos_pypy_arm64 = PyPyVersions("ARM64")
 
         self.ios_cpython = CPythonIOSVersions()
+
+        self.pyodide = PyodideVersions()
 
     def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]
@@ -328,6 +370,10 @@ class AllVersions:
             config_update = self.windows_arm64.update_version_windows(spec)
         elif "ios" in identifier:
             config_update = self.ios_cpython.update_version_ios(identifier, version)
+        elif "pyodide" in identifier:
+            config_update = self.pyodide.update_version_pyodide(
+                identifier, version, spec, config["node_version"]
+            )
 
         assert config_update is not None, f"{identifier} not found!"
         config.update(**config_update)
@@ -364,6 +410,9 @@ def update_pythons(force: bool, level: str) -> None:
         all_versions.update_config(config)
 
     for config in configs["ios"]["python_configurations"]:
+        all_versions.update_config(config)
+
+    for config in configs["pyodide"]["python_configurations"]:
         all_versions.update_config(config)
 
     result_toml = dump_python_configurations(configs)

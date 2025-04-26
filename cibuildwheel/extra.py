@@ -9,7 +9,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Mapping, Sequence
 from io import StringIO
-from typing import Any, Protocol
+from typing import Any, NotRequired, Protocol
 
 from cibuildwheel import __version__ as cibw_version
 
@@ -72,3 +72,21 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
         else:
             print(f"GitHub API request failed (Network error: {e}). Check network connection.")
             raise e
+
+
+class PyodideXBuildEnvRelease(typing.TypedDict):
+    version: str
+    python_version: str
+    emscripten_version: str
+    min_pyodide_build_version: NotRequired[str]
+    max_pyodide_build_version: NotRequired[str]
+
+
+class PyodideXBuildEnvInfo(typing.TypedDict):
+    releases: dict[str, PyodideXBuildEnvRelease]
+
+
+def get_pyodide_xbuildenv_info() -> PyodideXBuildEnvInfo:
+    xbuildenv_info_url = "https://raw.githubusercontent.com/pyodide/pyodide/refs/heads/main/pyodide-cross-build-environments.json"
+    with urllib.request.urlopen(xbuildenv_info_url) as response:
+        return typing.cast(PyodideXBuildEnvInfo, json.loads(response.read().decode("utf-8")))

@@ -161,7 +161,7 @@ python_configurations = [
 
 [pyodide]
 python_configurations = [
-  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.0", node_version = "v22" },
+  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.5", node_version = "v22" },
 ]
 
 [ios]
