@@ -165,6 +165,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
                     continue
                 if not tag.platform.endswith(f"_{arch}"):
                     continue
+            elif platform.startswith("pyodide"):
+                # each Pyodide version has its own platform tag
+                continue
             else:
                 # Windows should exactly match
                 if tag.platform != platform:

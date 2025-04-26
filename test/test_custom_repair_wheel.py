@@ -48,7 +48,7 @@ def test(tmp_path, capfd):
         assert "Build failed because a wheel named" in captured.err
         assert exc_info.value.returncode == 6
     else:
-        # We only produced one wheel (currently Pyodide)
+        # We only produced one wheel (perhaps Pyodide)
         # check that it has the right name
         #
         # As far as I can tell, this is the only full test coverage for

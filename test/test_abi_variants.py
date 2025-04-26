@@ -54,6 +54,7 @@ def test_abi3(tmp_path):
         expected_wheels = [
             w.replace(f"{single_python_tag}-{single_python_tag}", "cp310-abi3")
             for w in expected_wheels
+            if single_python_tag in w
         ]
     else:
         expected_wheels = [
@@ -194,7 +195,7 @@ def test_abi_none(tmp_path, capfd):
     captured = capfd.readouterr()
     assert "Building wheel..." in captured.out
     if utils.platform == "pyodide":
-        # there's only 1 possible configuration for pyodide, we won't see the message expected on following builds
+        # pyodide has a unique platform tag for each wheel, so they are not reused
         assert "Found previously built wheel" not in captured.out
     else:
         assert "Found previously built wheel" in captured.out
