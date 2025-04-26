@@ -15,6 +15,7 @@ BUILD_PLATFORMS: Final[Path] = PATH / "build-platforms.toml"
 CONSTRAINTS: Final[Path] = PATH / "constraints.txt"
 VIRTUALENV: Final[Path] = PATH / "virtualenv.toml"
 CIBUILDWHEEL_SCHEMA: Final[Path] = PATH / "cibuildwheel.schema.json"
+PYTHON_BUILD_STANDALONE_RELEASES: Final[Path] = PATH / "python-build-standalone-releases.json"
 
 
 # this value is cached because it's used a lot in unit tests

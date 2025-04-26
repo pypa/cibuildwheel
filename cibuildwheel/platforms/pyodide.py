@@ -47,7 +47,6 @@ class PythonConfiguration:
     identifier: str
     default_pyodide_version: str
     node_version: str
-    python_build_standalone_tag: str
 
 
 class PyodideXBuildEnvInfoVersionRange(TypedDict):
@@ -216,7 +215,6 @@ def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_v
 def get_base_python(tmp: Path, python_configuration: PythonConfiguration) -> Path:
     try:
         return create_python_build_standalone_environment(
-            release_tag=python_configuration.python_build_standalone_tag,
             python_version=python_configuration.version,
             temp_dir=tmp,
             cache_dir=CIBW_CACHE_PATH,

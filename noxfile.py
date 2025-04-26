@@ -160,7 +160,8 @@ def update_constraints(session: nox.Session) -> None:
 @nox.session(default=False, tags=["update"])
 def update_pins(session: nox.Session) -> None:
     """
-    Update the python, docker and virtualenv pins version inplace.
+    Update the python, docker, virtualenv, node, and python-build-standalone
+    version pins inplace.
     """
     pyproject = nox.project.load_toml()
     session.install("-e.", *nox.project.dependency_groups(pyproject, "bin"))
@@ -168,6 +169,7 @@ def update_pins(session: nox.Session) -> None:
     session.run("python", "bin/update_docker.py")
     session.run("python", "bin/update_virtualenv.py", "--force")
     session.run("python", "bin/update_nodejs.py", "--force")
+    session.run("python", "bin/update_python_build_standalone.py")
 
 
 @nox.session(default=False, reuse_venv=True, tags=["update"])
