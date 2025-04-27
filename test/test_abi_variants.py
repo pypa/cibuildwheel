@@ -187,15 +187,20 @@ def test_abi_none(tmp_path, capfd):
         },
     )
 
-    # check that the expected wheels are produced
-    expected_wheels = utils.expected_wheels("ctypesexample", "1.0.0", python_abi_tags=["py3-none"])
-    assert set(actual_wheels) == set(expected_wheels)
-
-    # check that each wheel was built once, and reused
     captured = capfd.readouterr()
-    assert "Building wheel..." in captured.out
+
     if utils.platform == "pyodide":
-        # pyodide has a unique platform tag for each wheel, so they are not reused
+        # we only selected one python version for pyodide, so we only get one
+        # wheel
+        assert set(actual_wheels) == {"ctypesexample-1.0.0-py3-none-pyodide_2024_0_wasm32.whl"}
         assert "Found previously built wheel" not in captured.out
     else:
+        # check that the expected wheels are produced
+        expected_wheels = utils.expected_wheels(
+            "ctypesexample", "1.0.0", python_abi_tags=["py3-none"]
+        )
+        assert set(actual_wheels) == set(expected_wheels)
+
+        # check that each wheel was built once, and reused
+        assert "Building wheel..." in captured.out
         assert "Found previously built wheel" in captured.out
