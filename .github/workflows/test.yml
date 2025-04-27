@@ -169,13 +169,9 @@ jobs:
       run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
-    name: Test cibuildwheel building Pyodide wheels (${{ matrix.pyodide-version }} version)
+    name: Test pyodide
     needs: lint
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        pyodide-version: ["default", "custom"]
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -193,7 +189,6 @@ jobs:
         uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
 
     - name: Run a sample build (GitHub Action)
-      if: matrix.pyodide-version == 'default'
       uses: ./
       with:
         package-dir: sample_proj
@@ -202,7 +197,6 @@ jobs:
         CIBW_PLATFORM: pyodide
 
     - name: Run a sample build (GitHub Action) for an overridden Pyodide version
-      if: matrix.pyodide-version == 'custom'
       uses: ./
       with:
         package-dir: sample_proj
@@ -212,6 +206,7 @@ jobs:
         # in cibuildwheel/resources/build-platforms.toml.
       env:
         CIBW_PLATFORM: pyodide
+        CIBW_BUILD: "cp312*"
         CIBW_PYODIDE_VERSION: "0.27.0a2"
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
