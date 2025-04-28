@@ -116,5 +116,8 @@ for image in images:
             suffix = f"_{platform.removeprefix('pypy_')}"
         config[platform][image.manylinux_version] = f"{image.image_name}{suffix}:{tag_name}"
 
+if not config.has_section("riscv64"):
+    config["riscv64"] = {}
+
 with open(RESOURCES / "pinned_docker_images.cfg", "w") as f:
     config.write(f)

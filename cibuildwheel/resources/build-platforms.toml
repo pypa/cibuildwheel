@@ -46,6 +46,13 @@ python_configurations = [
   { identifier = "cp312-manylinux_armv7l", version = "3.12", path_str = "/opt/python/cp312-cp312" },
   { identifier = "cp313-manylinux_armv7l", version = "3.13", path_str = "/opt/python/cp313-cp313" },
   { identifier = "cp313t-manylinux_armv7l", version = "3.13", path_str = "/opt/python/cp313-cp313t" },
+  { identifier = "cp38-manylinux_riscv64", version = "3.8", path_str = "/opt/python/cp38-cp38" },
+  { identifier = "cp39-manylinux_riscv64", version = "3.9", path_str = "/opt/python/cp39-cp39" },
+  { identifier = "cp310-manylinux_riscv64", version = "3.10", path_str = "/opt/python/cp310-cp310" },
+  { identifier = "cp311-manylinux_riscv64", version = "3.11", path_str = "/opt/python/cp311-cp311" },
+  { identifier = "cp312-manylinux_riscv64", version = "3.12", path_str = "/opt/python/cp312-cp312" },
+  { identifier = "cp313-manylinux_riscv64", version = "3.13", path_str = "/opt/python/cp313-cp313" },
+  { identifier = "cp313t-manylinux_riscv64", version = "3.13", path_str = "/opt/python/cp313-cp313t" },
   { identifier = "pp38-manylinux_aarch64", version = "3.8", path_str = "/opt/python/pp38-pypy38_pp73" },
   { identifier = "pp39-manylinux_aarch64", version = "3.9", path_str = "/opt/python/pp39-pypy39_pp73" },
   { identifier = "pp310-manylinux_aarch64", version = "3.10", path_str = "/opt/python/pp310-pypy310_pp73" },
@@ -96,6 +103,13 @@ python_configurations = [
   { identifier = "cp312-musllinux_armv7l", version = "3.12", path_str = "/opt/python/cp312-cp312" },
   { identifier = "cp313-musllinux_armv7l", version = "3.13", path_str = "/opt/python/cp313-cp313" },
   { identifier = "cp313t-musllinux_armv7l", version = "3.13", path_str = "/opt/python/cp313-cp313t" },
+  { identifier = "cp38-musllinux_riscv64", version = "3.8", path_str = "/opt/python/cp38-cp38" },
+  { identifier = "cp39-musllinux_ricv64", version = "3.9", path_str = "/opt/python/cp39-cp39" },
+  { identifier = "cp310-musllinux_riscv64", version = "3.10", path_str = "/opt/python/cp310-cp310" },
+  { identifier = "cp311-musllinux_riscv64", version = "3.11", path_str = "/opt/python/cp311-cp311" },
+  { identifier = "cp312-musllinux_riscv64", version = "3.12", path_str = "/opt/python/cp312-cp312" },
+  { identifier = "cp313-musllinux_riscv64", version = "3.13", path_str = "/opt/python/cp313-cp313" },
+  { identifier = "cp313t-musllinux_riscv64", version = "3.13", path_str = "/opt/python/cp313-cp313t" },
 ]
 
 [macos]
