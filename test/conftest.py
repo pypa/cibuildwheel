@@ -56,9 +56,8 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
     images = [build_options.manylinux_images[arch] for arch in archs] + [
         build_options.musllinux_images[arch] for arch in archs
     ]
-    # exclude GraalPy as it's not a target for cibuildwheel
     command = (
-        "manylinux-interpreters ensure $(manylinux-interpreters list 2>/dev/null | grep -v graalpy) &&"
+        "manylinux-interpreters ensure-all &&"
         "cpython3.13 -m pip download -d /tmp setuptools wheel pytest"
     )
     for image in images:
