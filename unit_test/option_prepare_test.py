@@ -14,7 +14,7 @@ from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
 DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
-ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311"}
+ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp242"}
 
 
 @pytest.fixture
@@ -103,7 +103,7 @@ def test_build_with_override_launches(monkeypatch, tmp_path):
 [tool.cibuildwheel]
 manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
-enable = ["pypy", "cpython-freethreading"]
+enable = ["pypy", "graalpy", "cpython-freethreading"]
 
 # Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]
@@ -155,6 +155,7 @@ before-all = "true"
             "pp39",
             "pp310",
             "pp311",
+            "gp242",
         }
     }
     assert kwargs["options"].build_options("cp39-manylinux_x86_64").before_all == ""
@@ -176,6 +177,7 @@ before-all = "true"
             "pp39",
             "pp310",
             "pp311",
+            "gp242",
         ]
     }
 
@@ -185,14 +187,16 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS}
+    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS if "gp" not in x}
 
     kwargs = build_in_container.call_args_list[4][1]
     assert "quay.io/pypa/musllinux_1_2_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-musllinux_x86_64" for x in ALL_IDS if "pp" not in x}
+    assert identifiers == {
+        f"{x}-musllinux_x86_64" for x in ALL_IDS if "pp" not in x and "gp" not in x
+    }
 
     kwargs = build_in_container.call_args_list[5][1]
     assert "quay.io/pypa/musllinux_1_2_i686" in kwargs["container"]["image"]
@@ -200,4 +204,6 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x}
+    assert identifiers == {
+        f"{x}-musllinux_i686" for x in ALL_IDS if "pp" not in x and "gp" not in x
+    }

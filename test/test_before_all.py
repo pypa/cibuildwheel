@@ -38,8 +38,8 @@ def test(tmp_path):
 
     # build the wheels
     before_all_command = (
-        """python -c "import os, sys;open('{project}/text_info.txt', 'w').write('sample text '+os.environ.get('TEST_VAL', ''))" && """
-        '''python -c "import sys; open('{project}/python_prefix.txt', 'w').write(sys.prefix)"'''
+        """python -c "import os, pathlib, sys; pathlib.Path('{project}/text_info.txt').write_text('sample text '+os.environ.get('TEST_VAL', ''))" && """
+        '''python -c "import pathlib, sys; pathlib.Path('{project}/python_prefix.txt').write_text(sys.prefix)"'''
     )
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
