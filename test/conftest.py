@@ -108,11 +108,13 @@ def docker_warmup_fixture(
     return None
 
 
-@pytest.fixture(params=["pip", "build"])
+@pytest.fixture(params=["pip", "build", "uv"])
 def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     frontend = request.param
-    if platform == "pyodide" and frontend == "pip":
-        pytest.skip("Can't use pip as build frontend for pyodide platform")
+    if platform == "pyodide" and frontend in {"pip", "uv"}:
+        pytest.skip("Can't use pip or uv as build frontend for pyodide platform")
+    if frontend == "uv" and find_uv() is None:
+        pytest.skip("Can't find uv")
 
     return {"CIBW_BUILD_FRONTEND": frontend}
 
