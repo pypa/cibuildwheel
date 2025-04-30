@@ -62,7 +62,6 @@ def initialize():
     #
     sysconfig._init_config_vars()
 
-    # sysconfig.get_platform (which determines the wheel tag) is implemented in terms of
-    # sys.platform, sysconfig.get_config_var("ANDROID_API_LEVEL"), and os.uname.
-    if api_level := os.environ.get("ANDROID_API_LEVEL"):
-        sysconfig.get_config_vars()["ANDROID_API_LEVEL"] = int(api_level)
+    # sysconfig.get_platform, which determines the wheel tag, is implemented in terms of
+    # sys.platform, sysconfig.get_config_var("ANDROID_API_LEVEL") (see localized_vars in
+    # android.py), and os.uname.
