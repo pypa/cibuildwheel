@@ -7,11 +7,12 @@ import re
 import sys
 import sysconfig
 from pathlib import Path
+from typing import Any
 
 
-def initialize():
+def initialize() -> None:
     # os ######################################################################
-    def cross_os_uname():
+    def cross_os_uname() -> os.uname_result:
         return os.uname_result(
             (
                 "Linux",
@@ -31,7 +32,7 @@ def initialize():
     #
     # We can't determine the user-visible Android version number from the API level, so return a
     # string which will work fine for display, but will fail to parse as a version number.
-    def cross_android_ver(*args, **kwargs):
+    def cross_android_ver(*args: Any, **kwargs: Any) -> platform.AndroidVer:
         return platform.AndroidVer(
             release=f"API level {cross_getandroidapilevel()}",
             api_level=cross_getandroidapilevel(),
@@ -45,22 +46,27 @@ def initialize():
     platform.android_ver = cross_android_ver
 
     # sys #####################################################################
-    def cross_getandroidapilevel():
-        return sysconfig.get_config_var("ANDROID_API_LEVEL")
+    def cross_getandroidapilevel() -> int:
+        api_level = sysconfig.get_config_var("ANDROID_API_LEVEL")
+        assert isinstance(api_level, int)
+        return api_level
 
-    sys.cross_compiling = True  # Some packages may recognize this from the crossenv tool.
-    sys.getandroidapilevel = cross_getandroidapilevel
-    sys.implementation._multiarch = os.environ["HOST"]
+    # Some packages may recognize sys.cross_compiling from the crossenv tool.
+    sys.cross_compiling = True  # type: ignore[attr-defined]
+    sys.getandroidapilevel = cross_getandroidapilevel  # type: ignore[attr-defined]
+    sys.implementation._multiarch = os.environ["HOST"]  # type: ignore[attr-defined]
     sys.platform = "android"
 
     # _get_sysconfigdata_name is implemented in terms of sys.abiflags, sys.platform and
     # sys.implementation._multiarch. Determine the abiflags from the filename.
     sysconfigdata_path = next(Path(__file__).parent.glob("_sysconfigdata_*.py"))
-    sys.abiflags = re.match(r"_sysconfigdata_(.*?)_", sysconfigdata_path.name)[1]
+    abiflags_match = re.match(r"_sysconfigdata_(.*?)_", sysconfigdata_path.name)
+    assert abiflags_match is not None
+    sys.abiflags = abiflags_match[1]
 
     # sysconfig ###############################################################
     #
-    sysconfig._init_config_vars()
+    sysconfig._init_config_vars()  # type: ignore[attr-defined]
 
     # sysconfig.get_platform, which determines the wheel tag, is implemented in terms of
     # sys.platform, sysconfig.get_config_var("ANDROID_API_LEVEL") (see localized_vars in
