@@ -228,16 +228,15 @@ On Linux, the emulator needs access to the KVM virtualization interface, and a D
 environment variable pointing at an X server. Xvfb is acceptable.
 
 The Android test environment can't support running shell scripts, so the
-[`CIBW_TEST_COMMAND`](options.md#test-command) value must be specified as if it were
-a command line being passed to `python -m ...`. In addition, the project must use
+[`CIBW_TEST_COMMAND`](options.md#test-command) value must be a Python command – see its
+documentation for details. In addition, the project should use
 [`CIBW_TEST_SOURCES`](options.md#test-sources) to specify the minimum subset of files
 that should be copied to the test environment. This is because the test must be run "on
 device", and the device will not have access to the local project directory.
 
 The test process uses the same testbed used by CPython itself to run the CPython test
 suite. It is a Gradle project that has been configured to have a single JUnit test,
-the result of which reports the success or failure of running
-`python -m <CIBW_TEST_COMMAND>`.
+the result of which reports the success or failure of running the test command.
 
 
 ## iOS

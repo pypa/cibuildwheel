@@ -28,6 +28,30 @@ ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
 ]
 
 
+def arch_synonym(arch: str, from_platform: PlatformName, to_platform: PlatformName) -> str | None:
+    for arch_synonym in ARCH_SYNONYMS:
+        if arch == arch_synonym.get(from_platform):
+            return arch_synonym.get(to_platform, arch)
+
+    return arch
+
+
+def native_platform() -> PlatformName:
+    if sys.platform.startswith("linux"):
+        return "linux"
+    elif sys.platform == "darwin":
+        return "macos"
+    elif sys.platform == "win32":
+        return "windows"
+    else:
+        msg = (
+            'Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
+            "support building wheels for this platform. You might be able to build for a different "
+            "platform using the --platform argument. Check --help output for more information."
+        )
+        raise errors.ConfigurationError(msg)
+
+
 def _check_aarch32_el0() -> bool:
     """Check if running armv7l natively on aarch64 is supported"""
     if not sys.platform.startswith("linux"):
@@ -126,15 +150,12 @@ class Architecture(StrEnum):
         # we might need to rename the native arch to the machine we're running
         # on, as the same arch can have different names on different platforms
         if host_platform != platform:
-            for arch_synonym in ARCH_SYNONYMS:
-                if native_machine == arch_synonym.get(host_platform):
-                    synonym = arch_synonym[platform]
+            synonym = arch_synonym(native_machine, host_platform, platform)
+            if synonym is None:
+                # can't build anything on this platform
+                return None
 
-                    if synonym is None:
-                        # can't build anything on this platform
-                        return None
-
-                    native_architecture = Architecture(synonym)
+            native_architecture = Architecture(synonym)
 
         return native_architecture
 

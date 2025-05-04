@@ -1,5 +1,7 @@
 import importlib.util
 import os
+import platform
+import re
 import shlex
 import shutil
 import subprocess
@@ -14,14 +16,15 @@ from build import ProjectBuilder
 from filelock import FileLock
 
 from .. import errors
-from ..architecture import Architecture
+from ..architecture import Architecture, arch_synonym, native_platform
 from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags, parse_config_settings
 from ..logger import log
 from ..options import BuildOptions, Options
 from ..selector import BuildSelector
+from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
-from ..util.file import CIBW_CACHE_PATH, download, move_file
+from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from ..util.helpers import prepare_command
 from ..util.packaging import find_compatible_wheel
 from ..venv import constraint_flags, virtualenv
@@ -31,7 +34,16 @@ def android_triplet(identifier: str) -> str:
     return {
         "arm64_v8a": "aarch64-linux-android",
         "x86_64": "x86_64-linux-android",
-    }[identifier.split("_", 1)[1]]
+    }[parse_identifier(identifier)[1]]
+
+
+def parse_identifier(identifier: str) -> tuple[str, str]:
+    match = re.fullmatch(r"cp(\d)(\d+)-android_(.+)", identifier)
+    if not match:
+        msg = f"invalid Android identifier: '{identifier}'"
+        raise ValueError(msg)
+    major, minor, arch = match.groups()
+    return (f"{major}.{minor}", arch)
 
 
 @dataclass(frozen=True)
@@ -39,6 +51,10 @@ class PythonConfiguration:
     version: str
     identifier: str
     url: str
+
+    @property
+    def arch(self) -> str:
+        return parse_identifier(self.identifier)[1]
 
 
 def all_python_configurations() -> list[PythonConfiguration]:
@@ -51,8 +67,7 @@ def get_python_configurations(
     return [
         c
         for c in all_python_configurations()
-        if any(c.identifier.endswith(f"-android_{arch.value}") for arch in architectures)
-        and build_selector(c.identifier)
+        if c.arch in architectures and build_selector(c.identifier)
     ]
 
 
@@ -234,7 +249,7 @@ class Builder:
 
         return localized_vars
 
-    def pip_install(self, *args: str) -> None:
+    def pip_install(self, *args: PathOrStr) -> None:
         if args:
             call("pip", "install", "--upgrade", *args, env=self.env)
 
@@ -242,7 +257,9 @@ class Builder:
     def simulate_android(self) -> Generator[None]:
         if not hasattr(self, "android_env"):
             self.android_env = self.env.copy()
-            env_output = call(self.python_dir / "android.py", "env", capture_stdout=True)
+            env_output = call(
+                self.python_dir / "android.py", "env", env=self.env, capture_stdout=True
+            )
             for line in env_output.splitlines():
                 key, value = line.removeprefix("export ").split("=", 1)
                 value_split = shlex.split(value)
@@ -312,16 +329,76 @@ class Builder:
         if len(built_wheels) != 1:
             msg = f"{built_wheel_dir} contains {len(built_wheels)} wheels; expected 1"
             raise errors.FatalError(msg)
-        return built_wheels[0]
+        built_wheel = built_wheels[0]
+
+        if built_wheel.name.endswith("none-any.whl"):
+            raise errors.NonPlatformWheelError()
+        return built_wheel
 
     def test_wheel(self, wheel: Path) -> None:
-        if self.build_options.test_command and self.build_options.test_selector(
-            self.config.identifier
+        if not (
+            self.build_options.test_command
+            and self.build_options.test_selector(self.config.identifier)
         ):
-            log.step("Testing wheel...")
-            print("FIXME", wheel)
-            # TODO pass environment from cibuildwheel config?
-            # TODO require pip 25.1 for Android tag support
+            return
+
+        log.step("Testing wheel...")
+        if self.config.arch != arch_synonym(platform.machine(), native_platform(), "android"):
+            log.warning("Skipping tests on non-native architecture")
+            return
+
+        if self.build_options.before_test:
+            shell_prepared(self.build_options.before_test, self.build_options, self.env)
+
+        # Install the wheel and test-requires.
+        site_packages_dir = self.tmp_dir / "site-packages"
+        site_packages_dir.mkdir()
+        self.pip_install(
+            "--only-binary=:all:",
+            "--platform",
+            f"android_{self.sysconfigdata['ANDROID_API_LEVEL']}_{self.config.arch}",
+            "--extra-index-url",
+            "https://chaquo.com/pypi-13.1/",
+            "--target",
+            site_packages_dir,
+            f"{wheel}{self.build_options.test_extras}",
+            *self.build_options.test_requires,
+        )
+
+        # Copy test-sources.
+        #
+        # TODO: decide what to do if this isn't specified
+        # (https://github.com/pypa/cibuildwheel/pull/2363#issuecomment-2849413429)
+        cwd_dir = self.tmp_dir / "cwd"
+        cwd_dir.mkdir()
+        copy_test_sources(self.build_options.test_sources, self.build_options.package_dir, cwd_dir)
+
+        # Parse test-command.
+        test_args = shlex.split(self.build_options.test_command)
+        if test_args[:2] in [["python", "-c"], ["python", "-m"]]:
+            test_args[:3] = [test_args[1], test_args[2], "--"]
+        elif test_args[0] in ["pytest"]:
+            test_args[:1] = ["-m", test_args[0], "--"]
+        else:
+            msg = (
+                f"Test command '{self.build_options.test_command}' is not supported on this "
+                f"platform. Supported commands are 'python -m', 'python -c' and 'pytest'."
+            )
+            raise errors.FatalError(msg)
+
+        # Run the test app.
+        call(
+            self.python_dir / "android.py",
+            "test",
+            "--managed",
+            "maxVersion",
+            "--site-packages",
+            site_packages_dir,
+            "--cwd",
+            cwd_dir,
+            *test_args,
+            env=self.env,
+        )
 
 
 def build(options: Options, tmp_path: Path) -> None:

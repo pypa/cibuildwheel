@@ -17,7 +17,7 @@ from typing import Any, Literal, TextIO
 import cibuildwheel
 import cibuildwheel.util
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture, allowed_architectures_check
+from cibuildwheel.architecture import Architecture, allowed_architectures_check, native_platform
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
@@ -246,22 +246,6 @@ def _compute_platform_only(only: str) -> PlatformName:
     raise errors.ConfigurationError(msg)
 
 
-def _compute_platform_auto() -> PlatformName:
-    if sys.platform.startswith("linux"):
-        return "linux"
-    elif sys.platform == "darwin":
-        return "macos"
-    elif sys.platform == "win32":
-        return "windows"
-    else:
-        msg = (
-            'Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
-            "support building wheels for this platform. You might be able to build for a different "
-            "platform using the --platform argument. Check --help output for more information."
-        )
-        raise errors.ConfigurationError(msg)
-
-
 def _compute_platform(args: CommandLineArguments) -> PlatformName:
     platform_option_value = args.platform or os.environ.get("CIBW_PLATFORM", "") or "auto"
 
@@ -281,7 +265,7 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     elif platform_option_value != "auto":
         return typing.cast(PlatformName, platform_option_value)
 
-    return _compute_platform_auto()
+    return native_platform()
 
 
 @contextlib.contextmanager

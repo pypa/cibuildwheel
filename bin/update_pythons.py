@@ -241,6 +241,7 @@ class CPythonVersions:
 
 
 class AndroidVersions:
+    # This should be replaced with official python.org downloads once they're available.
     MAVEN_URL = "https://repo.maven.apache.org/maven2/com/chaquo/python/python"
 
     def __init__(self) -> None:
