@@ -22,12 +22,14 @@ PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
     "manylinux_ppc64le": "manylinux ppc64le",
     "manylinux_s390x": "manylinux s390x",
     "manylinux_armv7l": "manylinux armv7l",
+    "manylinux_riscv64": "manylinux riscv64",
     "musllinux_x86_64": "musllinux x86_64",
     "musllinux_i686": "musllinux i686",
     "musllinux_aarch64": "musllinux aarch64",
     "musllinux_ppc64le": "musllinux ppc64le",
     "musllinux_s390x": "musllinux s390x",
     "musllinux_armv7l": "musllinux armv7l",
+    "musllinux_riscv64": "musllinux riscv64",
     "win32": "Windows 32bit",
     "win_amd64": "Windows 64bit",
     "win_arm64": "Windows on ARM 64bit",
@@ -243,6 +245,8 @@ def build_description_from_identifier(identifier: str) -> str:
         build_description += "CPython"
     elif python_interpreter == "pp":
         build_description += "PyPy"
+    elif python_interpreter == "gp":
+        build_description += "GraalPy"
     else:
         msg = f"unknown python {python_interpreter!r}"
         raise Exception(msg)

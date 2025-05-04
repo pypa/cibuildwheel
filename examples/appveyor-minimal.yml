@@ -9,7 +9,7 @@ environment:
 
 stack: python 3.12
 
-install: python -m pip install cibuildwheel==2.23.2
+install: python -m pip install cibuildwheel==2.23.3
 
 build_script: python -m cibuildwheel --output-dir wheelhouse
 

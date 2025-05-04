@@ -14,7 +14,7 @@ importlib-metadata==8.5.0
     # via build
 macholib==1.16.3
     # via delocate
-packaging==24.2
+packaging==25.0
     # via
     #   build
     #   delocate

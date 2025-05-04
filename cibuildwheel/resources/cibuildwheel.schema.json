@@ -15,7 +15,8 @@
       "enum": [
         "cpython-freethreading",
         "cpython-prerelease",
-        "pypy"
+        "pypy",
+        "cpython-experimental-riscv64"
       ]
     },
     "description": "A Python version or flavor to enable."
@@ -357,6 +358,11 @@
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MANYLINUX_PYPY_X86_64_IMAGE"
     },
+    "manylinux-riscv64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MANYLINUX_RISCV64_IMAGE"
+    },
     "manylinux-s390x-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
@@ -386,6 +392,11 @@
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
       "title": "CIBW_MUSLLINUX_PPC64LE_IMAGE"
+    },
+    "musllinux-riscv64-image": {
+      "type": "string",
+      "description": "Specify alternative manylinux / musllinux container images",
+      "title": "CIBW_MUSLLINUX_RISCV64_IMAGE"
     },
     "musllinux-s390x-image": {
       "type": "string",
@@ -566,6 +577,9 @@
               "before-build": {
                 "$ref": "#/$defs/inherit"
               },
+              "xbuild-tools": {
+                "$ref": "#/$defs/inherit"
+              },
               "before-test": {
                 "$ref": "#/$defs/inherit"
               },
@@ -579,9 +593,6 @@
                 "$ref": "#/$defs/inherit"
               },
               "environment-pass": {
-                "$ref": "#/$defs/inherit"
-              },
-              "xbuild-tools": {
                 "$ref": "#/$defs/inherit"
               },
               "repair-wheel-command": {
@@ -652,6 +663,9 @@
           "manylinux-pypy_x86_64-image": {
             "$ref": "#/properties/manylinux-pypy_x86_64-image"
           },
+          "manylinux-riscv64-image": {
+            "$ref": "#/properties/manylinux-riscv64-image"
+          },
           "manylinux-s390x-image": {
             "$ref": "#/properties/manylinux-s390x-image"
           },
@@ -670,11 +684,17 @@
           "musllinux-ppc64le-image": {
             "$ref": "#/properties/musllinux-ppc64le-image"
           },
+          "musllinux-riscv64-image": {
+            "$ref": "#/properties/musllinux-riscv64-image"
+          },
           "musllinux-s390x-image": {
             "$ref": "#/properties/musllinux-s390x-image"
           },
           "musllinux-x86_64-image": {
             "$ref": "#/properties/musllinux-x86_64-image"
+          },
+          "xbuild-tools": {
+            "$ref": "#/properties/xbuild-tools"
           },
           "repair-wheel-command": {
             "$ref": "#/properties/repair-wheel-command"
@@ -752,6 +772,9 @@
         "manylinux-pypy_x86_64-image": {
           "$ref": "#/properties/manylinux-pypy_x86_64-image"
         },
+        "manylinux-riscv64-image": {
+          "$ref": "#/properties/manylinux-riscv64-image"
+        },
         "manylinux-s390x-image": {
           "$ref": "#/properties/manylinux-s390x-image"
         },
@@ -770,11 +793,17 @@
         "musllinux-ppc64le-image": {
           "$ref": "#/properties/musllinux-ppc64le-image"
         },
+        "musllinux-riscv64-image": {
+          "$ref": "#/properties/musllinux-riscv64-image"
+        },
         "musllinux-s390x-image": {
           "$ref": "#/properties/musllinux-s390x-image"
         },
         "musllinux-x86_64-image": {
           "$ref": "#/properties/musllinux-x86_64-image"
+        },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
         },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
@@ -840,6 +869,9 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -890,6 +922,9 @@
         },
         "environment": {
           "$ref": "#/properties/environment"
+        },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
         },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
@@ -954,6 +989,9 @@
         },
         "environment": {
           "$ref": "#/properties/environment"
+        },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
         },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
@@ -1057,11 +1095,11 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
-        "repair-wheel-command": {
-          "$ref": "#/properties/repair-wheel-command"
-        },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "repair-wheel-command": {
+          "$ref": "#/properties/repair-wheel-command"
         },
         "test-command": {
           "$ref": "#/properties/test-command"

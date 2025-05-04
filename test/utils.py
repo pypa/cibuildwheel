@@ -55,7 +55,7 @@ def cibuildwheel_get_build_identifiers(
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
     if env is None:
         env = os.environ.copy()
-    env["CIBW_ENABLE"] = "cpython-freethreading pypy"
+    env["CIBW_ENABLE"] = "cpython-freethreading pypy graalpy"
     if prerelease_pythons:
         env["CIBW_ENABLE"] += " cpython-prerelease"
 
@@ -227,6 +227,7 @@ def _expected_wheels(
             "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
             "i686": ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"],
             "x86_64": ["manylinux_2_5", "manylinux1", "manylinux_2_28"],
+            "riscv64": ["manylinux_2_31"],
         }.get(machine_arch, ["manylinux_2_17", "manylinux2014", "manylinux_2_28"])
 
     if musllinux_versions is None:
@@ -255,6 +256,10 @@ def _expected_wheels(
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
                 "pp311-pypy311_pp73",
+            ]
+        if machine_arch in ["x86_64", "AMD64", "aarch64", "arm64"]:
+            python_abi_tags += [
+                "graalpy311-graalpy242_311_native",
             ]
 
     if single_python:
@@ -285,7 +290,7 @@ def _expected_wheels(
                         for manylinux_version in manylinux_versions
                     )
                 ]
-            if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
+            if len(musllinux_versions) > 0 and not python_abi_tag.startswith(("pp", "graalpy")):
                 platform_tags.append(
                     ".".join(
                         f"{musllinux_version}_{machine_arch}"
