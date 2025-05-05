@@ -1251,8 +1251,8 @@ run your test suite.
 
 On all platforms other than Android and iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On Android, the command is parsed by `shlex.split`, and is required to be in one of the following
-forms:
+On Android, the command is parsed by `shlex.split`, and is required to be in
+one of the following forms:
 
 * `python -c command ...`
 * `python -m module_name ...`
@@ -1372,10 +1372,13 @@ project, required for running the tests. If specified, these files and folders
 will be copied into a temporary folder, and that temporary folder will be used
 as the working directory for running the test suite.
 
-The use of `CIBW_TEST_SOURCES` is *required* for Android and iOS tests, because
-they run in a virtual machine that does not have access to the project directory.
-On these platforms, the files will be copied into the test application,
-rather than a temporary folder.
+The default is to copy nothing, and run the tests from your project directory.
+This is not possible on Android and iOS, because they run tests in a virtual
+machine that does not have access to the project directory. On these platforms,
+the `CIBW_TEST_SOURCES` option is required.
+
+If your tests do not need any extra files, you can run them from an almost
+empty directory by setting this option to a dummy file such as your README.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_ANDROID` | `CIBW_TEST_SOURCES_IOS` | `CIBW_TEST_SOURCES_PYODIDE`

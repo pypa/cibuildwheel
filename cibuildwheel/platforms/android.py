@@ -365,10 +365,11 @@ class Builder:
             *self.build_options.test_requires,
         )
 
-        # Copy test-sources.
-        #
-        # TODO: decide what to do if this isn't specified
-        # (https://github.com/pypa/cibuildwheel/pull/2363#issuecomment-2849413429)
+        # Copy test-sources. This option is required, as the project directory isn't visible on the
+        # emulator.
+        if not self.build_options.test_sources:
+            msg = "Testing on this platform requires a definition of test-sources."
+            raise errors.FatalError(msg)
         cwd_dir = self.tmp_dir / "cwd"
         cwd_dir.mkdir()
         copy_test_sources(self.build_options.test_sources, self.build_options.package_dir, cwd_dir)

@@ -197,9 +197,9 @@ It also requires the following commands to be on the `PATH`:
 
 ### Android version compatibility
 
-Android builds will honor the `ANDROID_API_LEVEL` environment variable to set the minimum
-supported [API level](https://developer.android.com/tools/releases/platforms) for
-generated wheels. This will default to the minimum API level of the selected Python
+Android builds will honor the `ANDROID_API_LEVEL` environment variable to set the
+minimum supported [API level](https://developer.android.com/tools/releases/platforms)
+for generated wheels. This will default to the minimum API level of the selected Python
 version.
 
 ### Build frontend support
