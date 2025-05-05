@@ -425,9 +425,9 @@ def test_enable(method, intercepted_build_args, monkeypatch):
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     if method == "command_line":
-        monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "pypy"])
+        monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "pypy", "--enable", "graalpy"])
     elif method == "env_var":
-        monkeypatch.setenv("CIBW_ENABLE", "pypy")
+        monkeypatch.setenv("CIBW_ENABLE", "pypy graalpy")
 
     main()
 
@@ -436,7 +436,7 @@ def test_enable(method, intercepted_build_args, monkeypatch):
     if method == "unset":
         assert enable_groups == frozenset()
     else:
-        assert enable_groups == frozenset([EnableGroup.PyPy])
+        assert enable_groups == frozenset([EnableGroup.PyPy, EnableGroup.GraalPy])
 
 
 def test_enable_all(intercepted_build_args, monkeypatch):
@@ -449,14 +449,16 @@ def test_enable_all(intercepted_build_args, monkeypatch):
 
 
 def test_enable_arg_inherits(intercepted_build_args, monkeypatch):
-    monkeypatch.setenv("CIBW_ENABLE", "pypy")
+    monkeypatch.setenv("CIBW_ENABLE", "pypy graalpy")
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "cpython-prerelease"])
 
     main()
 
     enable_groups = intercepted_build_args.args[0].globals.build_selector.enable
 
-    assert enable_groups == frozenset((EnableGroup.PyPy, EnableGroup.CPythonPrerelease))
+    assert enable_groups == frozenset(
+        (EnableGroup.PyPy, EnableGroup.GraalPy, EnableGroup.CPythonPrerelease)
+    )
 
 
 def test_enable_arg_error_message(monkeypatch, capsys):
