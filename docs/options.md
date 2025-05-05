@@ -1242,7 +1242,7 @@ run your test suite.
 
 On all platforms other than iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On iOS, the value of the `CIBW_TEST_COMMAND` setting should follow the format `python -m MODULE [...ARGS]` - where MODULE is a Python module name, followed by arguments that will be assigned to `sys.argv`. Shell commands cannot be used.
+On iOS, the value of the `CIBW_TEST_COMMAND` setting must follow the format `python -m MODULE [ARGS...]` - where MODULE is a Python module name, followed by arguments that will be assigned to `sys.argv`. Other commands cannot be used.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
