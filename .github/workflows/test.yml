@@ -57,26 +57,6 @@ jobs:
 
     - uses: astral-sh/setup-uv@v6
 
-    - uses: joerick/pr-labels-action@v1.0.9
-    - name: Set CIBW_ENABLE
-      shell: bash
-      run: |
-        if [[ "${{ github.ref_name }}" == "main" ]]; then
-          CIBW_ENABLE=all
-        else
-          # get the default CIBW_ENABLE value from the test module
-          CIBW_ENABLE=$(python -c 'import sys, test.conftest as c; sys.stdout.write(c.DEFAULT_CIBW_ENABLE)')
-
-          # if this is a PR, check for labels
-          if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
-            CIBW_ENABLE+=" pypy"
-          fi
-          if [[ -n "$GITHUB_PR_LABEL_CI_GRAALPY" ]]; then
-            CIBW_ENABLE+=" graalpy"
-          fi
-        fi
-        echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
-
     # free some space to prevent reaching GHA disk space limits
     - name: Clean docker images
       if: runner.os == 'Linux'
@@ -92,6 +72,26 @@ jobs:
     - name: Install dependencies
       run: |
         uv sync --no-dev --group test
+
+    - uses: joerick/pr-labels-action@v1.0.9
+    - name: Set CIBW_ENABLE
+      shell: bash
+      run: |
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          CIBW_ENABLE=all
+        else
+          # get the default CIBW_ENABLE value from the test module
+          CIBW_ENABLE=$(uv run --no-sync python -c 'import sys, test.conftest as c; sys.stdout.write(c.DEFAULT_CIBW_ENABLE)')
+
+          # if this is a PR, check for labels
+          if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
+            CIBW_ENABLE+=" pypy"
+          fi
+          if [[ -n "$GITHUB_PR_LABEL_CI_GRAALPY" ]]; then
+            CIBW_ENABLE+=" graalpy"
+          fi
+        fi
+        echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
     - name: Generate a sample project
       run: |
