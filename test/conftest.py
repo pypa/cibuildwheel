@@ -31,7 +31,9 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
     # default to just cpython
-    os.environ.setdefault("CIBW_ENABLE", "cpython-freethreading cpython-prerelease")
+    os.environ.setdefault(
+        "CIBW_ENABLE", "cpython-freethreading cpython-prerelease cpython-experimental-riscv64"
+    )
 
 
 def docker_warmup(request: pytest.FixtureRequest) -> None:

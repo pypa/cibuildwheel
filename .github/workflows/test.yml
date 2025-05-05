@@ -64,9 +64,12 @@ jobs:
         if [[ "${{ github.ref_name }}" == "main" ]]; then
           CIBW_ENABLE="all"
         else
-          CIBW_ENABLE="cpython-prerelease cpython-freethreading"
+          CIBW_ENABLE="cpython-prerelease cpython-freethreading cpython-experimental-riscv64"
           if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
             CIBW_ENABLE+=" pypy"
+          fi
+          if [[ -n "$GITHUB_PR_LABEL_CI_GRAALPY" ]]; then
+            CIBW_ENABLE+=" graalpy"
           fi
         fi
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
@@ -99,7 +102,7 @@ jobs:
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: 'build[uv]'
-        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy graalpy"
+        CIBW_ENABLE: "all"
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
