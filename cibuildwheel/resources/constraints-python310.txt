@@ -10,7 +10,7 @@ distlib==0.3.9
     # via virtualenv
 filelock==3.18.0
     # via virtualenv
-importlib-metadata==8.6.1
+importlib-metadata==8.7.0
     # via build
 macholib==1.16.3
     # via delocate
