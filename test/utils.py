@@ -157,8 +157,8 @@ def expected_wheels(
     package_version: str,
     manylinux_versions: list[str] | None = None,
     musllinux_versions: list[str] | None = None,
-    macosx_deployment_target: str = "10.9",
-    iphoneos_deployment_target: str = "13.0",
+    macosx_deployment_target: str | None = None,
+    iphoneos_deployment_target: str | None = None,
     machine_arch: str | None = None,
     platform: str = platform,
     python_abi_tags: list[str] | None = None,
@@ -173,6 +173,12 @@ def expected_wheels(
         machine_arch = pm.machine()
         if platform == "linux":
             machine_arch = arch_name_for_linux(machine_arch)
+
+    if macosx_deployment_target is None:
+        macosx_deployment_target = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "10.9")
+
+    if iphoneos_deployment_target is None:
+        iphoneos_deployment_target = os.environ.get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
 
     architectures = [machine_arch]
     if not single_arch:

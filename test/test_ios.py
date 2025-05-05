@@ -171,7 +171,10 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
 
     # The expected wheels were produced.
     expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
+        "spam",
+        "0.1.0",
+        platform="ios",
+        python_abi_tags=["cp313-cp313"],
     )
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -214,6 +217,7 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
     assert "Your project configuration does not define any cross-build tools." not in captured.err
 
 
+@pytest.mark.serial
 def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     """pytest should be able to run without python -m, but it should warn."""
     if utils.platform != "macos":
