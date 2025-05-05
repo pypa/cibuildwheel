@@ -597,10 +597,9 @@ def build(options: Options, tmp_path: Path) -> None:
                     test_command_parts = shlex.split(build_options.test_command)
                     if test_command_parts[0:2] != ["python", "-m"]:
                         first_part = test_command_parts[0]
-                        first_arg_looks_like_a_module_name = all(
-                            n.isidentifier() for n in first_part.split(".")
-                        )
-                        if first_arg_looks_like_a_module_name:
+                        if first_part == "pytest":
+                            # pytest works exactly the same as a module, so we
+                            # can just run it as a module.
                             log.warning(
                                 unwrap_preserving_paragraphs(f"""
                                     iOS tests configured with a test command which doesn't start
@@ -611,18 +610,17 @@ def build(options: Options, tmp_path: Path) -> None:
                                     'python -m'. If this works, all you need to do is add that to
                                     your test command.
 
-                                    Test command: {build_options.test_command}
+                                    Test command: {build_options.test_command!r}
                                 """)
                             )
                         else:
-                            # no point in trying to run it as a module - it's not a module
                             msg = unwrap_preserving_paragraphs(
                                 f"""
                                     iOS tests configured with a test command which doesn't start
                                     with 'python -m'. iOS tests must execute python modules - other
                                     entrypoints are not supported.
 
-                                    Test command: {build_options.test_command}
+                                    Test command: {build_options.test_command!r}
                                 """
                             )
                             raise errors.FatalError(msg)

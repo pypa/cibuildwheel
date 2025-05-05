@@ -215,18 +215,21 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
 
 
 def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
-    """Test command should be able to run without python -m."""
+    """pytest should be able to run without python -m, but it should warn."""
     if utils.platform != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
 
     project_dir = tmp_path / "project"
+
     project = test_projects.new_c_project()
-    project.files["tests_module/__init__.py"] = ""
-    project.files["tests_module/__main__.py"] = textwrap.dedent("""
-        if __name__ == "__main__":
-            print("Hello from tests_module")
+    project.files["tests/__init__.py"] = ""
+    project.files["tests/test_spam.py"] = textwrap.dedent("""
+        import spam
+        def test_spam():
+            assert spam.filter("spam") == 0
+            assert spam.filter("ham") != 0
     """)
     project.generate(project_dir)
 
@@ -235,8 +238,9 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
         add_env={
             "CIBW_PLATFORM": "ios",
             "CIBW_BUILD": "cp313-*",
-            "CIBW_TEST_COMMAND": "tests_module",
-            "CIBW_TEST_SOURCES": "tests_module",
+            "CIBW_TEST_COMMAND": "pytest ./tests",
+            "CIBW_TEST_SOURCES": "tests",
+            "CIBW_TEST_REQUIRES": "pytest",
             "CIBW_XBUILD_TOOLS": "",
         },
     )
