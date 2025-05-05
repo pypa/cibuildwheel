@@ -59,6 +59,7 @@ def test_abi3(tmp_path):
                 "cp310-abi3",  # <-- ABI3, works with 3.10 and 3.12
                 "cp313-cp313t",
                 "pp310-pypy310_pp73",
+                "graalpy311-graalpy242_311_native",
             ],
         )
 

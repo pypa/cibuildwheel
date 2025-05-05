@@ -24,6 +24,7 @@ EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
 )
 PYPY_ARCHS = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
+GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
 
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
@@ -258,12 +259,20 @@ def _expected_wheels(
                 "pp311-pypy311_pp73",
             ]
 
+        if EnableGroup.GraalPy in enable_groups:
+            python_abi_tags += [
+                "graalpy311-graalpy242_311_native",
+            ]
+
     if machine_arch == "ARM64" and platform == "windows":
         # no CPython 3.8 on Windows ARM64
         python_abi_tags = [t for t in python_abi_tags if not t.startswith("cp38")]
 
     if machine_arch not in PYPY_ARCHS:
         python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("pp")]
+
+    if machine_arch not in GRAALPY_ARCHS:
+        python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("graalpy")]
 
     if single_python:
         python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
