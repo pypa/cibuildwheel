@@ -355,17 +355,8 @@ def build_in_container(
                 container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
             else:
                 # Use embedded dependencies from virtualenv to ensure determinism
-                venv_version = container.call(
-                    [
-                        "python",
-                        "-c",
-                        "import importlib.metadata as m; print(m.version('virtualenv'))",
-                    ],
-                    env=env,
-                ).strip()
-                assert venv_version
                 venv_args = ["--no-periodic-update", "--pip=embed", "--no-setuptools"]
-                if Version(venv_version) < Version("20.31") or "38" in config.identifier:
+                if "38" in config.identifier:
                     venv_args.append("--no-wheel")
                 container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
 
