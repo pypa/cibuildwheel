@@ -229,7 +229,7 @@ environment variable pointing at an X server. Xvfb is acceptable.
 
 The Android test environment can't support running shell scripts, so the
 [`CIBW_TEST_COMMAND`](options.md#test-command) value must be a Python command – see its
-documentation for details. In addition, the project should use
+documentation for details. In addition, the project must use
 [`CIBW_TEST_SOURCES`](options.md#test-sources) to specify the minimum subset of files
 that should be copied to the test environment. This is because the test must be run "on
 device", and the device will not have access to the local project directory.

@@ -343,8 +343,12 @@ class Builder:
             return
 
         log.step("Testing wheel...")
-        if self.config.arch != arch_synonym(platform.machine(), native_platform(), "android"):
-            log.warning("Skipping tests on non-native architecture")
+        native_arch = arch_synonym(platform.machine(), native_platform(), "android")
+        if self.config.arch != native_arch:
+            log.warning(
+                f"Skipping tests for {self.config.arch}, as the build machine only "
+                f"supports {native_arch}"
+            )
             return
 
         if self.build_options.before_test:
@@ -368,7 +372,7 @@ class Builder:
         # Copy test-sources. This option is required, as the project directory isn't visible on the
         # emulator.
         if not self.build_options.test_sources:
-            msg = "Testing on this platform requires a definition of test-sources."
+            msg = "Testing on Android requires a definition of test-sources."
             raise errors.FatalError(msg)
         cwd_dir = self.tmp_dir / "cwd"
         cwd_dir.mkdir()
@@ -382,8 +386,8 @@ class Builder:
             test_args[:1] = ["-m", test_args[0], "--"]
         else:
             msg = (
-                f"Test command '{self.build_options.test_command}' is not supported on this "
-                f"platform. Supported commands are 'python -m', 'python -c' and 'pytest'."
+                f"Test command '{self.build_options.test_command}' is not supported on "
+                f"Android. Supported commands are 'python -m', 'python -c' and 'pytest'."
             )
             raise errors.FatalError(msg)
 

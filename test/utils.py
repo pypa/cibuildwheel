@@ -141,7 +141,7 @@ def cibuildwheel_run(
             cwd=project_path,
             check=True,
         )
-        wheels = [p.name for p in (output_dir or Path(tmp_output_dir)).iterdir()]
+        wheels = sorted(p.name for p in (output_dir or Path(tmp_output_dir)).iterdir())
     return wheels
 
 
