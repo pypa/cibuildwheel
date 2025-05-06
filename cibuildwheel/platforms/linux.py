@@ -355,7 +355,9 @@ def build_in_container(
                 container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
             else:
                 # Use embedded dependencies from virtualenv to ensure determinism
-                venv_text = container.call(["python", "-m", "virtualenv", "--version"], env=env).strip()
+                venv_text = container.call(
+                    ["python", "-m", "virtualenv", "--version"], env=env
+                ).strip()
                 try:
                     venv_version = venv_text.split()[1]
                 except IndexError:
