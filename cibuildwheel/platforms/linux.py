@@ -8,8 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
-from packaging.version import Version
-
 from .. import errors
 from ..architecture import Architecture
 from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
