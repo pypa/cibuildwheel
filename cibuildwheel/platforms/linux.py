@@ -355,11 +355,12 @@ def build_in_container(
                 container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
             else:
                 # Use embedded dependencies from virtualenv to ensure determinism
-                venv_version = (
-                    container.call(["python", "-m", "virtualenv", "--version"], env=env)
-                    .strip()
-                    .split()[1]
-                )
+                venv_text = container.call(["python", "-m", "virtualenv", "--version"], env=env).strip()
+                try:
+                    venv_version = venv_text.split()[1]
+                except IndexError:
+                    msg = f"Invalid output, needs a space: {venv_text!r}"
+                    raise IndexError(msg) from None
                 venv_args = ["--no-periodic-update", "--pip=embed", "--no-setuptools"]
                 if Version(venv_version) < Version("20.31") or "38" in config.identifier:
                     venv_args.append("--no-wheel")
