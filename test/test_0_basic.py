@@ -1,8 +1,10 @@
+import os
 import textwrap
 
 import pytest
 
 from cibuildwheel.logger import Logger
+from cibuildwheel.selector import EnableGroup
 
 from . import test_projects, utils
 
@@ -38,11 +40,13 @@ def test(tmp_path, build_frontend_env, capfd):
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
 
-    # Verify pip warning not shown
-    captured = capfd.readouterr()
-    for stream in (captured.err, captured.out):
-        assert "WARNING: Running pip as the 'root' user can result" not in stream
-        assert "A new release of pip available" not in stream
+    enable_groups = EnableGroup.parse_option_value(os.environ.get("CIBW_ENABLE", ""))
+    if EnableGroup.GraalPy not in enable_groups:
+        # Verify pip warning not shown
+        captured = capfd.readouterr()
+        for stream in (captured.err, captured.out):
+            assert "WARNING: Running pip as the 'root' user can result" not in stream
+            assert "A new release of pip available" not in stream
 
 
 @pytest.mark.skip(reason="to keep test output clean")
