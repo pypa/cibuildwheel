@@ -329,6 +329,7 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
 @pytest.mark.usefixtures("platform", "intercepted_build_args", "allow_empty")
 def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys):
     monkeypatch.setenv(selector, pattern)
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     if selector == "CIBW_BUILD":
         with pytest.raises(SystemExit) as ex:
