@@ -228,7 +228,7 @@ def _expected_wheels(
             "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
             "i686": ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"],
             "x86_64": ["manylinux_2_5", "manylinux1", "manylinux_2_28"],
-            "riscv64": ["manylinux_2_31"],
+            "riscv64": ["manylinux_2_31", "manylinux_2_35"],
         }.get(machine_arch, ["manylinux_2_17", "manylinux2014", "manylinux_2_28"])
 
     if musllinux_versions is None:
@@ -247,9 +247,12 @@ def _expected_wheels(
         ]
 
         if EnableGroup.CPythonFreeThreading in enable_groups:
-            python_abi_tags += [
-                "cp313-cp313t",
-            ]
+            python_abi_tags.append("cp313-cp313t")
+
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags.append("cp314-cp314")
+            if EnableGroup.CPythonFreeThreading in enable_groups:
+                python_abi_tags.append("cp314-cp314t")
 
         if EnableGroup.PyPy in enable_groups:
             python_abi_tags += [
