@@ -20,7 +20,7 @@ _IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
 @functools.cache
-def _ensure_virtualenv(version: str) -> Path:
+def _ensure_virtualenv(version: str) -> tuple[Path, Version]:
     version_parts = version.split(".")
     key = f"py{version_parts[0]}{version_parts[1]}"
     with resources.VIRTUALENV.open("rb") as f:
@@ -32,7 +32,7 @@ def _ensure_virtualenv(version: str) -> Path:
     with FileLock(str(path) + ".lock"):
         if not path.exists():
             download(url, path)
-    return path
+    return (path, Version(version))
 
 
 def constraint_flags(
@@ -110,10 +110,12 @@ def virtualenv(
     if use_uv:
         call("uv", "venv", venv_path, "--python", python)
     else:
-        virtualenv_app = _ensure_virtualenv(version)
+        virtualenv_app, virtualenv_version = _ensure_virtualenv(version)
         if pip_version is None:
             pip_version = _parse_pip_constraint_for_virtualenv(dependency_constraint)
-        additional_flags = [f"--pip={pip_version}", "--no-setuptools", "--no-wheel"]
+        additional_flags = [f"--pip={pip_version}", "--no-setuptools"]
+        if virtualenv_version < Version("20.31") or Version(version) < Version("3.9"):
+            additional_flags.append("--no-wheel")
 
         # Using symlinks to pre-installed seed packages is really the fastest way to get a virtual
         # environment. The initial cost is a bit higher but reusing is much faster.
