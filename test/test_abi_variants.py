@@ -48,8 +48,9 @@ def test_abi3(tmp_path):
 
     # check that the expected wheels are produced
     if utils.platform == "pyodide":
-        # there's only 1 possible configuration for pyodide, cp312
-        expected_wheels = utils.expected_wheels("spam", "0.1.0", python_abi_tags=["cp310-abi3"])
+        # there's only 1 possible configuration for pyodide, cp312. It builds
+        # a wheel that is tagged abi3, compatible back to 3.10
+        expected_wheels = ["spam-0.1.0-cp310-abi3-pyodide_2024_0_wasm32.whl"]
     else:
         expected_wheels = utils.expected_wheels(
             "spam",
