@@ -6,7 +6,7 @@ pr:
 
 jobs:
 - job: linux_311
-  timeoutInMinutes: 120
+  timeoutInMinutes: 180
   pool: {vmImage: 'Ubuntu-22.04'}
   steps:
     - task: UsePythonVersion@0
@@ -16,10 +16,17 @@ jobs:
         docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
+        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
+          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
+          export CIBW_ENABLE=all
+        else
+          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
+        fi
         python ./bin/run_tests.py
 
 - job: macos_311
   pool: {vmImage: 'macOS-13'}
+  timeoutInMinutes: 120
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -27,6 +34,12 @@ jobs:
     - bash: |
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
+        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
+          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
+          export CIBW_ENABLE=all
+        else
+          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
+        fi
         python ./bin/run_tests.py
 
 - job: windows_311
@@ -39,4 +52,10 @@ jobs:
     - bash: |
         python -m pip install dependency-groups
         python -m dependency_groups test | xargs python -m pip install -e.
+        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
+          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
+          export CIBW_ENABLE=all
+        else
+          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
+        fi
         python ./bin/run_tests.py

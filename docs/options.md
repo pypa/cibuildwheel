@@ -320,7 +320,8 @@ values are:
 - `cpython-experimental-riscv64`: Enable experimental riscv64 builds. Those builds
   are disabled by default as they can't be uploaded to PyPI and a PEP will most likely
   be required before this can happen.
-
+- `graalpy`: Enable GraalPy.
+- `all`: Enable all of the above.
 
 !!! caution
     `cpython-prerelease` is provided for testing purposes only. It is not
