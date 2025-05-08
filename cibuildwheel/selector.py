@@ -39,6 +39,23 @@ class EnableGroup(StrEnum):
     def all_groups(cls) -> frozenset["EnableGroup"]:
         return frozenset(cls)
 
+    @classmethod
+    def parse_option_value(cls, value: str) -> frozenset["EnableGroup"]:
+        """
+        Parses a string of space-separated values into a set of EnableGroup
+        members. The string may contain group names or "all".
+        """
+        result = set()
+        for group in value.strip().split():
+            if group == "all":
+                return cls.all_groups()
+            try:
+                result.add(cls(group))
+            except ValueError:
+                msg = f"Unknown enable group: {group}"
+                raise ValueError(msg) from None
+        return frozenset(result)
+
 
 @dataclass(frozen=True, kw_only=True)
 class BuildSelector:

@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from collections.abc import Generator
 
@@ -11,6 +12,9 @@ from cibuildwheel.options import CommandLineArguments, Options
 from cibuildwheel.venv import find_uv
 
 from .utils import EMULATED_ARCHS, platform
+
+# default to just cpython
+DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease cpython-experimental-riscv64"
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -28,6 +32,8 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="macOS cp38 uses the universal2 installer",
     )
+
+    os.environ.setdefault("CIBW_ENABLE", DEFAULT_CIBW_ENABLE)
 
 
 def docker_warmup(request: pytest.FixtureRequest) -> None:

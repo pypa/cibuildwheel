@@ -13,6 +13,10 @@ linux:
     # skip all but the basic tests
     # (comment the below line in a PR to debug a Gitlab-specific issue)
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        CIBW_ENABLE: "all"
   script:
     - curl -sSL https://get.docker.com/ | sh
     - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
@@ -26,6 +30,10 @@ windows:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   before_script:
     - choco install python -y --version 3.12.4
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        CIBW_ENABLE: "all"
   script:
     - py -m pip install dependency-groups
     - py -m pip install -e. pytest-custom-exit-code $(py -m dependency_groups test)
@@ -37,6 +45,10 @@ macos:
   image: macos-14-xcode-15
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        CIBW_ENABLE: "all"
   script:
     - python3 -m pip install dependency-groups
     - python3 -m dependency_groups test | xargs python3 -m pip install -e. pytest-custom-exit-code
