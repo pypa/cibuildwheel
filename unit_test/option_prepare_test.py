@@ -120,6 +120,7 @@ before-all = "true"
 
     monkeypatch.chdir(pkg_dir)
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--platform=linux"])
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
 
