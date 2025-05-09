@@ -28,6 +28,7 @@ ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.ppc64le: OCIPlatform.PPC64LE,
     Architecture.s390x: OCIPlatform.S390X,
     Architecture.armv7l: OCIPlatform.ARMV7,
+    Architecture.riscv64: OCIPlatform.RISCV64,
 }
 
 
@@ -352,7 +353,9 @@ def build_in_container(
                 container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
             else:
                 # Use embedded dependencies from virtualenv to ensure determinism
-                venv_args = ["--no-periodic-update", "--pip=embed", "--no-setuptools", "--no-wheel"]
+                venv_args = ["--no-periodic-update", "--pip=embed", "--no-setuptools"]
+                if "38" in config.identifier:
+                    venv_args.append("--no-wheel")
                 container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
 
             virtualenv_env = env.copy()

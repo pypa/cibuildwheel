@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from collections.abc import Generator
 
@@ -11,6 +12,9 @@ from cibuildwheel.options import CommandLineArguments, Options
 from cibuildwheel.venv import find_uv
 
 from .utils import EMULATED_ARCHS, platform
+
+# default to just cpython
+DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease cpython-experimental-riscv64"
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -28,6 +32,8 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="macOS cp38 uses the universal2 installer",
     )
+
+    os.environ.setdefault("CIBW_ENABLE", DEFAULT_CIBW_ENABLE)
 
 
 def docker_warmup(request: pytest.FixtureRequest) -> None:
@@ -56,9 +62,8 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
     images = [build_options.manylinux_images[arch] for arch in archs] + [
         build_options.musllinux_images[arch] for arch in archs
     ]
-    # exclude GraalPy as it's not a target for cibuildwheel
     command = (
-        "manylinux-interpreters ensure $(manylinux-interpreters list 2>/dev/null | grep -v graalpy) &&"
+        "manylinux-interpreters ensure-all &&"
         "cpython3.13 -m pip download -d /tmp setuptools wheel pytest"
     )
     for image in images:

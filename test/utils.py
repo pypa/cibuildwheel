@@ -23,6 +23,9 @@ from cibuildwheel.util.file import CIBW_CACHE_PATH
 EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
 )
+PYPY_ARCHS = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
+GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
+
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
@@ -46,7 +49,8 @@ else:
 
 
 def cibuildwheel_get_build_identifiers(
-    project_path: Path, env: dict[str, str] | None = None, *, prerelease_pythons: bool = False
+    project_path: Path,
+    env: dict[str, str] | None = None,
 ) -> list[str]:
     """
     Returns the list of build identifiers that cibuildwheel will try to build
@@ -55,9 +59,6 @@ def cibuildwheel_get_build_identifiers(
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
     if env is None:
         env = os.environ.copy()
-    env["CIBW_ENABLE"] = "cpython-freethreading pypy"
-    if prerelease_pythons:
-        env["CIBW_ENABLE"] += " cpython-prerelease"
 
     cmd_output = subprocess.run(
         cmd,
@@ -120,8 +121,6 @@ def cibuildwheel_run(
         env.update(add_env)
 
     _update_pip_cache_dir(env)
-
-    env["CIBW_ENABLE"] = " ".join(EnableGroup.all_groups())
 
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
@@ -234,11 +233,14 @@ def _expected_wheels(
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
+    enable_groups = EnableGroup.parse_option_value(os.environ.get("CIBW_ENABLE", ""))
+
     if manylinux_versions is None:
         manylinux_versions = {
             "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
             "i686": ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"],
             "x86_64": ["manylinux_2_5", "manylinux1", "manylinux_2_28"],
+            "riscv64": ["manylinux_2_31"],
         }.get(machine_arch, ["manylinux_2_17", "manylinux2014", "manylinux_2_28"])
 
     if musllinux_versions is None:
@@ -256,16 +258,35 @@ def _expected_wheels(
             "cp311-cp311",
             "cp312-cp312",
             "cp313-cp313",
-            "cp313-cp313t",
         ]
 
-        if machine_arch in ["x86_64", "i686", "AMD64", "aarch64", "arm64"]:
+        if EnableGroup.CPythonFreeThreading in enable_groups:
+            python_abi_tags += [
+                "cp313-cp313t",
+            ]
+
+        if EnableGroup.PyPy in enable_groups:
             python_abi_tags += [
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
                 "pp311-pypy311_pp73",
             ]
+
+        if EnableGroup.GraalPy in enable_groups:
+            python_abi_tags += [
+                "graalpy311-graalpy242_311_native",
+            ]
+
+    if machine_arch == "ARM64" and platform == "windows":
+        # no CPython 3.8 on Windows ARM64
+        python_abi_tags = [t for t in python_abi_tags if not t.startswith("cp38")]
+
+    if machine_arch not in PYPY_ARCHS:
+        python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("pp")]
+
+    if machine_arch not in GRAALPY_ARCHS:
+        python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("graalpy")]
 
     if single_python:
         python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
@@ -276,13 +297,6 @@ def _expected_wheels(
                 if tag.startswith(python_tag) and not tag.endswith("t")
             )
         ]
-
-    if platform == "pyodide":
-        assert len(python_abi_tags) == 1
-        python_abi_tag = python_abi_tags[0]
-        platform_tag = "pyodide_2024_0_wasm32"
-        yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
-        return
 
     for python_abi_tag in python_abi_tags:
         platform_tags = []
@@ -295,7 +309,7 @@ def _expected_wheels(
                         for manylinux_version in manylinux_versions
                     )
                 ]
-            if len(musllinux_versions) > 0 and not python_abi_tag.startswith("pp"):
+            if len(musllinux_versions) > 0 and not python_abi_tag.startswith(("pp", "graalpy")):
                 platform_tags.append(
                     ".".join(
                         f"{musllinux_version}_{machine_arch}"
@@ -304,7 +318,11 @@ def _expected_wheels(
                 )
 
         elif platform == "windows":
-            platform_tags = ["win_amd64"] if machine_arch == "AMD64" else ["win32"]
+            platform_tags = {
+                "AMD64": ["win_amd64"],
+                "ARM64": ["win_arm64"],
+                "x86": ["win32"],
+            }.get(machine_arch, [])
 
         elif platform == "macos":
             if python_abi_tag.startswith("pp"):
@@ -342,6 +360,9 @@ def _expected_wheels(
             else:
                 msg = f"Unsupported architecture {machine_arch!r} for iOS"
                 raise Exception(msg)
+
+        elif platform == "pyodide":
+            platform_tags = ["pyodide_2024_0_wasm32"]
 
         else:
             msg = f"Unsupported platform {platform!r}"

@@ -35,6 +35,7 @@ MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "ppc64le",
     "s390x",
     "armv7l",
+    "riscv64",
     "pypy_aarch64",
     "pypy_i686",
 )
@@ -46,6 +47,7 @@ MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
     "ppc64le",
     "s390x",
     "armv7l",
+    "riscv64",
 )
 
 
@@ -632,8 +634,10 @@ class Options:
             "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
         )
         try:
-            enable = {EnableGroup(group) for group in enable_groups.split()}
-            enable.update(EnableGroup(command_line_group) for command_line_group in args.enable)
+            enable = {
+                *EnableGroup.parse_option_value(enable_groups),
+                *EnableGroup.parse_option_value(" ".join(args.enable)),
+            }
         except ValueError as e:
             msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
             raise errors.ConfigurationError(msg) from e

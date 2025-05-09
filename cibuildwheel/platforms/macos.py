@@ -103,7 +103,7 @@ def get_python_configurations(
     # skip builds as required by BUILD/SKIP
     python_configurations = [c for c in python_configurations if build_selector(c.identifier)]
 
-    # filter-out some cross-compilation configs with PyPy:
+    # filter-out some cross-compilation configs with PyPy and GraalPy:
     # can't build arm64 on x86_64
     # rosetta allows to build x86_64 on arm64
     if platform.machine() == "x86_64":
@@ -111,7 +111,7 @@ def get_python_configurations(
         python_configurations = [
             c
             for c in python_configurations
-            if not (c.identifier.startswith("pp") and c.identifier.endswith("arm64"))
+            if not (c.identifier.startswith(("pp", "gp")) and c.identifier.endswith("arm64"))
         ]
         removed_elements = python_configurations_before - set(python_configurations)
         if removed_elements:
@@ -191,6 +191,22 @@ def install_pypy(tmp: Path, url: str) -> Path:
     return installation_path / "bin" / "pypy3"
 
 
+def install_graalpy(tmp: Path, url: str) -> Path:
+    graalpy_archive = url.rsplit("/", 1)[-1]
+    extension = ".tar.gz"
+    assert graalpy_archive.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / graalpy_archive[: -len(extension)]
+    with FileLock(str(installation_path) + ".lock"):
+        if not installation_path.exists():
+            downloaded_archive = tmp / graalpy_archive
+            download(url, downloaded_archive)
+            installation_path.mkdir(parents=True)
+            # GraalPy top-folder name is inconsistent with archive name
+            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
+            downloaded_archive.unlink()
+    return installation_path / "bin" / "graalpy"
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -212,6 +228,8 @@ def setup_python(
 
     elif implementation_id.startswith("pp"):
         base_python = install_pypy(tmp, python_configuration.url)
+    elif implementation_id.startswith("gp"):
+        base_python = install_graalpy(tmp, python_configuration.url)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
@@ -240,25 +258,6 @@ def setup_python(
 
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-
-    # upgrade pip to the version matching our constraints
-    # if necessary, reinstall it to ensure that it's available on PATH as 'pip'
-    if build_frontend == "build[uv]":
-        assert uv_path is not None
-        pip = [str(uv_path), "pip"]
-    else:
-        pip = ["python", "-m", "pip"]
-
-    if not use_uv:
-        call(
-            *pip,
-            "install",
-            "--upgrade",
-            "pip",
-            *constraint_flags(dependency_constraint),
-            env=env,
-            cwd=venv_path,
-        )
 
     # Apply our environment after pip is ready
     env = environment.as_dictionary(prev_environment=env)
@@ -434,8 +433,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
-            if not use_uv:
-                pip_version = get_pip_version(env)
+            pip_version = None if use_uv else get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -460,7 +458,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 build_env = env.copy()
-                if not use_uv:
+                if pip_version is not None:
                     build_env["VIRTUALENV_PIP"] = pip_version
                 if constraints_path:
                     combine_constraints(
@@ -614,19 +612,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         else f"Testing wheel on {testing_arch}..."
                     )
 
-                    # set up a virtual environment to install and test from, to make sure
-                    # there are no dependencies that were pulled in at build time.
-                    if not use_uv:
-                        call(
-                            "pip",
-                            "install",
-                            "virtualenv",
-                            *constraint_flags(constraints_path),
-                            env=env,
-                        )
-
-                    venv_dir = identifier_tmp_dir / f"venv-test-{testing_arch}"
-
                     arch_prefix = []
                     uv_arch_args = []
                     if testing_arch != machine_arch:
@@ -642,29 +627,24 @@ def build(options: Options, tmp_path: Path) -> None:
                     call_with_arch = functools.partial(call, *arch_prefix)
                     shell_with_arch = functools.partial(call, *arch_prefix, "/bin/sh", "-c")
 
+                    # set up a virtual environment to install and test from, to make sure
+                    # there are no dependencies that were pulled in at build time.
+                    venv_dir = identifier_tmp_dir / f"venv-test-{testing_arch}"
+                    virtualenv_env = virtualenv(
+                        config.version,
+                        base_python,
+                        venv_dir,
+                        None,
+                        use_uv=use_uv,
+                        env=env,
+                        pip_version=pip_version,
+                    )
                     if use_uv:
                         pip_install = functools.partial(call, *pip, "install", *uv_arch_args)
-                        call("uv", "venv", venv_dir, f"--python={base_python}", env=env)
                     else:
                         pip_install = functools.partial(call_with_arch, *pip, "install")
-                        # Use pip version from the initial env to ensure determinism
-                        venv_args = [
-                            "--no-periodic-update",
-                            f"--pip={pip_version}",
-                            "--no-setuptools",
-                            "--no-wheel",
-                        ]
-                        call_with_arch("python", "-m", "virtualenv", *venv_args, venv_dir, env=env)
 
-                    virtualenv_env = env.copy()
                     virtualenv_env["MACOSX_DEPLOYMENT_TARGET"] = get_test_macosx_deployment_target()
-                    virtualenv_env["PATH"] = os.pathsep.join(
-                        [
-                            str(venv_dir / "bin"),
-                            virtualenv_env["PATH"],
-                        ]
-                    )
-                    virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
                     # check that we are using the Python from the virtual environment
                     call_with_arch("which", "python", env=virtualenv_env)

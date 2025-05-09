@@ -12,17 +12,17 @@ filelock==3.18.0
     # via virtualenv
 macholib==1.16.3
     # via delocate
-packaging==24.2
+packaging==25.0
     # via
     #   build
     #   delocate
-pip==25.0.1
+pip==25.1.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.3.7
     # via virtualenv
 pyproject-hooks==1.2.0
     # via build
-typing-extensions==4.13.1
+typing-extensions==4.13.2
     # via delocate
 virtualenv==20.30.0
     # via -r cibuildwheel/resources/constraints.in
