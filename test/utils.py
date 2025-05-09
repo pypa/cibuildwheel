@@ -156,8 +156,10 @@ def expected_wheels(
     package_version: str,
     manylinux_versions: list[str] | None = None,
     musllinux_versions: list[str] | None = None,
-    macosx_deployment_target: str = "10.9",
+    macosx_deployment_target: str | None = None,
+    iphoneos_deployment_target: str | None = None,
     machine_arch: str | None = None,
+    platform: str = platform,
     python_abi_tags: list[str] | None = None,
     include_universal2: bool = False,
     single_python: bool = False,
@@ -170,6 +172,12 @@ def expected_wheels(
         machine_arch = pm.machine()
         if platform == "linux":
             machine_arch = arch_name_for_linux(machine_arch)
+
+    if macosx_deployment_target is None:
+        macosx_deployment_target = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "10.9")
+
+    if iphoneos_deployment_target is None:
+        iphoneos_deployment_target = os.environ.get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
 
     architectures = [machine_arch]
     if not single_arch:
@@ -189,15 +197,17 @@ def expected_wheels(
         wheel
         for architecture in architectures
         for wheel in _expected_wheels(
-            package_name,
-            package_version,
-            architecture,
-            manylinux_versions,
-            musllinux_versions,
-            macosx_deployment_target,
-            python_abi_tags,
-            include_universal2,
-            single_python,
+            package_name=package_name,
+            package_version=package_version,
+            machine_arch=architecture,
+            manylinux_versions=manylinux_versions,
+            musllinux_versions=musllinux_versions,
+            macosx_deployment_target=macosx_deployment_target,
+            iphoneos_deployment_target=iphoneos_deployment_target,
+            platform=platform,
+            python_abi_tags=python_abi_tags,
+            include_universal2=include_universal2,
+            single_python=single_python,
         )
     ]
 
@@ -209,6 +219,8 @@ def _expected_wheels(
     manylinux_versions: list[str] | None,
     musllinux_versions: list[str] | None,
     macosx_deployment_target: str,
+    iphoneos_deployment_target: str,
+    platform: str,
     python_abi_tags: list[str] | None,
     include_universal2: bool,
     single_python: bool,
@@ -236,7 +248,9 @@ def _expected_wheels(
 
     if platform == "pyodide" and python_abi_tags is None:
         python_abi_tags = ["cp312-cp312"]
-    if python_abi_tags is None:
+    elif platform == "ios" and python_abi_tags is None:
+        python_abi_tags = ["cp313-cp313"]
+    elif python_abi_tags is None:
         python_abi_tags = [
             "cp38-cp38",
             "cp39-cp39",
@@ -332,6 +346,20 @@ def _expected_wheels(
 
             if include_universal2:
                 platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
+
+        elif platform == "ios":
+            if machine_arch == "x86_64":
+                platform_tags = [
+                    f"ios_{iphoneos_deployment_target.replace('.', '_')}_x86_64_iphonesimulator"
+                ]
+            elif machine_arch == "arm64":
+                platform_tags = [
+                    f"ios_{iphoneos_deployment_target.replace('.', '_')}_arm64_iphoneos",
+                    f"ios_{iphoneos_deployment_target.replace('.', '_')}_arm64_iphonesimulator",
+                ]
+            else:
+                msg = f"Unsupported architecture {machine_arch!r} for iOS"
+                raise Exception(msg)
 
         elif platform == "pyodide":
             platform_tags = ["pyodide_2024_0_wasm32"]
