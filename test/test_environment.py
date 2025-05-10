@@ -100,7 +100,12 @@ def test_overridden_path(tmp_path, capfd):
     "build_frontend",
     [
         pytest.param("pip", marks=utils.skip_if_pyodide("No pip for pyodide")),
-        "build",
+        pytest.param(
+            "build",
+            marks=utils.skip_if_pyodide(
+                "pyodide doesn't support multiple values for PIP_CONSTRAINT"
+            ),
+        ),
     ],
 )
 def test_overridden_pip_constraint(tmp_path, build_frontend):

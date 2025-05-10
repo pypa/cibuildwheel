@@ -24,11 +24,10 @@ branding:
 runs:
   using: composite
   steps:
-    # Set up the version of Python that supports pyodide
     - uses: actions/setup-python@v5
       id: python
       with:
-        python-version: "3.12"
+        python-version: "3.11 - 3.13"
         update-environment: false
 
     - id: cibw

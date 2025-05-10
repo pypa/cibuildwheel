@@ -66,7 +66,10 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
     version_no_dot = python_version.replace(".", "")
     build_environment = {}
     build_pattern = f"[cp]p{version_no_dot}-*"
-    constraint_filename = f"constraints-python{version_no_dot}.txt"
+    if utils.platform == "pyodide":
+        constraint_filename = f"constraints-pyodide{version_no_dot}.txt"
+    else:
+        constraint_filename = f"constraints-python{version_no_dot}.txt"
     constraint_file = resources.PATH / constraint_filename
     constraint_versions = get_versions_from_constraint_file(constraint_file)
 

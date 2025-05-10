@@ -423,6 +423,11 @@
       ],
       "title": "CIBW_XBUILD_TOOLS"
     },
+    "pyodide-version": {
+      "type": "string",
+      "description": "Specify the version of Pyodide to use",
+      "title": "CIBW_PYODIDE_VERSION"
+    },
     "repair-wheel-command": {
       "description": "Execute a shell command to repair each built wheel.",
       "oneOf": [
@@ -696,6 +701,9 @@
           "xbuild-tools": {
             "$ref": "#/properties/xbuild-tools"
           },
+          "pyodide-version": {
+            "$ref": "#/properties/pyodide-version"
+          },
           "repair-wheel-command": {
             "$ref": "#/properties/repair-wheel-command"
           },
@@ -805,6 +813,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
           "oneOf": [
@@ -872,6 +883,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -925,6 +939,9 @@
         },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
         },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
@@ -993,6 +1010,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -1046,6 +1066,9 @@
         },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
         },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
