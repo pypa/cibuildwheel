@@ -1541,7 +1541,7 @@ This option is not supported in the overrides section in `pyproject.toml`.
 
 ### `CIBW_TEST_ENVIRONMENT` {: #test-environment}
 
-> Set environment variables for the test command
+> Set environment variables for the test environment
 
 A space-separated list of environment variables to set in the test environment.
 
