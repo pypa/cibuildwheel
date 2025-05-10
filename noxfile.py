@@ -15,12 +15,10 @@ Tags:
 See sessions with `nox -l`
 """
 
-import json
 import os
 import shutil
 import sys
 import textwrap
-import urllib.request
 from pathlib import Path
 
 import nox
@@ -71,6 +69,8 @@ def update_constraints(session: nox.Session) -> None:
     Update the dependencies inplace.
     """
 
+    session.install("-e.")
+
     resources = Path("cibuildwheel/resources")
 
     if session.venv_backend != "uv":
@@ -99,16 +99,15 @@ def update_constraints(session: nox.Session) -> None:
         resources / "constraints.txt",
     )
 
+    from cibuildwheel.extra import get_pyodide_xbuildenv_info
+
+    xbuildenv_info = get_pyodide_xbuildenv_info()
+
     build_platforms = nox.project.load_toml(resources / "build-platforms.toml")
     pyodides = build_platforms["pyodide"]["python_configurations"]
     for pyodide in pyodides:
         python_version = ".".join(pyodide["version"].split(".")[:2])
         pyodide_version = pyodide["default_pyodide_version"]
-
-        xbuildenv_info_url = "https://raw.githubusercontent.com/pyodide/pyodide/refs/heads/main/pyodide-cross-build-environments.json"
-        with urllib.request.urlopen(xbuildenv_info_url) as response:
-            xbuildenv_info = json.loads(response.read().decode("utf-8"))
-
         pyodide_version_xbuildenv_info = xbuildenv_info["releases"][pyodide_version]
 
         pyodide_build_min_version = pyodide_version_xbuildenv_info.get("min_pyodide_build_version")
