@@ -24,6 +24,7 @@ test-sources = []
 test-requires = []
 test-extras = []
 test-groups = []
+test-environment = {}
 
 container-engine = "docker"
 
