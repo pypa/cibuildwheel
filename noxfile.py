@@ -18,7 +18,6 @@ See sessions with `nox -l`
 import os
 import shutil
 import sys
-import textwrap
 from pathlib import Path
 
 import nox
@@ -69,19 +68,20 @@ def update_constraints(session: nox.Session) -> None:
     Update the dependencies inplace.
     """
 
-    session.install("-e.")
+    session.install("-e.", "click")
 
     resources = Path("cibuildwheel/resources")
 
     if session.venv_backend != "uv":
         session.install("uv>=0.1.23")
 
+    env = os.environ.copy()
+    # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+    # regenerate the constraints files
+    env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+
     for minor_version in range(8, 14):
         python_version = f"3.{minor_version}"
-        env = os.environ.copy()
-        # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
-        # regenerate the constraints files
-        env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
         output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
         session.run(
             "uv",
@@ -99,36 +99,20 @@ def update_constraints(session: nox.Session) -> None:
         resources / "constraints.txt",
     )
 
-    from cibuildwheel.extra import get_pyodide_xbuildenv_info
-
-    xbuildenv_info = get_pyodide_xbuildenv_info()
-
     build_platforms = nox.project.load_toml(resources / "build-platforms.toml")
     pyodides = build_platforms["pyodide"]["python_configurations"]
     for pyodide in pyodides:
         python_version = ".".join(pyodide["version"].split(".")[:2])
         pyodide_version = pyodide["default_pyodide_version"]
-        pyodide_version_xbuildenv_info = xbuildenv_info["releases"][pyodide_version]
-
-        pyodide_build_min_version = pyodide_version_xbuildenv_info.get("min_pyodide_build_version")
-        pyodide_build_max_version = pyodide_version_xbuildenv_info.get("max_pyodide_build_version")
-
-        pyodide_build_specifier_parts: list[str] = []
-
-        if pyodide_build_min_version:
-            pyodide_build_specifier_parts.append(f">={pyodide_build_min_version}")
-        if pyodide_build_max_version:
-            pyodide_build_specifier_parts.append(f"<={pyodide_build_max_version}")
-
-        pyodide_build_specifier = ",".join(pyodide_build_specifier_parts)
 
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
-        tmp_file.write_text(
-            textwrap.dedent(f"""
-                pip
-                build[virtualenv]
-                pyodide-build{pyodide_build_specifier}
-            """)
+
+        session.run(
+            "python",
+            "bin/generate_pyodide_constraints.py",
+            "--output-file",
+            tmp_file,
+            pyodide_version,
         )
 
         output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
