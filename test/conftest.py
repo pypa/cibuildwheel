@@ -13,7 +13,7 @@ from cibuildwheel.selector import EnableGroup
 from cibuildwheel.typing import PLATFORMS
 from cibuildwheel.venv import find_uv
 
-from .utils import EMULATED_ARCHS, get_platform
+from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -65,6 +65,9 @@ def pytest_configure(config):
     if flag_enable is not None:
         EnableGroup.parse_option_value(flag_enable)
         os.environ["CIBW_ENABLE"] = flag_enable
+    if flag_enable is None and "CIBW_ENABLE" not in os.environ:
+        # Set default value for CIBW_ENABLE
+        os.environ["CIBW_ENABLE"] = DEFAULT_CIBW_ENABLE
 
     if flag_platform is not None:
         assert flag_platform in PLATFORMS, f"Invalid platform: {flag_platform}"
