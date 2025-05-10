@@ -4,7 +4,7 @@
 # stars: GitHub repo (optional, if different from package, such as for Twisted)
 # pypi: The pypi name, if different from the GitHub package name
 # os: Operating system list, [windows, apple, linux] (optional)
-# ci: [appveyor, github, azurepipelines, circleci, gitlab, travisci, cirrusci] (optional)
+# ci: [github, azurepipelines, circleci, gitlab, travisci, cirrusci] (optional)
 # notes: (text, optional)
 
 - name: abess
@@ -19,11 +19,11 @@
   ci: [github]
   os: [windows, apple, linux]
 
-- name: pyinstrument_cext
-  gh: joerick/pyinstrument_cext
-  ci: [travisci, appveyor]
+- name: pyinstrument
+  gh: joerick/pyinstrument
+  ci: [github]
   os: [windows, apple, linux]
-  notes: A simple C extension, without external dependencies
+  notes: Python profiler with a C extension. No external dependencies.
 
 - name: websockets
   gh: python-websockets/websockets
@@ -182,7 +182,7 @@
 
 - name: python-rapidjson
   gh: python-rapidjson/python-rapidjson
-  ci: [travisci, gitlab, appveyor]
+  ci: [travisci, gitlab]
   os: [windows, linux]
 
 - name: jq.py

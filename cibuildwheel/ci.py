@@ -6,13 +6,17 @@ from .util.helpers import strtobool
 
 
 class CIProvider(Enum):
+    # official support
     travis_ci = "travis"
-    appveyor = "appveyor"
     circle_ci = "circle_ci"
     azure_pipelines = "azure_pipelines"
     github_actions = "github_actions"
     gitlab = "gitlab"
     cirrus_ci = "cirrus_ci"
+
+    # unofficial support
+    appveyor = "appveyor"
+
     other = "other"
 
 

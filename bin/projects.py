@@ -33,7 +33,6 @@ import yaml
 from github import Github, GithubException
 
 ICONS = (
-    "appveyor",
     "github",
     "azurepipelines",
     "circleci",

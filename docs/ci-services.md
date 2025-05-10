@@ -86,22 +86,6 @@ Then setup a deployment method by following the [Travis CI deployment docs](http
 
 [`examples/travis-ci-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/travis-ci-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
 
-### AppVeyor [linux/mac/windows] {: #appveyor}
-
-To build Linux, Mac, and Windows wheels on AppVeyor, create an `appveyor.yml` file in your repo.
-
-> appveyor.yml
-
-```yaml
-{% include "../examples/appveyor-minimal.yml" %}
-```
-
-Commit this file, enable building of your repo on AppVeyor, and push.
-
-AppVeyor will store the built wheels for you - you can access them from the project console. Alternatively, you may want to store them in the same place as the Travis CI build. See [AppVeyor deployment docs](https://www.appveyor.com/docs/deployment/) for more info, or see [Delivering to PyPI](deliver-to-pypi.md) below.
-
-For more info on this config file, check out the [docs](https://www.appveyor.com/docs/).
-
 ### CircleCI [linux/mac] {: #circleci}
 
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
@@ -148,6 +132,12 @@ Commit this file, enable building of your repo on Cirrus CI, and push.
 Cirrus CI will store the built wheels for you - you can access them from the individual task view. Check out the Cirrus CI [docs](https://cirrus-ci.org/guide/writing-tasks/) for more info on this config file.
 
 > ⚠️ Got an error? Check the [FAQ](faq.md).
+
+### Other CI services
+
+#### AppVeyor {: #appveyor}
+
+Appveyor official support was dropped in cibuildwheel v3.0, due to a lack of CI credits. However, it can probably still be used as-is. Check the Appveyor example from the cibuildwheel v2.0 branch: [appveyor-minimal.yml](https://github.com/pypa/cibuildwheel/blob/v2.23.3/examples/appveyor-minimal.yml).
 
 ## Next steps
 
