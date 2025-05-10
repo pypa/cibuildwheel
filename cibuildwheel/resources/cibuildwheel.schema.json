@@ -543,6 +543,24 @@
       ],
       "title": "CIBW_TEST_SKIP"
     },
+    "test-environment": {
+      "description": "Set environment variables for the test environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            ".+": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "title": "CIBW_TEST_ENVIRONMENT"
+    },
     "overrides": {
       "type": "array",
       "description": "An overrides array",
@@ -608,6 +626,9 @@
                 "$ref": "#/$defs/inherit"
               },
               "test-requires": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-environment": {
                 "$ref": "#/$defs/inherit"
               }
             }
@@ -713,6 +734,9 @@
           },
           "test-requires": {
             "$ref": "#/properties/test-requires"
+          },
+          "test-environment": {
+            "$ref": "#/properties/test-environment"
           }
         }
       }
@@ -835,6 +859,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -889,6 +916,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -956,6 +986,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -1010,6 +1043,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -1064,6 +1100,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     }
