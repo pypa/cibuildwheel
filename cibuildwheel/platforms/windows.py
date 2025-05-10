@@ -2,6 +2,7 @@ import os
 import platform as platform_module
 import shutil
 import subprocess
+import sys
 import textwrap
 from collections.abc import MutableMapping, Set
 from dataclasses import dataclass
@@ -350,28 +351,25 @@ def setup_python(
             text=True,
         ).strip()
         log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        env.update(
-            dict(
+        vcvars = (
+            subprocess.check_output(
                 [
-                    envvar.strip().split("=", 1)
-                    for envvar in subprocess.check_output(
-                        [
-                            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
-                            "-no_logo",
-                            "-arch=amd64",
-                            "-host_arch=amd64",
-                            "&&",
-                            "set",
-                        ],
-                        shell=True,
-                        text=True,
-                        env=env,
-                    )
-                    .strip()
-                    .split("\n")
-                ]
+                    f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
+                    "-no_logo",
+                    "-arch=amd64",
+                    "-host_arch=amd64",
+                    "&&",
+                    "set",
+                ],
+                shell=True,
+                text=True,
+                env=env,
             )
+            .strip()
+            .split("\n")
         )
+        print("vcvars", vcvars, file=sys.stderr)
+        env.update(dict([envvar.strip().split("=", 1) for envvar in vcvars]))
 
     return base_python, env
 
