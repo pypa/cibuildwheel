@@ -53,7 +53,7 @@ def test(tmp_path, request):
 
 
 def test_setting_arch_on_other_platforms(tmp_path, capfd):
-    if utils.platform == "linux":
+    if utils.get_platform() == "linux":
         pytest.skip("this test checks the behaviour on platforms other than linux")
 
     project_dir = tmp_path / "project"

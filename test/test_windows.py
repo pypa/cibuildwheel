@@ -39,7 +39,7 @@ def skip_if_no_msvc(arm64: bool = False) -> None:
 
 @pytest.mark.parametrize("use_pyproject_toml", [True, False])
 def test_wheel_tag_is_correct_when_using_windows_cross_compile(tmp_path, use_pyproject_toml):
-    if utils.platform != "windows":
+    if utils.get_platform() != "windows":
         pytest.skip("This test is only relevant to Windows")
 
     skip_if_no_msvc(arm64=True)

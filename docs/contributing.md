@@ -78,11 +78,11 @@ nox -s tests -- test -k before_build
 
 A few notes-
 
-- Because they run inside a container, Linux tests can run on all platforms where Docker is installed, so they're convenient for running integration tests locally. Set CIBW_PLATFORM to do this: `CIBW_PLATFORM=linux nox -s tests -- test`.
+- Because they run inside a container, Linux tests can run on all platforms where Docker is installed, so they're convenient for running integration tests locally. Set the `--platform` flag on pytest to do this: `nox -s tests -- test --platform linux`.
 
 - Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
 
-- The 'enable groups' run by default are just 'cpython-prerelease' and 'cpython-freethreading'. You can add other groups like pypy or graalpy by setting the [CIBW_ENABLE](options.md#enable) environment variable. On GitHub PRs, you can add a label to the PR to enable these groups.
+- The ['enable groups'](options.md#enable) run by default are just 'cpython-prerelease' and 'cpython-freethreading'. You can add other groups like pypy or graalpy by passing the `--enable` argument to pytest, i.e. `nox -s tests -- test --enable pypy`. On GitHub PRs, you can add a label to the PR to enable these groups.
 
 #### Running pytest directly
 

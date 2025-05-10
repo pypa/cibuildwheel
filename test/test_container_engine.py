@@ -6,7 +6,7 @@ basic_project = test_projects.new_c_project()
 
 
 def test_podman(tmp_path, capfd, request):
-    if utils.platform != "linux":
+    if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
 
     if not request.config.getoption("--run-podman"):
@@ -36,7 +36,7 @@ def test_podman(tmp_path, capfd, request):
 
 
 def test_create_args(tmp_path, capfd):
-    if utils.platform != "linux":
+    if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
 
     project_dir = tmp_path / "project"

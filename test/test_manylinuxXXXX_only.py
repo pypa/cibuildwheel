@@ -62,7 +62,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 )
 @pytest.mark.usefixtures("docker_cleanup")
 def test(manylinux_image, tmp_path):
-    if utils.platform != "linux":
+    if utils.get_platform() != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
     elif manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "i686":
         pytest.skip(f"{manylinux_image} doesn't exist for i686 architecture")

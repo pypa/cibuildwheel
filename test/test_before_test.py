@@ -43,7 +43,7 @@ def test(tmp_path, build_frontend_env):
         '''python -c "import pathlib, sys; pathlib.Path('{project}/pythonprefix_bt.txt').write_text(sys.prefix)"''',
     ]
 
-    if utils.platform == "pyodide":
+    if utils.get_platform() == "pyodide":
         before_test_steps.extend(
             ["pyodide build {project}/dependency", "pip install --find-links dist/ spam"]
         )

@@ -7,7 +7,7 @@ from . import test_projects, utils
 
 
 def test_python_exist(tmp_path, capfd):
-    if utils.platform != "linux":
+    if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
     machine = platform.machine()
     if machine not in ["x86_64", "i686"]:
