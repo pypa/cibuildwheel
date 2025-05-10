@@ -1564,6 +1564,17 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=
     ```
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Set the environment variable MY_ENV_VAR to "my_value" in the test environment
+    test-environment = { MY_ENV_VAR="my_value" }
+
+    # Unset PYTHONSAFEPATH in the test environment
+    test-environment = { PYTHONSAFEPATH="" }
+    ```
+
 ## Debugging
 
 ### `CIBW_DEBUG_KEEP_CONTAINER`
