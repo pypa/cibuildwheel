@@ -536,13 +536,17 @@ def build(options: Options, tmp_path: Path) -> None:
                 elif config.arch != os.uname().machine:
                     log.step("Skipping tests on non-native simulator architecture")
                 else:
+                    test_env = build_options.test_environment.as_dictionary(
+                        prev_environment=build_env
+                    )
+
                     if build_options.before_test:
                         before_test_prepared = prepare_command(
                             build_options.before_test,
                             project=".",
                             package=build_options.package_dir,
                         )
-                        shell(before_test_prepared, env=env)
+                        shell(before_test_prepared, env=test_env)
 
                     log.step("Setting up test harness...")
                     # Clone the testbed project into the build directory
@@ -552,7 +556,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         target_install_path / "testbed",
                         "clone",
                         testbed_path,
-                        env=build_env,
+                        env=test_env,
                     )
 
                     if not build_options.test_sources:
@@ -574,7 +578,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     # the test requirements. Use the --platform tag to force
                     # the installation of iOS wheels; this requires the use of
                     # --only-binary=:all:
-                    ios_version = build_env["IPHONEOS_DEPLOYMENT_TARGET"]
+                    ios_version = test_env["IPHONEOS_DEPLOYMENT_TARGET"]
                     platform_tag = f"ios_{ios_version.replace('.', '_')}_{config.arch}_{config.sdk}"
 
                     call(
@@ -589,7 +593,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         testbed_path / "iOSTestbed" / "app_packages",
                         f"{test_wheel}{build_options.test_extras}",
                         *build_options.test_requires,
-                        env=build_env,
+                        env=test_env,
                     )
 
                     log.step("Running test suite...")
@@ -638,7 +642,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             *(["--verbose"] if build_options.build_verbosity > 0 else []),
                             "--",
                             *test_command_parts,
-                            env=build_env,
+                            env=test_env,
                         )
                         failed = False
                     except subprocess.CalledProcessError:
