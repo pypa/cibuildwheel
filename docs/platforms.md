@@ -3,7 +3,7 @@ title: Platforms
 ---
 # Platforms
 
-## Linux
+## Linux {: #linux}
 
 ### System requirements
 
@@ -31,7 +31,7 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 
 -   Alternative Docker images can be specified with the `CIBW_MANYLINUX_*_IMAGE`/`CIBW_MUSLLINUX_*_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#linux-image) for more details.
 
-## macOS
+## macOS {: #macos}
 
 ### System requirements
 
@@ -138,7 +138,7 @@ Regarding testing,
     As a workaround, the tag can be fixed before running delocate to repair the wheel. The [`wheel tags`](https://wheel.readthedocs.io/en/stable/reference/wheel_tags.html) command is ideal for this. See [this workflow](https://gist.github.com/anderssonjohan/49f07e33fc5cb2420515a8ac76dc0c95#file-build-pendulum-wheels-yml-L39-L53) for an example usage of `wheel tags`.
 
 
-## Windows
+## Windows {: #windows}
 
 ### System requirements
 
@@ -176,7 +176,7 @@ It is also possible to target a specific Pyodide version by setting the `CIBW_PY
 
 Currently, it's recommended to run tests using a `python -m` entrypoint, rather than a command line entrypoint, or a shell script. This is because custom entrypoints have some issues in the Pyodide virtual environment. For example, `pytest` may not work as a command line entrypoint, but will work as a `python -m pytest` entrypoint.
 
-## iOS
+## iOS {: #ios}
 
 ### System requirements
 
