@@ -42,11 +42,6 @@ class CIService(typing.NamedTuple):
 
 services = [
     CIService(
-        name="appveyor",
-        dst_config_path="appveyor.yml",
-        badge_md="[![Build status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/{branch}?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/{branch})",
-    ),
-    CIService(
         name="azure-pipelines",
         dst_config_path="azure-pipelines.yml",
         badge_md="[![Build Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName={branch})](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=2&branchName={branch})",

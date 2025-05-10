@@ -13,7 +13,6 @@ authors = [
     { name = "Joe Rickerby", email = "joerick@mac.com" },
 ]
 keywords = [
-    "appveyor",
     "ci",
     "linux",
     "macos",

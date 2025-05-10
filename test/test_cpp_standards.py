@@ -1,7 +1,4 @@
-import os
-
 import jinja2
-import pytest
 
 from . import utils
 from .test_projects import TestProject
@@ -99,9 +96,6 @@ def test_cpp17(tmp_path):
     auto a = std::pair(5.0, false);
     """
     cpp17_project.generate(project_dir)
-
-    if os.environ.get("APPVEYOR_BUILD_WORKER_IMAGE", "") == "Visual Studio 2015":
-        pytest.skip("Visual Studio 2015 does not support C++17")
 
     add_env = {}
     if utils.platform == "macos":
