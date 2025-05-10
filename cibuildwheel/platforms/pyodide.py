@@ -149,11 +149,12 @@ def get_xbuildenv_version_info(
     raise errors.FatalError(msg)
 
 
-# The xbuildenv version is brought in sync with the pyodide-build version in
-# the constraints file, which will always be compatible with the version in
-# build-platforms.toml. Hence, this condition really checks only for the case
-# where the version is supplied manually through a CIBW_PYODIDE_VERSION
-# environment variable and raises an error as appropriate.
+# The default pyodide xbuildenv version that's specified in
+# build-platforms.toml is compatible with the pyodide-build version that's
+# pinned in the bundled constraints file. But if the user changes
+# pyodide-version and/or dependency-constraints in the cibuildwheel config, we
+# need to check if the xbuildenv version is compatible with the pyodide-build
+# version.
 def validate_pyodide_build_version(
     xbuildenv_info: PyodideXBuildEnvInfo, pyodide_build_version: str
 ) -> None:
@@ -180,10 +181,9 @@ def validate_pyodide_build_version(
 
 def install_xbuildenv(env: dict[str, str], pyodide_build_version: str, pyodide_version: str) -> str:
     """Install a particular Pyodide xbuildenv version and set a path to the Pyodide root."""
-    # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of pyodide-build are
-    # not guaranteed to match the versions of Pyodide or be in sync with them. Hence, we shall
-    # specify the pyodide-build version in the root path, which will set up the xbuildenv for
-    # the requested Pyodide version.
+    # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of
+    # pyodide-build are uncoupled from the versions of Pyodide. So, we specify
+    # both the pyodide-build version and the Pyodide version in the temp path.
     xbuildenv_cache_path = CIBW_CACHE_PATH / f"pyodide-build-{pyodide_build_version}"
     pyodide_root = xbuildenv_cache_path / pyodide_version / "xbuildenv" / "pyodide-root"
 
