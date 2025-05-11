@@ -18,7 +18,6 @@
           "enum": [
             "github",
             "travisci",
-            "appveyor",
             "circleci",
             "gitlab",
             "cirrusci",
