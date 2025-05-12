@@ -17,7 +17,7 @@ certifi==2025.4.26
     #   requests
 charset-normalizer==3.4.2
     # via requests
-click==8.1.8
+click==8.2.0
     # via typer
 cmake==4.0.2
     # via pyodide-build
