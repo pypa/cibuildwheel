@@ -35,7 +35,7 @@ def test(tmp_path, request):
             "CIBW_TEST_COMMAND": "pytest ./test",
             "CIBW_ARCHS": archs,
             # TODO remove me once proper support is added
-            "CIBW_MANYLINUX_RISCV64_IMAGE": "ghcr.io/mayeut/manylinux_2_31:2025.03.02-1",
+            "CIBW_MANYLINUX_RISCV64_IMAGE": "ghcr.io/mayeut/manylinux_2_35:2025.05.11-1",
             "CIBW_SKIP": "*-musllinux_riscv64",
         },
     )
