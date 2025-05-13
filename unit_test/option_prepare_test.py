@@ -104,7 +104,7 @@ def test_build_with_override_launches(monkeypatch, tmp_path):
 [tool.cibuildwheel]
 manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
-enable = ["pypy", "graalpy", "cpython-freethreading"]
+enable = ["pypy", "pypy-eol", "graalpy", "cpython-freethreading"]
 
 # Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]

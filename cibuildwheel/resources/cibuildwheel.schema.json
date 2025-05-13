@@ -16,6 +16,7 @@
         "cpython-freethreading",
         "cpython-prerelease",
         "pypy",
+        "pypy-eol",
         "cpython-experimental-riscv64"
       ]
     },

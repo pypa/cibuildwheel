@@ -36,6 +36,7 @@ $defs:
       - cpython-freethreading
       - cpython-prerelease
       - pypy
+      - pypy-eol
       - cpython-experimental-riscv64
   description: A Python version or flavor to enable.
 additionalProperties: false
