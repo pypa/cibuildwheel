@@ -80,7 +80,7 @@ def update_constraints(session: nox.Session) -> None:
     # regenerate the constraints files
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
-    for minor_version in range(8, 14):
+    for minor_version in range(8, 15):
         python_version = f"3.{minor_version}"
         output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
         session.run(
@@ -95,7 +95,7 @@ def update_constraints(session: nox.Session) -> None:
         )
 
     shutil.copyfile(
-        resources / "constraints-python312.txt",
+        resources / "constraints-python314.txt",
         resources / "constraints.txt",
     )
 

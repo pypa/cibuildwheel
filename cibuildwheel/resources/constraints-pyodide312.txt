@@ -18,7 +18,11 @@ certifi==2025.4.26
 charset-normalizer==3.4.2
     # via requests
 click==8.1.8
-    # via typer
+    # via
+    #   -r .nox/update_constraints/tmp/constraints-pyodide.in
+    #   typer
+cmake==4.0.2
+    # via pyodide-build
 distlib==0.3.9
     # via virtualenv
 filelock==3.18.0
@@ -105,7 +109,7 @@ unearth==0.17.5
     # via pyodide-build
 urllib3==2.4.0
     # via requests
-virtualenv==20.31.1
+virtualenv==20.31.2
     # via
     #   build
     #   pyodide-build

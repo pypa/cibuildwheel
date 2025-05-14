@@ -22,6 +22,7 @@ def test_build_frontend_args(tmp_path, capfd, frontend_name):
     add_env = {"CIBW_BUILD_FRONTEND": f"{frontend_name}; args: -h"}
     if utils.platform == "pyodide":
         add_env["TERM"] = "dumb"  # disable color / style
+        add_env["NO_COLOR"] = "1"
     with pytest.raises(subprocess.CalledProcessError):
         utils.cibuildwheel_run(project_dir, add_env=add_env, single_python=True)
 

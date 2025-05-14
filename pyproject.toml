@@ -13,7 +13,6 @@ authors = [
     { name = "Joe Rickerby", email = "joerick@mac.com" },
 ]
 keywords = [
-    "appveyor",
     "ci",
     "linux",
     "macos",
@@ -33,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Build Tools",
 ]

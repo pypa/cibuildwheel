@@ -55,6 +55,7 @@ def generate_pyodide_constraints(pyodide_version: str, output_file: str | None =
         pip
         build[virtualenv]
         pyodide-build{pyodide_build_specifier}
+        click<8.2
     """)
 
     if output_file is None:
