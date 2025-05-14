@@ -304,9 +304,9 @@ def setup_python(
         pyodide_build_version=pyodide_build_version,
     )
 
-    enscripten_version = xbuildenv_info["emscripten"]
-    log.step(f"Installing Emscripten version: {enscripten_version} ...")
-    emcc_path = install_emscripten(tmp, enscripten_version)
+    emscripten_version = xbuildenv_info["emscripten"]
+    log.step(f"Installing Emscripten version: {emscripten_version} ...")
+    emcc_path = install_emscripten(tmp, emscripten_version)
 
     env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
 
