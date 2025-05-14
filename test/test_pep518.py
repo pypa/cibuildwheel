@@ -61,7 +61,7 @@ def test_pep518(tmp_path, build_frontend_env):
     assert not (project_dir / "4.1.2").exists()
 
     # pypa/build creates a "build" folder & a "*.egg-info" folder for the
-    # wheel being built, this should be harmless so remove them. Pyodide build
+    # wheel being built, this should be harmless so remove them. pyodide-build
     # creates a ".pyodide_build" folder, but this is gitignored with a
     # .gitignore file inside.
     contents = [

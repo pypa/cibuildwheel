@@ -141,9 +141,9 @@ def get_xbuildenv_version_info(
             return xbuildenv_info
 
     msg = unwrap(f"""
-        Could not find pyodide xbuildenv version {version} in the available
+        Could not find Pyodide cross-build environment version {version} in the available
         versions as reported by pyodide-build v{pyodide_build_version}.
-        Available pyodide xbuild versions are:
+        Available pyodide xbuildenv versions are:
         {", ".join(e["version"] for e in xbuildenvs_info if e["compatible"])}
     """)
     raise errors.FatalError(msg)

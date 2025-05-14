@@ -170,7 +170,7 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 ### Choosing a Pyodide version {: #pyodide-choosing-a-version}
 
-It is also possible to target a specific Pyodide version by setting the `CIBW_PYODIDE_VERSION` option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and use `pyodide xbuildenv search --all` to see a compatibility table.
+It is also possible to target a specific Pyodide version by setting the `CIBW_PYODIDE_VERSION` option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
 
 ### Running tests
 
