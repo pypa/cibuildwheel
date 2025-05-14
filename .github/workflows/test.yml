@@ -233,7 +233,7 @@ jobs:
       env:
         CIBW_PLATFORM: pyodide
         CIBW_BUILD: "cp312*"
-        CIBW_PYODIDE_VERSION: "0.27.6"
+        CIBW_PYODIDE_VERSION: "0.27.5"
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |
