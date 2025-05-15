@@ -32,6 +32,7 @@ class EnableGroup(StrEnum):
     CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     PyPy = "pypy"
+    PyPyEoL = "pypy-eol"
     CPythonExperimentalRiscV64 = "cpython-experimental-riscv64"
     GraalPy = "graalpy"
 
@@ -87,7 +88,9 @@ class BuildSelector:
             return False
         if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp314*"):
             return False
-        if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp*"):
+        if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp31*"):
+            return False
+        if EnableGroup.PyPyEoL not in self.enable and fnmatch(build_id, "pp3?-*"):
             return False
         if EnableGroup.CPythonExperimentalRiscV64 not in self.enable and fnmatch(
             build_id, "*_riscv64"

@@ -321,6 +321,7 @@ values are:
   The build identifiers for those variants have a `t` suffix in their
   `python_tag` (e.g. `cp313t-manylinux_x86_64`).
 - `pypy`: Enable PyPy.
+- `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
 - `cpython-experimental-riscv64`: Enable experimental riscv64 builds. Those builds
   are disabled by default as they can't be uploaded to PyPI and a PEP will most likely
   be required before this can happen.
