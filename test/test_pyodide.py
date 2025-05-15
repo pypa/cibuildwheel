@@ -43,7 +43,7 @@ if __name__ == "__main__":
 @pytest.mark.parametrize("use_pyproject_toml", [True, False])
 def test_pyodide_build(tmp_path, use_pyproject_toml):
     if sys.platform == "win32":
-        pytest.skip("emsdk doesn't work correctly on Windows")
+        pytest.skip("pyodide-build doesn't work correctly on Windows")
 
     if use_pyproject_toml:
         basic_project.files["pyproject.toml"] = textwrap.dedent(
@@ -82,7 +82,7 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
 
 def test_pyodide_version_incompatible(tmp_path, capfd):
     if sys.platform == "win32":
-        pytest.skip("emsdk doesn't work correctly on Windows")
+        pytest.skip("pyodide-build doesn't work correctly on Windows")
 
     basic_project.generate(tmp_path)
 
@@ -104,7 +104,7 @@ def test_pyodide_version_incompatible(tmp_path, capfd):
 @pytest.mark.parametrize("expect_failure", [True, False])
 def test_pyodide_build_and_test(tmp_path, expect_failure):
     if sys.platform == "win32":
-        pytest.skip("emsdk doesn't work correctly on Windows")
+        pytest.skip("pyodide-build doesn't work correctly on Windows")
 
     if expect_failure:
         basic_project.files["test/spam_test.py"] = textwrap.dedent(r"""
