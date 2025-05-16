@@ -39,7 +39,7 @@ def dump_python_configurations(
     return output.getvalue()[:-1]
 
 
-def _json_request(request, timeout=30):
+def _json_request(request: urllib.request.Request, timeout: int = 30) -> dict[str, Any]:
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return typing.cast(dict[str, Any], json.load(response))
 
@@ -75,7 +75,10 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
             if retry_count == max_retries - 1:
                 print(f"GitHub API request failed (Network error: {e}). Check network connection.")
                 raise e
-    return None
+
+    # Should never be reached but to keep the type checker happy
+    msg = "Unexpected execution path in github_api_request"
+    raise RuntimeError(msg)
 
 
 class PyodideXBuildEnvRelease(typing.TypedDict):
