@@ -63,10 +63,10 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
             if (
                 isinstance(e, urllib.error.HTTPError)
                 and (e.code == 403 or e.code == 429)
-                and e.get("x-ratelimit-remaining") == "0"
+                and e.headers.get("x-ratelimit-remaining") == "0"
             ):
-                reset_time = int(e.get("x-ratelimit-reset", 0))
-                wait_time = max(0, reset_time - int(e.get("date", 0)))
+                reset_time = int(e.headers.get("x-ratelimit-reset", 0))
+                wait_time = max(0, reset_time - int(e.headers.get("date", 0)))
                 print(f"Github rate limit exceeded. Waiting for {wait_time} seconds.")
                 time.sleep(wait_time)
             else:
