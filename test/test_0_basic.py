@@ -1,4 +1,3 @@
-import os
 import textwrap
 
 import pytest
@@ -40,7 +39,7 @@ def test(tmp_path, build_frontend_env, capfd):
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
     assert set(actual_wheels) == set(expected_wheels)
 
-    enable_groups = EnableGroup.parse_option_value(os.environ.get("CIBW_ENABLE", ""))
+    enable_groups = utils.get_enable_groups()
     if EnableGroup.GraalPy not in enable_groups:
         # Verify pip warning not shown
         captured = capfd.readouterr()
