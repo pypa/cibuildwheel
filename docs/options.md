@@ -4,7 +4,7 @@
 
 ## Build selection
 
-### `CIBW_PLATFORM` {: #platform}
+### `platform` {: #platform cmd-line env-var }
 
 > Override the auto-detected target platform
 
@@ -38,7 +38,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
     not require `--platform` or `--arch`, and will override any build/skip
     configuration.
 
-### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
+### `build` & `skip` {: #build-skip toml="build, skip" env-var="CIBW_BUILD, CIBW_SKIP" }
 
 > Choose the Python versions to build
 
@@ -77,6 +77,38 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
 #### Examples
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Only build on CPython 3.8
+    build = "cp38-*"
+
+    # Skip building on CPython 3.8 on the Mac
+    skip = "cp38-macosx_x86_64"
+
+    # Skip building on CPython 3.8 on all platforms
+    skip = "cp38-*"
+
+    # Skip CPython 3.8 on Windows
+    skip = "cp38-win*"
+
+    # Skip CPython 3.8 on 32-bit Windows
+    skip = "cp38-win32"
+
+    # Skip CPython 3.8 and CPython 3.9
+    skip = ["cp38-*", "cp39-*"]
+
+    # Skip Python 3.8 on Linux
+    skip = "cp38-manylinux*"
+
+    # Skip 32-bit builds
+    skip = ["*-win32", "*-manylinux_i686"]
+
+    # Disable building PyPy wheels on all platforms
+    skip = "pp*"
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -110,37 +142,7 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
     Separate multiple selectors with a space.
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    [tool.cibuildwheel]
-    # Only build on CPython 3.8
-    build = "cp38-*"
-
-    # Skip building on CPython 3.8 on the Mac
-    skip = "cp38-macosx_x86_64"
-
-    # Skip building on CPython 3.8 on all platforms
-    skip = "cp38-*"
-
-    # Skip CPython 3.8 on Windows
-    skip = "cp38-win*"
-
-    # Skip CPython 3.8 on 32-bit Windows
-    skip = "cp38-win32"
-
-    # Skip CPython 3.8 and CPython 3.9
-    skip = ["cp38-*", "cp39-*"]
-
-    # Skip Python 3.8 on Linux
-    skip = "cp38-manylinux*"
-
-    # Skip 32-bit builds
-    skip = ["*-win32", "*-manylinux_i686"]
-
-    # Disable building PyPy wheels on all platforms
-    skip = "pp*"
-    ```
 
     It is generally recommended to set `CIBW_BUILD` as an environment variable, though `skip`
     tends to be useful in a config file; you can statically declare that you don't
@@ -167,7 +169,7 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 </style>
 
 
-### `CIBW_ARCHS` {: #archs}
+### `archs` {: #archs cmd-line env-var toml }
 > Change the architectures built on your machine by default.
 
 A list of architectures to build.
@@ -220,6 +222,20 @@ This option can also be set using the [command-line option](#command-line)
 
 #### Examples
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Build `universal2` and `arm64` wheels on an Intel runner.
+    # Note that the `arm64` wheel and the `arm64` part of the `universal2`
+    # wheel cannot be tested in this configuration.
+    [tool.cibuildwheel.macos]
+    archs = ["x86_64", "universal2", "arm64"]
+
+    # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
+    [tool.cibuildwheel.linux]
+    archs = ["auto", "aarch64"]
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -234,19 +250,7 @@ This option can also be set using the [command-line option](#command-line)
 
     Separate multiple archs with a space.
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    # Build `universal2` and `arm64` wheels on an Intel runner.
-    # Note that the `arm64` wheel and the `arm64` part of the `universal2`
-    # wheel cannot be tested in this configuration.
-    [tool.cibuildwheel.macos]
-    archs = ["x86_64", "universal2", "arm64"]
-
-    # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
-    [tool.cibuildwheel.linux]
-    archs = ["auto", "aarch64"]
-    ```
 
     It is generally recommended to use the environment variable or
     command-line option for Linux, as selecting archs often depends
@@ -296,6 +300,18 @@ the package is compatible with all versions of Python that it can build.
         and cibuildwheel will read it from there.
 
 #### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Enable free-threaded support
+    enable = ["cpython-freethreading"]
+
+    # Skip building free-threaded compatible wheels on Windows
+    enable = ["cpython-freethreading"]
+    skip = "*t-win*"
+    ```
 
 !!! tab examples "Environment variables"
 
@@ -375,17 +391,7 @@ partial list in environment variables; use `CIBW_SKIP` instead.
     It is generally recommended to use `cpython-freethreading` in a config
     file as you can statically declare that you support free-threaded builds.
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    [tool.cibuildwheel]
-    # Enable free-threaded support
-    enable = ["cpython-freethreading"]
-
-    # Skip building free-threaded compatible wheels on Windows
-    enable = ["cpython-freethreading"]
-    skip = "*t-win*"
-    ```
 
     It is generally not recommended to use `cpython-prerelease` in a config file,
     as it's intended for testing pre-releases for a 2-3 month period only.
@@ -405,6 +411,26 @@ This option can also be set using the [command-line option](#command-line)
 `--allow-empty`. This option is not available in the `pyproject.toml` config.
 
 #### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Switch to using build
+    build-frontend = "build"
+
+    # Ensure pip is used even if the default changes in the future
+    build-frontend = "pip"
+
+    # supply an extra argument to 'pip wheel'
+    build-frontend = { name = "pip", args = ["--no-build-isolation"] }
+
+    # Use uv and build
+    build-frontend = "build[uv]"
+
+    # Use uv and build with an argument
+    build-frontend = { name = "build[uv]", args = ["--no-isolation"] }
+    ```
 
 !!! tab examples "Environment variables"
 
@@ -473,25 +499,7 @@ optional `args` option.
     CIBW_BUILD_FRONTEND: "build[uv]; args: --no-isolation"
     ```
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    [tool.cibuildwheel]
-    # Switch to using build
-    build-frontend = "build"
-
-    # Ensure pip is used even if the default changes in the future
-    build-frontend = "pip"
-
-    # supply an extra argument to 'pip wheel'
-    build-frontend = { name = "pip", args = ["--no-build-isolation"] }
-
-    # Use uv and build
-    build-frontend = "build[uv]"
-
-    # Use uv and build with an argument
-    build-frontend = { name = "build[uv]", args = ["--no-isolation"] }
-    ```
 
 ### `CIBW_CONFIG_SETTINGS` {: #config-settings}
 > Specify config-settings for the build backend.
@@ -510,18 +518,20 @@ Platform-specific environment variables also available:<br/>
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    CIBW_CONFIG_SETTINGS: "--build-option=--use-mypyc"
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
     [tool.cibuildwheel.config-settings]
     --build-option = "--use-mypyc"
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_CONFIG_SETTINGS: "--build-option=--use-mypyc"
+    ```
+
+
 
 
 ### `CIBW_ENVIRONMENT` {: #environment}
@@ -539,35 +549,6 @@ Platform-specific environment variables are also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX` | `CIBW_ENVIRONMENT_IOS` | `CIBW_ENVIRONMENT_PYODIDE`
 
 #### Examples
-
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Set some compiler flags
-    CIBW_ENVIRONMENT: CFLAGS='-g -Wall' CXXFLAGS='-Wall'
-
-    # Append a directory to the PATH variable (this is expanded in the build environment)
-    CIBW_ENVIRONMENT: PATH=$PATH:/usr/local/bin
-
-    # Prepend a directory containing spaces on Windows.
-    CIBW_ENVIRONMENT_WINDOWS: >
-      PATH="C:\\Program Files\\PostgreSQL\\13\\bin;$PATH"
-
-    # Set BUILD_TIME to the output of the `date` command
-    CIBW_ENVIRONMENT: BUILD_TIME="$(date)"
-
-    # Supply options to `pip` to affect how it downloads dependencies
-    CIBW_ENVIRONMENT: PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple
-
-    # Any pip command-line options can be set using the PIP_ prefix
-    # https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
-    CIBW_ENVIRONMENT: PIP_GLOBAL_OPTION="build_ext -j4"
-
-    # Set two flags on linux only
-    CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
-    ```
-
-    Separate multiple values with a space.
 
 !!! tab examples "pyproject.toml"
 
@@ -605,6 +586,37 @@ Platform-specific environment variables are also available:<br/>
     BUILD_TIME = "$(date)"
     SAMPLE_TEXT = "sample text"
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Set some compiler flags
+    CIBW_ENVIRONMENT: CFLAGS='-g -Wall' CXXFLAGS='-Wall'
+
+    # Append a directory to the PATH variable (this is expanded in the build environment)
+    CIBW_ENVIRONMENT: PATH=$PATH:/usr/local/bin
+
+    # Prepend a directory containing spaces on Windows.
+    CIBW_ENVIRONMENT_WINDOWS: >
+      PATH="C:\\Program Files\\PostgreSQL\\13\\bin;$PATH"
+
+    # Set BUILD_TIME to the output of the `date` command
+    CIBW_ENVIRONMENT: BUILD_TIME="$(date)"
+
+    # Supply options to `pip` to affect how it downloads dependencies
+    CIBW_ENVIRONMENT: PIP_EXTRA_INDEX_URL=https://pypi.myorg.com/simple
+
+    # Any pip command-line options can be set using the PIP_ prefix
+    # https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
+    CIBW_ENVIRONMENT: PIP_GLOBAL_OPTION="build_ext -j4"
+
+    # Set two flags on linux only
+    CIBW_ENVIRONMENT_LINUX: BUILD_TIME="$(date)" SAMPLE_TEXT="sample text"
+    ```
+
+    Separate multiple values with a space.
+
+
 
     In configuration mode, you can use a [TOML][] table instead of a raw string as shown above.
 
@@ -676,6 +688,24 @@ Platform-specific environment variables also available:<br/>
 
 #### Examples
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Build third party library
+    [tool.cibuildwheel]
+    before-all = "make -C third_party_lib"
+
+    # Install system library
+    [tool.cibuildwheel.linux]
+    before-all = "yum install -y libffi-devel"
+
+    # Run multiple commands using an array
+    before-all = [
+      "yum install bzip2 -y",
+      "make third_party",
+    ]
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -696,23 +726,7 @@ Platform-specific environment variables also available:<br/>
     ensures that errors are not ignored. [Further reading on multiline YAML
     here.](https://yaml-multiline.info).
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    # Build third party library
-    [tool.cibuildwheel]
-    before-all = "make -C third_party_lib"
-
-    # Install system library
-    [tool.cibuildwheel.linux]
-    before-all = "yum install -y libffi-devel"
-
-    # Run multiple commands using an array
-    before-all = [
-      "yum install bzip2 -y",
-      "make third_party",
-    ]
-    ```
 
     In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
 
@@ -736,22 +750,6 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Install something required for the build (you might want to use pyproject.toml instead)
-    CIBW_BEFORE_BUILD: pip install pybind11
-
-    # Chain commands using &&
-    CIBW_BEFORE_BUILD_LINUX: python scripts/install-deps.py && make clean
-
-    # Run a script that's inside your project
-    CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
-
-    # If cibuildwheel is called with a package_dir argument, it's available as {package}
-    CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -774,6 +772,24 @@ Platform-specific environment variables are also available:<br/>
     # If cibuildwheel is called with a package_dir argument, it's available as {package}
     before-build = "{package}/script/prepare_for_build.sh"
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Install something required for the build (you might want to use pyproject.toml instead)
+    CIBW_BEFORE_BUILD: pip install pybind11
+
+    # Chain commands using &&
+    CIBW_BEFORE_BUILD_LINUX: python scripts/install-deps.py && make clean
+
+    # Run a script that's inside your project
+    CIBW_BEFORE_BUILD: bash scripts/prepare_for_build.sh
+
+    # If cibuildwheel is called with a package_dir argument, it's available as {package}
+    CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
+    ```
+
+
 
     In configuration mode, you can use a array, and the items will be joined with `&&`. In TOML, using a single-quote string will avoid escapes - useful for
     Windows paths.
@@ -822,6 +838,14 @@ Platform-specific environment variables are also available on platforms that use
 
 #### Examples
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
+    xbuild-tools = ["cmake", "rustc"]
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -834,13 +858,7 @@ Platform-specific environment variables are also available on platforms that use
     CIBW_XBUILD_TOOLS:
     ```
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    [tool.cibuildwheel]
-    # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
-    xbuild-tools = ["cmake", "rustc"]
-    ```
 
     ```toml
     [tool.cibuildwheel]
@@ -890,36 +908,6 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Use delvewheel on windows
-    CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
-
-    # Don't repair macOS wheels
-    CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
-
-    # Pass the `--lib-sdir .` flag to auditwheel on Linux
-    CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
-
-    # Multi-line example - use && to join on all platforms
-    CIBW_REPAIR_WHEEL_COMMAND: >
-      python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
-      python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
-
-    # Use abi3audit to catch issues with Limited API wheels
-    CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-      auditwheel repair -w {dest_dir} {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-      delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-      copy {wheel} {dest_dir} &&
-      pipx run abi3audit --strict --report {wheel}
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -960,6 +948,38 @@ Platform-specific environment variables are also available:<br/>
       "pipx run abi3audit --strict --report {wheel}",
     ]
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Use delvewheel on windows
+    CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+
+    # Don't repair macOS wheels
+    CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
+
+    # Pass the `--lib-sdir .` flag to auditwheel on Linux
+    CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
+
+    # Multi-line example - use && to join on all platforms
+    CIBW_REPAIR_WHEEL_COMMAND: >
+      python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
+      python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
+
+    # Use abi3audit to catch issues with Limited API wheels
+    CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+      auditwheel repair -w {dest_dir} {wheel} &&
+      pipx run abi3audit --strict --report {wheel}
+    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+      delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
+      pipx run abi3audit --strict --report {wheel}
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+      copy {wheel} {dest_dir} &&
+      pipx run abi3audit --strict --report {wheel}
+    ```
+
+
 
     In configuration mode, you can use an inline array, and the items will be joined with `&&`.
 
@@ -1025,30 +1045,6 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
 #### Examples
 
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Build using the manylinux2014 image
-    CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-    CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
-    CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux2014
-
-    # Build using the latest manylinux2010 release
-    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
-    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
-    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
-    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
-
-    # Build using a different image from the docker registry
-    CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
-    CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
-
-    # Build musllinux wheels using the musllinux_1_1 image
-    CIBW_MUSLLINUX_X86_64_IMAGE: quay.io/pypa/musllinux_1_1_x86_64:latest
-    CIBW_MUSLLINUX_I686_IMAGE: quay.io/pypa/musllinux_1_1_i686:latest
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -1073,6 +1069,32 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     musllinux-x86_64-image = "quay.io/pypa/musllinux_1_1_x86_64:latest"
     musllinux-i686-image = "quay.io/pypa/musllinux_1_1_i686:latest"
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Build using the manylinux2014 image
+    CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+    CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
+    CIBW_MANYLINUX_PYPY_I686_IMAGE: manylinux2014
+
+    # Build using the latest manylinux2010 release
+    CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
+    CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
+    CIBW_MANYLINUX_PYPY_X86_64_IMAGE: quay.io/pypa/manylinux2010_x86_64:latest
+    CIBW_MANYLINUX_PYPY_I686_IMAGE: quay.io/pypa/manylinux2010_i686:latest
+
+    # Build using a different image from the docker registry
+    CIBW_MANYLINUX_X86_64_IMAGE: dockcross/manylinux-x64
+    CIBW_MANYLINUX_I686_IMAGE: dockcross/manylinux-x86
+
+    # Build musllinux wheels using the musllinux_1_1 image
+    CIBW_MUSLLINUX_X86_64_IMAGE: quay.io/pypa/musllinux_1_1_x86_64:latest
+    CIBW_MUSLLINUX_I686_IMAGE: quay.io/pypa/musllinux_1_1_i686:latest
+    ```
+
+
 
     Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
     if you prefer; they have no effect on `macos` and `windows`.
@@ -1112,19 +1134,6 @@ Options can be supplied after the name.
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # use podman instead of docker
-    CIBW_CONTAINER_ENGINE: podman
-
-    # pass command line options to 'docker create'
-    CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
-
-    # disable the /host mount
-    CIBW_CONTAINER_ENGINE: "docker; disable_host_mount: true"
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -1138,6 +1147,21 @@ Options can be supplied after the name.
     # disable the /host mount
     container-engine = { name = "docker", disable-host-mount = true }
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # use podman instead of docker
+    CIBW_CONTAINER_ENGINE: podman
+
+    # pass command line options to 'docker create'
+    CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
+
+    # disable the /host mount
+    CIBW_CONTAINER_ENGINE: "docker; disable_host_mount: true"
+    ```
+
+
 
 
 ### `CIBW_DEPENDENCY_VERSIONS` {: #dependency-versions}
@@ -1180,6 +1204,27 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Use tools versions that are bundled with cibuildwheel (this is the default)
+    dependency-versions = "pinned"
+
+    # Use the latest versions available on PyPI
+    dependency-versions = "latest"
+
+    # Use your own pip constraints file
+    dependency-versions = { file = "./constraints.txt" }
+
+    # Specify requirements inline
+    dependency-versions = { packages = ["auditwheel==6.2.0"] }
+
+    [tool.cibuildwheel.pyodide]
+    # Choose a specific pyodide-build version
+    dependency-versions = { packages = ["pyodide-build==0.29.1"] }
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1202,26 +1247,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_DEPENDENCY_VERSIONS: "packages: 'pip >=16.0.0, !=17'"
     ```
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    [tool.cibuildwheel]
-    # Use tools versions that are bundled with cibuildwheel (this is the default)
-    dependency-versions = "pinned"
-
-    # Use the latest versions available on PyPI
-    dependency-versions = "latest"
-
-    # Use your own pip constraints file
-    dependency-versions = { file = "./constraints.txt" }
-
-    # Specify requirements inline
-    dependency-versions = { packages = ["auditwheel==6.2.0"] }
-
-    [tool.cibuildwheel.pyodide]
-    # Choose a specific pyodide-build version
-    dependency-versions = { packages = ["pyodide-build==0.29.1"] }
-    ```
 
 
 ## Testing
@@ -1260,21 +1286,6 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Run the package tests using `pytest`
-    CIBW_TEST_COMMAND: pytest ./tests
-
-    # Trigger an install of the package, but run nothing of note
-    CIBW_TEST_COMMAND: "echo Wheel installed"
-
-    # Multi-line example - join with && on all platforms
-    CIBW_TEST_COMMAND: >
-      pytest ./tests &&
-      python ./test.py
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -1292,6 +1303,23 @@ Platform-specific environment variables are also available:<br/>
     ]
     ```
 
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run the package tests using `pytest`
+    CIBW_TEST_COMMAND: pytest ./tests
+
+    # Trigger an install of the package, but run nothing of note
+    CIBW_TEST_COMMAND: "echo Wheel installed"
+
+    # Multi-line example - join with && on all platforms
+    CIBW_TEST_COMMAND: >
+      pytest ./tests &&
+      python ./test.py
+    ```
+
+
+
     In configuration files, you can use an array, and the items will be joined with `&&`.
 
 ### `CIBW_BEFORE_TEST` {: #before-test}
@@ -1308,26 +1336,6 @@ Platform-specific environment variables are also available:<br/>
  `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX` | `CIBW_BEFORE_TEST_IOS` | `CIBW_BEFORE_TEST_PYODIDE`
 
 #### Examples
-
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Install test dependencies with overwritten environment variables.
-    CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
-
-    # Chain commands using &&
-    CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
-
-    # Install non pip python package
-    CIBW_BEFORE_TEST: >
-      cd some_dir &&
-      ./configure &&
-      make &&
-      make install
-
-    # Install python packages that are required to install test dependencies
-    CIBW_BEFORE_TEST: pip install cmake scikit-build
-    ```
 
 !!! tab examples "pyproject.toml"
 
@@ -1356,6 +1364,28 @@ Platform-specific environment variables are also available:<br/>
     before-test = "pip install cmake scikit-build"
     ```
 
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Install test dependencies with overwritten environment variables.
+    CIBW_BEFORE_TEST: CC=gcc CXX=g++ pip install -r requirements.txt
+
+    # Chain commands using &&
+    CIBW_BEFORE_TEST: rm -rf ./data/cache && mkdir -p ./data/cache
+
+    # Install non pip python package
+    CIBW_BEFORE_TEST: >
+      cd some_dir &&
+      ./configure &&
+      make &&
+      make install
+
+    # Install python packages that are required to install test dependencies
+    CIBW_BEFORE_TEST: pip install cmake scikit-build
+    ```
+
+
+
     In configuration files, you can use an array, and the items will be joined with `&&`.
 
 
@@ -1377,13 +1407,6 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Copy the "tests" folder, plus "data/test-image.png" from the source folder to the test folder.
-    CIBW_TEST_SOURCES: tests data/test-image.png
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -1391,6 +1414,15 @@ Platform-specific environment variables are also available:<br/>
     [tool.cibuildwheel]
     test-sources = ["tests", "data/test-image.png"]
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Copy the "tests" folder, plus "data/test-image.png" from the source folder to the test folder.
+    CIBW_TEST_SOURCES: tests data/test-image.png
+    ```
+
+
 
     In configuration files, you can use an array, and the items will be joined with a space.
 
@@ -1405,16 +1437,6 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Install pytest before running CIBW_TEST_COMMAND
-    CIBW_TEST_REQUIRES: pytest
-
-    # Install specific versions of test dependencies
-    CIBW_TEST_REQUIRES: pytest==8.2.2 packaging==24.1
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -1426,6 +1448,18 @@ Platform-specific environment variables are also available:<br/>
     [tool.cibuildwheel]
     test-requires = ["pytest==8.2.2", "packaging==24.1"]
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Install pytest before running CIBW_TEST_COMMAND
+    CIBW_TEST_REQUIRES: pytest
+
+    # Install specific versions of test dependencies
+    CIBW_TEST_REQUIRES: pytest==8.2.2 packaging==24.1
+    ```
+
+
 
     In configuration files, you can use an array, and the items will be joined with a space.
 
@@ -1445,6 +1479,14 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
+    test-extras = ["test", "qt"]
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1454,13 +1496,7 @@ Platform-specific environment variables are also available:<br/>
 
     Separate multiple items with a comma.
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    [tool.cibuildwheel]
-    # Will cause the wheel to be installed with `pip install <wheel_file>[test,qt]`
-    test-extras = ["test", "qt"]
-    ```
 
     In configuration files, you can use an inline array, and the items will be joined with a comma.
 
@@ -1479,6 +1515,14 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Will cause the wheel to be installed with these groups of dependencies
+    test-groups = ["test", "qt"]
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1488,13 +1532,7 @@ Platform-specific environment variables are also available:<br/>
 
     Separate multiple items with a space.
 
-!!! tab examples "pyproject.toml"
 
-    ```toml
-    [tool.cibuildwheel]
-    # Will cause the wheel to be installed with these groups of dependencies
-    test-groups = ["test", "qt"]
-    ```
 
     In configuration files, you can use an inline array, and the items will be joined with a space.
 
@@ -1509,16 +1547,6 @@ This option is not supported in the overrides section in `pyproject.toml`.
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Will avoid testing on emulated architectures
-    CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x,armv7l}"
-
-    # Skip trying to test arm64 builds on Intel Macs
-    CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -1529,6 +1557,18 @@ This option is not supported in the overrides section in `pyproject.toml`.
     # Skip trying to test arm64 builds on Intel Macs
     test-skip = "*-macosx_arm64 *-macosx_universal2:arm64"
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Will avoid testing on emulated architectures
+    CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x,armv7l}"
+
+    # Skip trying to test arm64 builds on Intel Macs
+    CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
+    ```
+
+
 
 ## Debugging
 
@@ -1590,13 +1630,6 @@ Platform-specific environment variables are also available:<br/>
 
 #### Examples
 
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Ensure that the build backend output is present
-    CIBW_BUILD_VERBOSITY: 1
-    ```
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -1604,6 +1637,15 @@ Platform-specific environment variables are also available:<br/>
     # Ensure that the build backend output is present
     build-verbosity = 1
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Ensure that the build backend output is present
+    CIBW_BUILD_VERBOSITY: 1
+    ```
+
+
 
 
 ## Command line {: #command-line}
@@ -1660,8 +1702,48 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
   .options-toc a.option code {
     font-size: 80%;
   }
-  h3 code {
-    font-size: 100%;
+  .rst-content h3 code {
+    font-size: 115%;
+  }
+  .rst-content h3 code.cmd-line, .rst-content h3 code.toml, .rst-content h3 code.env-var {
+    font-size: 80%;
+    float: right;
+    margin-left: 8px;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: left;
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: normal;
+  }
+  .rst-content h3 code.cmd-line:before, .rst-content h3 code.toml:before, .rst-content h3 code.env-var:before {
+    content: ' ';
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.3;
+    display: inline-block;
+    border-radius: 5px;
+    margin-left: -3px;
+    margin-right: -3px;
+    margin-bottom: -1px;
+  }
+  .rst-content h3 code.cmd-line:before {
+    content: 'command line';
+  }
+  .rst-content h3 code.cmd-line {
+    background: rgba(224, 202, 56, 0.3);
+  }
+  .rst-content h3 code.toml:before {
+    content: 'pyproject.toml';
+  }
+  .rst-content h3 code.toml {
+    background: rgba(41, 128, 185, 0.3);
+  }
+  .rst-content h3 code.env-var:before {
+    content: 'env var';
+  }
+  .rst-content h3 code.env-var {
+    background: rgba(61, 153, 112, 0.3);
   }
 </style>
 
@@ -1672,9 +1754,6 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     var headers = []
 
     $('.rst-content h3')
-      .filter(function (i, el) {
-        return !!$(el).text().match(/(^([A-Z0-9, _*]| and )+)¶$/);
-      })
       .each(function (i, el) {
         var optionName = $(el).text().replace('¶', '');
         var description = $(el).next('blockquote').text()
@@ -1753,7 +1832,46 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         markdown += '|\n'
       }
     }
-
     console.log('readme options markdown\n', markdown)
+
+    // add the option tags to each heading
+    $('.rst-content h3')
+      .each(function (i, el) {
+        el.classList.add('option', 'clearfix');
+        var optionName = $(el).text().replace('¶', '');
+
+        // some options are specified as their env var names
+        if (optionName.startsWith('CIBW_')) {
+          optionName = optionName.replace('CIBW_', '');
+          optionName = optionName.replace(/_/g, '-');
+          optionName = optionName.toLowerCase();
+        }
+
+        var cmdLine = el.getAttribute('cmd-line');
+        var envVar = el.getAttribute('env-var');
+        var toml = el.getAttribute('toml');
+
+        // fill default value
+        if (cmdLine == "cmd-line") {
+          cmdLine = '--'+optionName;
+        }
+        if (envVar == "env-var") {
+          envVar = 'CIBW_'+optionName.toUpperCase().replace(/-/g, '_');
+        }
+        if (toml == "toml") {
+          toml = optionName
+        }
+
+        if (envVar) {
+          $(el).append(' <code class="env-var" title="Environment variable">'+envVar+'</code>');
+        }
+        if (toml) {
+          $(el).append(' <code class="toml" title="TOML option key">'+toml+'</code>');
+        }
+        if (cmdLine) {
+          $(el).append(' <code class="cmd-line" title="Command line argument">'+cmdLine+'</code>');
+        }
+      });
   });
+
 </script>
