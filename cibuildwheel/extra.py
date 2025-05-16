@@ -55,7 +55,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
     }
     request = urllib.request.Request(api_url, headers=headers)
 
-    for retries in range(max_retries):
+    for retry_count in range(max_retries):
         try:
             return _json_request(request)
         except (urllib.error.URLError, TimeoutError) as e:
@@ -72,7 +72,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
             else:
                 print(f"Retrying GitHub API request due to error: {e}")
 
-            if retries == max_retries - 1:
+            if retry_count == max_retries - 1:
                 print(f"GitHub API request failed (Network error: {e}). Check network connection.")
                 raise e
     return None
