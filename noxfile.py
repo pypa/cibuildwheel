@@ -15,6 +15,7 @@ Tags:
 See sessions with `nox -l`
 """
 
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -76,7 +77,8 @@ def update_constraints(session: nox.Session) -> None:
 
     # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
     # regenerate the constraints files
-    env = {"UV_CUSTOM_COMPILE_COMMAND": f"nox -s {session.name}"}
+    env = os.environ.copy()
+    env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
     for minor_version in range(8, 15):
         python_version = f"3.{minor_version}"
