@@ -91,7 +91,7 @@ def _get_pbs_asset(
     expected_suffix += "-install_only.tar.gz"
 
     asset_pattern = f"cpython-{python_version}.*-{expected_suffix}"
-    print(f"Looking for file with pattern {asset_pattern}'")
+    print(f"Looking for file with pattern {asset_pattern}")
 
     for release in release_data["releases"]:
         for asset in release["assets"]:
