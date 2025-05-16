@@ -245,7 +245,7 @@ def test_test_environment(tmp_path):
         project_dir,
         add_env={
             "CIBW_TEST_ENVIRONMENT": "MYVAR=somevalue PYTHONSAFEPATH=",
-            "CIBW_TEST_COMMAND": 'python -c \'import os; assert os.environ.get("MYVAR") == "somevalue"; assert os.environ.get("PYTHONSAFEPATH") == ""\'',
+            "CIBW_TEST_COMMAND": "python -c \"import os; assert os.environ.get('MYVAR') == 'somevalue'; assert os.environ.get('PYTHONSAFEPATH') == ''\"",
         },
     )
     # also check that we got the right wheels
