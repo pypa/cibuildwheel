@@ -4,7 +4,7 @@
 
 ## Build selection
 
-### `CIBW_PLATFORM` {: #platform}
+### `platform` {: #platform cmd-line env-var }
 
 > Override the auto-detected target platform
 
@@ -40,7 +40,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
     not require `--platform` or `--arch`, and will override any build/skip
     configuration.
 
-### `CIBW_BUILD`, `CIBW_SKIP` {: #build-skip}
+### `build` & `skip` {: #build-skip toml="build, skip" env-var="CIBW_BUILD, CIBW_SKIP" }
 
 > Choose the Python versions to build
 
@@ -167,7 +167,7 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 </style>
 
 
-### `CIBW_ARCHS` {: #archs}
+### `archs` {: #archs cmd-line env-var toml }
 > Change the architectures built on your machine by default.
 
 A list of architectures to build.
@@ -1788,8 +1788,48 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
   .options-toc a.option code {
     font-size: 80%;
   }
-  h3 code {
-    font-size: 100%;
+  .rst-content h3 code {
+    font-size: 115%;
+  }
+  .rst-content h3 code.cmd-line, .rst-content h3 code.toml, .rst-content h3 code.env-var {
+    font-size: 80%;
+    float: right;
+    margin-left: 8px;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: left;
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: normal;
+  }
+  .rst-content h3 code.cmd-line:before, .rst-content h3 code.toml:before, .rst-content h3 code.env-var:before {
+    content: ' ';
+    font-size: 10px;
+    font-weight: bold;
+    opacity: 0.3;
+    display: inline-block;
+    border-radius: 5px;
+    margin-left: -3px;
+    margin-right: -3px;
+    margin-bottom: -1px;
+  }
+  .rst-content h3 code.cmd-line:before {
+    content: 'command line';
+  }
+  .rst-content h3 code.cmd-line {
+    background: rgba(224, 202, 56, 0.3);
+  }
+  .rst-content h3 code.toml:before {
+    content: 'pyproject.toml';
+  }
+  .rst-content h3 code.toml {
+    background: rgba(41, 128, 185, 0.3);
+  }
+  .rst-content h3 code.env-var:before {
+    content: 'env var';
+  }
+  .rst-content h3 code.env-var {
+    background: rgba(61, 153, 112, 0.3);
   }
 </style>
 
@@ -1800,9 +1840,6 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     var headers = []
 
     $('.rst-content h3')
-      .filter(function (i, el) {
-        return !!$(el).text().match(/(^([A-Z0-9, _*]| and )+)¶$/);
-      })
       .each(function (i, el) {
         var optionName = $(el).text().replace('¶', '');
         var description = $(el).next('blockquote').text()
@@ -1881,7 +1918,46 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         markdown += '|\n'
       }
     }
-
     console.log('readme options markdown\n', markdown)
+
+    // add the option tags to each heading
+    $('.rst-content h3')
+      .each(function (i, el) {
+        el.classList.add('option', 'clearfix');
+        var optionName = $(el).text().replace('¶', '');
+
+        // some options are specified as their env var names
+        if (optionName.startsWith('CIBW_')) {
+          optionName = optionName.replace('CIBW_', '');
+          optionName = optionName.replace(/_/g, '-');
+          optionName = optionName.toLowerCase();
+        }
+
+        var cmdLine = el.getAttribute('cmd-line');
+        var envVar = el.getAttribute('env-var');
+        var toml = el.getAttribute('toml');
+
+        // fill default value
+        if (cmdLine == "cmd-line") {
+          cmdLine = '--'+optionName;
+        }
+        if (envVar == "env-var") {
+          envVar = 'CIBW_'+optionName.toUpperCase().replace(/-/g, '_');
+        }
+        if (toml == "toml") {
+          toml = optionName
+        }
+
+        if (envVar) {
+          $(el).append(' <code class="env-var" title="Environment variable">'+envVar+'</code>');
+        }
+        if (toml) {
+          $(el).append(' <code class="toml" title="TOML option key">'+toml+'</code>');
+        }
+        if (cmdLine) {
+          $(el).append(' <code class="cmd-line" title="Command line argument">'+cmdLine+'</code>');
+        }
+      });
   });
+
 </script>
