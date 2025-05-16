@@ -34,18 +34,29 @@ _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED
     CIProvider.cirrus_ci: False,
 }.get(detect_ci_provider(), True)
 
-platform = os.environ.get("CIBW_PLATFORM", "")
-if platform:
-    pass
-elif sys.platform.startswith("linux"):
-    platform = "linux"
-elif sys.platform.startswith("darwin"):
-    platform = "macos"
-elif sys.platform.startswith(("win32", "cygwin")):
-    platform = "windows"
-else:
-    msg = f"Unsupported platform {sys.platform!r}"
-    raise Exception(msg)
+
+def get_platform() -> str:
+    """Return the current platform as determined by CIBW_PLATFORM or sys.platform."""
+    platform = os.environ.get("CIBW_PLATFORM", "")
+    if platform:
+        return platform
+    elif sys.platform.startswith("linux"):
+        return "linux"
+    elif sys.platform.startswith("darwin"):
+        return "macos"
+    elif sys.platform.startswith(("win32", "cygwin")):
+        return "windows"
+    else:
+        msg = f"Unsupported platform {sys.platform!r}"
+        raise Exception(msg)
+
+
+DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease cpython-experimental-riscv64"
+
+
+def get_enable_groups() -> frozenset[EnableGroup]:
+    value = os.environ.get("CIBW_ENABLE", DEFAULT_CIBW_ENABLE)
+    return EnableGroup.parse_option_value(value)
 
 
 def cibuildwheel_get_build_identifiers(
@@ -74,7 +85,7 @@ def cibuildwheel_get_build_identifiers(
 def _update_pip_cache_dir(env: dict[str, str]) -> None:
     # Fix for pip concurrency bug https://github.com/pypa/pip/issues/11340
     # See https://github.com/pypa/cibuildwheel/issues/1254 for discussion.
-    if platform == "linux":
+    if get_platform() == "linux":
         return
     if "PIP_CACHE_DIR" in env:
         return
@@ -170,7 +181,7 @@ def expected_wheels(
     """
     if machine_arch is None:
         machine_arch = pm.machine()
-        if platform == "linux":
+        if get_platform() == "linux":
             machine_arch = arch_name_for_linux(machine_arch)
 
     if macosx_deployment_target is None:
@@ -181,7 +192,7 @@ def expected_wheels(
 
     architectures = [machine_arch]
     if not single_arch:
-        if platform == "linux":
+        if get_platform() == "linux":
             if machine_arch == "x86_64":
                 architectures.append("i686")
             elif (
@@ -190,7 +201,7 @@ def expected_wheels(
                 and _AARCH64_CAN_RUN_ARMV7
             ):
                 architectures.append("armv7l")
-        elif platform == "windows" and machine_arch == "AMD64":
+        elif get_platform() == "windows" and machine_arch == "AMD64":
             architectures.append("x86")
 
     return [
@@ -228,6 +239,8 @@ def _expected_wheels(
     """
     Returns a list of expected wheels from a run of cibuildwheel.
     """
+    platform = get_platform()
+
     # per PEP 425 (https://www.python.org/dev/peps/pep-0425/), wheel files shall have name of the form
     # {distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
@@ -240,7 +253,7 @@ def _expected_wheels(
             "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
             "i686": ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"],
             "x86_64": ["manylinux_2_5", "manylinux1", "manylinux_2_28"],
-            "riscv64": ["manylinux_2_31"],
+            "riscv64": ["manylinux_2_31", "manylinux_2_35"],
         }.get(machine_arch, ["manylinux_2_17", "manylinux2014", "manylinux_2_28"])
 
     if musllinux_versions is None:
@@ -260,15 +273,22 @@ def _expected_wheels(
             "cp313-cp313",
         ]
 
+        enable_groups = get_enable_groups()
         if EnableGroup.CPythonFreeThreading in enable_groups:
-            python_abi_tags += [
-                "cp313-cp313t",
-            ]
+            python_abi_tags.append("cp313-cp313t")
 
-        if EnableGroup.PyPy in enable_groups:
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags.append("cp314-cp314")
+            if EnableGroup.CPythonFreeThreading in enable_groups:
+                python_abi_tags.append("cp314-cp314t")
+
+        if EnableGroup.PyPyEoL in enable_groups:
             python_abi_tags += [
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
+            ]
+        if EnableGroup.PyPy in enable_groups:
+            python_abi_tags += [
                 "pp310-pypy310_pp73",
                 "pp311-pypy311_pp73",
             ]
@@ -400,12 +420,12 @@ def get_xcode_version() -> tuple[int, int]:
 
 
 def skip_if_pyodide(reason: str) -> Any:
-    return pytest.mark.skipif(platform == "pyodide", reason=reason)
+    return pytest.mark.skipif(get_platform() == "pyodide", reason=reason)
 
 
 def invoke_pytest() -> str:
     # see https://github.com/pyodide/pyodide/issues/4802
-    if platform == "pyodide" and sys.platform.startswith("darwin"):
+    if get_platform() == "pyodide" and sys.platform.startswith("darwin"):
         return "python -m pytest"
     return "pytest"
 

@@ -1,7 +1,4 @@
-import os
-
 import jinja2
-import pytest
 
 from . import utils
 from .test_projects import TestProject
@@ -60,7 +57,7 @@ def test_cpp11(tmp_path):
     project_dir = tmp_path / "project"
     cpp11_project = cpp_test_project.copy()
     cpp11_project.template_context["extra_compile_args"] = (
-        ["/std:c++11"] if utils.platform == "windows" else ["-std=c++11"]
+        ["/std:c++11"] if utils.get_platform() == "windows" else ["-std=c++11"]
     )
     cpp11_project.template_context["spam_cpp_top_level_add"] = "#include <array>"
     cpp11_project.generate(project_dir)
@@ -76,7 +73,7 @@ def test_cpp14(tmp_path):
     project_dir = tmp_path / "project"
     cpp14_project = cpp_test_project.copy()
     cpp14_project.template_context["extra_compile_args"] = (
-        ["/std:c++14"] if utils.platform == "windows" else ["-std=c++14"]
+        ["/std:c++14"] if utils.get_platform() == "windows" else ["-std=c++14"]
     )
     cpp14_project.template_context["spam_cpp_top_level_add"] = "int a = 100'000;"
     cpp14_project.generate(project_dir)
@@ -92,7 +89,7 @@ def test_cpp17(tmp_path):
     project_dir = tmp_path / "project"
     cpp17_project = cpp_test_project.copy()
     cpp17_project.template_context["extra_compile_args"] = [
-        "/std:c++17" if utils.platform == "windows" else "-std=c++17"
+        "/std:c++17" if utils.get_platform() == "windows" else "-std=c++17"
     ]
     cpp17_project.template_context["spam_cpp_top_level_add"] = r"""
     #include <utility>
@@ -100,11 +97,8 @@ def test_cpp17(tmp_path):
     """
     cpp17_project.generate(project_dir)
 
-    if os.environ.get("APPVEYOR_BUILD_WORKER_IMAGE", "") == "Visual Studio 2015":
-        pytest.skip("Visual Studio 2015 does not support C++17")
-
     add_env = {}
-    if utils.platform == "macos":
+    if utils.get_platform() == "macos":
         add_env["MACOSX_DEPLOYMENT_TARGET"] = "10.13"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env, single_python=True)

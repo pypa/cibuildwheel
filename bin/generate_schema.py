@@ -6,12 +6,17 @@
 
 import argparse
 import copy
+import functools
 import json
+import sys
 from typing import Any
 
 import yaml
 
-parser = argparse.ArgumentParser()
+make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
+if sys.version_info >= (3, 14):
+    make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
+parser = make_parser()
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
@@ -31,6 +36,7 @@ $defs:
       - cpython-freethreading
       - cpython-prerelease
       - pypy
+      - pypy-eol
       - cpython-experimental-riscv64
   description: A Python version or flavor to enable.
 additionalProperties: false

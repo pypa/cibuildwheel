@@ -20,7 +20,7 @@ DEPLOYMENT_TARGET_TOO_LOW_WARNING = "Bumping MACOSX_DEPLOYMENT_TARGET"
 
 
 def test_cross_compiled_build(tmp_path):
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
@@ -54,7 +54,7 @@ def test_cross_compiled_build(tmp_path):
     ],
 )
 def test_cross_compiled_test(tmp_path, capfd, build_universal2, test_config):
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
@@ -114,7 +114,7 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2, test_config):
 
 def test_deployment_target_warning_is_firing(tmp_path, capfd):
     # force the warning to check that we can detect it if it happens
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
 
     project_dir = tmp_path / "project"
@@ -136,7 +136,7 @@ def test_deployment_target_warning_is_firing(tmp_path, capfd):
 
 @pytest.mark.parametrize("skip_arm64_test", [False, True])
 def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")
@@ -176,7 +176,7 @@ def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
 
 def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
     # cibuildwheel should test the universal2 wheel on both x86_64 and arm64, when run on arm64
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if platform.machine() != "arm64":
         pytest.skip("this test only works on arm64")
@@ -206,7 +206,7 @@ def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
 
 
 def test_cp38_arm64_testing(tmp_path, capfd, request):
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
         pytest.skip("this test only works with Xcode 12.2 or greater")

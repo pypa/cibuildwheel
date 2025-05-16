@@ -39,7 +39,7 @@ class TestPlatform(TestCase):
     ],
 )
 def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
@@ -93,7 +93,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
 
 def test_no_test_sources(tmp_path, capfd):
     """Build will fail if test-sources isn't defined."""
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
@@ -120,7 +120,7 @@ def test_no_test_sources(tmp_path, capfd):
 
 def test_missing_xbuild_tool(tmp_path, capfd):
     """Build will fail if xbuild-tools references a non-existent tool."""
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
@@ -148,7 +148,7 @@ def test_missing_xbuild_tool(tmp_path, capfd):
 
 def test_no_xbuild_tool_definition(tmp_path, capfd):
     """Build will succeed with a warning if there is no xbuild-tools definition."""
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
@@ -185,7 +185,7 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
 
 def test_empty_xbuild_tool_definition(tmp_path, capfd):
     """Build will succeed with no warning if there is an empty xbuild-tools definition."""
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")

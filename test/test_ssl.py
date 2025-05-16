@@ -10,7 +10,7 @@ project_with_ssl_tests = test_projects.new_c_project(
         from urllib.request import urlopen
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-        data = urlopen("https://www.nist.gov", context=context)
+        data = urlopen("https://tls-v1-2.badssl.com", context=context)
         data = urlopen("https://raw.githubusercontent.com/pypa/cibuildwheel/main/CI.md", context=context)
         data = urlopen("https://raw.githubusercontent.com/pypa/cibuildwheel/main/CI.md")
         """

@@ -15,7 +15,7 @@ def test_failed_build_with_so_files(tmp_path, capfd, build_frontend_env, project
     if project_contains_so_files:
         project.files["libnothing.so"] = ""
 
-    if utils.platform != "linux":
+    if utils.get_platform() != "linux":
         pytest.skip("this test is only relevant to the linux build")
 
     project_dir = tmp_path / "project"
@@ -36,7 +36,7 @@ def test_failed_build_with_so_files(tmp_path, capfd, build_frontend_env, project
 
 @pytest.mark.parametrize("project_contains_so_files", [False, True])
 def test_failed_repair_with_so_files(tmp_path, capfd, project_contains_so_files):
-    if utils.platform != "linux":
+    if utils.get_platform() != "linux":
         pytest.skip("this test is only relevant to the linux build")
 
     project = new_c_project()

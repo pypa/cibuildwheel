@@ -158,6 +158,8 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
             if version.startswith("3.13"):
                 # Python 3.13 is the first version to have a free-threading option
                 args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_313.resolve())]
+            elif version.startswith("3.14"):
+                args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_314.resolve())]
             call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()

@@ -53,11 +53,15 @@ def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
 
 @pytest.mark.parametrize("python_version", ["3.8", "3.12"])
 def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
-    if utils.platform == "linux":
+    if utils.get_platform() == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
-    if python_version != "3.12" and utils.platform == "pyodide":
+    if python_version != "3.12" and utils.get_platform() == "pyodide":
         pytest.skip(f"pyodide does not support Python {python_version}")
-    if python_version == "3.8" and utils.platform == "windows" and platform.machine() == "ARM64":
+    if (
+        python_version == "3.8"
+        and utils.get_platform() == "windows"
+        and platform.machine() == "ARM64"
+    ):
         pytest.skip(f"Windows ARM64 does not support Python {python_version}")
 
     project_dir = tmp_path / "project"
@@ -96,7 +100,7 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
 
 @pytest.mark.parametrize("method", ["inline", "file"])
 def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
-    if utils.platform == "linux":
+    if utils.get_platform() == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 
     project_dir = tmp_path / "project"
@@ -129,7 +133,7 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
     build_environment = {}
 
     if (
-        utils.platform == "windows"
+        utils.get_platform() == "windows"
         and method == "file"
         and build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build"
     ):
@@ -159,7 +163,7 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
 
     if (
-        utils.platform == "windows"
+        utils.get_platform() == "windows"
         and method == "file"
         and build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build"
     ):

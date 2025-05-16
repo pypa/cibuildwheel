@@ -73,7 +73,7 @@ def update_constraints(session: nox.Session) -> None:
     if session.venv_backend != "uv":
         session.install("uv>=0.1.23")
 
-    for minor_version in range(8, 14):
+    for minor_version in range(8, 15):
         python_version = f"3.{minor_version}"
         env = os.environ.copy()
         # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
@@ -92,7 +92,7 @@ def update_constraints(session: nox.Session) -> None:
         )
 
     shutil.copyfile(
-        resources / "constraints-python312.txt",
+        resources / "constraints-python314.txt",
         resources / "constraints.txt",
     )
 
@@ -103,7 +103,9 @@ def update_constraints(session: nox.Session) -> None:
         pyodide_build_version = pyodide["pyodide_build_version"]
         output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
-        tmp_file.write_text(f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_build_version}")
+        tmp_file.write_text(
+            f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_build_version}\nclick<8.2"
+        )
         session.run(
             "uv",
             "pip",

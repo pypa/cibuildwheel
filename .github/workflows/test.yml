@@ -46,6 +46,8 @@ jobs:
         include:
         - os: ubuntu-latest
           python_version: '3.11'
+        - os: ubuntu-latest
+          python_version: '3.14'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -81,7 +83,7 @@ jobs:
           CIBW_ENABLE=all
         else
           # get the default CIBW_ENABLE value from the test module
-          CIBW_ENABLE=$(uv run --no-sync python -c 'import sys, test.conftest as c; sys.stdout.write(c.DEFAULT_CIBW_ENABLE)')
+          CIBW_ENABLE=$(uv run --no-sync python -c 'import sys, test.utils as c; sys.stdout.write(c.DEFAULT_CIBW_ENABLE)')
 
           # if this is a PR, check for labels
           if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
