@@ -58,7 +58,7 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | iOS |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|-----|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅³  |
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅          | ✅³  |
 | Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅³  |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             |     |
 | CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅³  |

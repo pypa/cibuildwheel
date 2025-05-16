@@ -47,7 +47,7 @@ def test_abi3(tmp_path):
     )
 
     # check that the expected wheels are produced
-    if utils.platform == "pyodide":
+    if utils.get_platform() == "pyodide":
         # there's only 1 possible configuration for pyodide, cp312. It builds
         # a wheel that is tagged abi3, compatible back to 3.10
         expected_wheels = utils.expected_wheels(
@@ -200,7 +200,7 @@ def test_abi_none(tmp_path, capfd):
 
     captured = capfd.readouterr()
 
-    if utils.platform == "pyodide":
+    if utils.get_platform() == "pyodide":
         # pyodide builds a different platform tag for each python version, so
         # wheels are not reused
         assert "Found previously built wheel" not in captured.out

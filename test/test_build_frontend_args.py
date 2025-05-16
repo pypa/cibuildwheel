@@ -20,7 +20,7 @@ def test_build_frontend_args(tmp_path, capfd, frontend_name):
 
     # the build will fail because the frontend is called with '-h' - it prints the help message
     add_env = {"CIBW_BUILD_FRONTEND": f"{frontend_name}; args: -h"}
-    if utils.platform == "pyodide":
+    if utils.get_platform() == "pyodide":
         add_env["TERM"] = "dumb"  # disable color / style
         add_env["NO_COLOR"] = "1"
     with pytest.raises(subprocess.CalledProcessError):
@@ -33,7 +33,7 @@ def test_build_frontend_args(tmp_path, capfd, frontend_name):
     if frontend_name == "pip":
         assert "Usage:" in captured.out
         assert "Wheel Options:" in captured.out
-    elif utils.platform == "pyodide":
+    elif utils.get_platform() == "pyodide":
         assert "Usage: pyodide build" in captured.out
     else:
         assert "usage:" in captured.out
