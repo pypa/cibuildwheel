@@ -32,7 +32,7 @@ from ..util.file import (
     download,
     move_file,
 )
-from ..util.helpers import prepare_command
+from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
 from ..util.packaging import (
     combine_constraints,
     find_compatible_wheel,
@@ -593,6 +593,43 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
 
                     log.step("Running test suite...")
+
+                    test_command_parts = shlex.split(build_options.test_command)
+                    if test_command_parts[0:2] != ["python", "-m"]:
+                        first_part = test_command_parts[0]
+                        if first_part == "pytest":
+                            # pytest works exactly the same as a module, so we
+                            # can just run it as a module.
+                            log.warning(
+                                unwrap_preserving_paragraphs(f"""
+                                    iOS tests configured with a test command which doesn't start
+                                    with 'python -m'. iOS tests must execute python modules - other
+                                    entrypoints are not supported.
+
+                                    cibuildwheel will try to execute it as if it started with
+                                    'python -m'. If this works, all you need to do is add that to
+                                    your test command.
+
+                                    Test command: {build_options.test_command!r}
+                                """)
+                            )
+                        else:
+                            msg = unwrap_preserving_paragraphs(
+                                f"""
+                                    iOS tests configured with a test command which doesn't start
+                                    with 'python -m'. iOS tests must execute python modules - other
+                                    entrypoints are not supported.
+
+                                    Test command: {build_options.test_command!r}
+                                """
+                            )
+                            raise errors.FatalError(msg)
+                    else:
+                        # the testbed run command actually doesn't want the
+                        # python -m prefix - it's implicit, so we remove it
+                        # here.
+                        test_command_parts = test_command_parts[2:]
+
                     try:
                         call(
                             "python",
@@ -600,7 +637,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             "run",
                             *(["--verbose"] if build_options.build_verbosity > 0 else []),
                             "--",
-                            *(shlex.split(build_options.test_command)),
+                            *test_command_parts,
                             env=build_env,
                         )
                         failed = False
