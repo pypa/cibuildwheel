@@ -170,7 +170,7 @@ def expected_wheels(
     macosx_deployment_target: str | None = None,
     iphoneos_deployment_target: str | None = None,
     machine_arch: str | None = None,
-    platform: str = platform,
+    platform: str | None = None,
     python_abi_tags: list[str] | None = None,
     include_universal2: bool = False,
     single_python: bool = False,
@@ -179,9 +179,11 @@ def expected_wheels(
     """
     Returns the expected wheels from a run of cibuildwheel.
     """
+    platform = platform or get_platform()
+
     if machine_arch is None:
         machine_arch = pm.machine()
-        if get_platform() == "linux":
+        if platform == "linux":
             machine_arch = arch_name_for_linux(machine_arch)
 
     if macosx_deployment_target is None:
@@ -192,7 +194,7 @@ def expected_wheels(
 
     architectures = [machine_arch]
     if not single_arch:
-        if get_platform() == "linux":
+        if platform == "linux":
             if machine_arch == "x86_64":
                 architectures.append("i686")
             elif (
@@ -201,7 +203,7 @@ def expected_wheels(
                 and _AARCH64_CAN_RUN_ARMV7
             ):
                 architectures.append("armv7l")
-        elif get_platform() == "windows" and machine_arch == "AMD64":
+        elif platform == "windows" and machine_arch == "AMD64":
             architectures.append("x86")
 
     return [
@@ -239,8 +241,6 @@ def _expected_wheels(
     """
     Returns a list of expected wheels from a run of cibuildwheel.
     """
-    platform = get_platform()
-
     # per PEP 425 (https://www.python.org/dev/peps/pep-0425/), wheel files shall have name of the form
     # {distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel

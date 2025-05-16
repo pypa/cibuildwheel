@@ -220,7 +220,7 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
 @pytest.mark.serial
 def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     """pytest should be able to run without python -m, but it should warn."""
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
@@ -261,7 +261,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
 
 def test_ios_test_command_invalid(tmp_path, capfd):
     """Test command should raise an error if it's clearly invalid."""
-    if utils.platform != "macos":
+    if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
