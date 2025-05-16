@@ -1242,8 +1242,8 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Build Pyodide wheels using Pyodide version 0.27.5
-    CIBW_PYODIDE_VERSION: 0.27.5
+    # Build Pyodide wheels using Pyodide version 0.27.6
+    CIBW_PYODIDE_VERSION: 0.27.6
 
     # Build Pyodide wheels using a specific alpha release
     CIBW_PYODIDE_VERSION: 0.28.0a2
@@ -1253,8 +1253,8 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 
     ```toml
     [tool.cibuildwheel.pyodide]
-    # Build Pyodide wheels using Pyodide version 0.27.5
-    pyodide-version = "0.26.4"
+    # Build Pyodide wheels using Pyodide version 0.27.6
+    pyodide-version = "0.27.6"
 
     [tool.cibuildwheel.pyodide]
     # Build Pyodide wheels using a specific alpha release
