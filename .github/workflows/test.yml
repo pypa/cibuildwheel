@@ -195,7 +195,7 @@ jobs:
       run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
-    name: Test cibuildwheel building Pyodide wheels
+    name: Test pyodide
     needs: lint
     runs-on: ubuntu-24.04
     timeout-minutes: 180
@@ -221,6 +221,19 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
+
+    - name: Run a sample build (GitHub Action) for an overridden Pyodide version
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse
+        # In case this breaks at any point in time, switch to using the latest version
+        # available or any other version that is not the same as the default one set
+        # in cibuildwheel/resources/build-platforms.toml.
+      env:
+        CIBW_PLATFORM: pyodide
+        CIBW_BUILD: "cp312*"
+        CIBW_PYODIDE_VERSION: "0.27.6"
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |

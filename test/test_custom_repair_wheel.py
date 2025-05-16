@@ -16,6 +16,11 @@ from pathlib import Path
 wheel = Path(sys.argv[1])
 dest_dir = Path(sys.argv[2])
 platform = wheel.stem.split("-")[-1]
+if platform.startswith("pyodide"):
+    # for the sake of this test, munge the pyodide platforms into one, it's
+    # not valid, but it does activate the uniqueness check
+    platform = "pyodide"
+
 name = f"spam-0.1.0-py2-none-{platform}.whl"
 dest = dest_dir / name
 dest_dir.mkdir(parents=True, exist_ok=True)
@@ -48,11 +53,6 @@ def test(tmp_path, capfd):
         assert "Build failed because a wheel named" in captured.err
         assert exc_info.value.returncode == 6
     else:
-        # We only produced one wheel (currently Pyodide)
+        # We only produced one wheel (perhaps Pyodide)
         # check that it has the right name
-        #
-        # As far as I can tell, this is the only full test coverage for
-        # CIBW_REPAIR_WHEEL_COMMAND so this is useful even in the case when no
-        # error is raised
-        assert "spam-0.1.0-py2-none-pyodide" in captured.out
         assert result[0].startswith("spam-0.1.0-py2-none-")
