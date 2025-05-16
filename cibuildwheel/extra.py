@@ -39,6 +39,11 @@ def dump_python_configurations(
     return output.getvalue()[:-1]
 
 
+def _json_request(request, timeout=30):
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return typing.cast(dict[str, Any], json.load(response))
+
+
 def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
     """
     Makes a GitHub API request to the given path and returns the JSON response.
@@ -50,13 +55,11 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
     }
     request = urllib.request.Request(api_url, headers=headers)
 
-    try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            return typing.cast(dict[str, Any], json.load(response))
-
-    except (urllib.error.URLError, TimeoutError) as e:
-        # pylint: disable=E1101
-        if max_retries > 0:
+    for retries in range(max_retries):
+        try:
+            return _json_request(request)
+        except (urllib.error.URLError, TimeoutError) as e:
+            # pylint: disable=E1101
             if (
                 isinstance(e, urllib.error.HTTPError)
                 and (e.code == 403 or e.code == 429)
@@ -68,10 +71,11 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
                 time.sleep(wait_time)
             else:
                 print(f"Retrying GitHub API request due to error: {e}")
-            return github_api_request(path, max_retries=max_retries - 1)
-        else:
-            print(f"GitHub API request failed (Network error: {e}). Check network connection.")
-            raise e
+
+            if retries == max_retries - 1:
+                print(f"GitHub API request failed (Network error: {e}). Check network connection.")
+                raise e
+    return None
 
 
 class PyodideXBuildEnvRelease(typing.TypedDict):
