@@ -46,7 +46,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
 List of builds to build and skip. Each build has an identifier like `cp38-manylinux_x86_64` or `cp37-macosx_x86_64` - you can list specific ones to build and cibuildwheel will only build those, and/or list ones to skip and cibuildwheel won't try to build them.
 
-When both options are specified, both conditions are applied and only builds with a tag that matches `CIBW_BUILD` and does not match `CIBW_SKIP` will be built.
+When both options are specified, both conditions are applied and only builds with a tag that matches `build` and does not match `skip` will be built.
 
 When setting the options, you can use shell-style globbing syntax, as per [fnmatch](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [bracex](https://pypi.org/project/bracex/). All the build identifiers supported by cibuildwheel are shown below:
 
@@ -69,7 +69,7 @@ The list of supported and currently selected build identifiers can also be retri
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
 Windows arm64 platform support is experimental.
-Linux riscv64 platform support is experimental and requires an explicit opt-in through [CIBW_ENABLE](#enable).
+Linux riscv64 platform support is experimental and requires an explicit opt-in through [`enable`](#enable).
 
 See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for past end-of-life versions of Python.
 
@@ -144,7 +144,7 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
     It is generally recommended to set `CIBW_BUILD` as an environment variable, though `skip`
     tends to be useful in a config file; you can statically declare that you don't
-    support PyPy, for example.
+    support a specific build, for example.
 
 <style>
   .build-id-table-marker + table {
@@ -190,10 +190,10 @@ Options:
     - `auto32`: Just the 32-bit auto archs
 - `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
 - `all` : expands to all the architectures supported on this OS. You may want
-  to use [CIBW_BUILD](#build-skip) with this option to target specific
+  to use [`build`](#build-skip) with this option to target specific
   architectures via build selectors.
 
-Linux riscv64 platform support is experimental and requires an explicit opt-in through [CIBW_ENABLE](#enable).
+Linux riscv64 platform support is experimental and requires an explicit opt-in through [`enable`](#enable).
 
 Default: `auto`
 
@@ -205,7 +205,7 @@ Default: `auto`
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 | iOS on macOS / Intel | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` |  |
-| iOS on macOS / Apple Silicon | `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` |  |
+| iOS on macOS / Apple Silicon | `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` |
 
 If not listed above, `auto` is the same as `native`.
 
@@ -305,7 +305,7 @@ the package is compatible with all versions of Python that it can build.
     CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
     ```
 
-###  `CIBW_ENABLE` {: #enable toml env-var}
+### `enable` {: #enable toml env-var}
 > Enable building with extra categories of selectors present.
 
 This option lets you opt-in to non-default builds, like pre-releases and
@@ -347,7 +347,7 @@ This option doesn't support overrides or platform specific variants; it is
 intended as a way to acknowledge that a project is aware that these extra
 selectors exist.  If you need to enable/disable it per platform or python
 version, set this option to `true` and use
-[`CIBW_BUILD`](#build-skip)/[`CIBW_SKIP`](#build-skip) options to filter the
+[`build`](#build-skip)/[`skip`](#build-skip) options to filter the
 builds.
 
 Unlike all other cibuildwheel options, the environment variable setting will
@@ -671,7 +671,7 @@ This option is very useful for the Linux build, where builds take place in isola
 
 The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by cibuildwheel.
 
-On Windows and macOS, the version of Python available inside `CIBW_BEFORE_ALL` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
+On Windows and macOS, the version of Python available inside `before-all` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
 
 This option has special behavior in the overrides section in `pyproject.toml`.
 On linux, overriding it triggers a new container launch. It cannot be overridden
@@ -682,7 +682,7 @@ Platform-specific environment variables also available:<br/>
 
 !!! note
 
-    This command is executed in a different Python environment from the builds themselves. So you can't `pip install` a Python dependency in CIBW_BEFORE_ALL and use it in the build. Instead, look at [`CIBW_BEFORE_BUILD`](#before-build), or, if your project uses pyproject.toml, the [build-system.requires](https://peps.python.org/pep-0518/#build-system-table) field.
+    This command is executed in a different Python environment from the builds themselves. So you can't `pip install` a Python dependency in `before-all` and use it in the build. Instead, look at [`before-build`](#before-build), or, if your project uses pyproject.toml, the [build-system.requires](https://peps.python.org/pep-0518/#build-system-table) field.
 
 #### Examples
 
@@ -729,7 +729,7 @@ Platform-specific environment variables also available:<br/>
 
 Note that `manylinux_2_31` builds occur inside a Debian derivative docker
 container, where `manylinux2014` builds occur inside a CentOS one. So for
-`manylinux_2_31` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
+`manylinux_2_31` the `before-all` command must use `apt-get -y`
 instead.
 
 ### `before-build` {: #before-build env-var toml}
@@ -820,13 +820,13 @@ Platform-specific environment variables are also available:<br/>
 
 When building in a cross-platform environment, it is sometimes necessary to isolate the ``PATH`` so that binaries from the build machine don't accidentally get linked into the cross-platform binary. However, this isolation process will also hide tools that might be required to build your wheel.
 
-If there are binaries present on the `PATH` when you invoke cibuildwheel, and those binaries are required to build your wheels, those binaries can be explicitly included in the isolated cross-build environment using `CIBW_XBUILD_TOOLS`. The binaries listed in this setting will be linked into an isolated location, and that isolated location will be put on the `PATH` of the isolated environment. You do not need to provide the full path to the binary - only the executable name that would be found by the shell.
+If there are binaries present on the `PATH` when you invoke cibuildwheel, and those binaries are required to build your wheels, those binaries can be explicitly included in the isolated cross-build environment using `xbuild-tools`. The binaries listed in this setting will be linked into an isolated location, and that isolated location will be put on the `PATH` of the isolated environment. You do not need to provide the full path to the binary - only the executable name that would be found by the shell.
 
 If you declare a tool as a cross-build tool, and that tool cannot be found in the runtime environment, an error will be raised.
 
-If you do not define `CIBW_XBUILD_TOOLS`, and you build for a platform that uses a cross-platform environment, a warning will be raised. If your project does not require any cross-build tools, you can set `CIBW_XBUILD_TOOLS` to an empty list to silence this warning.
+If you do not define `xbuild-tools`, and you build for a platform that uses a cross-platform environment, a warning will be raised. If your project does not require any cross-build tools, you can set `xbuild-tools` to an empty list to silence this warning.
 
-*Any* tool used by the build process must be included in the `CIBW_XBUILD_TOOLS` list, not just tools that cibuildwheel will invoke directly. For example, if your build invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your safe tools list.
+*Any* tool used by the build process must be included in the `xbuild-tools` list, not just tools that cibuildwheel will invoke directly. For example, if your build invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your safe tools list.
 
 Platform-specific environment variables are also available on platforms that use cross-platform environment isolation:<br/>
  `CIBW_XBUILD_TOOLS_IOS`
@@ -1297,7 +1297,7 @@ Using `{package}` or `{project}` used to be required, but since cibuildwheel
 use relative paths in your test command, and they will be relative to the
 project root.
 
-Alternatively, you can use the [`test_sources`](#test-sources) setting to
+Alternatively, you can use the [`test-sources`](#test-sources) setting to
 create a temporary folder populated with a specific subset of project files to
 run your test suite.
 
@@ -1456,7 +1456,7 @@ Platform-specific environment variables are also available:<br/>
     ```
 
 
-### `test_requires` {: #test-requires env-var toml}
+### `test-requires` {: #test-requires env-var toml}
 > Install Python dependencies before running the tests
 
 Space-separated list of dependencies required for running the tests.
@@ -1469,7 +1469,7 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Install pytest before running CIBW_TEST_COMMAND
+    # Install pytest before running test-command
     [tool.cibuildwheel]
     test-requires = "pytest"
 
@@ -1565,7 +1565,7 @@ Platform-specific environment variables are also available:<br/>
 ### `test-skip` {: #test-skip env-var toml}
 > Skip running tests on some builds
 
-This will skip testing on any identifiers that match the given skip patterns (see [`CIBW_SKIP`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to skip slow tests on emulated architectures.
+This will skip testing on any identifiers that match the given skip patterns (see [`skip`](#build-skip)). This can be used to mask out tests for wheels that have missing dependencies upstream that are slow or hard to build, or to skip slow tests on emulated architectures.
 
 With macOS `universal2` wheels, you can also skip the individual archs inside the wheel using an `:arch` suffix. For example, `cp39-macosx_universal2:x86_64` or `cp39-macosx_universal2:arm64`.
 
@@ -1639,6 +1639,7 @@ Platform-specific environment variables are also available:<br/>
 ## Debugging
 
 ### `CIBW_DEBUG_KEEP_CONTAINER` {: #debug-keep-container env-var}
+> Keep the container after running for debugging.
 
 Enable this flag to keep the container around for inspection after a build. This
 option is provided for debugging purposes only.
