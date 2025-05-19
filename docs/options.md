@@ -352,7 +352,9 @@ builds.
 
 Unlike all other cibuildwheel options, the environment variable setting will
 only add to the TOML config; you can't remove an enable by setting an empty or
-partial list in environment variables; use `CIBW_SKIP` instead.
+partial list in environment variables; use `CIBW_SKIP` instead. This way, if
+you apply `cpython-prerelease` during the beta period using `CIBW_ENABLE`
+without disabling your other enables.
 
 
 #### Examples
@@ -367,6 +369,9 @@ partial list in environment variables; use `CIBW_SKIP` instead.
     # Skip building free-threaded compatible wheels on Windows
     enable = ["cpython-freethreading"]
     skip = "*t-win*"
+
+    # Include all PyPy versions
+    enable = ["pypy", "pypy-eol"]
     ```
 
 
@@ -385,15 +390,11 @@ partial list in environment variables; use `CIBW_SKIP` instead.
     # Skip building free-threaded compatible wheels on Windows
     CIBW_ENABLE: cpython-freethreading
     CIBW_SKIP: *t-win*
+
+    # Include all PyPy versions
+    CIBW_ENABLE = pypy pypy-eol
     ```
 
-    It is generally recommended to use `cpython-freethreading` in a config
-    file as you can statically declare that you support free-threaded builds.
-
-
-
-    It is generally not recommended to use `cpython-prerelease` in a config file,
-    as it's intended for testing pre-releases for a 2-3 month period only.
 
 
 ### `CIBW_ALLOW_EMPTY` {: #allow-empty cmd-line env-var}
@@ -586,6 +587,8 @@ Platform-specific environment variables are also available:<br/>
     SAMPLE_TEXT = "sample text"
     ```
 
+    In configuration files, you can use a [TOML][] table instead of a raw string as shown above.
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -615,8 +618,6 @@ Platform-specific environment variables are also available:<br/>
 
     Separate multiple values with a space.
 
-    In configuration mode, you can use a [TOML][] table instead of a raw string as shown above.
-
 !!! note
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#optional-extensions).
 
@@ -635,18 +636,6 @@ To specify more than one environment variable, separate the variable names by sp
 
 #### Examples
 
-!!! tab examples "Environment passthrough"
-
-    ```yaml
-    # Export a variable
-    CIBW_ENVIRONMENT_PASS_LINUX: CFLAGS
-
-    # Set two flags variables
-    CIBW_ENVIRONMENT_PASS_LINUX: BUILD_TIME SAMPLE_TEXT
-    ```
-
-    Separate multiple values with a space.
-
 !!! tab examples "pyproject.toml"
 
     ```toml
@@ -659,7 +648,19 @@ To specify more than one environment variable, separate the variable names by sp
     environment-pass = ["BUILD_TIME", "SAMPLE_TEXT"]
     ```
 
-    In configuration mode, you can use a [TOML][] list instead of a raw string as shown above.
+    In configuration files, you can use a [TOML][] list instead of a raw string as shown above.
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Export a variable
+    CIBW_ENVIRONMENT_PASS_LINUX: CFLAGS
+
+    # Set two flags variables
+    CIBW_ENVIRONMENT_PASS_LINUX: BUILD_TIME SAMPLE_TEXT
+    ```
+
+    Separate multiple values with a space.
 
 ### `before-all` {: #before-all env-var toml}
 > Execute a shell command on the build system before any wheels are built.
@@ -703,6 +704,8 @@ Platform-specific environment variables also available:<br/>
     ]
     ```
 
+    In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -724,12 +727,10 @@ Platform-specific environment variables also available:<br/>
     here.](https://yaml-multiline.info).
 
 
-
-    In configuration files, you can use a TOML array, and each line will be run sequentially - joined with `&&`.
-
-Note that manylinux_2_31 builds occur inside a debian derivative docker container, where
-manylinux2014 builds occur inside a CentOS one. So for `manylinux_2_31` the `CIBW_BEFORE_ALL_LINUX` command
-must use `apt-get -y` instead.
+Note that `manylinux_2_31` builds occur inside a Debian derivative docker
+container, where `manylinux2014` builds occur inside a CentOS one. So for
+`manylinux_2_31` the `CIBW_BEFORE_ALL_LINUX` command must use `apt-get -y`
+instead.
 
 ### `before-build` {: #before-build env-var toml}
 > Execute a shell command preparing each wheel's build
@@ -770,6 +771,10 @@ Platform-specific environment variables are also available:<br/>
     before-build = "{package}/script/prepare_for_build.sh"
     ```
 
+    In configuration files, you can use a array, and the items will be joined
+    with `&&`. In TOML, using a single-quote string will avoid escapes - useful for
+    Windows paths.
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -787,10 +792,6 @@ Platform-specific environment variables are also available:<br/>
     ```
 
 
-
-    In configuration mode, you can use a array, and the items will be joined with `&&`. In TOML, using a single-quote string will avoid escapes - useful for
-    Windows paths.
-
 !!! note
     If you need Python dependencies installed for the build, we recommend using
     `pyproject.toml`'s `build-system.requires` instead. This is an example
@@ -800,8 +801,7 @@ Platform-specific environment variables are also available:<br/>
         requires = [
             "setuptools>=42",
             "Cython",
-            "numpy==1.13.3; python_version<'3.5'",
-            "oldest-supported-numpy; python_version>='3.5'",
+            "numpy",
         ]
 
         build-backend = "setuptools.build_meta"
@@ -809,9 +809,7 @@ Platform-specific environment variables are also available:<br/>
     This [PEP 517][]/[PEP 518][] style build allows you to completely control
     the build environment in cibuildwheel, [PyPA-build][], and pip, doesn't
     force downstream users to install anything they don't need, and lets you do
-    more complex pinning (Cython, for example, requires a wheel to be built
-    with an equal or earlier version of NumPy; pinning in this way is the only
-    way to ensure your module works on all available NumPy versions).
+    more complex pinning.
 
     [PyPA-build]: https://pypa-build.readthedocs.io/en/latest/
     [PEP 517]: https://www.python.org/dev/peps/pep-0517/
@@ -841,6 +839,9 @@ Platform-specific environment variables are also available on platforms that use
     [tool.cibuildwheel]
     # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
     xbuild-tools = ["cmake", "rustc"]
+
+    # No cross-build tools are required
+    xbuild-tools = []
     ```
 
 !!! tab examples "Environment variables"
@@ -848,20 +849,11 @@ Platform-specific environment variables are also available on platforms that use
     ```yaml
     # Allow access to the cmake and rustc binaries in the isolated cross-build environment.
     CIBW_XBUILD_TOOLS: cmake rustc
-    ```
 
-    ```yaml
     # No cross-build tools are required
     CIBW_XBUILD_TOOLS:
     ```
 
-
-
-    ```toml
-    [tool.cibuildwheel]
-    # No cross-build tools are required
-    xbuild-tools = []
-    ```
 
 ### `repair-wheel-command` {: #repair-wheel-command env-var toml}
 > Execute a shell command to repair each built wheel
@@ -946,6 +938,9 @@ Platform-specific environment variables are also available:<br/>
     ]
     ```
 
+    In configuration files, you can use an inline array, and the items will be joined with `&&`.
+
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -975,10 +970,6 @@ Platform-specific environment variables are also available:<br/>
       copy {wheel} {dest_dir} &&
       pipx run abi3audit --strict --report {wheel}
     ```
-
-
-
-    In configuration mode, you can use an inline array, and the items will be joined with `&&`.
 
 
 <div class="link-target" id="manylinux-image"></div>
@@ -1067,6 +1058,9 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     musllinux-i686-image = "quay.io/pypa/musllinux_1_1_i686:latest"
     ```
 
+    Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
+    if you prefer; they have no effect on `macos` and `windows`.
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1090,11 +1084,6 @@ Auditwheel detects the version of the manylinux / musllinux standard in the imag
     CIBW_MUSLLINUX_X86_64_IMAGE: quay.io/pypa/musllinux_1_1_x86_64:latest
     CIBW_MUSLLINUX_I686_IMAGE: quay.io/pypa/musllinux_1_1_i686:latest
     ```
-
-
-
-    Like any other option, these can be placed in `[tool.cibuildwheel.linux]`
-    if you prefer; they have no effect on `macos` and `windows`.
 
 
 ### `container-engine` {: #container-engine env-var toml}
@@ -1157,7 +1146,6 @@ Options can be supplied after the name.
     # disable the /host mount
     CIBW_CONTAINER_ENGINE: "docker; disable_host_mount: true"
     ```
-
 
 
 
@@ -1346,6 +1334,7 @@ Platform-specific environment variables are also available:<br/>
     test-command = "python -m pytest ./tests"
     ```
 
+    In configuration files, you can use an array, and the items will be joined with `&&`.
 
 !!! tab examples "Environment variables"
 
@@ -1365,9 +1354,6 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_SOURCES_IOS: tests
     CIBW_TEST_COMMAND_IOS: python -m pytest ./tests
     ```
-
-
-    In configuration files, you can use an array, and the items will be joined with `&&`.
 
 ### `before-test` {: #before-test env-var toml}
 > Execute a shell command before testing each wheel
@@ -1411,6 +1397,8 @@ Platform-specific environment variables are also available:<br/>
     before-test = "pip install cmake scikit-build"
     ```
 
+    In configuration files, you can use an array, and the items will be joined with `&&`.
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1430,10 +1418,6 @@ Platform-specific environment variables are also available:<br/>
     # Install python packages that are required to install test dependencies
     CIBW_BEFORE_TEST: pip install cmake scikit-build
     ```
-
-
-
-    In configuration files, you can use an array, and the items will be joined with `&&`.
 
 
 ### `test-sources` {: #test-sources env-var toml}
@@ -1462,16 +1446,14 @@ Platform-specific environment variables are also available:<br/>
     test-sources = ["tests", "data/test-image.png"]
     ```
 
+    In configuration files, you can use an array, and the items will be joined with a space.
+
 !!! tab examples "Environment variables"
 
     ```yaml
     # Copy the "tests" folder, plus "data/test-image.png" from the source folder to the test folder.
     CIBW_TEST_SOURCES: tests data/test-image.png
     ```
-
-
-
-    In configuration files, you can use an array, and the items will be joined with a space.
 
 
 ### `test_requires` {: #test-requires env-var toml}
@@ -1496,6 +1478,8 @@ Platform-specific environment variables are also available:<br/>
     test-requires = ["pytest==8.2.2", "packaging==24.1"]
     ```
 
+    In configuration files, you can use an array, and the items will be joined with a space.
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1506,7 +1490,6 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_REQUIRES: pytest==8.2.2 packaging==24.1
     ```
 
-    In configuration files, you can use an array, and the items will be joined with a space.
 
 
 ### `test-extras` {: #test-extras env-var toml}
@@ -1532,6 +1515,8 @@ Platform-specific environment variables are also available:<br/>
     test-extras = ["test", "qt"]
     ```
 
+    In configuration files, you can use an inline array, and the items will be joined with a comma.
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1541,9 +1526,6 @@ Platform-specific environment variables are also available:<br/>
 
     Separate multiple items with a comma.
 
-
-
-    In configuration files, you can use an inline array, and the items will be joined with a comma.
 
 
 ### `test-groups` {: #test-groups env-var toml}
@@ -1568,6 +1550,9 @@ Platform-specific environment variables are also available:<br/>
     test-groups = ["test", "qt"]
     ```
 
+    In configuration files, you can use an inline array, and the items will be joined with a space.
+
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -1576,10 +1561,6 @@ Platform-specific environment variables are also available:<br/>
     ```
 
     Separate multiple items with a space.
-
-
-
-    In configuration files, you can use an inline array, and the items will be joined with a space.
 
 ### `test-skip` {: #test-skip env-var toml}
 > Skip running tests on some builds
