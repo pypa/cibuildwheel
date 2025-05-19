@@ -4,6 +4,27 @@ title: Changelog
 
 # Changelog
 
+### v3.0.0
+
+Not yet released, but available for testing
+
+#### v3.0.0b1
+
+_19 May 2025_
+
+- 🌟 Adds the ability to [build wheels for iOS](https://cibuildwheel.pypa.io/en/latest/platforms/#ios)! Set the [`platform` option](https://cibuildwheel.pypa.io/en/latest/options/#platform) to `ios` on a Mac with the iOS toolchain to try it out!
+- 🌟 Adds support for the GraalPy interpreter! Enable for your project using the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable). (#1538)
+- ✨ Adds CPython 3.14 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.14.0b1.
+
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
+- ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/latest/options/#test-sources). \[discussion about the test cwd change and how to use to come!\]
+- ✨ Added `dependency-versions` inline syntax (#2123)
+- 🛠 EOL manylinux options can no longer be specified by their shortname. Full OCI URL can still be used for these images, if you wish (#2316)
+- 🛠 Build environments no longer have setuptools and wheel preinstalled. (#2329)
+- ⚠️ PyPy wheels no longer built by default, due to a change to our options system. To continue building PyPy wheels, you'll now need to set the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) to `pypy` or `pypy-eol`.
+- ⚠️ Dropped official support for Appveyor. If it was working for you before, it will probably continue to do so, but we can't be sure, because our CI doesn't run there anymore. (#2386)
+- 📚 A reorganisation of the docs, and numerous updates (#2280)
+
 ### v2.23.3
 
 _26 April 2025_
@@ -16,6 +37,7 @@ _24 March 2025_
 
 - 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
 - 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
+-
 
 ### v2.23.1
 

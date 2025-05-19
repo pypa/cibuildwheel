@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "2.23.3"
+version = "3.0.0b1"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
