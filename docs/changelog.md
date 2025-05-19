@@ -6,7 +6,9 @@ title: Changelog
 
 ### v3.0.0
 
-Not yet released, but available for testing
+Not yet released, but available for testing.
+
+Note - when using a beta version, be sure to check the [latest docs](https://cibuildwheel.pypa.io/en/latest/), rather than the stable version, which is still on v2.X.
 
 #### v3.0.0b1
 
