@@ -221,6 +221,9 @@ properties:
   test-skip:
     description: Skip running tests on some builds.
     type: string_array
+  test-environment:
+    description: Set environment variables for the test environment
+    type: string_table
 """
 
 schema = yaml.safe_load(starter)
@@ -300,6 +303,7 @@ items:
         test-extras: {"$ref": "#/$defs/inherit"}
         test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
+        test-environment: {"$ref": "#/$defs/inherit"}
 """
 )
 

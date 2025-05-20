@@ -1539,6 +1539,42 @@ This option is not supported in the overrides section in `pyproject.toml`.
     test-skip = "*-macosx_arm64 *-macosx_universal2:arm64"
     ```
 
+### `CIBW_TEST_ENVIRONMENT` {: #test-environment}
+
+> Set environment variables for the test environment
+
+A space-separated list of environment variables to set in the test environment.
+
+The syntax is the same as for [`CIBW_ENVIRONMENT`](#environment).
+
+cibuildwheel sets the variable [`PYTHONSAFEPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONSAFEPATH) to avoid picking up in-tree dependencies when running the tests - we want to test the installed wheel, not the in-tree version. However, this can be overridden by setting `PYTHONSAFEPATH` to an empty string.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_ENVIRONMENT_MACOS` | `CIBW_TEST_ENVIRONMENT_WINDOWS` | `CIBW_TEST_ENVIRONMENT_LINUX` | `CIBW_TEST_ENVIRONMENT_IOS` | `CIBW_TEST_ENVIRONMENT_PYODIDE`
+
+#### Examples
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Set the environment variable MY_ENV_VAR to "my_value" in the test environment
+    CIBW_TEST_ENVIRONMENT: MY_ENV_VAR=my_value
+
+    # Unset PYTHONSAFEPATH in the test environment
+    CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=
+    ```
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Set the environment variable MY_ENV_VAR to "my_value" in the test environment
+    test-environment = { MY_ENV_VAR="my_value" }
+
+    # Unset PYTHONSAFEPATH in the test environment
+    test-environment = { PYTHONSAFEPATH="" }
+    ```
+
 ## Debugging
 
 ### `CIBW_DEBUG_KEEP_CONTAINER`

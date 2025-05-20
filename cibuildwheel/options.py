@@ -107,6 +107,7 @@ class BuildOptions:
     test_requires: list[str]
     test_extras: str
     test_groups: list[str]
+    test_environment: ParsedEnvironment
     build_verbosity: int
     build_frontend: BuildFrontendConfig | None
     config_settings: str
@@ -739,6 +740,15 @@ class Options:
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
                 )
             )
+            test_environment_config = self.reader.get(
+                "test-environment", option_format=EnvironmentFormat()
+            )
+            try:
+                test_environment = parse_environment(test_environment_config)
+            except (EnvironmentParseError, ValueError) as e:
+                msg = f"Malformed environment option {test_environment_config!r}"
+                raise errors.ConfigurationError(msg) from e
+
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
@@ -844,6 +854,7 @@ class Options:
                 globals=self.globals,
                 test_command=test_command,
                 test_sources=test_sources,
+                test_environment=test_environment,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,
