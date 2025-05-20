@@ -1234,7 +1234,7 @@ Platform-specific environment variables are also available:<br/>
 
 
 
-### `CIBW_PYODIDE_VERSION` {: #pyodide-version}
+### `pyodide-version` {: #pyodide-version toml env-var }
 
 > Specify the Pyodide version to use for `pyodide` platform builds
 
@@ -1248,18 +1248,9 @@ This option is particularly useful for:
 The available Pyodide versions are determined by the version of `pyodide-build` being used. You can list the compatible versions using the command `pyodide xbuildenv search --all` as described in the [Pyodide platform documentation](platforms.md#pyodide-choosing-a-version).
 
 !!! tip
-    You can set the version of `pyodide-build` using the [`CIBW_DEPENDENCY_VERSIONS`](#dependency-versions) option.
+    You can set the version of `pyodide-build` using the [`dependency-versions`](#dependency-versions) option.
 
 #### Examples
-
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Build Pyodide wheels using Pyodide version 0.27.6
-    CIBW_PYODIDE_VERSION: 0.27.6
-
-    # Build Pyodide wheels using a specific alpha release
-    CIBW_PYODIDE_VERSION: 0.28.0a2
     ```
 
 !!! tab examples "pyproject.toml"
@@ -1273,6 +1264,16 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
     # Build Pyodide wheels using a specific alpha release
     pyodide-version = "0.28.0a2"
     ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Build Pyodide wheels using Pyodide version 0.27.6
+    CIBW_PYODIDE_VERSION: 0.27.6
+
+    # Build Pyodide wheels using a specific alpha release
+    CIBW_PYODIDE_VERSION: 0.28.0a2
+
 
 ## Testing
 
