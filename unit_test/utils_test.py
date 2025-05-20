@@ -12,6 +12,8 @@ from cibuildwheel.util.helpers import (
     format_safe,
     parse_key_value_string,
     prepare_command,
+    unwrap,
+    unwrap_preserving_paragraphs,
 )
 from cibuildwheel.util.packaging import find_compatible_wheel
 
@@ -362,4 +364,34 @@ def test_copy_test_sources_alternate_copy_into(sample_project):
             call(sample_project / "tests", target / "tests"),
         ],
         any_order=True,
+    )
+
+
+def test_unwrap():
+    assert (
+        unwrap("""
+            This is a
+            multiline
+            string
+        """)
+        == "This is a multiline string"
+    )
+
+
+def test_unwrap_preserving_paragraphs():
+    assert (
+        unwrap("""
+            This is a
+            multiline
+            string
+        """)
+        == "This is a multiline string"
+    )
+    assert (
+        unwrap_preserving_paragraphs("""
+            paragraph one
+
+            paragraph two
+        """)
+        == "paragraph one\n\nparagraph two"
     )

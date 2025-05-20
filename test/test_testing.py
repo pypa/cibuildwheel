@@ -224,10 +224,10 @@ def test_test_sources(tmp_path):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": "pytest",
             # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
             # until https://github.com/oracle/graalpython/issues/490 is fixed
             "CIBW_TEST_COMMAND_WINDOWS": "where graalpy || pytest",
+            "CIBW_TEST_COMMAND": utils.invoke_pytest(),
             "CIBW_TEST_SOURCES": "test",
         },
     )

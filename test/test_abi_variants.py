@@ -48,8 +48,13 @@ def test_abi3(tmp_path):
 
     # check that the expected wheels are produced
     if utils.get_platform() == "pyodide":
-        # there's only 1 possible configuration for pyodide, cp312
-        expected_wheels = utils.expected_wheels("spam", "0.1.0", python_abi_tags=["cp310-abi3"])
+        # there's only 1 possible configuration for pyodide, cp312. It builds
+        # a wheel that is tagged abi3, compatible back to 3.10
+        expected_wheels = utils.expected_wheels(
+            "spam",
+            "0.1.0",
+            python_abi_tags=["cp310-abi3"],
+        )
     else:
         expected_wheels = utils.expected_wheels(
             "spam",
@@ -189,15 +194,17 @@ def test_abi_none(tmp_path, capfd):
         },
     )
 
-    # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("ctypesexample", "1.0.0", python_abi_tags=["py3-none"])
+    # check that the expected wheels are produced
     assert set(actual_wheels) == set(expected_wheels)
 
-    # check that each wheel was built once, and reused
     captured = capfd.readouterr()
-    assert "Building wheel..." in captured.out
+
     if utils.get_platform() == "pyodide":
-        # there's only 1 possible configuration for pyodide, we won't see the message expected on following builds
+        # pyodide builds a different platform tag for each python version, so
+        # wheels are not reused
         assert "Found previously built wheel" not in captured.out
     else:
+        # check that each wheel was built once, and reused
+        assert "Building wheel..." in captured.out
         assert "Found previously built wheel" in captured.out

@@ -197,6 +197,9 @@ properties:
   xbuild-tools:
     description: Binaries on the path that should be included in an isolated cross-build environment
     type: string_array
+  pyodide-version:
+    type: string
+    description: Specify the version of Pyodide to use
   repair-wheel-command:
     description: Execute a shell command to repair each built wheel.
     type: string_array

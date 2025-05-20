@@ -4,7 +4,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.9.0
     # via httpx
-auditwheel-emscripten==0.0.16
+auditwheel-emscripten==0.1.0
     # via pyodide-build
 build==1.2.2.post1
     # via
@@ -21,8 +21,6 @@ click==8.1.8
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   typer
-cmake==4.0.2
-    # via pyodide-build
 distlib==0.3.9
     # via virtualenv
 filelock==3.18.0
@@ -53,7 +51,9 @@ packaging==25.0
 pip==25.1.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.8
-    # via virtualenv
+    # via
+    #   pyodide-build
+    #   virtualenv
 pydantic==2.11.4
     # via
     #   pyodide-build
@@ -62,9 +62,9 @@ pydantic-core==2.33.2
     # via pydantic
 pygments==2.19.1
     # via rich
-pyodide-build==0.29.2
+pyodide-build==0.30.4
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-pyodide-cli==0.2.4
+pyodide-cli==0.3.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
