@@ -94,6 +94,8 @@ class PyodideXBuildEnvInfo(typing.TypedDict):
 
 
 def get_pyodide_xbuildenv_info() -> PyodideXBuildEnvInfo:
-    xbuildenv_info_url = "https://pyodide.github.io/pyodide/api/pyodide-cross-build-environments.json"
+    xbuildenv_info_url = (
+        "https://pyodide.github.io/pyodide/api/pyodide-cross-build-environments.json"
+    )
     with urllib.request.urlopen(xbuildenv_info_url) as response:
         return typing.cast(PyodideXBuildEnvInfo, json.loads(response.read().decode("utf-8")))
