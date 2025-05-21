@@ -1251,7 +1251,6 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
     You can set the version of `pyodide-build` using the [`dependency-versions`](#dependency-versions) option.
 
 #### Examples
-    ```
 
 !!! tab examples "pyproject.toml"
 
@@ -1273,6 +1272,7 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 
     # Build Pyodide wheels using a specific alpha release
     CIBW_PYODIDE_VERSION: 0.28.0a2
+    ```
 
 
 ## Testing
