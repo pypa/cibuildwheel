@@ -255,7 +255,7 @@ This option can also be set using the [command-line option](#command-line)
     on your specific runner having qemu installed.
 
 
-###  `CIBW_PROJECT_REQUIRES_PYTHON` {: #requires-python env-var}
+###  `project-requires-python` {: #requires-python env-var}
 > Manually set the Python compatibility of your project
 
 By default, cibuildwheel reads your package's Python compatibility from
@@ -397,7 +397,7 @@ without disabling your other enables.
 
 
 
-### `CIBW_ALLOW_EMPTY` {: #allow-empty cmd-line env-var}
+### `allow-empty` {: #allow-empty cmd-line env-var}
 > Suppress the error code if no wheels match the specified build identifiers
 
 When none of the specified build identifiers match any available versions,
@@ -1639,7 +1639,7 @@ Platform-specific environment variables are also available:<br/>
 
 ## Debugging
 
-### `CIBW_DEBUG_KEEP_CONTAINER` {: #debug-keep-container env-var}
+### `debug-keep-container` {: #debug-keep-container env-var}
 > Keep the container after running for debugging.
 
 Enable this flag to keep the container around for inspection after a build. This
@@ -1656,7 +1656,7 @@ Default: Off (0).
 export CIBW_DEBUG_KEEP_CONTAINER=TRUE
 ```
 
-### `CIBW_DEBUG_TRACEBACK` {: #debug-traceback cmd-line env-var}
+### `debug-traceback` {: #debug-traceback cmd-line env-var}
 > Print full traceback when errors occur.
 
 Print a full traceback for the cibuildwheel process when errors occur. This
