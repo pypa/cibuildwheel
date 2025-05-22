@@ -47,6 +47,10 @@ h1, h2, h3, h4, h5, h6 {
     padding-bottom: 0.2em;
 }
 
+.wy-nav-content {
+  max-width: 900px;
+}
+
 .rst-content blockquote {
     margin-bottom: 14px;
 }
