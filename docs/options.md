@@ -1908,13 +1908,6 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         el.classList.add('option', 'clearfix');
         var optionName = $(el).text().replace('¶', '');
 
-        // some options are specified as their env var names
-        if (optionName.startsWith('CIBW_')) {
-          optionName = optionName.replace('CIBW_', '');
-          optionName = optionName.replace(/_/g, '-');
-          optionName = optionName.toLowerCase();
-        }
-
         var cmdLine = el.getAttribute('cmd-line');
         var envVar = el.getAttribute('env-var');
         var toml = el.getAttribute('toml');
@@ -1924,7 +1917,10 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
           cmdLine = '--'+optionName;
         }
         if (envVar == "env-var") {
-          envVar = 'CIBW_'+optionName.toUpperCase().replace(/-/g, '_');
+          envVar = optionName
+            .split(', ')
+            .map(opt => 'CIBW_'+opt.toUpperCase().replace(/-/g, '_'))
+            .join(', ');
         }
         if (toml == "toml") {
           toml = optionName
