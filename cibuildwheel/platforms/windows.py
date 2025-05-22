@@ -277,6 +277,16 @@ def setup_python(
         use_uv=use_uv,
     )
 
+    print("Updating certifi...")
+    call(
+        "pip",
+        "install",
+        "--upgrade",
+        "certifi",
+        *constraint_flags(dependency_constraint),
+        env=env,
+    )
+
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
