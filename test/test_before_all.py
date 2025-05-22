@@ -36,16 +36,19 @@ def test(tmp_path):
     with (project_dir / "text_info.txt").open(mode="w") as ff:
         print("dummy text", file=ff)
 
-    # build the wheels
+    # write python version information to a temporary file, this is checked in
+    # setup.py
+    #
+    # note, before_all runs in whatever the host environment is, `python`
+    # might be any version of python (even Python 2 on Travis ci!), so this is
+    # written to be broadly compatible
     before_all_command = (
-        """python -c "import os, pathlib, sys; pathlib.Path('{project}/text_info.txt').write_text('sample text '+os.environ.get('TEST_VAL', ''))" && """
-        '''python -c "import pathlib, sys; pathlib.Path('{project}/python_prefix.txt').write_text(sys.prefix)"'''
+        """python -c "import os, sys; f = open('{project}/text_info.txt', 'w'); f.write('sample text '+os.environ.get('TEST_VAL', '')); f.close()" && """
+        '''python -c "import sys; f = open('{project}/python_prefix.txt', 'w'); f.write(sys.prefix); f.close()"'''
     )
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            # write python version information to a temporary file, this is
-            # checked in setup.py
             "CIBW_BEFORE_ALL": before_all_command,
             "CIBW_BEFORE_ALL_LINUX": f'{before_all_command} && python -c "import sys; assert sys.version_info >= (3, 8)"',
             "CIBW_ENVIRONMENT": "TEST_VAL='123'",

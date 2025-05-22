@@ -1,3 +1,4 @@
+import json
 import os
 import platform as platform_module
 import shutil
@@ -276,6 +277,16 @@ def setup_python(
         use_uv=use_uv,
     )
 
+    print("Updating certifi...")
+    call(
+        "pip",
+        "install",
+        "--upgrade",
+        "certifi",
+        *constraint_flags(dependency_constraint),
+        env=env,
+    )
+
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
@@ -350,28 +361,22 @@ def setup_python(
             text=True,
         ).strip()
         log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        env.update(
-            dict(
-                [
-                    envvar.strip().split("=", 1)
-                    for envvar in subprocess.check_output(
-                        [
-                            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
-                            "-no_logo",
-                            "-arch=amd64",
-                            "-host_arch=amd64",
-                            "&&",
-                            "set",
-                        ],
-                        shell=True,
-                        text=True,
-                        env=env,
-                    )
-                    .strip()
-                    .split("\n")
-                ]
-            )
+        vcvars = subprocess.check_output(
+            [
+                f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
+                "-no_logo",
+                "-arch=amd64",
+                "-host_arch=amd64",
+                "&&",
+                "python",
+                "-c",
+                "import os, json, sys; json.dump(dict(os.environ), sys.stdout);",
+            ],
+            shell=True,
+            text=True,
+            env=env,
         )
+        env.update(json.loads(vcvars))
 
     return base_python, env
 
