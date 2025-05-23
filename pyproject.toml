@@ -231,3 +231,14 @@ ignore = ["PC170", "PP303"]
 
 [tool.check-wheel-contents]
 ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one another
+
+[tool.codespell]
+ignore-words-list = [
+    "sur",
+    "assertin",
+]
+skip = [
+    '^docs/working-examples\.md',
+    'htmlcov',
+    'all_known_setup.yaml',
+]
