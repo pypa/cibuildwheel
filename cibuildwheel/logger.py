@@ -237,7 +237,8 @@ def build_description_from_identifier(identifier: str) -> str:
     build_description = ""
 
     python_interpreter = python_identifier[0:2]
-    python_version = python_identifier[2:]
+    version_parts = python_identifier[2:].split("_")
+    python_version = version_parts[0]
 
     if python_interpreter == "cp":
         build_description += "CPython"
@@ -250,6 +251,8 @@ def build_description_from_identifier(identifier: str) -> str:
         raise Exception(msg)
 
     build_description += f" {python_version[0]}.{python_version[1:]} "
+    if len(version_parts) > 1:
+        build_description += f"(ABI {version_parts[1]}) "
 
     try:
         build_description += PLATFORM_IDENTIFIER_DESCRIPTIONS[platform_identifier]
