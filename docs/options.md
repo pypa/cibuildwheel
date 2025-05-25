@@ -1776,10 +1776,20 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
   .rst-content h3 code {
     font-size: 115%;
   }
-  .rst-content h3 code.cmd-line, .rst-content h3 code.toml, .rst-content h3 code.env-var {
-    font-size: 80%;
+  .rst-content h3 .badges {
+    display: inline-flex;
+    justify-content: right;
+    flex-wrap: wrap;
+    flex-direction: row;
     float: right;
-    margin-left: 8px;
+    width: fit-content;
+    max-width: 100%;
+    gap: 2px 2px;
+    position: relative;
+    top: 2px;
+  }
+  .rst-content h3 .badges code.cmd-line, .rst-content h3 .badges code.toml, .rst-content h3 .badges code.env-var {
+    font-size: 80%;
     display: inline-flex;
     flex-direction: column;
     justify-content: left;
@@ -1787,33 +1797,33 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     padding-right: 10px;
     line-height: normal;
   }
-  .rst-content h3 code.cmd-line:before, .rst-content h3 code.toml:before, .rst-content h3 code.env-var:before {
+  .rst-content h3 .badges code.cmd-line:before, .rst-content h3 .badges code.toml:before, .rst-content h3 .badges code.env-var:before {
     content: ' ';
     font-size: 10px;
     font-weight: bold;
-    opacity: 0.3;
+    opacity: 0.5;
     display: inline-block;
     border-radius: 5px;
     margin-left: -3px;
     margin-right: -3px;
     margin-bottom: -1px;
   }
-  .rst-content h3 code.cmd-line:before {
+  .rst-content h3 .badges code.cmd-line:before {
     content: 'command line';
   }
-  .rst-content h3 code.cmd-line {
+  .rst-content h3 .badges code.cmd-line {
     background: rgba(224, 202, 56, 0.3);
   }
-  .rst-content h3 code.toml:before {
+  .rst-content h3 .badges code.toml:before {
     content: 'pyproject.toml';
   }
-  .rst-content h3 code.toml {
+  .rst-content h3 .badges code.toml {
     background: rgba(41, 128, 185, 0.3);
   }
-  .rst-content h3 code.env-var:before {
+  .rst-content h3 .badges code.env-var:before {
     content: 'env var';
   }
-  .rst-content h3 code.env-var {
+  .rst-content h3 .badges code.env-var {
     background: rgba(61, 153, 112, 0.3);
   }
   /* sidebar TOC styling */
@@ -1923,6 +1933,13 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         var envVar = el.getAttribute('env-var');
         var toml = el.getAttribute('toml');
 
+        if (!(cmdLine || envVar || toml)) {
+          return;
+        }
+
+        var badgesEl = $('<div class="badges">')
+          .appendTo(el);
+
         // fill default value
         if (cmdLine == "cmd-line") {
           cmdLine = '--'+optionName;
@@ -1937,14 +1954,14 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
           toml = optionName
         }
 
-        if (envVar) {
-          $(el).append(' <code class="env-var" title="Environment variable">'+envVar+'</code>');
-        }
         if (toml) {
-          $(el).append(' <code class="toml" title="TOML option key">'+toml+'</code>');
+          badgesEl.append(' <code class="toml" title="TOML option key">'+toml+'</code>');
         }
         if (cmdLine) {
-          $(el).append(' <code class="cmd-line" title="Command line argument">'+cmdLine+'</code>');
+          badgesEl.append(' <code class="cmd-line" title="Command line argument">'+cmdLine+'</code>');
+        }
+        if (envVar) {
+          badgesEl.append(' <code class="env-var" title="Environment variable">'+envVar+'</code>');
         }
       });
 
