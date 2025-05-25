@@ -470,10 +470,7 @@ optional `args` option.
 
     ```toml
     [tool.cibuildwheel]
-    # Switch to using build
-    build-frontend = "build"
-
-    # Ensure pip is used even if the default changes in the future
+    # Switch to using pip
     build-frontend = "pip"
 
     # supply an extra argument to 'pip wheel'
@@ -489,10 +486,7 @@ optional `args` option.
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Switch to using build
-    CIBW_BUILD_FRONTEND: "build"
-
-    # Ensure pip is used even if the default changes in the future
+    # Switch to using pip
     CIBW_BUILD_FRONTEND: "pip"
 
     # supply an extra argument to 'pip wheel'
