@@ -427,7 +427,7 @@ This option can also be set using the [command-line option](#command-line)
 
 ## Build customization
 
-### `build-frontend` {: #build-frontend cmd-line toml env-var}
+### `build-frontend` {: #build-frontend toml env-var}
 > Set the tool to use to build, either "build" (default), "build\[uv\]", or "pip"
 
 Options:
