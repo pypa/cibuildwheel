@@ -23,7 +23,24 @@ cibuildwheel
 !!!tip
     You can pass the `--platform linux` option to cibuildwheel to build Linux wheels, even if you're not on Linux. On most machines, the easiest builds to try are the Linux builds. You don't need any software installed except a Docker daemon, such as [Docker Desktop](https://www.docker.com/get-started/). Each platform that cibuildwheel supports has its own system requirements and platform-specific behaviors. See the [platforms page](platforms.md) for details.
 
-You should see the builds taking place. You can experiment with [options](options.md) using environment variables or pyproject.toml.
+You should see the builds taking place. You can experiment with [options](options.md) using pyproject.toml or environment variables.
+
+!!! tab "pyproject.toml"
+
+    If you write your options into [`pyproject.toml`](configuration.md#configuration-file), you can work on your options locally, and they'll be automatically picked up when running in CI.
+
+    > pyproject.toml
+
+    ```
+    [tool.cibuildwheel]
+    before-all = "uname -a"
+    ```
+
+    Then invoke cibuildwheel, like:
+
+    ```console
+    cibuildwheel
+    ```
 
 !!! tab "Environment variables"
 
@@ -43,23 +60,6 @@ You should see the builds taking place. You can experiment with [options](option
     ```bat
     set CIBW_BEFORE_ALL='uname -a'
 
-    cibuildwheel
-    ```
-
-!!! tab "pyproject.toml"
-
-    If you write your options into [`pyproject.toml`](configuration.md#configuration-file), you can work on your options locally, and they'll be automatically picked up when running in CI.
-
-    > pyproject.toml
-
-    ```
-    [tool.cibuildwheel]
-    before-all = "uname -a"
-    ```
-
-    Then invoke cibuildwheel, like:
-
-    ```console
     cibuildwheel
     ```
 
