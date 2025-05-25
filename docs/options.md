@@ -147,17 +147,22 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
     support a specific build, for example.
 
 <style>
-  .build-id-table-marker + table {
+  .build-id-table-marker + .wy-table-responsive table {
     font-size: 90%;
+  }
+  .rst-content .build-id-table-marker + .wy-table-responsive table td,
+  .rst-content .build-id-table-marker + .wy-table-responsive table th {
+    padding: 4px 8px;
     white-space: nowrap;
+    background-color: white;
   }
-  .rst-content .build-id-table-marker + table td,
-  .rst-content .build-id-table-marker + table th {
-    padding: 4px 4px;
-  }
-  .build-id-table-marker + table td:not(:first-child) {
+  .build-id-table-marker + .wy-table-responsive table td:not(:first-child) {
     font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
     font-size: 85%;
+  }
+  .build-id-table-marker + .wy-table-responsive table td:first-child,
+  .build-id-table-marker + .wy-table-responsive table th:first-child {
+    font-weight: bold;
   }
   dt code {
     font-size: 100%;
