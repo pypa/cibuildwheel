@@ -40,7 +40,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
     not require `--platform` or `--arch`, and will override any build/skip
     configuration.
 
-### `build` & `skip` {: #build-skip toml="build, skip" env-var="CIBW_BUILD, CIBW_SKIP" }
+### `build`, `skip` {: #build-skip toml env-var }
 
 > Choose the Python versions to build
 
@@ -1740,6 +1740,7 @@ Specific error codes are defined:
 Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, that are substituted by cibuildwheel before they are used. If, for some reason, you need to write the literal name of a placeholder, e.g. literally `{project}` in a command that would ordinarily substitute `{project}`, prefix it with a hash character - `#{project}`. This is only necessary in commands where the specific string between the curly brackets would be substituted - otherwise, strings not modified.
 
 <style>
+  /* Table of contents styling */
   .options-toc {
     display: grid;
     grid-template-columns: fit-content(20%) 1fr;
@@ -1770,6 +1771,8 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
   .options-toc a.option code {
     font-size: 80%;
   }
+
+  /* header styling, including the badges */
   .rst-content h3 code {
     font-size: 115%;
   }
@@ -1813,6 +1816,10 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
   .rst-content h3 code.env-var {
     background: rgba(61, 153, 112, 0.3);
   }
+  /* sidebar TOC styling */
+  .toctree-l3.option a {
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+  }
 </style>
 
 <script>
@@ -1828,11 +1835,15 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         var header = $(el).prevAll('h2').first().text().replace('¶', '')
         var id = el.id;
 
+        if (optionName[0].match(/[A-Z]/)) {
+          // all the options are kebab-case, so this header isn't an option
+          return;
+        }
+
         if (options[header] === undefined) {
           options[header] = [];
           headers.push(header);
         }
-        console.log(optionName, description, header);
 
         options[header].push({name: optionName, description, id});
       });
@@ -1934,6 +1945,15 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
         }
         if (cmdLine) {
           $(el).append(' <code class="cmd-line" title="Command line argument">'+cmdLine+'</code>');
+        }
+      });
+
+    $('.toctree-l3')
+      .each(function (i, el) {
+        var tocEntryName = $(el).text()
+        var isOption = tocEntryName[0].match(/^[a-z]/);
+        if (isOption) {
+          $(el).addClass('option');
         }
       });
   });
