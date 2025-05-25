@@ -45,6 +45,7 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: 1px solid  #e1e4e5;
     margin-bottom: 0.8em;
     padding-bottom: 0.2em;
+    scroll-margin: 1.5em 0;
 }
 
 /* make it so tables can overflow the content area, make the most of the content area */
