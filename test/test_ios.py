@@ -8,6 +8,8 @@ import textwrap
 
 import pytest
 
+from cibuildwheel.ci import CIProvider, detect_ci_provider
+
 from . import test_projects, utils
 
 basic_project_files = {
@@ -21,6 +23,19 @@ class TestPlatform(TestCase):
 
 """
 }
+
+
+def skip_if_ios_testing_not_supported() -> None:
+    """Skip the test if iOS testing is not supported on this machine."""
+    if utils.get_platform() != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+    if detect_ci_provider() == CIProvider.cirrus_ci:
+        pytest.skip(
+            "iOS testing not currently supported on Cirrus CI due to a failure "
+            "to start the simulator."
+        )
 
 
 # iOS tests shouldn't be run in parallel, because they're dependent on calling
@@ -39,10 +54,7 @@ class TestPlatform(TestCase):
     ],
 )
 def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
-    if utils.get_platform() != "macos":
-        pytest.skip("this test can only run on macOS")
-    if utils.get_xcode_version() < (13, 0):
-        pytest.skip("this test only works with Xcode 13.0 or greater")
+    skip_if_ios_testing_not_supported()
 
     # Create a temporary "bin" directory, symlink a tool that we know eixsts
     # (/usr/bin/true) into that location under a name that should be unique,
@@ -93,10 +105,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
 
 def test_no_test_sources(tmp_path, capfd):
     """Build will fail if test-sources isn't defined."""
-    if utils.get_platform() != "macos":
-        pytest.skip("this test can only run on macOS")
-    if utils.get_xcode_version() < (13, 0):
-        pytest.skip("this test only works with Xcode 13.0 or greater")
+    skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
     basic_project = test_projects.new_c_project()
@@ -120,10 +129,7 @@ def test_no_test_sources(tmp_path, capfd):
 
 def test_missing_xbuild_tool(tmp_path, capfd):
     """Build will fail if xbuild-tools references a non-existent tool."""
-    if utils.get_platform() != "macos":
-        pytest.skip("this test can only run on macOS")
-    if utils.get_xcode_version() < (13, 0):
-        pytest.skip("this test only works with Xcode 13.0 or greater")
+    skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
     basic_project = test_projects.new_c_project()
@@ -148,10 +154,7 @@ def test_missing_xbuild_tool(tmp_path, capfd):
 
 def test_no_xbuild_tool_definition(tmp_path, capfd):
     """Build will succeed with a warning if there is no xbuild-tools definition."""
-    if utils.get_platform() != "macos":
-        pytest.skip("this test can only run on macOS")
-    if utils.get_xcode_version() < (13, 0):
-        pytest.skip("this test only works with Xcode 13.0 or greater")
+    skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
     basic_project = test_projects.new_c_project()
@@ -185,10 +188,7 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
 
 def test_empty_xbuild_tool_definition(tmp_path, capfd):
     """Build will succeed with no warning if there is an empty xbuild-tools definition."""
-    if utils.get_platform() != "macos":
-        pytest.skip("this test can only run on macOS")
-    if utils.get_xcode_version() < (13, 0):
-        pytest.skip("this test only works with Xcode 13.0 or greater")
+    skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
     basic_project = test_projects.new_c_project()
@@ -220,10 +220,7 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
 @pytest.mark.serial
 def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     """pytest should be able to run without python -m, but it should warn."""
-    if utils.get_platform() != "macos":
-        pytest.skip("this test can only run on macOS")
-    if utils.get_xcode_version() < (13, 0):
-        pytest.skip("this test only works with Xcode 13.0 or greater")
+    skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
 
@@ -261,10 +258,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
 
 def test_ios_test_command_invalid(tmp_path, capfd):
     """Test command should raise an error if it's clearly invalid."""
-    if utils.get_platform() != "macos":
-        pytest.skip("this test can only run on macOS")
-    if utils.get_xcode_version() < (13, 0):
-        pytest.skip("this test only works with Xcode 13.0 or greater")
+    skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
     basic_project = test_projects.new_c_project()
