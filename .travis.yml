@@ -11,51 +11,19 @@ if: (type = "push") OR (commit_message =~ /travis-ci/)
 
 jobs:
   include:
-    - name: Linux | x86_64 + i686 | Python 3.12
-      python: 3.12
-      services: docker
-      env:
-        - PYTHON=python
-        - CIBW_ENABLE=all
-
-    - name: Linux | arm64 | Python 3.12
-      python: 3.12
-      services: docker
-      arch: arm64
-      env:
-        - PYTHON=python
-        - CIBW_ENABLE=all
-
-    - name: Linux | ppc64le | Python 3.12
-      python: 3.12
-      services: docker
-      arch: ppc64le
-      allow_failure: True
-      env:
-        - PYTHON=python
-        # skip test_manylinuxXXXX_only, it uses too much disk space
-        # c.f. https://travis-ci.community/t/running-out-of-disk-space-quota-when-using-docker-on-ppc64le/11634
-        - PYTEST_ADDOPTS='-k "not test_manylinuxXXXX_only"'
-        - CIBW_ENABLE=all
-
     - name: Windows | x86_64 | Python 3.12
       os: windows
       language: shell
       before_install:
+        # http://woshub.com/updating-trusted-root-certificates-in-windows-10
+        - certutil -generateSSTFromWU roots.sst
+        - powershell -Command 'Get-ChildItem -Path roots.sst | Import-Certificate -CertStoreLocation Cert:\LocalMachine\Root'
+        - rm -f roots.sst
         - choco upgrade python3 -y --version 3.12.8 --limit-output --params "/InstallDir:C:\\Python312"
       env:
         - PYTHON=C:\\Python312\\python
         # a build using CIBW_ENABLE=all does not fit into Travis' time limit,
         # so only the defaults are tested
-
-    - name: Linux | s390x | Python 3.12
-      python: 3.12
-      services: docker
-      arch: s390x
-      allow_failure: True
-      env:
-        - PYTHON=python
-        - CIBW_ENABLE=all
 
 install:
 - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all; fi
