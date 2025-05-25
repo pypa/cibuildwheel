@@ -10,6 +10,16 @@ Not yet released, but available for testing.
 
 Note - when using a beta version, be sure to check the [latest docs](https://cibuildwheel.pypa.io/en/latest/), rather than the stable version, which is still on v2.X.
 
+Known issues:
+- ⚠️ The CWD for test-command has changed in v3.0, but that is still [being debated](https://github.com/pypa/cibuildwheel/issues/2406), it might change before the final release. Please provide feedback on the aforementioned issue if you do (or don't!) encounter issues with this.
+
+#### v3.0.0b2
+
+_25 May 2025_
+
+- ✨ Adds the [`CIBW_TEST_ENVIRONMENT`](https://cibuildwheel.pypa.io/en/latest/options/#test-environment) option, which allows you to set environment variables for the test command. cibuildwheel now sets `PYTHONSAFEPATH=1` in test environments by default, to avoid picking up package imports from the local directory - we want to test the installed wheel, not the source tree! You can change that, or any other environment variable in the test environment using this option. (#2388)
+- ✨ Improves support for Pyodide builds and adds the [`CIBW_PYODIDE_VERSION`](https://cibuildwheel.pypa.io/en/latest/options/#pyodide-version) option, which allows you to specify the version of Pyodide to use for builds. (#2002)
+
 #### v3.0.0b1
 
 _19 May 2025_
@@ -19,7 +29,11 @@ _19 May 2025_
 - ✨ Adds CPython 3.14 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.14.0b1.
 
     _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
-- ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/latest/options/#test-sources). \[discussion about the test cwd change and how to use to come!\]
+- ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/latest/options/#test-sources), and changes the working directory for tests.
+
+    - If this option is set, cibuildwheel will copy the files and folders specified in `test-sources` into a temporary directory, and run the tests from there. This is required for iOS builds, but also useful for other platforms, as it allows you to test the installed wheel without any chance of accidentally importing from the source tree.
+    - If this option is not set, cibuildwheel will run the tests in the source tree. This is a change from the previous behavior, where cibuildwheel would run the tests from a temporary directory. We're still investigating what's best here, so if you encounter any issues with this, please let us know in [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406).
+
 - ✨ Added `dependency-versions` inline syntax (#2123)
 - 🛠 EOL manylinux options can no longer be specified by their shortname. Full OCI URL can still be used for these images, if you wish (#2316)
 - 🛠 Build environments no longer have setuptools and wheel preinstalled. (#2329)
