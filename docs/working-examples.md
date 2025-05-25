@@ -253,4 +253,10 @@ title: Working examples
   /* make the icons darker on this page */
   filter: brightness(0.5);
 }
+@media screen and (min-width: 769px) {
+  .wy-table-responsive {
+    /* disable the table overflow */
+    width: calc(100% + 6em);
+  }
+}
 </style>
