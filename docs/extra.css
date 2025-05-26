@@ -45,6 +45,42 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: 1px solid  #e1e4e5;
     margin-bottom: 0.8em;
     padding-bottom: 0.2em;
+    scroll-margin: 1.5em 0;
+}
+
+/* make it so tables can overflow the content area, make the most of the content area */
+.wy-nav-content-wrap {
+  container-type: inline-size;
+}
+.wy-table-responsive {
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  left: -3.236em;
+  max-width: calc(100cqw);
+  width: fit-content;
+  min-width: calc(100% + 3.236em + 3.236em);
+}
+.rst-content .section .wy-table-responsive .docutils {
+  padding-left: 3.236em;
+  padding-right: 3.236em;
+}
+.rst-content .section .wy-table-responsive .docutils thead,
+.rst-content .section .wy-table-responsive .docutils tbody {
+  background-color: white;
+}
+@media screen and (max-width: 768px) {
+  .wy-table-responsive {
+    left: -1em;
+  }
+  .rst-content .section .wy-table-responsive .docutils {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+}
+
+.wy-nav-content {
+  max-width: 900px;
 }
 
 .rst-content blockquote {
