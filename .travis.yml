@@ -16,7 +16,8 @@ jobs:
       services: docker
       env:
         - PYTHON=python
-        - CIBW_ENABLE=all
+        # a build using CIBW_ENABLE=all does not fit into Travis' time limit,
+        # so only the defaults are tested
 
     - name: Linux | arm64 | Python 3.12
       python: 3.12
