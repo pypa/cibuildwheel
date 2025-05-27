@@ -342,6 +342,7 @@ class OCIContainer:
             )
         else:
             exec_process: subprocess.Popen[bytes]
+            self.call(["mkdir", "-p", to_path.parent])
             with subprocess.Popen(
                 [
                     self.engine.name,
