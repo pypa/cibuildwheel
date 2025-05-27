@@ -559,19 +559,19 @@ def build(options: Options, tmp_path: Path) -> None:
                         env=test_env,
                     )
 
-                    if not build_options.test_sources:
-                        # iOS requires an explicit test-sources, as the project directory
-                        # isn't visible on the simulator.
-
-                        msg = "Testing on iOS requires a definition of test-sources."
-                        raise errors.FatalError(msg)
+                    testbed_app_path = testbed_path / "iOSTestbed" / "app"
 
                     # Copy the test sources to the testbed app
-                    copy_test_sources(
-                        build_options.test_sources,
-                        build_options.package_dir,
-                        testbed_path / "iOSTestbed" / "app",
-                    )
+                    if build_options.test_sources:
+                        copy_test_sources(
+                            build_options.test_sources,
+                            build_options.package_dir,
+                            testbed_app_path,
+                        )
+                    else:
+                        (testbed_app_path / "test_fail.py").write_text(
+                            resources.TEST_FAIL_CWD_FILE.read_text()
+                        )
 
                     log.step("Installing test requirements...")
                     # Install the compiled wheel (with any test extras), plus
@@ -597,6 +597,26 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
 
                     log.step("Running test suite...")
+
+                    # iOS doesn't support placeholders in the test command,
+                    # because the source dir isn't visible on the simulator.
+                    if (
+                        "{project}" in build_options.test_command
+                        or "{package}" in build_options.test_command
+                    ):
+                        msg = unwrap_preserving_paragraphs(
+                            f"""
+                            iOS tests configured with a test command that uses the {{"project"}} or
+                            {{"package"}} placeholder. iOS tests cannot use placeholders, because the
+                            source directory is not visible on the simulator.
+
+                            In addition, iOS tests must run as a Python module, so the test command
+                            must begin with 'python -m'.
+
+                            Test command: {build_options.test_command!r}
+                            """
+                        )
+                        raise errors.FatalError(msg)
 
                     test_command_parts = shlex.split(build_options.test_command)
                     if test_command_parts[0:2] != ["python", "-m"]:

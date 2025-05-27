@@ -1284,23 +1284,23 @@ Shell command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
-By default, tests are executed from your project directory. When specifying
-`test-command`, you can optionally use the placeholders `{package}` and
-`{project}` to pass in the location of your test code:
+To ensure the wheel is imported by your tests (instead of your source copy),
+**Tests are executed from a temporary directory**, outside of your source
+tree. To access your test code, you have a couple of options:
 
-- `{package}` is the path to the package being built - the `package_dir`
-  argument supplied to cibuildwheel on the command line.
-- `{project}` is an absolute path to the project root - the working directory
-  where cibuildwheel was called.
+- You can use the [`test-sources`](#test-sources) setting to copy specific
+  files from your source tree into the temporary directory. When using
+  test-sources, use relative paths in your test command, as if they were
+  relative to the project root.
 
-Using `{package}` or `{project}` used to be required, but since cibuildwheel
-3.0, tests are run from the project root by default. This means that you can
-use relative paths in your test command, and they will be relative to the
-project root.
+- You can use the `{package}` or `{project}` placeholders in your
+  `test-command` to refer to the package being built or the project root,
+  respectively.
 
-Alternatively, you can use the [`test-sources`](#test-sources) setting to
-create a temporary folder populated with a specific subset of project files to
-run your test suite.
+    - `{package}` is the path to the package being built - the `package_dir`
+      argument supplied to cibuildwheel on the command line.
+    - `{project}` is an absolute path to the project root - the working
+      directory where cibuildwheel was called.
 
 On all platforms other than iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 

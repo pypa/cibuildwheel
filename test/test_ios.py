@@ -92,7 +92,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
 
 
 def test_no_test_sources(tmp_path, capfd):
-    """Build will fail if test-sources isn't defined."""
+    """Build will provide a helpful error if pytest is run and test-sources is not defined."""
     if utils.get_platform() != "macos":
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
@@ -109,13 +109,18 @@ def test_no_test_sources(tmp_path, capfd):
             add_env={
                 "CIBW_PLATFORM": "ios",
                 "CIBW_BUILD": "cp313-*",
-                "CIBW_TEST_COMMAND": "python -m tests",
+                "CIBW_TEST_REQUIRES": "pytest",
+                "CIBW_TEST_COMMAND": "python -m pytest",
+                "CIBW_XBUILD_TOOLS": "",
             },
         )
 
     # The error message indicates the configuration issue.
     captured = capfd.readouterr()
-    assert "Testing on iOS requires a definition of test-sources." in captured.err
+    assert (
+        "you must copy your test files to the testbed app by setting the `test-sources` option"
+        in captured.out + captured.err
+    )
 
 
 def test_missing_xbuild_tool(tmp_path, capfd):
