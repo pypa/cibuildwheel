@@ -498,6 +498,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.before_test,
                         project=".",
                         package=build_options.package_dir,
+                        wheel=repaired_wheel,
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
