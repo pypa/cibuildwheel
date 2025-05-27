@@ -32,7 +32,7 @@ def test(tmp_path, request):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": "pytest ./test",
+            "CIBW_TEST_COMMAND": "pytest {project}/test",
             "CIBW_ARCHS": archs,
             # TODO remove me once proper support is added
             "CIBW_MANYLINUX_RISCV64_IMAGE": "ghcr.io/mayeut/manylinux_2_35:2025.05.11-1",

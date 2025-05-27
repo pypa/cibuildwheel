@@ -129,7 +129,7 @@ def test_pyodide_build_and_test(tmp_path, expect_failure):
             add_args=["--platform", "pyodide"],
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
-                "CIBW_TEST_COMMAND": "python -m pytest",
+                "CIBW_TEST_COMMAND": "python -m pytest {project}",
             },
         )
         # check that the expected wheels are produced

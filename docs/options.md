@@ -28,7 +28,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
     ```bash
     export CIBW_BUILD='cp37-*'
-    export CIBW_TEST_COMMAND='pytest ./tests'
+    export CIBW_TEST_COMMAND='pytest {project}/tests'
     cibuildwheel --platform linux .
     ```
 
@@ -1318,18 +1318,18 @@ Platform-specific environment variables are also available:<br/>
     ```toml
     [tool.cibuildwheel]
     # Run the package tests using `pytest`
-    test-command = "pytest ./tests"
+    test-command = "pytest {project}/tests"
 
     # Trigger an install of the package, but run nothing of note
     test-command = "echo Wheel installed"
 
     # Multiline example
     test-command = [
-      "pytest ./tests",
-      "python ./test.py",
+      "pytest {project}/tests",
+      "python {project}/test.py",
     ]
 
-    # run tests on ios
+    # run tests on ios - when test-sources is set, use relative paths, not {project} or {package}
     [tool.cibuildwheel.ios]
     test-sources = ["tests"]
     test-command = "python -m pytest ./tests"
@@ -1341,17 +1341,17 @@ Platform-specific environment variables are also available:<br/>
 
     ```yaml
     # Run the package tests using `pytest`
-    CIBW_TEST_COMMAND: pytest ./tests
+    CIBW_TEST_COMMAND: pytest {project}/tests
 
     # Trigger an install of the package, but run nothing of note
     CIBW_TEST_COMMAND: "echo Wheel installed"
 
     # Multi-line example - join with && on all platforms
     CIBW_TEST_COMMAND: >
-      pytest ./tests &&
-      python ./test.py
+      pytest {project}/tests &&
+      python {project}/test.py
 
-    # run tests on ios
+    # run tests on ios - when test-sources is set, use relative paths, not {project} or {package}
     CIBW_TEST_SOURCES_IOS: tests
     CIBW_TEST_COMMAND_IOS: python -m pytest ./tests
     ```
