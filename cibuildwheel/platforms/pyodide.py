@@ -36,6 +36,7 @@ from ..util.python_build_standalone import (
     PythonBuildStandaloneError,
     create_python_build_standalone_environment,
 )
+from ..util.resources import TEST_FAIL_CWD_FILE
 from ..venv import constraint_flags, virtualenv
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
@@ -513,26 +514,38 @@ def build(options: Options, tmp_path: Path) -> None:
                 if build_options.test_requires:
                     call("pip", "install", *build_options.test_requires, env=virtualenv_env)
 
+                # Copy the test sources into the container
+                if build_options.test_sources:
+                    package_dir = identifier_tmp_dir / "test_cpy"
+                    # only create test_cwd if it doesn't already exist - it
+                    # may have been created during a previous `testing_arch`
+                    if not package_dir.exists():
+                        package_dir.mkdir()
+                        copy_test_sources(
+                            build_options.test_sources,
+                            build_options.package_dir,
+                            package_dir,
+                        )
+                else:
+                    package_dir = build_options.package_dir.resolve()
+
+                # If not testing in source, make a dir and copy in a "fail if run" test file
+                if build_options.test_in_source:
+                    test_cwd = package_dir
+                else:
+                    test_cwd = identifier_tmp_dir / "test_cwd"
+                    test_cwd.mkdir(exist_ok=True)
+                    (test_cwd / "test_fail.py").write_text(TEST_FAIL_CWD_FILE.read_text())
+
                 # run the tests from a temp dir, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel
                 # and not the repo code)
                 test_command_prepared = prepare_command(
                     build_options.test_command,
                     project=Path.cwd(),
-                    package=build_options.package_dir.resolve(),
+                    package=package_dir,
+                    wheel=repaired_wheel,
                 )
-
-                if build_options.test_sources:
-                    test_cwd = identifier_tmp_dir / "test_cwd"
-                    test_cwd.mkdir(exist_ok=True)
-                    copy_test_sources(
-                        build_options.test_sources,
-                        build_options.package_dir,
-                        test_cwd,
-                    )
-                else:
-                    # There are no test sources. Run the tests in the project directory.
-                    test_cwd = Path.cwd()
 
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 

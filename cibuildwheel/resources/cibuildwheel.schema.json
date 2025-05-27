@@ -504,6 +504,12 @@
       ],
       "title": "CIBW_TEST_SOURCES"
     },
+    "test-in-source": {
+      "description": "Run tests in the source directory instead of temp dir",
+      "type": "boolean",
+      "default": false,
+      "title": "CIBW_TEST_IN_SOURCE"
+    },
     "test-groups": {
       "description": "Install extra groups when testing",
       "oneOf": [
@@ -738,6 +744,9 @@
           "test-sources": {
             "$ref": "#/properties/test-sources"
           },
+          "test-in-source": {
+            "$ref": "#/properties/test-in-source"
+          },
           "test-groups": {
             "$ref": "#/properties/test-groups"
           },
@@ -866,6 +875,9 @@
         "test-sources": {
           "$ref": "#/properties/test-sources"
         },
+        "test-in-source": {
+          "$ref": "#/properties/test-in-source"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -925,6 +937,9 @@
         },
         "test-sources": {
           "$ref": "#/properties/test-sources"
+        },
+        "test-in-source": {
+          "$ref": "#/properties/test-in-source"
         },
         "test-groups": {
           "$ref": "#/properties/test-groups"
@@ -999,6 +1014,9 @@
         "test-sources": {
           "$ref": "#/properties/test-sources"
         },
+        "test-in-source": {
+          "$ref": "#/properties/test-in-source"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -1059,6 +1077,9 @@
         "test-sources": {
           "$ref": "#/properties/test-sources"
         },
+        "test-in-source": {
+          "$ref": "#/properties/test-in-source"
+        },
         "test-groups": {
           "$ref": "#/properties/test-groups"
         },
@@ -1118,6 +1139,9 @@
         },
         "test-sources": {
           "$ref": "#/properties/test-sources"
+        },
+        "test-in-source": {
+          "$ref": "#/properties/test-in-source"
         },
         "test-groups": {
           "$ref": "#/properties/test-groups"

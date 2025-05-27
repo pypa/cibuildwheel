@@ -1293,10 +1293,7 @@ By default, tests are executed from your project directory. When specifying
 - `{project}` is an absolute path to the project root - the working directory
   where cibuildwheel was called.
 
-Using `{package}` or `{project}` used to be required, but since cibuildwheel
-3.0, tests are run from the project root by default. This means that you can
-use relative paths in your test command, and they will be relative to the
-project root.
+Using `{package}` or `{project}` is required unless using `test-in-source`.
 
 Alternatively, you can use the [`test-sources`](#test-sources) setting to
 create a temporary folder populated with a specific subset of project files to
@@ -1434,6 +1431,10 @@ simulator does not have access to the project directory, as it is not stored on
 the simulator device. On iOS, the files will be copied into the test application,
 rather than a temporary folder.
 
+Setting `test-in-source` to `true` is recommended if using this option for
+simplicity (and required on iOS).  Otherwise two directories will be created:
+one for the copied test sources, and one for the working directory.
+
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_IOS` | `CIBW_TEST_SOURCES_PYODIDE`
 
@@ -1445,6 +1446,7 @@ Platform-specific environment variables are also available:<br/>
     # Copy the "tests" folder, plus "data/test-image.png" from the source folder to the test folder.
     [tool.cibuildwheel]
     test-sources = ["tests", "data/test-image.png"]
+    test-in-source = true
     ```
 
     In configuration files, you can use an array, and the items will be joined with a space.
@@ -1454,6 +1456,38 @@ Platform-specific environment variables are also available:<br/>
     ```yaml
     # Copy the "tests" folder, plus "data/test-image.png" from the source folder to the test folder.
     CIBW_TEST_SOURCES: tests data/test-image.png
+    CIBW_TEST_IN_SOURCE: "true"
+    ```
+
+
+### `test-in-source` {: #test-in-source env-var toml}
+> Run tests in the source tree instead of a temporary folder
+
+If set to `true`, the tests will be run in the source tree, rather than a
+temporary folder. This is simpler, but can lead to problems if you are not using
+a `src` layout, or have a `conftest.py` inside your package. You do not need to
+use the `{project}` placeholder in your `test-command` if you set this to
+`true`, as the tests will be run from the project root (it will be the cwd if
+you do use it). Required on iOS.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_IN_SOURCE_MACOS` | `CIBW_TEST_IN_SOURCE_WINDOWS` | `CIBW_TEST_IN_SOURCE_LINUX` | `CIBW_TEST_IN_SOURCE_IOS` | `CIBW_TEST_IN_SOURCE_PYODIDE`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel]
+    # Run tests in the source tree instead of a temporary folder
+    test-in-source = true
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run tests in the source tree instead of a temporary folder
+    CIBW_TEST_IN_SOURCE: "true"
     ```
 
 

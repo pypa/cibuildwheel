@@ -566,6 +566,10 @@ def build(options: Options, tmp_path: Path) -> None:
                         msg = "Testing on iOS requires a definition of test-sources."
                         raise errors.FatalError(msg)
 
+                    if not build_options.test_in_source:
+                        msg = "Testing on iOS requires test-in-source to be set to True currently."
+                        raise errors.FatalError(msg)
+
                     # Copy the test sources to the testbed app
                     copy_test_sources(
                         build_options.test_sources,

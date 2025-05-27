@@ -20,6 +20,7 @@ repair-wheel-command = ""
 
 test-command = ""
 before-test = ""
+test-in-source = false
 test-sources = []
 test-requires = []
 test-extras = []

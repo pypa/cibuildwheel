@@ -215,6 +215,10 @@ properties:
   test-sources:
     description: Test files that are required by the test environment
     type: string_array
+  test-in-source:
+    description: Run tests in the source directory instead of temp dir
+    type: boolean
+    default: false
   test-groups:
     description: Install extra groups when testing
     type: string_array

@@ -20,6 +20,7 @@ from ..util import resources
 from ..util.file import copy_test_sources
 from ..util.helpers import prepare_command, unwrap
 from ..util.packaging import find_compatible_wheel
+from ..util.resources import TEST_FAIL_CWD_FILE
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
@@ -390,26 +391,34 @@ def build_in_container(
             if build_options.test_requires:
                 container.call([*pip, "install", *build_options.test_requires], env=virtualenv_env)
 
+            # Copy the test sources into the container
+            if build_options.test_sources:
+                package_dir = testing_temp_dir / "test_cpy"
+                container.call(["mkdir", "-p", package_dir])
+                copy_test_sources(
+                    build_options.test_sources,
+                    build_options.package_dir,
+                    package_dir,
+                    copy_into=container.copy_into,
+                )
+            else:
+                package_dir = PurePosixPath(container_package_dir)
+
+            # If not testing in source, make a dir and copy in a "fail if run" test file
+            if build_options.test_in_source:
+                test_cwd = package_dir
+            else:
+                test_cwd = testing_temp_dir / "test_cwd"
+                container.call(["mkdir", "-p", test_cwd])
+                container.copy_into(TEST_FAIL_CWD_FILE, test_cwd / "test_fail.py")
+
             # Run the tests from a different directory
             test_command_prepared = prepare_command(
                 build_options.test_command,
                 project=container_project_path,
-                package=container_package_dir,
+                package=package_dir,
                 wheel=wheel_to_test,
             )
-
-            if build_options.test_sources:
-                test_cwd = testing_temp_dir / "test_cwd"
-                container.call(["mkdir", "-p", test_cwd])
-                copy_test_sources(
-                    build_options.test_sources,
-                    build_options.package_dir,
-                    test_cwd,
-                    copy_into=container.copy_into,
-                )
-            else:
-                # There are no test sources. Run the tests in the project directory.
-                test_cwd = PurePosixPath(container_project_path)
 
             container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 

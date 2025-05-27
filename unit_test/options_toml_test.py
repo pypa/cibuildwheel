@@ -12,6 +12,7 @@ from cibuildwheel.options import (
     ShlexTableFormat,
     _resolve_cascade,
 )
+from cibuildwheel.util.helpers import strtobool
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -23,6 +24,7 @@ test-command = "pyproject"
 test-requires = "something"
 test-extras = ["one", "two"]
 test-groups = ["three", "four"]
+test-in-source = true
 test-sources = ["five", "six and seven"]
 
 manylinux-x86_64-image = "manylinux_2_28"
@@ -51,6 +53,7 @@ def test_simple_settings(tmp_path, platform, fname):
 
     assert options_reader.get("test-command") == "pyproject"
     assert options_reader.get("archs", option_format=ListFormat(" ")) == "auto"
+    assert strtobool(options_reader.get("test-in-source")) is True
     assert (
         options_reader.get("test-sources", option_format=ListFormat(" ", quote=shlex.quote))
         == "five 'six and seven'"

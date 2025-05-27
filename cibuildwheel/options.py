@@ -51,7 +51,7 @@ MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
 )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
@@ -80,7 +80,7 @@ class CommandLineArguments:
         )
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class GlobalOptions:
     package_dir: Path
     output_dir: Path
@@ -90,7 +90,7 @@ class GlobalOptions:
     allow_empty: bool
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildOptions:
     globals: GlobalOptions
     environment: ParsedEnvironment
@@ -104,6 +104,7 @@ class BuildOptions:
     test_command: str | None
     before_test: str | None
     test_sources: list[str]
+    test_in_source: bool
     test_requires: list[str]
     test_extras: str
     test_groups: list[str]
@@ -741,6 +742,7 @@ class Options:
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
                 )
             )
+            test_in_source = strtobool(self.reader.get("test-in-source"))
             test_environment_config = self.reader.get(
                 "test-environment", option_format=EnvironmentFormat()
             )
@@ -857,6 +859,7 @@ class Options:
                 globals=self.globals,
                 test_command=test_command,
                 test_sources=test_sources,
+                test_in_source=test_in_source,
                 test_environment=test_environment,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
