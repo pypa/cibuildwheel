@@ -16,7 +16,8 @@ jobs:
       services: docker
       env:
         - PYTHON=python
-        - CIBW_ENABLE=all
+        # a build using CIBW_ENABLE=all does not fit into Travis' time limit,
+        # so only the defaults are tested
 
     - name: Linux | arm64 | Python 3.12
       python: 3.12
@@ -42,10 +43,15 @@ jobs:
       os: windows
       language: shell
       before_install:
+        # http://woshub.com/updating-trusted-root-certificates-in-windows-10
+        - certutil -generateSSTFromWU roots.sst
+        - powershell -Command 'Get-ChildItem -Path roots.sst | Import-Certificate -CertStoreLocation Cert:\LocalMachine\Root'
+        - rm -f roots.sst
         - choco upgrade python3 -y --version 3.12.8 --limit-output --params "/InstallDir:C:\\Python312"
       env:
         - PYTHON=C:\\Python312\\python
-        - CIBW_ENABLE=all
+        # a build using CIBW_ENABLE=all does not fit into Travis' time limit,
+        # so only the defaults are tested
 
     - name: Linux | s390x | Python 3.12
       python: 3.12

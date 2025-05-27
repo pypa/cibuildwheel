@@ -135,6 +135,7 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     """
 
     interpreter, platform = identifier.split("-", 1)
+    interpreter = interpreter.split("_")[0]
     free_threaded = interpreter.endswith("t")
     if free_threaded:
         interpreter = interpreter[:-1]

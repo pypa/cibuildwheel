@@ -41,7 +41,7 @@ def test_abi3(tmp_path):
         add_env={
             # free_threaded, GraalPy, and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
             # also limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp39-* cp310-* pp310-* gp242-* cp312-* cp313t-*",
+            "CIBW_BUILD": "cp39-* cp310-* pp310-* gp311_242-* cp312-* cp313t-*",
             "CIBW_ENABLE": "all",
         },
     )

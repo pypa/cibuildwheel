@@ -152,7 +152,7 @@ def test_build_limited_python():
         build_config="*",
         skip_config="",
         requires_python=SpecifierSet(">=3.7"),
-        enable=frozenset([EnableGroup.PyPy, EnableGroup.PyPyEoL]),
+        enable=frozenset([EnableGroup.PyPy, EnableGroup.PyPyEoL, EnableGroup.GraalPy]),
     )
 
     assert not build_selector("cp36-manylinux_x86_64")
@@ -165,6 +165,7 @@ def test_build_limited_python():
     assert build_selector("cp37-win32")
     assert build_selector("cp38-win32")
     assert build_selector("pp37-win_amd64")
+    assert build_selector("gp311_242-win_amd64")
 
 
 def test_build_limited_python_partial():

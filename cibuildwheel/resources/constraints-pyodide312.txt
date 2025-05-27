@@ -54,7 +54,7 @@ platformdirs==4.3.8
     # via
     #   pyodide-build
     #   virtualenv
-pydantic==2.11.4
+pydantic==2.11.5
     # via
     #   pyodide-build
     #   pyodide-lock
@@ -81,7 +81,7 @@ rich==14.0.0
     #   pyodide-build
     #   pyodide-cli
     #   typer
-ruamel-yaml==0.18.10
+ruamel-yaml==0.18.11
     # via pyodide-build
 ruamel-yaml-clib==0.2.12
     # via ruamel-yaml
@@ -101,7 +101,7 @@ typing-extensions==4.13.2
     #   pydantic-core
     #   typer
     #   typing-inspection
-typing-inspection==0.4.0
+typing-inspection==0.4.1
     # via pydantic
 unearth==0.17.5
     # via pyodide-build
