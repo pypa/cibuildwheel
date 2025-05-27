@@ -91,6 +91,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     assert "'does-exist' will be included in the cross-build environment" in captured.out
 
 
+@pytest.mark.serial
 def test_no_test_sources(tmp_path, capfd):
     """Build will provide a helpful error if pytest is run and test-sources is not defined."""
     if utils.get_platform() != "macos":
@@ -121,6 +122,35 @@ def test_no_test_sources(tmp_path, capfd):
         "you must copy your test files to the testbed app by setting the `test-sources` option"
         in captured.out + captured.err
     )
+
+
+def test_ios_testing_with_placeholder(tmp_path, capfd):
+    """Build will run tests with the {project} placeholder."""
+    if utils.get_platform() != "macos":
+        pytest.skip("this test can only run on macOS")
+    if utils.get_xcode_version() < (13, 0):
+        pytest.skip("this test only works with Xcode 13.0 or greater")
+
+    project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
+    basic_project.generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(
+            project_dir,
+            add_env={
+                "CIBW_PLATFORM": "ios",
+                "CIBW_BUILD": "cp313-*",
+                "CIBW_TEST_REQUIRES": "pytest",
+                "CIBW_TEST_COMMAND": "pytest {project}/tests",
+                "CIBW_XBUILD_TOOLS": "",
+            },
+        )
+
+    # The error message indicates the configuration issue.
+    captured = capfd.readouterr()
+    assert "iOS tests cannot use placeholders" in captured.out + captured.err
 
 
 def test_missing_xbuild_tool(tmp_path, capfd):

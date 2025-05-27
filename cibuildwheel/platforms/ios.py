@@ -606,8 +606,8 @@ def build(options: Options, tmp_path: Path) -> None:
                     ):
                         msg = unwrap_preserving_paragraphs(
                             f"""
-                            iOS tests configured with a test command that uses the {{"project"}} or
-                            {{"package"}} placeholder. iOS tests cannot use placeholders, because the
+                            iOS tests configured with a test command that uses the "{{project}}" or
+                            "{{package}}" placeholder. iOS tests cannot use placeholders, because the
                             source directory is not visible on the simulator.
 
                             In addition, iOS tests must run as a Python module, so the test command
