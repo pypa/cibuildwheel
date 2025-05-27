@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 import inspect
 import os
@@ -8,7 +9,6 @@ import subprocess
 import sys
 import typing
 from collections.abc import Set
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, assert_never
 
@@ -76,7 +76,7 @@ def get_macos_sdks() -> list[str]:
     return [m.group(1) for m in re.finditer(r"-sdk (macosx\S+)", output)]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str

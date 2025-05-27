@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 import json
 import os
@@ -6,7 +7,6 @@ import sys
 import tomllib
 import typing
 from collections.abc import Set
-from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Final, TypedDict
@@ -41,7 +41,7 @@ from ..venv import constraint_flags, virtualenv
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str

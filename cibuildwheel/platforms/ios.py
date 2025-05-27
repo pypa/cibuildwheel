@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import os
 import shlex
 import shutil
@@ -7,7 +8,6 @@ import subprocess
 import sys
 import textwrap
 from collections.abc import Sequence, Set
-from dataclasses import dataclass
 from pathlib import Path
 from typing import assert_never
 
@@ -42,7 +42,7 @@ from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str

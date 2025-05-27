@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import os
 import platform as platform_module
@@ -5,7 +6,6 @@ import shutil
 import subprocess
 import textwrap
 from collections.abc import MutableMapping, Set
-from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 from typing import assert_never
@@ -51,7 +51,7 @@ def get_nuget_args(
     ]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     arch: str

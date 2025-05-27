@@ -1,10 +1,10 @@
 import contextlib
+import dataclasses
 import subprocess
 import sys
 import textwrap
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
-from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
@@ -32,7 +32,7 @@ ARCHITECTURE_OCI_PLATFORM_MAP = {
 }
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str
@@ -43,7 +43,7 @@ class PythonConfiguration:
         return PurePosixPath(self.path_str)
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildStep:
     platform_configs: list[PythonConfiguration]
     platform_tag: str
