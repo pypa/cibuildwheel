@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0b2
+        run: python -m pip install cibuildwheel==3.0.0b3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -223,8 +223,16 @@ Not yet released, but available for testing.
 
 Note - when using a beta version, be sure to check the [latest docs](https://cibuildwheel.pypa.io/en/latest/), rather than the stable version, which is still on v2.X.
 
-Known issues:
-- ⚠️ The CWD for test-command has changed in v3.0, but that is still [being debated](https://github.com/pypa/cibuildwheel/issues/2406), it might change before the final release. Please provide feedback on the aforementioned issue if you do (or don't!) encounter issues with this.
+If you've used previous versions of the beta:
+- ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
+- ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
+
+#### v3.0.0b3
+
+_28 May 2025_
+
+- 🛠 Reverts the test working dir (when test-sources isn't set) to a temporary dir, rather than the project. (#2420)
+- 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
 
 #### v3.0.0b2
 
@@ -245,7 +253,8 @@ _19 May 2025_
 - ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/latest/options/#test-sources), and changes the working directory for tests.
 
     - If this option is set, cibuildwheel will copy the files and folders specified in `test-sources` into a temporary directory, and run the tests from there. This is required for iOS builds, but also useful for other platforms, as it allows you to test the installed wheel without any chance of accidentally importing from the source tree.
-    - If this option is not set, cibuildwheel will run the tests in the source tree. This is a change from the previous behavior, where cibuildwheel would run the tests from a temporary directory. We're still investigating what's best here, so if you encounter any issues with this, please let us know in [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406).
+    - ~If this option is not set, cibuildwheel will run the tests in the source tree. This is a change from the previous behavior, where cibuildwheel would run the tests from a temporary directory. We're still investigating what's best here, so if you encounter any issues with this, please let us know in [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406).~
+    - If this option is not set, behaviour matches v2.x - cibuildwheel will run the tests from a temporary directory, and you can use the `{project}` placeholder in the `test-command` to refer to the project directory.
 
 - ✨ Added `dependency-versions` inline syntax (#2123)
 - 🛠 EOL manylinux options can no longer be specified by their shortname. Full OCI URL can still be used for these images, if you wish (#2316)
@@ -259,14 +268,6 @@ _19 May 2025_
 _26 April 2025_
 
 - 🛠 Dependency updates, including Python 3.13.3 (#2371)
-
-### v2.23.2
-
-_24 March 2025_
-
-- 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
-- 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
--
 
 <!-- END bin/update_readme_changelog.py -->
 
