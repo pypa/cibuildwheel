@@ -42,7 +42,6 @@ native_arch = next(
 cp313_env = {
     "CIBW_PLATFORM": "android",
     "CIBW_BUILD": "cp313-*",
-    "CIBW_TEST_SOURCES": "setup.cfg",  # Dummy file to ensure the variable is non-empty.
 }
 
 
@@ -190,6 +189,16 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
         ),
         # Runtime failure
         ("pytest test_ham.py", "not found: test_ham.py"),
+        (
+            "pytest {project}",
+            "Test command 'pytest {project}' with a '{project}' or '{package}' "
+            "placeholder is not supported on Android",
+        ),
+        (
+            "pytest {package}",
+            "Test command 'pytest {package}' with a '{project}' or '{package}' "
+            "placeholder is not supported on Android",
+        ),
     ],
 )
 def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
@@ -204,13 +213,12 @@ def test_no_test_sources(tmp_path, capfd):
     with pytest.raises(CalledProcessError):
         cibuildwheel_run(
             tmp_path,
-            add_env={
-                **cp313_env,
-                "CIBW_TEST_SOURCES": "",
-                "CIBW_TEST_COMMAND": "python -c 'import sys'",
-            },
+            add_env={**cp313_env, "CIBW_TEST_COMMAND": "python -m unittest discover"},
         )
-    assert "Testing on Android requires a definition of test-sources." in capfd.readouterr().err
+    assert (
+        "On this platform, you must copy your test files to the testbed app by "
+        "setting the `test-sources` option"
+    ) in capfd.readouterr().err
 
 
 @pytest.mark.serial

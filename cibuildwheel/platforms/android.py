@@ -369,14 +369,29 @@ class Builder:
             *self.build_options.test_requires,
         )
 
-        # Copy test-sources. This option is required, as the project directory isn't visible on the
-        # emulator.
-        if not self.build_options.test_sources:
-            msg = "Testing on Android requires a definition of test-sources."
-            raise errors.FatalError(msg)
+        # Copy test-sources.
         cwd_dir = self.tmp_dir / "cwd"
         cwd_dir.mkdir()
-        copy_test_sources(self.build_options.test_sources, self.build_options.package_dir, cwd_dir)
+        if self.build_options.test_sources:
+            copy_test_sources(
+                self.build_options.test_sources, self.build_options.package_dir, cwd_dir
+            )
+        else:
+            (cwd_dir / "test_fail.py").write_text(
+                resources.TEST_FAIL_CWD_FILE.read_text(),
+            )
+
+        # Android doesn't support placeholders in the test command.
+        if any(
+            ("{" + placeholder + "}") in self.build_options.test_command
+            for placeholder in ["project", "package"]
+        ):
+            msg = (
+                f"Test command '{self.build_options.test_command}' with a "
+                "'{project}' or '{package}' placeholder is not supported on Android, "
+                "because the source directory is not visible on the emulator."
+            )
+            raise errors.FatalError(msg)
 
         # Parse test-command.
         test_args = shlex.split(self.build_options.test_command)
