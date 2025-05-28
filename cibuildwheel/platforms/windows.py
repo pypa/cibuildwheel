@@ -553,9 +553,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     pip_version=pip_version,
                 )
 
-                # see https://github.com/pypa/cibuildwheel/issues/2358 for discussion
-                virtualenv_env["PYTHONSAFEPATH"] = "1"
-
                 virtualenv_env = build_options.test_environment.as_dictionary(
                     prev_environment=virtualenv_env
                 )

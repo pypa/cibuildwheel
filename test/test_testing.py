@@ -66,12 +66,6 @@ class TestSpam(TestCase):
         bits = struct.calcsize("P") * 8
         if bits == 32:
             self.assertIn(platform.machine(), ["i686", "armv7l","armv8l", "wasm32"])
-
-    def test_pythonsafepath(self):
-        # check that the PYTHONSAFEPATH environment variable is set
-        value = os.environ.get("PYTHONSAFEPATH")
-        self.assertIsNotNone(value)
-        self.assertNotEqual(value, "")
 '''
 
 
@@ -256,8 +250,8 @@ def test_test_environment(tmp_path):
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_TEST_ENVIRONMENT": "MYVAR=somevalue PYTHONSAFEPATH=",
-            "CIBW_TEST_COMMAND": "python -c \"import os; assert os.environ.get('MYVAR') == 'somevalue'; assert os.environ.get('PYTHONSAFEPATH') == ''\"",
+            "CIBW_TEST_ENVIRONMENT": "MYVAR=somevalue PYTHONSAFEPATH=1",
+            "CIBW_TEST_COMMAND": "python -c \"import os; assert os.environ.get('MYVAR') == 'somevalue'; assert os.environ.get('PYTHONSAFEPATH') == '1'\"",
         },
     )
     # also check that we got the right wheels
