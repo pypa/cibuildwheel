@@ -65,11 +65,16 @@ def main() -> None:
 
     for option in options:
         cells: list[str] = []
+
         cells.append(f"**{option.section}**" if option.section != last_section else "")
         last_section = option.section
+
         url = f"https://cibuildwheel.pypa.io/en/stable/options/#{option.id}"
-        cells.append(f"[{option.name}]({url})")
+        name = option.name.replace(", ", "<br>")  # Replace commas with line breaks
+        cells.append(f"[{name}]({url})")
+
         cells.append(option.desc)
+
         table_md += "| " + " | ".join(cells) + " |\n"
     table_md += "\n"
 
