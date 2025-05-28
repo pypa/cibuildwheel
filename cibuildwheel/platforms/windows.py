@@ -351,7 +351,8 @@ def setup_python(
             text=True,
         ).strip()
         log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        vcvars = subprocess.check_output(
+        vcvars_file = tmp / "vcvars.json"
+        subprocess.check_output(
             [
                 f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
                 "-no_logo",
@@ -360,14 +361,22 @@ def setup_python(
                 "&&",
                 "python",
                 "-c",
-                "import os, json, sys; json.dump(dict(os.environ), sys.stdout);",
+                textwrap.dedent("""\
+                    import sys, json, os
+                    env = dict(os.environ)
+                    outfile = sys.argv[1]
+                    with open(outfile, 'w', encoding='utf-8') as f:
+                        json.dump(env, f)
+                """),
+                vcvars_file,
             ],
             shell=True,
-            text=True,
             env=env,
         )
+        with open(vcvars_file, encoding="utf-8") as f:
+            vcvars = json.load(f)
         print("vcvars", vcvars)
-        env.update(json.loads(vcvars))
+        env.update(vcvars)
 
     return base_python, env
 
