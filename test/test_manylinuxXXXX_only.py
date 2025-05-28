@@ -95,7 +95,7 @@ def test(manylinux_image, tmp_path):
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
     platform_tag_map = {
-        "manylinux2014": ["manylinux_2_17", "manylinux2014"],
+        "manylinux2014": ["manylinux2014", "manylinux_2_17"],
     }
     expected_wheels = utils.expected_wheels(
         "spam",
