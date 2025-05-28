@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import configparser
-from dataclasses import dataclass
+import dataclasses
 from pathlib import Path
 
 import requests
@@ -11,7 +11,7 @@ DIR = Path(__file__).parent.resolve()
 RESOURCES = DIR.parent / "cibuildwheel/resources"
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class Image:
     manylinux_version: str
     platforms: list[str]

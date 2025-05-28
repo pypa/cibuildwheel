@@ -102,7 +102,7 @@ class EnvironmentAssignmentBash:
         return False
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class ParsedEnvironment:
     assignments: list[EnvironmentAssignment]
 

@@ -1,5 +1,5 @@
+import dataclasses
 import itertools
-from dataclasses import dataclass
 from enum import StrEnum
 from fnmatch import fnmatch
 from typing import Any
@@ -58,7 +58,7 @@ class EnableGroup(StrEnum):
         return frozenset(result)
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildSelector:
     """
     This class holds a set of build/skip patterns. You call an instance with a
@@ -113,7 +113,7 @@ class BuildSelector:
         }
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class TestSelector:
     """
     A build selector that can only skip tests according to a skip pattern.

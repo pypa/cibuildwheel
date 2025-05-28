@@ -51,7 +51,7 @@ MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
 )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
@@ -80,7 +80,7 @@ class CommandLineArguments:
         )
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class GlobalOptions:
     package_dir: Path
     output_dir: Path
@@ -90,7 +90,7 @@ class GlobalOptions:
     allow_empty: bool
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildOptions:
     globals: GlobalOptions
     environment: ParsedEnvironment
