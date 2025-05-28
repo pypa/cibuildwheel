@@ -1,3 +1,4 @@
+import os
 import platform
 from dataclasses import dataclass
 from subprocess import CalledProcessError
@@ -12,6 +13,12 @@ system_machine = (platform.system(), platform.machine())
 if system_machine not in [("Linux", "x86_64"), ("Darwin", "arm64"), ("Darwin", "x86_64")]:
     pytest.skip(
         f"Android development tools are not available for {system_machine}",
+        allow_module_level=True,
+    )
+
+if "ANDROID_HOME" not in os.environ:
+    pytest.skip(
+        "ANDROID_HOME environment variable is not set",
         allow_module_level=True,
     )
 
@@ -30,7 +37,6 @@ archs = [
 native_arch = next(
     arch for arch in archs if platform.machine() in [arch.linux_machine, arch.macos_machine]
 )
-other_arch = next(arch for arch in archs if arch != native_arch)
 
 
 cp313_env = {
@@ -40,25 +46,24 @@ cp313_env = {
 }
 
 
-@pytest.mark.parametrize(
-    ("frontend", "expected_success"),
-    [("build", True), ("build[uv]", False), ("pip", False)],
-)
-def test_frontend(frontend, expected_success, tmp_path, capfd):
+def test_frontend_good(tmp_path):
     new_c_project().generate(tmp_path)
-    try:
-        wheels = cibuildwheel_run(
+    wheels = cibuildwheel_run(
+        tmp_path,
+        add_env={**cp313_env, "CIBW_BUILD_FRONTEND": "build"},
+    )
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{native_arch.android_abi}.whl"]
+
+
+@pytest.mark.parametrize("frontend", ["build[uv]", "pip"])
+def test_frontend_bad(frontend, tmp_path, capfd):
+    new_c_project().generate(tmp_path)
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(
             tmp_path,
             add_env={**cp313_env, "CIBW_BUILD_FRONTEND": frontend},
         )
-    except CalledProcessError:
-        if expected_success:
-            pytest.fail("unexpected failure")
-        assert "Android requires the build frontend to be 'build'" in capfd.readouterr().err
-    else:
-        if not expected_success:
-            pytest.fail("unexpected success")
-        assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{native_arch.android_abi}.whl"]
+    assert "Android requires the build frontend to be 'build'" in capfd.readouterr().err
 
 
 # Any tests which involve the testbed app must be run serially, because all copies of the testbed
@@ -84,11 +89,13 @@ def test_archs(tmp_path, capfd):
     assert len(machine_lines) == 1
     assert machine_lines[0] == f"machine={native_arch.linux_machine}"
 
-    # The non-native architecture should give a warning that it can't run tests.
-    assert (
-        f"warning: Skipping tests for {other_arch.android_abi}, as the build machine "
-        f"only supports {native_arch.android_abi}"
-    ) in stderr
+    # The non-native architectures should give a warning that they can't run tests.
+    for arch in archs:
+        if arch != native_arch:
+            assert (
+                f"warning: Skipping tests for {arch.android_abi}, as the build machine "
+                f"only supports {native_arch.android_abi}"
+            ) in stderr
 
 
 def test_build_requires(tmp_path, capfd):
@@ -127,28 +134,8 @@ def test_build_requires(tmp_path, capfd):
     assert "bitarray('10110').count()=3" in stdout
 
 
-@pytest.mark.serial
-@pytest.mark.parametrize(
-    ("command", "expected_success", "expected_output"),
-    [
-        # Success
-        ("python -c 'import test_spam; test_spam.test_spam()'", True, "Spam test passed"),
-        ("python -m pytest test_spam.py", True, "=== 1 passed in "),
-        ("pytest test_spam.py", True, "=== 1 passed in "),
-        # Build-time failure
-        (
-            "./test_spam.py",
-            False,
-            (
-                "Test command './test_spam.py' is not supported on Android. "
-                "Supported commands are 'python -m', 'python -c' and 'pytest'."
-            ),
-        ),
-        # Runtime failure
-        ("pytest test_ham.py", False, "not found: test_ham.py"),
-    ],
-)
-def test_test_command(command, expected_success, expected_output, tmp_path, capfd):
+@pytest.fixture
+def spam_env(tmp_path):
     project = new_c_project()
     project.files["test_spam.py"] = dedent(
         """\
@@ -160,26 +147,47 @@ def test_test_command(command, expected_success, expected_output, tmp_path, capf
             print("Spam test passed")
         """
     )
-
     project.generate(tmp_path)
-    try:
-        cibuildwheel_run(
-            tmp_path,
-            add_env={
-                **cp313_env,
-                "CIBW_TEST_SOURCES": "test_spam.py",
-                "CIBW_TEST_REQUIRES": "pytest==8.3.5",
-                "CIBW_TEST_COMMAND": command,
-            },
-        )
-    except CalledProcessError:
-        if expected_success:
-            pytest.fail("unexpected failure")
-        assert expected_output in capfd.readouterr().err
-    else:
-        if not expected_success:
-            pytest.fail("unexpected success")
-        assert expected_output in capfd.readouterr().out
+
+    return {
+        **cp313_env,
+        "CIBW_TEST_SOURCES": "test_spam.py",
+        "CIBW_TEST_REQUIRES": "pytest==8.3.5",
+    }
+
+
+@pytest.mark.serial
+@pytest.mark.parametrize(
+    ("command", "expected_output"),
+    [
+        ("python -c 'import test_spam; test_spam.test_spam()'", "Spam test passed"),
+        ("python -m pytest test_spam.py", "=== 1 passed in "),
+        ("pytest test_spam.py", "=== 1 passed in "),
+    ],
+)
+def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
+    cibuildwheel_run(tmp_path, add_env={**spam_env, "CIBW_TEST_COMMAND": command})
+    assert expected_output in capfd.readouterr().out
+
+
+@pytest.mark.serial
+@pytest.mark.parametrize(
+    ("command", "expected_output"),
+    [
+        # Build-time failure
+        (
+            "./test_spam.py",
+            "Test command './test_spam.py' is not supported on Android. "
+            "Supported commands are 'python -m', 'python -c' and 'pytest'.",
+        ),
+        # Runtime failure
+        ("pytest test_ham.py", "not found: test_ham.py"),
+    ],
+)
+def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(tmp_path, add_env={**spam_env, "CIBW_TEST_COMMAND": command})
+    assert expected_output in capfd.readouterr().err
 
 
 @pytest.mark.serial
