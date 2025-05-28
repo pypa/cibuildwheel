@@ -366,6 +366,7 @@ def setup_python(
             text=True,
             env=env,
         )
+        print("vcvars", vcvars)
         env.update(json.loads(vcvars))
 
     return base_python, env
