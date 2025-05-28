@@ -588,24 +588,26 @@ def build(options: Options, tmp_path: Path) -> None:
                 # run the tests from a temp dir, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel
                 # and not the repo code)
-                test_command_prepared = prepare_command(
-                    build_options.test_command,
-                    project=Path.cwd(),
-                    package=options.globals.package_dir.resolve(),
-                    wheel=repaired_wheel,
-                )
+                test_cwd = identifier_tmp_dir / "test_cwd"
+                test_cwd.mkdir()
+
                 if build_options.test_sources:
-                    test_cwd = identifier_tmp_dir / "test_cwd"
-                    test_cwd.mkdir()
                     copy_test_sources(
                         build_options.test_sources,
                         build_options.package_dir,
                         test_cwd,
                     )
                 else:
-                    # There are no test sources. Run the tests in the project directory.
-                    test_cwd = Path.cwd()
+                    # Use the test_fail.py file to raise a nice error if the user
+                    # tries to run tests in the cwd
+                    (test_cwd / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
 
+                test_command_prepared = prepare_command(
+                    build_options.test_command,
+                    project=Path.cwd(),
+                    package=options.globals.package_dir.resolve(),
+                    wheel=repaired_wheel,
+                )
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (remove if already exists)

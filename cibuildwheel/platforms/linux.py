@@ -398,9 +398,10 @@ def build_in_container(
                 wheel=wheel_to_test,
             )
 
+            test_cwd = testing_temp_dir / "test_cwd"
+            container.call(["mkdir", "-p", test_cwd])
+
             if build_options.test_sources:
-                test_cwd = testing_temp_dir / "test_cwd"
-                container.call(["mkdir", "-p", test_cwd])
                 copy_test_sources(
                     build_options.test_sources,
                     build_options.package_dir,
@@ -408,8 +409,9 @@ def build_in_container(
                     copy_into=container.copy_into,
                 )
             else:
-                # There are no test sources. Run the tests in the project directory.
-                test_cwd = PurePosixPath(container_project_path)
+                # Use the test_fail.py file to raise a nice error if the user
+                # tries to run tests in the cwd
+                container.copy_into(resources.TEST_FAIL_CWD_FILE, test_cwd / "test_fail.py")
 
             container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 

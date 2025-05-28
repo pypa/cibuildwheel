@@ -86,10 +86,10 @@ def test(tmp_path):
             "CIBW_TEST_REQUIRES": "pytest",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
             # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
             # until https://github.com/oracle/graalpython/issues/490 is fixed
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest ./test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest {project}/test",
         },
     )
 
@@ -109,10 +109,10 @@ def test_extras_require(tmp_path):
             "CIBW_TEST_EXTRAS": "test",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
             # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
             # until https://github.com/oracle/graalpython/issues/490 is fixed
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest ./test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest {project}/test",
         },
         single_python=True,
     )
@@ -143,10 +143,10 @@ def test_dependency_groups(tmp_path):
             "CIBW_TEST_GROUPS": "dev",
             # the 'false ||' bit is to ensure this command runs in a shell on
             # mac/linux.
-            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND": f"false || {utils.invoke_pytest()} {{project}}/test",
             # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
             # until https://github.com/oracle/graalpython/issues/490 is fixed
-            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest ./test",
+            "CIBW_TEST_COMMAND_WINDOWS": "COLOR 00 || where graalpy || pytest {project}/test",
         },
         single_python=True,
     )
@@ -178,7 +178,7 @@ def test_failing_test(tmp_path):
             output_dir=output_dir,
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
-                "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} ./test",
+                "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
                 # CPython 3.8 when running on macOS arm64 is unusual. The build
                 # always runs in x86_64, so the arm64 tests are not run. See
                 # #1169 for reasons why. That means the build succeeds, which
@@ -191,28 +191,40 @@ def test_failing_test(tmp_path):
 
 
 @pytest.mark.parametrize("test_runner", ["pytest", "unittest"])
-def test_bare_pytest_invocation(tmp_path: Path, test_runner: str) -> None:
-    """Check that if a user runs a bare test suite, it runs in the project folder"""
+def test_bare_pytest_invocation(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], test_runner: str
+) -> None:
+    """
+    Check that if a user runs pytest in the the test cwd without setting
+    test-sources, it raises a helpful error
+    """
     project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
+    output_dir = tmp_path / "output"
 
-    actual_wheels = utils.cibuildwheel_run(
-        project_dir,
-        add_env={
-            "CIBW_TEST_REQUIRES": "pytest" if test_runner == "pytest" else "",
-            "CIBW_TEST_COMMAND": (
-                # pytest fails on GraalPy 24.2.0 on Windows so we skip it there
-                # until https://github.com/oracle/graalpython/issues/490 fixed
-                "graalpy.exe -c 1 || python -m pytest"
-                if test_runner == "pytest"
-                else "python -m unittest discover test spam_test.py"
-            ),
-        },
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(
+            project_dir,
+            output_dir=output_dir,
+            add_env={
+                "CIBW_TEST_REQUIRES": "pytest" if test_runner == "pytest" else "",
+                "CIBW_TEST_COMMAND": (
+                    "python -m pytest" if test_runner == "pytest" else "python -m unittest"
+                ),
+                # Skip CPython 3.8 on macOS arm64, see comment above in
+                # 'test_failing_test'
+                "CIBW_SKIP": "cp38-macosx_arm64",
+            },
+        )
+
+    assert len(list(output_dir.iterdir())) == 0
+
+    captured = capfd.readouterr()
+
+    assert (
+        "Please specify a path to your tests when invoking pytest using the {project} placeholder"
+        in captured.out + captured.err
     )
-
-    # check that we got the right wheels
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
-    assert set(actual_wheels) == set(expected_wheels)
 
 
 def test_test_sources(tmp_path):
