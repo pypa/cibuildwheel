@@ -11,7 +11,7 @@ from .cmd import call
 from .helpers import parse_key_value_string, unwrap
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class DependencyConstraints:
     base_file_path: Path | None = None
     packages: list[str] = field(default_factory=list)

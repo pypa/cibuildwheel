@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 
+import dataclasses
 import difflib
 import logging
 import subprocess
 import tomllib
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
@@ -28,7 +28,7 @@ GET_VIRTUALENV_URL_TEMPLATE: Final[str] = (
 )
 
 
-@dataclass(frozen=True, order=True)
+@dataclasses.dataclass(frozen=True, order=True)
 class VersionTuple:
     version: Version
     version_string: str

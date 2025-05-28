@@ -42,11 +42,9 @@ def test_cross_compiled_build(tmp_path):
 @pytest.mark.parametrize(
     "test_config",
     [
-        # Run the test suite in the project folder
         {
             "CIBW_TEST_COMMAND": '''python -c "import platform; print('running tests on ' + platform.machine())"''',
         },
-        # Nominate the set of test sources to copy
         {
             "CIBW_TEST_COMMAND": "python tests/test_suite.py",
             "CIBW_TEST_SOURCES": "tests",

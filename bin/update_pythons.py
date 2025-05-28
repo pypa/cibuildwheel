@@ -280,8 +280,12 @@ class CPythonVersions:
 
         self.versions_dict: dict[Version, int] = {}
         for release in releases_info:
-            # Removing the prefix, Python 3.9 would use: release["name"].removeprefix("Python ")
-            version = Version(release["name"][7:])
+            # Skip the pymanager releases
+            if not release["slug"].startswith("python"):
+                continue
+
+            # Removing the prefix
+            version = Version(release["name"].removeprefix("Python "))
 
             uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
             self.versions_dict[version] = uri

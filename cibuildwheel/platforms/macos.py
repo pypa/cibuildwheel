@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 import inspect
 import os
@@ -8,7 +9,6 @@ import subprocess
 import sys
 import typing
 from collections.abc import Set
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, assert_never
 
@@ -76,7 +76,7 @@ def get_macos_sdks() -> list[str]:
     return [m.group(1) for m in re.finditer(r"-sdk (macosx\S+)", output)]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str
@@ -706,8 +706,9 @@ def build(options: Options, tmp_path: Path) -> None:
                         wheel=repaired_wheel,
                     )
 
+                    test_cwd = identifier_tmp_dir / "test_cwd"
+
                     if build_options.test_sources:
-                        test_cwd = identifier_tmp_dir / "test_cwd"
                         # only create test_cwd if it doesn't already exist - it
                         # may have been created during a previous `testing_arch`
                         if not test_cwd.exists():
@@ -718,8 +719,12 @@ def build(options: Options, tmp_path: Path) -> None:
                                 test_cwd,
                             )
                     else:
-                        # There are no test sources. Run the tests in the project directory.
-                        test_cwd = Path.cwd()
+                        # Use the test_fail.py file to raise a nice error if the user
+                        # tries to run tests in the cwd
+                        test_cwd.mkdir(exist_ok=True)
+                        (test_cwd / "test_fail.py").write_text(
+                            resources.TEST_FAIL_CWD_FILE.read_text()
+                        )
 
                     shell_with_arch(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 

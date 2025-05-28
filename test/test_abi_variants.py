@@ -187,7 +187,7 @@ def test_abi_none(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_TEST_REQUIRES": "pytest",
-            "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} ./test",
+            "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
             # limit the number of builds for test performance reasons
             "CIBW_BUILD": "cp38-* cp{}{}-* cp313t-* pp310-*".format(*utils.SINGLE_PYTHON_VERSION),
             "CIBW_ENABLE": "all",

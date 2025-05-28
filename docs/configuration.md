@@ -17,7 +17,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     ```yaml
     env:
       CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest ./tests"
+      CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
 !!! tab "Azure Pipelines"
@@ -27,7 +27,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     ```yaml
     variables:
       CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest ./tests"
+      CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
 !!! tab "Travis CI"
@@ -38,18 +38,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     env:
       global:
         - CIBW_TEST_REQUIRES=pytest
-        - CIBW_TEST_COMMAND="pytest ./tests"
-    ```
-
-!!! tab "AppVeyor"
-
-    > appveyor.yml ([docs](https://www.appveyor.com/docs/build-configuration/#environment-variables))
-
-    ```yaml
-    environment:
-      global:
-        CIBW_TEST_REQUIRES: pytest
-        CIBW_TEST_COMMAND: "pytest {project}\\tests"
+        - CIBW_TEST_COMMAND="pytest {project}/tests"
     ```
 
 !!! tab "CircleCI"
@@ -61,18 +50,18 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
       job_name:
         environment:
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: "pytest ./tests"
+          CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
 !!! tab "Gitlab CI"
 
-    > .gitlab-ci.yml ([docs](https://docs.gitlab.com/ee/ci/variables/README.html#create-a-custom-variable-in-gitlab-ciyml))
+    > .gitlab-ci.yml ([docs](https://docs.gitlab.com/ci/yaml/#variables))
 
     ```yaml
     linux:
       variables:
         CIBW_TEST_REQUIRES: pytest
-        CIBW_TEST_COMMAND: "pytest ./tests"
+        CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
 !!! tab "Cirrus CI"
@@ -82,7 +71,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
     ```yaml
     env:
       CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest ./tests"
+      CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
 ## Configuration file {: #configuration-file}

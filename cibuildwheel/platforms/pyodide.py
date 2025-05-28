@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 import json
 import os
@@ -6,7 +7,6 @@ import sys
 import tomllib
 import typing
 from collections.abc import Set
-from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Final, TypedDict
@@ -41,7 +41,7 @@ from ..venv import constraint_flags, virtualenv
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str
@@ -498,6 +498,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.before_test,
                         project=".",
                         package=build_options.package_dir,
+                        wheel=repaired_wheel,
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
@@ -522,17 +523,19 @@ def build(options: Options, tmp_path: Path) -> None:
                     package=build_options.package_dir.resolve(),
                 )
 
+                test_cwd = identifier_tmp_dir / "test_cwd"
+                test_cwd.mkdir(exist_ok=True)
+
                 if build_options.test_sources:
-                    test_cwd = identifier_tmp_dir / "test_cwd"
-                    test_cwd.mkdir(exist_ok=True)
                     copy_test_sources(
                         build_options.test_sources,
                         build_options.package_dir,
                         test_cwd,
                     )
                 else:
-                    # There are no test sources. Run the tests in the project directory.
-                    test_cwd = Path.cwd()
+                    # Use the test_fail.py file to raise a nice error if the user
+                    # tries to run tests in the cwd
+                    (test_cwd / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
 
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 

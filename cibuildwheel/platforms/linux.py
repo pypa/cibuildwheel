@@ -1,10 +1,10 @@
 import contextlib
+import dataclasses
 import subprocess
 import sys
 import textwrap
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
-from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
@@ -32,7 +32,7 @@ ARCHITECTURE_OCI_PLATFORM_MAP = {
 }
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str
@@ -43,7 +43,7 @@ class PythonConfiguration:
         return PurePosixPath(self.path_str)
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildStep:
     platform_configs: list[PythonConfiguration]
     platform_tag: str
@@ -398,9 +398,10 @@ def build_in_container(
                 wheel=wheel_to_test,
             )
 
+            test_cwd = testing_temp_dir / "test_cwd"
+            container.call(["mkdir", "-p", test_cwd])
+
             if build_options.test_sources:
-                test_cwd = testing_temp_dir / "test_cwd"
-                container.call(["mkdir", "-p", test_cwd])
                 copy_test_sources(
                     build_options.test_sources,
                     build_options.package_dir,
@@ -408,8 +409,9 @@ def build_in_container(
                     copy_into=container.copy_into,
                 )
             else:
-                # There are no test sources. Run the tests in the project directory.
-                test_cwd = PurePosixPath(container_project_path)
+                # Use the test_fail.py file to raise a nice error if the user
+                # tries to run tests in the cwd
+                container.copy_into(resources.TEST_FAIL_CWD_FILE, test_cwd / "test_fail.py")
 
             container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
 

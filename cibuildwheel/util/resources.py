@@ -17,6 +17,7 @@ CONSTRAINTS: Final[Path] = PATH / "constraints.txt"
 VIRTUALENV: Final[Path] = PATH / "virtualenv.toml"
 CIBUILDWHEEL_SCHEMA: Final[Path] = PATH / "cibuildwheel.schema.json"
 PYTHON_BUILD_STANDALONE_RELEASES: Final[Path] = PATH / "python-build-standalone-releases.json"
+TEST_FAIL_CWD_FILE: Final[Path] = PATH / "testing_temp_dir_file.py"
 
 
 # this value is cached because it's used a lot in unit tests

@@ -28,7 +28,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
     ```bash
     export CIBW_BUILD='cp37-*'
-    export CIBW_TEST_COMMAND='pytest ./tests'
+    export CIBW_TEST_COMMAND='pytest {project}/tests'
     cibuildwheel --platform linux .
     ```
 
@@ -982,22 +982,22 @@ The available options are:
 
 | Option                         | Default                                                         |
 |--------------------------------|-----------------------------------------------------------------|
-| `manylinux-x86-64-image`       | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-x86-64)  |
-| `manylinux-i686-image`         | [`manylinux2014`](https://quay.io/pypa/manylinux2014-i686)      |
-| `manylinux-pypy-x86-64-image`  | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-x86-64)  |
-| `manylinux-aarch64-image`      | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-aarch64) |
-| `manylinux-ppc64le-image`      | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-ppc64le) |
-| `manylinux-s390x-image`        | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-s390x)   |
-| `manylinux-armv7l-image`       | [`manylinux-2-31`](https://quay.io/pypa/manylinux-2-31-armv7l)  |
+| `manylinux_x86_64-image`       | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| `manylinux-i686-image`         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| `manylinux-pypy_x86_64-image`  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| `manylinux-aarch64-image`      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| `manylinux-ppc64le-image`      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
+| `manylinux-s390x-image`        | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
+| `manylinux-armv7l-image`       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l)  |
 | `manylinux-riscv64-image`      | No default                                                      |
-| `manylinux-pypy-aarch64-image` | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-aarch64) |
-| `manylinux-pypy-i686-image`    | [`manylinux2014`](https://quay.io/pypa/manylinux2014-i686)      |
-| `musllinux-x86-64-image`       | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-x86-64)    |
-| `musllinux-i686-image`         | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-i686)      |
-| `musllinux-aarch64-image`      | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-aarch64)   |
-| `musllinux-ppc64le-image`      | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-ppc64le)   |
-| `musllinux-s390x-image`        | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-s390x)     |
-| `musllinux-armv7l-image`       | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-armv7l)    |
+| `manylinux-pypy_aarch64-image` | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| `manylinux-pypy_i686-image`    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| `musllinux_x86_64-image`       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)    |
+| `musllinux-i686-image`         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)      |
+| `musllinux-aarch64-image`      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)   |
+| `musllinux-ppc64le-image`      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)   |
+| `musllinux-s390x-image`        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)     |
+| `musllinux-armv7l-image`       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)    |
 | `musllinux-riscv64-image`      | No default                                                      |
 
 Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
@@ -1284,23 +1284,23 @@ Shell command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
-By default, tests are executed from your project directory. When specifying
-`test-command`, you can optionally use the placeholders `{package}` and
-`{project}` to pass in the location of your test code:
+To ensure the wheel is imported by your tests (instead of your source copy),
+**Tests are executed from a temporary directory**, outside of your source
+tree. To access your test code, you have a couple of options:
 
-- `{package}` is the path to the package being built - the `package_dir`
-  argument supplied to cibuildwheel on the command line.
-- `{project}` is an absolute path to the project root - the working directory
-  where cibuildwheel was called.
+- You can use the [`test-sources`](#test-sources) setting to copy specific
+  files from your source tree into the temporary directory. When using
+  test-sources, use relative paths in your test command, as if they were
+  relative to the project root.
 
-Using `{package}` or `{project}` used to be required, but since cibuildwheel
-3.0, tests are run from the project root by default. This means that you can
-use relative paths in your test command, and they will be relative to the
-project root.
+- You can use the `{package}` or `{project}` placeholders in your
+  `test-command` to refer to the package being built or the project root,
+  respectively.
 
-Alternatively, you can use the [`test-sources`](#test-sources) setting to
-create a temporary folder populated with a specific subset of project files to
-run your test suite.
+    - `{package}` is the path to the package being built - the `package_dir`
+      argument supplied to cibuildwheel on the command line.
+    - `{project}` is an absolute path to the project root - the working
+      directory where cibuildwheel was called.
 
 On all platforms other than iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
@@ -1318,18 +1318,18 @@ Platform-specific environment variables are also available:<br/>
     ```toml
     [tool.cibuildwheel]
     # Run the package tests using `pytest`
-    test-command = "pytest ./tests"
+    test-command = "pytest {project}/tests"
 
     # Trigger an install of the package, but run nothing of note
     test-command = "echo Wheel installed"
 
     # Multiline example
     test-command = [
-      "pytest ./tests",
-      "python ./test.py",
+      "pytest {project}/tests",
+      "python {project}/test.py",
     ]
 
-    # run tests on ios
+    # run tests on ios - when test-sources is set, use relative paths, not {project} or {package}
     [tool.cibuildwheel.ios]
     test-sources = ["tests"]
     test-command = "python -m pytest ./tests"
@@ -1341,17 +1341,17 @@ Platform-specific environment variables are also available:<br/>
 
     ```yaml
     # Run the package tests using `pytest`
-    CIBW_TEST_COMMAND: pytest ./tests
+    CIBW_TEST_COMMAND: pytest {project}/tests
 
     # Trigger an install of the package, but run nothing of note
     CIBW_TEST_COMMAND: "echo Wheel installed"
 
     # Multi-line example - join with && on all platforms
     CIBW_TEST_COMMAND: >
-      pytest ./tests &&
-      python ./test.py
+      pytest {project}/tests &&
+      python {project}/test.py
 
-    # run tests on ios
+    # run tests on ios - when test-sources is set, use relative paths, not {project} or {package}
     CIBW_TEST_SOURCES_IOS: tests
     CIBW_TEST_COMMAND_IOS: python -m pytest ./tests
     ```
