@@ -124,35 +124,44 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 
 <sup>Explore an interactive version of this diagram [in the docs](https://cibuildwheel.pypa.io/en/stable/#how-it-works).</sup>
 
-Options
--------
+<!-- START bin/update_readme_options_table.py -->
+<!-- This table is auto-generated from docs/options.md by bin/update_readme_options_table.py -->
 
 |   | Option | Description |
-|---|--------|-------------|
-| **Build selection** | [`CIBW_PLATFORM`](https://cibuildwheel.pypa.io/en/stable/options/#platform)  | Override the auto-detected target platform |
-|   | [`CIBW_BUILD`](https://cibuildwheel.pypa.io/en/stable/options/#build-skip)  <br> [`CIBW_SKIP`](https://cibuildwheel.pypa.io/en/stable/options/#build-skip)  | Choose the Python versions to build |
-|   | [`CIBW_ARCHS`](https://cibuildwheel.pypa.io/en/stable/options/#archs)  | Change the architectures built on your machine by default. |
-|   | [`CIBW_PROJECT_REQUIRES_PYTHON`](https://cibuildwheel.pypa.io/en/stable/options/#requires-python)  | Manually set the Python compatibility of your project |
-|   | [`CIBW_PRERELEASE_PYTHONS`](https://cibuildwheel.pypa.io/en/stable/options/#prerelease-pythons)  | Enable building with pre-release versions of Python if available |
-| **Build customization** | [`CIBW_BUILD_FRONTEND`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend)  | Set the tool to use to build, either "pip" (default for now) or "build" |
-|   | [`CIBW_ENVIRONMENT`](https://cibuildwheel.pypa.io/en/stable/options/#environment)  | Set environment variables needed during the build |
-|   | [`CIBW_ENVIRONMENT_PASS_LINUX`](https://cibuildwheel.pypa.io/en/stable/options/#environment-pass)  | Set environment variables on the host to pass-through to the container during the build. |
-|   | [`CIBW_BEFORE_ALL`](https://cibuildwheel.pypa.io/en/stable/options/#before-all)  | Execute a shell command on the build system before any wheels are built. |
-|   | [`CIBW_BEFORE_BUILD`](https://cibuildwheel.pypa.io/en/stable/options/#before-build)  | Execute a shell command preparing each wheel's build |
-|   | [`CIBW_XBUILD_TOOLS`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-tools)  | Binaries on the path that should be included in an isolated cross-build environment. |
-|   | [`CIBW_REPAIR_WHEEL_COMMAND`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command)  | Execute a shell command to repair each built wheel |
-|   | [`CIBW_MANYLINUX_*_IMAGE`<br/>`CIBW_MUSLLINUX_*_IMAGE`](https://cibuildwheel.pypa.io/en/stable/options/#linux-image)  | Specify alternative manylinux / musllinux Docker images |
-|   | [`CIBW_CONTAINER_ENGINE`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine)  | Specify which container engine to use when building Linux wheels |
-|   | [`CIBW_DEPENDENCY_VERSIONS`](https://cibuildwheel.pypa.io/en/stable/options/#dependency-versions)  | Specify how cibuildwheel controls the versions of the tools it uses |
-| **Testing** | [`CIBW_TEST_COMMAND`](https://cibuildwheel.pypa.io/en/stable/options/#test-command)  | Execute a shell command to test each built wheel |
-|   | [`CIBW_BEFORE_TEST`](https://cibuildwheel.pypa.io/en/stable/options/#before-test)  | Execute a shell command before testing each wheel |
-|   | [`CIBW_TEST_SOURCES`](https://cibuildwheel.pypa.io/en/stable/options/#test-sources)  | Files and folders from the source tree that are copied into an isolated tree before running the tests |
-|   | [`CIBW_TEST_REQUIRES`](https://cibuildwheel.pypa.io/en/stable/options/#test-requires)  | Install Python dependencies before running the tests |
-|   | [`CIBW_TEST_EXTRAS`](https://cibuildwheel.pypa.io/en/stable/options/#test-extras)  | Install your wheel for testing using extras_require |
-|   | [`CIBW_TEST_SKIP`](https://cibuildwheel.pypa.io/en/stable/options/#test-skip)  | Skip running tests on some builds |
-| **Other** | [`CIBW_BUILD_VERBOSITY`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity)  | Increase/decrease the output of pip wheel |
+|---|---|---|
+| **Build selection** | [`platform`](https://cibuildwheel.pypa.io/en/stable/options/#platform) | Override the auto-detected target platform |
+|  | [`build`, `skip`](https://cibuildwheel.pypa.io/en/stable/options/#build-skip) | Choose the Python versions to build |
+|  | [`archs`](https://cibuildwheel.pypa.io/en/stable/options/#archs) | Change the architectures built on your machine by default. |
+|  | [`project-requires-python`](https://cibuildwheel.pypa.io/en/stable/options/#requires-python) | Manually set the Python compatibility of your project |
+|  | [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) | Enable building with extra categories of selectors present. |
+|  | [`allow-empty`](https://cibuildwheel.pypa.io/en/stable/options/#allow-empty) | Suppress the error code if no wheels match the specified build identifiers |
+| **Build customization** | [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) | Set the tool to use to build, either "build" (default), "build\[uv\]", or "pip" |
+|  | [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) | Specify config-settings for the build backend. |
+|  | [`environment`](https://cibuildwheel.pypa.io/en/stable/options/#environment) | Set environment variables |
+|  | [`environment-pass`](https://cibuildwheel.pypa.io/en/stable/options/#environment-pass) | Set environment variables on the host to pass-through to the container. |
+|  | [`before-all`](https://cibuildwheel.pypa.io/en/stable/options/#before-all) | Execute a shell command on the build system before any wheels are built. |
+|  | [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) | Execute a shell command preparing each wheel's build |
+|  | [`xbuild-tools`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-tools) | Binaries on the path that should be included in an isolated cross-build environment. |
+|  | [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command) | Execute a shell command to repair each built wheel |
+|  | [`manylinux-*-image`, `musllinux-*-image`](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) | Specify manylinux / musllinux container images |
+|  | [`container-engine`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine) | Specify the container engine to use when building Linux wheels |
+|  | [`dependency-versions`](https://cibuildwheel.pypa.io/en/stable/options/#dependency-versions) | Control the versions of the tools cibuildwheel uses |
+|  | [`pyodide-version`](https://cibuildwheel.pypa.io/en/stable/options/#pyodide-version) | Specify the Pyodide version to use for `pyodide` platform builds |
+| **Testing** | [`test-command`](https://cibuildwheel.pypa.io/en/stable/options/#test-command) | The command to test each built wheel |
+|  | [`before-test`](https://cibuildwheel.pypa.io/en/stable/options/#before-test) | Execute a shell command before testing each wheel |
+|  | [`test-sources`](https://cibuildwheel.pypa.io/en/stable/options/#test-sources) | Files and folders from the source tree that are copied into an isolated tree before running the tests |
+|  | [`test-requires`](https://cibuildwheel.pypa.io/en/stable/options/#test-requires) | Install Python dependencies before running the tests |
+|  | [`test-extras`](https://cibuildwheel.pypa.io/en/stable/options/#test-extras) | Install your wheel for testing using `extras_require` |
+|  | [`test-groups`](https://cibuildwheel.pypa.io/en/stable/options/#test-groups) | Specify test dependencies from your project's `dependency-groups` |
+|  | [`test-skip`](https://cibuildwheel.pypa.io/en/stable/options/#test-skip) | Skip running tests on some builds |
+|  | [`test-environment`](https://cibuildwheel.pypa.io/en/stable/options/#test-environment) | Set environment variables for the test environment |
+| **Debugging** | [`debug-keep-container`](https://cibuildwheel.pypa.io/en/stable/options/#debug-keep-container) | Keep the container after running for debugging. |
+|  | [`debug-traceback`](https://cibuildwheel.pypa.io/en/stable/options/#debug-traceback) | Print full traceback when errors occur. |
+|  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
-These options can be specified in a pyproject.toml file, as well; see [configuration](https://cibuildwheel.pypa.io/en/stable/options/#configuration).
+<!-- END bin/update_readme_options_table.py -->
+
+These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
 Working examples
 ----------------

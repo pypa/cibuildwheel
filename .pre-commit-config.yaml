@@ -70,6 +70,12 @@ repos:
     language: python
     entry: bin/update_readme_changelog.py
     files: ^docs/changelog.md$
+  - id: update-readme-options-table
+    name: Update README options table
+    language: python
+    entry: bin/update_readme_options_table.py --force
+    files: ^docs/options.md$
+    pass_filenames: false
 
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.1
