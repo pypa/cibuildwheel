@@ -375,7 +375,6 @@ def setup_python(
         )
         with open(vcvars_file, encoding="utf-8") as f:
             vcvars = json.load(f)
-        print("vcvars", vcvars)
         env.update(vcvars)
 
     return base_python, env
