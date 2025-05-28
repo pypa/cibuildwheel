@@ -1604,12 +1604,6 @@ A space-separated list of environment variables to set in the test environment.
 
 The syntax is the same as for [`environment`](#environment).
 
-cibuildwheel sets the variable
-[`PYTHONSAFEPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONSAFEPATH)
-to avoid picking up in-tree dependencies when running the tests - we want to
-test the installed wheel, not the in-tree version. However, this can be
-overridden by setting `PYTHONSAFEPATH` to an empty string.
-
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_ENVIRONMENT_MACOS` | `CIBW_TEST_ENVIRONMENT_WINDOWS` | `CIBW_TEST_ENVIRONMENT_LINUX` | `CIBW_TEST_ENVIRONMENT_IOS` | `CIBW_TEST_ENVIRONMENT_PYODIDE`
 
@@ -1622,8 +1616,8 @@ Platform-specific environment variables are also available:<br/>
     # Set the environment variable MY_ENV_VAR to "my_value" in the test environment
     test-environment = { MY_ENV_VAR="my_value" }
 
-    # Unset PYTHONSAFEPATH in the test environment
-    test-environment = { PYTHONSAFEPATH="" }
+    # Set PYTHONSAFEPATH in the test environment
+    test-environment = { PYTHONSAFEPATH="1" }
     ```
 
 !!! tab examples "Environment variables"
@@ -1632,8 +1626,8 @@ Platform-specific environment variables are also available:<br/>
     # Set the environment variable MY_ENV_VAR to "my_value" in the test environment
     CIBW_TEST_ENVIRONMENT: MY_ENV_VAR=my_value
 
-    # Unset PYTHONSAFEPATH in the test environment
-    CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=
+    # Set PYTHONSAFEPATH in the test environment
+    CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=1
     ```
 
 

@@ -484,8 +484,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
-                virtualenv_env["PYTHONSAFEPATH"] = "1"
-
                 virtualenv_env = build_options.test_environment.as_dictionary(
                     prev_environment=virtualenv_env
                 )
