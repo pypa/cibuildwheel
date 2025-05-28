@@ -982,22 +982,22 @@ The available options are:
 
 | Option                         | Default                                                         |
 |--------------------------------|-----------------------------------------------------------------|
-| `manylinux-x86-64-image`       | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-x86-64)  |
-| `manylinux-i686-image`         | [`manylinux2014`](https://quay.io/pypa/manylinux2014-i686)      |
-| `manylinux-pypy-x86-64-image`  | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-x86-64)  |
-| `manylinux-aarch64-image`      | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-aarch64) |
-| `manylinux-ppc64le-image`      | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-ppc64le) |
-| `manylinux-s390x-image`        | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-s390x)   |
-| `manylinux-armv7l-image`       | [`manylinux-2-31`](https://quay.io/pypa/manylinux-2-31-armv7l)  |
+| `manylinux_x86_64-image`       | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| `manylinux-i686-image`         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| `manylinux-pypy_x86_64-image`  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
+| `manylinux-aarch64-image`      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| `manylinux-ppc64le-image`      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
+| `manylinux-s390x-image`        | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
+| `manylinux-armv7l-image`       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l)  |
 | `manylinux-riscv64-image`      | No default                                                      |
-| `manylinux-pypy-aarch64-image` | [`manylinux-2-28`](https://quay.io/pypa/manylinux-2-28-aarch64) |
-| `manylinux-pypy-i686-image`    | [`manylinux2014`](https://quay.io/pypa/manylinux2014-i686)      |
-| `musllinux-x86-64-image`       | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-x86-64)    |
-| `musllinux-i686-image`         | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-i686)      |
-| `musllinux-aarch64-image`      | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-aarch64)   |
-| `musllinux-ppc64le-image`      | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-ppc64le)   |
-| `musllinux-s390x-image`        | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-s390x)     |
-| `musllinux-armv7l-image`       | [`musllinux-1-2`](https://quay.io/pypa/musllinux-1-2-armv7l)    |
+| `manylinux-pypy_aarch64-image` | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
+| `manylinux-pypy_i686-image`    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| `musllinux_x86_64-image`       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)    |
+| `musllinux-i686-image`         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)      |
+| `musllinux-aarch64-image`      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)   |
+| `musllinux-ppc64le-image`      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)   |
+| `musllinux-s390x-image`        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)     |
+| `musllinux-armv7l-image`       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)    |
 | `musllinux-riscv64-image`      | No default                                                      |
 
 Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.

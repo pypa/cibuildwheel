@@ -79,7 +79,7 @@ for an example configuration.
 
 ## Manual method
 
-On your development machine, install [pipx](https://pypa.github.io/pipx/) and do the following:
+On your development machine, install [pipx](https://pipx.pypa.io/) and do the following:
 
 ```bash
 # Either download the SDist from your CI, or make it:

@@ -66,7 +66,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
 
 !!! tab "Gitlab CI"
 
-    > .gitlab-ci.yml ([docs](https://docs.gitlab.com/ee/ci/variables/README.html#create-a-custom-variable-in-gitlab-ciyml))
+    > .gitlab-ci.yml ([docs](https://docs.gitlab.com/ci/yaml/#variables))
 
     ```yaml
     linux:
