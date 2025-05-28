@@ -255,9 +255,11 @@ def _expected_wheels(
             "x86_64": ["manylinux1", "manylinux_2_5", "manylinux_2_28"],
             "riscv64": ["manylinux_2_31", "manylinux_2_35"],
         }.get(machine_arch, ["manylinux2014", "manylinux_2_17", "manylinux_2_28"])
+    manylinux_versions = sorted(manylinux_versions)
 
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
+    musllinux_versions = sorted(musllinux_versions)
 
     if platform == "pyodide" and python_abi_tags is None:
         python_abi_tags = ["cp312-cp312"]
