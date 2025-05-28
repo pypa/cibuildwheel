@@ -158,6 +158,7 @@ def expected_wheels(
     manylinux_versions: list[str] | None = None,
     musllinux_versions: list[str] | None = None,
     macosx_deployment_target: str = "10.9",
+    target_platform: str | None = None,
     machine_arch: str | None = None,
     python_abi_tags: list[str] | None = None,
     include_universal2: bool = False,
@@ -167,14 +168,17 @@ def expected_wheels(
     """
     Returns the expected wheels from a run of cibuildwheel.
     """
+    if target_platform is None:
+        target_platform = platform
+
     if machine_arch is None:
         machine_arch = pm.machine()
-        if platform == "linux":
+        if target_platform == "linux":
             machine_arch = arch_name_for_linux(machine_arch)
 
     architectures = [machine_arch]
     if not single_arch:
-        if platform == "linux":
+        if target_platform == "linux":
             if machine_arch == "x86_64":
                 architectures.append("i686")
             elif (
@@ -183,7 +187,7 @@ def expected_wheels(
                 and _AARCH64_CAN_RUN_ARMV7
             ):
                 architectures.append("armv7l")
-        elif platform == "windows" and machine_arch == "AMD64":
+        elif target_platform == "windows" and machine_arch == "AMD64":
             architectures.append("x86")
 
     return [
@@ -192,6 +196,7 @@ def expected_wheels(
         for wheel in _expected_wheels(
             package_name,
             package_version,
+            target_platform,
             architecture,
             manylinux_versions,
             musllinux_versions,
@@ -206,6 +211,7 @@ def expected_wheels(
 def _expected_wheels(
     package_name: str,
     package_version: str,
+    platform: str,
     machine_arch: str,
     manylinux_versions: list[str] | None,
     musllinux_versions: list[str] | None,
@@ -233,34 +239,37 @@ def _expected_wheels(
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
-    if platform == "pyodide" and python_abi_tags is None:
-        python_abi_tags = ["cp312-cp312"]
     if python_abi_tags is None:
-        python_abi_tags = [
-            "cp38-cp38",
-            "cp39-cp39",
-            "cp310-cp310",
-            "cp311-cp311",
-            "cp312-cp312",
-            "cp313-cp313",
-            "cp313-cp313t",
-        ]
-
-        if machine_arch == "ARM64":
-            # no CPython 3.8 on Windows ARM64
-            python_abi_tags.pop(0)
-
-        if machine_arch in ["x86_64", "i686", "AMD64", "aarch64", "arm64"]:
-            python_abi_tags += [
-                "pp38-pypy38_pp73",
-                "pp39-pypy39_pp73",
-                "pp310-pypy310_pp73",
-                "pp311-pypy311_pp73",
+        if platform == "android":
+            python_abi_tags = ["cp313-cp313"]
+        elif platform == "pyodide":
+            python_abi_tags = ["cp312-cp312"]
+        else:
+            python_abi_tags = [
+                "cp38-cp38",
+                "cp39-cp39",
+                "cp310-cp310",
+                "cp311-cp311",
+                "cp312-cp312",
+                "cp313-cp313",
+                "cp313-cp313t",
             ]
-        if machine_arch in ["x86_64", "AMD64", "aarch64", "arm64"]:
-            python_abi_tags += [
-                "graalpy311-graalpy242_311_native",
-            ]
+
+            if machine_arch == "ARM64":
+                # no CPython 3.8 on Windows ARM64
+                python_abi_tags.pop(0)
+
+            if machine_arch in ["x86_64", "i686", "AMD64", "aarch64", "arm64"]:
+                python_abi_tags += [
+                    "pp38-pypy38_pp73",
+                    "pp39-pypy39_pp73",
+                    "pp310-pypy310_pp73",
+                    "pp311-pypy311_pp73",
+                ]
+            if machine_arch in ["x86_64", "AMD64", "aarch64", "arm64"]:
+                python_abi_tags += [
+                    "graalpy311-graalpy242_311_native",
+                ]
 
     if single_python:
         python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
@@ -327,6 +336,14 @@ def _expected_wheels(
 
             if include_universal2:
                 platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
+
+        elif platform == "android":
+            api_level = {
+                "cp313-cp313": 21,
+                "cp314-cp314": 24,
+            }[python_abi_tag]
+            platform_tags = [f"android_{api_level}_{machine_arch}"]
+
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)

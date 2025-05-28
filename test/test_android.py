@@ -7,7 +7,7 @@ from textwrap import dedent
 import pytest
 
 from .test_projects import new_c_project
-from .utils import cibuildwheel_run
+from .utils import cibuildwheel_run, expected_wheels
 
 system_machine = (platform.system(), platform.machine())
 if system_machine not in [("Linux", "x86_64"), ("Darwin", "arm64"), ("Darwin", "x86_64")]:
@@ -64,6 +64,14 @@ def test_frontend_bad(frontend, tmp_path, capfd):
             add_env={**cp313_env, "CIBW_BUILD_FRONTEND": frontend},
         )
     assert "Android requires the build frontend to be 'build'" in capfd.readouterr().err
+
+
+def test_python_versions(tmp_path):
+    new_c_project().generate(tmp_path)
+    wheels = cibuildwheel_run(tmp_path, add_env={"CIBW_PLATFORM": "android"})
+    assert wheels == expected_wheels(
+        "spam", "0.1.0", target_platform="android", machine_arch=native_arch.android_abi
+    )
 
 
 # Any tests which involve the testbed app must be run serially, because all copies of the testbed
