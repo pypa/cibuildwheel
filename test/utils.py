@@ -250,11 +250,11 @@ def _expected_wheels(
 
     if manylinux_versions is None:
         manylinux_versions = {
-            "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
-            "i686": ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"],
-            "x86_64": ["manylinux_2_5", "manylinux1", "manylinux_2_28"],
+            "armv7l": ["manylinux2014", "manylinux_2_17", "manylinux_2_31"],
+            "i686": ["manylinux1", "manylinux2014", "manylinux_2_5", "manylinux_2_17"],
+            "x86_64": ["manylinux1", "manylinux_2_5", "manylinux_2_28"],
             "riscv64": ["manylinux_2_31", "manylinux_2_35"],
-        }.get(machine_arch, ["manylinux_2_17", "manylinux2014", "manylinux_2_28"])
+        }.get(machine_arch, ["manylinux2014", "manylinux_2_17", "manylinux_2_28"])
 
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
