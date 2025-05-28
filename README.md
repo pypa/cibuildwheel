@@ -5,7 +5,6 @@ cibuildwheel
 [![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.pypa.io/en/stable/?badge=stable)
 [![Actions Status](https://github.com/pypa/cibuildwheel/workflows/Test/badge.svg)](https://github.com/pypa/cibuildwheel/actions)
 [![Travis Status](https://img.shields.io/travis/com/pypa/cibuildwheel/main?logo=travis)](https://travis-ci.com/github/pypa/cibuildwheel)
-[![Appveyor status](https://ci.appveyor.com/api/projects/status/gt3vwl88yt0y3hur/branch/main?svg=true)](https://ci.appveyor.com/project/joerick/cibuildwheel/branch/main)
 [![CircleCI Status](https://img.shields.io/circleci/build/gh/pypa/cibuildwheel/main?logo=circleci)](https://circleci.com/gh/pypa/cibuildwheel)
 [![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName=main)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=4&branchName=main)
 
@@ -16,7 +15,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, and GitLab CI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, CircleCI, and GitLab CI - and it builds and tests your wheels across all of your platforms.
 
 
 What does it do?
@@ -24,19 +23,20 @@ What does it do?
 
 While cibuildwheel itself requires a recent Python version to run (we support the last three releases), it can target the following versions to build wheels:
 
-|                | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | Android | iOS | Pyodide |
-|----------------|----|-----|----|-----|-----|----|-----|----|-----|-----|---|-----|-----|-----|
-| CPython 3.8    | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
-| CPython 3.9    | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
-| CPython 3.10   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
-| CPython 3.11   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
-| CPython 3.12   | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A | N/A | ✅⁴ |
-| CPython 3.13³  | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | ✅ | ✅ | N/A |
-| PyPy 3.8 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
-| PyPy 3.9 v7.3  | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
-| PyPy 3.10 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
-| PyPy 3.11 v7.3 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
-| GraalPy 24.2   | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | N/A  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
+|                    | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64 | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | Android | iOS | Pyodide |
+|--------------------|----|-----|----|-----|-----|----|-----|----|-----|-----|---|-----|-----|-----|
+| CPython 3.8        | ✅ | ✅  | ✅  | ✅  | N/A | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
+| CPython 3.9        | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
+| CPython 3.10       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
+| CPython 3.11       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
+| CPython 3.12       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A | N/A | ✅⁴ |
+| CPython 3.13³      | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | ✅ | ✅ | N/A |
+| CPython 3.14³      | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A | N/A | N/A |
+| PyPy 3.8 v7.3      | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.9 v7.3      | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.10 v7.3     | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
+| PyPy 3.11 v7.3     | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
+| GraalPy 3.11 v24.2 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | N/A  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
 
 <sup>¹ PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
@@ -45,7 +45,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 <sup>⁵ manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 
 - Builds manylinux, musllinux, macOS 10.9+ (10.13+ for Python 3.12+), and Windows wheels for CPython, PyPy, and GraalPy
-- Works on GitHub Actions, Azure Pipelines, Travis CI, AppVeyor, CircleCI, GitLab CI, and Cirrus CI
+- Works on GitHub Actions, Azure Pipelines, Travis CI, CircleCI, GitLab CI, and Cirrus CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
 
@@ -56,15 +56,14 @@ Usage
 
 `cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
-|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | Android | iOS |
-|-----------------|-------|-------|---------|-----------|-----------|-------------|---------|-----|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅⁴      | ✅³  |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅⁴      | ✅³  |
-| Travis CI       | ✅    |       | ✅      | ✅        |           |             | ✅⁴      |     |
-| AppVeyor        | ✅    | ✅    | ✅      |           | ✅        | ✅²         | ✅⁴      | ✅³  |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅⁴      | ✅³  |
-| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅⁴      | ✅³  |
-| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅⁴      | ✅³  |
+|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | iOS |
+|-----------------|-------|-------|---------|-----------|-----------|-------------|-----|
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅          | ✅³  |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅³  |
+| Travis CI       | ✅    |       | ✅      | ✅        |           |             |     |
+| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅³  |
+| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅³  |
+| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅³  |
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
@@ -98,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.23.3
+        run: python -m pip install cibuildwheel==3.0.0b2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -188,7 +187,6 @@ Here are some repos that use cibuildwheel.
 [Prophet]: https://github.com/facebook/prophet
 [Kivy]: https://github.com/kivy/kivy
 
-[appveyor icon]: docs/data/readme_icons/appveyor.svg
 [github icon]: docs/data/readme_icons/github.svg
 [azurepipelines icon]: docs/data/readme_icons/azurepipelines.svg
 [circleci icon]: docs/data/readme_icons/circleci.svg
@@ -219,6 +217,43 @@ Changelog
 
 <!-- this section was generated by bin/update_readme_changelog.py -- do not edit manually -->
 
+### v3.0.0
+
+Not yet released, but available for testing.
+
+Note - when using a beta version, be sure to check the [latest docs](https://cibuildwheel.pypa.io/en/latest/), rather than the stable version, which is still on v2.X.
+
+Known issues:
+- ⚠️ The CWD for test-command has changed in v3.0, but that is still [being debated](https://github.com/pypa/cibuildwheel/issues/2406), it might change before the final release. Please provide feedback on the aforementioned issue if you do (or don't!) encounter issues with this.
+
+#### v3.0.0b2
+
+_25 May 2025_
+
+- ✨ Adds the [`CIBW_TEST_ENVIRONMENT`](https://cibuildwheel.pypa.io/en/latest/options/#test-environment) option, which allows you to set environment variables for the test command. cibuildwheel now sets `PYTHONSAFEPATH=1` in test environments by default, to avoid picking up package imports from the local directory - we want to test the installed wheel, not the source tree! You can change that, or any other environment variable in the test environment using this option. (#2388)
+- ✨ Improves support for Pyodide builds and adds the [`CIBW_PYODIDE_VERSION`](https://cibuildwheel.pypa.io/en/latest/options/#pyodide-version) option, which allows you to specify the version of Pyodide to use for builds. (#2002)
+
+#### v3.0.0b1
+
+_19 May 2025_
+
+- 🌟 Adds the ability to [build wheels for iOS](https://cibuildwheel.pypa.io/en/latest/platforms/#ios)! Set the [`platform` option](https://cibuildwheel.pypa.io/en/latest/options/#platform) to `ios` on a Mac with the iOS toolchain to try it out!
+- 🌟 Adds support for the GraalPy interpreter! Enable for your project using the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable). (#1538)
+- ✨ Adds CPython 3.14 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.14.0b1.
+
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
+- ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/latest/options/#test-sources), and changes the working directory for tests.
+
+    - If this option is set, cibuildwheel will copy the files and folders specified in `test-sources` into a temporary directory, and run the tests from there. This is required for iOS builds, but also useful for other platforms, as it allows you to test the installed wheel without any chance of accidentally importing from the source tree.
+    - If this option is not set, cibuildwheel will run the tests in the source tree. This is a change from the previous behavior, where cibuildwheel would run the tests from a temporary directory. We're still investigating what's best here, so if you encounter any issues with this, please let us know in [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406).
+
+- ✨ Added `dependency-versions` inline syntax (#2123)
+- 🛠 EOL manylinux options can no longer be specified by their shortname. Full OCI URL can still be used for these images, if you wish (#2316)
+- 🛠 Build environments no longer have setuptools and wheel preinstalled. (#2329)
+- ⚠️ PyPy wheels no longer built by default, due to a change to our options system. To continue building PyPy wheels, you'll now need to set the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) to `pypy` or `pypy-eol`.
+- ⚠️ Dropped official support for Appveyor. If it was working for you before, it will probably continue to do so, but we can't be sure, because our CI doesn't run there anymore. (#2386)
+- 📚 A reorganisation of the docs, and numerous updates (#2280)
+
 ### v2.23.3
 
 _26 April 2025_
@@ -231,40 +266,7 @@ _24 March 2025_
 
 - 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
 - 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
-
-### v2.23.1
-
-_15 March 2025_
-
-- ⚠️ Added warnings when the shorthand values `manylinux1`, `manylinux2010`, `manylinux_2_24`, and `musllinux_1_1` are used to specify the images in linux builds. The shorthand to these (unmaintainted) images will be removed in v3.0. If you want to keep using these images, explicitly opt-in using the full image URL, which can be found in [this file](https://github.com/pypa/cibuildwheel/blob/v2.23.1/cibuildwheel/resources/pinned_docker_images.cfg). (#2312)
-- 🛠 Dependency updates, including a manylinux update which fixes an [issue with rustup](https://github.com/pypa/cibuildwheel/issues/2303). (#2315)
-
-### v2.23.0
-
-_1 March 2025_
-
-- ✨ Adds official support for the new GitHub Actions Arm runners. In fact these worked out-of-the-box, now we include them in our tests and example configs. (#2135 via #2281)
-- ✨ Adds support for building PyPy 3.11 wheels (#2268 via #2281)
-- 🛠 Adopts the beta pypa/manylinux image for armv7l builds (#2269 via #2281)
-- 🛠 Dependency updates, including Pyodide 0.27 (#2117 and #2281)
-
-### v2.22.0
-
-_23 November 2024_
-
-- 🌟 Added a new `CIBW_ENABLE`/`enable` feature that replaces `CIBW_FREETHREADED_SUPPORT`/`free-threaded-support` and `CIBW_PRERELEASE_PYTHONS` with a system that supports both. In cibuildwheel 3, this will also include a PyPy setting and the deprecated options will be removed. (#2048)
-- 🌟 [Dependency groups](https://peps.python.org/pep-0735/) are now supported for tests. Use `CIBW_TEST_GROUPS`/`test-groups` to specify groups in `[dependency-groups]` for testing. (#2063)
-- 🌟 Support for the experimental Ubuntu-based ARMv7l manylinux image (#2052)
-- ✨ Show a warning when cibuildwheel is run from Python 3.10 or older; cibuildwheel 3.0 will require Python 3.11 or newer as host (#2050)
-- 🐛 Fix issue with stderr interfering with checking the docker version (#2074)
-- 🛠 Python 3.9 is now used in `CIBW_BEFORE_ALL`/`before-all` on linux, replacing 3.8, which is now EoL (#2043)
-- 🛠 Error messages for producing a pure-Python wheel are slightly more informative (#2044)
-- 🛠 Better error when `uname -m` fails on ARM (#2049)
-- 🛠 Better error when repair fails and docs for abi3audit on Windows (#2058)
-- 🛠 Better error when `manylinux-interpreters ensure` fails (#2066)
-- 🛠 Update Pyodide to 0.26.4, and adapt to the unbundled pyodide-build (now 0.29) (#2090)
-- 🛠 Now cibuildwheel uses dependency-groups for development dependencies (#2064, #2085)
-- 📚 Docs updates and tidy ups (#2061, #2067, #2072)
+-
 
 <!-- END bin/update_readme_changelog.py -->
 

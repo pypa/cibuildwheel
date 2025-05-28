@@ -6,12 +6,17 @@
 
 import argparse
 import copy
+import functools
 import json
+import sys
 from typing import Any
 
 import yaml
 
-parser = argparse.ArgumentParser()
+make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
+if sys.version_info >= (3, 14):
+    make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
+parser = make_parser()
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
@@ -31,6 +36,7 @@ $defs:
       - cpython-freethreading
       - cpython-prerelease
       - pypy
+      - pypy-eol
       - cpython-experimental-riscv64
   description: A Python version or flavor to enable.
 additionalProperties: false
@@ -191,6 +197,9 @@ properties:
   xbuild-tools:
     description: Binaries on the path that should be included in an isolated cross-build environment
     type: string_array
+  pyodide-version:
+    type: string
+    description: Specify the version of Pyodide to use
   repair-wheel-command:
     description: Execute a shell command to repair each built wheel.
     type: string_array
@@ -215,6 +224,9 @@ properties:
   test-skip:
     description: Skip running tests on some builds.
     type: string_array
+  test-environment:
+    description: Set environment variables for the test environment
+    type: string_table
 """
 
 schema = yaml.safe_load(starter)
@@ -294,6 +306,7 @@ items:
         test-extras: {"$ref": "#/$defs/inherit"}
         test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
+        test-environment: {"$ref": "#/$defs/inherit"}
 """
 )
 

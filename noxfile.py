@@ -68,17 +68,20 @@ def update_constraints(session: nox.Session) -> None:
     Update the dependencies inplace.
     """
 
+    session.install("-e.", "click")
+
     resources = Path("cibuildwheel/resources")
 
     if session.venv_backend != "uv":
         session.install("uv>=0.1.23")
 
-    for minor_version in range(8, 14):
+    # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+    # regenerate the constraints files
+    env = os.environ.copy()
+    env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+
+    for minor_version in range(8, 15):
         python_version = f"3.{minor_version}"
-        env = os.environ.copy()
-        # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
-        # regenerate the constraints files
-        env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
         output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
         session.run(
             "uv",
@@ -92,7 +95,7 @@ def update_constraints(session: nox.Session) -> None:
         )
 
     shutil.copyfile(
-        resources / "constraints-python312.txt",
+        resources / "constraints-python314.txt",
         resources / "constraints.txt",
     )
 
@@ -100,10 +103,19 @@ def update_constraints(session: nox.Session) -> None:
     pyodides = build_platforms["pyodide"]["python_configurations"]
     for pyodide in pyodides:
         python_version = ".".join(pyodide["version"].split(".")[:2])
-        pyodide_build_version = pyodide["pyodide_build_version"]
-        output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
+        pyodide_version = pyodide["default_pyodide_version"]
+
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
-        tmp_file.write_text(f"pip\nbuild[virtualenv]\npyodide-build=={pyodide_build_version}")
+
+        session.run(
+            "python",
+            "bin/generate_pyodide_constraints.py",
+            "--output-file",
+            tmp_file,
+            pyodide_version,
+        )
+
+        output_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.txt"
         session.run(
             "uv",
             "pip",
@@ -119,7 +131,8 @@ def update_constraints(session: nox.Session) -> None:
 @nox.session(default=False, tags=["update"])
 def update_pins(session: nox.Session) -> None:
     """
-    Update the python, docker and virtualenv pins version inplace.
+    Update the python, docker, virtualenv, node, and python-build-standalone
+    version pins inplace.
     """
     pyproject = nox.project.load_toml()
     session.install("-e.", *nox.project.dependency_groups(pyproject, "bin"))
@@ -127,6 +140,7 @@ def update_pins(session: nox.Session) -> None:
     session.run("python", "bin/update_docker.py")
     session.run("python", "bin/update_virtualenv.py", "--force")
     session.run("python", "bin/update_nodejs.py", "--force")
+    session.run("python", "bin/update_python_build_standalone.py")
 
 
 @nox.session(default=False, reuse_venv=True, tags=["update"])

@@ -1,3 +1,4 @@
+import dataclasses
 import io
 import json
 import os
@@ -10,7 +11,6 @@ import textwrap
 import typing
 import uuid
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
@@ -37,10 +37,11 @@ class OCIPlatform(Enum):
     S390X = "linux/s390x"
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class OCIContainerEngineConfig:
     name: ContainerEngineName
-    create_args: tuple[str, ...] = field(default_factory=tuple)
+    _: dataclasses.KW_ONLY
+    create_args: tuple[str, ...] = dataclasses.field(default_factory=tuple)
     disable_host_mount: bool = False
 
     @classmethod
@@ -342,6 +343,7 @@ class OCIContainer:
             )
         else:
             exec_process: subprocess.Popen[bytes]
+            self.call(["mkdir", "-p", to_path.parent])
             with subprocess.Popen(
                 [
                     self.engine.name,

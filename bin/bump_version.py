@@ -22,8 +22,6 @@ config = [
     ("cibuildwheel/__init__.py", '__version__ = "{}"'),
     ("docs/faq.md", "cibuildwheel=={}"),
     ("docs/faq.md", "cibuildwheel@v{}"),
-    ("docs/setup.md", "cibuildwheel=={}"),
-    ("docs/ci-services.md", "cibuildwheel=={}"),
     ("examples/*", "cibuildwheel=={}"),
     ("examples/*", "cibuildwheel@v{}"),
 ]

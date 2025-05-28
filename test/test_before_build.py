@@ -6,7 +6,7 @@ import pytest
 from . import test_projects, utils
 
 # pyodide does not support building without isolation, need to check the base_prefix
-SYS_PREFIX = f"sys.{'base_' if utils.platform == 'pyodide' else ''}prefix"
+SYS_PREFIX = f"sys.{'base_' if utils.get_platform() == 'pyodide' else ''}prefix"
 
 
 project_with_before_build_asserts = test_projects.new_c_project(
@@ -45,7 +45,7 @@ def test(tmp_path):
         f'''python -c "import pathlib, sys; pathlib.Path('{{project}}/pythonprefix_bb.txt').write_text({SYS_PREFIX})"'''
     )
     frontend = "build"
-    if utils.platform != "pyodide":
+    if utils.get_platform() != "pyodide":
         before_build = f"python -m pip install setuptools && {before_build}"
         frontend = f"{frontend};args: --no-isolation"
 

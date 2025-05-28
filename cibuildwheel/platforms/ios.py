@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import os
 import shlex
 import shutil
@@ -7,7 +8,6 @@ import subprocess
 import sys
 import textwrap
 from collections.abc import Sequence, Set
-from dataclasses import dataclass
 from pathlib import Path
 from typing import assert_never
 
@@ -32,7 +32,7 @@ from ..util.file import (
     download,
     move_file,
 )
-from ..util.helpers import prepare_command
+from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
 from ..util.packaging import (
     combine_constraints,
     find_compatible_wheel,
@@ -42,7 +42,7 @@ from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     identifier: str
@@ -536,13 +536,17 @@ def build(options: Options, tmp_path: Path) -> None:
                 elif config.arch != os.uname().machine:
                     log.step("Skipping tests on non-native simulator architecture")
                 else:
+                    test_env = build_options.test_environment.as_dictionary(
+                        prev_environment=build_env
+                    )
+
                     if build_options.before_test:
                         before_test_prepared = prepare_command(
                             build_options.before_test,
                             project=".",
                             package=build_options.package_dir,
                         )
-                        shell(before_test_prepared, env=env)
+                        shell(before_test_prepared, env=test_env)
 
                     log.step("Setting up test harness...")
                     # Clone the testbed project into the build directory
@@ -552,29 +556,29 @@ def build(options: Options, tmp_path: Path) -> None:
                         target_install_path / "testbed",
                         "clone",
                         testbed_path,
-                        env=build_env,
+                        env=test_env,
                     )
 
-                    if not build_options.test_sources:
-                        # iOS requires an explicit test-sources, as the project directory
-                        # isn't visible on the simulator.
-
-                        msg = "Testing on iOS requires a definition of test-sources."
-                        raise errors.FatalError(msg)
+                    testbed_app_path = testbed_path / "iOSTestbed" / "app"
 
                     # Copy the test sources to the testbed app
-                    copy_test_sources(
-                        build_options.test_sources,
-                        build_options.package_dir,
-                        testbed_path / "iOSTestbed" / "app",
-                    )
+                    if build_options.test_sources:
+                        copy_test_sources(
+                            build_options.test_sources,
+                            build_options.package_dir,
+                            testbed_app_path,
+                        )
+                    else:
+                        (testbed_app_path / "test_fail.py").write_text(
+                            resources.TEST_FAIL_CWD_FILE.read_text()
+                        )
 
                     log.step("Installing test requirements...")
                     # Install the compiled wheel (with any test extras), plus
                     # the test requirements. Use the --platform tag to force
                     # the installation of iOS wheels; this requires the use of
                     # --only-binary=:all:
-                    ios_version = build_env["IPHONEOS_DEPLOYMENT_TARGET"]
+                    ios_version = test_env["IPHONEOS_DEPLOYMENT_TARGET"]
                     platform_tag = f"ios_{ios_version.replace('.', '_')}_{config.arch}_{config.sdk}"
 
                     call(
@@ -589,10 +593,67 @@ def build(options: Options, tmp_path: Path) -> None:
                         testbed_path / "iOSTestbed" / "app_packages",
                         f"{test_wheel}{build_options.test_extras}",
                         *build_options.test_requires,
-                        env=build_env,
+                        env=test_env,
                     )
 
                     log.step("Running test suite...")
+
+                    # iOS doesn't support placeholders in the test command,
+                    # because the source dir isn't visible on the simulator.
+                    if (
+                        "{project}" in build_options.test_command
+                        or "{package}" in build_options.test_command
+                    ):
+                        msg = unwrap_preserving_paragraphs(
+                            f"""
+                            iOS tests configured with a test command that uses the "{{project}}" or
+                            "{{package}}" placeholder. iOS tests cannot use placeholders, because the
+                            source directory is not visible on the simulator.
+
+                            In addition, iOS tests must run as a Python module, so the test command
+                            must begin with 'python -m'.
+
+                            Test command: {build_options.test_command!r}
+                            """
+                        )
+                        raise errors.FatalError(msg)
+
+                    test_command_parts = shlex.split(build_options.test_command)
+                    if test_command_parts[0:2] != ["python", "-m"]:
+                        first_part = test_command_parts[0]
+                        if first_part == "pytest":
+                            # pytest works exactly the same as a module, so we
+                            # can just run it as a module.
+                            log.warning(
+                                unwrap_preserving_paragraphs(f"""
+                                    iOS tests configured with a test command which doesn't start
+                                    with 'python -m'. iOS tests must execute python modules - other
+                                    entrypoints are not supported.
+
+                                    cibuildwheel will try to execute it as if it started with
+                                    'python -m'. If this works, all you need to do is add that to
+                                    your test command.
+
+                                    Test command: {build_options.test_command!r}
+                                """)
+                            )
+                        else:
+                            msg = unwrap_preserving_paragraphs(
+                                f"""
+                                    iOS tests configured with a test command which doesn't start
+                                    with 'python -m'. iOS tests must execute python modules - other
+                                    entrypoints are not supported.
+
+                                    Test command: {build_options.test_command!r}
+                                """
+                            )
+                            raise errors.FatalError(msg)
+                    else:
+                        # the testbed run command actually doesn't want the
+                        # python -m prefix - it's implicit, so we remove it
+                        # here.
+                        test_command_parts = test_command_parts[2:]
+
                     try:
                         call(
                             "python",
@@ -600,8 +661,8 @@ def build(options: Options, tmp_path: Path) -> None:
                             "run",
                             *(["--verbose"] if build_options.build_verbosity > 0 else []),
                             "--",
-                            *(shlex.split(build_options.test_command)),
-                            env=build_env,
+                            *test_command_parts,
+                            env=test_env,
                         )
                         failed = False
                     except subprocess.CalledProcessError:

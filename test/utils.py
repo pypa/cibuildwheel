@@ -23,6 +23,9 @@ from cibuildwheel.util.file import CIBW_CACHE_PATH
 EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
 )
+PYPY_ARCHS = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
+GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
+
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
@@ -31,22 +34,34 @@ _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED
     CIProvider.cirrus_ci: False,
 }.get(detect_ci_provider(), True)
 
-platform = os.environ.get("CIBW_PLATFORM", "")
-if platform:
-    pass
-elif sys.platform.startswith("linux"):
-    platform = "linux"
-elif sys.platform.startswith("darwin"):
-    platform = "macos"
-elif sys.platform.startswith(("win32", "cygwin")):
-    platform = "windows"
-else:
-    msg = f"Unsupported platform {sys.platform!r}"
-    raise Exception(msg)
+
+def get_platform() -> str:
+    """Return the current platform as determined by CIBW_PLATFORM or sys.platform."""
+    platform = os.environ.get("CIBW_PLATFORM", "")
+    if platform:
+        return platform
+    elif sys.platform.startswith("linux"):
+        return "linux"
+    elif sys.platform.startswith("darwin"):
+        return "macos"
+    elif sys.platform.startswith(("win32", "cygwin")):
+        return "windows"
+    else:
+        msg = f"Unsupported platform {sys.platform!r}"
+        raise Exception(msg)
+
+
+DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease cpython-experimental-riscv64"
+
+
+def get_enable_groups() -> frozenset[EnableGroup]:
+    value = os.environ.get("CIBW_ENABLE", DEFAULT_CIBW_ENABLE)
+    return EnableGroup.parse_option_value(value)
 
 
 def cibuildwheel_get_build_identifiers(
-    project_path: Path, env: dict[str, str] | None = None, *, prerelease_pythons: bool = False
+    project_path: Path,
+    env: dict[str, str] | None = None,
 ) -> list[str]:
     """
     Returns the list of build identifiers that cibuildwheel will try to build
@@ -55,9 +70,6 @@ def cibuildwheel_get_build_identifiers(
     cmd = [sys.executable, "-m", "cibuildwheel", "--print-build-identifiers", str(project_path)]
     if env is None:
         env = os.environ.copy()
-    env["CIBW_ENABLE"] = "cpython-freethreading pypy graalpy"
-    if prerelease_pythons:
-        env["CIBW_ENABLE"] += " cpython-prerelease"
 
     cmd_output = subprocess.run(
         cmd,
@@ -73,7 +85,7 @@ def cibuildwheel_get_build_identifiers(
 def _update_pip_cache_dir(env: dict[str, str]) -> None:
     # Fix for pip concurrency bug https://github.com/pypa/pip/issues/11340
     # See https://github.com/pypa/cibuildwheel/issues/1254 for discussion.
-    if platform == "linux":
+    if get_platform() == "linux":
         return
     if "PIP_CACHE_DIR" in env:
         return
@@ -121,8 +133,6 @@ def cibuildwheel_run(
 
     _update_pip_cache_dir(env)
 
-    env["CIBW_ENABLE"] = " ".join(EnableGroup.all_groups())
-
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
 
@@ -157,9 +167,10 @@ def expected_wheels(
     package_version: str,
     manylinux_versions: list[str] | None = None,
     musllinux_versions: list[str] | None = None,
-    macosx_deployment_target: str = "10.9",
-    target_platform: str | None = None,
+    macosx_deployment_target: str | None = None,
+    iphoneos_deployment_target: str | None = None,
     machine_arch: str | None = None,
+    platform: str | None = None,
     python_abi_tags: list[str] | None = None,
     include_universal2: bool = False,
     single_python: bool = False,
@@ -168,17 +179,22 @@ def expected_wheels(
     """
     Returns the expected wheels from a run of cibuildwheel.
     """
-    if target_platform is None:
-        target_platform = platform
+    platform = platform or get_platform()
 
     if machine_arch is None:
         machine_arch = pm.machine()
-        if target_platform == "linux":
+        if platform == "linux":
             machine_arch = arch_name_for_linux(machine_arch)
+
+    if macosx_deployment_target is None:
+        macosx_deployment_target = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "10.9")
+
+    if iphoneos_deployment_target is None:
+        iphoneos_deployment_target = os.environ.get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
 
     architectures = [machine_arch]
     if not single_arch:
-        if target_platform == "linux":
+        if platform == "linux":
             if machine_arch == "x86_64":
                 architectures.append("i686")
             elif (
@@ -187,23 +203,24 @@ def expected_wheels(
                 and _AARCH64_CAN_RUN_ARMV7
             ):
                 architectures.append("armv7l")
-        elif target_platform == "windows" and machine_arch == "AMD64":
+        elif platform == "windows" and machine_arch == "AMD64":
             architectures.append("x86")
 
     return [
         wheel
         for architecture in architectures
         for wheel in _expected_wheels(
-            package_name,
-            package_version,
-            target_platform,
-            architecture,
-            manylinux_versions,
-            musllinux_versions,
-            macosx_deployment_target,
-            python_abi_tags,
-            include_universal2,
-            single_python,
+            package_name=package_name,
+            package_version=package_version,
+            machine_arch=architecture,
+            manylinux_versions=manylinux_versions,
+            musllinux_versions=musllinux_versions,
+            macosx_deployment_target=macosx_deployment_target,
+            iphoneos_deployment_target=iphoneos_deployment_target,
+            platform=platform,
+            python_abi_tags=python_abi_tags,
+            include_universal2=include_universal2,
+            single_python=single_python,
         )
     ]
 
@@ -211,11 +228,12 @@ def expected_wheels(
 def _expected_wheels(
     package_name: str,
     package_version: str,
-    platform: str,
     machine_arch: str,
     manylinux_versions: list[str] | None,
     musllinux_versions: list[str] | None,
     macosx_deployment_target: str,
+    iphoneos_deployment_target: str,
+    platform: str,
     python_abi_tags: list[str] | None,
     include_universal2: bool,
     single_python: bool,
@@ -228,48 +246,67 @@ def _expected_wheels(
     # {python tag} and {abi tag} are closely related to the python interpreter used to build the wheel
     # so we'll merge them below as python_abi_tag
 
+    enable_groups = EnableGroup.parse_option_value(os.environ.get("CIBW_ENABLE", ""))
+
     if manylinux_versions is None:
         manylinux_versions = {
             "armv7l": ["manylinux_2_17", "manylinux2014", "manylinux_2_31"],
             "i686": ["manylinux_2_5", "manylinux1", "manylinux_2_17", "manylinux2014"],
             "x86_64": ["manylinux_2_5", "manylinux1", "manylinux_2_28"],
-            "riscv64": ["manylinux_2_31"],
+            "riscv64": ["manylinux_2_31", "manylinux_2_35"],
         }.get(machine_arch, ["manylinux_2_17", "manylinux2014", "manylinux_2_28"])
 
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
-    if python_abi_tags is None:
-        if platform == "android":
-            python_abi_tags = ["cp313-cp313"]
-        elif platform == "pyodide":
-            python_abi_tags = ["cp312-cp312"]
-        else:
-            python_abi_tags = [
-                "cp38-cp38",
-                "cp39-cp39",
-                "cp310-cp310",
-                "cp311-cp311",
-                "cp312-cp312",
-                "cp313-cp313",
-                "cp313-cp313t",
+    if platform == "pyodide" and python_abi_tags is None:
+        python_abi_tags = ["cp312-cp312"]
+    elif platform in ["android", "ios"] and python_abi_tags is None:
+        python_abi_tags = ["cp313-cp313"]
+    elif python_abi_tags is None:
+        python_abi_tags = [
+            "cp38-cp38",
+            "cp39-cp39",
+            "cp310-cp310",
+            "cp311-cp311",
+            "cp312-cp312",
+            "cp313-cp313",
+        ]
+
+        enable_groups = get_enable_groups()
+        if EnableGroup.CPythonFreeThreading in enable_groups:
+            python_abi_tags.append("cp313-cp313t")
+
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags.append("cp314-cp314")
+            if EnableGroup.CPythonFreeThreading in enable_groups:
+                python_abi_tags.append("cp314-cp314t")
+
+        if EnableGroup.PyPyEoL in enable_groups:
+            python_abi_tags += [
+                "pp38-pypy38_pp73",
+                "pp39-pypy39_pp73",
+            ]
+        if EnableGroup.PyPy in enable_groups:
+            python_abi_tags += [
+                "pp310-pypy310_pp73",
+                "pp311-pypy311_pp73",
             ]
 
-            if machine_arch == "ARM64":
-                # no CPython 3.8 on Windows ARM64
-                python_abi_tags.pop(0)
+        if EnableGroup.GraalPy in enable_groups:
+            python_abi_tags += [
+                "graalpy311-graalpy242_311_native",
+            ]
 
-            if machine_arch in ["x86_64", "i686", "AMD64", "aarch64", "arm64"]:
-                python_abi_tags += [
-                    "pp38-pypy38_pp73",
-                    "pp39-pypy39_pp73",
-                    "pp310-pypy310_pp73",
-                    "pp311-pypy311_pp73",
-                ]
-            if machine_arch in ["x86_64", "AMD64", "aarch64", "arm64"]:
-                python_abi_tags += [
-                    "graalpy311-graalpy242_311_native",
-                ]
+    if machine_arch == "ARM64" and platform == "windows":
+        # no CPython 3.8 on Windows ARM64
+        python_abi_tags = [t for t in python_abi_tags if not t.startswith("cp38")]
+
+    if machine_arch not in PYPY_ARCHS:
+        python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("pp")]
+
+    if machine_arch not in GRAALPY_ARCHS:
+        python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("graalpy")]
 
     if single_python:
         python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
@@ -280,13 +317,6 @@ def _expected_wheels(
                 if tag.startswith(python_tag) and not tag.endswith("t")
             )
         ]
-
-    if platform == "pyodide":
-        assert len(python_abi_tags) == 1
-        python_abi_tag = python_abi_tags[0]
-        platform_tag = "pyodide_2024_0_wasm32"
-        yield f"{package_name}-{package_version}-{python_abi_tag}-{platform_tag}.whl"
-        return
 
     for python_abi_tag in python_abi_tags:
         platform_tags = []
@@ -344,6 +374,31 @@ def _expected_wheels(
             }[python_abi_tag]
             platform_tags = [f"android_{api_level}_{machine_arch}"]
 
+        elif platform == "ios":
+            if machine_arch == "x86_64":
+                platform_tags = [
+                    f"ios_{iphoneos_deployment_target.replace('.', '_')}_x86_64_iphonesimulator"
+                ]
+            elif machine_arch == "arm64":
+                platform_tags = [
+                    f"ios_{iphoneos_deployment_target.replace('.', '_')}_arm64_iphoneos",
+                    f"ios_{iphoneos_deployment_target.replace('.', '_')}_arm64_iphonesimulator",
+                ]
+            else:
+                msg = f"Unsupported architecture {machine_arch!r} for iOS"
+                raise Exception(msg)
+
+        elif platform == "pyodide":
+            platform_tags = {
+                "cp312-cp312": ["pyodide_2024_0_wasm32"],
+                "cp313-cp313": ["pyodide_2025_0_wasm32"],
+            }.get(python_abi_tag, [])
+
+            if not platform_tags:
+                # for example if the python tag is `none` or `abi3`, all
+                # platform tags are built with that python tag
+                platform_tags = ["pyodide_2024_0_wasm32"]
+
         else:
             msg = f"Unsupported platform {platform!r}"
             raise Exception(msg)
@@ -380,12 +435,12 @@ def get_xcode_version() -> tuple[int, int]:
 
 
 def skip_if_pyodide(reason: str) -> Any:
-    return pytest.mark.skipif(platform == "pyodide", reason=reason)
+    return pytest.mark.skipif(get_platform() == "pyodide", reason=reason)
 
 
 def invoke_pytest() -> str:
     # see https://github.com/pyodide/pyodide/issues/4802
-    if platform == "pyodide" and sys.platform.startswith("darwin"):
+    if get_platform() == "pyodide":
         return "python -m pytest"
     return "pytest"
 

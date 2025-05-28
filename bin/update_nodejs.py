@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 
+import dataclasses
 import difflib
 import logging
 import tomllib
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
@@ -27,7 +27,7 @@ NODEJS_DIST: Final[str] = "https://nodejs.org/dist/"
 NODEJS_INDEX: Final[str] = f"{NODEJS_DIST}index.json"
 
 
-@dataclass(frozen=True, order=True)
+@dataclasses.dataclass(frozen=True, order=True)
 class VersionTuple:
     version: Version
     version_string: str

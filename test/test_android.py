@@ -66,11 +66,11 @@ def test_frontend_bad(frontend, tmp_path, capfd):
     assert "Android requires the build frontend to be 'build'" in capfd.readouterr().err
 
 
-def test_python_versions(tmp_path):
+def test_expected_wheels(tmp_path):
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(tmp_path, add_env={"CIBW_PLATFORM": "android"})
     assert wheels == expected_wheels(
-        "spam", "0.1.0", target_platform="android", machine_arch=native_arch.android_abi
+        "spam", "0.1.0", platform="android", machine_arch=native_arch.android_abi
     )
 
 

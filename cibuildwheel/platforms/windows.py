@@ -1,10 +1,11 @@
+import dataclasses
+import json
 import os
 import platform as platform_module
 import shutil
 import subprocess
 import textwrap
 from collections.abc import MutableMapping, Set
-from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 from typing import assert_never
@@ -50,7 +51,7 @@ def get_nuget_args(
     ]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
     arch: str
@@ -350,28 +351,22 @@ def setup_python(
             text=True,
         ).strip()
         log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        env.update(
-            dict(
-                [
-                    envvar.strip().split("=", 1)
-                    for envvar in subprocess.check_output(
-                        [
-                            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
-                            "-no_logo",
-                            "-arch=amd64",
-                            "-host_arch=amd64",
-                            "&&",
-                            "set",
-                        ],
-                        shell=True,
-                        text=True,
-                        env=env,
-                    )
-                    .strip()
-                    .split("\n")
-                ]
-            )
+        vcvars = subprocess.check_output(
+            [
+                f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
+                "-no_logo",
+                "-arch=amd64",
+                "-host_arch=amd64",
+                "&&",
+                "python",
+                "-c",
+                "import os, json, sys; json.dump(dict(os.environ), sys.stdout);",
+            ],
+            shell=True,
+            text=True,
+            env=env,
         )
+        env.update(json.loads(vcvars))
 
     return base_python, env
 
@@ -558,6 +553,13 @@ def build(options: Options, tmp_path: Path) -> None:
                     pip_version=pip_version,
                 )
 
+                # see https://github.com/pypa/cibuildwheel/issues/2358 for discussion
+                virtualenv_env["PYTHONSAFEPATH"] = "1"
+
+                virtualenv_env = build_options.test_environment.as_dictionary(
+                    prev_environment=virtualenv_env
+                )
+
                 # check that we are using the Python from the virtual environment
                 call("where", "python", env=virtualenv_env)
 
@@ -586,24 +588,26 @@ def build(options: Options, tmp_path: Path) -> None:
                 # run the tests from a temp dir, with an absolute path in the command
                 # (this ensures that Python runs the tests against the installed wheel
                 # and not the repo code)
-                test_command_prepared = prepare_command(
-                    build_options.test_command,
-                    project=Path.cwd(),
-                    package=options.globals.package_dir.resolve(),
-                    wheel=repaired_wheel,
-                )
+                test_cwd = identifier_tmp_dir / "test_cwd"
+                test_cwd.mkdir()
+
                 if build_options.test_sources:
-                    test_cwd = identifier_tmp_dir / "test_cwd"
-                    test_cwd.mkdir()
                     copy_test_sources(
                         build_options.test_sources,
                         build_options.package_dir,
                         test_cwd,
                     )
                 else:
-                    # There are no test sources. Run the tests in the project directory.
-                    test_cwd = Path.cwd()
+                    # Use the test_fail.py file to raise a nice error if the user
+                    # tries to run tests in the cwd
+                    (test_cwd / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
 
+                test_command_prepared = prepare_command(
+                    build_options.test_command,
+                    project=Path.cwd(),
+                    package=options.globals.package_dir.resolve(),
+                    wheel=repaired_wheel,
+                )
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (remove if already exists)

@@ -1,6 +1,7 @@
 import argparse
 import contextlib
 import dataclasses
+import functools
 import os
 import shutil
 import sys
@@ -79,7 +80,10 @@ def main_inner(global_options: GlobalOptions) -> None:
     rather than exiting directly.
     """
 
-    parser = argparse.ArgumentParser(
+    make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
+    if sys.version_info >= (3, 14):
+        make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
+    parser = make_parser(
         description="Build wheels for all the platforms.",
         epilog="""
             Most options are supplied via environment variables or in

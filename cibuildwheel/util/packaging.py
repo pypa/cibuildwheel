@@ -11,7 +11,7 @@ from .cmd import call
 from .helpers import parse_key_value_string, unwrap
 
 
-@dataclass()
+@dataclass(kw_only=True)
 class DependencyConstraints:
     base_file_path: Path | None = None
     packages: list[str] = field(default_factory=list)
@@ -135,6 +135,7 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     """
 
     interpreter, platform = identifier.split("-", 1)
+    interpreter = interpreter.split("_")[0]
     free_threaded = interpreter.endswith("t")
     if free_threaded:
         interpreter = interpreter[:-1]
@@ -165,6 +166,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
                     continue
                 if not tag.platform.endswith(f"_{arch}"):
                     continue
+            elif platform.startswith("pyodide"):
+                # each Pyodide version has its own platform tag
+                continue
             else:
                 # Windows should exactly match
                 if tag.platform != platform:

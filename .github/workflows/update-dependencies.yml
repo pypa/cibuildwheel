@@ -55,3 +55,7 @@ jobs:
         sign-commits: true
         token: ${{ steps.generate-token.outputs.token }}
         delete-branch: true
+        labels: |
+          CI: GraalPy
+          CI: PyPy
+          dependencies

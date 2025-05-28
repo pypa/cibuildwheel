@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from collections.abc import Generator
 
@@ -8,9 +9,11 @@ from filelock import FileLock
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.ci import detect_ci_provider
 from cibuildwheel.options import CommandLineArguments, Options
+from cibuildwheel.selector import EnableGroup
+from cibuildwheel.typing import PLATFORMS
 from cibuildwheel.venv import find_uv
 
-from .utils import EMULATED_ARCHS, platform
+from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -28,6 +31,47 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="macOS cp38 uses the universal2 installer",
     )
+    parser.addoption(
+        "--enable",
+        action="store",
+        default=None,
+        help="Set the CIBW_ENABLE environment variable for all tests.",
+    )
+    parser.addoption(
+        "--platform",
+        action="store",
+        default=None,
+        help="Set the CIBW_PLATFORM environment variable for all tests.",
+    )
+
+
+def pytest_configure(config):
+    flag_enable = config.getoption("--enable")
+    flag_platform = config.getoption("--platform")
+
+    if flag_enable is not None and "CIBW_ENABLE" in os.environ:
+        msg = (
+            "Both --enable pytest option and CIBW_ENABLE environment variable are set. "
+            "Please specify only one."
+        )
+        raise pytest.UsageError(msg)
+    if flag_platform is not None and "CIBW_PLATFORM" in os.environ:
+        msg = (
+            "Both --platform pytest option and CIBW_PLATFORM environment variable are set. "
+            "Please specify only one."
+        )
+        raise pytest.UsageError(msg)
+
+    if flag_enable is not None:
+        EnableGroup.parse_option_value(flag_enable)
+        os.environ["CIBW_ENABLE"] = flag_enable
+    if flag_enable is None and "CIBW_ENABLE" not in os.environ:
+        # Set default value for CIBW_ENABLE
+        os.environ["CIBW_ENABLE"] = DEFAULT_CIBW_ENABLE
+
+    if flag_platform is not None:
+        assert flag_platform in PLATFORMS, f"Invalid platform: {flag_platform}"
+        os.environ["CIBW_PLATFORM"] = flag_platform
 
 
 def docker_warmup(request: pytest.FixtureRequest) -> None:
@@ -85,7 +129,7 @@ def docker_warmup_fixture(
     request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory, worker_id: str
 ) -> None:
     # if we're in CI testing linux, let's warm-up docker images
-    if detect_ci_provider() is None or platform != "linux":
+    if detect_ci_provider() is None or get_platform() != "linux":
         return None
     if request.config.getoption("--run-emulation", default=None) is not None:
         # emulation tests only run one test in CI, caching the image only slows down the test
@@ -110,7 +154,7 @@ def docker_warmup_fixture(
 @pytest.fixture(params=["pip", "build"])
 def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     frontend = request.param
-    if platform == "pyodide" and frontend == "pip":
+    if get_platform() == "pyodide" and frontend == "pip":
         pytest.skip("Can't use pip as build frontend for pyodide platform")
 
     return {"CIBW_BUILD_FRONTEND": frontend}
@@ -119,7 +163,7 @@ def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
 @pytest.fixture
 def build_frontend_env(build_frontend_env_nouv: dict[str, str]) -> dict[str, str]:
     frontend = build_frontend_env_nouv["CIBW_BUILD_FRONTEND"]
-    if frontend != "build" or platform == "pyodide" or find_uv() is None:
+    if frontend != "build" or get_platform() == "pyodide" or find_uv() is None:
         return build_frontend_env_nouv
 
     return {"CIBW_BUILD_FRONTEND": "build[uv]"}
@@ -128,7 +172,7 @@ def build_frontend_env(build_frontend_env_nouv: dict[str, str]) -> dict[str, str
 @pytest.fixture
 def docker_cleanup() -> Generator[None, None, None]:
     def get_images() -> set[str]:
-        if detect_ci_provider() is None or platform != "linux":
+        if detect_ci_provider() is None or get_platform() != "linux":
             return set()
         images = subprocess.run(
             ["docker", "image", "ls", "--format", "{{json .ID}}"],

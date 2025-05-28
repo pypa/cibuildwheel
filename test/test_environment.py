@@ -64,7 +64,7 @@ def test_overridden_path(tmp_path, capfd):
     output_dir.mkdir()
 
     # mess up PATH, somehow
-    if utils.platform == "linux":
+    if utils.get_platform() == "linux":
         with pytest.raises(subprocess.CalledProcessError):
             utils.cibuildwheel_run(
                 project_dir,
@@ -100,7 +100,12 @@ def test_overridden_path(tmp_path, capfd):
     "build_frontend",
     [
         pytest.param("pip", marks=utils.skip_if_pyodide("No pip for pyodide")),
-        "build",
+        pytest.param(
+            "build",
+            marks=utils.skip_if_pyodide(
+                "pyodide doesn't support multiple values for PIP_CONSTRAINT"
+            ),
+        ),
     ],
 )
 def test_overridden_pip_constraint(tmp_path, build_frontend):
@@ -128,7 +133,7 @@ def test_overridden_pip_constraint(tmp_path, build_frontend):
     )
     project.generate(project_dir)
 
-    if utils.platform == "linux":
+    if utils.get_platform() == "linux":
         # put the constraints file in the project directory, so it's available
         # in the docker container
         constraints_file = project_dir / "constraints.txt"

@@ -37,7 +37,7 @@ def test_pep518(tmp_path, build_frontend_env):
     # from a virtualenv seeded executable. See
     # https://github.com/oracle/graalpython/issues/491 and remove this once
     # fixed upstream.
-    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "build" and utils.platform == "windows":
+    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "build" and utils.get_platform() == "windows":
         build_frontend_env["CIBW_SKIP"] = "gp*"
 
     # build the wheels
@@ -50,7 +50,7 @@ def test_pep518(tmp_path, build_frontend_env):
     # from a virtualenv seeded executable. See
     # https://github.com/oracle/graalpython/issues/491 and remove this once
     # fixed upstream.
-    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "build" and utils.platform == "windows":
+    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "build" and utils.get_platform() == "windows":
         expected_wheels = [w for w in expected_wheels if "graalpy" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
@@ -60,12 +60,19 @@ def test_pep518(tmp_path, build_frontend_env):
     assert not (project_dir / "42").exists()
     assert not (project_dir / "4.1.2").exists()
 
-    # pypa/build creates a "build" folder & a "*.egg-info" folder for the wheel being built,
-    # this should be harmless so remove them
+    # pypa/build creates a "build" folder & a "*.egg-info" folder for the
+    # wheel being built, this should be harmless so remove them. pyodide-build
+    # creates a ".pyodide_build" folder, but this is gitignored with a
+    # .gitignore file inside.
     contents = [
         item
         for item in project_dir.iterdir()
-        if item.name != "build" and not item.name.endswith(".egg-info")
+        if item.name != "build"
+        and not item.name.endswith(".egg-info")
+        and item.name != ".pyodide_build"
     ]
+
+    print("Project contents after build:")
+    print("\n".join(f"  {f}" for f in contents))
 
     assert len(contents) == len(basic_project.files)

@@ -14,7 +14,7 @@ from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
 DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
-ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp242"}
+ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp311_242"}
 
 
 @pytest.fixture
@@ -51,6 +51,7 @@ def mock_build_container(monkeypatch):
 @pytest.mark.usefixtures("mock_build_container", "fake_package_dir")
 def test_build_default_launches(monkeypatch):
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--platform=linux"])
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
 
@@ -103,7 +104,7 @@ def test_build_with_override_launches(monkeypatch, tmp_path):
 [tool.cibuildwheel]
 manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
-enable = ["pypy", "graalpy", "cpython-freethreading"]
+enable = ["pypy", "pypy-eol", "graalpy", "cpython-freethreading"]
 
 # Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]
@@ -119,6 +120,7 @@ before-all = "true"
 
     monkeypatch.chdir(pkg_dir)
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--platform=linux"])
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
 
@@ -155,7 +157,7 @@ before-all = "true"
             "pp39",
             "pp310",
             "pp311",
-            "gp242",
+            "gp311_242",
         }
     }
     assert kwargs["options"].build_options("cp39-manylinux_x86_64").before_all == ""
@@ -177,7 +179,7 @@ before-all = "true"
             "pp39",
             "pp310",
             "pp311",
-            "gp242",
+            "gp311_242",
         ]
     }
 

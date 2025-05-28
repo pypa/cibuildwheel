@@ -1,13 +1,17 @@
+import argparse
+import functools
 import importlib
 import subprocess
 import sys
 import tempfile
-from argparse import ArgumentParser
 from pathlib import Path
 
 
 def main() -> None:
-    parser = ArgumentParser(
+    make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
+    if sys.version_info >= (3, 14):
+        make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
+    parser = make_parser(
         prog="python -m test.test_projects", description="Generate a test project to check it out"
     )
     parser.add_argument(

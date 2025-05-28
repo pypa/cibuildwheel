@@ -16,6 +16,7 @@
         "cpython-freethreading",
         "cpython-prerelease",
         "pypy",
+        "pypy-eol",
         "cpython-experimental-riscv64"
       ]
     },
@@ -423,6 +424,11 @@
       ],
       "title": "CIBW_XBUILD_TOOLS"
     },
+    "pyodide-version": {
+      "type": "string",
+      "description": "Specify the version of Pyodide to use",
+      "title": "CIBW_PYODIDE_VERSION"
+    },
     "repair-wheel-command": {
       "description": "Execute a shell command to repair each built wheel.",
       "oneOf": [
@@ -543,6 +549,24 @@
       ],
       "title": "CIBW_TEST_SKIP"
     },
+    "test-environment": {
+      "description": "Set environment variables for the test environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            ".+": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "title": "CIBW_TEST_ENVIRONMENT"
+    },
     "overrides": {
       "type": "array",
       "description": "An overrides array",
@@ -608,6 +632,9 @@
                 "$ref": "#/$defs/inherit"
               },
               "test-requires": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-environment": {
                 "$ref": "#/$defs/inherit"
               }
             }
@@ -696,6 +723,9 @@
           "xbuild-tools": {
             "$ref": "#/properties/xbuild-tools"
           },
+          "pyodide-version": {
+            "$ref": "#/properties/pyodide-version"
+          },
           "repair-wheel-command": {
             "$ref": "#/properties/repair-wheel-command"
           },
@@ -713,6 +743,9 @@
           },
           "test-requires": {
             "$ref": "#/properties/test-requires"
+          },
+          "test-environment": {
+            "$ref": "#/properties/test-environment"
           }
         }
       }
@@ -805,6 +838,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
           "oneOf": [
@@ -835,6 +871,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -872,6 +911,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -889,6 +931,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -926,6 +971,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "description": "Execute a shell command to repair each built wheel.",
           "oneOf": [
@@ -956,6 +1004,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -993,6 +1044,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -1010,6 +1064,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },
@@ -1098,6 +1155,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -1115,6 +1175,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     }

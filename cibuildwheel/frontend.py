@@ -1,7 +1,7 @@
+import dataclasses
 import shlex
 import typing
 from collections.abc import Sequence
-from dataclasses import dataclass
 from typing import Literal, Self, get_args
 
 from .logger import log
@@ -10,7 +10,7 @@ from .util.helpers import parse_key_value_string
 BuildFrontendName = Literal["pip", "build", "build[uv]"]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class BuildFrontendConfig:
     name: BuildFrontendName
     args: Sequence[str] = ()

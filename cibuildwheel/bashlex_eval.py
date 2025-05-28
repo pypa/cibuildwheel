@@ -1,3 +1,4 @@
+import dataclasses
 import subprocess
 from collections.abc import (
     Callable,
@@ -5,7 +6,6 @@ from collections.abc import (
     Mapping,
     Sequence,
 )
-from dataclasses import dataclass
 
 import bashlex
 
@@ -17,7 +17,7 @@ def local_environment_executor(command: Sequence[str], env: Mapping[str, str]) -
     return subprocess.run(command, env=env, text=True, stdout=subprocess.PIPE, check=True).stdout
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class NodeExecutionContext:
     environment: dict[str, str]
     input: str

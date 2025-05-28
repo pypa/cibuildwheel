@@ -51,7 +51,7 @@ MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
 )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class CommandLineArguments:
     platform: Literal["auto", "linux", "macos", "windows"] | None
     archs: str | None
@@ -80,7 +80,7 @@ class CommandLineArguments:
         )
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class GlobalOptions:
     package_dir: Path
     output_dir: Path
@@ -90,7 +90,7 @@ class GlobalOptions:
     allow_empty: bool
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildOptions:
     globals: GlobalOptions
     environment: ParsedEnvironment
@@ -107,10 +107,12 @@ class BuildOptions:
     test_requires: list[str]
     test_extras: str
     test_groups: list[str]
+    test_environment: ParsedEnvironment
     build_verbosity: int
     build_frontend: BuildFrontendConfig | None
     config_settings: str
     container_engine: OCIContainerEngineConfig
+    pyodide_version: str | None
 
     @property
     def package_dir(self) -> Path:
@@ -634,8 +636,10 @@ class Options:
             "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
         )
         try:
-            enable = {EnableGroup(group) for group in enable_groups.split()}
-            enable.update(EnableGroup(command_line_group) for command_line_group in args.enable)
+            enable = {
+                *EnableGroup.parse_option_value(enable_groups),
+                *EnableGroup.parse_option_value(" ".join(args.enable)),
+            }
         except ValueError as e:
             msg = f"Failed to parse enable group. {e}. Valid group names are: {', '.join(g.value for g in EnableGroup)}"
             raise errors.ConfigurationError(msg) from e
@@ -737,6 +741,15 @@ class Options:
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
                 )
             )
+            test_environment_config = self.reader.get(
+                "test-environment", option_format=EnvironmentFormat()
+            )
+            try:
+                test_environment = parse_environment(test_environment_config)
+            except (EnvironmentParseError, ValueError) as e:
+                msg = f"Malformed environment option {test_environment_config!r}"
+                raise errors.ConfigurationError(msg) from e
+
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
@@ -838,10 +851,13 @@ class Options:
                 msg = f"Failed to parse container config. {e}"
                 raise errors.ConfigurationError(msg) from e
 
+            pyodide_version = self.reader.get("pyodide-version", env_plat=False)
+
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
                 test_sources=test_sources,
+                test_environment=test_environment,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,
@@ -858,6 +874,7 @@ class Options:
                 build_frontend=build_frontend,
                 config_settings=config_settings,
                 container_engine=container_engine,
+                pyodide_version=pyodide_version or None,
             )
 
     def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:

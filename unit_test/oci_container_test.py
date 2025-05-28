@@ -239,16 +239,23 @@ def test_binary_output(container_engine):
         assert output == binary_data_string
 
 
-def test_file_operation(tmp_path: Path, container_engine: OCIContainerEngineConfig) -> None:
+@pytest.mark.parametrize(
+    "file_path",
+    ["test.dat", "path/to/test.dat"],
+)
+def test_file_operation(
+    tmp_path: Path, container_engine: OCIContainerEngineConfig, file_path: str
+) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
         # test copying a file in
         test_binary_data = bytes(random.randrange(256) for _ in range(1000))
-        original_test_file = tmp_path / "test.dat"
+        original_test_file = tmp_path / file_path
+        original_test_file.parent.mkdir(parents=True, exist_ok=True)
         original_test_file.write_bytes(test_binary_data)
 
-        dst_file = PurePath("/tmp/test.dat")
+        dst_file = PurePath("/tmp") / file_path
 
         container.copy_into(original_test_file, dst_file)
 

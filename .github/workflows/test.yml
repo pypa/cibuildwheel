@@ -6,6 +6,11 @@ on:
       - main
       - 2.x
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
     paths-ignore:
       - 'docs/**'
       - .pre-commit-config.yaml
@@ -41,6 +46,8 @@ jobs:
         include:
         - os: ubuntu-latest
           python_version: '3.11'
+        - os: ubuntu-latest
+          python_version: '3.14'
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -68,6 +75,26 @@ jobs:
       run: |
         uv sync --no-dev --group test
 
+    - uses: joerick/pr-labels-action@v1.0.9
+    - name: Set CIBW_ENABLE
+      shell: bash
+      run: |
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          CIBW_ENABLE=all
+        else
+          # get the default CIBW_ENABLE value from the test module
+          CIBW_ENABLE=$(uv run --no-sync python -c 'import sys, test.utils as c; sys.stdout.write(c.DEFAULT_CIBW_ENABLE)')
+
+          # if this is a PR, check for labels
+          if [[ -n "$GITHUB_PR_LABEL_CI_PYPY" ]]; then
+            CIBW_ENABLE+=" pypy"
+          fi
+          if [[ -n "$GITHUB_PR_LABEL_CI_GRAALPY" ]]; then
+            CIBW_ENABLE+=" graalpy"
+          fi
+        fi
+        echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
+
     - name: Generate a sample project
       run: |
         uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
@@ -80,7 +107,6 @@ jobs:
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: 'build[uv]'
-        CIBW_ENABLE: "cpython-prerelease cpython-freethreading pypy graalpy"
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
@@ -169,7 +195,7 @@ jobs:
       run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
-    name: Test cibuildwheel building Pyodide wheels
+    name: Test pyodide
     needs: lint
     runs-on: ubuntu-24.04
     timeout-minutes: 180
@@ -195,6 +221,19 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
+
+    - name: Run a sample build (GitHub Action) for an overridden Pyodide version
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse
+        # In case this breaks at any point in time, switch to using the latest version
+        # available or any other version that is not the same as the default one set
+        # in cibuildwheel/resources/build-platforms.toml.
+      env:
+        CIBW_PLATFORM: pyodide
+        CIBW_BUILD: "cp312*"
+        CIBW_PYODIDE_VERSION: "0.27.6"
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |

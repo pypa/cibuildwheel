@@ -60,7 +60,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v2.23.3
+uses: pypa/cibuildwheel@v3.0.0b2
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -82,7 +82,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==2.23.3
+cibuildwheel==3.0.0b2
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -163,7 +163,7 @@ setuptools.setup(
 
 Your build might need some compiler flags to be set through environment variables.
 Consider incorporating these into your package, for example, in `setup.py` using [`extra_compile_args` or
-`extra_link_args`](https://docs.python.org/3/distutils/setupscript.html#other-options).
+`extra_link_args`](https://setuptools.pypa.io/en/latest/userguide/ext_modules.html#setuptools.Extension).
 
 ## Troubleshooting
 
@@ -247,7 +247,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==2.23.3 --output-dir wheelhouse
+pipx run cibuildwheel==3.0.0b2 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 
@@ -313,7 +313,7 @@ This error may happen when you install a library using a package manager like Ho
 
 ### Windows: 'ImportError: DLL load failed: The specific module could not be found'
 
-Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, the C parts of the runtime are included with Python, but the C++ components are not. When compiling modules using C++, it is possible users will run into problems on systems that do not have the full set of runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) and install it.
+Visual Studio and MSVC link the compiled binary wheels to the Microsoft Visual C++ Runtime. Normally, the C parts of the runtime are included with Python, but the C++ components are not. When compiling modules using C++, it is possible users will run into problems on systems that do not have the full set of runtime libraries installed. The solution is to ask users to download the corresponding Visual C++ Redistributable from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and install it.
 
 Additionally, Visual Studio 2019 started linking to an even newer DLL, `VCRUNTIME140_1.dll`, besides the `VCRUNTIME140.dll` that is included with recent Python versions (starting from Python 3.5; see [here](https://wiki.python.org/moin/WindowsCompilers) for more details on the corresponding Visual Studio & MSVC versions used to compile the different Python versions). To avoid this extra dependency on `VCRUNTIME140_1.dll`, the [`/d2FH4-` flag](https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/) can be added to the MSVC invocations (check out [this issue](https://github.com/pypa/cibuildwheel/issues/423) for details and references). CPython 3.8.3 and all versions after it have this extra DLL, so it is only needed for 3.8 and earlier.
 
