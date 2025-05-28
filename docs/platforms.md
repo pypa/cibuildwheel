@@ -237,11 +237,8 @@ On Linux, the emulator needs access to the KVM virtualization interface, and a D
 environment variable pointing at an X server. Xvfb is acceptable.
 
 The Android test environment can't support running shell scripts, so the
-[`CIBW_TEST_COMMAND`](options.md#test-command) value must be a Python command – see its
-documentation for details. In addition, the project must use
-[`CIBW_TEST_SOURCES`](options.md#test-sources) to specify the minimum subset of files
-that should be copied to the test environment. This is because the test must be run "on
-device", and the device will not have access to the local project directory.
+[`test-command`](options.md#test-command) must be a Python command – see its
+documentation for details.
 
 The test process uses the same testbed used by CPython itself to run the CPython test
 suite. It is a Gradle project that has been configured to have a single JUnit test,
@@ -311,6 +308,6 @@ If your project requires additional tools to build (such as `cmake`, `ninja`, or
 
 If tests have been configured, the test suite will be executed on the simulator matching the architecture of the build machine - that is, if you're building on an ARM64 macOS machine, the ARM64 wheel will be tested on an ARM64 simulator. It is not possible to use cibuildwheel to test wheels on other simulators, or on physical devices.
 
-The iOS test environment can't support running shell scripts, so the [`CIBW_TEST_COMMAND`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`. In addition, the project must use [`CIBW_TEST_SOURCES`](options.md#test-sources) to specify the minimum subset of files that should be copied to the test environment. This is because the test must be run "on device", and the simulator device will not have access to the local project directory.
+The iOS test environment can't support running shell scripts, so the [`CIBW_TEST_COMMAND`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`.
 
 The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <CIBW_TEST_COMMAND>`.

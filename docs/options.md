@@ -447,8 +447,8 @@ possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
 pre-installing it, or installing cibuildwheel with the uv extra,
-`cibuildwheel[uv]`. uv currently does not support Windows ARM,
-musllinux s390x, Android, or iOS. Legacy dependencies like
+`cibuildwheel[uv]`. uv currently does not support Windows on ARM,
+musllinux on s390x, Android, or iOS. Legacy dependencies like
 setuptools on Python < 3.12 and pip are not installed if using uv.
 
 On Android and Pyodide, only "build" is supported.
@@ -1302,9 +1302,9 @@ tree. To access your test code, you have a couple of options:
     - `{project}` is an absolute path to the project root - the working
       directory where cibuildwheel was called.
 
-  These placeholders are not available on Android and iOS, because those
-  platforms run tests in a virtual machine that does not have access to
-  the build machine's filesystem.
+    These placeholders are not available on Android and iOS, because those
+    platforms run tests in a virtual machine that does not have access to
+    the build machine's filesystem.
 
 On all platforms other than Android and iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
