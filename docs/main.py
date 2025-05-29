@@ -21,8 +21,10 @@ def define_env(env: Any) -> None:
         env["PYTHON_COLORS"] = "1"
         output = subprocess.run(args, check=True, capture_output=True, text=True, env=env).stdout
         rich_text = rich.text.Text.from_ansi(output)
-        console = rich.console.Console(record=True)
+        console = rich.console.Console(record=True, force_terminal=True)
         console.print(rich_text)
         page = console.export_html(inline_styles=True)
-        text = re.search(r"<body.*?>(.*?)</body>", page, re.DOTALL | re.IGNORECASE).group(1)
-        return text.strip()
+        result = re.search(r"<body.*?>(.*?)</body>", page, re.DOTALL | re.IGNORECASE)
+        assert result
+        txt = result.group(1).strip()
+        return txt.replace("code ", 'code class="nohighlight" ')
