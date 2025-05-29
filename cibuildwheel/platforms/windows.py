@@ -336,37 +336,36 @@ def setup_python(
         # variables. Adapted from
         # https://github.com/microsoft/vswhere/wiki/Start-Developer-Command-Prompt
         # Remove when https://github.com/oracle/graalpython/issues/492 is fixed.
-        vcpath = subprocess.check_output(
-            [
-                Path(os.environ["PROGRAMFILES(X86)"])
-                / "Microsoft Visual Studio"
-                / "Installer"
-                / "vswhere.exe",
-                "-products",
-                "*",
-                "-latest",
-                "-property",
-                "installationPath",
-            ],
-            text=True,
+        vcpath = call(
+            Path(os.environ["PROGRAMFILES(X86)"])
+            / "Microsoft Visual Studio"
+            / "Installer"
+            / "vswhere.exe",
+            "-products",
+            "*",
+            "-latest",
+            "-property",
+            "installationPath",
+            capture_stdout=True,
         ).strip()
         log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        vcvars = subprocess.check_output(
-            [
-                f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
-                "-no_logo",
-                "-arch=amd64",
-                "-host_arch=amd64",
-                "&&",
-                "python",
-                "-c",
-                "import os, json, sys; json.dump(dict(os.environ), sys.stdout);",
-            ],
-            shell=True,
-            text=True,
+        vcvars_file = tmp / "vcvars.json"
+        call(
+            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
+            "-no_logo",
+            "-arch=amd64",
+            "-host_arch=amd64",
+            "&&",
+            "python",
+            "-c",
+            # this command needs to be one line for Windows reasons
+            "import sys, json, pathlib, os; pathlib.Path(sys.argv[1]).write_text(json.dumps(dict(os.environ)))",
+            vcvars_file,
             env=env,
         )
-        env.update(json.loads(vcvars))
+        with open(vcvars_file, encoding="utf-8") as f:
+            vcvars = json.load(f)
+        env.update(vcvars)
 
     return base_python, env
 
