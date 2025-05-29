@@ -80,7 +80,7 @@ If you set the value lower, cibuildwheel will cap it to the lowest supported val
 
 `cibuildwheel` supports both native builds and cross-compiling between `arm64` (Apple Silicon) and `x86_64` (Intel) architectures, including the cross-compatible `universal2` format. By default, macOS builds will build a single architecture wheel, using the build machine's architecture.
 
-If you need to support both `x86_64` and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel _will_ test `x86_64` wheels (or the `x86_64` slice of a `universal2` wheel) when running on Apple Silicon hardware using Rosetta 2 emulation, but it is *not* possible to test Apple Silicon wheels on `x86_64` hardware.
+If you need to support both `x86_64` and Apple Silicon, you can use the [`macos.archs`](options.md#archs) setting to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel _will_ test `x86_64` wheels (or the `x86_64` slice of a `universal2` wheel) when running on Apple Silicon hardware using Rosetta 2 emulation, but it is *not* possible to test Apple Silicon wheels on `x86_64` hardware.
 
 #### Overview of Mac architectures
 
@@ -130,7 +130,7 @@ If your CI provider doesn't offer arm64 runners yet, or you want to create `univ
 Regarding testing,
 
 - On an arm64 runner, it is possible to test `x86_64` wheels and both parts of a `universal2` wheel using Rosetta 2 emulation.
-- On an `x86_64` runner, arm64 code can be compiled but it can't be tested. `cibuildwheel` will raise a warning to notify you of this - these warnings can be silenced by skipping testing on these platforms: `test=skip = ["*_arm64", "*_universal2:arm64"]`.
+- On an `x86_64` runner, arm64 code can be compiled but it can't be tested. `cibuildwheel` will raise a warning to notify you of this - these warnings can be silenced by skipping testing on these platforms: `test-skip = ["*_arm64", "*_universal2:arm64"]`.
 
 !!! note
     If your project uses **Poetry** as a build backend, cross-compiling on macOS [does not currently work](https://github.com/python-poetry/poetry/issues/7107). In some cases arm64 wheels can be built but their tags will be incorrect, with the platform tag showing `x86_64` instead of `arm64`.
@@ -150,11 +150,11 @@ In order to speed-up builds, cibuildwheel will cache the tools it needs to be re
 
 ### Windows ARM64 builds {: #windows-arm64}
 
-`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native `ARM64` runner is required for testing. On non-native runners, tests for `ARM64` wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `CIBW_TEST_SKIP` setting to suppress the warning.
+`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native `ARM64` runner is required for testing. On non-native runners, tests for `ARM64` wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `test-skip` setting to suppress the warning.
 
 Cross-compilation on Windows relies on a supported build backend. Supported backends use an environment variable to specify their target platform (the one they are compiling native modules for, as opposed to the one they are running on), which is set in [cibuildwheel's windows.py](https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/platforms/windows.py) before building. Currently, `setuptools>=65.4.1` and `setuptools_rust` are the only supported backends.
 
-By default, `ARM64` is not enabled when running on non-`ARM64` runners. Use [`archs`](options.md#archs) to select it.
+By default, `ARM64` is not enabled when running on non-`ARM64` runners. Use [`CIBW_ARCHS`](options.md#archs) to select it.
 
 ## Pyodide/WebAssembly {: #pyodide}
 
