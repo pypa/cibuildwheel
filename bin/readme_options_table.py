@@ -41,7 +41,7 @@ def get_table() -> str:
             )
             options.append(option)
 
-    table_md = "\n<!-- This table is auto-generated from docs/options.md by bin/update_readme_options_table.py -->\n\n"
+    table_md = "\n<!-- This table is auto-generated from docs/options.md by bin/readme_options_table.py -->\n\n"
     table_md += "|   | Option | Description |\n"
     table_md += "|---|---|---|\n"
     last_section: str | None = None

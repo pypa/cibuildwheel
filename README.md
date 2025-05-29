@@ -125,9 +125,9 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 <sup>Explore an interactive version of this diagram [in the docs](https://cibuildwheel.pypa.io/en/stable/#how-it-works).</sup>
 
 
-<!--[[[cog from update_readme_options_table import get_table; print(get_table()) ]]]-->
+<!--[[[cog from readme_options_table import get_table; print(get_table()) ]]]-->
 
-<!-- This table is auto-generated from docs/options.md by bin/update_readme_options_table.py -->
+<!-- This table is auto-generated from docs/options.md by bin/readme_options_table.py -->
 
 |   | Option | Description |
 |---|---|---|
@@ -162,7 +162,7 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (checksum: fff1d2a18ce774acc48da6d0f932658b) -->
+<!--[[[end]]] (checksum: 4d6a8418630e9ed43251973d93798a1b) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
@@ -225,7 +225,7 @@ This is similar to static linking, so it might have some license implications. C
 Changelog
 =========
 
-<!-- [[[cog from update_readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
+<!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
 ### v3.0.0
 
