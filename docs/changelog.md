@@ -16,6 +16,14 @@ If you've used previous versions of the beta:
 
 #### v3.0.0b3
 
+_29 May 2025_
+
+- 🛠 Dependency updates, including Python 3.14.0b2 (#2371)
+- 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
+- 📚 README table now matches docs and auto-updates. (#2427, #2428)
+
+#### v3.0.0b3
+
 _28 May 2025_
 
 - 🛠 Reverts the test working dir (when test-sources isn't set) to a temporary dir, rather than the project. (#2420)

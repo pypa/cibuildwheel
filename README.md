@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0b3
+        run: python -m pip install cibuildwheel==3.0.0b4
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -239,6 +239,14 @@ If you've used previous versions of the beta:
 
 #### v3.0.0b3
 
+_29 May 2025_
+
+- 🛠 Dependency updates, including Python 3.14.0b2 (#2371)
+- 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
+- 📚 README table now matches docs and auto-updates. (#2427, #2428)
+
+#### v3.0.0b3
+
 _28 May 2025_
 
 - 🛠 Reverts the test working dir (when test-sources isn't set) to a temporary dir, rather than the project. (#2420)
@@ -273,13 +281,7 @@ _19 May 2025_
 - ⚠️ Dropped official support for Appveyor. If it was working for you before, it will probably continue to do so, but we can't be sure, because our CI doesn't run there anymore. (#2386)
 - 📚 A reorganisation of the docs, and numerous updates (#2280)
 
-### v2.23.3
-
-_26 April 2025_
-
-- 🛠 Dependency updates, including Python 3.13.3 (#2371)
-
-<!-- [[[end]]] (checksum: ccccc1a3fec30c19a762ec4575fbd18d) -->
+<!-- [[[end]]] (checksum: 1e79ae989c2c03ebaf8fa9fc77de7612) -->
 
 ---
 
