@@ -343,12 +343,13 @@ def _apply_inherit_rule(
         msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
         raise OptionsReaderError(msg)
 
-    if rule == InheritRule.APPEND:
-        return option_format.merge_values(before, after)
-    if rule == InheritRule.PREPEND:
-        return option_format.merge_values(after, before)
-
-    assert_never(rule)
+    match rule:
+        case InheritRule.APPEND:
+            return option_format.merge_values(before, after)
+        case InheritRule.PREPEND:
+            return option_format.merge_values(after, before)
+        case _:
+            assert_never(rule)
 
 
 def _stringify_setting(
