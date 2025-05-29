@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Sequence, Set
+from collections.abc import Iterator, Sequence, Set
 from pathlib import Path
 from typing import assert_never
 
@@ -40,6 +40,17 @@ from ..util.packaging import (
 )
 from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
+
+
+def split_command(lst: list[str]) -> Iterator[list[str]]:
+    items = list[str]()
+    for item in lst:
+        if item == "&&":
+            yield items
+            items = []
+        else:
+            items.append(item)
+    yield items
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -618,14 +629,15 @@ def build(options: Options, tmp_path: Path) -> None:
                         )
                         raise errors.FatalError(msg)
 
-                    test_command_parts = shlex.split(build_options.test_command)
-                    if test_command_parts[0:2] != ["python", "-m"]:
-                        first_part = test_command_parts[0]
-                        if first_part == "pytest":
-                            # pytest works exactly the same as a module, so we
-                            # can just run it as a module.
-                            log.warning(
-                                unwrap_preserving_paragraphs(f"""
+                    test_command_list = shlex.split(build_options.test_command)
+                    for test_command_parts in split_command(test_command_list):
+                        match test_command_parts:
+                            case ["python", "-m", *rest]:
+                                final_command = rest
+                            case ["pytest", *rest]:
+                                # pytest works exactly the same as a module, so we
+                                # can just run it as a module.
+                                msg = unwrap_preserving_paragraphs(f"""
                                     iOS tests configured with a test command which doesn't start
                                     with 'python -m'. iOS tests must execute python modules - other
                                     entrypoints are not supported.
@@ -636,43 +648,39 @@ def build(options: Options, tmp_path: Path) -> None:
 
                                     Test command: {build_options.test_command!r}
                                 """)
+                                log.warning(msg)
+                                final_command = ["pytest", *rest]
+                            case _:
+                                msg = unwrap_preserving_paragraphs(
+                                    f"""
+                                        iOS tests configured with a test command which doesn't start
+                                        with 'python -m'. iOS tests must execute python modules - other
+                                        entrypoints are not supported.
+
+                                        Test command: {build_options.test_command!r}
+                                    """
+                                )
+                                raise errors.FatalError(msg)
+
+                        try:
+                            call(
+                                "python",
+                                testbed_path,
+                                "run",
+                                *(["--verbose"] if build_options.build_verbosity > 0 else []),
+                                "--",
+                                *final_command,
+                                env=test_env,
                             )
-                        else:
-                            msg = unwrap_preserving_paragraphs(
-                                f"""
-                                    iOS tests configured with a test command which doesn't start
-                                    with 'python -m'. iOS tests must execute python modules - other
-                                    entrypoints are not supported.
+                            failed = False
+                        except subprocess.CalledProcessError:
+                            failed = True
 
-                                    Test command: {build_options.test_command!r}
-                                """
-                            )
-                            raise errors.FatalError(msg)
-                    else:
-                        # the testbed run command actually doesn't want the
-                        # python -m prefix - it's implicit, so we remove it
-                        # here.
-                        test_command_parts = test_command_parts[2:]
+                        log.step_end(success=not failed)
 
-                    try:
-                        call(
-                            "python",
-                            testbed_path,
-                            "run",
-                            *(["--verbose"] if build_options.build_verbosity > 0 else []),
-                            "--",
-                            *test_command_parts,
-                            env=test_env,
-                        )
-                        failed = False
-                    except subprocess.CalledProcessError:
-                        failed = True
-
-                    log.step_end(success=not failed)
-
-                    if failed:
-                        log.error(f"Test suite failed on {config.identifier}")
-                        sys.exit(1)
+                        if failed:
+                            log.error(f"Test suite failed on {config.identifier}")
+                            sys.exit(1)
 
             # We're all done here; move it to output (overwrite existing)
             if compatible_wheel is None:

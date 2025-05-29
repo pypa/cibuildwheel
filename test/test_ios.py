@@ -86,7 +86,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
             "CIBW_BUILD": "cp313-*",
             "CIBW_XBUILD_TOOLS": "does-exist",
             "CIBW_TEST_SOURCES": "tests",
-            "CIBW_TEST_COMMAND": "python -m unittest discover tests test_platform.py",
+            "CIBW_TEST_COMMAND": "python -m this && python -m unittest discover tests test_platform.py",
             "CIBW_BUILD_VERBOSITY": "1",
             **build_config,
         },
@@ -101,6 +101,9 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     # The user was notified that the cross-build tool was found.
     captured = capfd.readouterr()
     assert "'does-exist' will be included in the cross-build environment" in captured.out
+
+    # Make sure the first command ran
+    assert "Zen of Python" in captured.out
 
 
 @pytest.mark.serial
