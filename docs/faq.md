@@ -33,7 +33,7 @@ The CPython Limited API is a subset of the Python C Extension API that's declare
 
 To create a package that builds ABI3 wheels, you'll need to configure your build backend to compile libraries correctly create wheels with the right tags. [Check this repo](https://github.com/joerick/python-abi3-package-sample) for an example of how to do this with setuptools.
 
-You could also consider running [abi3audit](https://github.com/trailofbits/abi3audit) against the produced wheels in order to check for abi3 violations or inconsistencies. You can run it alongside the default in your [CIBW_REPAIR_WHEEL_COMMAND](options.md#repair-wheel-command).
+You could also consider running [abi3audit](https://github.com/trailofbits/abi3audit) against the produced wheels in order to check for abi3 violations or inconsistencies. You can run it alongside the default in your [repair-wheel-command](options.md#repair-wheel-command).
 
 ### Packages with optional C extensions {: #optional-extensions}
 
@@ -108,7 +108,7 @@ package 'sdist' will also benefit.
 
 #### Missing build dependencies {: #cibw-options-alternatives-deps}
 
-If your build needs Python dependencies, rather than using `CIBW_BEFORE_BUILD`, it's best to add these to the
+If your build needs Python dependencies, rather than using `before-build`, it's best to add these to the
 [`build-system.requires`](https://www.python.org/dev/peps/pep-0518/#build-system-table)
 section of your pyproject.toml. For example, if your project requires Cython
 to build, your pyproject.toml might include a section like this:
@@ -129,7 +129,7 @@ You might need to run some other commands before building, like running a
 script that performs codegen or downloading some data that's not stored in
 your source tree.
 
-Rather than using `CIBW_BEFORE_ALL` or `CIBW_BEFORE_BUILD`, you could incorporate
+Rather than using `before-all` or `before-build`, you could incorporate
 these steps into your package's build process. For example, if you're using
 setuptools, you can add steps to your package's `setup.py` using a structure
 like this:
@@ -177,16 +177,16 @@ Sometimes a build will fail due to a missing dependency.
 
 **If the build is missing a Python package**, you should [add it to pyproject.toml](#cibw-options-alternatives-deps).
 
-**If you need a build tool** (e.g. cmake, automake, ninja), you can install it through a package manager like apt/yum, brew or choco, using the [`CIBW_BEFORE_ALL`](options.md#before-all) option.
+**If you need a build tool** (e.g. cmake, automake, ninja), you can install it through a package manager like apt/yum, brew or choco, using the [`before-all`](options.md#before-all) option.
 
-**If your build is linking into a native library dependency**, you can build/install that in [`CIBW_BEFORE_ALL`](options.md#before-all). However, on Linux, Mac (and Windows if you're using [delvewheel]), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
+**If your build is linking into a native library dependency**, you can build/install that in [`before-all`](options.md#before-all). However, on Linux, Mac (and Windows if you're using [delvewheel]), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
 
 - the bundled library doesn't accidentally increase the minimum system requirements (such as the minimum macOS version)
 - the bundled library matches the architecture of the wheel you're building when cross-compiling
 
 This is particularly an issue on macOS, where de facto package manager Homebrew will install libraries that are compiled for the specific version of macOS that the build machine is running, rendering the wheels useless for any previous version. And brew will not install the right arch for cross compilation of Apple Silicon wheels.
 
-For these reasons, it's strongly recommended to not use brew for native library dependencies. Instead, we recommend compiling the library yourself. If you compile in the [`CIBW_BEFORE_ALL`](options.md#before-all) step, cibuildwheel will have already set the appropriate `MACOSX_DEPLOYMENT_TARGET` env var, so the library will target the correct version of macOS.
+For these reasons, it's strongly recommended to not use brew for native library dependencies. Instead, we recommend compiling the library yourself. If you compile in the [`before-all`](options.md#before-all) step, cibuildwheel will have already set the appropriate `MACOSX_DEPLOYMENT_TARGET` env var, so the library will target the correct version of macOS.
 
 !!! tip
     For build steps, Homebrew is still a great resource - you can [look up the build formula](https://formulae.brew.sh/) and use that as a starting point.
@@ -253,9 +253,9 @@ pipx run twine upload wheelhouse/*.whl
 
 ### macOS: Passing DYLD_LIBRARY_PATH to delocate
 
-macOS has built-in [System Integrity protections](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) which limits the use of `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH` so that it does not automatically pass to children processes. This means if you set `DYLD_LIBRARY_PATH` before running cibuildwheel, or even set it in `CIBW_ENVIRONMENT`, it will be stripped out of the environment before delocate is called.
+macOS has built-in [System Integrity protections](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) which limits the use of `DYLD_LIBRARY_PATH` and `LD_LIBRARY_PATH` so that it does not automatically pass to children processes. This means if you set `DYLD_LIBRARY_PATH` before running cibuildwheel, or even set it in `environment`, it will be stripped out of the environment before delocate is called.
 
-To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`CIBW_REPAIR_WHEEL_COMMAND_MACOS`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), like this:
+To work around this, use a different environment variable such as `REPAIR_LIBRARY_PATH` to store the library path, and set `DYLD_LIBRARY_PATH` in [`macos.repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), like this:
 
 !!! tab examples "Environment variables"
 
@@ -307,7 +307,7 @@ Then cibuildwheel will detect that it's installed and use it instead. However, y
 ### macOS: Library dependencies do not satisfy target MacOS
 
 Since delocate 0.11.0 there is added verification that the library binary dependencies match the target macOS version. This is to prevent the situation where a wheel platform tag is lower than the actual minimum macOS version required by the library. To resolve this error you need to build the library to the same macOS version as the target wheel (for example using `MACOSX_DEPLOYMENT_TARGET` environment variable).
-Alternatively, you could set `MACOSX_DEPLOYMENT_TARGET` in `CIBW_ENVIRONMENT` to correctly label the wheel as incompatible with older macOS versions.
+Alternatively, you could set `MACOSX_DEPLOYMENT_TARGET` in `environment` to correctly label the wheel as incompatible with older macOS versions.
 
 This error may happen when you install a library using a package manager like Homebrew, which compiles the library for the macOS version of the build machine. This is not suitable for wheels, as the library will only work on the same macOS version as the build machine. You should compile the library yourself, or use a precompiled binary that matches the target macOS version.
 

@@ -25,11 +25,11 @@ Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.co
 
 -   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2014`, `apt-get` for `manylinux_2_31`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
 
-    `cibuildwheel` supports this by providing the [`CIBW_ENVIRONMENT`](options.md#environment) and [`CIBW_BEFORE_ALL`](options.md#before-all) options to setup the build environment inside the running container.
+    `cibuildwheel` supports this by providing the [`environment`](options.md#environment) and [`before-all`](options.md#before-all) options to setup the build environment inside the running container.
 
 -   The project directory is copied into the container as `/project`, the output directory for the wheels to be copied out is `/output`. In general, this is handled transparently by `cibuildwheel`. For a more finegrained level of control however, the root of the host file system is mounted as `/host`, allowing for example to access shared files, caches, etc. on the host file system.  Note that `/host` is not available on CircleCI and GitLab CI due to their Docker policies.
 
--   Alternative Docker images can be specified with the `CIBW_MANYLINUX_*_IMAGE`/`CIBW_MUSLLINUX_*_IMAGE` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#linux-image) for more details.
+-   Alternative Docker images can be specified with the `manylinux-*-image`/`musllinux-*-image` options to allow for a custom, preconfigured build environment for the Linux builds. See [options](options.md#linux-image) for more details.
 
 ## macOS {: #macos}
 
@@ -80,7 +80,7 @@ If you set the value lower, cibuildwheel will cap it to the lowest supported val
 
 `cibuildwheel` supports both native builds and cross-compiling between `arm64` (Apple Silicon) and `x86_64` (Intel) architectures, including the cross-compatible `universal2` format. By default, macOS builds will build a single architecture wheel, using the build machine's architecture.
 
-If you need to support both x86_64 and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel _will_ test x86_64 wheels (or the x86_64 slice of a `universal2` wheel) when running on Apple Silicon hardware using Rosetta 2 emulation, but it is *not* possible to test Apple Silicon wheels on x86_64 hardware.
+If you need to support both `x86_64` and Apple Silicon, you can use the `CIBW_ARCHS` environment variable to specify the architectures you want to build, or the value `universal2` to build a multi-architecture wheel. cibuildwheel _will_ test `x86_64` wheels (or the `x86_64` slice of a `universal2` wheel) when running on Apple Silicon hardware using Rosetta 2 emulation, but it is *not* possible to test Apple Silicon wheels on `x86_64` hardware.
 
 #### Overview of Mac architectures
 
@@ -129,8 +129,8 @@ If your CI provider doesn't offer arm64 runners yet, or you want to create `univ
 
 Regarding testing,
 
-- On an arm64 runner, it is possible to test x86_64 wheels and both parts of a universal2 wheel using Rosetta 2 emulation.
-- On an x86_64 runner, arm64 code can be compiled but it can't be tested. `cibuildwheel` will raise a warning to notify you of this - these warnings can be silenced by skipping testing on these platforms: `CIBW_TEST_SKIP: "*_arm64 *_universal2:arm64"`.
+- On an arm64 runner, it is possible to test `x86_64` wheels and both parts of a `universal2` wheel using Rosetta 2 emulation.
+- On an `x86_64` runner, arm64 code can be compiled but it can't be tested. `cibuildwheel` will raise a warning to notify you of this - these warnings can be silenced by skipping testing on these platforms: `test=skip = ["*_arm64", "*_universal2:arm64"]`.
 
 !!! note
     If your project uses **Poetry** as a build backend, cross-compiling on macOS [does not currently work](https://github.com/python-poetry/poetry/issues/7107). In some cases arm64 wheels can be built but their tags will be incorrect, with the platform tag showing `x86_64` instead of `arm64`.
@@ -150,11 +150,11 @@ In order to speed-up builds, cibuildwheel will cache the tools it needs to be re
 
 ### Windows ARM64 builds {: #windows-arm64}
 
-`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native ARM64 runner is required for testing. On non-native runners, tests for ARM64 wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `CIBW_TEST_SKIP` setting to suppress the warning.
+`cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native `ARM64` runner is required for testing. On non-native runners, tests for `ARM64` wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `CIBW_TEST_SKIP` setting to suppress the warning.
 
 Cross-compilation on Windows relies on a supported build backend. Supported backends use an environment variable to specify their target platform (the one they are compiling native modules for, as opposed to the one they are running on), which is set in [cibuildwheel's windows.py](https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/platforms/windows.py) before building. Currently, `setuptools>=65.4.1` and `setuptools_rust` are the only supported backends.
 
-By default, `ARM64` is not enabled when running on non-ARM64 runners. Use [`CIBW_ARCHS`](options.md#archs) to select it.
+By default, `ARM64` is not enabled when running on non-`ARM64` runners. Use [`archs`](options.md#archs) to select it.
 
 ## Pyodide/WebAssembly {: #pyodide}
 
@@ -170,7 +170,7 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 ### Choosing a Pyodide version {: #pyodide-choosing-a-version}
 
-It is also possible to target a specific Pyodide version by setting the `CIBW_PYODIDE_VERSION` option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
+It is also possible to target a specific Pyodide version by setting the `pyodide-version` option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
 
 ### Running tests
 
@@ -196,7 +196,7 @@ By default, cibuildwheel will build wheels for all three of these targets.
 
 If you need to specify different compilation flags or other properties on a per-ABI or per-CPU basis, you can use [configuration overrides](configuration.md#overrides) with a `select` clause that targets the specific ABI or architecture. For example, consider the following example:
 
-```
+```toml
 [tool.cibuildwheel.ios]
 test-sources = ["tests"]
 test-requires = ["pytest"]
@@ -233,12 +233,12 @@ iOS builds support both the `pip` and `build` build frontends. In principle, sup
 
 The environment used to run builds does not inherit the full user environment - in particular, `PATH` is deliberately re-written. This is because UNIX C tooling doesn't do a great job differentiating between "macOS ARM64" and "iOS ARM64" binaries. If (for example) Homebrew is on the path when compilation commands are invoked, it's easy for a macOS version of a library to be linked into the iOS binary, rendering it unusable on iOS. To prevent this, iOS builds always force `PATH` to a "known minimal" path, that includes only the bare system utilities, and the iOS compiler toolchain.
 
-If your project requires additional tools to build (such as `cmake`, `ninja`, or `rustc`), those tools must be explicitly declared as cross-build tools using [`CIBW_XBUILD_TOOLS`](options.md#xbuild-tools). *Any* tool used by the build process must be included in the `CIBW_XBUILD_TOOLS` list, not just tools that cibuildwheel will invoke directly. For example, if your build script invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your cross-build tools list.
+If your project requires additional tools to build (such as `cmake`, `ninja`, or `rustc`), those tools must be explicitly declared as cross-build tools using [`xbuild-tools`](options.md#xbuild-tools). *Any* tool used by the build process must be included in the `xbuild-tools` list, not just tools that cibuildwheel will invoke directly. For example, if your build script invokes `cmake`, and the `cmake` script invokes `magick` to perform some image transformations, both `cmake` and `magick` must be included in your cross-build tools list.
 
 ### Tests
 
 If tests have been configured, the test suite will be executed on the simulator matching the architecture of the build machine - that is, if you're building on an ARM64 macOS machine, the ARM64 wheel will be tested on an ARM64 simulator. It is not possible to use cibuildwheel to test wheels on other simulators, or on physical devices.
 
-The iOS test environment can't support running shell scripts, so the [`CIBW_TEST_COMMAND`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`. In addition, the project must use [`CIBW_TEST_SOURCES`](options.md#test-sources) to specify the minimum subset of files that should be copied to the test environment. This is because the test must be run "on device", and the simulator device will not have access to the local project directory.
+The iOS test environment can't support running shell scripts, so the [`test-command`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`. In addition, the project must use [`test-sources`](options.md#test-sources) to specify the minimum subset of files that should be copied to the test environment. This is because the test must be run "on device", and the simulator device will not have access to the local project directory.
 
-The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <CIBW_TEST_COMMAND>`.
+The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.

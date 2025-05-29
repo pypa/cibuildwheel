@@ -40,7 +40,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 
 <sup>¹ PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
-<sup>³ Free-threaded mode requires opt-in using [`CIBW_ENABLE`](https://cibuildwheel.pypa.io/en/stable/options/#enable).</sup><br>
+<sup>³ Free-threaded mode requires opt-in using [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable).</sup><br>
 <sup>⁴ Experimental, not yet supported on PyPI, but can be used directly in web deployment. Use `--platform pyodide` to build.</sup><br>
 <sup>⁵ manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 
