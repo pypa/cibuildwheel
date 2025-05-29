@@ -10,8 +10,28 @@ Not yet released, but available for testing.
 
 Note - when using a beta version, be sure to check the [latest docs](https://cibuildwheel.pypa.io/en/latest/), rather than the stable version, which is still on v2.X.
 
-Known issues:
-- ⚠️ The CWD for test-command has changed in v3.0, but that is still [being debated](https://github.com/pypa/cibuildwheel/issues/2406), it might change before the final release. Please provide feedback on the aforementioned issue if you do (or don't!) encounter issues with this.
+<!--
+note to self, when doing final release, change to docs URLs in this section to the stable version!
+-->
+
+If you've used previous versions of the beta:
+- ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
+- ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
+
+#### v3.0.0b4
+
+_29 May 2025_
+
+- 🛠 Dependency updates, including Python 3.14.0b2 (#2371)
+- 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
+- 📚 README table now matches docs and auto-updates. (#2427, #2428)
+
+#### v3.0.0b3
+
+_28 May 2025_
+
+- 🛠 Reverts the test working dir (when test-sources isn't set) to a temporary dir, rather than the project. (#2420)
+- 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
 
 #### v3.0.0b2
 
@@ -32,12 +52,18 @@ _19 May 2025_
 - ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/latest/options/#test-sources), and changes the working directory for tests.
 
     - If this option is set, cibuildwheel will copy the files and folders specified in `test-sources` into a temporary directory, and run the tests from there. This is required for iOS builds, but also useful for other platforms, as it allows you to test the installed wheel without any chance of accidentally importing from the source tree.
-    - If this option is not set, cibuildwheel will run the tests in the source tree. This is a change from the previous behavior, where cibuildwheel would run the tests from a temporary directory. We're still investigating what's best here, so if you encounter any issues with this, please let us know in [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406).
+    - ~If this option is not set, cibuildwheel will run the tests in the source tree. This is a change from the previous behavior, where cibuildwheel would run the tests from a temporary directory. We're still investigating what's best here, so if you encounter any issues with this, please let us know in [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406).~
+    - If this option is not set, behaviour matches v2.x - cibuildwheel will run the tests from a temporary directory, and you can use the `{project}` placeholder in the `test-command` to refer to the project directory.
 
-- ✨ Added `dependency-versions` inline syntax (#2123)
-- 🛠 EOL manylinux options can no longer be specified by their shortname. Full OCI URL can still be used for these images, if you wish (#2316)
+- ✨ Added´ `dependency-versions` inline syntax (#2123)
+- 🛠 The default [manylinux image](https://cibuildwheel.pypa.io/en/latest/options/#linux-image) has changed from `manylinux2014` to `manylinux_2_28` (#2330)
+- 🛠 Invokes `build` rather than `pip wheel` to build wheels by default. You can control this via the [`build-frontend`](https://cibuildwheel.pypa.io/en/latest/options/#build-frontend) option. You might notice that you can see your build log output now! (#2321)
+- 🛠 Removed the `CIBW_PRERELEASE_PYTHONS` and `CIBW_FREE_THREADED_SUPPORT` options - these have been folded into the [`enable`](https://cibuildwheel.pypa.io/en/latest/options/#enable) option instead. (#2095)
+- 🛠 EOL images `manylinux1`, `manylinux2010`, `manylinux_2_24` and `musllinux_1_1` can no longer be specified by their shortname. The full OCI name can still be used for these images, if you wish (#2316)
 - 🛠 Build environments no longer have setuptools and wheel preinstalled. (#2329)
-- ⚠️ PyPy wheels no longer built by default, due to a change to our options system. To continue building PyPy wheels, you'll now need to set the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) to `pypy` or `pypy-eol`.
+- ⚠️ Dropped support for building Python 3.6 and 3.7 wheels. If you need to build wheels for these versions, use cibuildwheel v2.23.3 or earlier. (#2282)
+- ⚠️ The minimum Python version required to run cibuildwheel is now Python 3.11. You can still build wheels for Python 3.8 and newer. (#1912)
+- ⚠️ PyPy wheels no longer built by default, due to a change to our options system. To continue building PyPy wheels, you'll now need to set the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) to `pypy` or `pypy-eol`. (#2095)
 - ⚠️ Dropped official support for Appveyor. If it was working for you before, it will probably continue to do so, but we can't be sure, because our CI doesn't run there anymore. (#2386)
 - 📚 A reorganisation of the docs, and numerous updates (#2280)
 

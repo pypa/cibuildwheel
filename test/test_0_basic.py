@@ -1,5 +1,6 @@
 import textwrap
 
+import packaging.utils
 import pytest
 
 from cibuildwheel.logger import Logger
@@ -37,7 +38,9 @@ def test(tmp_path, build_frontend_env, capfd):
 
     # check that the expected wheels are produced
     expected_wheels = utils.expected_wheels("spam", "0.1.0")
-    assert set(actual_wheels) == set(expected_wheels)
+    actual_wheels_normalized = {packaging.utils.parse_wheel_filename(w) for w in actual_wheels}
+    expected_wheels_normalized = {packaging.utils.parse_wheel_filename(w) for w in expected_wheels}
+    assert actual_wheels_normalized == expected_wheels_normalized
 
     enable_groups = utils.get_enable_groups()
     if EnableGroup.GraalPy not in enable_groups:

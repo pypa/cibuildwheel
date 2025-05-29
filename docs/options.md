@@ -1606,12 +1606,6 @@ A space-separated list of environment variables to set in the test environment.
 
 The syntax is the same as for [`environment`](#environment).
 
-cibuildwheel sets the variable
-[`PYTHONSAFEPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONSAFEPATH)
-to avoid picking up in-tree dependencies when running the tests - we want to
-test the installed wheel, not the in-tree version. However, this can be
-overridden by setting `PYTHONSAFEPATH` to an empty string.
-
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_ENVIRONMENT_MACOS` | `CIBW_TEST_ENVIRONMENT_WINDOWS` | `CIBW_TEST_ENVIRONMENT_LINUX` | `CIBW_TEST_ENVIRONMENT_IOS` | `CIBW_TEST_ENVIRONMENT_PYODIDE`
 
@@ -1624,8 +1618,8 @@ Platform-specific environment variables are also available:<br/>
     # Set the environment variable MY_ENV_VAR to "my_value" in the test environment
     test-environment = { MY_ENV_VAR="my_value" }
 
-    # Unset PYTHONSAFEPATH in the test environment
-    test-environment = { PYTHONSAFEPATH="" }
+    # Set PYTHONSAFEPATH in the test environment
+    test-environment = { PYTHONSAFEPATH="1" }
     ```
 
 !!! tab examples "Environment variables"
@@ -1634,8 +1628,8 @@ Platform-specific environment variables are also available:<br/>
     # Set the environment variable MY_ENV_VAR to "my_value" in the test environment
     CIBW_TEST_ENVIRONMENT: MY_ENV_VAR=my_value
 
-    # Unset PYTHONSAFEPATH in the test environment
-    CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=
+    # Set PYTHONSAFEPATH in the test environment
+    CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=1
     ```
 
 
@@ -1890,40 +1884,6 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
           .appendTo(tocTable);
       }
     }
-
-    // write the markdown table for the README
-
-    var markdown = ''
-
-    markdown += '|   | Option | Description |\n'
-    markdown += '|---|--------|-------------|\n'
-
-    var prevHeader = null
-
-    for (var i = 0; i < headers.length; i += 1) {
-      var header = headers[i];
-      var headerOptions = options[header];
-      for (var j = 0; j < headerOptions.length; j += 1) {
-        var option = headerOptions[j];
-
-        if (j == 0) {
-          markdown += '| **'+header+'** '
-        } else {
-          markdown += '|   '
-        }
-
-        var optionNames = option.name.trim().split(', ')
-        var url = 'https://cibuildwheel.pypa.io/en/stable/options/#'+option.id;
-        var namesMarkdown = $.map(optionNames, function(n) {
-          return '[`'+n+'`]('+url+') '
-        }).join(' <br> ')
-
-        markdown += '| '+namesMarkdown+' '
-        markdown += '| '+option.description.trim()+' '
-        markdown += '|\n'
-      }
-    }
-    console.log('readme options markdown\n', markdown)
 
     // add the option tags to each heading
     $('.rst-content h3')
