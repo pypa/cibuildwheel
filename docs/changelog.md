@@ -14,7 +14,7 @@ If you've used previous versions of the beta:
 - ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
 
-#### v3.0.0b3
+#### v3.0.0b4
 
 _29 May 2025_
 
