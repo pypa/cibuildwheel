@@ -76,6 +76,7 @@ docs = [
     "mkdocs-macros-plugin",
     "mkdocs==1.6.1",
     "pymdown-extensions",
+    "rich",
 ]
 test = [
     "build",

@@ -173,7 +173,7 @@ def bump_version(session: nox.Session) -> None:
     session.install_and_run_script("bin/bump_version.py")
 
 
-@nox.session(default=False, python="3.12")
+@nox.session(default=False)
 def docs(session: nox.Session) -> None:
     """
     Build the docs. Will serve unless --non-interactive

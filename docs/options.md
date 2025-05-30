@@ -1714,9 +1714,7 @@ Platform-specific environment variables are also available:<br/>
 
 ### Options
 
-```text
 « subprocess_run("cibuildwheel", "--help") »
-```
 
 ### Return codes
 
