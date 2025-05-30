@@ -186,11 +186,13 @@ class Architecture(StrEnum):
         archs_32 = {Architecture.i686, Architecture.x86, Architecture.armv7l}
         auto_archs = Architecture.auto_archs(platform)
 
-        if bitness == "64":
-            return auto_archs - archs_32
-        if bitness == "32":
-            return auto_archs & archs_32
-        typing.assert_never(bitness)
+        match bitness:
+            case "64":
+                return auto_archs - archs_32
+            case "32":
+                return auto_archs & archs_32
+            case _:
+                typing.assert_never(bitness)
 
 
 def allowed_architectures_check(

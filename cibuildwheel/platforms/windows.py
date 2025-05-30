@@ -305,26 +305,27 @@ def setup_python(
         call("pip", "--version", env=env)
 
     log.step("Installing build tools...")
-    if build_frontend == "build":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "build[virtualenv]",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
-    elif build_frontend == "build[uv]":
-        assert uv_path is not None
-        call(
-            uv_path,
-            "pip",
-            "install",
-            "--upgrade",
-            "build[virtualenv]",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
+    match build_frontend:
+        case "build":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "build[virtualenv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case "build[uv]":
+            assert uv_path is not None
+            call(
+                uv_path,
+                "pip",
+                "install",
+                "--upgrade",
+                "build[virtualenv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
@@ -467,36 +468,41 @@ def build(options: Options, tmp_path: Path) -> None:
                 if constraints_path:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
-                if build_frontend.name == "pip":
-                    # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                    # see https://github.com/pypa/cibuildwheel/pull/369
-                    call(
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        options.globals.package_dir.resolve(),
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                    if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                        extra_flags.append("--installer=uv")
+                match build_frontend.name:
+                    case "pip":
+                        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                        # see https://github.com/pypa/cibuildwheel/pull/369
+                        call(
+                            "python",
+                            "-m",
+                            "pip",
+                            "wheel",
+                            options.globals.package_dir.resolve(),
+                            f"--wheel-dir={built_wheel_dir}",
+                            "--no-deps",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case "build" | "build[uv]":
+                        if (
+                            use_uv
+                            and "--no-isolation" not in extra_flags
+                            and "-n" not in extra_flags
+                        ):
+                            extra_flags.append("--installer=uv")
 
-                    call(
-                        "python",
-                        "-m",
-                        "build",
-                        build_options.package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                else:
-                    assert_never(build_frontend)
+                        call(
+                            "python",
+                            "-m",
+                            "build",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case _:
+                        assert_never(build_frontend)
 
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 

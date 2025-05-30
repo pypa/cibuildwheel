@@ -95,43 +95,46 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
-        if engine.name == "docker":
-            client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
-            server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
-            # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
-            version = min(client_api_version, server_api_version)
-            minimum_version = FlexibleVersion("1.41")
-            minimum_version_str = "20.10.0"  # docker version
-            error_msg = textwrap.dedent(
-                f"""
-                Build failed because {engine.name} is too old.
+        match engine.name:
+            case "docker":
+                client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
+                server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
+                # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
+                version = min(client_api_version, server_api_version)
+                minimum_version = FlexibleVersion("1.41")
+                minimum_version_str = "20.10.0"  # docker version
+                error_msg = textwrap.dedent(
+                    f"""
+                    Build failed because {engine.name} is too old.
 
-                cibuildwheel requires {engine.name}>={minimum_version_str} running API version {minimum_version}.
-                The API version found by cibuildwheel is {version}.
-                """
-            )
-        elif engine.name == "podman":
-            # podman uses the same version string for "Version" & "ApiVersion"
-            client_version = FlexibleVersion(version_info["Client"]["Version"])
-            if "Server" in version_info:
-                server_version = FlexibleVersion(version_info["Server"]["Version"])
-            else:
-                server_version = client_version
-            # --platform support was introduced in v3
-            version = min(client_version, server_version)
-            minimum_version = FlexibleVersion("3")
-            error_msg = textwrap.dedent(
-                f"""
-                Build failed because {engine.name} is too old.
+                    cibuildwheel requires {engine.name}>={minimum_version_str} running API version {minimum_version}.
+                    The API version found by cibuildwheel is {version}.
+                    """
+                )
+            case "podman":
+                # podman uses the same version string for "Version" & "ApiVersion"
+                client_version = FlexibleVersion(version_info["Client"]["Version"])
+                if "Server" in version_info:
+                    server_version = FlexibleVersion(version_info["Server"]["Version"])
+                else:
+                    server_version = client_version
+                # --platform support was introduced in v3
+                version = min(client_version, server_version)
+                minimum_version = FlexibleVersion("3")
+                error_msg = textwrap.dedent(
+                    f"""
+                    Build failed because {engine.name} is too old.
 
-                cibuildwheel requires {engine.name}>={minimum_version}.
-                The version found by cibuildwheel is {version}.
-                """
-            )
-        else:
-            assert_never(engine.name)
+                    cibuildwheel requires {engine.name}>={minimum_version}.
+                    The version found by cibuildwheel is {version}.
+                    """
+                )
+            case _:
+                assert_never(engine.name)
+
         if version < minimum_version:
             raise OCIEngineTooOldError(error_msg) from None
+
     except (subprocess.CalledProcessError, KeyError, ValueError) as e:
         msg = f"Build failed because {engine.name} is too old or is not working properly."
         raise OCIEngineTooOldError(msg) from e
