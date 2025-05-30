@@ -232,6 +232,7 @@ def test_api_level(tmp_path, capfd):
             # Verify that Android dependencies can be installed from the Chaquopy repository, and
             # that wheels tagged with an older version of Android (in this case 24) are still
             # accepted.
+            "CIBW_ENVIRONMENT": "PIP_EXTRA_INDEX_URL=https://chaquo.com/pypi-13.1",
             "CIBW_TEST_REQUIRES": "bitarray==3.0.0",
             "CIBW_TEST_COMMAND": (
                 "python -c 'from bitarray import bitarray; print(~bitarray(\"01100\"))'"

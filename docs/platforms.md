@@ -236,13 +236,20 @@ Cross-architecture testing is not supported.
 On Linux, the emulator needs access to the KVM virtualization interface, and a DISPLAY
 environment variable pointing at an X server. Xvfb is acceptable.
 
+The test process uses the same testbed used by CPython itself to run the CPython test
+suite. It is a Gradle project that has been configured to have a single JUnit test,
+the result of which reports the success or failure of running the test command.
+
 The Android test environment can't support running shell scripts, so the
 [`test-command`](options.md#test-command) must be a Python command – see its
 documentation for details.
 
-The test process uses the same testbed used by CPython itself to run the CPython test
-suite. It is a Gradle project that has been configured to have a single JUnit test,
-the result of which reports the success or failure of running the test command.
+If your package has dependencies which haven't been released on PyPI yet, you may want
+to use the [`environment`](options.md#environment) option to set `PIP_EXTRA_INDEX_URL`
+to one of the following URLs:
+
+* https://chaquo.com/pypi-13.1
+* https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
 
 
 ## iOS {: #ios}

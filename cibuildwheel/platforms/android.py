@@ -408,11 +408,6 @@ def test_wheel(
         "--only-binary=:all:",
         "--platform",
         platform_tag,
-        # This index contains Android wheels for many of the most common packages
-        # which the wheel under test might depend on. Once enough of those packages
-        # have been released for Android on PyPI, this argument can be removed.
-        "--extra-index-url",
-        "https://chaquo.com/pypi-13.1/",
         "--target",
         site_packages_dir,
         f"{wheel}{build_options.test_extras}",
