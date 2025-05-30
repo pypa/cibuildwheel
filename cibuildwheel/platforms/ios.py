@@ -619,39 +619,39 @@ def build(options: Options, tmp_path: Path) -> None:
                         raise errors.FatalError(msg)
 
                     test_command_list = shlex.split(build_options.test_command)
-                    for test_command_parts in split_command(test_command_list):
-                        match test_command_parts:
-                            case ["python", "-m", *rest]:
-                                final_command = rest
-                            case ["pytest", *rest]:
-                                # pytest works exactly the same as a module, so we
-                                # can just run it as a module.
-                                msg = unwrap_preserving_paragraphs(f"""
-                                    iOS tests configured with a test command which doesn't start
-                                    with 'python -m'. iOS tests must execute python modules - other
-                                    entrypoints are not supported.
-
-                                    cibuildwheel will try to execute it as if it started with
-                                    'python -m'. If this works, all you need to do is add that to
-                                    your test command.
-
-                                    Test command: {build_options.test_command!r}
-                                """)
-                                log.warning(msg)
-                                final_command = ["pytest", *rest]
-                            case _:
-                                msg = unwrap_preserving_paragraphs(
-                                    f"""
+                    try:
+                        for test_command_parts in split_command(test_command_list):
+                            match test_command_parts:
+                                case ["python", "-m", *rest]:
+                                    final_command = rest
+                                case ["pytest", *rest]:
+                                    # pytest works exactly the same as a module, so we
+                                    # can just run it as a module.
+                                    msg = unwrap_preserving_paragraphs(f"""
                                         iOS tests configured with a test command which doesn't start
                                         with 'python -m'. iOS tests must execute python modules - other
                                         entrypoints are not supported.
 
-                                        Test command: {build_options.test_command!r}
-                                    """
-                                )
-                                raise errors.FatalError(msg)
+                                        cibuildwheel will try to execute it as if it started with
+                                        'python -m'. If this works, all you need to do is add that to
+                                        your test command.
 
-                        try:
+                                        Test command: {build_options.test_command!r}
+                                    """)
+                                    log.warning(msg)
+                                    final_command = ["pytest", *rest]
+                                case _:
+                                    msg = unwrap_preserving_paragraphs(
+                                        f"""
+                                            iOS tests configured with a test command which doesn't start
+                                            with 'python -m'. iOS tests must execute python modules - other
+                                            entrypoints are not supported.
+
+                                            Test command: {build_options.test_command!r}
+                                        """
+                                    )
+                                    raise errors.FatalError(msg)
+
                             call(
                                 "python",
                                 testbed_path,
@@ -661,15 +661,14 @@ def build(options: Options, tmp_path: Path) -> None:
                                 *final_command,
                                 env=test_env,
                             )
-                            failed = False
-                        except subprocess.CalledProcessError:
-                            failed = True
+                    except subprocess.CalledProcessError:
+                        # catches the first test command failure in the loop,
+                        # implementing short-circuiting
+                        log.step_end(success=False)
+                        log.error(f"Test suite failed on {config.identifier}")
+                        sys.exit(1)
 
-                        log.step_end(success=not failed)
-
-                        if failed:
-                            log.error(f"Test suite failed on {config.identifier}")
-                            sys.exit(1)
+                    log.step_end()
 
             # We're all done here; move it to output (overwrite existing)
             if compatible_wheel is None:
