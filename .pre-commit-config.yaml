@@ -87,7 +87,8 @@ repos:
     - id: check-github-actions
     - id: check-github-workflows
     - id: check-gitlab-ci
-    - id: check-readthedocs
+    # Disabled due to schema issue for now: 
+    # - id: check-readthedocs
     - id: check-travis
     - id: check-jsonschema
       name: Check projects
