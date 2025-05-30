@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Iterator, Sequence, Set
+from collections.abc import Sequence, Set
 from pathlib import Path
 from typing import assert_never
 
@@ -25,7 +25,7 @@ from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
 from ..util import resources
-from ..util.cmd import call, shell
+from ..util.cmd import call, shell, split_command
 from ..util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
@@ -40,17 +40,6 @@ from ..util.packaging import (
 )
 from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
-
-
-def split_command(lst: list[str]) -> Iterator[list[str]]:
-    items = list[str]()
-    for item in lst:
-        if item == "&&":
-            yield items
-            items = []
-        else:
-            items.append(item)
-    yield items
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
