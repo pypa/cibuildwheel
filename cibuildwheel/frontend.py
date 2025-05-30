@@ -67,7 +67,7 @@ def parse_config_settings(config_settings_str: str) -> dict[str, str | list[str]
         if existing_value is None:
             config_settings[setting] = value
         elif isinstance(existing_value, str):
-            config_settings[setting] = [existing_value]
+            config_settings[setting] = [existing_value, value]
         else:
             existing_value.append(value)
 
