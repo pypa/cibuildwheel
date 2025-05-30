@@ -36,22 +36,6 @@ def arch_synonym(arch: str, from_platform: PlatformName, to_platform: PlatformNa
     return arch
 
 
-def native_platform() -> PlatformName:
-    if sys.platform.startswith("linux"):
-        return "linux"
-    elif sys.platform == "darwin":
-        return "macos"
-    elif sys.platform == "win32":
-        return "windows"
-    else:
-        msg = (
-            'Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
-            "support building wheels for this platform. You might be able to build for a different "
-            "platform using the --platform argument. Check --help output for more information."
-        )
-        raise errors.ConfigurationError(msg)
-
-
 def _check_aarch32_el0() -> bool:
     """Check if running armv7l natively on aarch64 is supported"""
     if not sys.platform.startswith("linux"):

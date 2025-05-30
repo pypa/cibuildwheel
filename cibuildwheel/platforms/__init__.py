@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Final, Protocol
 
+from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.options import Options
 from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
@@ -31,6 +33,22 @@ ALL_PLATFORM_MODULES: Final[dict[PlatformName, PlatformModule]] = {
     "android": android,
     "ios": ios,
 }
+
+
+def native_platform() -> PlatformName:
+    if sys.platform.startswith("linux"):
+        return "linux"
+    elif sys.platform == "darwin":
+        return "macos"
+    elif sys.platform == "win32":
+        return "windows"
+    else:
+        msg = (
+            'Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
+            "support building wheels for this platform. You might be able to build for a different "
+            "platform using the --platform argument. Check --help output for more information."
+        )
+        raise errors.ConfigurationError(msg)
 
 
 def get_build_identifiers(

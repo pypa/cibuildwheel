@@ -14,8 +14,8 @@ from build import ProjectBuilder
 from build.env import IsolatedEnv
 from filelock import FileLock
 
-from .. import errors
-from ..architecture import Architecture, arch_synonym, native_platform
+from .. import errors, platforms
+from ..architecture import Architecture, arch_synonym
 from ..frontend import get_build_frontend_extra_flags, parse_config_settings
 from ..logger import log
 from ..options import BuildOptions, Options
@@ -377,7 +377,7 @@ def test_wheel(
         return
 
     log.step("Testing wheel...")
-    native_arch = arch_synonym(platform.machine(), native_platform(), "android")
+    native_arch = arch_synonym(platform.machine(), platforms.native_platform(), "android")
     if config.arch != native_arch:
         log.warning(
             f"Skipping tests for {config.arch}, as the build machine only supports {native_arch}"

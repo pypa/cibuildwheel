@@ -18,11 +18,11 @@ from typing import Any, Literal, TextIO
 import cibuildwheel
 import cibuildwheel.util
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture, allowed_architectures_check, native_platform
+from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
-from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
+from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers, native_platform
 from cibuildwheel.selector import BuildSelector, EnableGroup, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util.file import CIBW_CACHE_PATH
