@@ -5,7 +5,7 @@ import sys
 import pytest
 
 import cibuildwheel.architecture
-from cibuildwheel.architecture import Architecture
+from cibuildwheel.architecture import Architecture, arch_synonym
 
 
 @pytest.fixture(
@@ -96,3 +96,20 @@ def test_arch_auto_no_aarch32(monkeypatch):
 
     arch_set = Architecture.parse_config("auto32", "linux")
     assert len(arch_set) == 0
+
+
+@pytest.mark.parametrize(
+    ("arch", "from_platform", "to_platform", "expected"),
+    [
+        ("x86_64", "linux", "macos", "x86_64"),
+        ("x86_64", "macos", "linux", "x86_64"),
+        ("x86_64", "linux", "windows", "AMD64"),
+        ("AMD64", "windows", "linux", "x86_64"),
+        ("x86_64", "linux", "nonexistent", "x86_64"),
+        ("x86_64", "nonexistent", "linux", "x86_64"),
+        ("nonexistent", "linux", "windows", "nonexistent"),
+        ("x86", "windows", "macos", None),
+    ],
+)
+def test_arch_synonym(arch, from_platform, to_platform, expected):
+    assert arch_synonym(arch, from_platform, to_platform) == expected

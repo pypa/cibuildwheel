@@ -7,7 +7,7 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import _split_config_settings
+from cibuildwheel.frontend import _split_config_settings, parse_config_settings
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
@@ -288,7 +288,9 @@ def test_build_verbosity(
 
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_config_settings(platform_specific, platform, intercepted_build_args, monkeypatch):
-    config_settings = 'setting=value setting=value2 other="something else"'
+    config_settings = (
+        'setting=value setting=value2 triplet=1 triplet=2 triplet=3 other="something else"'
+    )
     if platform_specific:
         monkeypatch.setenv("CIBW_CONFIG_SETTINGS_" + platform.upper(), config_settings)
         monkeypatch.setenv("CIBW_CONFIG_SETTINGS", "a=b")
@@ -303,8 +305,16 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     assert _split_config_settings(config_settings) == [
         "-Csetting=value",
         "-Csetting=value2",
+        "-Ctriplet=1",
+        "-Ctriplet=2",
+        "-Ctriplet=3",
         "-Cother=something else",
     ]
+    assert parse_config_settings(config_settings) == {
+        "setting": ["value", "value2"],
+        "triplet": ["1", "2", "3"],
+        "other": "something else",
+    }
 
 
 @pytest.mark.parametrize(
