@@ -362,11 +362,11 @@ def test_build_frontend_option(
     parsed_build_frontend = options.build_options(identifier=None).build_frontend
 
     if toml_assignment:
-        assert parsed_build_frontend is not None
         assert parsed_build_frontend.name == result_name
         assert parsed_build_frontend.args == result_args
     else:
-        assert parsed_build_frontend is None
+        assert parsed_build_frontend.name == "build"
+        assert parsed_build_frontend.args == ()
 
 
 def test_override_inherit_environment(tmp_path: Path) -> None:

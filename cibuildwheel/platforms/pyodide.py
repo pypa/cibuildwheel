@@ -16,7 +16,7 @@ from filelock import FileLock
 from .. import errors
 from ..architecture import Architecture
 from ..environment import ParsedEnvironment
-from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from ..frontend import get_build_frontend_extra_flags
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
@@ -352,7 +352,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+            build_frontend = build_options.build_frontend
 
             if build_frontend.name == "pip":
                 msg = "The pyodide platform doesn't support pip frontend"

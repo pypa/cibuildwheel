@@ -11,6 +11,9 @@ from typing import Any
 
 
 def initialize() -> None:
+    if os.environ.get("CIBW_CROSS_VENV", "0") != "1":
+        return
+
     # os ######################################################################
     def cross_os_uname() -> os.uname_result:
         return os.uname_result(

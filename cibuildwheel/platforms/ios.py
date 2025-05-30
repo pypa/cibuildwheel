@@ -17,7 +17,6 @@ from .. import errors
 from ..architecture import Architecture
 from ..environment import ParsedEnvironment
 from ..frontend import (
-    BuildFrontendConfig,
     BuildFrontendName,
     get_build_frontend_extra_flags,
 )
@@ -437,7 +436,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+            build_frontend = build_options.build_frontend
             # uv doesn't support iOS
             if build_frontend.name == "build[uv]":
                 msg = "uv doesn't support iOS"
