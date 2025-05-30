@@ -137,7 +137,10 @@ def test_no_test_sources(tmp_path, capfd):
 
 
 def test_ios_testing_with_placeholder(tmp_path, capfd):
-    """Build will run tests with the {project} placeholder."""
+    """
+    Tests with the {project} placeholder are not supported on iOS, because the test command
+    is run in the simulator.
+    """
     skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
