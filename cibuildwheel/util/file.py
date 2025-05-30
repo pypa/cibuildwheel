@@ -111,21 +111,21 @@ def copy_into_local(src: Path, dst: PurePath) -> None:
 
 def copy_test_sources(
     test_sources: list[str],
-    package_dir: Path,
+    project_dir: Path,
     test_dir: PurePath,
     copy_into: Callable[[Path, PurePath], None] = copy_into_local,
 ) -> None:
     """Copy the list of test sources from the package to the test directory.
 
-    :param test_sources: A list of test paths, relative to the package_dir.
-    :param package_dir: The root of the package directory.
+    :param test_sources: A list of test paths, relative to the project_dir.
+    :param package_dir: The root of the project.
     :param test_dir: The folder where test sources should be placed.
     :param copy_info: The copy function to use. By default, does a local
         filesystem copy; but an OCIContainer.copy_info method (or equivalent)
         can be provided.
     """
     for test_path in test_sources:
-        source = package_dir.resolve() / test_path
+        source = project_dir.resolve() / test_path
 
         if not source.exists():
             msg = f"Test source {test_path} does not exist."
