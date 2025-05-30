@@ -114,12 +114,18 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 repaired_wheel = compatible_wheel
             else:
-                env, android_env = setup_env(config, build_options, build_path, python_dir)
-                before_build(build_options, env)
+                build_env, android_env = setup_env(config, build_options, build_path, python_dir)
+                before_build(build_options, build_env)
                 repaired_wheel = build_wheel(build_options, build_path, android_env)
 
             test_wheel(
-                config, build_options, build_path, python_dir, env, android_env, repaired_wheel
+                config,
+                build_options,
+                build_path,
+                python_dir,
+                build_env,
+                android_env,
+                repaired_wheel,
             )
 
             if compatible_wheel is None:
@@ -151,6 +157,12 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
 def setup_env(
     config: PythonConfiguration, build_options: BuildOptions, build_path: Path, python_dir: Path
 ) -> tuple[dict[str, str], dict[str, str]]:
+    """
+    Returns two environment dicts, both pointing at the same virtual environment:
+
+    * build_env, which uses the environment normally.
+    * android_env, which uses the environment while simulating running on Android.
+    """
     log.step("Setting up build environment...")
 
     python_exe_name = f"python{config.version}"
@@ -164,7 +176,7 @@ def setup_env(
     dependency_constraint = build_options.dependency_constraints.get_for_python_version(
         version=config.version, tmp_dir=build_path
     )
-    env = virtualenv(
+    build_env = virtualenv(
         config.version,
         Path(python_exe),
         venv_dir,
@@ -173,10 +185,10 @@ def setup_env(
     )
 
     # Apply custom environment variables, and check environment is still valid
-    env = build_options.environment.as_dictionary(env)
-    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    build_env = build_options.environment.as_dictionary(build_env)
+    build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     for command in ["python", "pip"]:
-        which = call("which", command, env=env, capture_stdout=True).strip()
+        which = call("which", command, env=build_env, capture_stdout=True).strip()
         if which != f"{venv_dir}/bin/{command}":
             msg = (
                 f"{command} available on PATH doesn't match our installed instance. If you "
@@ -184,17 +196,17 @@ def setup_env(
                 f"or insert {command} above it."
             )
             raise errors.FatalError(msg)
-        call(command, "--version", env=env)
+        call(command, "--version", env=build_env)
 
-    # Construct an alternative environment which simulates running on Android.
-    android_env = setup_android_env(python_dir, venv_dir, env)
+    # Construct an altered environment which simulates running on Android.
+    android_env = setup_android_env(python_dir, venv_dir, build_env)
 
     # Install build tools
     build_frontend = build_options.build_frontend
     if build_frontend.name != "build":
         msg = "Android requires the build frontend to be 'build'"
         raise errors.FatalError(msg)
-    call("pip", "install", "build", *constraint_flags(dependency_constraint), env=env)
+    call("pip", "install", "build", *constraint_flags(dependency_constraint), env=build_env)
 
     # Install build-time requirements. These must be installed for the build platform,
     # but queried while simulating Android. The `build` CLI doesn't support this
@@ -211,15 +223,15 @@ def setup_env(
 
     pb = ProjectBuilder.from_isolated_env(AndroidEnv(), build_options.package_dir)
     if pb.build_system_requires:
-        call("pip", "install", *pb.build_system_requires, env=env)
+        call("pip", "install", *pb.build_system_requires, env=build_env)
 
     requires_for_build = pb.get_requires_for_build(
         "wheel", parse_config_settings(build_options.config_settings)
     )
     if requires_for_build:
-        call("pip", "install", *requires_for_build, env=env)
+        call("pip", "install", *requires_for_build, env=build_env)
 
-    return env, android_env
+    return build_env, android_env
 
 
 def localize_sysconfigdata(sysconfigdata_path: Path, python_dir: Path) -> dict[str, Any]:
@@ -271,7 +283,9 @@ def localized_vars(orig_vars: dict[str, Any], prefix: Path) -> dict[str, Any]:
     return localized_vars
 
 
-def setup_android_env(python_dir: Path, venv_dir: Path, env: dict[str, str]) -> dict[str, str]:
+def setup_android_env(
+    python_dir: Path, venv_dir: Path, build_env: dict[str, str]
+) -> dict[str, str]:
     site_packages = next(venv_dir.glob("lib/python*/site-packages"))
     for suffix in ["pth", "py"]:
         shutil.copy(resources.PATH / f"_cross_venv.{suffix}", site_packages)
@@ -284,10 +298,10 @@ def setup_android_env(python_dir: Path, venv_dir: Path, env: dict[str, str]) -> 
     )
     sysconfigdata = localize_sysconfigdata(sysconfigdata_path, python_dir)
 
-    android_env = env.copy()
+    android_env = build_env.copy()
     android_env["CIBW_CROSS_VENV"] = "1"  # Activates the code in _cross_venv.py.
 
-    env_output = call(python_dir / "android.py", "env", env=env, capture_stdout=True)
+    env_output = call(python_dir / "android.py", "env", env=build_env, capture_stdout=True)
     for line in env_output.splitlines():
         key, value = line.removeprefix("export ").split("=", 1)
         value_split = shlex.split(value)
@@ -307,7 +321,7 @@ def setup_android_env(python_dir: Path, venv_dir: Path, env: dict[str, str]) -> 
 
     # Format the environment so it can be pasted into a shell.
     for key, value in sorted(android_env.items()):
-        if env.get(key) != value:
+        if build_env.get(key) != value:
             print(f"export {key}={shlex.quote(value)}")
 
     return android_env
@@ -355,7 +369,7 @@ def test_wheel(
     build_options: BuildOptions,
     build_path: Path,
     python_dir: Path,
-    env: dict[str, str],
+    build_env: dict[str, str],
     android_env: dict[str, str],
     wheel: Path,
 ) -> None:
@@ -371,7 +385,7 @@ def test_wheel(
         return
 
     if build_options.before_test:
-        shell_prepared(build_options.before_test, build_options, env)
+        shell_prepared(build_options.before_test, build_options, build_env)
 
     # Install the wheel and test-requires.
     platform_tag = (
@@ -403,7 +417,7 @@ def test_wheel(
         site_packages_dir,
         f"{wheel}{build_options.test_extras}",
         *build_options.test_requires,
-        env=env,
+        env=build_env,
     )
 
     # Copy test-sources.
@@ -452,5 +466,5 @@ def test_wheel(
         "--cwd",
         cwd_dir,
         *test_args,
-        env=env,
+        env=build_env,
     )
