@@ -118,9 +118,9 @@ def copy_test_sources(
     """Copy the list of test sources from the package to the test directory.
 
     :param test_sources: A list of test paths, relative to the project_dir.
-    :param package_dir: The root of the project.
+    :param project_dir: The root of the project.
     :param test_dir: The folder where test sources should be placed.
-    :param copy_info: The copy function to use. By default, does a local
+    :param copy_into: The copy function to use. By default, does a local
         filesystem copy; but an OCIContainer.copy_info method (or equivalent)
         can be provided.
     """
