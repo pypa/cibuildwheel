@@ -200,7 +200,6 @@ needs.
 
 It also requires the following commands to be on the `PATH`:
 
-* `pythonX.Y`, where `X.Y` is the version of Python you're building for.
 * `curl`
 * `java` (or set the `JAVA_HOME` environment variable)
 

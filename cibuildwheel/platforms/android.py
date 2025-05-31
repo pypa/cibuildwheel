@@ -25,6 +25,7 @@ from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from ..util.helpers import prepare_command
 from ..util.packaging import find_compatible_wheel
+from ..util.python_build_standalone import create_python_build_standalone_environment
 from ..venv import constraint_flags, virtualenv
 
 
@@ -165,23 +166,16 @@ def setup_env(
     """
     log.step("Setting up build environment...")
 
-    python_exe_name = f"python{config.version}"
-    python_exe = shutil.which(python_exe_name)
-    if not python_exe:
-        msg = f"Couldn't find {python_exe_name} on the PATH"
-        raise errors.FatalError(msg)
-
     # Create virtual environment
+    python_exe = create_python_build_standalone_environment(
+        config.version, build_path, CIBW_CACHE_PATH
+    )
     venv_dir = build_path / "venv"
     dependency_constraint = build_options.dependency_constraints.get_for_python_version(
         version=config.version, tmp_dir=build_path
     )
     build_env = virtualenv(
-        config.version,
-        Path(python_exe),
-        venv_dir,
-        dependency_constraint,
-        use_uv=False,
+        config.version, python_exe, venv_dir, dependency_constraint, use_uv=False
     )
 
     # Apply custom environment variables, and check environment is still valid
