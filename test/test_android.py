@@ -1,5 +1,6 @@
 import os
 import platform
+import re
 from dataclasses import dataclass
 from subprocess import CalledProcessError
 from textwrap import dedent
@@ -78,31 +79,51 @@ def test_expected_wheels(tmp_path):
 @pytest.mark.serial
 def test_archs(tmp_path, capfd):
     new_c_project().generate(tmp_path)
+
+    # Build all architectures while checking the handling of the `before` commands.
+    command_pattern = 'echo "Hello from {0}, package={{package}}, python=$(which python)"'
+    output_pattern = (
+        f"Hello from {{0}}, package={tmp_path}, python=/.+/cp313-android_{{1}}/venv/bin/python"
+    )
+
     wheels = cibuildwheel_run(
         tmp_path,
         add_env={
             **cp313_env,
             "CIBW_ARCHS": "all",
+            "CIBW_BEFORE_ALL": "echo 'Hello from before_all'",
+            "CIBW_BEFORE_BUILD": command_pattern.format("before_build"),
+            "CIBW_BEFORE_TEST": command_pattern.format("before_test"),
             "CIBW_TEST_COMMAND": (
-                'python -c \'import platform; print("machine" + "=" + platform.machine())\''
+                "python -c 'import platform; print(f\"Hello from {platform.machine()}\")'"
             ),
         },
     )
     assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{arch.android_abi}.whl" for arch in archs]
 
-    # The native architecture should run tests.
     stdout, stderr = capfd.readouterr()
-    machine_lines = [line for line in stdout.splitlines() if "machine=" in line]
-    assert len(machine_lines) == 1
-    assert machine_lines[0] == f"machine={native_arch.linux_machine}"
+    lines = (line for line in stdout.splitlines() if line.startswith("Hello from"))
+    assert next(lines) == "Hello from before_all"
 
-    # The non-native architectures should give a warning that they can't run tests.
+    # All architectures should be built, but only the native architecture should run tests.
     for arch in archs:
-        if arch != native_arch:
+        abi = arch.android_abi
+        assert re.fullmatch(output_pattern.format("before_build", abi), next(lines))
+        if arch == native_arch:
+            assert re.fullmatch(output_pattern.format("before_test", abi), next(lines))
+            assert next(lines) == f"Hello from {arch.linux_machine}"
+        else:
             assert (
                 f"warning: Skipping tests for {arch.android_abi}, as the build machine "
                 f"only supports {native_arch.android_abi}"
             ) in stderr
+
+    try:
+        line = next(lines)
+    except StopIteration:
+        pass
+    else:
+        pytest.fail(f"Unexpected line: {line!r}")
 
 
 def test_build_requires(tmp_path, capfd):

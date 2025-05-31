@@ -69,7 +69,7 @@ def get_python_configurations(
     ]
 
 
-def shell_prepared(command: str, build_options: BuildOptions, env: dict[str, str]) -> None:
+def shell_prepared(command: str, *, build_options: BuildOptions, env: dict[str, str]) -> None:
     shell(
         prepare_command(command, project=".", package=build_options.package_dir),
         env=env,
@@ -82,8 +82,8 @@ def before_all(options: Options, python_configurations: list[PythonConfiguration
         log.step("Running before_all...")
         shell_prepared(
             before_all_options.before_all,
-            before_all_options,
-            before_all_options.environment.as_dictionary(os.environ),
+            build_options=before_all_options,
+            env=before_all_options.environment.as_dictionary(os.environ),
         )
 
 
@@ -330,7 +330,7 @@ def setup_android_env(
 def before_build(build_options: BuildOptions, env: dict[str, str]) -> None:
     if build_options.before_build:
         log.step("Running before_build...")
-        shell_prepared(build_options.before_build, build_options, env)
+        shell_prepared(build_options.before_build, build_options=build_options, env=env)
 
 
 def build_wheel(build_options: BuildOptions, build_path: Path, android_env: dict[str, str]) -> Path:
@@ -385,7 +385,7 @@ def test_wheel(
         return
 
     if build_options.before_test:
-        shell_prepared(build_options.before_test, build_options, build_env)
+        shell_prepared(build_options.before_test, build_options=build_options, env=build_env)
 
     # Install the wheel and test-requires.
     platform_tag = (
