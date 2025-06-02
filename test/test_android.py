@@ -1,7 +1,9 @@
 import os
 import platform
 import re
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from subprocess import CalledProcessError, run
 from textwrap import dedent
 
@@ -34,12 +36,13 @@ if ANDROID_HOME is None:
 
 # Ensure hardware virtualization is enabled for the emulator
 # (https://stackoverflow.com/a/61984745).
+emulator = Path(f"{ANDROID_HOME}/emulator/emulator")
+if not emulator.exists():
+    run([f"{ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager", "emulator"], check=True)
 try:
-    run([f"{ANDROID_HOME}/emulator/emulator", "-accel-check"], check=True)
+    run([emulator, "-accel-check"], check=True)
 except CalledProcessError:
-    if "CI" not in os.environ:
-        raise
-    else:
+    if "CI" in os.environ and sys.platform == "linux":
         for command in [
             'echo \'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"\' '
             "| sudo tee /etc/udev/rules.d/99-kvm4all.rules",
@@ -47,6 +50,8 @@ except CalledProcessError:
             "sudo udevadm trigger --name-match=kvm",
         ]:
             run(command, shell=True, check=True)
+    else:
+        raise
 
 
 @dataclass
