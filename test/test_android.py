@@ -2,13 +2,17 @@ import os
 import platform
 import re
 from dataclasses import dataclass
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, run
 from textwrap import dedent
 
 import pytest
 
 from .test_projects import new_c_project
 from .utils import cibuildwheel_run, expected_wheels
+
+CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "android")
+if CIBW_PLATFORM != "android":
+    pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
 
 if (platform.system(), platform.machine()) not in [
     ("Linux", "x86_64"),
@@ -21,11 +25,28 @@ if (platform.system(), platform.machine()) not in [
         allow_module_level=True,
     )
 
-if "ANDROID_HOME" not in os.environ:
+ANDROID_HOME = os.environ.get("ANDROID_HOME")
+if ANDROID_HOME is None:
     pytest.skip(
         "ANDROID_HOME environment variable is not set",
         allow_module_level=True,
     )
+
+# Ensure hardware virtualization is enabled for the emulator
+# (https://stackoverflow.com/a/61984745).
+try:
+    run([f"{ANDROID_HOME}/emulator/emulator", "-accel-check"], check=True)
+except CalledProcessError:
+    if "CI" not in os.environ:
+        raise
+    else:
+        for command in [
+            'echo \'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"\' '
+            "| sudo tee /etc/udev/rules.d/99-kvm4all.rules",
+            "sudo udevadm control --reload-rules",
+            "sudo udevadm trigger --name-match=kvm",
+        ]:
+            run(command, shell=True, check=True)
 
 
 @dataclass
