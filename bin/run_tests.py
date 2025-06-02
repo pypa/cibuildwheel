@@ -42,6 +42,17 @@ if __name__ == "__main__":
         if args.run_podman:
             unit_test_args += ["--run-podman"]
 
+        if "CI" in os.environ:
+            # Enable hardware virtualization for the Android emulator
+            # (https://stackoverflow.com/a/61984745).
+            for command in [
+                'echo \'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"\' '
+                "| sudo tee /etc/udev/rules.d/99-kvm4all.rules",
+                "sudo udevadm control --reload-rules",
+                "sudo udevadm trigger --name-match=kvm",
+            ]:
+                subprocess.run(command, shell=True, check=True)
+
     print(
         "\n\n================================== UNIT TESTS ==================================",
         flush=True,

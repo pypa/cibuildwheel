@@ -232,8 +232,9 @@ emulator matching the architecture of the build machine – for example, if you'
 building on an ARM64 machine, an ARM64 wheel can be tested on an ARM64 emulator.
 Cross-architecture testing is not supported.
 
-On Linux, the emulator needs access to the KVM virtualization interface, and a DISPLAY
-environment variable pointing at an X server. Xvfb is acceptable.
+On Linux, the emulator needs access to the KVM virtualization interface. If the
+emulator fails to start, try running `$ANDROID_HOME/emulator/emulator -accel-check`
+for advice.
 
 The test process uses the same testbed used by CPython itself to run the CPython test
 suite. It is a Gradle project that has been configured to have a single JUnit test,

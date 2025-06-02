@@ -225,8 +225,8 @@ python_configurations = [
 
 [android]
 python_configurations = [
-  { identifier = "cp313-android_arm64_v8a", version = "3.13", url = "https://repo.maven.apache.org/maven2/com/chaquo/python/python/3.13.3/python-3.13.3-aarch64-linux-android.tar.gz" },
-  { identifier = "cp313-android_x86_64", version = "3.13", url = "https://repo.maven.apache.org/maven2/com/chaquo/python/python/3.13.3/python-3.13.3-x86_64-linux-android.tar.gz" },
+  { identifier = "cp313-android_arm64_v8a", version = "3.13", url = "https://chaquo.com/python-3.13.3+20250602.200342-aarch64-linux-android.tar.gz" },
+  { identifier = "cp313-android_x86_64", version = "3.13", url = "https://chaquo.com/python-3.13.3+20250602.201111-x86_64-linux-android.tar.gz" },
 ]
 
 [ios]

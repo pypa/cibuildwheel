@@ -10,10 +10,14 @@ import pytest
 from .test_projects import new_c_project
 from .utils import cibuildwheel_run, expected_wheels
 
-system_machine = (platform.system(), platform.machine())
-if system_machine not in [("Linux", "x86_64"), ("Darwin", "arm64"), ("Darwin", "x86_64")]:
+if (platform.system(), platform.machine()) not in [
+    ("Linux", "x86_64"),
+    ("Darwin", "arm64"),
+    ("Darwin", "x86_64"),
+]:
     pytest.skip(
-        f"Android development tools are not available for {system_machine}",
+        f"cibuildwheel does not support building Android wheels on "
+        f"{platform.system()} {platform.machine()}",
         allow_module_level=True,
     )
 
