@@ -260,7 +260,9 @@ def _expected_wheels(
         musllinux_versions = ["musllinux_1_2"]
 
     if platform == "pyodide" and python_abi_tags is None:
-        python_abi_tags = ["cp312-cp312", "cp313-cp313"]
+        python_abi_tags = ["cp312-cp312"]
+        if EnableGroup.PyodidePrerelease in enable_groups:
+            python_abi_tags.append("cp313-cp313")
     elif platform == "ios" and python_abi_tags is None:
         python_abi_tags = ["cp313-cp313"]
     elif python_abi_tags is None:

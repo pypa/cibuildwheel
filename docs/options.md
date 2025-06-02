@@ -334,15 +334,18 @@ values are:
   are disabled by default as they can't be uploaded to PyPI and a PEP will most likely
   be required before this can happen.
 - `graalpy`: Enable GraalPy.
+- `pyodide-prerelease`: Pyodide versions that haven't released yet, if one is
+  available. Safe if you are shipping a site with an early build, not for
+  general distribution.
 - `all`: Enable all of the above.
 
 !!! caution
     `cpython-prerelease` is provided for testing purposes only. It is not
     recommended to distribute wheels built with beta releases, such as
-    uploading to PyPI.  Please _do not_ upload these wheels to PyPI, as they are
-    not guaranteed to work with the final Python release.  Once Python is ABI
-    stable and enters the release candidate phase, that version of Python will
-    become available without this flag.
+    uploading to PyPI.  Please _do not_ upload these wheels to PyPI (except for
+    pre-releases), as they are not guaranteed to work with the final Python
+    release.  Once Python is ABI stable and enters the release candidate phase,
+    that version of Python will become available without this flag.
 
 !!! note
     Free threading is experimental: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)

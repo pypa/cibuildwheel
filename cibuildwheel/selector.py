@@ -29,12 +29,13 @@ class EnableGroup(StrEnum):
     Groups of build selectors that are not enabled by default.
     """
 
+    CPythonExperimentalRiscV64 = "cpython-experimental-riscv64"
     CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
+    GraalPy = "graalpy"
     PyPy = "pypy"
     PyPyEoL = "pypy-eol"
-    CPythonExperimentalRiscV64 = "cpython-experimental-riscv64"
-    GraalPy = "graalpy"
+    PyodidePrerelease = "pyodide-prerelease"
 
     @classmethod
     def all_groups(cls) -> frozenset["EnableGroup"]:
@@ -97,6 +98,10 @@ class BuildSelector:
         ):
             return False
         if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
+            return False
+        if EnableGroup.PyodidePrerelease not in self.enable and fnmatch(
+            build_id, "cp313-pyodide_*"
+        ):
             return False
 
         should_build = selector_matches(self.build_config, build_id)
