@@ -68,7 +68,7 @@ Usage
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
 <sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture.</sup><br>
-<sup>⁴ Requires runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Runs tests on the emulator for the runner's architecture.</sup><br>
+<sup>⁴ Building for Android requires the runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Testing is supported on the same platforms, but also requires the runner to either be bare-metal, or support nested virtualization. CI platforms known to meet this requirement are: GitHub Actions Linux x86_64.</sup><br>
 <!--intro-end-->
 
 Example setup
