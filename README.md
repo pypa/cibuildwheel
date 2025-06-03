@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0b4
+        run: python -m pip install cibuildwheel==3.0.0b5
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -240,12 +240,24 @@ note to self, when doing final release, change to docs URLs in this section to t
 If you've used previous versions of the beta:
 - ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
+- ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
+
+#### v3.0.0b5
+
+_3 June 2025_
+
+- ✨ Support multiple commands on iOS, joined by `&&`, like the other platforms. (#2432)
+- ✨ Add `pyodide-prerelease` enable option, with an early build of 0.28 (Python 3.13). (#2431)
+- 🛠 test-sources now uses the `project` directory instead of the `package` directory (matching the docs). (#2437)
+- 🛠 Fixed a bug with GraalPy if vsdevcmd prints an error. Cirrus CI works again. (#2414)
+- 🛠 Use the standard Schema line for the integrated JSONSchema. (#2433)
+- 📚 Use Python 3.14 color output in docs CLI output. (#2407)
 
 #### v3.0.0b4
 
 _29 May 2025_
 
-- 🛠 Dependency updates, including Python 3.14.0b2 (#2371)
+- 🛠 Dependency updates, including Python 3.14.0b2. (#2371)
 - 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
 - 📚 README table now matches docs and auto-updates. (#2427, #2428)
 
@@ -263,34 +275,7 @@ _25 May 2025_
 - ✨ Adds the [`CIBW_TEST_ENVIRONMENT`](https://cibuildwheel.pypa.io/en/latest/options/#test-environment) option, which allows you to set environment variables for the test command. cibuildwheel now sets `PYTHONSAFEPATH=1` in test environments by default, to avoid picking up package imports from the local directory - we want to test the installed wheel, not the source tree! You can change that, or any other environment variable in the test environment using this option. (#2388)
 - ✨ Improves support for Pyodide builds and adds the [`CIBW_PYODIDE_VERSION`](https://cibuildwheel.pypa.io/en/latest/options/#pyodide-version) option, which allows you to specify the version of Pyodide to use for builds. (#2002)
 
-#### v3.0.0b1
-
-_19 May 2025_
-
-- 🌟 Adds the ability to [build wheels for iOS](https://cibuildwheel.pypa.io/en/latest/platforms/#ios)! Set the [`platform` option](https://cibuildwheel.pypa.io/en/latest/options/#platform) to `ios` on a Mac with the iOS toolchain to try it out!
-- 🌟 Adds support for the GraalPy interpreter! Enable for your project using the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable). (#1538)
-- ✨ Adds CPython 3.14 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.14.0b1.
-
-    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
-- ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/latest/options/#test-sources), and changes the working directory for tests.
-
-    - If this option is set, cibuildwheel will copy the files and folders specified in `test-sources` into a temporary directory, and run the tests from there. This is required for iOS builds, but also useful for other platforms, as it allows you to test the installed wheel without any chance of accidentally importing from the source tree.
-    - ~If this option is not set, cibuildwheel will run the tests in the source tree. This is a change from the previous behavior, where cibuildwheel would run the tests from a temporary directory. We're still investigating what's best here, so if you encounter any issues with this, please let us know in [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406).~
-    - If this option is not set, behaviour matches v2.x - cibuildwheel will run the tests from a temporary directory, and you can use the `{project}` placeholder in the `test-command` to refer to the project directory.
-
-- ✨ Added´ `dependency-versions` inline syntax (#2123)
-- 🛠 The default [manylinux image](https://cibuildwheel.pypa.io/en/latest/options/#linux-image) has changed from `manylinux2014` to `manylinux_2_28` (#2330)
-- 🛠 Invokes `build` rather than `pip wheel` to build wheels by default. You can control this via the [`build-frontend`](https://cibuildwheel.pypa.io/en/latest/options/#build-frontend) option. You might notice that you can see your build log output now! (#2321)
-- 🛠 Removed the `CIBW_PRERELEASE_PYTHONS` and `CIBW_FREE_THREADED_SUPPORT` options - these have been folded into the [`enable`](https://cibuildwheel.pypa.io/en/latest/options/#enable) option instead. (#2095)
-- 🛠 EOL images `manylinux1`, `manylinux2010`, `manylinux_2_24` and `musllinux_1_1` can no longer be specified by their shortname. The full OCI name can still be used for these images, if you wish (#2316)
-- 🛠 Build environments no longer have setuptools and wheel preinstalled. (#2329)
-- ⚠️ Dropped support for building Python 3.6 and 3.7 wheels. If you need to build wheels for these versions, use cibuildwheel v2.23.3 or earlier. (#2282)
-- ⚠️ The minimum Python version required to run cibuildwheel is now Python 3.11. You can still build wheels for Python 3.8 and newer. (#1912)
-- ⚠️ PyPy wheels no longer built by default, due to a change to our options system. To continue building PyPy wheels, you'll now need to set the [`enable` option](https://cibuildwheel.pypa.io/en/latest/options/#enable) to `pypy` or `pypy-eol`. (#2095)
-- ⚠️ Dropped official support for Appveyor. If it was working for you before, it will probably continue to do so, but we can't be sure, because our CI doesn't run there anymore. (#2386)
-- 📚 A reorganisation of the docs, and numerous updates (#2280)
-
-<!-- [[[end]]] (checksum: b231dd6d65d5003b403f91d925140069) -->
+<!-- [[[end]]] (checksum: c95d170eee4d70055d927723c033426a) -->
 
 ---
 
