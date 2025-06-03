@@ -170,7 +170,9 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 ### Choosing a Pyodide version {: #pyodide-choosing-a-version}
 
-It is also possible to target a specific Pyodide version by setting the `pyodide-version` option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
+It is also possible to target a specific Pyodide version by setting the [`pyodide-version`](options.md#pyodide-version) option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
+
+If there are pre-releases available for a newer Python version, the `pyodide-prerelease` [`enable`](options.md#enable) can be used to include pre-release versions.
 
 ### Running tests
 
@@ -268,7 +270,7 @@ iOS is effectively 2 platforms - physical devices, and simulators. While the API
 * `arm64_iphonesimulator` (for iOS simulators running on Apple Silicon macOS machines); and
 * `x64_64_iphonesimulator` (for iOS simulators running on Intel macOS machines).
 
-By default, cibuildwheel will build wheels for all three of these targets.
+By default, cibuildwheel will build all wheels for the CPU architecture of the build machine. You can build all wheels for all architectures by specifying `--archs all`.
 
 If you need to specify different compilation flags or other properties on a per-ABI or per-CPU basis, you can use [configuration overrides](configuration.md#overrides) with a `select` clause that targets the specific ABI or architecture. For example, consider the following example:
 

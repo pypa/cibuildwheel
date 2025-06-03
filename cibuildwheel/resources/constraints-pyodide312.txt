@@ -81,7 +81,7 @@ rich==14.0.0
     #   pyodide-build
     #   pyodide-cli
     #   typer
-ruamel-yaml==0.18.11
+ruamel-yaml==0.18.12
     # via pyodide-build
 ruamel-yaml-clib==0.2.12
     # via ruamel-yaml

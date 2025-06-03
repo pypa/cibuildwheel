@@ -89,6 +89,26 @@ def test_build_filter_pypy_all():
     assert build_selector("pp39-manylinux_x86_64")
 
 
+def test_build_filter_pyodide_prerelease():
+    build_selector = BuildSelector(
+        build_config="*",
+        skip_config="",
+        enable=frozenset([EnableGroup.PyodidePrerelease]),
+    )
+    assert build_selector("cp312-pyodide_wasm32")
+    assert build_selector("cp313-pyodide_wasm32")
+
+
+def test_build_filter_pyodide():
+    build_selector = BuildSelector(
+        build_config="*",
+        skip_config="",
+        enable=frozenset(),
+    )
+    assert build_selector("cp312-pyodide_wasm32")
+    assert not build_selector("cp313-pyodide_wasm32")
+
+
 def test_skip():
     build_selector = BuildSelector(
         build_config="*",

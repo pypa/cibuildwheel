@@ -29,7 +29,7 @@ windows:
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   before_script:
-    - choco install python -y --version 3.12.4
+    - choco install python -y --allow-downgrade --version 3.12.4
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       variables:

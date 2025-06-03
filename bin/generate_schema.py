@@ -33,11 +33,13 @@ $defs:
     description: How to inherit the parent's value.
   enable:
     enum:
+      - cpython-experimental-riscv64
       - cpython-freethreading
       - cpython-prerelease
+      - graalpy
+      - pyodide-prerelease
       - pypy
       - pypy-eol
-      - cpython-experimental-riscv64
   description: A Python version or flavor to enable.
 additionalProperties: false
 description: cibuildwheel's settings.

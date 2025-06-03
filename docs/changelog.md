@@ -17,12 +17,24 @@ note to self, when doing final release, change to docs URLs in this section to t
 If you've used previous versions of the beta:
 - ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
+- ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
+
+#### v3.0.0b5
+
+_3 June 2025_
+
+- ✨ Support multiple commands on iOS, joined by `&&`, like the other platforms. (#2432)
+- ✨ Add `pyodide-prerelease` enable option, with an early build of 0.28 (Python 3.13). (#2431)
+- 🛠 test-sources now uses the `project` directory instead of the `package` directory (matching the docs). (#2437)
+- 🛠 Fixed a bug with GraalPy if vsdevcmd prints an error. Cirrus CI works again. (#2414)
+- 🛠 Use the standard Schema line for the integrated JSONSchema. (#2433)
+- 📚 Use Python 3.14 color output in docs CLI output. (#2407)
 
 #### v3.0.0b4
 
 _29 May 2025_
 
-- 🛠 Dependency updates, including Python 3.14.0b2 (#2371)
+- 🛠 Dependency updates, including Python 3.14.0b2. (#2371)
 - 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
 - 📚 README table now matches docs and auto-updates. (#2427, #2428)
 
@@ -79,7 +91,6 @@ _24 March 2025_
 
 - 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
 - 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
--
 
 ### v2.23.1
 

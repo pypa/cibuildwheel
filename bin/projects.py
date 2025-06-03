@@ -135,6 +135,7 @@ def fetch_icon(icon_name: str) -> None:
 
     document = xml.dom.minidom.parseString(original_svg_data)
     svgElement = document.documentElement
+    assert svgElement is not None
     assert svgElement.nodeName == "svg"
     svgElement.setAttribute("width", "16px")
     svgElement.setAttribute("fill", "#606060")

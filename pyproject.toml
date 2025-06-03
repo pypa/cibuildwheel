@@ -4,10 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.0.0b4"
+version = "3.0.0b5"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
     { name = "Joe Rickerby", email = "joerick@mac.com" },
@@ -25,7 +26,6 @@ keywords = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
@@ -77,6 +77,7 @@ docs = [
     "mkdocs-macros-plugin",
     "mkdocs==1.6.1",
     "pymdown-extensions",
+    "rich",
 ]
 test = [
     "build",
@@ -102,7 +103,7 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]
-log_cli_level = "info"
+log_cli_level = "INFO"
 markers = [
     "serial: tests that must *not* be run in parallel (deselect with '-m \"not serial\"')",
 ]
