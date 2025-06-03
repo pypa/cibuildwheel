@@ -21,7 +21,7 @@ linux:
 windows:
   image: mcr.microsoft.com/windows/servercore:1809
   before_script:
-    - choco install python -y --version 3.12.4
+    - choco install python -y --allow-downgrade --version 3.12.4
     - choco install git.install -y
     - py -m pip install cibuildwheel==3.0.0b4
   script:
