@@ -40,7 +40,6 @@ jobs:
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false  # FIXME remove once working
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-15]
         python_version: ['3.13']
@@ -64,7 +63,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         docker system prune -a -f
-        sudo rm -rf $ANDROID_HOME/ndk/26.* /opt/hostedtoolcache/CodeQL \
+        sudo rm -rf $ANDROID_HOME/ndk/{26,28}.* /opt/hostedtoolcache/CodeQL \
           /usr/local/lib/node_modules /usr/local/share/chromium \
           /usr/local/share/powershell
         df -h
