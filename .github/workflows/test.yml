@@ -40,6 +40,7 @@ jobs:
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false  # FIXME remove once working
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-15]
         python_version: ['3.13']
@@ -59,11 +60,13 @@ jobs:
 
     - uses: astral-sh/setup-uv@v6
 
-    # free some space to prevent reaching GHA disk space limits
-    - name: Clean docker images
+    - name: Free up disk space
       if: runner.os == 'Linux'
       run: |
         docker system prune -a -f
+        rm -rf $ANDROID_HOME/ndk/26.* /opt/hostedtoolcache/CodeQL \
+          /usr/local/lib/node_modules /usr/local/share/chromium \
+          /usr/local/share/powershell
         df -h
 
     # for oci_container unit tests
