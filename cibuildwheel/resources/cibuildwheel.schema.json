@@ -13,11 +13,13 @@
     },
     "enable": {
       "enum": [
+        "cpython-experimental-riscv64",
         "cpython-freethreading",
         "cpython-prerelease",
+        "graalpy",
+        "pyodide-prerelease",
         "pypy",
-        "pypy-eol",
-        "cpython-experimental-riscv64"
+        "pypy-eol"
       ]
     },
     "description": "A Python version or flavor to enable."

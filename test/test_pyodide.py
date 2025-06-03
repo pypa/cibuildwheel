@@ -58,7 +58,7 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
     basic_project.generate(project_dir)
 
     # check for node in 1 case only to reduce CI load
-    add_env = {}
+    add_env = {"CIBW_ENABLE": "pyodide-prerelease"}
     if use_pyproject_toml:
         add_env["CIBW_TEST_COMMAND"] = f"python {{project}}/check_node.py {CIBW_CACHE_PATH}"
 
@@ -72,6 +72,7 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
     # check that the expected wheels are produced
     expected_wheels = [
         "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
+        "spam-0.1.0-cp313-cp313-pyodide_2025_0_wasm32.whl",
     ]
 
     print("actual_wheels", actual_wheels)
@@ -130,11 +131,13 @@ def test_pyodide_build_and_test(tmp_path, expect_failure):
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
                 "CIBW_TEST_COMMAND": "python -m pytest {project}",
+                "CIBW_ENABLE": "pyodide-prerelease",
             },
         )
         # check that the expected wheels are produced
         expected_wheels = [
             "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
+            "spam-0.1.0-cp313-cp313-pyodide_2025_0_wasm32.whl",
         ]
         print("actual_wheels", actual_wheels)
         print("expected_wheels", expected_wheels)
