@@ -64,7 +64,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         docker system prune -a -f
-        rm -rf $ANDROID_HOME/ndk/26.* /opt/hostedtoolcache/CodeQL \
+        sudo rm -rf $ANDROID_HOME/ndk/26.* /opt/hostedtoolcache/CodeQL \
           /usr/local/lib/node_modules /usr/local/share/chromium \
           /usr/local/share/powershell
         df -h
