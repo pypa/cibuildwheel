@@ -1,10 +1,8 @@
 import os
 import platform
 import re
-import sys
 from dataclasses import dataclass
-from pathlib import Path
-from subprocess import CalledProcessError, run
+from subprocess import CalledProcessError
 from textwrap import dedent
 
 import pytest
@@ -27,31 +25,38 @@ if (platform.system(), platform.machine()) not in [
         allow_module_level=True,
     )
 
-ANDROID_HOME = os.environ.get("ANDROID_HOME")
-if ANDROID_HOME is None:
-    pytest.skip(
-        "ANDROID_HOME environment variable is not set",
-        allow_module_level=True,
-    )
+ci_supports_build = any(
+    key in os.environ
+    for key in [
+        "GITHUB_ACTIONS",
+        "TF_BUILD",  # Azure Pipelines
+    ]
+)
 
-# Ensure hardware virtualization is enabled for the emulator
-# (https://stackoverflow.com/a/61984745).
-emulator = Path(f"{ANDROID_HOME}/emulator/emulator")
-if not emulator.exists():
-    run([f"{ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager", "emulator"], check=True)
-try:
-    run([emulator, "-accel-check"], check=True)
-except CalledProcessError:
-    if "CI" in os.environ and sys.platform == "linux":
-        for command in [
-            'echo \'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"\' '
-            "| sudo tee /etc/udev/rules.d/99-kvm4all.rules",
-            "sudo udevadm control --reload-rules",
-            "sudo udevadm trigger --name-match=kvm",
-        ]:
-            run(command, shell=True, check=True)
+if "ANDROID_HOME" not in os.environ:
+    msg = "ANDROID_HOME environment variable is not set"
+    if ci_supports_build:
+        pytest.fail(msg)
     else:
-        raise
+        pytest.skip(msg, allow_module_level=True)
+
+# Running an emulator requires the build machine to either be bare-metal or support
+# nested virtualization. Many CI services don't support this. GitHub Actions only
+# supports it on Linux
+# (https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+# but this may extend to macOS once M3 runners are available
+# (https://github.com/ReactiveCircus/android-emulator-runner/issues/350).
+ci_supports_emulator = "GITHUB_ACTIONS" in os.environ and platform.system() == "Linux"
+
+
+def needs_emulator(test):
+    # All copies of the testbed app run on the same emulator with the same
+    # application ID, so these tests must be run serially.
+    test = pytest.mark.serial(test)
+
+    if ci_supports_build and not ci_supports_emulator:
+        test = pytest.mark.skip("This CI platform doesn't support the emulator")(test)
+    return test
 
 
 @dataclass
@@ -104,9 +109,7 @@ def test_expected_wheels(tmp_path):
     )
 
 
-# Any tests which involve the testbed app must be run serially, because all copies of the testbed
-# app run on the same emulator with the same application ID.
-@pytest.mark.serial
+@needs_emulator
 def test_archs(tmp_path, capfd):
     new_c_project().generate(tmp_path)
 
@@ -144,7 +147,7 @@ def test_archs(tmp_path, capfd):
             assert next(lines) == f"Hello from {arch.linux_machine}"
         else:
             assert (
-                f"warning: Skipping tests for {arch.android_abi}, as the build machine "
+                f"Skipping tests for {arch.android_abi}, as the build machine "
                 f"only supports {native_arch.android_abi}"
             ) in stderr
 
@@ -214,7 +217,7 @@ def spam_env(tmp_path):
     }
 
 
-@pytest.mark.serial
+@needs_emulator
 @pytest.mark.parametrize(
     ("command", "expected_output"),
     [
@@ -228,7 +231,7 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
     assert expected_output in capfd.readouterr().out
 
 
-@pytest.mark.serial
+@needs_emulator
 @pytest.mark.parametrize(
     ("command", "expected_output"),
     [
@@ -258,7 +261,7 @@ def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
     assert expected_output in capfd.readouterr().err
 
 
-@pytest.mark.serial
+@needs_emulator
 def test_no_test_sources(tmp_path, capfd):
     new_c_project().generate(tmp_path)
     with pytest.raises(CalledProcessError):
@@ -272,7 +275,7 @@ def test_no_test_sources(tmp_path, capfd):
     ) in capfd.readouterr().err
 
 
-@pytest.mark.serial
+@needs_emulator
 def test_api_level(tmp_path, capfd):
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(
