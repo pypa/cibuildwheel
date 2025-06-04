@@ -1791,6 +1791,7 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     padding-left: 10px;
     padding-right: 10px;
     line-height: normal;
+    overflow: visible;
   }
   .rst-content h3 .badges code.cmd-line:before, .rst-content h3 .badges code.toml:before, .rst-content h3 .badges code.env-var:before {
     content: ' ';

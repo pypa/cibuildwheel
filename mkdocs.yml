@@ -27,9 +27,9 @@ nav:
     - faq.md
     - cpp_standards.md
   - Reference:
-    - platforms.md
-    - configuration.md
     - options.md
+    - configuration.md
+    - platforms.md
     - working-examples.md
   - About:
     - contributing.md
