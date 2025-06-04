@@ -29,9 +29,9 @@ ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
 
 
 def arch_synonym(arch: str, from_platform: PlatformName, to_platform: PlatformName) -> str | None:
-    for arch_synonym in ARCH_SYNONYMS:
-        if arch == arch_synonym.get(from_platform):
-            return arch_synonym.get(to_platform, arch)
+    for arch_synonym_ in ARCH_SYNONYMS:
+        if arch == arch_synonym_.get(from_platform):
+            return arch_synonym_.get(to_platform, arch)
 
     return arch
 
