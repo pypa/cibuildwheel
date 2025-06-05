@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0b5
+        run: python -m pip install cibuildwheel==3.0.0rc1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -242,6 +242,12 @@ If you've used previous versions of the beta:
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
 - ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
 
+#### v3.0.0rc1
+
+_5 June 2025_
+
+- 🛠 Updates to dependencies including CPython 3.13.4, pyodide-build and iOS support package. (#2443)
+
 #### v3.0.0b5
 
 _3 June 2025_
@@ -268,14 +274,7 @@ _28 May 2025_
 - 🛠 Reverts the test working dir (when test-sources isn't set) to a temporary dir, rather than the project. (#2420)
 - 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
 
-#### v3.0.0b2
-
-_25 May 2025_
-
-- ✨ Adds the [`CIBW_TEST_ENVIRONMENT`](https://cibuildwheel.pypa.io/en/latest/options/#test-environment) option, which allows you to set environment variables for the test command. cibuildwheel now sets `PYTHONSAFEPATH=1` in test environments by default, to avoid picking up package imports from the local directory - we want to test the installed wheel, not the source tree! You can change that, or any other environment variable in the test environment using this option. (#2388)
-- ✨ Improves support for Pyodide builds and adds the [`CIBW_PYODIDE_VERSION`](https://cibuildwheel.pypa.io/en/latest/options/#pyodide-version) option, which allows you to specify the version of Pyodide to use for builds. (#2002)
-
-<!-- [[[end]]] (checksum: c95d170eee4d70055d927723c033426a) -->
+<!-- [[[end]]] (checksum: dd320058fe11f76f72506b6b1a1234ee) -->
 
 ---
 
