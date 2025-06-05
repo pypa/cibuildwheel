@@ -343,40 +343,46 @@ def _apply_inherit_rule(
         msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
         raise OptionsReaderError(msg)
 
-    if rule == InheritRule.APPEND:
-        return option_format.merge_values(before, after)
-    if rule == InheritRule.PREPEND:
-        return option_format.merge_values(after, before)
-
-    assert_never(rule)
+    match rule:
+        case InheritRule.APPEND:
+            return option_format.merge_values(before, after)
+        case InheritRule.PREPEND:
+            return option_format.merge_values(after, before)
+        case _:
+            assert_never(rule)
 
 
 def _stringify_setting(
     setting: SettingValue,
     option_format: OptionFormat | None,
 ) -> str:
-    if isinstance(setting, Mapping):
-        try:
-            if option_format is None:
-                raise OptionFormat.NotSupported
-            return option_format.format_table(setting)
-        except OptionFormat.NotSupported:
-            msg = f"Error converting {setting!r} to a string: this setting doesn't accept a table"
-            raise OptionsReaderError(msg) from None
-
-    if not isinstance(setting, str) and isinstance(setting, Sequence):
-        try:
-            if option_format is None:
-                raise OptionFormat.NotSupported
-            return option_format.format_list(setting)
-        except OptionFormat.NotSupported:
-            msg = f"Error converting {setting!r} to a string: this setting doesn't accept a list"
-            raise OptionsReaderError(msg) from None
-
-    if isinstance(setting, bool | int):
-        return str(setting)
-
-    return setting
+    match setting:
+        case {}:
+            assert isinstance(setting, Mapping)  # MyPy 1.15 doesn't narrow this for us
+            try:
+                if option_format is None:
+                    raise OptionFormat.NotSupported
+                return option_format.format_table(setting)
+            except OptionFormat.NotSupported:
+                msg = (
+                    f"Error converting {setting!r} to a string: this setting doesn't accept a table"
+                )
+                raise OptionsReaderError(msg) from None
+        case bool() | int():
+            return str(setting)
+        case [*_]:
+            try:
+                if option_format is None:
+                    raise OptionFormat.NotSupported
+                return option_format.format_list(setting)
+            except OptionFormat.NotSupported:
+                msg = (
+                    f"Error converting {setting!r} to a string: this setting doesn't accept a list"
+                )
+                raise OptionsReaderError(msg) from None
+        case _:
+            assert isinstance(setting, str)  # MyPy 1.15 doesn't narrow this for us
+            return setting
 
 
 class OptionsReader:
