@@ -37,7 +37,6 @@ repos:
       - pygithub
       - pytest
       - rich
-      - tomli
       - tomli_w
       - types-certifi
       - types-click
