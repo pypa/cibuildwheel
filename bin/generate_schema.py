@@ -348,6 +348,7 @@ oses = {
     "windows": as_object(not_linux),
     "macos": as_object(not_linux),
     "pyodide": as_object(not_linux),
+    "android": as_object(not_linux),
     "ios": as_object(not_linux),
 }
 
