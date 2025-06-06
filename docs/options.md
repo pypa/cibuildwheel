@@ -1253,6 +1253,12 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 !!! tip
     You can set the version of `pyodide-build` using the [`dependency-versions`](#dependency-versions) option.
 
+!!! warning
+    This option is considered experimental, and might be converted to a more general mechanism in a future minor cibuildwheel release.
+
+!!! warning
+    Make sure to scope it to one specific pyodide identifier with overrides if using the `pyodide-prerelease` enable.
+
 #### Examples
 
 !!! tab examples "pyproject.toml"
