@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0rc1
+        run: python -m pip install cibuildwheel==3.0.0rc2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -242,6 +242,12 @@ If you've used previous versions of the beta:
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
 - ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
 
+#### v3.0.0rc2
+
+_6 June 2025_
+
+- 🛠 Updates to dependencies including Pyodide, python-build-standalone, and iOS support package. (#2449)
+
 #### v3.0.0rc1
 
 _5 June 2025_
@@ -267,14 +273,7 @@ _29 May 2025_
 - 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
 - 📚 README table now matches docs and auto-updates. (#2427, #2428)
 
-#### v3.0.0b3
-
-_28 May 2025_
-
-- 🛠 Reverts the test working dir (when test-sources isn't set) to a temporary dir, rather than the project. (#2420)
-- 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
-
-<!-- [[[end]]] (checksum: dd320058fe11f76f72506b6b1a1234ee) -->
+<!-- [[[end]]] (checksum: 48d3233c1809c1d7a93dc7291752b4d4) -->
 
 ---
 
