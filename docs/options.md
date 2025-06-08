@@ -192,16 +192,21 @@ Options:
 - Pyodide: `wasm32`
 - iOS: `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator`
 - `auto`: The default archs for your machine - see the table below.
-    - `auto64`: Just the 64-bit auto archs
-    - `auto32`: Just the 32-bit auto archs
-- `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
+    - `auto64`: Just the 64-bit auto arch[^iosarch]
+    - `auto32`: Just the 32-bit auto arch
+- `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).[^iosarch]
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [`build`](#build-skip) with this option to target specific
   architectures via build selectors.
 
+[^iosarch]: For iOS, both `arm64_iphoneos` and `arm64_iphonesimulator` are built on `arm64`.
+
 Linux riscv64 platform support is experimental and requires an explicit opt-in through [`enable`](#enable).
 
 Default: `auto`
+
+!!! warning
+    The `auto` option is the current default, but 32-bit Linux builds are deprecated and not available on modern manylinux images. Modern Windows (Windows 11) does not come in a 32-bit version either, so we may change the default to `native` in a future version. Please explicitly specify `auto` if you want to keep the 32-bit builds, or specify `auto64` or `native`.
 
 | Runner | `native` | `auto` | `auto64` | `auto32` |
 |---|---|---|---|---|
@@ -211,9 +216,12 @@ Default: `auto`
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 | iOS on macOS / Intel | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` |  |
-| iOS on macOS / Apple Silicon | `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` |
+| iOS on macOS / Apple Silicon | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | |
 
 If not listed above, `auto` is the same as `native`.
+
+!!! note
+    Pyodide ignores the architecture setting, as it always builds for `wasm32`.
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
@@ -223,6 +231,7 @@ Platform-specific environment variables are also available:<br/>
 
 This option can also be set using the [command-line option](#command-line)
 `--archs`. This option cannot be set in an `overrides` section in `pyproject.toml`.
+
 
 #### Examples
 

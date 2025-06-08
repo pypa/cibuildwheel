@@ -81,6 +81,8 @@ class Architecture(StrEnum):
                 native_arch = Architecture.native_arch(platform=platform)
                 if native_arch:
                     result.add(native_arch)
+                if native_arch == Architecture.arm64_iphonesimulator:
+                    result.add(Architecture.arm64_iphoneos)
             elif arch_str == "all":
                 result |= Architecture.all_archs(platform=platform)
             elif arch_str == "auto64":

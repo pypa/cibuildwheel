@@ -47,6 +47,7 @@ markdown_extensions:
       # use highlightjs - it's built-in to the theme
       use_pygments: False
   - pymdownx.superfences
+  - footnotes
 
 plugins:
   - include-markdown
