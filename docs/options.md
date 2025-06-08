@@ -192,14 +192,12 @@ Options:
 - Pyodide: `wasm32`
 - iOS: `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator`
 - `auto`: The default archs for your machine - see the table below.
-    - `auto64`: Just the 64-bit auto arch[^iosarch]
+    - `auto64`: Just the 64-bit auto arch
     - `auto32`: Just the 32-bit auto arch
-- `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).[^iosarch]
+- `native`: the native arch of the build machine - matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine). When building for iOS, this includes both the device and simulator architectures.
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [`build`](#build-skip) with this option to target specific
   architectures via build selectors.
-
-[^iosarch]: For iOS, both `arm64_iphoneos` and `arm64_iphonesimulator` are built on `arm64`.
 
 Linux riscv64 platform support is experimental and requires an explicit opt-in through [`enable`](#enable).
 
