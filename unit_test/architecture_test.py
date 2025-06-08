@@ -96,3 +96,10 @@ def test_arch_auto_no_aarch32(monkeypatch):
 
     arch_set = Architecture.parse_config("auto32", "linux")
     assert len(arch_set) == 0
+
+
+def test_arch_native_on_ios(monkeypatch):
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(platform_module, "machine", lambda: "arm64")
+    arch_set = Architecture.parse_config("native", platform="ios")
+    assert arch_set == {Architecture.arm64_iphonesimulator, Architecture.arm64_iphoneos}
