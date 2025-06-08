@@ -209,12 +209,15 @@ Default: `auto`
 | Runner | `native` | `auto` | `auto64` | `auto32` |
 |---|---|---|---|---|
 | Linux / Intel | `x86_64` | `x86_64` `i686` | `x86_64` | `i686` |
+| Linux / Arm | `aarch64` | `aarch64` `armv7l`* | `aarch64` | `armv7l`* |
 | Windows / Intel | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
-| Windows / ARM64 | `ARM64` | `ARM64` | `ARM64` | |
+| Windows / Arm | `ARM64` | `ARM64` | `ARM64` | |
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 | iOS on macOS / Intel | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` |  |
 | iOS on macOS / Apple Silicon | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | |
+
+> <sub>* `armv7l` is included in `auto` on Arm CPUs that support running it natively.</sub>
 
 If not listed above, `auto` is the same as `native`.
 
