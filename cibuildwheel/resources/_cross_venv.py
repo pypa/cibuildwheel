@@ -69,6 +69,11 @@ def initialize() -> None:
 
     # sysconfig ###############################################################
     #
+    # We don't change the actual sys.base_prefix and base_exec_prefix, because that
+    # could have unpredictable effects. Instead, we change the internal variables
+    # used to generate sysconfig.get_path("include").
+    exec_prefix = sysconfig.get_config_var("exec_prefix")
+    sysconfig._BASE_PREFIX = sysconfig._BASE_EXEC_PREFIX = exec_prefix  # type: ignore[attr-defined]
     sysconfig._init_config_vars()  # type: ignore[attr-defined]
 
     # sysconfig.get_platform, which determines the wheel tag, is implemented in terms of
