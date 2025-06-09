@@ -25,25 +25,25 @@ def main() -> None:
         f"repos/astral-sh/python-build-standalone/releases/tags/{latest_tag}"
     )["assets"]
 
-    assets: list[PythonBuildStandaloneAsset] = []
+    assets = [
+        PythonBuildStandaloneAsset(name=ga["name"], url=ga["browser_download_url"])
+        for ga in github_assets
+        if ga["name"].endswith("install_only.tar.gz")
+    ]
 
-    for github_asset in github_assets:
-        name = github_asset["name"]
-        if not name.endswith("install_only.tar.gz"):
-            continue
-        url = github_asset["browser_download_url"]
-        assets.append({"name": name, "url": url})
+    # Try to keep output order stable
+    assets = sorted(assets, key=lambda x: x["name"])
 
     # Write the assets to the JSON file. One day, we might need to support
     # multiple releases, but for now, we only support the latest one
-    json_file_contents: PythonBuildStandaloneReleaseData = {
-        "releases": [
+    json_file_contents = PythonBuildStandaloneReleaseData(
+        releases=[
             {
                 "tag": latest_tag,
                 "assets": assets,
             }
         ]
-    }
+    )
 
     with PYTHON_BUILD_STANDALONE_RELEASES.open("w", encoding="utf-8") as f:
         json.dump(json_file_contents, f, indent=2)
