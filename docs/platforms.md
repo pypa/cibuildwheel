@@ -179,7 +179,7 @@ If there are pre-releases available for a newer Python version, the `pyodide-pre
 Currently, it's recommended to run tests using a `python -m` entrypoint, rather than a command line entrypoint, or a shell script. This is because custom entrypoints have some issues in the Pyodide virtual environment. For example, `pytest` may not work as a command line entrypoint, but will work as a `python -m pytest` entrypoint.
 
 
-## Android
+## Android {: android}
 
 ### Prerequisites
 

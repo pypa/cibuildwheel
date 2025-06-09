@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # /// script
-# dependencies = ["click", "packaging", "tomli; python_version<'3.11'"]
+# dependencies = ["click", "packaging"]
 # ///
 
 
@@ -129,8 +129,8 @@ def bump_version() -> None:
         contents = contents.replace(find, replace)
         path.write_text(contents, encoding="utf8")
 
-    print("Files updated. If you want to update the changelog as part of this")
-    print("commit, do that now.")
+    print("Files updated. If you want to update docs/changelog.md as part of")
+    print("this commit, do that now.")
     print()
 
     while input('Type "done" to continue: ').strip().lower() != "done":

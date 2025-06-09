@@ -244,7 +244,7 @@ def localized_vars(
     build_env: dict[str, str], orig_vars: dict[str, Any], prefix: Path
 ) -> dict[str, Any]:
     orig_prefix = orig_vars["prefix"]
-    localized_vars = {}
+    localized_vars_ = {}
     for key, value in orig_vars.items():
         # The host's sysconfigdata will include references to build-time paths.
         # Update these to refer to the current prefix.
@@ -271,9 +271,9 @@ def localized_vars(
         elif key in ["LDSHARED", "LDCXXSHARED"]:
             final = final.removesuffix(" " + orig_vars["LDFLAGS"])
 
-        localized_vars[key] = final
+        localized_vars_[key] = final
 
-    return localized_vars
+    return localized_vars_
 
 
 def setup_android_env(
@@ -357,6 +357,7 @@ def build_wheel(build_options: BuildOptions, build_path: Path, android_env: dict
     return built_wheel
 
 
+# pylint: disable-next=too-many-positional-arguments
 def test_wheel(
     config: PythonConfiguration,
     build_options: BuildOptions,
