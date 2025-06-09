@@ -75,24 +75,24 @@ class Architecture(StrEnum):
     def parse_config(config: str, platform: PlatformName) -> "set[Architecture]":
         result = set()
         for arch_str in re.split(r"[\s,]+", config):
-            if arch_str == "auto":
-                result |= Architecture.auto_archs(platform=platform)
-            elif arch_str == "native":
-                native_arch = Architecture.native_arch(platform=platform)
-                if native_arch:
-                    result.add(native_arch)
-            elif arch_str == "all":
-                result |= Architecture.all_archs(platform=platform)
-            elif arch_str == "auto64":
-                result |= Architecture.bitness_archs(platform=platform, bitness="64")
-            elif arch_str == "auto32":
-                result |= Architecture.bitness_archs(platform=platform, bitness="32")
-            else:
-                try:
-                    result.add(Architecture(arch_str))
-                except ValueError as e:
-                    msg = f"Invalid architecture '{arch_str}'"
-                    raise errors.ConfigurationError(msg) from e
+            match arch_str:
+                case "auto":
+                    result |= Architecture.auto_archs(platform=platform)
+                case "native":
+                    if native_arch := Architecture.native_arch(platform=platform):
+                        result.add(native_arch)
+                case "all":
+                    result |= Architecture.all_archs(platform=platform)
+                case "auto64":
+                    result |= Architecture.bitness_archs(platform=platform, bitness="64")
+                case "auto32":
+                    result |= Architecture.bitness_archs(platform=platform, bitness="32")
+                case _:
+                    try:
+                        result.add(Architecture(arch_str))
+                    except ValueError as e:
+                        msg = f"Invalid architecture '{arch_str}'"
+                        raise errors.ConfigurationError(msg) from e
         return result
 
     @staticmethod
@@ -142,19 +142,12 @@ class Architecture(StrEnum):
             return set()  # can't build anything on this platform
         result = {native_arch}
 
-        if platform == "linux":
-            if Architecture.x86_64 in result:
-                # x86_64 machines can run i686 containers
-                result.add(Architecture.i686)
-            elif Architecture.aarch64 in result and _check_aarch32_el0():
-                result.add(Architecture.armv7l)
-
-        elif platform == "windows" and Architecture.AMD64 in result:
-            result.add(Architecture.x86)
-
-        elif platform == "ios" and native_arch == Architecture.arm64_iphonesimulator:
-            # Also build the device wheel if we're on ARM64.
-            result.add(Architecture.arm64_iphoneos)
+        match platform:
+            case "windows" if Architecture.AMD64 in result:
+                result.add(Architecture.x86)
+            case "ios" if native_arch == Architecture.arm64_iphonesimulator:
+                # Also build the device wheel if we're on ARM64.
+                result.add(Architecture.arm64_iphoneos)
 
         return result
 
@@ -183,14 +176,32 @@ class Architecture(StrEnum):
 
     @staticmethod
     def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> "set[Architecture]":
-        archs_32 = {Architecture.i686, Architecture.x86, Architecture.armv7l}
-        auto_archs = Architecture.auto_archs(platform)
+        # This map maps 64-bit architectures to their 32-bit equivalents.
+        archs_map = {
+            Architecture.x86_64: Architecture.i686,
+            Architecture.AMD64: Architecture.x86,
+            Architecture.aarch64: Architecture.armv7l,
+        }
+        native_arch = Architecture.native_arch(platform)
 
-        if bitness == "64":
-            return auto_archs - archs_32
-        if bitness == "32":
-            return auto_archs & archs_32
-        typing.assert_never(bitness)
+        if native_arch is None:
+            return set()  # can't build anything on this platform
+
+        match bitness:
+            case "64":
+                return {native_arch} if native_arch not in archs_map.values() else set()
+            case "32":
+                if native_arch in archs_map.values():
+                    return {native_arch}
+                elif native_arch in archs_map and platform in {"linux", "windows"}:
+                    if native_arch == Architecture.aarch64 and not _check_aarch32_el0():
+                        # If we're on aarch64, skip if we cannot build armv7l wheels.
+                        return set()
+                    return {archs_map[native_arch]}
+                else:
+                    return set()
+            case _:
+                typing.assert_never(bitness)
 
 
 def allowed_architectures_check(
