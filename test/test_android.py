@@ -277,16 +277,26 @@ def test_no_test_sources(tmp_path, capfd):
 
 @needs_emulator
 def test_api_level(tmp_path, capfd):
-    new_c_project().generate(tmp_path)
+    project = new_c_project()
+    project.files["pyproject.toml"] = dedent(
+        """\
+        [build-system]
+        requires = ["setuptools"]
+
+        [tool.cibuildwheel]
+        android.environment.ANDROID_API_LEVEL = "33"
+        android.environment.PIP_EXTRA_INDEX_URL = "https://chaquo.com/pypi-13.1"
+        """
+    )
+    project.generate(tmp_path)
+
     wheels = cibuildwheel_run(
         tmp_path,
         add_env={
             **cp313_env,
-            "ANDROID_API_LEVEL": "33",
             # Verify that Android dependencies can be installed from the Chaquopy repository, and
             # that wheels tagged with an older version of Android (in this case 24) are still
             # accepted.
-            "CIBW_ENVIRONMENT": "PIP_EXTRA_INDEX_URL=https://chaquo.com/pypi-13.1",
             "CIBW_TEST_REQUIRES": "bitarray==3.0.0",
             "CIBW_TEST_COMMAND": (
                 "python -c 'from bitarray import bitarray; print(~bitarray(\"01100\"))'"
