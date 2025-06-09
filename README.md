@@ -162,7 +162,7 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (checksum: 4d6a8418630e9ed43251973d93798a1b) -->
+<!--[[[end]]] (sum: TWqEGGMOnt) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
@@ -273,7 +273,7 @@ _29 May 2025_
 - 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
 - 📚 README table now matches docs and auto-updates. (#2427, #2428)
 
-<!-- [[[end]]] (checksum: 48d3233c1809c1d7a93dc7291752b4d4) -->
+<!-- [[[end]]] (sum: SNMjPBgJwd) -->
 
 ---
 

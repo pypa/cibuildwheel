@@ -69,7 +69,7 @@ repos:
     pass_filenames: false
     entry: cog -c -P -r -I ./bin README.md
     files: '^(README\.md|docs/changelog\.md|docs/options\.md|bin/readme.*)$'
-    additional_dependencies: [cogapp]
+    additional_dependencies: [cogapp>=3.5]
 
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.1
