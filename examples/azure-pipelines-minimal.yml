@@ -1,6 +1,6 @@
 jobs:
 - job: linux
-  pool: {vmImage: 'Ubuntu-20.04'}
+  pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
@@ -14,7 +14,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 
 - job: macos
-  pool: {vmImage: 'macOS-13'}
+  pool: {vmImage: 'macOS-latest'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
@@ -28,7 +28,7 @@ jobs:
       inputs: {pathtoPublish: wheelhouse}
 
 - job: windows
-  pool: {vmImage: 'windows-2019'}
+  pool: {vmImage: 'windows-latest'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
