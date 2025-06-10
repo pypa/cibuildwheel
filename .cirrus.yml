@@ -1,4 +1,4 @@
-only_if: changesInclude('.cirrus.yml') || ($CIRRUS_BRANCH == "main" && !changesIncludeOnly('docs/*', '.pre-commit-config.yaml')) || $CIRRUS_BRANCH =~ 'cirrus.*'
+only_if: changesInclude('.cirrus.yml') || ($CIRRUS_BRANCH == "main" && !changesIncludeOnly('.github/*', 'bin/*', 'docs/*', '.circleci/*', '.travis.yml', '.pre-commit-config.yaml', '.readthedocs.yml', 'azure-pipelines.yml', 'README.md', 'mkdocs.yml', 'noxfile.py')) || $CIRRUS_BRANCH =~ 'cirrus.*'
 
 run_tests: &RUN_TESTS
   install_cibuildwheel_script:

@@ -1,8 +1,19 @@
 pr:
   paths:
     exclude:
-      - docs/*
+      - .github/**
+      - bin/*
+      - docs/**
+      - examples/github-*
+      - examples/ci*
+      - examples/travis-ci-*
+      - .ci*
       - .pre-commit-config.yaml
+      - .readthedocs.yml
+      - .travis.yml
+      - README.md
+      - mkdocs.yml
+      - noxfile.py
 
 jobs:
 - job: linux_311
