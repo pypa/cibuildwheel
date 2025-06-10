@@ -188,7 +188,7 @@ class Architecture(StrEnum):
             return set()  # can't build anything on this platform
 
         if native_arch == Architecture.wasm32:
-            return native_arch if bitness == "32" else set()
+            return {native_arch} if bitness == "32" else set()
 
         match bitness:
             case "64":
