@@ -54,7 +54,7 @@ windows_x86_task:
   install_pre_requirements_script:
     - choco install -y --no-progress python3 --version 3.12.4
     - refreshenv
-    - echo PATH=%PATH% >> "%CIRRUS_ENV%"
+    - set /p=PATH=%PATH%>> "%CIRRUS_ENV%"
   <<: *BUILD_AND_STORE_WHEELS
 
 macos_arm64_task:
