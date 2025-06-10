@@ -413,7 +413,7 @@ def test_wheel(
     cwd_dir = build_path / "cwd"
     cwd_dir.mkdir()
     if build_options.test_sources:
-        copy_test_sources(build_options.test_sources, build_options.package_dir, cwd_dir)
+        copy_test_sources(build_options.test_sources, Path.cwd(), cwd_dir)
     else:
         (cwd_dir / "test_fail.py").write_text(
             resources.TEST_FAIL_CWD_FILE.read_text(),

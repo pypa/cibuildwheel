@@ -261,6 +261,26 @@ def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
     assert expected_output in capfd.readouterr().err
 
 
+def test_package_subdir(tmp_path, spam_env, capfd):
+    spam_paths = list(tmp_path.iterdir())
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    for path in spam_paths:
+        path.rename(package_dir / path.name)
+
+    test_filename = "package/" + spam_env["CIBW_TEST_SOURCES"]
+    cibuildwheel_run(
+        tmp_path,
+        package_dir,
+        add_env={
+            **spam_env,
+            "CIBW_TEST_SOURCES": test_filename,
+            "CIBW_TEST_COMMAND": f"python -m pytest {test_filename}",
+        },
+    )
+    assert "=== 1 passed in " in capfd.readouterr().out
+
+
 @needs_emulator
 def test_no_test_sources(tmp_path, capfd):
     new_c_project().generate(tmp_path)
