@@ -192,8 +192,8 @@ Options:
 - Pyodide: `wasm32`
 - iOS: `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator`
 - `auto`: The recommended archs for your machine - see the table below.
-    - `auto64`: Just the 64-bit auto arch(s) (include device and simulator for iOS)
-    - `auto32`: Just the 32-bit auto arch
+- `auto64`: The 64-bit arch(s) supported by your machine (includes device and simulator for iOS)
+- `auto32`: The 32-bit arch supported by your machine
 - `native`: the native arch of the build machine - matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [`build`](#build-skip) with this option to target specific
