@@ -25,6 +25,7 @@ PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = ["cp38-*", "cp313-*"]
 skip = ["*musllinux*"]
+archs = ["auto64", "auto32"]
 environment = {FOO="BAR"}
 
 test-command = "pyproject"
