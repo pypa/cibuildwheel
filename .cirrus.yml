@@ -1,9 +1,9 @@
-only_if: changesInclude('.cirrus.yml') || ($CIRRUS_BRANCH == "main" && !changesIncludeOnly('docs/*', '.pre-commit-config.yaml')) || $CIRRUS_BRANCH =~ 'cirrus.*'
+only_if: changesInclude('.cirrus.yml') || ($CIRRUS_BRANCH == "main" && !changesIncludeOnly('.github/*', 'bin/*', 'docs/*', '.circleci/*', '.travis.yml', '.pre-commit-config.yaml', '.readthedocs.yml', 'azure-pipelines.yml', 'README.md', 'mkdocs.yml', 'noxfile.py')) || $CIRRUS_BRANCH =~ 'cirrus.*'
 
 run_tests: &RUN_TESTS
   install_cibuildwheel_script:
-    - python -m pip install dependency-groups
-    - python -m dependency_groups test | xargs python -m pip install -e.
+    - python -m pip install -U pip
+    - python -m pip install -e. --group test
   run_cibuildwheel_tests_script:
     - python ./bin/run_tests.py
 
@@ -55,9 +55,12 @@ windows_x86_task:
     memory: 8G
 
   install_pre_requirements_script:
+    - certutil -generateSSTFromWU roots.sst
+    - certutil -addstore -f root roots.sst
+    - del roots.sst
     - choco install -y --no-progress python3 --version 3.12.4
     - refreshenv
-    - echo PATH=%PATH% >> "%CIRRUS_ENV%"
+    - powershell -Command "$cleanPath = $env:PATH -replace ';+$', ''; Add-Content -Path $env:CIRRUS_ENV -Value ('PATH=' + $cleanPath)"
   <<: *RUN_TESTS
 
 macos_arm64_task:
