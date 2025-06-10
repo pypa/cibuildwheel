@@ -5,9 +5,7 @@ version: 2
 build:
   os: ubuntu-24.04
   commands:
-    - asdf install python 3.14-dev
-    - asdf global python 3.14-dev
     - asdf plugin add uv
     - asdf install uv latest
     - asdf global uv latest
-    - NO_COLOR=1 uv run --no-dev --group docs mkdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html
+    - NO_COLOR=1 uv run --python 3.14 --managed-python --no-dev --group docs mkdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html
