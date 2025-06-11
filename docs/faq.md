@@ -75,7 +75,7 @@ Second, there might be platforms you want to ship for that NumPy (or some other 
     environment.PIP_PREFER_BINARY = "1"
 
     [[tool.cibuildwheel.overrides]]
-    select = ["cp314*", "pp311*", "cp*-musllinux_*", "cp31*-win_arm64"]
+    select = ["cp314*"]
     inherit.environment = "append"
     environment.PIP_EXTRA_INDEX_URL = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple/"
     environment.PIP_PRERELEASE = "allow"
@@ -90,7 +90,7 @@ Second, there might be platforms you want to ship for that NumPy (or some other 
     environment.UV_PREFER_BINARY = "1"
 
     [[tool.cibuildwheel.overrides]]
-    select = ["cp314*", "pp311*", "cp*-musllinux_*", "cp31*-win_arm64"]
+    select = ["cp314*"]
     inherit.environment = "append"
     environment.UV_EXTRA_INDEX_URL = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple/"
     environment.UV_INDEX_STRATEGY = "unsafe-best-match"
