@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0rc3
+        run: python -m pip install cibuildwheel==3.0.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -229,52 +229,72 @@ Changelog
 
 ### v3.0.0
 
-Not yet released, but available for testing.
-
-Note - when using a beta version, be sure to check the [latest docs](https://cibuildwheel.pypa.io/en/latest/), rather than the stable version, which is still on v2.X.
-
-<!--
-note to self, when doing final release, change to docs URLs in this section to the stable version!
--->
-
-If you've used previous versions of the beta:
-- ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
-- ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
-- ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
-- ⚠️ 32-bit linux builds were removed from `"auto"` (the default), now require `"auto32"` or explicit archs, as modern manylinux images (including our new default) do not support them.
-
-
-#### v3.0.0rc3
-
 _11 June 2025_
 
-- 🛠 32-bit linux builds removed from `"auto"`, requires explicit `"auto32"`. (#2458)
-- 📚 Warn that `pyodide-version` is experimental. (#2450)
+See @henryiii's [release post](https://iscinumpy.dev/post/cibuildwheel-3-0-0/) for more info on new features!
 
-#### v3.0.0rc2
+- 🌟 Adds the ability to [build wheels for iOS](https://cibuildwheel.pypa.io/en/stable/platforms/#ios)! Set the [`platform` option](https://cibuildwheel.pypa.io/en/stable/options/#platform) to `ios` on a Mac with the iOS toolchain to try it out! (#2286, #2363, #2432)
+- 🌟 Adds support for the GraalPy interpreter! Enable for your project using the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable). (#1538, #2411, #2414)
+- ✨ Adds CPython 3.14 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.14.0b2. (#2390)
 
-_6 June 2025_
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
+- ✨ Adds the [test-sources option](https://cibuildwheel.pypa.io/en/stable/options/#test-sources), and changes the working directory for tests. (#2062, #2284, #2437)
 
-- 🛠 Updates to dependencies including Pyodide, python-build-standalone, and iOS support package. (#2449)
+    - If this option is set, cibuildwheel will copy the files and folders specified in `test-sources` into the temporary directory we run from. This is required for iOS builds, but also useful for other platforms, as it allows you to avoid placeholders.
+    - If this option is not set, behaviour matches v2.x - cibuildwheel will run the tests from a temporary directory, and you can use the `{project}` placeholder in the `test-command` to refer to the project directory. (#2420)
 
-#### v3.0.0rc1
-
-_5 June 2025_
-
-- 🛠 Updates to dependencies including CPython 3.13.4, pyodide-build and iOS support package. (#2443)
-
-#### v3.0.0b5
-
-_3 June 2025_
-
-- ✨ Support multiple commands on iOS, joined by `&&`, like the other platforms. (#2432)
-- ✨ Add `pyodide-prerelease` enable option, with an early build of 0.28 (Python 3.13). (#2431)
-- 🛠 test-sources now uses the `project` directory instead of the `package` directory (matching the docs). (#2437)
-- 🛠 Fixed a bug with GraalPy if vsdevcmd prints an error. Cirrus CI works again. (#2414)
+- ✨ Adds [`dependency-versions`](https://cibuildwheel.pypa.io/en/stable/options/#dependency-versions) inline syntax (#2122)
+- ✨ Improves support for Pyodide builds and adds the experimental [`pyodide-version`](https://cibuildwheel.pypa.io/en/stable/options/#pyodide-version) option, which allows you to specify the version of Pyodide to use for builds. (#2002)
+- ✨ Add `pyodide-prerelease` [enable](https://cibuildwheel.pypa.io/en/stable/options/#enable) option, with an early build of 0.28 (Python 3.13). (#2431)
+- ✨ Adds the [`test-environment`](https://cibuildwheel.pypa.io/en/stable/options/#test-environment) option, which allows you to set environment variables for the test command. (#2388)
+- ✨ Adds the [`xbuild-tools`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-tools) option, which allows you to specify tools safe for cross-compilation. Currently only used on iOS; will be useful for Android in the future. (#2317)
+- 🛠 The default [manylinux image](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) has changed from `manylinux2014` to `manylinux_2_28`. (#2330)
+- 🛠 EOL images `manylinux1`, `manylinux2010`, `manylinux_2_24` and `musllinux_1_1` can no longer be specified by their shortname. The full OCI name can still be used for these images, if you wish. (#2316)
+- 🛠 Invokes `build` rather than `pip wheel` to build wheels by default. You can control this via the [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) option. You might notice that you can see your build log output now! (#2321)
+- 🛠 Build verbosity settings have been reworked to have consistent meanings between build backends when non-zero. (#2339)
+- 🛠 Removed the `CIBW_PRERELEASE_PYTHONS` and `CIBW_FREE_THREADED_SUPPORT` options - these have been folded into the [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option instead. (#2095)
+- 🛠 Build environments no longer have setuptools and wheel preinstalled. (#2329)
 - 🛠 Use the standard Schema line for the integrated JSONSchema. (#2433)
+- ⚠️ Dropped support for building Python 3.6 and 3.7 wheels. If you need to build wheels for these versions, use cibuildwheel v2.23.3 or earlier. (#2282)
+- ⚠️ The minimum Python version required to run cibuildwheel is now Python 3.11. You can still build wheels for Python 3.8 and newer. (#1912)
+- ⚠️ 32-bit Linux wheels no longer built by default - the [arch](https://cibuildwheel.pypa.io/en/stable/options/#archs) was removed from `"auto"`. It now requires explicit `"auto32"`. Note that modern manylinux images (like the new default, `manylinux_2_28`) do not have 32-bit versions. (#2458)
+- ⚠️ PyPy wheels no longer built by default, due to a change to our options system. To continue building PyPy wheels, you'll now need to set the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable) to `pypy` or `pypy-eol`. (#2095)
+- ⚠️ Dropped official support for Appveyor. If it was working for you before, it will probably continue to do so, but we can't be sure, because our CI doesn't run there anymore. (#2386)
+- 📚 A reorganisation of the docs, and numerous updates. (#2280)
 - 📚 Use Python 3.14 color output in docs CLI output. (#2407)
+- 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
+- 📚 README table now matches docs and auto-updates. (#2427, #2428)
 
-<!-- [[[end]]] (sum: c1HE9PQmvW) -->
+### v2.23.3
+
+_26 April 2025_
+
+- 🛠 Dependency updates, including Python 3.13.3 (#2371)
+
+### v2.23.2
+
+_24 March 2025_
+
+- 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
+- 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
+
+### v2.23.1
+
+_15 March 2025_
+
+- ⚠️ Added warnings when the shorthand values `manylinux1`, `manylinux2010`, `manylinux_2_24`, and `musllinux_1_1` are used to specify the images in linux builds. The shorthand to these (unmaintainted) images will be removed in v3.0. If you want to keep using these images, explicitly opt-in using the full image URL, which can be found in [this file](https://github.com/pypa/cibuildwheel/blob/v2.23.1/cibuildwheel/resources/pinned_docker_images.cfg). (#2312)
+- 🛠 Dependency updates, including a manylinux update which fixes an [issue with rustup](https://github.com/pypa/cibuildwheel/issues/2303). (#2315)
+
+### v2.23.0
+
+_1 March 2025_
+
+- ✨ Adds official support for the new GitHub Actions Arm runners. In fact these worked out-of-the-box, now we include them in our tests and example configs. (#2135 via #2281)
+- ✨ Adds support for building PyPy 3.11 wheels (#2268 via #2281)
+- 🛠 Adopts the beta pypa/manylinux image for armv7l builds (#2269 via #2281)
+- 🛠 Dependency updates, including Pyodide 0.27 (#2117 and #2281)
+
+<!-- [[[end]]] (sum: 9FCUvIZ+dy) -->
 
 ---
 
