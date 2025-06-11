@@ -49,6 +49,56 @@ myextension = Extension(
 )
 ```
 
+### Building with NumPy
+
+If using NumPy, there are a couple of things that can help.
+
+First, if you require the `numpy` package at build-time (some binding tools, like `pybind11` and `nanobind`, do not), then the backward compatibility for your `build-backend.build-requires` is a little complicated for Python <3.9:
+
+* NumPy <1.25: You must build with the oldest version of NumPy you want to support at runtime.
+* NumPy 1.25 and 1.26: Anything you build will be compatible with 1.19+ by default, and you can set the minimum target to, for example, 1.22 with `#define NPY_TARGET_VERSION NPY_1_22_API_VERSION`.
+* NumPy 2.x: You must build with NumPy 2 to support NumPy 2; otherwise the same as 1.25+.
+
+So the rule is:
+
+* Python <3.8: Use the oldest supported NumPy (via helper `oldest-supported-numpy` if you want)
+* Python 3.9+: Use latest supported NumPy (2+).
+
+Second, there might be platforms you want to ship for that NumPy (or some other scientific Python libraries) are not shipping yet for. This is often true for beta candidates of new Python releases, for example. To work with this, you can use the Scientific Python Nightly wheels. Here's an example, depending on what frontend you use:
+
+!!! tab "pip based"
+    For frontends like `build` (the default) and `pip`:
+
+    ```toml
+    [tool.cibuildwheel]
+    environment.PIP_ONLY_BINARY = "numpy"
+    environment.PIP_PREFER_BINARY = "1"
+
+    [[tool.cibuildwheel.overrides]]
+    select = ["cp314*", "pp311*", "cp*-musllinux_*", "cp31*-win_arm64"]
+    inherit.environment = "append"
+    environment.PIP_EXTRA_INDEX_URL = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple/"
+    environment.PIP_PRERELEASE = "allow"
+    ```
+
+!!! tab "uv based"
+    For frontends like `build[uv]`:
+
+    ```toml
+    [tool.cibuildwheel]
+    environment.UV_ONLY_BINARY = "numpy"
+    environment.UV_PREFER_BINARY = "1"
+
+    [[tool.cibuildwheel.overrides]]
+    select = ["cp314*", "pp311*", "cp*-musllinux_*", "cp31*-win_arm64"]
+    inherit.environment = "append"
+    environment.UV_EXTRA_INDEX_URL = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple/"
+    environment.UV_INDEX_STRATEGY = "unsafe-best-match"
+    environment.UV_PRERELEASE = "allow"
+    ```
+
+(Note the `*_ONLY_BINARY` variable also supports `":all:"`, and you don't need both that and `*_PREFER_BINARY`, you can use either one, depending on if you want a missing wheel to be a failure or an attempt to build in CI.)
+
 ### Automatic updates using Dependabot {: #automatic-updates}
 
 Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worst-case scenario, it could occur during a release.
