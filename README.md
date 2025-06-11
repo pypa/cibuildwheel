@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0rc2
+        run: python -m pip install cibuildwheel==3.0.0rc3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -241,6 +241,15 @@ If you've used previous versions of the beta:
 - ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
 - ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
+- ⚠️ 32-bit linux builds were removed from `"auto"` (the default), now require `"auto32"` or explicit archs, as modern manylinux images (including our new default) do not support them.
+
+
+#### v3.0.0rc3
+
+_11 June 2025_
+
+- 🛠 32-bit linux builds removed from `"auto"`, requires explicit `"auto32"`. (#2458)
+- 📚 Warn that `pyodide-version` is experimental. (#2450)
 
 #### v3.0.0rc2
 
@@ -265,15 +274,7 @@ _3 June 2025_
 - 🛠 Use the standard Schema line for the integrated JSONSchema. (#2433)
 - 📚 Use Python 3.14 color output in docs CLI output. (#2407)
 
-#### v3.0.0b4
-
-_29 May 2025_
-
-- 🛠 Dependency updates, including Python 3.14.0b2. (#2371)
-- 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
-- 📚 README table now matches docs and auto-updates. (#2427, #2428)
-
-<!-- [[[end]]] (sum: SNMjPBgJwd) -->
+<!-- [[[end]]] (sum: c1HE9PQmvW) -->
 
 ---
 
