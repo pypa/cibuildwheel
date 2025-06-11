@@ -92,7 +92,7 @@ Second, there might be platforms you want to ship for that NumPy (or some other 
     [[tool.cibuildwheel.overrides]]
     select = ["cp314*"]
     inherit.environment = "append"
-    environment.UV_EXTRA_INDEX_URL = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple/"
+    environment.UV_INDEX = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple/"
     environment.UV_INDEX_STRATEGY = "unsafe-best-match"
     environment.UV_PRERELEASE = "allow"
     ```
