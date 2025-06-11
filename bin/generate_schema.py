@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run -q
 
 # /// script
 # dependencies = ["pyyaml"]
@@ -368,7 +368,7 @@ schema["properties"] |= oses
 if args.schemastore:
     schema["$id"] = "https://json.schemastore.org/partial-cibuildwheel.json"
     schema["description"] = (
-        "cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel."
+        "cibuildwheel's settings. Generated with ./bin/generate_schema.py --schemastore from cibuildwheel."
     )
 
 print(json.dumps(schema, indent=2))
