@@ -34,8 +34,8 @@ def test_arch_auto(platform_machine):
     arch_set = Architecture.auto_archs("linux")
     expected = {
         "32": {Architecture.i686},
-        "64": {Architecture.x86_64, Architecture.i686},
-        "arm": {Architecture.aarch64, Architecture.armv7l},
+        "64": {Architecture.x86_64},
+        "arm": {Architecture.aarch64},
     }
     assert arch_set == expected[machine_name]
 
@@ -94,8 +94,27 @@ def test_arch_auto_no_aarch32(monkeypatch):
     arch_set = Architecture.parse_config("auto64", "linux")
     assert arch_set == {Architecture.aarch64}
 
+    monkeypatch.setattr(cibuildwheel.architecture, "_check_aarch32_el0", lambda: True)
     arch_set = Architecture.parse_config("auto32", "linux")
-    assert len(arch_set) == 0
+    assert arch_set == {Architecture.armv7l}
+
+    monkeypatch.setattr(cibuildwheel.architecture, "_check_aarch32_el0", lambda: False)
+    arch_set = Architecture.parse_config("auto32", "linux")
+    assert arch_set == set()
+
+
+def test_arch_native_on_ios(monkeypatch):
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(platform_module, "machine", lambda: "arm64")
+    arch_set = Architecture.parse_config("native", platform="ios")
+    assert arch_set == {Architecture.arm64_iphonesimulator}
+
+
+def test_arch_auto_on_ios(monkeypatch):
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(platform_module, "machine", lambda: "arm64")
+    arch_set = Architecture.parse_config("auto", platform="ios")
+    assert arch_set == {Architecture.arm64_iphonesimulator, Architecture.arm64_iphoneos}
 
 
 @pytest.mark.parametrize(

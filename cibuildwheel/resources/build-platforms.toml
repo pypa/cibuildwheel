@@ -220,7 +220,7 @@ python_configurations = [
 
 [pyodide]
 python_configurations = [
-  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.6", node_version = "v22" },
+  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.7", node_version = "v22" },
   { identifier = "cp313-pyodide_wasm32", version = "3.13", default_pyodide_version = "0.28.0a3", node_version = "v22" },
 ]
 
@@ -232,7 +232,7 @@ python_configurations = [
 
 [ios]
 python_configurations = [
-  { identifier = "cp313-ios_arm64_iphoneos", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b8/Python-3.13-iOS-support.b8.tar.gz" },
-  { identifier = "cp313-ios_x86_64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b8/Python-3.13-iOS-support.b8.tar.gz" },
-  { identifier = "cp313-ios_arm64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b8/Python-3.13-iOS-support.b8.tar.gz" },
+  { identifier = "cp313-ios_arm64_iphoneos", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b9/Python-3.13-iOS-support.b9.tar.gz" },
+  { identifier = "cp313-ios_x86_64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b9/Python-3.13-iOS-support.b9.tar.gz" },
+  { identifier = "cp313-ios_arm64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b9/Python-3.13-iOS-support.b9.tar.gz" },
 ]

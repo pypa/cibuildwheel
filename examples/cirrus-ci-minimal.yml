@@ -1,6 +1,6 @@
 build_and_store_wheels: &BUILD_AND_STORE_WHEELS
   install_cibuildwheel_script:
-    - python -m pip install cibuildwheel==3.0.0b5
+    - python -m pip install cibuildwheel==3.0.0rc3
   run_cibuildwheel_script:
     - cibuildwheel
   wheels_artifacts:
@@ -52,9 +52,13 @@ windows_x86_task:
     memory: 4G
 
   install_pre_requirements_script:
+    - certutil -generateSSTFromWU roots.sst
+    - certutil -addstore -f root roots.sst
+    - del roots.sst
     - choco install -y --no-progress python3 --version 3.12.4
     - refreshenv
-    - echo PATH=%PATH% >> "%CIRRUS_ENV%"
+    - powershell -Command "$cleanPath = $env:PATH -replace ';+$', ''; Add-Content -Path $env:CIRRUS_ENV -Value ('PATH=' + $cleanPath)"
+
   <<: *BUILD_AND_STORE_WHEELS
 
 macos_arm64_task:

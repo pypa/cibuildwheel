@@ -1,13 +1,24 @@
 pr:
   paths:
     exclude:
-      - docs/*
+      - .github/**
+      - bin/*
+      - docs/**
+      - examples/github-*
+      - examples/ci*
+      - examples/travis-ci-*
+      - .ci*
       - .pre-commit-config.yaml
+      - .readthedocs.yml
+      - .travis.yml
+      - README.md
+      - mkdocs.yml
+      - noxfile.py
 
 jobs:
 - job: linux_311
   timeoutInMinutes: 180
-  pool: {vmImage: 'Ubuntu-22.04'}
+  pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -19,8 +30,8 @@ jobs:
         jdkSourceOption: 'PreInstalled'
     - bash: |
         docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-        python -m pip install dependency-groups
-        python -m dependency_groups test | xargs python -m pip install -e.
+        python -m pip install -U pip
+        python -m pip install -e. --group test
         if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
           echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
           export CIBW_ENABLE=all
@@ -30,15 +41,15 @@ jobs:
         python ./bin/run_tests.py
 
 - job: macos_311
-  pool: {vmImage: 'macOS-13'}
+  pool: {vmImage: 'macOS-latest'}
   timeoutInMinutes: 120
   steps:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.11'
     - bash: |
-        python -m pip install dependency-groups
-        python -m dependency_groups test | xargs python -m pip install -e.
+        python -m pip install -U pip
+        python -m pip install -e. --group test
         if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
           echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
           export CIBW_ENABLE=all
@@ -48,15 +59,15 @@ jobs:
         python ./bin/run_tests.py
 
 - job: windows_311
-  pool: {vmImage: 'windows-2019'}
+  pool: {vmImage: 'windows-latest'}
   timeoutInMinutes: 180
   steps:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.11'
     - bash: |
-        python -m pip install dependency-groups
-        python -m dependency_groups test | xargs python -m pip install -e.
+        python -m pip install -U pip
+        python -m pip install -e. --group test
         if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
           echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
           export CIBW_ENABLE=all

@@ -193,10 +193,10 @@ Options:
 - Pyodide: `wasm32`
 - Android: `arm64_v8a` `x86_64`
 - iOS: `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator`
-- `auto`: The default archs for your machine - see the table below.
-    - `auto64`: Just the 64-bit auto archs
-    - `auto32`: Just the 32-bit auto archs
-- `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
+- `auto`: The recommended archs for your machine - see the table below.
+- `auto64`: The 64-bit arch(s) supported by your machine (includes device and simulator for iOS)
+- `auto32`: The 32-bit arch supported by your machine
+- `native`: the native arch of the build machine - matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [`build`](#build-skip) with this option to target specific
   architectures via build selectors.
@@ -207,15 +207,33 @@ Default: `auto`
 
 | Runner | `native` | `auto` | `auto64` | `auto32` |
 |---|---|---|---|---|
-| Linux / Intel | `x86_64` | `x86_64` `i686` | `x86_64` | `i686` |
-| Windows / Intel | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
+| Linux / Intel 64-bit | `x86_64` | `x86_64` | `x86_64` | `i686` |
+| Linux / Intel 32-bit | `i686` | `i686` |  | `i686` |
+| Linux / Arm 64-bit | `aarch64` | `aarch64` | `aarch64` | `armv7l`¹ |
+| Linux / Arm 32-bit | `armv7l` | `armv7l` | | `armv7l` |
+| Windows / Intel 64-bit | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
+| Windows / Intel 32-bit | `x86` | `x86` | | `x86` |
 | Windows / ARM64 | `ARM64` | `ARM64` | `ARM64` | |
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 | iOS on macOS / Intel | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` |  |
 | iOS on macOS / Apple Silicon | `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` |
 
+¹: This will only be included if the runner supports it.
+
 If not listed above, `auto` is the same as `native`.
+
+!!! warning
+    The `auto` option only includes 32-bit architectures if they are
+    commonly built. `cibuildwheel` 3.0 removed 32-bit Linux builds from `auto`,
+    and a future release may remove 32-bit Windows builds from `auto` as well.
+    If you know you need them, please include `auto32`. Note that modern
+    manylinux image do not support 32-bit builds. If you want to avoid 32-bit
+    Windows builds today, feel free to use `auto64`.
+
+!!! note
+    Pyodide currently ignores the architecture setting, as it always builds for
+    `wasm32`.
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
@@ -240,6 +258,10 @@ This option can also be set using the [command-line option](#command-line)
     # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
     [tool.cibuildwheel.linux]
     archs = ["auto", "aarch64"]
+
+    # Build all 32-bit and 64-bit wheels natively buildable on the image
+    [tool.cibuildwheel]
+    archs = ["auto64", "auto32"]
     ```
 
 !!! tab examples "Environment variables"
@@ -252,11 +274,12 @@ This option can also be set using the [command-line option](#command-line)
 
     # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
     CIBW_ARCHS_LINUX: "auto aarch64"
+
+    # Build all 32-bit and 64-bit wheels natively buildable on the image
+    CIBW_ARCHS: "auto64 auto32"
     ```
 
     Separate multiple archs with a space.
-
-
 
     It is generally recommended to use the environment variable or
     command-line option for Linux, as selecting archs often depends
@@ -1252,6 +1275,12 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 
 !!! tip
     You can set the version of `pyodide-build` using the [`dependency-versions`](#dependency-versions) option.
+
+!!! warning
+    This option is considered experimental, and might be converted to a more general mechanism in a future minor cibuildwheel release.
+
+!!! warning
+    Make sure to scope it to one specific pyodide identifier with overrides if using the `pyodide-prerelease` enable.
 
 #### Examples
 

@@ -12,8 +12,19 @@ on:
       - reopened
       - labeled
     paths-ignore:
-      - 'docs/**'
+      - .ci*
+      - bin/*
+      - docs/**
+      - examples/azure-pipelines-*
+      - examples/ci*
+      - examples/travis-ci-*
       - .pre-commit-config.yaml
+      - .readthedocs.yml
+      - .travis.yml
+      - README.md
+      - azure-pipelines.yml
+      - mkdocs.yml
+      - noxfile.py
   workflow_dispatch:
     # allow manual runs on branches without a PR
 

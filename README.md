@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0b5
+        run: python -m pip install cibuildwheel==3.0.0rc3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -162,7 +162,7 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (checksum: 4d6a8418630e9ed43251973d93798a1b) -->
+<!--[[[end]]] (sum: TWqEGGMOnt) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
@@ -241,6 +241,27 @@ If you've used previous versions of the beta:
 - ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
 - ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
+- ⚠️ 32-bit linux builds were removed from `"auto"` (the default), now require `"auto32"` or explicit archs, as modern manylinux images (including our new default) do not support them.
+
+
+#### v3.0.0rc3
+
+_11 June 2025_
+
+- 🛠 32-bit linux builds removed from `"auto"`, requires explicit `"auto32"`. (#2458)
+- 📚 Warn that `pyodide-version` is experimental. (#2450)
+
+#### v3.0.0rc2
+
+_6 June 2025_
+
+- 🛠 Updates to dependencies including Pyodide, python-build-standalone, and iOS support package. (#2449)
+
+#### v3.0.0rc1
+
+_5 June 2025_
+
+- 🛠 Updates to dependencies including CPython 3.13.4, pyodide-build and iOS support package. (#2443)
 
 #### v3.0.0b5
 
@@ -253,29 +274,7 @@ _3 June 2025_
 - 🛠 Use the standard Schema line for the integrated JSONSchema. (#2433)
 - 📚 Use Python 3.14 color output in docs CLI output. (#2407)
 
-#### v3.0.0b4
-
-_29 May 2025_
-
-- 🛠 Dependency updates, including Python 3.14.0b2. (#2371)
-- 🛠 Remove the addition of `PYTHONSAFEPATH` to `test-environment`. (#2429)
-- 📚 README table now matches docs and auto-updates. (#2427, #2428)
-
-#### v3.0.0b3
-
-_28 May 2025_
-
-- 🛠 Reverts the test working dir (when test-sources isn't set) to a temporary dir, rather than the project. (#2420)
-- 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
-
-#### v3.0.0b2
-
-_25 May 2025_
-
-- ✨ Adds the [`CIBW_TEST_ENVIRONMENT`](https://cibuildwheel.pypa.io/en/latest/options/#test-environment) option, which allows you to set environment variables for the test command. cibuildwheel now sets `PYTHONSAFEPATH=1` in test environments by default, to avoid picking up package imports from the local directory - we want to test the installed wheel, not the source tree! You can change that, or any other environment variable in the test environment using this option. (#2388)
-- ✨ Improves support for Pyodide builds and adds the [`CIBW_PYODIDE_VERSION`](https://cibuildwheel.pypa.io/en/latest/options/#pyodide-version) option, which allows you to specify the version of Pyodide to use for builds. (#2002)
-
-<!-- [[[end]]] (checksum: c95d170eee4d70055d927723c033426a) -->
+<!-- [[[end]]] (sum: c1HE9PQmvW) -->
 
 ---
 

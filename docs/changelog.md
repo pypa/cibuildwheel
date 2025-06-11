@@ -18,6 +18,27 @@ If you've used previous versions of the beta:
 - ⚠️ Previous betas of v3.0 changed the working directory for tests. This has been rolled back to the v2.x behaviour, so you might need to change configs if you adapted to the beta 1 or 2 behaviour. See [issue #2406](https://github.com/pypa/cibuildwheel/issues/2406) for more information.
 - ⚠️ GraalPy shipped with the identifier `gp242-*` in previous betas, this has been changed to `gp311_242-*` to be consistent with other interpreters, and to fix a bug with GraalPy and project requires-python detection. If you were using GraalPy, you might need to update your config to use the new identifier.
 - ⚠️ `test-sources` now uses `project` directory instead of the `package` directory (matching the docs).
+- ⚠️ 32-bit linux builds were removed from `"auto"` (the default), now require `"auto32"` or explicit archs, as modern manylinux images (including our new default) do not support them.
+
+
+#### v3.0.0rc3
+
+_11 June 2025_
+
+- 🛠 32-bit linux builds removed from `"auto"`, requires explicit `"auto32"`. (#2458)
+- 📚 Warn that `pyodide-version` is experimental. (#2450)
+
+#### v3.0.0rc2
+
+_6 June 2025_
+
+- 🛠 Updates to dependencies including Pyodide, python-build-standalone, and iOS support package. (#2449)
+
+#### v3.0.0rc1
+
+_5 June 2025_
+
+- 🛠 Updates to dependencies including CPython 3.13.4, pyodide-build and iOS support package. (#2443)
 
 #### v3.0.0b5
 

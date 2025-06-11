@@ -134,11 +134,13 @@ function ThemeNav () {
         // .wy-table-responsive activates css rules that change the size of
         // tables, making anchor points move around.
         console.log('Document ready, checking for anchor in URL');
-        const anchorEl = document.querySelector(window.location.hash);
-        anchorEl.getBoundingClientRect(); // Force layout to ensure scrollIntoView works correctly
-        if (anchorEl) {
-          console.log('Anchor element:', anchorEl);
-          anchorEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+        if (window.location.hash) {
+            const anchorEl = document.querySelector(window.location.hash);
+            anchorEl.getBoundingClientRect(); // Force layout to ensure scrollIntoView works correctly
+            if (anchorEl) {
+                console.log('Anchor element:', anchorEl);
+                anchorEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
         }
         // end edit by joerick
     };

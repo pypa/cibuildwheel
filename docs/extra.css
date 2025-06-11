@@ -59,7 +59,7 @@ h1, h2, h3, h4, h5, h6 {
   left: -3.236em;
   max-width: calc(100cqw);
   width: fit-content;
-  min-width: calc(100% + 3.236em + 3.236em);
+  min-width: min(calc(100% + 3.236em + 3.236em), 100cqw);
 }
 .rst-content .section .wy-table-responsive .docutils {
   padding-left: 3.236em;
