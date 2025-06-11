@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from pprint import pprint
 from runpy import run_path
+from textwrap import dedent
 from typing import Any
 
 from build import ProjectBuilder
@@ -177,6 +178,7 @@ def setup_env(
     build_env = virtualenv(
         config.version, python_exe, venv_dir, dependency_constraint, use_uv=False
     )
+    create_cmake_toolchain(config, build_path, python_dir, build_env)
 
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
@@ -226,6 +228,38 @@ def setup_env(
         call("pip", "install", *requires_for_build, env=build_env)
 
     return build_env, android_env
+
+
+def create_cmake_toolchain(
+    config: PythonConfiguration, build_path: Path, python_dir: Path, build_env: dict[str, str]
+) -> None:
+    toolchain_path = build_path / "toolchain.cmake"
+    build_env["CMAKE_TOOLCHAIN_FILE"] = str(toolchain_path)
+    with open(toolchain_path, "w") as toolchain_file:
+        prefix = f"{python_dir}/prefix"
+        print(
+            dedent(
+                f"""\
+                # To support as many build systems as possible, we use environment
+                # variables as the single source of truth for compiler flags and paths,
+                # so they don't need to be specified here.
+
+                set(CMAKE_SYSTEM_NAME Android)
+                set(CMAKE_SYSTEM_PROCESSOR {config.arch})
+
+                # Inhibit all of CMake's own NDK handling code.
+                set(CMAKE_SYSTEM_VERSION 1)
+
+                # Tell CMake where to look for headers and libraries.
+                list(INSERT CMAKE_FIND_ROOT_PATH 0 {prefix})
+                set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+                set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+                set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+                set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+                """
+            ),
+            file=toolchain_file,
+        )
 
 
 def localize_sysconfigdata(
