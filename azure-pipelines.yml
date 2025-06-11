@@ -25,8 +25,8 @@ jobs:
         versionSpec: '3.11'
     - bash: |
         docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-        python -m pip install dependency-groups
-        python -m dependency_groups test | xargs python -m pip install -e.
+        python -m pip install -U pip
+        python -m pip install -e. --group test
         if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
           echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
           export CIBW_ENABLE=all
@@ -43,8 +43,8 @@ jobs:
       inputs:
         versionSpec: '3.11'
     - bash: |
-        python -m pip install dependency-groups
-        python -m dependency_groups test | xargs python -m pip install -e.
+        python -m pip install -U pip
+        python -m pip install -e. --group test
         if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
           echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
           export CIBW_ENABLE=all
@@ -61,8 +61,8 @@ jobs:
       inputs:
         versionSpec: '3.11'
     - bash: |
-        python -m pip install dependency-groups
-        python -m dependency_groups test | xargs python -m pip install -e.
+        python -m pip install -U pip
+        python -m pip install -e. --group test
         if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
           echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
           export CIBW_ENABLE=all

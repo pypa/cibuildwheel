@@ -10,7 +10,7 @@ fi
 
 $PYTHON --version
 $PYTHON -m venv venv
-venv/bin/python -m pip install -U pip dependency-groups
-venv/bin/python -m dependency_groups test | xargs venv/bin/python -m pip install -e.
+venv/bin/python -m pip install -U pip
+venv/bin/python -m pip install -e. --group test
 venv/bin/python -m pip freeze
 venv/bin/python --version
