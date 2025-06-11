@@ -2,8 +2,10 @@ import os
 import platform
 import re
 from dataclasses import dataclass
+from shutil import rmtree
 from subprocess import CalledProcessError
 from textwrap import dedent
+from zipfile import ZipFile
 
 import pytest
 
@@ -325,3 +327,42 @@ def test_api_level(tmp_path, capfd):
     )
     assert wheels == [f"spam-0.1.0-cp313-cp313-android_33_{native_arch.android_abi}.whl"]
     assert "bitarray('10011')" in capfd.readouterr().out
+
+
+@needs_emulator
+def test_libcxx(tmp_path, capfd):
+    project_dir = tmp_path / "project"
+    output_dir = tmp_path / "output"
+
+    # A C++ package should include libc++, and the extension module should be able to
+    # find it using DT_RUNPATH.
+    new_c_project(setup_py_extension_args_add="language='c++'").generate(project_dir)
+    script = 'import spam; print(", ".join(f"{s}: {spam.filter(s)}" for s in ["ham", "spam"]))'
+    cp313_test_env = {**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"}
+
+    # Including external libraries requires API level 24.
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(project_dir, add_env=cp313_test_env, output_dir=output_dir)
+    assert "libc++_shared.so requires ANDROID_API_LEVEL to be at least 24" in capfd.readouterr().err
+
+    wheels = cibuildwheel_run(
+        project_dir,
+        add_env={**cp313_test_env, "ANDROID_API_LEVEL": "24"},
+        output_dir=output_dir,
+    )
+    assert len(wheels) == 1
+    names = ZipFile(output_dir / wheels[0]).namelist()
+    libcxx_names = [
+        name for name in names if re.fullmatch(r"spam\.libs/libc\+\+_shared-[0-9a-f]{8}\.so", name)
+    ]
+    assert len(libcxx_names) == 1
+    assert "ham: 1, spam: 0" in capfd.readouterr().out
+
+    # A C package should not include libc++.
+    rmtree(project_dir)
+    rmtree(output_dir)
+    new_c_project().generate(project_dir)
+    wheels = cibuildwheel_run(project_dir, add_env=cp313_env, output_dir=output_dir)
+    assert len(wheels) == 1
+    for name in ZipFile(output_dir / wheels[0]).namelist():
+        assert ".libs" not in name

@@ -44,7 +44,9 @@ dependencies = [
     "dependency-groups>=1.2",
     "filelock",
     "packaging>=20.9",
-    "platformdirs"
+    "pyelftools>=0.29",
+    "platformdirs",
+    "wheel>=0.33.6",
 ]
 
 [project.optional-dependencies]

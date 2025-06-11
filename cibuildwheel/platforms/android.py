@@ -1,9 +1,12 @@
+import csv
+import hashlib
 import os
 import platform
 import re
 import shlex
 import shutil
 import subprocess
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from pprint import pprint
@@ -13,6 +16,8 @@ from typing import Any
 
 from build import ProjectBuilder
 from build.env import IsolatedEnv
+from elftools.common.exceptions import ELFError
+from elftools.elf.elffile import ELFFile
 from filelock import FileLock
 
 from .. import errors, platforms
@@ -118,7 +123,10 @@ def build(options: Options, tmp_path: Path) -> None:
             else:
                 build_env, android_env = setup_env(config, build_options, build_path, python_dir)
                 before_build(build_options, build_env)
-                repaired_wheel = build_wheel(build_options, build_path, android_env)
+                built_wheel = build_wheel(build_options, build_path, android_env)
+                repaired_wheel = repair_wheel(
+                    build_options, build_path, build_env, android_env, built_wheel
+                )
 
             test_wheel(
                 config,
@@ -391,6 +399,132 @@ def build_wheel(build_options: BuildOptions, build_path: Path, android_env: dict
     return built_wheel
 
 
+def repair_wheel(
+    build_options: BuildOptions,
+    build_path: Path,
+    build_env: dict[str, str],
+    android_env: dict[str, str],
+    built_wheel: Path,
+) -> Path:
+    log.step("Repairing wheel...")
+    repaired_wheel_dir = build_path / "repaired_wheel"
+    repaired_wheel_dir.mkdir()
+
+    if build_options.repair_command:
+        shell(
+            prepare_command(
+                build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+            ),
+            env=build_env,
+        )
+    else:
+        repair_default(android_env, built_wheel, repaired_wheel_dir)
+
+    repaired_wheels = list(repaired_wheel_dir.glob("*.whl"))
+    if len(repaired_wheels) == 0:
+        raise errors.RepairStepProducedNoWheelError()
+    if len(repaired_wheels) != 1:
+        msg = f"{repaired_wheel_dir} contains {len(repaired_wheels)} wheels; expected 1"
+        raise errors.FatalError(msg)
+    repaired_wheel = repaired_wheels[0]
+
+    if repaired_wheel.name.endswith("none-any.whl"):
+        raise errors.NonPlatformWheelError()
+    return repaired_wheel
+
+
+def repair_default(
+    android_env: dict[str, str], built_wheel: Path, repaired_wheel_dir: Path
+) -> None:
+    """
+    Adds libc++ to the wheel if anything links against it. In the future this should be
+    moved to auditwheel and generalized to support more libraries.
+    """
+    if (match := re.search(r"^(.+?)-", built_wheel.name)) is None:
+        msg = f"Failed to parse wheel filename: {built_wheel.name}"
+        raise errors.FatalError(msg)
+    wheel_name = match[1]
+
+    unpacked_dir = repaired_wheel_dir / "unpacked"
+    unpacked_dir.mkdir()
+    shutil.unpack_archive(built_wheel, unpacked_dir, format="zip")
+
+    # Some build systems are inconsistent about name normalization, so don't assume the
+    # dist-info name is identical to the wheel name.
+    record_paths = list(unpacked_dir.glob("*.dist-info/RECORD"))
+    if len(record_paths) != 1:
+        msg = f"{built_wheel.name} contains {len(record_paths)} dist-info/RECORD files; expected 1"
+        raise errors.FatalError(msg)
+
+    old_soname = "libc++_shared.so"
+    paths_to_patch = []
+    for path, elffile in elf_file_filter(
+        unpacked_dir / filename
+        for filename, *_ in csv.reader(record_paths[0].read_text().splitlines())
+    ):
+        if (dynamic := elffile.get_section_by_name(".dynamic")) and any(  # type: ignore[no-untyped-call]
+            tag.entry.d_tag == "DT_NEEDED" and tag.needed == old_soname
+            for tag in dynamic.iter_tags()
+        ):
+            paths_to_patch.append(path)
+
+    if not paths_to_patch:
+        shutil.copyfile(built_wheel, repaired_wheel_dir / built_wheel.name)
+    else:
+        # Android doesn't support DT_RPATH, but supports DT_RUNPATH since API level 24
+        # (https://github.com/aosp-mirror/platform_bionic/blob/master/android-changes-for-ndk-developers.md).
+        if int(sysconfig_print('get_config_var("ANDROID_API_LEVEL")', android_env)) < 24:
+            msg = f"Adding {old_soname} requires ANDROID_API_LEVEL to be at least 24"
+            raise errors.FatalError(msg)
+
+        toolchain = Path(android_env["CC"]).parent.parent
+        src_path = toolchain / f"sysroot/usr/lib/{android_env['HOST']}/{old_soname}"
+
+        # Use the same library location as auditwheel would.
+        libs_dir = unpacked_dir / (wheel_name + ".libs")
+        libs_dir.mkdir()
+        new_soname = soname_with_hash(src_path)
+        dst_path = libs_dir / new_soname
+        shutil.copyfile(src_path, dst_path)
+        call("patchelf", "--set-soname", new_soname, dst_path)
+
+        for path in paths_to_patch:
+            call("patchelf", "--replace-needed", old_soname, new_soname, path)
+            call(
+                "patchelf",
+                "--set-rpath",
+                f"${{ORIGIN}}/{libs_dir.relative_to(path.parent)}",
+                path,
+            )
+        call("wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
+
+
+def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:
+    """Filter through an iterator of filenames and load up only ELF files"""
+    for path in paths:
+        if path.name.endswith(".py"):
+            continue
+        else:
+            try:
+                with open(path, "rb") as f:
+                    candidate = ELFFile(f)  # type: ignore[no-untyped-call]
+                    yield path, candidate
+            except ELFError:
+                # not an elf file
+                continue
+
+
+def soname_with_hash(src_path: Path) -> str:
+    """Return the same library filename as auditwheel would"""
+    shorthash = hashlib.sha256(src_path.read_bytes()).hexdigest()[:8]
+    src_name = src_path.name
+    base, ext = src_name.split(".", 1)
+    if not base.endswith(f"-{shorthash}"):
+        return f"{base}-{shorthash}.{ext}"
+    else:
+        return src_name
+
+
 # pylint: disable-next=too-many-positional-arguments
 def test_wheel(
     config: PythonConfiguration,
@@ -416,18 +550,6 @@ def test_wheel(
         shell_prepared(build_options.before_test, build_options=build_options, env=build_env)
 
     # Install the wheel and test-requires.
-    platform_tag = (
-        call(
-            "python",
-            "-c",
-            "import sysconfig; print(sysconfig.get_platform())",
-            env=android_env,
-            capture_stdout=True,
-        )
-        .strip()
-        .replace("-", "_")
-    )
-
     site_packages_dir = build_path / "site-packages"
     site_packages_dir.mkdir()
     call(
@@ -435,7 +557,7 @@ def test_wheel(
         "install",
         "--only-binary=:all:",
         "--platform",
-        platform_tag,
+        sysconfig_print("get_platform()", android_env).replace("-", "_"),
         "--target",
         site_packages_dir,
         f"{wheel}{build_options.test_extras}",
@@ -490,4 +612,14 @@ def test_wheel(
         cwd_dir,
         *test_args,
         env=build_env,
+    )
+
+
+def sysconfig_print(method_call: str, env: dict[str, str]) -> str:
+    return call(
+        "python",
+        "-c",
+        f'import sysconfig; print(sysconfig.{method_call}, end="")',
+        env=env,
+        capture_stdout=True,
     )

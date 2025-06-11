@@ -204,6 +204,7 @@ It also requires the following commands to be on the `PATH`:
 
 * `curl`
 * `java` (or set the `JAVA_HOME` environment variable)
+* `patchelf` (if the wheel links against any external libraries)
 
 ### Android version compatibility
 

@@ -890,6 +890,8 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
+- on Android: There is no default command, but cibuildwheel will add `libc++` to the
+  wheel if anything links against it. Setting a command will replace this behavior.
 - on other platforms: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
@@ -1639,7 +1641,7 @@ A space-separated list of environment variables to set in the test environment.
 The syntax is the same as for [`environment`](#environment).
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_ENVIRONMENT_MACOS` | `CIBW_TEST_ENVIRONMENT_WINDOWS` | `CIBW_TEST_ENVIRONMENT_LINUX` | `CIBW_TEST_ENVIRONMENT_IOS` | `CIBW_TEST_ENVIRONMENT_PYODIDE`
+`CIBW_TEST_ENVIRONMENT_MACOS` | `CIBW_TEST_ENVIRONMENT_WINDOWS` | `CIBW_TEST_ENVIRONMENT_LINUX` | `CIBW_TEST_ENVIRONMENT_ANDROID` |`CIBW_TEST_ENVIRONMENT_IOS` | `CIBW_TEST_ENVIRONMENT_PYODIDE`
 
 #### Examples
 
