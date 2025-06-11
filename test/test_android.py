@@ -263,6 +263,7 @@ def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
     assert expected_output in capfd.readouterr().err
 
 
+@needs_emulator
 def test_package_subdir(tmp_path, spam_env, capfd):
     spam_paths = list(tmp_path.iterdir())
     package_dir = tmp_path / "package"
