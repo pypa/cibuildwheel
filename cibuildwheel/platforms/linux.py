@@ -418,14 +418,17 @@ def build_in_container(
             container.call(["rm", "-rf", testing_temp_dir])
 
         # move repaired wheels to output
+        # TODO: can this still output multiple wheels? I though it was just multiple tags
+        output_wheel: Path | None = None
         if compatible_wheel is None:
             container.call(["mkdir", "-p", container_output_dir])
             container.call(["mv", *repaired_wheels, container_output_dir])
             built_wheels.extend(
                 container_output_dir / repaired_wheel.name for repaired_wheel in repaired_wheels
             )
+            output_wheel = options.globals.output_dir / repaired_wheels[0].name
 
-        log.build_end()
+        log.build_end(output_wheel)
 
     log.step("Copying wheels back to host...")
     # copy the output back into the host

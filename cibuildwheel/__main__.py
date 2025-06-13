@@ -308,18 +308,10 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
     if not new_contents:
         return
 
-    max_name_len = max(len(f.name) for f in new_contents)
-    max_size_len = max(len(f.size) for f in new_contents)
     n = len(new_contents)
     s = time.time() - start_time
     m = s / 60
-    print(
-        msg.format(n=n, s=s, m=m),
-        *sorted(
-            f"  {f.name:<{max_name_len}s}   {f.size:>{max_size_len}s} kB" for f in new_contents
-        ),
-        sep="\n",
-    )
+    print(msg.format(n=n, s=s, m=m))
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
@@ -382,8 +374,9 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
-        with print_new_wheels("\n{n} wheels produced in {m:.0f} minutes:", output_dir):
+        with print_new_wheels("\n{n} wheels produced in {m:.0f} minutes", output_dir):
             platform_module.build(options, tmp_path)
+            log.print_summary()
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
