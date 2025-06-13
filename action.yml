@@ -89,24 +89,3 @@ runs:
         ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
       shell: pwsh
       if: runner.os == 'Windows'
-
-    - run: |
-        # Prepare summary
-        "${{ steps.python.outputs.python-path }}" -u << "EOF"
-        import os
-        from pathlib import Path
-
-        output_dir = Path("${{ inputs.output-dir }}" or "wheelhouse")
-
-        with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("w", encoding="utf-8") as f:
-          print("## 🎡: files in output directory", file=f)
-          print(file=f)
-          for item in sorted(output_dir.iterdir()):
-            if item.is_file():
-              size_mb = item.stat().st_size / 1024**2
-              print(f"* `{item}` - {size_mb:.2f} MB", file=f)
-            else:
-              print(f"* `{item.name}/`", file=f)
-          print(file=f)
-        EOF
-      shell: bash
