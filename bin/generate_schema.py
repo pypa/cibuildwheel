@@ -21,7 +21,7 @@ parser.add_argument("--schemastore", action="store_true", help="Generate schema_
 args = parser.parse_args()
 
 starter = """
-$schema: http://json-schema.org/draft-07/schema
+$schema: http://json-schema.org/draft-07/schema#
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
 $defs:
   inherit:
@@ -33,11 +33,13 @@ $defs:
     description: How to inherit the parent's value.
   enable:
     enum:
+      - cpython-experimental-riscv64
       - cpython-freethreading
       - cpython-prerelease
+      - graalpy
+      - pyodide-prerelease
       - pypy
       - pypy-eol
-      - cpython-experimental-riscv64
   description: A Python version or flavor to enable.
 additionalProperties: false
 description: cibuildwheel's settings.
@@ -365,7 +367,6 @@ schema["properties"] |= oses
 
 if args.schemastore:
     schema["$id"] = "https://json.schemastore.org/partial-cibuildwheel.json"
-    schema["$schema"] = "http://json-schema.org/draft-07/schema#"
     schema["description"] = (
         "cibuildwheel's toml file, generated with ./bin/generate_schema.py --schemastore from cibuildwheel."
     )

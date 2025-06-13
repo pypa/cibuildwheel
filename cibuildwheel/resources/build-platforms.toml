@@ -159,12 +159,12 @@ python_configurations = [
   { identifier = "cp312-macosx_x86_64", version = "3.12", url = "https://www.python.org/ftp/python/3.12.10/python-3.12.10-macos11.pkg" },
   { identifier = "cp312-macosx_arm64", version = "3.12", url = "https://www.python.org/ftp/python/3.12.10/python-3.12.10-macos11.pkg" },
   { identifier = "cp312-macosx_universal2", version = "3.12", url = "https://www.python.org/ftp/python/3.12.10/python-3.12.10-macos11.pkg" },
-  { identifier = "cp313-macosx_x86_64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-macos11.pkg" },
-  { identifier = "cp313-macosx_arm64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-macos11.pkg" },
-  { identifier = "cp313-macosx_universal2", version = "3.13", url = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-macos11.pkg" },
-  { identifier = "cp313t-macosx_x86_64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-macos11.pkg" },
-  { identifier = "cp313t-macosx_arm64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-macos11.pkg" },
-  { identifier = "cp313t-macosx_universal2", version = "3.13", url = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-macos11.pkg" },
+  { identifier = "cp313-macosx_x86_64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.4/python-3.13.4-macos11.pkg" },
+  { identifier = "cp313-macosx_arm64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.4/python-3.13.4-macos11.pkg" },
+  { identifier = "cp313-macosx_universal2", version = "3.13", url = "https://www.python.org/ftp/python/3.13.4/python-3.13.4-macos11.pkg" },
+  { identifier = "cp313t-macosx_x86_64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.4/python-3.13.4-macos11.pkg" },
+  { identifier = "cp313t-macosx_arm64", version = "3.13", url = "https://www.python.org/ftp/python/3.13.4/python-3.13.4-macos11.pkg" },
+  { identifier = "cp313t-macosx_universal2", version = "3.13", url = "https://www.python.org/ftp/python/3.13.4/python-3.13.4-macos11.pkg" },
   { identifier = "cp314-macosx_x86_64", version = "3.14", url = "https://www.python.org/ftp/python/3.14.0/python-3.14.0b2-macos11.pkg" },
   { identifier = "cp314-macosx_arm64", version = "3.14", url = "https://www.python.org/ftp/python/3.14.0/python-3.14.0b2-macos11.pkg" },
   { identifier = "cp314-macosx_universal2", version = "3.14", url = "https://www.python.org/ftp/python/3.14.0/python-3.14.0b2-macos11.pkg" },
@@ -195,10 +195,10 @@ python_configurations = [
   { identifier = "cp311-win_amd64", version = "3.11.9", arch = "64" },
   { identifier = "cp312-win32", version = "3.12.10", arch = "32" },
   { identifier = "cp312-win_amd64", version = "3.12.10", arch = "64" },
-  { identifier = "cp313-win32", version = "3.13.3", arch = "32" },
-  { identifier = "cp313t-win32", version = "3.13.3", arch = "32" },
-  { identifier = "cp313-win_amd64", version = "3.13.3", arch = "64" },
-  { identifier = "cp313t-win_amd64", version = "3.13.3", arch = "64" },
+  { identifier = "cp313-win32", version = "3.13.4", arch = "32" },
+  { identifier = "cp313t-win32", version = "3.13.4", arch = "32" },
+  { identifier = "cp313-win_amd64", version = "3.13.4", arch = "64" },
+  { identifier = "cp313t-win_amd64", version = "3.13.4", arch = "64" },
   { identifier = "cp314-win32", version = "3.14.0-b2", arch = "32" },
   { identifier = "cp314t-win32", version = "3.14.0-b2", arch = "32" },
   { identifier = "cp314-win_amd64", version = "3.14.0-b2", arch = "64" },
@@ -207,8 +207,8 @@ python_configurations = [
   { identifier = "cp310-win_arm64", version = "3.10.11", arch = "ARM64" },
   { identifier = "cp311-win_arm64", version = "3.11.9", arch = "ARM64" },
   { identifier = "cp312-win_arm64", version = "3.12.10", arch = "ARM64" },
-  { identifier = "cp313-win_arm64", version = "3.13.3", arch = "ARM64" },
-  { identifier = "cp313t-win_arm64", version = "3.13.3", arch = "ARM64" },
+  { identifier = "cp313-win_arm64", version = "3.13.4", arch = "ARM64" },
+  { identifier = "cp313t-win_arm64", version = "3.13.4", arch = "ARM64" },
   { identifier = "cp314-win_arm64", version = "3.14.0-b2", arch = "ARM64" },
   { identifier = "cp314t-win_arm64", version = "3.14.0-b2", arch = "ARM64" },
   { identifier = "pp38-win_amd64", version = "3.8", arch = "64", url = "https://downloads.python.org/pypy/pypy3.8-v7.3.11-win64.zip" },
@@ -220,12 +220,13 @@ python_configurations = [
 
 [pyodide]
 python_configurations = [
-  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.6", node_version = "v22" },
+  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.7", node_version = "v22" },
+  { identifier = "cp313-pyodide_wasm32", version = "3.13", default_pyodide_version = "0.28.0a3", node_version = "v22" },
 ]
 
 [ios]
 python_configurations = [
-  { identifier = "cp313-ios_arm64_iphoneos", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b6/Python-3.13-iOS-support.b6.tar.gz" },
-  { identifier = "cp313-ios_x86_64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b6/Python-3.13-iOS-support.b6.tar.gz" },
-  { identifier = "cp313-ios_arm64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b6/Python-3.13-iOS-support.b6.tar.gz" },
+  { identifier = "cp313-ios_arm64_iphoneos", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b9/Python-3.13-iOS-support.b9.tar.gz" },
+  { identifier = "cp313-ios_x86_64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b9/Python-3.13-iOS-support.b9.tar.gz" },
+  { identifier = "cp313-ios_arm64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b9/Python-3.13-iOS-support.b9.tar.gz" },
 ]

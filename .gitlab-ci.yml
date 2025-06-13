@@ -20,8 +20,8 @@ linux:
   script:
     - curl -sSL https://get.docker.com/ | sh
     - docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-    - python -m pip install dependency-groups
-    - python -m dependency_groups test | xargs python -m pip install -e. pytest-custom-exit-code
+    - python -m pip install -U pip
+    - python -m pip install -e. pytest-custom-exit-code --group test
     - python ./bin/run_tests.py
 
 windows:
@@ -29,14 +29,14 @@ windows:
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   before_script:
-    - choco install python -y --version 3.12.4
+    - choco install python -y --allow-downgrade --version 3.12.4
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       variables:
         CIBW_ENABLE: "all"
   script:
-    - py -m pip install dependency-groups
-    - py -m pip install -e. pytest-custom-exit-code $(py -m dependency_groups test)
+    - py -m pip install -U pip
+    - py -m pip install -e. pytest-custom-exit-code --group test
     - py bin\run_tests.py
   tags:
     - saas-windows-medium-amd64
@@ -50,8 +50,8 @@ macos:
       variables:
         CIBW_ENABLE: "all"
   script:
-    - python3 -m pip install dependency-groups
-    - python3 -m dependency_groups test | xargs python3 -m pip install -e. pytest-custom-exit-code
+    - python3 -m pip install -U pip
+    - python3 -m pip install -e. pytest-custom-exit-code --group test
     - python3 ./bin/run_tests.py
   tags:
     - saas-macos-medium-m1

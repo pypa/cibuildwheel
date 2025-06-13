@@ -58,7 +58,7 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-manylinux_riscv64<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l<br/>cp310-musllinux_riscv64 |                                                                                                   |                      |
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                                                                   |                      |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                                                                   | cp312-pyodide_wasm32 |
-| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator |                      |
+| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
 | Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64 |                                                                                                   |                      |
 | PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                                                                   |                      |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                                                                   |                      |
@@ -191,10 +191,10 @@ Options:
 - Windows: `AMD64` `x86` `ARM64`
 - Pyodide: `wasm32`
 - iOS: `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator`
-- `auto`: The default archs for your machine - see the table below.
-    - `auto64`: Just the 64-bit auto archs
-    - `auto32`: Just the 32-bit auto archs
-- `native`: the native arch of the build machine - Matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
+- `auto`: The recommended archs for your machine - see the table below.
+- `auto64`: The 64-bit arch(s) supported by your machine (includes device and simulator for iOS)
+- `auto32`: The 32-bit arch supported by your machine
+- `native`: the native arch of the build machine - matches [`platform.machine()`](https://docs.python.org/3/library/platform.html#platform.machine).
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [`build`](#build-skip) with this option to target specific
   architectures via build selectors.
@@ -205,15 +205,33 @@ Default: `auto`
 
 | Runner | `native` | `auto` | `auto64` | `auto32` |
 |---|---|---|---|---|
-| Linux / Intel | `x86_64` | `x86_64` `i686` | `x86_64` | `i686` |
-| Windows / Intel | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
+| Linux / Intel 64-bit | `x86_64` | `x86_64` | `x86_64` | `i686` |
+| Linux / Intel 32-bit | `i686` | `i686` |  | `i686` |
+| Linux / Arm 64-bit | `aarch64` | `aarch64` | `aarch64` | `armv7l`¹ |
+| Linux / Arm 32-bit | `armv7l` | `armv7l` | | `armv7l` |
+| Windows / Intel 64-bit | `AMD64` | `AMD64` `x86` | `AMD64` | `x86` |
+| Windows / Intel 32-bit | `x86` | `x86` | | `x86` |
 | Windows / ARM64 | `ARM64` | `ARM64` | `ARM64` | |
 | macOS / Intel | `x86_64` | `x86_64` | `x86_64` |  |
 | macOS / Apple Silicon | `arm64` | `arm64` | `arm64` |  |
 | iOS on macOS / Intel | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` | `x86_64_iphonesimulator` |  |
 | iOS on macOS / Apple Silicon | `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` | `arm64_iphoneos` `arm64_iphonesimulator` |
 
+¹: This will only be included if the runner supports it.
+
 If not listed above, `auto` is the same as `native`.
+
+!!! warning
+    The `auto` option only includes 32-bit architectures if they are
+    commonly built. `cibuildwheel` 3.0 removed 32-bit Linux builds from `auto`,
+    and a future release may remove 32-bit Windows builds from `auto` as well.
+    If you know you need them, please include `auto32`. Note that modern
+    manylinux image do not support 32-bit builds. If you want to avoid 32-bit
+    Windows builds today, feel free to use `auto64`.
+
+!!! note
+    Pyodide currently ignores the architecture setting, as it always builds for
+    `wasm32`.
 
 [setup-qemu-action]: https://github.com/docker/setup-qemu-action
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
@@ -238,6 +256,10 @@ This option can also be set using the [command-line option](#command-line)
     # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
     [tool.cibuildwheel.linux]
     archs = ["auto", "aarch64"]
+
+    # Build all 32-bit and 64-bit wheels natively buildable on the image
+    [tool.cibuildwheel]
+    archs = ["auto64", "auto32"]
     ```
 
 !!! tab examples "Environment variables"
@@ -250,11 +272,12 @@ This option can also be set using the [command-line option](#command-line)
 
     # On an Linux Intel runner with qemu installed, build Intel and ARM wheels
     CIBW_ARCHS_LINUX: "auto aarch64"
+
+    # Build all 32-bit and 64-bit wheels natively buildable on the image
+    CIBW_ARCHS: "auto64 auto32"
     ```
 
     Separate multiple archs with a space.
-
-
 
     It is generally recommended to use the environment variable or
     command-line option for Linux, as selecting archs often depends
@@ -334,15 +357,18 @@ values are:
   are disabled by default as they can't be uploaded to PyPI and a PEP will most likely
   be required before this can happen.
 - `graalpy`: Enable GraalPy.
+- `pyodide-prerelease`: Pyodide versions that haven't released yet, if one is
+  available. Safe if you are shipping a site with an early build, not for
+  general distribution.
 - `all`: Enable all of the above.
 
 !!! caution
     `cpython-prerelease` is provided for testing purposes only. It is not
     recommended to distribute wheels built with beta releases, such as
-    uploading to PyPI.  Please _do not_ upload these wheels to PyPI, as they are
-    not guaranteed to work with the final Python release.  Once Python is ABI
-    stable and enters the release candidate phase, that version of Python will
-    become available without this flag.
+    uploading to PyPI.  Please _do not_ upload these wheels to PyPI (except for
+    pre-releases), as they are not guaranteed to work with the final Python
+    release.  Once Python is ABI stable and enters the release candidate phase,
+    that version of Python will become available without this flag.
 
 !!! note
     Free threading is experimental: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)
@@ -1250,6 +1276,12 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 !!! tip
     You can set the version of `pyodide-build` using the [`dependency-versions`](#dependency-versions) option.
 
+!!! warning
+    This option is considered experimental, and might be converted to a more general mechanism in a future minor cibuildwheel release.
+
+!!! warning
+    Make sure to scope it to one specific pyodide identifier with overrides if using the `pyodide-prerelease` enable.
+
 #### Examples
 
 !!! tab examples "pyproject.toml"
@@ -1714,9 +1746,7 @@ Platform-specific environment variables are also available:<br/>
 
 ### Options
 
-```text
 « subprocess_run("cibuildwheel", "--help") »
-```
 
 ### Return codes
 
@@ -1790,6 +1820,7 @@ Some options support placeholders, like `{project}`, `{package}` or `{wheel}`, t
     padding-left: 10px;
     padding-right: 10px;
     line-height: normal;
+    overflow: visible;
   }
   .rst-content h3 .badges code.cmd-line:before, .rst-content h3 .badges code.toml:before, .rst-content h3 .badges code.env-var:before {
     content: ' ';

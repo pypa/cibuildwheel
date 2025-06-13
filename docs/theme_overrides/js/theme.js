@@ -126,6 +126,23 @@ function ThemeNav () {
             });
             link.prepend(expand);
         });
+
+        // EDIT by joerick
+        //
+        // workaround a bug with the site in safari. safari navigates to the
+        // anchor before the above code has run, specifically wrap with
+        // .wy-table-responsive activates css rules that change the size of
+        // tables, making anchor points move around.
+        console.log('Document ready, checking for anchor in URL');
+        if (window.location.hash) {
+            const anchorEl = document.querySelector(window.location.hash);
+            anchorEl.getBoundingClientRect(); // Force layout to ensure scrollIntoView works correctly
+            if (anchorEl) {
+                console.log('Anchor element:', anchorEl);
+                anchorEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+        }
+        // end edit by joerick
     };
 
     nav.reset = function () {

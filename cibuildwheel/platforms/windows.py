@@ -596,7 +596,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 if build_options.test_sources:
                     copy_test_sources(
                         build_options.test_sources,
-                        build_options.package_dir,
+                        Path.cwd(),
                         test_cwd,
                     )
                 else:

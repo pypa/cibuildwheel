@@ -1,3 +1,4 @@
+import socket
 import textwrap
 
 from . import test_projects, utils
@@ -23,6 +24,9 @@ def test(tmp_path):
     # some checks in setup.py.
     project_dir = tmp_path / "project"
     project_with_ssl_tests.generate(project_dir)
+
+    # warm up connection
+    socket.getaddrinfo("tls-v1-2.badssl.com", 443)
 
     actual_wheels = utils.cibuildwheel_run(project_dir)
 

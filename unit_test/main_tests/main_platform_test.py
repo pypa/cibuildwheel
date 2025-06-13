@@ -79,7 +79,7 @@ def test_archs_default(platform, intercepted_build_args):
     options = intercepted_build_args.args[0]
 
     if platform == "linux":
-        assert options.globals.architectures == {Architecture.x86_64, Architecture.i686}
+        assert options.globals.architectures == {Architecture.x86_64}
     elif platform == "windows":
         assert options.globals.architectures == {Architecture.AMD64, Architecture.x86}
     else:

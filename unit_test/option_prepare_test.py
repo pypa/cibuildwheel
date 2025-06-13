@@ -51,6 +51,7 @@ def mock_build_container(monkeypatch):
 @pytest.mark.usefixtures("mock_build_container", "fake_package_dir")
 def test_build_default_launches(monkeypatch):
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--platform=linux"])
+    monkeypatch.setenv("CIBW_ARCHS", "auto64 auto32")
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
@@ -105,6 +106,7 @@ def test_build_with_override_launches(monkeypatch, tmp_path):
 manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
 enable = ["pypy", "pypy-eol", "graalpy", "cpython-freethreading"]
+archs = ["auto64", "auto32"]
 
 # Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]

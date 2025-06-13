@@ -175,6 +175,7 @@ def expected_wheels(
     include_universal2: bool = False,
     single_python: bool = False,
     single_arch: bool = False,
+    full_auto: bool = False,
 ) -> list[str]:
     """
     Returns the expected wheels from a run of cibuildwheel.
@@ -194,7 +195,7 @@ def expected_wheels(
 
     architectures = [machine_arch]
     if not single_arch:
-        if platform == "linux":
+        if platform == "linux" and full_auto:
             if machine_arch == "x86_64":
                 architectures.append("i686")
             elif (
@@ -261,6 +262,8 @@ def _expected_wheels(
 
     if platform == "pyodide" and python_abi_tags is None:
         python_abi_tags = ["cp312-cp312"]
+        if EnableGroup.PyodidePrerelease in enable_groups:
+            python_abi_tags.append("cp313-cp313")
     elif platform == "ios" and python_abi_tags is None:
         python_abi_tags = ["cp313-cp313"]
     elif python_abi_tags is None:

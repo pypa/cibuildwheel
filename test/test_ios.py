@@ -86,7 +86,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
             "CIBW_BUILD": "cp313-*",
             "CIBW_XBUILD_TOOLS": "does-exist",
             "CIBW_TEST_SOURCES": "tests",
-            "CIBW_TEST_COMMAND": "python -m unittest discover tests test_platform.py",
+            "CIBW_TEST_COMMAND": "python -m this && python -m unittest discover tests test_platform.py",
             "CIBW_BUILD_VERBOSITY": "1",
             **build_config,
         },
@@ -101,6 +101,9 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     # The user was notified that the cross-build tool was found.
     captured = capfd.readouterr()
     assert "'does-exist' will be included in the cross-build environment" in captured.out
+
+    # Make sure the first command ran
+    assert "Zen of Python" in captured.out
 
 
 @pytest.mark.serial
@@ -134,7 +137,10 @@ def test_no_test_sources(tmp_path, capfd):
 
 
 def test_ios_testing_with_placeholder(tmp_path, capfd):
-    """Build will run tests with the {project} placeholder."""
+    """
+    Tests with the {project} placeholder are not supported on iOS, because the test command
+    is run in the simulator.
+    """
     skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
@@ -157,6 +163,36 @@ def test_ios_testing_with_placeholder(tmp_path, capfd):
     # The error message indicates the configuration issue.
     captured = capfd.readouterr()
     assert "iOS tests cannot use placeholders" in captured.out + captured.err
+
+
+@pytest.mark.serial
+def test_ios_test_command_short_circuit(tmp_path, capfd):
+    skip_if_ios_testing_not_supported()
+
+    project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
+    basic_project.generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        # `python -m not_a_module` will fail, so `python -m this` should not be run.
+        utils.cibuildwheel_run(
+            project_dir,
+            add_env={
+                "CIBW_PLATFORM": "ios",
+                "CIBW_BUILD": "cp313-*",
+                "CIBW_XBUILD_TOOLS": "",
+                "CIBW_TEST_SOURCES": "tests",
+                "CIBW_TEST_COMMAND": "python -m not_a_module && python -m this",
+                "CIBW_BUILD_VERBOSITY": "1",
+            },
+        )
+
+    captured = capfd.readouterr()
+
+    assert "No module named not_a_module" in captured.out + captured.err
+    # assert that `python -m this` was not run
+    assert "Zen of Python" not in captured.out + captured.err
 
 
 def test_missing_xbuild_tool(tmp_path, capfd):

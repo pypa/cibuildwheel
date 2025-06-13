@@ -14,14 +14,14 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.11.11
+  rev: v0.11.13
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.15.0
+  rev: v1.16.0
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
@@ -35,7 +35,6 @@ repos:
       - pygithub
       - pytest
       - rich
-      - tomli
       - tomli_w
       - types-certifi
       - types-click
@@ -70,7 +69,7 @@ repos:
     pass_filenames: false
     entry: cog -c -P -r -I ./bin README.md
     files: '^(README\.md|docs/changelog\.md|docs/options\.md|bin/readme.*)$'
-    additional_dependencies: [cogapp]
+    additional_dependencies: [cogapp>=3.5]
 
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.1
@@ -87,7 +86,8 @@ repos:
     - id: check-github-actions
     - id: check-github-workflows
     - id: check-gitlab-ci
-    - id: check-readthedocs
+    # Disabled due to schema issue for now:
+    # - id: check-readthedocs
     - id: check-travis
     - id: check-jsonschema
       name: Check projects

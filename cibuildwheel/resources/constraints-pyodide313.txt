@@ -96,7 +96,6 @@ typer==0.16.0
     #   pyodide-cli
 typing-extensions==4.14.0
     # via
-    #   anyio
     #   pydantic
     #   pydantic-core
     #   typer
