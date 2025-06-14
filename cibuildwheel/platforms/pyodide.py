@@ -3,6 +3,7 @@ import functools
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tomllib
 import typing
@@ -445,6 +446,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         dest_dir=repaired_wheel_dir,
                     )
                     shell(repair_command_prepared, env=env)
+                    log.step_end()
                 else:
                     shutil.move(str(built_wheel), repaired_wheel_dir)
 
@@ -538,6 +540,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (overwrite existing)
+            output_wheel: Path | None = None
             if compatible_wheel is None:
                 output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
                 moved_wheel = move_file(repaired_wheel, output_wheel)
@@ -546,6 +549,8 @@ def build(options: Options, tmp_path: Path) -> None:
                         f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
+            log.build_end(output_wheel)
 
-    finally:
-        pass
+    except subprocess.CalledProcessError as error:
+        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
+        raise errors.FatalError(msg) from error

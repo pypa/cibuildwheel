@@ -202,14 +202,14 @@ class Logger:
         string_io = io.StringIO()
         ioprint = functools.partial(print, file=string_io)
         ioprint("## 🎡: Wheels\n")
-        ioprint("| Identifier | Wheel | Size | Time |")
-        ioprint("|===|===|===|===|")
+        ioprint("| Identifier | Size | Time | Wheel |")
+        ioprint("| ---------- | ---- | ---- | ----- |")
         for ident, filename, duration in self.summary:
             if filename:
                 size_mb = filename.stat().st_size / 1024**2
-                ioprint(f"| {ident} | {filename.name} | {size_mb:.2f} MB | {duration} |")
+                ioprint(f"| `{ident}` | {size_mb:.2f} MB | {duration:.0f} s | `{filename.name}` |")
             else:
-                ioprint(f"| {ident} | test only | --- | {duration} |")
+                ioprint(f"| `{ident}` | --- | {duration:.0f} s | test only |")
 
         if self.summary_mode == "github":
             Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
