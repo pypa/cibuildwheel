@@ -1,9 +1,12 @@
 import codecs
+import functools
+import io
 import os
 import re
 import sys
 import time
-from typing import IO, AnyStr, Final
+from pathlib import Path
+from typing import IO, AnyStr, Final, Literal
 
 from .ci import CIProvider, detect_ci_provider
 
@@ -70,13 +73,15 @@ class Symbols:
 
 
 class Logger:
-    fold_mode: str
+    fold_mode: Literal["azure", "github", "travis", "disabled"]
     colors_enabled: bool
     unicode_enabled: bool
     active_build_identifier: str | None = None
     build_start_time: float | None = None
     step_start_time: float | None = None
     active_fold_group_name: str | None = None
+    summary: list[tuple[str, Path | None, float]]
+    summary_mode: Literal["github", "generic"]
 
     def __init__(self) -> None:
         if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
@@ -88,25 +93,33 @@ class Logger:
 
         ci_provider = detect_ci_provider()
 
-        if ci_provider == CIProvider.azure_pipelines:
-            self.fold_mode = "azure"
-            self.colors_enabled = True
+        match ci_provider:
+            case CIProvider.azure_pipelines:
+                self.fold_mode = "azure"
+                self.colors_enabled = True
+                self.summary_mode = "generic"
 
-        elif ci_provider == CIProvider.github_actions:
-            self.fold_mode = "github"
-            self.colors_enabled = True
+            case CIProvider.github_actions:
+                self.fold_mode = "github"
+                self.colors_enabled = True
+                self.summary_mode = "github"
 
-        elif ci_provider == CIProvider.travis_ci:
-            self.fold_mode = "travis"
-            self.colors_enabled = True
+            case CIProvider.travis_ci:
+                self.fold_mode = "travis"
+                self.colors_enabled = True
+                self.summary_mode = "generic"
 
-        elif ci_provider == CIProvider.appveyor:
-            self.fold_mode = "disabled"
-            self.colors_enabled = True
+            case CIProvider.appveyor:
+                self.fold_mode = "disabled"
+                self.colors_enabled = True
+                self.summary_mode = "generic"
 
-        else:
-            self.fold_mode = "disabled"
-            self.colors_enabled = file_supports_color(sys.stdout)
+            case _:
+                self.fold_mode = "disabled"
+                self.colors_enabled = file_supports_color(sys.stdout)
+                self.summary_mode = "generic"
+
+        self.summary = []
 
     def build_start(self, identifier: str) -> None:
         self.step_end()
@@ -120,7 +133,7 @@ class Logger:
         self.build_start_time = time.time()
         self.active_build_identifier = identifier
 
-    def build_end(self) -> None:
+    def build_end(self, filename: Path | None) -> None:
         assert self.build_start_time is not None
         assert self.active_build_identifier is not None
         self.step_end()
@@ -133,6 +146,8 @@ class Logger:
         print(
             f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration:.2f}s"
         )
+        self.summary.append((self.active_build_identifier, filename, duration))
+
         self.build_start_time = None
         self.active_build_identifier = None
 
@@ -182,6 +197,28 @@ class Logger:
         else:
             c = self.colors
             print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
+
+    def print_summary(self) -> None:
+        string_io = io.StringIO()
+        ioprint = functools.partial(print, file=string_io)
+        ioprint("## 🎡: Wheels\n")
+        ioprint("| Identifier | Size | Time | Wheel |")
+        ioprint("| ---------- | ---- | ---- | ----- |")
+        for ident, filename, duration in self.summary:
+            if filename:
+                size_mb = filename.stat().st_size / 1024**2
+                ioprint(f"| `{ident}` | {size_mb:.2f} MB | {duration:.0f} s | `{filename.name}` |")
+            else:
+                ioprint(f"| `{ident}` | --- | {duration:.0f} s | test only |")
+
+        if self.summary_mode == "github":
+            Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
+                string_io.getvalue(), encoding="utf-8"
+            )
+
+        print(string_io.getvalue())
+
+        self.summary = []
 
     @property
     def step_active(self) -> bool:
