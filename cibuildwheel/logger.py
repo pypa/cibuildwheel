@@ -1,4 +1,6 @@
 import codecs
+import functools
+import io
 import os
 import re
 import sys
@@ -197,20 +199,24 @@ class Logger:
             print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
 
     def print_summary(self) -> None:
-        summary = "## 🎡: Wheels\n\n| Identifier | Wheel | Size | Time |\n|===|===|===|===|\n"
+        string_io = io.StringIO()
+        ioprint = functools.partial(print, file=string_io)
+        ioprint("## 🎡: Wheels\n")
+        ioprint("| Identifier | Wheel | Size | Time |")
+        ioprint("|===|===|===|===|")
         for ident, filename, duration in self.summary:
             if filename:
                 size_mb = filename.stat().st_size / 1024**2
-                summary += f"| {ident} | {filename.name} | {size_mb:.2f} MB | {duration} |"
+                ioprint(f"| {ident} | {filename.name} | {size_mb:.2f} MB | {duration} |")
             else:
-                summary += f"| {ident} | test only | --- | {duration} |"
+                ioprint(f"| {ident} | test only | --- | {duration} |")
 
-        match self.summary_mode:
-            case "github":
-                Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(summary, encoding="utf-8")
-                print(summary)
-            case _:
-                print(summary)
+        if self.summary_mode == "github":
+            Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
+                string_io.getvalue(), encoding="utf-8"
+            )
+
+        print(string_io.getvalue())
 
         self.summary = []
 
