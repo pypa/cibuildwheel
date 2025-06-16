@@ -83,6 +83,16 @@ cp313_env = {
 }
 
 
+def test_android_home(tmp_path, capfd):
+    new_c_project().generate(tmp_path)
+    env = os.environ.copy()
+    del env["ANDROID_HOME"]
+
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(tmp_path, env={**env, **cp313_env})
+    assert "ANDROID_HOME environment variable is not set" in capfd.readouterr().err
+
+
 def test_frontend_good(tmp_path):
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(

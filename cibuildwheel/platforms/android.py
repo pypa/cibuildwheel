@@ -95,6 +95,13 @@ def before_all(options: Options, python_configurations: list[PythonConfiguration
 
 
 def build(options: Options, tmp_path: Path) -> None:
+    if "ANDROID_HOME" not in os.environ:
+        msg = (
+            "ANDROID_HOME environment variable is not set. For instructions, see "
+            "https://cibuildwheel.pypa.io/en/stable/platforms/#android"
+        )
+        raise errors.FatalError(msg)
+
     configs = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
     )
