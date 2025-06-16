@@ -9,13 +9,13 @@ jobs:
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        run: pipx run cibuildwheel==3.0.0rc3
+        run: pipx run cibuildwheel==3.0.0
 
       - uses: actions/upload-artifact@v4
         with:
