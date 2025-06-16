@@ -11,7 +11,7 @@ from typing import Any
 
 
 def initialize() -> None:
-    if os.environ.get("CIBW_CROSS_VENV", "0") != "1":
+    if not (host_triplet := os.environ.get("CIBW_HOST_TRIPLET")):
         return
 
     # os ######################################################################
@@ -24,7 +24,7 @@ def initialize() -> None:
                 # realistic values anyway (from an API level 24 emulator).
                 "3.18.91+",
                 "#1 SMP PREEMPT Tue Jan 9 20:35:43 UTC 2018",
-                os.environ["HOST"].split("-")[0],
+                host_triplet.split("-")[0],
             )
         )
 
@@ -57,11 +57,10 @@ def initialize() -> None:
     # Some packages may recognize sys.cross_compiling from the crossenv tool.
     sys.cross_compiling = True  # type: ignore[attr-defined]
     sys.getandroidapilevel = cross_getandroidapilevel  # type: ignore[attr-defined]
-    sys.implementation._multiarch = os.environ["HOST"]  # type: ignore[attr-defined]
+    sys.implementation._multiarch = host_triplet  # type: ignore[attr-defined]
     sys.platform = "android"
 
-    # _get_sysconfigdata_name is implemented in terms of sys.abiflags, sys.platform and
-    # sys.implementation._multiarch. Determine the abiflags from the filename.
+    # Determine the abiflags from the sysconfigdata filename.
     sysconfigdata_path = next(Path(__file__).parent.glob("_sysconfigdata_*.py"))
     abiflags_match = re.match(r"_sysconfigdata_(.*?)_", sysconfigdata_path.name)
     assert abiflags_match is not None
@@ -74,6 +73,9 @@ def initialize() -> None:
     # used to generate sysconfig.get_path("include").
     exec_prefix = sysconfig.get_config_var("exec_prefix")
     sysconfig._BASE_PREFIX = sysconfig._BASE_EXEC_PREFIX = exec_prefix  # type: ignore[attr-defined]
+
+    # Reload the sysconfigdata file, generating its name from sys.abiflags,
+    # sys.platform, and sys.implementation._multiarch.
     sysconfig._init_config_vars()  # type: ignore[attr-defined]
 
     # sysconfig.get_platform, which determines the wheel tag, is implemented in terms of

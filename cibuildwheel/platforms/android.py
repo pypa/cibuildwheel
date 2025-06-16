@@ -210,7 +210,7 @@ def setup_env(
         call(command, "--version", env=build_env)
 
     # Construct an altered environment which simulates running on Android.
-    android_env = setup_android_env(python_dir, venv_dir, build_env)
+    android_env = setup_android_env(config, python_dir, venv_dir, build_env)
 
     # Install build tools
     build_frontend = build_options.build_frontend
@@ -260,7 +260,7 @@ def create_cmake_toolchain(
                 # so they don't need to be specified here.
 
                 set(CMAKE_SYSTEM_NAME Android)
-                set(CMAKE_SYSTEM_PROCESSOR {config.arch})
+                set(CMAKE_SYSTEM_PROCESSOR {android_triplet(config.identifier).split("-")[0]})
 
                 # Inhibit all of CMake's own NDK handling code.
                 set(CMAKE_SYSTEM_VERSION 1)
@@ -326,7 +326,7 @@ def localized_vars(
 
 
 def setup_android_env(
-    python_dir: Path, venv_dir: Path, build_env: dict[str, str]
+    config: PythonConfiguration, python_dir: Path, venv_dir: Path, build_env: dict[str, str]
 ) -> dict[str, str]:
     site_packages = next(venv_dir.glob("lib/python*/site-packages"))
     for suffix in ["pth", "py"]:
@@ -340,8 +340,9 @@ def setup_android_env(
     )
     sysconfigdata = localize_sysconfigdata(python_dir, build_env, sysconfigdata_path)
 
+    # Activate the code in _cross_venv.py.
     android_env = build_env.copy()
-    android_env["CIBW_CROSS_VENV"] = "1"  # Activates the code in _cross_venv.py.
+    android_env["CIBW_HOST_TRIPLET"] = android_triplet(config.identifier)
 
     env_output = call(python_dir / "android.py", "env", env=build_env, capture_stdout=True)
     for line in env_output.splitlines():
@@ -480,12 +481,12 @@ def repair_default(
     else:
         # Android doesn't support DT_RPATH, but supports DT_RUNPATH since API level 24
         # (https://github.com/aosp-mirror/platform_bionic/blob/master/android-changes-for-ndk-developers.md).
-        if int(sysconfig_print('get_config_var("ANDROID_API_LEVEL")', android_env)) < 24:
+        if int(sysconfig_print('get_config_vars()["ANDROID_API_LEVEL"]', android_env)) < 24:
             msg = f"Adding {old_soname} requires ANDROID_API_LEVEL to be at least 24"
             raise errors.FatalError(msg)
 
         toolchain = Path(android_env["CC"]).parent.parent
-        src_path = toolchain / f"sysroot/usr/lib/{android_env['HOST']}/{old_soname}"
+        src_path = toolchain / f"sysroot/usr/lib/{android_env['CIBW_HOST_TRIPLET']}/{old_soname}"
 
         # Use the same library location as auditwheel would.
         libs_dir = unpacked_dir / (wheel_name + ".libs")
