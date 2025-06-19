@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.4.26
+certifi==2025.6.15
     # via
     #   httpcore
     #   httpx
@@ -54,7 +54,7 @@ platformdirs==4.3.8
     # via
     #   pyodide-build
     #   virtualenv
-pydantic==2.11.5
+pydantic==2.11.7
     # via
     #   pyodide-build
     #   pyodide-lock
@@ -104,7 +104,7 @@ typing-inspection==0.4.1
     # via pydantic
 unearth==0.17.5
     # via pyodide-build
-urllib3==2.4.0
+urllib3==2.5.0
     # via requests
 virtualenv==20.31.2
     # via
