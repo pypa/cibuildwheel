@@ -16,23 +16,21 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
-        os: [ linux-intel, linux-arm, windows, macOS-intel, macOS-arm, iOS, pyodide ]
         include:
-          - archs: auto
-            platform: auto
           - os: linux-intel
             runs-on: ubuntu-latest
           - os: linux-arm
             runs-on: ubuntu-24.04-arm
-          - os: windows
+          - os: windows-intel
             runs-on: windows-latest
+          - os: windows-arm
+            runs-on: windows-11-arm
           - os: macos-intel
             # macos-13 was the last x86_64 runner
             runs-on: macos-13
           - os: macos-arm
             # macos-14+ (including latest) are ARM64 runners
             runs-on: macos-latest
-            archs: auto,universal2
           - os: ios
             runs-on: macos-latest
             platform: ios
@@ -46,8 +44,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.0.0
         env:
-          CIBW_PLATFORM: ${{ matrix.platform }}
-          CIBW_ARCHS: ${{ matrix.archs }}
+          CIBW_PLATFORM: ${{ matrix.platform || 'auto' }}
         # Can also be configured directly, using `with:`
         # with:
         #   package-dir: .
