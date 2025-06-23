@@ -157,8 +157,7 @@ def virtualenv(
 def find_uv() -> Path | None:
     # Prefer uv in our environment
     with contextlib.suppress(ImportError, FileNotFoundError):
-        # pylint: disable-next=import-outside-toplevel
-        from uv import find_uv_bin
+        from uv import find_uv_bin  # noqa: PLC0415
 
         return Path(find_uv_bin())
 

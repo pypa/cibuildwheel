@@ -28,7 +28,7 @@ def git_repo_has_changes() -> bool:
 
 def generate_basic_project(path: Path) -> None:
     sys.path.insert(0, "")
-    from test.test_projects.c import new_c_project
+    from test.test_projects.c import new_c_project  # noqa: PLC0415
 
     project = new_c_project()
     project.generate(path)
