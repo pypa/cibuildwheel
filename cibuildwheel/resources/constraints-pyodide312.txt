@@ -60,7 +60,7 @@ pydantic==2.11.7
     #   pyodide-lock
 pydantic-core==2.33.2
     # via pydantic
-pygments==2.19.1
+pygments==2.19.2
     # via rich
 pyodide-build==0.30.5
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
