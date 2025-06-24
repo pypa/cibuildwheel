@@ -1,10 +1,12 @@
 import codecs
+import contextlib
 import dataclasses
 import io
 import os
 import re
 import sys
 import time
+from collections.abc import Generator
 from pathlib import Path
 from typing import IO, AnyStr, Final, Literal
 
@@ -168,7 +170,7 @@ class Logger:
         c = self.colors
         s = self.symbols
         duration = time.time() - self.build_start_time
-        duration_str = humanize.naturaldelta(duration)
+        duration_str = humanize.naturaldelta(duration, minimum_unit="milliseconds")
 
         print()
         print(f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration_str}")
@@ -227,22 +229,30 @@ class Logger:
             c = self.colors
             print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
 
-    def print_summary(self) -> None:
+    @contextlib.contextmanager
+    def print_summary(self) -> Generator[None, None, None]:
+        start = time.time()
+        yield
         if self.summary_mode == "github":
             string_io = io.StringIO()
-            string_io.write("## 🎡: Wheels\n\n")
+            string_io.write("## 🎡 Wheels\n\n")
             string_io.write(BuildInfo.table_header())
 
             for build_info in self.summary:
                 string_io.write(build_info.table_line())
-            string_io.write("/n")
+            string_io.write("\n")
             Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
                 string_io.getvalue(), encoding="utf-8"
             )
 
-        print("\n🎡 Wheels:\n")
+        n = len(self.summary)
+        s = "s" if n > 1 else ""
+        n_str = humanize.apnumber(n).title()
+        duration = humanize.naturaldelta(time.time() - start)
+        self._start_fold_group(f"{n_str} wheel{s} produced in {duration}")
         for build_info in self.summary:
-            print("  *", build_info)
+            print(" ", build_info)
+        self._end_fold_group()
 
         self.summary = []
 

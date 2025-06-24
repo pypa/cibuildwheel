@@ -7,15 +7,12 @@ import shutil
 import sys
 import tarfile
 import textwrap
-import time
 import traceback
 import typing
-from collections.abc import Generator, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, Literal, TextIO
-
-import humanize
 
 import cibuildwheel
 import cibuildwheel.util
@@ -288,34 +285,6 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     return _compute_platform_auto()
 
 
-@contextlib.contextmanager
-def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
-    """
-    Prints the new items in a directory upon exiting. The message to display
-    can include {n} for number of wheels, {s} for total number of seconds,
-    and/or {m} for total number of minutes. Does not print anything if this
-    exits via exception.
-    """
-
-    start_time = time.time()
-    existing_contents = set(output_dir.iterdir())
-    yield
-    final_contents = set(output_dir.iterdir())
-
-    new_contents = [
-        FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
-        for wheel in final_contents - existing_contents
-    ]
-
-    if not new_contents:
-        return
-
-    n = len(new_contents)
-    s = "s" if n > 1 else ""
-    t = humanize.naturaldelta(time.time() - start_time)
-    print(msg.format(n=n, s=s, t=t))
-
-
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
     if platform == "pyodide" and sys.platform == "win32":
@@ -376,9 +345,8 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
-        with print_new_wheels("\n{n} wheel{s} produced in {t}", output_dir):
+        with log.print_summary():
             platform_module.build(options, tmp_path)
-            log.print_summary()
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually
