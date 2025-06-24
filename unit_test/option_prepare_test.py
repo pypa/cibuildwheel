@@ -45,7 +45,7 @@ def mock_build_container(monkeypatch):
         "cibuildwheel.platforms.linux.build_in_container",
         mock.Mock(spec=platforms.linux.build_in_container),
     )
-    monkeypatch.setattr("cibuildwheel.__main__.print_new_wheels", ignore_context_call)
+    monkeypatch.setattr("cibuildwheel.logger.Logger.print_summary", ignore_context_call)
 
 
 @pytest.mark.usefixtures("mock_build_container", "fake_package_dir")
