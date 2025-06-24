@@ -1,5 +1,5 @@
 import codecs
-import functools
+import dataclasses
 import io
 import os
 import re
@@ -7,6 +7,8 @@ import sys
 import time
 from pathlib import Path
 from typing import IO, AnyStr, Final, Literal
+
+import humanize
 
 from .ci import CIProvider, detect_ci_provider
 
@@ -72,6 +74,31 @@ class Symbols:
         self.error = "✕" if unicode else "failed"
 
 
+@dataclasses.dataclass(kw_only=True, frozen=True)
+class BuildInfo:
+    identifier: str
+    filename: Path | None
+    duration: float
+
+    @staticmethod
+    def table_header() -> str:
+        return "| Identifier | Size | Time | Wheel |\n| ---------- | ---- | ---- | ----- |\n"
+
+    def table_line(self) -> str:
+        duration = humanize.naturaldelta(self.duration)
+        if self.filename:
+            size = humanize.naturalsize(self.filename.stat().st_size)
+            return f"| `{self.identifier}` | {size} | {duration} | `{self.filename.name}` |\n"
+        return f"| `{self.identifier}` | --- | {duration} | *test only* |\n"
+
+    def __str__(self) -> str:
+        duration = humanize.naturaldelta(self.duration)
+        if self.filename:
+            size = humanize.naturalsize(self.filename.stat().st_size)
+            return f"{self.identifier}: {self.filename.name} {size} in {duration}"
+        return f"{self.identifier}: {duration} (test only)"
+
+
 class Logger:
     fold_mode: Literal["azure", "github", "travis", "disabled"]
     colors_enabled: bool
@@ -80,7 +107,7 @@ class Logger:
     build_start_time: float | None = None
     step_start_time: float | None = None
     active_fold_group_name: str | None = None
-    summary: list[tuple[str, Path | None, float]]
+    summary: list[BuildInfo]
     summary_mode: Literal["github", "generic"]
 
     def __init__(self) -> None:
@@ -141,12 +168,13 @@ class Logger:
         c = self.colors
         s = self.symbols
         duration = time.time() - self.build_start_time
+        duration_str = humanize.naturaldelta(duration)
 
         print()
-        print(
-            f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration:.2f}s"
+        print(f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration_str}")
+        self.summary.append(
+            BuildInfo(identifier=self.active_build_identifier, filename=filename, duration=duration)
         )
-        self.summary.append((self.active_build_identifier, filename, duration))
 
         self.build_start_time = None
         self.active_build_identifier = None
@@ -162,10 +190,11 @@ class Logger:
             c = self.colors
             s = self.symbols
             duration = time.time() - self.step_start_time
+            duration_str = humanize.naturaldelta(duration)
             if success:
-                print(f"{c.green}{s.done} {c.end}{duration:.2f}s".rjust(78))
+                print(f"{c.green}{s.done} {c.end}{duration_str}".rjust(78))
             else:
-                print(f"{c.red}{s.error} {c.end}{duration:.2f}s".rjust(78))
+                print(f"{c.red}{s.error} {c.end}{duration_str}".rjust(78))
 
             self.step_start_time = None
 
@@ -199,24 +228,21 @@ class Logger:
             print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
 
     def print_summary(self) -> None:
-        string_io = io.StringIO()
-        ioprint = functools.partial(print, file=string_io)
-        ioprint("## 🎡: Wheels\n")
-        ioprint("| Identifier | Size | Time | Wheel |")
-        ioprint("| ---------- | ---- | ---- | ----- |")
-        for ident, filename, duration in self.summary:
-            if filename:
-                size_mb = filename.stat().st_size / 1024**2
-                ioprint(f"| `{ident}` | {size_mb:.2f} MB | {duration:.0f} s | `{filename.name}` |")
-            else:
-                ioprint(f"| `{ident}` | --- | {duration:.0f} s | test only |")
-
         if self.summary_mode == "github":
+            string_io = io.StringIO()
+            string_io.write("## 🎡: Wheels\n\n")
+            string_io.write(BuildInfo.table_header())
+
+            for build_info in self.summary:
+                string_io.write(build_info.table_line())
+            string_io.write("/n")
             Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
                 string_io.getvalue(), encoding="utf-8"
             )
 
-        print(string_io.getvalue())
+        print("\n🎡 Wheels:\n")
+        for build_info in self.summary:
+            print("  *", build_info)
 
         self.summary = []
 

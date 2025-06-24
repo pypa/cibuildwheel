@@ -15,6 +15,8 @@ from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, Literal, TextIO
 
+import humanize
+
 import cibuildwheel
 import cibuildwheel.util
 from cibuildwheel import errors
@@ -309,9 +311,9 @@ def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
         return
 
     n = len(new_contents)
-    s = time.time() - start_time
-    m = s / 60
-    print(msg.format(n=n, s=s, m=m))
+    s = "s" if n > 1 else ""
+    t = humanize.naturaldelta(time.time() - start_time)
+    print(msg.format(n=n, s=s, t=t))
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
@@ -374,7 +376,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
-        with print_new_wheels("\n{n} wheels produced in {m:.0f} minutes", output_dir):
+        with print_new_wheels("\n{n} wheel{s} produced in {t}", output_dir):
             platform_module.build(options, tmp_path)
             log.print_summary()
     finally:
