@@ -1,5 +1,6 @@
 from packaging.specifiers import SpecifierSet
 
+import cibuildwheel.selector
 from cibuildwheel.selector import BuildSelector, EnableGroup
 
 
@@ -224,10 +225,8 @@ def test_build_riscv64_enable():
 
 
 def test_testing_selector():
-    # local import to avoid pytest trying to collect this as a test class!
-    from cibuildwheel.selector import TestSelector
-
-    test_selector = TestSelector(skip_config="cp36-*")
+    # This is not a global import to keep pytest from collecting it as a test
+    test_selector = cibuildwheel.selector.TestSelector(skip_config="cp36-*")
 
     assert not test_selector("cp36-win_amd64")
     assert test_selector("cp37-manylinux_x86_64")

@@ -172,6 +172,7 @@ messages_control.disable = [
   "unsubscriptable-object",
   "wrong-import-position",
   "unused-argument",  # Handled by Ruff
+  "import-outside-toplevel",  # Handled by Ruff
   "broad-exception-raised",  # Could be improved eventually
   "consider-using-in",  # MyPy can't narrow "in"
 ]
