@@ -3,7 +3,7 @@ import os
 import re
 import sys
 import time
-from typing import IO, AnyStr, Final
+from typing import IO, AnyStr, Final, Literal
 
 from .ci import CIProvider, detect_ci_provider
 
@@ -70,7 +70,7 @@ class Symbols:
 
 
 class Logger:
-    fold_mode: str
+    fold_mode: Literal["azure", "github", "travis", "disabled"]
     colors_enabled: bool
     unicode_enabled: bool
     active_build_identifier: str | None = None
