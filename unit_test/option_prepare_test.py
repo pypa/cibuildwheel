@@ -70,7 +70,7 @@ def test_build_default_launches(monkeypatch):
     assert identifiers == {f"{x}-manylinux_x86_64" for x in DEFAULT_IDS}
 
     kwargs = build_in_container.call_args_list[1][1]
-    assert "quay.io/pypa/manylinux2014_i686" in kwargs["container"]["image"]
+    assert "quay.io/pypa/manylinux_2_28_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
 
@@ -128,7 +128,7 @@ before-all = "true"
 
     build_in_container = typing.cast(mock.Mock, platforms.linux.build_in_container)
 
-    assert build_in_container.call_count == 6
+    assert build_in_container.call_count == 7
 
     kwargs = build_in_container.call_args_list[0][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
@@ -189,11 +189,19 @@ before-all = "true"
     assert "quay.io/pypa/manylinux2014_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
-
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {f"{x}-manylinux_i686" for x in ALL_IDS if "gp" not in x}
+    assert identifiers == {"cp38-manylinux_i686", "cp39-manylinux_i686"}
 
     kwargs = build_in_container.call_args_list[4][1]
+    assert "quay.io/pypa/manylinux_2_28_i686" in kwargs["container"]["image"]
+    assert kwargs["container"]["cwd"] == PurePosixPath("/project")
+    assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
+    identifiers = {x.identifier for x in kwargs["platform_configs"]}
+    assert identifiers == {
+        f"{x}-manylinux_i686" for x in ALL_IDS - {"cp38", "cp39"} if "gp" not in x
+    }
+
+    kwargs = build_in_container.call_args_list[5][1]
     assert "quay.io/pypa/musllinux_1_2_x86_64" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
@@ -202,7 +210,7 @@ before-all = "true"
         f"{x}-musllinux_x86_64" for x in ALL_IDS if "pp" not in x and "gp" not in x
     }
 
-    kwargs = build_in_container.call_args_list[5][1]
+    kwargs = build_in_container.call_args_list[6][1]
     assert "quay.io/pypa/musllinux_1_2_i686" in kwargs["container"]["image"]
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
