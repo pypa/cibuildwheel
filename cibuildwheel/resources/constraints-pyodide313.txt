@@ -74,7 +74,7 @@ pyproject-hooks==1.2.0
     # via build
 requests==2.32.4
     # via pyodide-build
-resolvelib==1.1.0
+resolvelib==1.2.0
     # via pyodide-build
 rich==14.0.0
     # via
