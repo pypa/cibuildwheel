@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v3.0.1
+
+_5 July 2025_
+
+- 🛠 Updates CPython 3.14 prerelease to 3.14.0b3 (#2471)
+- ✨ Adds a CPython 3.14 prerelease iOS build (only when prerelease builds are [enabled](https://cibuildwheel.pypa.io/en/stable/options/#enable)) (#2475)
+
 ### v3.0.0
 
 _11 June 2025_
