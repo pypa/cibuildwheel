@@ -1,0 +1,2 @@
+cibuildwheel/platforms/ios.py         @freakboy3742
+cibuildwheel/platforms/pyodide.py     @hoodmane @ryanking13 @agriyakhetarpal
