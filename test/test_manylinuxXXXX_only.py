@@ -64,7 +64,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 def test(manylinux_image, tmp_path):
     if utils.get_platform() != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
-    elif manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "i686":
+    elif manylinux_image == "manylinux_2_34" and platform.machine() == "i686":
         pytest.skip(f"{manylinux_image} doesn't exist for i686 architecture")
 
     project_dir = tmp_path / "project"
@@ -85,8 +85,8 @@ def test(manylinux_image, tmp_path):
         "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE": manylinux_image,
         "CIBW_MANYLINUX_PYPY_I686_IMAGE": manylinux_image,
     }
-    if manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "x86_64":
-        # We don't have a manylinux_2_28+ image for i686
+    if manylinux_image == "manylinux_2_34" and platform.machine() == "x86_64":
+        # We don't have a manylinux_2_34+ image for i686
         add_env["CIBW_ARCHS"] = "x86_64"
     if platform.machine() == "aarch64":
         # We just have a manylinux_2_31 image for armv7l
@@ -104,8 +104,8 @@ def test(manylinux_image, tmp_path):
         musllinux_versions=[],
     )
 
-    if manylinux_image in {"manylinux_2_28", "manylinux_2_34"} and platform.machine() == "x86_64":
-        # We don't have a manylinux_2_28+ image for i686
+    if manylinux_image == "manylinux_2_34" and platform.machine() == "x86_64":
+        # We don't have a manylinux_2_34+ image for i686
         expected_wheels = [w for w in expected_wheels if "i686" not in w]
 
     if platform.machine() == "aarch64":

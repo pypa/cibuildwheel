@@ -69,7 +69,7 @@ def test_simple_settings(tmp_path, platform, fname):
     assert options_reader.get("test-groups", option_format=ListFormat(" ")) == "three four"
 
     assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_28"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
+    assert options_reader.get("manylinux-i686-image") == "manylinux_2_28"
 
     with pytest.raises(OptionsReaderError):
         # fails because the option is a table and the option_format only works with lists
@@ -104,7 +104,7 @@ def test_envvar_override(tmp_path, platform):
 
     assert options_reader.get("build") == "cp38*"
     assert options_reader.get("manylinux-x86_64-image") == "manylinux_2_24"
-    assert options_reader.get("manylinux-i686-image") == "manylinux2014"
+    assert options_reader.get("manylinux-i686-image") == "manylinux_2_28"
 
     assert (
         options_reader.get("xbuild-tools", option_format=ListFormat(" ", quote=shlex.quote))
