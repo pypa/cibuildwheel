@@ -181,6 +181,12 @@ def main_inner(global_options: GlobalOptions) -> None:
     )
 
     parser.add_argument(
+        "--clean-cache",
+        action="store_true",
+        help="Clear the cibuildwheel cache and exit.",
+    )
+
+    parser.add_argument(
         "--allow-empty",
         action="store_true",
         help="Do not report an error code if the build does not match any wheels.",
