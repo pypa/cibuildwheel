@@ -438,7 +438,7 @@ def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
 
     with pytest.raises(SystemExit) as e:
-        main_module.main()
+        main()
 
     assert e.value.code == 0
 
@@ -456,7 +456,7 @@ def test_clean_cache_when_cache_does_not_exist(tmp_path, monkeypatch, capfd):
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
 
     with pytest.raises(SystemExit) as e:
-        main_module.main()
+        main()
 
     assert e.value.code == 0
 
@@ -480,7 +480,7 @@ def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
     monkeypatch.setattr(shutil, "rmtree", fake_rmtree)
 
     with pytest.raises(SystemExit) as e:
-        main_module.main()
+        main()
 
     assert e.value.code == 1
 
