@@ -448,6 +448,22 @@ def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
     assert not fake_cache_dir.exists()
 
 
+def test_clean_cache_when_cache_does_not_exist(tmp_path, monkeypatch, capfd):
+    monkeypatch.undo()
+    fake_cache_dir = (tmp_path / "nonexistent_cache").resolve()
+    monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
+
+    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
+
+    with pytest.raises(SystemExit) as e:
+        main_module.main()
+
+    assert e.value.code == 0
+
+    out, err = capfd.readouterr()
+    assert f"Cache directory does not exist: {fake_cache_dir}" in out
+
+
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
 def test_enable(method, intercepted_build_args, monkeypatch):
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
