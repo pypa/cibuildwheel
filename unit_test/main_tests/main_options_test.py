@@ -464,6 +464,31 @@ def test_clean_cache_when_cache_does_not_exist(tmp_path, monkeypatch, capfd):
     assert f"Cache directory does not exist: {fake_cache_dir}" in out
 
 
+def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
+    monkeypatch.undo()
+    fake_cache_dir = (tmp_path / "cibw_cache").resolve()
+    monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
+
+    fake_cache_dir.mkdir(parents=True, exist_ok=True)
+    assert fake_cache_dir.exists()
+
+    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
+
+    def fake_rmtree(path):  # noqa: ARG001
+        raise OSError(errno.EACCES, "Permission denied")
+
+    monkeypatch.setattr(shutil, "rmtree", fake_rmtree)
+
+    with pytest.raises(SystemExit) as e:
+        main_module.main()
+
+    assert e.value.code == 1
+
+    out, err = capfd.readouterr()
+    assert f"Clearing cache directory: {fake_cache_dir}" in out
+    assert "Error clearing cache:" in err
+
+
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
 def test_enable(method, intercepted_build_args, monkeypatch):
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
