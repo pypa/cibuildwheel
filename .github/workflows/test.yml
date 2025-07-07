@@ -243,7 +243,7 @@ jobs:
         # in cibuildwheel/resources/build-platforms.toml.
       env:
         CIBW_PLATFORM: pyodide
-        CIBW_BUILD: "cp312*"
+        CIBW_BUILD: "cp313*"
         # We don't have an alpha version for 0.29.0 yet, so we use the latest released
         # alpha version that was available for 0.28.0.
         CIBW_PYODIDE_VERSION: "0.28.0a3"
