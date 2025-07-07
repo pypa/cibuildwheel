@@ -102,6 +102,7 @@ class BuildSelector:
         # TODO: Re-enable this when we have Pyodide prereleases again (e.g., 0.29.0a1+)
         # Python 3.13 support became stable in Pyodide 0.28.0, so it no longer needs a prerelease
         # flag.
+        # Also update Pyodide tests in unit_test/build_selector_test.py accordingly.
         # When re-enabling, update the pattern to match the experimental Python version in case
         # it is bumped to Python 3.14 (likely cp314-pyodide_* but could remain as 3.13 as well).
         # This depends on the CPython version being used in the Pyodide runtime at the time.
