@@ -203,6 +203,19 @@ def main_inner(global_options: GlobalOptions) -> None:
 
     global_options.print_traceback_on_error = args.debug_traceback
 
+    if args.clean_cache:
+        if CIBW_CACHE_PATH.exists():
+            print(f"Clearing cache directory: {CIBW_CACHE_PATH}")
+            try:
+                shutil.rmtree(CIBW_CACHE_PATH)
+                print("Cache cleared successfully.")
+            except OSError as e:
+                print(f"Error clearing cache: {e}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            print(f"Cache directory does not exist: {CIBW_CACHE_PATH}")
+        sys.exit(0)
+
     args.package_dir = args.package_dir.resolve()
 
     # This are always relative to the base directory, even in SDist builds
