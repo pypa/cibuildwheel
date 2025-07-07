@@ -1,3 +1,5 @@
+import errno
+import shutil
 import sys
 import tomllib
 from fnmatch import fnmatch
@@ -5,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+import cibuildwheel.__main__ as main_module
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import _split_config_settings
@@ -419,6 +422,30 @@ def test_debug_traceback(monkeypatch, method, capfd):
         assert "Traceback (most recent call last)" not in err
     else:
         assert "Traceback (most recent call last)" in err
+
+
+def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
+    monkeypatch.undo()
+    fake_cache_dir = (tmp_path / "cibw_cache").resolve()
+    monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
+
+    fake_cache_dir.mkdir(parents=True, exist_ok=True)
+    assert fake_cache_dir.exists()
+
+    dummy_file = fake_cache_dir / "dummy.txt"
+    dummy_file.write_text("hello")
+
+    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
+
+    with pytest.raises(SystemExit) as e:
+        main_module.main()
+
+    assert e.value.code == 0
+
+    out, err = capfd.readouterr()
+    assert f"Clearing cache directory: {fake_cache_dir}" in out
+    assert "Cache cleared successfully." in out
+    assert not fake_cache_dir.exists()
 
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
