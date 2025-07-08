@@ -1009,7 +1009,7 @@ The available options are:
 | Option                         | Default                                                         |
 |--------------------------------|-----------------------------------------------------------------|
 | `manylinux_x86_64-image`       | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
-| `manylinux-i686-image`         | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| `manylinux-i686-image`         | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_i686)    |
 | `manylinux-pypy_x86_64-image`  | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_x86_64)  |
 | `manylinux-aarch64-image`      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
 | `manylinux-ppc64le-image`      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
@@ -1017,7 +1017,7 @@ The available options are:
 | `manylinux-armv7l-image`       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l)  |
 | `manylinux-riscv64-image`      | No default                                                      |
 | `manylinux-pypy_aarch64-image` | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
-| `manylinux-pypy_i686-image`    | [`manylinux2014`](https://quay.io/pypa/manylinux2014_i686)      |
+| `manylinux-pypy_i686-image`    | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_i686)    |
 | `musllinux_x86_64-image`       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)    |
 | `musllinux-i686-image`         | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_i686)      |
 | `musllinux-aarch64-image`      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_aarch64)   |
@@ -1029,7 +1029,7 @@ The available options are:
 Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
 For `manylinux-*-image`, except `manylinux-armv7l-image`, the value of this option can either be set to `manylinux2014`, `manylinux_2_28` or `manylinux_2_34` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name.
-`manylinux_2_28` and `manylinux_2_34` are not supported for `i686` architecture.
+`manylinux_2_34` is not supported for `i686` architecture.
 
 For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31` or a custom image. Support is experimental for now. The `manylinux_2_31` value is only available for `armv7`.
 
