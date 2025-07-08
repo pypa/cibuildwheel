@@ -85,3 +85,21 @@ class RepairStepProducedNoWheelError(FatalError):
         )
         super().__init__(message)
         self.return_code = 8
+
+
+class RepairStepProducedMultipleWheelsError(FatalError):
+    def __init__(self, wheels: list[str]) -> None:
+        message = textwrap.dedent(
+            f"""
+            Build failed because the repair step completed successfully but
+            produced multiple wheels: {wheels}
+
+            Your `repair-wheel-command` is expected to place one repaired
+            wheel in the {{dest_dir}} directory. See the documentation for
+            example configurations:
+
+            https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command
+            """
+        )
+        super().__init__(message)
+        self.return_code = 8

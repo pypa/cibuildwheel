@@ -253,7 +253,7 @@ def build_in_container(
             print(
                 f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
             )
-            repaired_wheels = [compatible_wheel]
+            repaired_wheel = compatible_wheel
         else:
             if build_options.before_build:
                 log.step("Running before_build...")
@@ -325,14 +325,16 @@ def build_in_container(
             else:
                 container.call(["mv", built_wheel, repaired_wheel_dir])
 
-            repaired_wheels = container.glob(repaired_wheel_dir, "*.whl")
+            match container.glob(repaired_wheel_dir, "*.whl"):
+                case []:
+                    raise errors.RepairStepProducedNoWheelError()
+                case [repaired_wheel]:
+                    pass
+                case too_many:
+                    raise errors.RepairStepProducedMultipleWheelsError([p.name for p in too_many])
 
-            if not repaired_wheels:
-                raise errors.RepairStepProducedNoWheelError()
-
-            for repaired_wheel in repaired_wheels:
-                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+            if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")
@@ -374,14 +376,8 @@ def build_in_container(
                 container.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
 
             # Install the wheel we just built
-            # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
-            # conforms to multiple manylinux standards. These multiple versions of the wheel are
-            # functionally the same, differing only in name, wheel metadata, and possibly include
-            # different external shared libraries. so it doesn't matter which one we run the tests on.
-            # Let's just pick the first one.
-            wheel_to_test = repaired_wheels[0]
             container.call(
-                [*pip, "install", str(wheel_to_test) + build_options.test_extras],
+                [*pip, "install", str(repaired_wheel) + build_options.test_extras],
                 env=virtualenv_env,
             )
 
@@ -394,7 +390,7 @@ def build_in_container(
                 build_options.test_command,
                 project=container_project_path,
                 package=container_package_dir,
-                wheel=wheel_to_test,
+                wheel=repaired_wheel,
             )
 
             test_cwd = testing_temp_dir / "test_cwd"
@@ -420,10 +416,8 @@ def build_in_container(
         # move repaired wheels to output
         if compatible_wheel is None:
             container.call(["mkdir", "-p", container_output_dir])
-            container.call(["mv", *repaired_wheels, container_output_dir])
-            built_wheels.extend(
-                container_output_dir / repaired_wheel.name for repaired_wheel in repaired_wheels
-            )
+            container.call(["mv", repaired_wheel, container_output_dir])
+            built_wheels.append(container_output_dir / repaired_wheel.name)
 
         log.build_end()
 
