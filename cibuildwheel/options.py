@@ -63,6 +63,7 @@ class CommandLineArguments:
     allow_empty: bool
     debug_traceback: bool
     enable: list[str]
+    clean_cache: bool
 
     @classmethod
     def defaults(cls) -> Self:
@@ -77,6 +78,7 @@ class CommandLineArguments:
             print_build_identifiers=False,
             debug_traceback=False,
             enable=[],
+            clean_cache=False,
         )
 
 
