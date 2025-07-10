@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.6.15
+certifi==2025.7.9
     # via
     #   httpcore
     #   httpx
@@ -94,7 +94,7 @@ typer==0.16.0
     #   auditwheel-emscripten
     #   pyodide-build
     #   pyodide-cli
-typing-extensions==4.14.0
+typing-extensions==4.14.1
     # via
     #   anyio
     #   pydantic
