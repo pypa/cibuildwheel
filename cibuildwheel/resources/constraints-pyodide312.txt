@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.6.15
+certifi==2025.7.9
     # via
     #   httpcore
     #   httpx

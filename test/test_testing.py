@@ -189,7 +189,7 @@ def test_bare_pytest_invocation(
     tmp_path: Path, capfd: pytest.CaptureFixture[str], test_runner: str
 ) -> None:
     """
-    Check that if a user runs pytest in the the test cwd without setting
+    Check that if a user runs pytest in the test cwd without setting
     test-sources, it raises a helpful error
     """
     project_dir = tmp_path / "project"
