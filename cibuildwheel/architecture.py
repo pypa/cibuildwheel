@@ -17,14 +17,23 @@ PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "macos": "macOS",
     "windows": "Windows",
     "pyodide": "Pyodide",
+    "android": "Android",
     "ios": "iOS",
 }
 
 ARCH_SYNONYMS: Final[list[dict[PlatformName, str | None]]] = [
-    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64"},
+    {"linux": "x86_64", "macos": "x86_64", "windows": "AMD64", "android": "x86_64"},
     {"linux": "i686", "macos": None, "windows": "x86"},
-    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64"},
+    {"linux": "aarch64", "macos": "arm64", "windows": "ARM64", "android": "arm64_v8a"},
 ]
+
+
+def arch_synonym(arch: str, from_platform: PlatformName, to_platform: PlatformName) -> str | None:
+    for arch_synonym_ in ARCH_SYNONYMS:
+        if arch == arch_synonym_.get(from_platform):
+            return arch_synonym_.get(to_platform, arch)
+
+    return arch
 
 
 def _check_aarch32_el0() -> bool:
@@ -42,7 +51,7 @@ def _check_aarch32_el0() -> bool:
 
 @typing.final
 class Architecture(StrEnum):
-    # mac/linux archs
+    # mac/linux/android archs
     x86_64 = auto()
 
     # linux archs
@@ -64,6 +73,9 @@ class Architecture(StrEnum):
 
     # WebAssembly
     wasm32 = auto()
+
+    # android archs
+    arm64_v8a = auto()
 
     # iOS "multiarch" architectures that include both
     # the CPU architecture and the ABI.
@@ -123,15 +135,12 @@ class Architecture(StrEnum):
         # we might need to rename the native arch to the machine we're running
         # on, as the same arch can have different names on different platforms
         if host_platform != platform:
-            for arch_synonym in ARCH_SYNONYMS:
-                if native_machine == arch_synonym.get(host_platform):
-                    synonym = arch_synonym[platform]
+            synonym = arch_synonym(native_machine, host_platform, platform)
+            if synonym is None:
+                # can't build anything on this platform
+                return None
 
-                    if synonym is None:
-                        # can't build anything on this platform
-                        return None
-
-                    native_architecture = Architecture(synonym)
+            native_architecture = Architecture(synonym)
 
         return native_architecture
 
@@ -166,6 +175,7 @@ class Architecture(StrEnum):
             "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
             "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
             "pyodide": {Architecture.wasm32},
+            "android": {Architecture.x86_64, Architecture.arm64_v8a},
             "ios": {
                 Architecture.x86_64_iphonesimulator,
                 Architecture.arm64_iphonesimulator,
