@@ -14,32 +14,16 @@ def get_parent(node: ast.AST | None, depth: int = 1) -> ast.AST | None:
 
 
 def is_main(parent: ast.AST | None) -> bool:
-    if parent is None:
-        return False
-
-    # This would be much nicer with 3.10's pattern matching!
-    if not isinstance(parent, ast.If):
-        return False
-    if not isinstance(parent.test, ast.Compare):
-        return False
-
-    try:
-        (op,) = parent.test.ops
-        (comp,) = parent.test.comparators
-    except ValueError:
-        return False
-
-    if not isinstance(op, ast.Eq):
-        return False
-
-    values = {comp, parent.test.left}
-
-    mains = {x for x in values if isinstance(x, ast.Constant) and x.value == "__main__"}
-    if len(mains) != 1:
-        return False
-    consts = {x for x in values if isinstance(x, ast.Name) and x.id == "__name__"}
-
-    return len(consts) == 1
+    match parent:
+        case ast.If(test=ast.Compare(left=left, ops=[ast.Eq()], comparators=[comp])):
+            values = {left, comp}
+            mains = {x for x in values if isinstance(x, ast.Constant) and x.value == "__main__"}
+            if len(mains) != 1:
+                return False
+            consts = {x for x in values if isinstance(x, ast.Name) and x.id == "__name__"}
+            return len(consts) == 1
+        case _:
+            return False
 
 
 class Analyzer(ast.NodeVisitor):
@@ -65,12 +49,10 @@ class Analyzer(ast.NodeVisitor):
             parent is not None and get_parent(parent) is None and is_main(get_parent(node, 3))
         )
 
-        if (
-            node.arg == "python_requires"
-            and isinstance(node.value, ast.Constant)
-            and (unnested or name_main_unnested)
-        ):
-            self.requires_python = node.value.value
+        match node:
+            case ast.keyword(arg="python_requires", value=ast.Constant(value=version)):
+                if unnested or name_main_unnested:
+                    self.requires_python = version
 
 
 def setup_py_python_requires(content: str) -> str | None:

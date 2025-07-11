@@ -33,7 +33,7 @@ def main() -> None:
         [sys.executable, "-E", "-s", "-m", "pip", "install", "--upgrade", "certifi"]
     )
 
-    import certifi
+    import certifi  # noqa: PLC0415
 
     # change working directory to the default SSL directory
     os.chdir(openssl_dir)

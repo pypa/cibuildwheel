@@ -73,11 +73,15 @@ class EnvironmentAssignmentRaw:
         return self.value
 
 
+@dataclasses.dataclass
 class EnvironmentAssignmentBash:
     """
     An environment variable, in bash syntax. The value can use bash constructs
     like "$OTHER_VAR" and "$(command arg1 arg2)".
     """
+
+    name: str
+    value: str
 
     def __init__(self, assignment: str):
         name, equals, value = assignment.partition("=")
@@ -95,11 +99,6 @@ class EnvironmentAssignmentBash:
 
     def __repr__(self) -> str:
         return f"{self.name}={self.value}"
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, EnvironmentAssignmentBash):
-            return self.name == other.name and self.value == other.value
-        return False
 
 
 @dataclasses.dataclass(kw_only=True)

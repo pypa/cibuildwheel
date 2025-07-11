@@ -56,7 +56,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.0.0
+        uses: pypa/cibuildwheel@v3.0.1
         env:
           CIBW_PLATFORM: ${{ matrix.platform || 'auto' }}
         # Can also be configured directly, using `with:`

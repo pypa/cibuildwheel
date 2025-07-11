@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   lint:
-    name: Linters (mypy, flake8, etc.)
+    name: Linters (mypy, ruff, etc.)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

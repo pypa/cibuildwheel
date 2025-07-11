@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.4.26
+certifi==2025.7.9
     # via
     #   httpcore
     #   httpx
@@ -54,13 +54,13 @@ platformdirs==4.3.8
     # via
     #   pyodide-build
     #   virtualenv
-pydantic==2.11.5
+pydantic==2.11.7
     # via
     #   pyodide-build
     #   pyodide-lock
 pydantic-core==2.33.2
     # via pydantic
-pygments==2.19.1
+pygments==2.19.2
     # via rich
 pyodide-build==0.30.5
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
@@ -74,7 +74,7 @@ pyproject-hooks==1.2.0
     # via build
 requests==2.32.4
     # via pyodide-build
-resolvelib==1.1.0
+resolvelib==1.2.0
     # via pyodide-build
 rich==14.0.0
     # via
@@ -94,7 +94,7 @@ typer==0.16.0
     #   auditwheel-emscripten
     #   pyodide-build
     #   pyodide-cli
-typing-extensions==4.14.0
+typing-extensions==4.14.1
     # via
     #   anyio
     #   pydantic
@@ -105,7 +105,7 @@ typing-inspection==0.4.1
     # via pydantic
 unearth==0.17.5
     # via pyodide-build
-urllib3==2.4.0
+urllib3==2.5.0
     # via requests
 virtualenv==20.31.2
     # via

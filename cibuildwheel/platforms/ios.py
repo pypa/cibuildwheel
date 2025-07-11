@@ -386,20 +386,21 @@ def setup_python(
     env.setdefault("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
 
     log.step("Installing build tools...")
-    if build_frontend == "pip":
-        # No additional build tools required
-        pass
-    elif build_frontend == "build":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "build[virtualenv]",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
-    else:
-        assert_never(build_frontend)
+    match build_frontend:
+        case "pip":
+            # No additional build tools required
+            pass
+        case "build":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "build[virtualenv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case _:
+            assert_never(build_frontend)
 
     return target_install_path, env
 
@@ -493,34 +494,35 @@ def build(options: Options, tmp_path: Path) -> None:
                 if constraints_path:
                     combine_constraints(build_env, constraints_path, None)
 
-                if build_frontend.name == "pip":
-                    # Path.resolve() is needed. Without it pip wheel may try to
-                    # fetch package from pypi.org. See
-                    # https://github.com/pypa/cibuildwheel/pull/369
-                    call(
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        build_options.package_dir.resolve(),
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                elif build_frontend.name == "build":
-                    call(
-                        "python",
-                        "-m",
-                        "build",
-                        build_options.package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                else:
-                    assert_never(build_frontend)
+                match build_frontend.name:
+                    case "pip":
+                        # Path.resolve() is needed. Without it pip wheel may try to
+                        # fetch package from pypi.org. See
+                        # https://github.com/pypa/cibuildwheel/pull/369
+                        call(
+                            "python",
+                            "-m",
+                            "pip",
+                            "wheel",
+                            build_options.package_dir.resolve(),
+                            f"--wheel-dir={built_wheel_dir}",
+                            "--no-deps",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case "build":
+                        call(
+                            "python",
+                            "-m",
+                            "build",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case _:
+                        assert_never(build_frontend)
 
                 test_wheel = built_wheel = next(built_wheel_dir.glob("*.whl"))
 

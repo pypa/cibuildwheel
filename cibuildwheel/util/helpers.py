@@ -1,3 +1,4 @@
+import dataclasses
 import itertools
 import os
 import re
@@ -5,7 +6,6 @@ import shlex
 import textwrap
 from collections import defaultdict
 from collections.abc import Sequence
-from functools import total_ordering
 
 from ..typing import PathOrStr
 
@@ -140,19 +140,17 @@ def parse_key_value_string(
     return dict(result)
 
 
-@total_ordering
+@dataclasses.dataclass(order=True)
 class FlexibleVersion:
-    version_str: str
-    version_parts: tuple[int, ...]
-    suffix: str
+    version_parts: tuple[int, ...] = dataclasses.field(init=False, repr=False)
+    suffix: str = dataclasses.field(init=False, repr=False)
+    version_str: str = dataclasses.field(compare=False)
 
-    def __init__(self, version_str: str) -> None:
-        self.version_str = version_str
-
+    def __post_init__(self) -> None:
         # Split into numeric parts and the optional suffix
-        match = re.match(r"^[v]?(\d+(\.\d+)*)(.*)$", version_str)
+        match = re.match(r"^[v]?(\d+(\.\d+)*)(.*)$", self.version_str)
         if not match:
-            msg = f"Invalid version string: {version_str}"
+            msg = f"Invalid version string: {self.version_str}"
             raise ValueError(msg)
 
         version_part, _, suffix = match.groups()
@@ -171,19 +169,6 @@ class FlexibleVersion:
         while parts and parts[-1] == 0:
             parts = parts[:-1]
         return parts
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, FlexibleVersion):
-            raise NotImplementedError()
-        return (self.version_parts, self.suffix) == (other.version_parts, other.suffix)
-
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, FlexibleVersion):
-            raise NotImplementedError()
-        return (self.version_parts, self.suffix) < (other.version_parts, other.suffix)
-
-    def __repr__(self) -> str:
-        return f"FlexibleVersion('{self.version_str}')"
 
     def __str__(self) -> str:
         return self.version_str
