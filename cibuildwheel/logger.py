@@ -1,11 +1,22 @@
 import codecs
+import contextlib
+import dataclasses
+import io
 import os
 import re
 import sys
+import textwrap
 import time
-from typing import IO, AnyStr, Final, Literal
+from collections.abc import Generator
+from pathlib import Path
+from typing import IO, TYPE_CHECKING, AnyStr, Final, Literal
+
+import humanize
 
 from .ci import CIProvider, detect_ci_provider
+
+if TYPE_CHECKING:
+    from .options import Options
 
 FoldPattern = tuple[str, str]
 DEFAULT_FOLD_PATTERN: Final[FoldPattern] = ("{name}", "")
@@ -69,6 +80,20 @@ class Symbols:
         self.error = "✕" if unicode else "failed"
 
 
+@dataclasses.dataclass(kw_only=True, frozen=True)
+class BuildInfo:
+    identifier: str
+    filename: Path | None
+    duration: float
+
+    def __str__(self) -> str:
+        duration = humanize.naturaldelta(self.duration)
+        if self.filename:
+            size = humanize.naturalsize(self.filename.stat().st_size)
+            return f"{self.identifier}: {self.filename.name} {size} in {duration}"
+        return f"{self.identifier}: {duration} (test only)"
+
+
 class Logger:
     fold_mode: Literal["azure", "github", "travis", "disabled"]
     colors_enabled: bool
@@ -77,6 +102,7 @@ class Logger:
     build_start_time: float | None = None
     step_start_time: float | None = None
     active_fold_group_name: str | None = None
+    summary: list[BuildInfo]
 
     def __init__(self) -> None:
         if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
@@ -88,25 +114,28 @@ class Logger:
 
         ci_provider = detect_ci_provider()
 
-        if ci_provider == CIProvider.azure_pipelines:
-            self.fold_mode = "azure"
-            self.colors_enabled = True
+        match ci_provider:
+            case CIProvider.azure_pipelines:
+                self.fold_mode = "azure"
+                self.colors_enabled = True
 
-        elif ci_provider == CIProvider.github_actions:
-            self.fold_mode = "github"
-            self.colors_enabled = True
+            case CIProvider.github_actions:
+                self.fold_mode = "github"
+                self.colors_enabled = True
 
-        elif ci_provider == CIProvider.travis_ci:
-            self.fold_mode = "travis"
-            self.colors_enabled = True
+            case CIProvider.travis_ci:
+                self.fold_mode = "travis"
+                self.colors_enabled = True
 
-        elif ci_provider == CIProvider.appveyor:
-            self.fold_mode = "disabled"
-            self.colors_enabled = True
+            case CIProvider.appveyor:
+                self.fold_mode = "disabled"
+                self.colors_enabled = True
 
-        else:
-            self.fold_mode = "disabled"
-            self.colors_enabled = file_supports_color(sys.stdout)
+            case _:
+                self.fold_mode = "disabled"
+                self.colors_enabled = file_supports_color(sys.stdout)
+
+        self.summary = []
 
     def build_start(self, identifier: str) -> None:
         self.step_end()
@@ -120,7 +149,7 @@ class Logger:
         self.build_start_time = time.time()
         self.active_build_identifier = identifier
 
-    def build_end(self) -> None:
+    def build_end(self, filename: Path | None) -> None:
         assert self.build_start_time is not None
         assert self.active_build_identifier is not None
         self.step_end()
@@ -128,11 +157,14 @@ class Logger:
         c = self.colors
         s = self.symbols
         duration = time.time() - self.build_start_time
+        duration_str = humanize.naturaldelta(duration, minimum_unit="milliseconds")
 
         print()
-        print(
-            f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration:.2f}s"
+        print(f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration_str}")
+        self.summary.append(
+            BuildInfo(identifier=self.active_build_identifier, filename=filename, duration=duration)
         )
+
         self.build_start_time = None
         self.active_build_identifier = None
 
@@ -147,6 +179,7 @@ class Logger:
             c = self.colors
             s = self.symbols
             duration = time.time() - self.step_start_time
+
             if success:
                 print(f"{c.green}{s.done} {c.end}{duration:.2f}s".rjust(78))
             else:
@@ -182,6 +215,26 @@ class Logger:
         else:
             c = self.colors
             print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
+
+    @contextlib.contextmanager
+    def print_summary(self, *, options: "Options") -> Generator[None, None, None]:
+        start = time.time()
+        yield
+        duration = time.time() - start
+        if summary_path := os.environ.get("GITHUB_STEP_SUMMARY"):
+            github_summary = self._github_step_summary(duration=duration, options=options)
+            Path(summary_path).write_text(github_summary, encoding="utf-8")
+
+        n = len(self.summary)
+        s = "s" if n > 1 else ""
+        duration_str = humanize.naturaldelta(duration)
+        print()
+        self._start_fold_group(f"{n} wheel{s} produced in {duration_str}")
+        for build_info in self.summary:
+            print(" ", build_info)
+        self._end_fold_group()
+
+        self.summary = []
 
     @property
     def step_active(self) -> bool:
@@ -221,6 +274,68 @@ class Logger:
         identifier = identifier.strip("_")
         # lowercase, shorten
         return identifier.lower()[:20]
+
+    def _github_step_summary(self, duration: float, options: "Options") -> str:
+        """
+        Returns the GitHub step summary, in markdown format.
+        """
+        out = io.StringIO()
+        options_summary = options.summary(
+            identifiers=[bi.identifier for bi in self.summary], skip_unset=True
+        )
+        out.write(
+            textwrap.dedent("""\
+                ### 🎡 cibuildwheel
+
+                <details>
+                <summary>
+                Build options
+                </summary>
+
+                ```yaml
+                {options_summary}
+                ```
+
+                </details>
+
+            """).format(options_summary=options_summary)
+        )
+
+        out.write(
+            textwrap.dedent("""\
+                <table>
+                <thead>
+                <tr>
+                <th align="left">Wheel</th>
+                <th align="left">Size</th>
+                <th align="left">Build identifier</th>
+                <th align="left">Time</th>
+                </tr>
+                </thead>
+                <tbody>
+                {wheel_rows}
+                </tbody>
+                </table>
+                <div align="right"><sup>{n} wheels created in {duration_str}</sup></div>
+            """).format(
+                wheel_rows="\n".join(
+                    "<tr>"
+                    f"<td nowrap>{'<samp>' + b.filename.name + '</samp>' if b.filename else '*Build only*'}</td>"
+                    f"<td nowrap>{humanize.naturalsize(b.filename.stat().st_size) if b.filename else 'N/A'}</td>"
+                    f"<td nowrap><samp>{b.identifier}</samp></td>"
+                    f"<td nowrap>{humanize.naturaldelta(b.duration)}</td>"
+                    "</tr>"
+                    for b in self.summary
+                ),
+                n=len([b for b in self.summary if b.filename]),
+                duration_str=humanize.naturaldelta(duration),
+            )
+        )
+
+        out.write("\n")
+        out.write("---")
+        out.write("\n")
+        return out.getvalue()
 
     @property
     def colors(self) -> Colors:

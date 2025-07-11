@@ -613,6 +613,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (remove if already exists)
+            output_wheel = None
             if compatible_wheel is None:
                 output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
                 moved_wheel = move_file(repaired_wheel, output_wheel)
@@ -627,7 +628,7 @@ def build(options: Options, tmp_path: Path) -> None:
             # don't want to abort a build because of that)
             shutil.rmtree(identifier_tmp_dir, ignore_errors=True)
 
-            log.build_end()
+            log.build_end(output_wheel)
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
         raise errors.FatalError(msg) from error

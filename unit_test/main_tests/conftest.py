@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel import __main__, architecture
+from cibuildwheel import architecture
+from cibuildwheel.logger import Logger
 from cibuildwheel.platforms import linux, macos, pyodide, windows
 from cibuildwheel.util import file
 
@@ -58,7 +59,7 @@ def disable_print_wheels(monkeypatch):
     def empty_cm(*args, **kwargs):
         yield
 
-    monkeypatch.setattr(__main__, "print_new_wheels", empty_cm)
+    monkeypatch.setattr(Logger, "print_summary", empty_cm)
 
 
 @pytest.fixture

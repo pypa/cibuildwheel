@@ -414,13 +414,15 @@ def build_in_container(
             # clean up test environment
             container.call(["rm", "-rf", testing_temp_dir])
 
-        # move repaired wheels to output
+        # move repaired wheel to output
+        output_wheel: Path | None = None
         if compatible_wheel is None:
             container.call(["mkdir", "-p", container_output_dir])
             container.call(["mv", repaired_wheel, container_output_dir])
             built_wheels.append(container_output_dir / repaired_wheel.name)
+            output_wheel = options.globals.output_dir / repaired_wheel.name
 
-        log.build_end()
+        log.build_end(output_wheel)
 
     log.step("Copying wheels back to host...")
     # copy the output back into the host
