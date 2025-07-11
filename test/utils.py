@@ -252,7 +252,7 @@ def _expected_wheels(
     if manylinux_versions is None:
         manylinux_versions = {
             "armv7l": ["manylinux2014", "manylinux_2_17", "manylinux_2_31"],
-            "i686": ["manylinux1", "manylinux2014", "manylinux_2_17", "manylinux_2_5"],
+            "i686": ["manylinux1", "manylinux_2_28", "manylinux_2_5"],
             "x86_64": ["manylinux1", "manylinux_2_28", "manylinux_2_5"],
             "riscv64": ["manylinux_2_31", "manylinux_2_35"],
         }.get(machine_arch, ["manylinux2014", "manylinux_2_17", "manylinux_2_28"])

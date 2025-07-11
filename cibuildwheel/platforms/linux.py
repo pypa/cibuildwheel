@@ -275,37 +275,38 @@ def build_in_container(
                 build_frontend, build_options.build_verbosity, build_options.config_settings
             )
 
-            if build_frontend.name == "pip":
-                container.call(
-                    [
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        container_package_dir,
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *extra_flags,
-                    ],
-                    env=env,
-                )
-            elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                    extra_flags += ["--installer=uv"]
-                container.call(
-                    [
-                        "python",
-                        "-m",
-                        "build",
-                        container_package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        *extra_flags,
-                    ],
-                    env=env,
-                )
-            else:
-                assert_never(build_frontend)
+            match build_frontend.name:
+                case "pip":
+                    container.call(
+                        [
+                            "python",
+                            "-m",
+                            "pip",
+                            "wheel",
+                            container_package_dir,
+                            f"--wheel-dir={built_wheel_dir}",
+                            "--no-deps",
+                            *extra_flags,
+                        ],
+                        env=env,
+                    )
+                case "build" | "build[uv]":
+                    if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
+                        extra_flags += ["--installer=uv"]
+                    container.call(
+                        [
+                            "python",
+                            "-m",
+                            "build",
+                            container_package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                        ],
+                        env=env,
+                    )
+                case _:
+                    assert_never(build_frontend)
 
             built_wheel = container.glob(built_wheel_dir, "*.whl")[0]
 

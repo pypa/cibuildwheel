@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.0.0
+        run: python -m pip install cibuildwheel==3.0.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -227,6 +227,13 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.0.1
+
+_5 July 2025_
+
+- 🛠 Updates CPython 3.14 prerelease to 3.14.0b3 (#2471)
+- ✨ Adds a CPython 3.14 prerelease iOS build (only when prerelease builds are [enabled](https://cibuildwheel.pypa.io/en/stable/options/#enable)) (#2475)
+
 ### v3.0.0
 
 _11 June 2025_
@@ -285,16 +292,7 @@ _15 March 2025_
 - ⚠️ Added warnings when the shorthand values `manylinux1`, `manylinux2010`, `manylinux_2_24`, and `musllinux_1_1` are used to specify the images in linux builds. The shorthand to these (unmaintainted) images will be removed in v3.0. If you want to keep using these images, explicitly opt-in using the full image URL, which can be found in [this file](https://github.com/pypa/cibuildwheel/blob/v2.23.1/cibuildwheel/resources/pinned_docker_images.cfg). (#2312)
 - 🛠 Dependency updates, including a manylinux update which fixes an [issue with rustup](https://github.com/pypa/cibuildwheel/issues/2303). (#2315)
 
-### v2.23.0
-
-_1 March 2025_
-
-- ✨ Adds official support for the new GitHub Actions Arm runners. In fact these worked out-of-the-box, now we include them in our tests and example configs. (#2135 via #2281)
-- ✨ Adds support for building PyPy 3.11 wheels (#2268 via #2281)
-- 🛠 Adopts the beta pypa/manylinux image for armv7l builds (#2269 via #2281)
-- 🛠 Dependency updates, including Pyodide 0.27 (#2117 and #2281)
-
-<!-- [[[end]]] (sum: 9FCUvIZ+dy) -->
+<!-- [[[end]]] (sum: QKx9Hx5znR) -->
 
 ---
 
@@ -314,11 +312,21 @@ Everyone interacting with the cibuildwheel project via codebase, issue tracker, 
 Maintainers
 -----------
 
+Core:
+
 - Joe Rickerby [@joerick](https://github.com/joerick)
 - Yannick Jadoul [@YannickJadoul](https://github.com/YannickJadoul)
 - Matthieu Darbois [@mayeut](https://github.com/mayeut)
 - Henry Schreiner [@henryiii](https://github.com/henryiii)
 - Grzegorz Bokota [@Czaki](https://github.com/Czaki)
+
+Platform maintainers:
+
+- Russell Keith-Magee [@freakboy3742](https://github.com/freakboy3742) (iOS)
+- Agriya Khetarpal [@agriyakhetarpal](https://github.com/agriyakhetarpal) (Pyodide)
+- Hood Chatham [@hoodmane](https://github.com/hoodmane) (Pyodide)
+- Gyeongjae Choi [@ryanking13](https://github.com/ryanking13) (Pyodide)
+- Tim Felgentreff [@timfel](https://github.com/timfel) (GraalPy)
 
 Credits
 -------

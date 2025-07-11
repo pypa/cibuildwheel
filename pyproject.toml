@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.0.0"
+version = "3.0.1"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -173,6 +173,7 @@ messages_control.disable = [
   "unsubscriptable-object",
   "wrong-import-position",
   "unused-argument",  # Handled by Ruff
+  "import-outside-toplevel",  # Handled by Ruff
   "broad-exception-raised",  # Could be improved eventually
   "consider-using-in",  # MyPy can't narrow "in"
 ]

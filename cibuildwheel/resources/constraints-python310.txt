@@ -26,7 +26,7 @@ pyproject-hooks==1.2.0
     # via build
 tomli==2.2.1
     # via build
-typing-extensions==4.14.0
+typing-extensions==4.14.1
     # via delocate
 virtualenv==20.31.2
     # via -r cibuildwheel/resources/constraints.in
