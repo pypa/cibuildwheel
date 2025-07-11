@@ -179,11 +179,11 @@ class Logger:
             c = self.colors
             s = self.symbols
             duration = time.time() - self.step_start_time
-            duration_str = humanize.naturaldelta(duration)
+
             if success:
-                print(f"{c.green}{s.done} {c.end}{duration_str}".rjust(78))
+                print(f"{c.green}{s.done} {c.end}{duration:.2f}s".rjust(78))
             else:
-                print(f"{c.red}{s.error} {c.end}{duration_str}".rjust(78))
+                print(f"{c.red}{s.error} {c.end}{duration:.2f}s".rjust(78))
 
             self.step_start_time = None
 
@@ -227,9 +227,9 @@ class Logger:
 
         n = len(self.summary)
         s = "s" if n > 1 else ""
-        n_str = humanize.apnumber(n).title()
         duration_str = humanize.naturaldelta(duration)
-        self._start_fold_group(f"{n_str} wheel{s} produced in {duration_str}")
+        print()
+        self._start_fold_group(f"{n} wheel{s} produced in {duration_str}")
         for build_info in self.summary:
             print(" ", build_info)
         self._end_fold_group()
