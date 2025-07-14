@@ -1,9 +1,12 @@
+from pathlib import Path
+
 import pytest
 
 from cibuildwheel.logger import BuildInfo, Logger
 from cibuildwheel.options import CommandLineArguments, Options
 
 OPTIONS_DEFAULTS = Options("linux", CommandLineArguments.defaults(), {}, defaults=True)
+FILE = Path(__file__)
 
 
 def test_printout_wheels(capsys):
@@ -14,7 +17,7 @@ def test_printout_wheels(capsys):
     with log.print_summary(options=OPTIONS_DEFAULTS):
         log.summary = [
             BuildInfo(identifier="id1", filename=None, duration=3),
-            BuildInfo(identifier="id2", filename=None, duration=2),
+            BuildInfo(identifier="id2", filename=FILE, duration=2),
         ]
 
     captured = capsys.readouterr()
@@ -23,6 +26,7 @@ def test_printout_wheels(capsys):
     assert "id1" in captured.out
     assert "id2" in captured.out
     assert "wheels produced in" in captured.out
+    assert "SHA256=" in captured.out
 
 
 def test_no_printout_on_error(capsys):

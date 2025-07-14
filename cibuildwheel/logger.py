@@ -1,6 +1,8 @@
 import codecs
 import contextlib
 import dataclasses
+import functools
+import hashlib
 import io
 import os
 import re
@@ -86,11 +88,24 @@ class BuildInfo:
     filename: Path | None
     duration: float
 
+    @functools.cached_property
+    def size(self) -> str | None:
+        if self.filename is None:
+            return None
+        return humanize.naturalsize(self.filename.stat().st_size)
+
+    @functools.cached_property
+    def sha256(self) -> str | None:
+        if self.filename is None:
+            return None
+        with self.filename.open("rb") as f:
+            digest = hashlib.file_digest(f, "sha256")
+        return digest.hexdigest()
+
     def __str__(self) -> str:
         duration = humanize.naturaldelta(self.duration)
         if self.filename:
-            size = humanize.naturalsize(self.filename.stat().st_size)
-            return f"{self.identifier}: {self.filename.name} {size} in {duration}"
+            return f"{self.identifier}: {self.filename.name} {self.size} in {duration}, SHA256={self.sha256}"
         return f"{self.identifier}: {duration} (test only)"
 
 
@@ -310,6 +325,7 @@ class Logger:
                 <th align="left">Size</th>
                 <th align="left">Build identifier</th>
                 <th align="left">Time</th>
+                <th align="left">SHA256</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -321,9 +337,10 @@ class Logger:
                 wheel_rows="\n".join(
                     "<tr>"
                     f"<td nowrap>{'<samp>' + b.filename.name + '</samp>' if b.filename else '*Build only*'}</td>"
-                    f"<td nowrap>{humanize.naturalsize(b.filename.stat().st_size) if b.filename else 'N/A'}</td>"
+                    f"<td nowrap>{b.size or 'N/A'}</td>"
                     f"<td nowrap><samp>{b.identifier}</samp></td>"
                     f"<td nowrap>{humanize.naturaldelta(b.duration)}</td>"
+                    f"<td nowrap><samp>{b.sha256 or 'N/A'}</samp></td>"
                     "</tr>"
                     for b in self.summary
                 ),
