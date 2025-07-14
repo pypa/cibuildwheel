@@ -315,7 +315,17 @@ class Logger:
 
             """).format(options_summary=options_summary)
         )
-
+        n_wheels = len([b for b in self.summary if b.filename])
+        wheel_rows = "\n".join(
+            "<tr>"
+            f"<td nowrap>{'<samp>' + b.filename.name + '</samp>' if b.filename else '*Build only*'}</td>"
+            f"<td nowrap>{b.size or 'N/A'}</td>"
+            f"<td nowrap><samp>{b.identifier}</samp></td>"
+            f"<td nowrap>{humanize.naturaldelta(b.duration)}</td>"
+            f"<td nowrap><samp>{b.sha256 or 'N/A'}</samp></td>"
+            "</tr>"
+            for b in self.summary
+        )
         out.write(
             textwrap.dedent("""\
                 <table>
@@ -332,20 +342,12 @@ class Logger:
                 {wheel_rows}
                 </tbody>
                 </table>
-                <div align="right"><sup>{n} wheels created in {duration_str}</sup></div>
+                <div align="right"><sup>{n} wheel{s} created in {duration_str}</sup></div>
             """).format(
-                wheel_rows="\n".join(
-                    "<tr>"
-                    f"<td nowrap>{'<samp>' + b.filename.name + '</samp>' if b.filename else '*Build only*'}</td>"
-                    f"<td nowrap>{b.size or 'N/A'}</td>"
-                    f"<td nowrap><samp>{b.identifier}</samp></td>"
-                    f"<td nowrap>{humanize.naturaldelta(b.duration)}</td>"
-                    f"<td nowrap><samp>{b.sha256 or 'N/A'}</samp></td>"
-                    "</tr>"
-                    for b in self.summary
-                ),
-                n=len([b for b in self.summary if b.filename]),
+                wheel_rows=wheel_rows,
+                n=n_wheels,
                 duration_str=humanize.naturaldelta(duration),
+                s="s" if n_wheels > 1 else "",
             )
         )
 

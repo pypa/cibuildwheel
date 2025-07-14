@@ -908,7 +908,7 @@ class Options:
         )
 
     def summary(self, identifiers: Iterable[str], skip_unset: bool = False) -> str:
-        lines: list[str] = []
+        lines = []
         global_option_names = sorted(f.name for f in dataclasses.fields(self.globals))
 
         for option_name in global_option_names:
