@@ -4,6 +4,8 @@ from enum import Enum
 
 from .util.helpers import strtobool
 
+ANSI_CODE_REGEX = re.compile(r"(\033\[[0-9;]*m)")
+
 
 class CIProvider(Enum):
     # official support
@@ -46,7 +48,7 @@ def fix_ansi_codes_for_github_actions(text: str) -> str:
     Github Actions forgets the current ANSI style on every new line. This
     function repeats the current ANSI style on every new line.
     """
-    ansi_code_regex = re.compile(r"(\033\[[0-9;]*m)")
+
     ansi_codes: list[str] = []
     output = ""
 
@@ -55,7 +57,7 @@ def fix_ansi_codes_for_github_actions(text: str) -> str:
         output += "".join(ansi_codes) + line
 
         # split the line at each ANSI code
-        parts = ansi_code_regex.split(line)
+        parts = ANSI_CODE_REGEX.split(line)
         # if there are any ANSI codes, save them
         if len(parts) > 1:
             # iterate over the ANSI codes in this line
@@ -67,3 +69,11 @@ def fix_ansi_codes_for_github_actions(text: str) -> str:
                     ansi_codes.append(code)
 
     return output
+
+
+def filter_ansi_codes(text: str, /) -> str:
+    """
+    Remove ANSI codes from text.
+    """
+
+    return ANSI_CODE_REGEX.sub("", text)

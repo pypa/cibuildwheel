@@ -13,7 +13,7 @@ from typing import IO, TYPE_CHECKING, AnyStr, Final, Literal
 
 import humanize
 
-from .ci import CIProvider, detect_ci_provider
+from .ci import CIProvider, detect_ci_provider, filter_ansi_codes
 
 if TYPE_CHECKING:
     from .options import Options
@@ -223,7 +223,7 @@ class Logger:
         duration = time.time() - start
         if summary_path := os.environ.get("GITHUB_STEP_SUMMARY"):
             github_summary = self._github_step_summary(duration=duration, options=options)
-            Path(summary_path).write_text(github_summary, encoding="utf-8")
+            Path(summary_path).write_text(filter_ansi_codes(github_summary), encoding="utf-8")
 
         n = len(self.summary)
         s = "s" if n > 1 else ""
