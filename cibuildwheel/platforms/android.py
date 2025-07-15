@@ -94,6 +94,16 @@ def before_all(options: Options, python_configurations: list[PythonConfiguration
         )
 
 
+@dataclass(frozen=True)
+class BuildState:
+    config: PythonConfiguration
+    options: BuildOptions
+    build_path: Path
+    python_dir: Path
+    build_env: dict[str, str]
+    android_env: dict[str, str]
+
+
 def build(options: Options, tmp_path: Path) -> None:
     if "ANDROID_HOME" not in os.environ:
         msg = (
@@ -117,8 +127,11 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_path = tmp_path / config.identifier
             build_path.mkdir()
-
             python_dir = setup_target_python(config, build_path)
+            build_env, android_env = setup_env(config, build_options, build_path, python_dir)
+            state = BuildState(
+                config, build_options, build_path, python_dir, build_env, android_env
+            )
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -128,22 +141,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
                 repaired_wheel = compatible_wheel
             else:
-                build_env, android_env = setup_env(config, build_options, build_path, python_dir)
-                before_build(build_options, build_env)
-                built_wheel = build_wheel(build_options, build_path, android_env)
-                repaired_wheel = repair_wheel(
-                    build_options, build_path, build_env, android_env, built_wheel
-                )
+                before_build(state)
+                built_wheel = build_wheel(state)
+                repaired_wheel = repair_wheel(state, built_wheel)
 
-            test_wheel(
-                config,
-                build_options,
-                build_path,
-                python_dir,
-                build_env,
-                android_env,
-                repaired_wheel,
-            )
+            test_wheel(state, repaired_wheel)
 
             if compatible_wheel is None:
                 built_wheels.append(
@@ -254,7 +256,6 @@ def create_cmake_toolchain(
     toolchain_path = build_path / "toolchain.cmake"
     build_env["CMAKE_TOOLCHAIN_FILE"] = str(toolchain_path)
     with open(toolchain_path, "w", encoding="UTF-8") as toolchain_file:
-        prefix = f"{python_dir}/prefix"
         print(
             dedent(
                 f"""\
@@ -269,7 +270,7 @@ def create_cmake_toolchain(
                 set(CMAKE_SYSTEM_VERSION 1)
 
                 # Tell CMake where to look for headers and libraries.
-                list(INSERT CMAKE_FIND_ROOT_PATH 0 {prefix})
+                list(INSERT CMAKE_FIND_ROOT_PATH 0 {python_dir}/prefix)
                 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
                 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
                 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
@@ -373,30 +374,34 @@ def setup_android_env(
     return android_env
 
 
-def before_build(build_options: BuildOptions, env: dict[str, str]) -> None:
-    if build_options.before_build:
+def before_build(state: BuildState) -> None:
+    if state.options.before_build:
         log.step("Running before_build...")
-        shell_prepared(build_options.before_build, build_options=build_options, env=env)
+        shell_prepared(
+            state.options.before_build,
+            build_options=state.options,
+            env=state.build_env,
+        )
 
 
-def build_wheel(build_options: BuildOptions, build_path: Path, android_env: dict[str, str]) -> Path:
+def build_wheel(state: BuildState) -> Path:
     log.step("Building wheel...")
-    built_wheel_dir = build_path / "built_wheel"
+    built_wheel_dir = state.build_path / "built_wheel"
     call(
         "python",
         "-m",
         "build",
-        build_options.package_dir,
+        state.options.package_dir,
         "--wheel",
         "--no-isolation",
         "--skip-dependency-check",
         f"--outdir={built_wheel_dir}",
         *get_build_frontend_extra_flags(
-            build_options.build_frontend,
-            build_options.build_verbosity,
-            build_options.config_settings,
+            state.options.build_frontend,
+            state.options.build_verbosity,
+            state.options.config_settings,
         ),
-        env=android_env,
+        env=state.android_env,
     )
 
     built_wheels = list(built_wheel_dir.glob("*.whl"))
@@ -410,26 +415,20 @@ def build_wheel(build_options: BuildOptions, build_path: Path, android_env: dict
     return built_wheel
 
 
-def repair_wheel(
-    build_options: BuildOptions,
-    build_path: Path,
-    build_env: dict[str, str],
-    android_env: dict[str, str],
-    built_wheel: Path,
-) -> Path:
+def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     log.step("Repairing wheel...")
-    repaired_wheel_dir = build_path / "repaired_wheel"
+    repaired_wheel_dir = state.build_path / "repaired_wheel"
     repaired_wheel_dir.mkdir()
 
-    if build_options.repair_command:
+    if state.options.repair_command:
         shell(
             prepare_command(
-                build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                state.options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
             ),
-            env=build_env,
+            env=state.build_env,
         )
     else:
-        repair_default(android_env, built_wheel, repaired_wheel_dir)
+        repair_default(state.android_env, built_wheel, repaired_wheel_dir)
 
     repaired_wheels = list(repaired_wheel_dir.glob("*.whl"))
     if len(repaired_wheels) == 0:
@@ -533,84 +532,78 @@ def soname_with_hash(src_path: Path) -> str:
         return src_name
 
 
-# pylint: disable-next=too-many-positional-arguments
-def test_wheel(
-    config: PythonConfiguration,
-    build_options: BuildOptions,
-    build_path: Path,
-    python_dir: Path,
-    build_env: dict[str, str],
-    android_env: dict[str, str],
-    wheel: Path,
-) -> None:
-    if not (build_options.test_command and build_options.test_selector(config.identifier)):
+def test_wheel(state: BuildState, wheel: Path) -> None:
+    test_command = state.options.test_command
+    if not (test_command and state.options.test_selector(state.config.identifier)):
         return
 
     log.step("Testing wheel...")
     native_arch = arch_synonym(platform.machine(), platforms.native_platform(), "android")
-    if config.arch != native_arch:
+    if state.config.arch != native_arch:
         log.warning(
-            f"Skipping tests for {config.arch}, as the build machine only supports {native_arch}"
+            f"Skipping tests for {state.config.arch}, as the build machine only "
+            f"supports {native_arch}"
         )
         return
 
-    if build_options.before_test:
-        shell_prepared(build_options.before_test, build_options=build_options, env=build_env)
+    if state.options.before_test:
+        shell_prepared(
+            state.options.before_test,
+            build_options=state.options,
+            env=state.build_env,
+        )
 
     # Install the wheel and test-requires.
-    site_packages_dir = build_path / "site-packages"
+    site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
     call(
         "pip",
         "install",
         "--only-binary=:all:",
         "--platform",
-        sysconfig_print("get_platform()", android_env).replace("-", "_"),
+        sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
         "--target",
         site_packages_dir,
-        f"{wheel}{build_options.test_extras}",
-        *build_options.test_requires,
-        env=build_env,
+        f"{wheel}{state.options.test_extras}",
+        *state.options.test_requires,
+        env=state.build_env,
     )
 
     # Copy test-sources.
-    cwd_dir = build_path / "cwd"
+    cwd_dir = state.build_path / "cwd"
     cwd_dir.mkdir()
-    if build_options.test_sources:
-        copy_test_sources(build_options.test_sources, Path.cwd(), cwd_dir)
+    if state.options.test_sources:
+        copy_test_sources(state.options.test_sources, Path.cwd(), cwd_dir)
     else:
         (cwd_dir / "test_fail.py").write_text(
             resources.TEST_FAIL_CWD_FILE.read_text(),
         )
 
     # Android doesn't support placeholders in the test command.
-    if any(
-        ("{" + placeholder + "}") in build_options.test_command
-        for placeholder in ["project", "package"]
-    ):
+    if any(("{" + placeholder + "}") in test_command for placeholder in ["project", "package"]):
         msg = (
-            f"Test command '{build_options.test_command}' with a "
+            f"Test command '{test_command}' with a "
             "'{project}' or '{package}' placeholder is not supported on Android, "
             "because the source directory is not visible on the emulator."
         )
         raise errors.FatalError(msg)
 
     # Parse test-command.
-    test_args = shlex.split(build_options.test_command)
+    test_args = shlex.split(test_command)
     if test_args[:2] in [["python", "-c"], ["python", "-m"]]:
         test_args[:3] = [test_args[1], test_args[2], "--"]
     elif test_args[0] in ["pytest"]:
         test_args[:1] = ["-m", test_args[0], "--"]
     else:
         msg = (
-            f"Test command '{build_options.test_command}' is not supported on "
-            f"Android. Supported commands are 'python -m', 'python -c' and 'pytest'."
+            f"Test command '{test_command}' is not supported on Android. "
+            f"Supported commands are 'python -m', 'python -c' and 'pytest'."
         )
         raise errors.FatalError(msg)
 
     # Run the test app.
     call(
-        python_dir / "android.py",
+        state.python_dir / "android.py",
         "test",
         "--managed",
         "maxVersion",
@@ -619,7 +612,7 @@ def test_wheel(
         "--cwd",
         cwd_dir,
         *test_args,
-        env=build_env,
+        env=state.build_env,
     )
 
 
