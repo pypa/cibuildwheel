@@ -240,21 +240,27 @@ def spam_env(tmp_path):
 )
 def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
     cibuildwheel_run(tmp_path, add_env={**spam_env, "CIBW_TEST_COMMAND": command})
-    assert expected_output in capfd.readouterr().out
+    stdout, stderr = capfd.readouterr()
+    assert expected_output in stdout
+
+    if not command.startswith("python"):
+        assert (
+            f"Test command {command!r} is not supported on Android. cibuildwheel "
+            "will try to execute it as if it started with `python -m`."
+        ) in stderr
 
 
 @needs_emulator
 @pytest.mark.parametrize(
     ("command", "expected_output"),
     [
-        # Build-time failure
+        # Build-time failure: unrecognized command
         (
             "./test_spam.py",
             "Test command './test_spam.py' is not supported on Android. "
-            "Supported commands are 'python -m', 'python -c' and 'pytest'.",
+            "Supported commands are 'python -m' and 'python -c'.",
         ),
-        # Runtime failure
-        ("pytest test_ham.py", "not found: test_ham.py"),
+        # Build-time failure: unrecognized placeholder
         (
             "pytest {project}",
             "Test command 'pytest {project}' with a '{project}' or '{package}' "
@@ -265,6 +271,8 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
             "Test command 'pytest {package}' with a '{project}' or '{package}' "
             "placeholder is not supported on Android",
         ),
+        # Runtime failure
+        ("pytest test_ham.py", "not found: test_ham.py"),
     ],
 )
 def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):

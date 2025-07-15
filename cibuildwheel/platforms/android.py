@@ -590,7 +590,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
     # Android doesn't support placeholders in the test command.
     if any(("{" + placeholder + "}") in test_command for placeholder in ["project", "package"]):
         msg = (
-            f"Test command '{test_command}' with a "
+            f"Test command {test_command!r} with a "
             "'{project}' or '{package}' placeholder is not supported on Android, "
             "because the source directory is not visible on the emulator."
         )
@@ -601,11 +601,18 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
     if test_args[:2] in [["python", "-c"], ["python", "-m"]]:
         test_args[:3] = [test_args[1], test_args[2], "--"]
     elif test_args[0] in ["pytest"]:
+        # We transform some commands into the `python -m` form, but this is deprecated.
+        msg = (
+            f"Test command {test_command!r} is not supported on Android. "
+            "cibuildwheel will try to execute it as if it started with `python -m`. "
+            "If this works, all you need to do is add that to your test command."
+        )
+        log.warning(msg)
         test_args[:1] = ["-m", test_args[0], "--"]
     else:
         msg = (
-            f"Test command '{test_command}' is not supported on Android. "
-            f"Supported commands are 'python -m', 'python -c' and 'pytest'."
+            f"Test command {test_command!r} is not supported on Android. "
+            f"Supported commands are 'python -m' and 'python -c'."
         )
         raise errors.FatalError(msg)
 

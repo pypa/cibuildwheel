@@ -1347,7 +1347,6 @@ be in one of the following forms:
 
 * `python -c command ...` (Android only)
 * `python -m module-name ...`
-* `pytest ...` (deprecated; converted to `python -m pytest ...`)
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_ANDROID` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
