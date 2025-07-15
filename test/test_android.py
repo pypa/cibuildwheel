@@ -246,7 +246,7 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
     if not command.startswith("python"):
         assert (
             f"Test command {command!r} is not supported on Android. cibuildwheel "
-            "will try to execute it as if it started with `python -m`."
+            "will try to execute it as if it started with 'python -m'."
         ) in stderr
 
 

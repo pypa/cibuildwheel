@@ -604,7 +604,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         # We transform some commands into the `python -m` form, but this is deprecated.
         msg = (
             f"Test command {test_command!r} is not supported on Android. "
-            "cibuildwheel will try to execute it as if it started with `python -m`. "
+            "cibuildwheel will try to execute it as if it started with 'python -m'. "
             "If this works, all you need to do is add that to your test command."
         )
         log.warning(msg)
