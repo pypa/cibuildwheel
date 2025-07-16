@@ -147,13 +147,15 @@ def build(options: Options, tmp_path: Path) -> None:
 
             test_wheel(state, repaired_wheel)
 
+            output_wheel: Path | None = None
             if compatible_wheel is None:
-                built_wheels.append(
-                    move_file(repaired_wheel, build_options.output_dir / repaired_wheel.name)
+                output_wheel = move_file(
+                    repaired_wheel, build_options.output_dir / repaired_wheel.name
                 )
+                built_wheels.append(output_wheel)
 
             shutil.rmtree(build_path)
-            log.build_end()
+            log.build_end(output_wheel)
 
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
