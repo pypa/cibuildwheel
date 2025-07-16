@@ -183,9 +183,10 @@ Currently, it's recommended to run tests using a `python -m` entrypoint, rather 
 
 ### Prerequisites
 
-cibuildwheel can build and test Android wheels on any POSIX platform supported by the
-Android development tools, which currently means Linux x86_64, macOS ARM64 or macOS
-x86_64.
+cibuildwheel can build Android wheels on any POSIX platform supported by the Android
+development tools, which currently means Linux x86_64, macOS ARM64 or macOS x86_64. Any
+of these platforms can be used to build wheels for any Android architecture supported by
+Python. However, *testing* wheels has additional requirements: see the section below.
 
 If you already have an Android SDK, export the `ANDROID_HOME` environment variable to
 point at its location. Otherwise, here's how to install it:
@@ -220,28 +221,23 @@ Android builds only support the `build` frontend. In principle, support for the
 cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have
 support for iOS or Android wheel tags](https://github.com/astral-sh/uv/issues/8029).
 
-### Cross platform builds
-
-Android builds are *cross platform builds*, as cibuildwheel does not support running
-compilers and other build tools "on device". Any supported build platform (listed
-above) can be used to build wheels for any supported Android architecture. However,
-wheels can only be *tested* on a machine of the same architecture – see the section
-below.
-
 ### Tests
 
-If tests have been configured, the test suite will be executed on a Gradle-managed
-emulator matching the architecture of the build machine – for example, if you're
-building on an ARM64 machine, an ARM64 wheel can be tested on an ARM64 emulator.
-Cross-architecture testing is not supported.
+Tests are executed on a Gradle-managed emulator matching the architecture of the build
+machine – for example, if you're building on an ARM64 machine, then you can test an
+ARM64 wheel. Wheels of other architectures can still be built, but testing will
+automatically be skipped.
 
-On Linux, the emulator needs access to the KVM virtualization interface. If the
-emulator fails to start, try running `$ANDROID_HOME/emulator/emulator -accel-check`
-for advice.
+Running an emulator requires the build machine to either be bare-metal or support
+nested virtualization. CI platforms known to meet this requirement are:
 
-The test process uses the same testbed used by CPython itself to run the CPython test
-suite. It is a Gradle project that has been configured to have a single JUnit test,
-the result of which reports the success or failure of running the test command.
+* GitHub Actions Linux x86_64
+
+On Linux, the emulator needs access to the KVM virtualization interface. This may
+require adding your user to a group, or [changing your udev
+rules](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
+If the emulator fails to start, try running `$ANDROID_HOME/emulator/emulator
+-accel-check`.
 
 The Android test environment can't support running shell scripts, so the
 [`test-command`](options.md#test-command) must be a Python command – see its

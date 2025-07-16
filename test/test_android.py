@@ -27,6 +27,7 @@ if (platform.system(), platform.machine()) not in [
         allow_module_level=True,
     )
 
+# Detect CI services which have the Android SDK pre-installed.
 ci_supports_build = any(
     key in os.environ
     for key in [
@@ -42,12 +43,7 @@ if "ANDROID_HOME" not in os.environ:
     else:
         pytest.skip(msg, allow_module_level=True)
 
-# Running an emulator requires the build machine to either be bare-metal or support
-# nested virtualization. Many CI services don't support this. GitHub Actions only
-# supports it on Linux
-# (https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
-# but this may extend to macOS once M3 runners are available
-# (https://github.com/ReactiveCircus/android-emulator-runner/issues/350).
+# Many CI services don't support running the Android emulator: see platforms.md.
 ci_supports_emulator = "GITHUB_ACTIONS" in os.environ and platform.system() == "Linux"
 
 
