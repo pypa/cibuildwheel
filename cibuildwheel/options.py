@@ -906,14 +906,18 @@ class Options:
             defaults=True,
         )
 
-    def summary(self, identifiers: Iterable[str]) -> str:
+    def summary(self, identifiers: Iterable[str], skip_unset: bool = False) -> str:
         lines = []
         global_option_names = sorted(f.name for f in dataclasses.fields(self.globals))
 
         for option_name in global_option_names:
             option_value = getattr(self.globals, option_name)
             default_value = getattr(self.defaults.globals, option_name)
-            lines.append(self.option_summary(option_name, option_value, default_value))
+            line = self.option_summary(
+                option_name, option_value, default_value, skip_unset=skip_unset
+            )
+            if line is not None:
+                lines.append(line)
 
         build_options = self.build_options(identifier=None)
         build_options_defaults = self.defaults.build_options(identifier=None)
@@ -933,9 +937,15 @@ class Options:
                 i: getattr(build_options_for_identifier[i], option_name) for i in identifiers
             }
 
-            lines.append(
-                self.option_summary(option_name, option_value, default_value, overrides=overrides)
+            line = self.option_summary(
+                option_name,
+                option_value,
+                default_value,
+                overrides=overrides,
+                skip_unset=skip_unset,
             )
+            if line is not None:
+                lines.append(line)
 
         return "\n".join(lines)
 
@@ -945,7 +955,8 @@ class Options:
         option_value: Any,
         default_value: Any,
         overrides: Mapping[str, Any] | None = None,
-    ) -> str:
+        skip_unset: bool = False,
+    ) -> str | None:
         """
         Return a summary of the option value, including any overrides, with
         ANSI 'dim' color if it's the default.
@@ -959,6 +970,10 @@ class Options:
         overrides_value_strs = {k: v for k, v in overrides_value_strs.items() if v != value_str}
 
         has_been_set = (value_str != default_value_str) or overrides_value_strs
+
+        if skip_unset and not has_been_set:
+            return None
+
         c = log.colors
 
         result = c.gray if not has_been_set else ""

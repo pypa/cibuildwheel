@@ -1,34 +1,39 @@
+from pathlib import Path
+
 import pytest
 
-from cibuildwheel.__main__ import print_new_wheels
+from cibuildwheel.logger import BuildInfo, Logger
+from cibuildwheel.options import CommandLineArguments, Options
+
+OPTIONS_DEFAULTS = Options("linux", CommandLineArguments.defaults(), {}, defaults=True)
+FILE = Path(__file__)
 
 
-def test_printout_wheels(tmp_path, capsys):
-    tmp_path.joinpath("example.0").touch()
-    with print_new_wheels("TEST_MSG: {n}", tmp_path):
-        tmp_path.joinpath("example.1").write_bytes(b"0" * 1023)
-        tmp_path.joinpath("example.2").write_bytes(b"0" * 1025)
+def test_printout_wheels(capsys):
+    log = Logger()
+    log.fold_mode = "disabled"
+    log.colors_enabled = False
+
+    with log.print_summary(options=OPTIONS_DEFAULTS):
+        log.summary = [
+            BuildInfo(identifier="id1", filename=None, duration=3),
+            BuildInfo(identifier="id2", filename=FILE, duration=2),
+        ]
 
     captured = capsys.readouterr()
     assert captured.err == ""
 
-    assert "example.0" not in captured.out
-    assert "example.1   1 kB\n" in captured.out
-    assert "example.2   2 kB\n" in captured.out
-    assert "TEST_MSG:" in captured.out
-    assert "TEST_MSG: 2\n" in captured.out
+    assert "id1" in captured.out
+    assert "id2" in captured.out
+    assert "wheels produced in" in captured.out
+    assert "SHA256=" in captured.out
 
 
-def test_no_printout_on_error(tmp_path, capsys):
-    tmp_path.joinpath("example.0").touch()
-    with pytest.raises(RuntimeError), print_new_wheels("TEST_MSG: {n}", tmp_path):  # noqa: PT012
-        tmp_path.joinpath("example.1").touch()
+def test_no_printout_on_error(capsys):
+    log = Logger()
+    with pytest.raises(RuntimeError), log.print_summary(options=OPTIONS_DEFAULTS):
         raise RuntimeError()
 
     captured = capsys.readouterr()
     assert captured.err == ""
-
-    assert "example.0" not in captured.out
-    assert "example.1" not in captured.out
-    assert "example.2" not in captured.out
-    assert "TEST_MSG:" not in captured.out
+    assert captured.out == ""
