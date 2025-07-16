@@ -26,6 +26,7 @@ from cibuildwheel.selector import BuildSelector, EnableGroup, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 from cibuildwheel.util.helpers import strtobool
+from cibuildwheel.util.resources import read_all_configs
 
 
 @dataclasses.dataclass
@@ -132,6 +133,8 @@ def main_inner(global_options: GlobalOptions) -> None:
     parser.add_argument(
         "--only",
         default=None,
+        choices=[v["identifier"] for vv in read_all_configs().values() for v in vv],
+        metavar="IDENTIFIER",
         help="""
             Force a single wheel build when given an identifier. Overrides
             CIBW_BUILD/CIBW_SKIP. --platform and --arch cannot be specified

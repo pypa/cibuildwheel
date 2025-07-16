@@ -22,8 +22,11 @@ TEST_FAIL_CWD_FILE: Final[Path] = PATH / "testing_temp_dir_file.py"
 
 # this value is cached because it's used a lot in unit tests
 @functools.cache
-def read_python_configs(config: PlatformName) -> list[dict[str, str]]:
+def read_all_configs() -> dict[str, list[dict[str, str]]]:
     with BUILD_PLATFORMS.open("rb") as f:
         loaded_file = tomllib.load(f)
-    results: list[dict[str, str]] = list(loaded_file[config]["python_configurations"])
-    return results
+    return {k: list[dict[str, str]](v["python_configurations"]) for k, v in loaded_file.items()}
+
+
+def read_python_configs(config: PlatformName) -> list[dict[str, str]]:
+    return read_all_configs()[config]
