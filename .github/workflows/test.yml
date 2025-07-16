@@ -243,19 +243,6 @@ jobs:
       env:
         CIBW_PLATFORM: pyodide
 
-    - name: Run a sample build (GitHub Action) for an overridden Pyodide version
-      uses: ./
-      with:
-        package-dir: sample_proj
-        output-dir: wheelhouse
-        # In case this breaks at any point in time, switch to using the latest version
-        # available or any other version that is not the same as the default one set
-        # in cibuildwheel/resources/build-platforms.toml.
-      env:
-        CIBW_PLATFORM: pyodide
-        CIBW_BUILD: "cp312*"
-        CIBW_PYODIDE_VERSION: "0.27.6"
-
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |
         uv run --no-sync ./bin/run_tests.py

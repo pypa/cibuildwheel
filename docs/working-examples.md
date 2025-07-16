@@ -81,12 +81,12 @@ title: Working examples
 | [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
 | [abess][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions. |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
-| [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
 | [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
+| [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
 | [matrixprofile][]                 | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python 3 library making time series data mining tasks, utilizing matrix profile algorithms, accessible to everyone. |
 | [Tokenizer][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
-| [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Jupyter-friendly Python interface for C++ MINUIT2 |
 | [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
+| [iminuit][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Jupyter-friendly Python interface for C++ MINUIT2 |
 | [pillow-heif][]                   | ![github icon][] ![cirrusci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Bindings to libheif library with third party dependencies. Fully automated CI for tests and publishing including Apple Silicon builds. |
 | [keyvi][]                         | ![github icon][] | ![linux icon][] ![apple icon][] | FST based key value index highly optimized for size and lookup performance, utilizes ccache action for improved runtime |
 | [PyGLM][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Fast OpenGL Mathematics (GLM) for Python |
@@ -111,8 +111,8 @@ title: Working examples
 | [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
 | [ril][]                           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels. |
 | [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
-| [aalink][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Async Python interface for Ableton Link. |
 | [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
+| [aalink][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Async Python interface for Ableton Link. |
 | [CorrectionLib][]                 | ![github icon][] | ![apple icon][] ![linux icon][] | Structured JSON powered correction library for HEP, designed for the CMS experiment at CERN. |
 | [xmlstarlet][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python 3.6+ CFFI bindings with true MSVC build. |
 | [werpy][]                         | ![github icon][] | ![windows icon][] ![linux icon][] ![apple icon][] | An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER). |
@@ -191,12 +191,12 @@ title: Working examples
 [sourmash]: https://github.com/sourmash-bio/sourmash
 [abess]: https://github.com/abess-team/abess
 [python-snappy]: https://github.com/intake/python-snappy
-[cyvcf2]: https://github.com/brentp/cyvcf2
 [jq.py]: https://github.com/mwilliamson/jq.py
+[cyvcf2]: https://github.com/brentp/cyvcf2
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
-[iminuit]: https://github.com/scikit-hep/iminuit
 [Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
+[iminuit]: https://github.com/scikit-hep/iminuit
 [pillow-heif]: https://github.com/bigcat88/pillow_heif
 [keyvi]: https://github.com/KeyviDev/keyvi
 [PyGLM]: https://github.com/Zuzu-Typ/PyGLM
@@ -221,8 +221,8 @@ title: Working examples
 [pyjet]: https://github.com/scikit-hep/pyjet
 [ril]: https://github.com/Cryptex-github/ril-py
 [SiPM]: https://github.com/EdoPro98/SimSiPM
-[aalink]: https://github.com/artfwo/aalink
 [GSD]: https://github.com/glotzerlab/gsd
+[aalink]: https://github.com/artfwo/aalink
 [CorrectionLib]: https://github.com/cms-nanoAOD/correctionlib
 [xmlstarlet]: https://github.com/dimitern/xmlstarlet
 [werpy]: https://github.com/analyticsinmotion/werpy
