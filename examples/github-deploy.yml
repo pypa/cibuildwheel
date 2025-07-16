@@ -47,6 +47,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # GitHub Actions can't currently run the Android emulator on macOS.
+      - name: Skip Android tests on macOS
+        if: matrix.os == 'android-arm'
+        run: echo "CIBW_TEST_COMMAND=" >> "$GITHUB_ENV"
+
       # https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/
       - name: Enable KVM for Android emulator
         if: matrix.os == 'android-intel'
