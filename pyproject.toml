@@ -42,6 +42,7 @@ dependencies = [
     "certifi",
     "dependency-groups>=1.2",
     "filelock",
+    "humanize",
     "packaging>=20.9",
     "platformdirs"
 ]

@@ -7,10 +7,9 @@ import shutil
 import sys
 import tarfile
 import textwrap
-import time
 import traceback
 import typing
-from collections.abc import Generator, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, Literal, TextIO
@@ -286,42 +285,6 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     return _compute_platform_auto()
 
 
-@contextlib.contextmanager
-def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
-    """
-    Prints the new items in a directory upon exiting. The message to display
-    can include {n} for number of wheels, {s} for total number of seconds,
-    and/or {m} for total number of minutes. Does not print anything if this
-    exits via exception.
-    """
-
-    start_time = time.time()
-    existing_contents = set(output_dir.iterdir())
-    yield
-    final_contents = set(output_dir.iterdir())
-
-    new_contents = [
-        FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
-        for wheel in final_contents - existing_contents
-    ]
-
-    if not new_contents:
-        return
-
-    max_name_len = max(len(f.name) for f in new_contents)
-    max_size_len = max(len(f.size) for f in new_contents)
-    n = len(new_contents)
-    s = time.time() - start_time
-    m = s / 60
-    print(
-        msg.format(n=n, s=s, m=m),
-        *sorted(
-            f"  {f.name:<{max_name_len}s}   {f.size:>{max_size_len}s} kB" for f in new_contents
-        ),
-        sep="\n",
-    )
-
-
 def build_in_directory(args: CommandLineArguments) -> None:
     platform: PlatformName = _compute_platform(args)
     if platform == "pyodide" and sys.platform == "win32":
@@ -382,7 +345,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
-        with print_new_wheels("\n{n} wheels produced in {m:.0f} minutes:", output_dir):
+        with log.print_summary(options=options):
             platform_module.build(options, tmp_path)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
