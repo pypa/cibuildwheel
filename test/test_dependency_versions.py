@@ -140,11 +140,11 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
         and method == "file"
         and build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build"
     ):
-        # GraalPy fails to discover its standard library when a venv is created
+        # GraalPy 24 fails to discover its standard library when a venv is created
         # from a virtualenv seeded executable. See
         # https://github.com/oracle/graalpython/issues/491 and remove this once
-        # fixed upstream.
-        build_frontend_env_nouv["CIBW_SKIP"] = "gp*"
+        # GraalPy 24 is dropped
+        build_frontend_env_nouv["CIBW_SKIP"] = "gp311*"
 
     for package_name, version in tool_versions.items():
         env_name = f"EXPECTED_{package_name.upper()}_VERSION"
@@ -172,6 +172,6 @@ def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
     ):
         # See reference to https://github.com/oracle/graalpython/issues/491
         # above
-        expected_wheels = [w for w in expected_wheels if "graalpy" not in w]
+        expected_wheels = [w for w in expected_wheels if "graalpy311" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
