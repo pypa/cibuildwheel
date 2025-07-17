@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from os.path import relpath
 from pathlib import Path
 from pprint import pprint
 from runpy import run_path
@@ -513,7 +514,7 @@ def repair_default(
             call(
                 "patchelf",
                 "--set-rpath",
-                f"${{ORIGIN}}/{libs_dir.relative_to(path.parent)}",
+                f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
                 path,
             )
         call("wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)

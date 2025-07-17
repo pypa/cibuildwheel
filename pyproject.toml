@@ -45,8 +45,8 @@ dependencies = [
     "filelock",
     "humanize",
     "packaging>=20.9",
-    "pyelftools>=0.29",
     "platformdirs",
+    "pyelftools>=0.29",
     "wheel>=0.33.6",
 ]
 
