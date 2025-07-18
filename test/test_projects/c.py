@@ -17,7 +17,7 @@ spam_filter(PyObject *self, PyObject *args)
         return NULL;
 
     // Spam should not be allowed through the filter.
-    sts = strcmp(content, "spam");
+    sts = strcmp(content, "spam") != 0;
 
     {{ spam_c_function_add | indent(4) }}
 
