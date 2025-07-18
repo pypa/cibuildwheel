@@ -59,7 +59,17 @@ images = [
     PyPAImage("manylinux_2_31", ["armv7l"]),
     # manylinux_2_34 images
     PyPAImage(
-        "manylinux_2_34", ["x86_64", "aarch64", "ppc64le", "s390x", "pypy_x86_64", "pypy_aarch64"]
+        "manylinux_2_34",
+        [
+            "x86_64",
+            "i686",
+            "aarch64",
+            "ppc64le",
+            "s390x",
+            "pypy_x86_64",
+            "pypy_i686",
+            "pypy_aarch64",
+        ],
     ),
     # musllinux_1_2 images
     PyPAImage("musllinux_1_2", ["x86_64", "i686", "aarch64", "ppc64le", "s390x", "armv7l"]),
