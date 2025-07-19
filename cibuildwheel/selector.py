@@ -85,7 +85,7 @@ class BuildSelector:
                 return False
 
         # filter out groups that are not enabled
-        if EnableGroup.CPythonFreeThreading not in self.enable and fnmatch(build_id, "cp3??t-*"):
+        if EnableGroup.CPythonFreeThreading not in self.enable and fnmatch(build_id, "cp313t-*"):
             return False
         if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp314*"):
             return False
