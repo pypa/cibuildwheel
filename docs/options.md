@@ -348,9 +348,10 @@ values are:
 - `cpython-freethreading`: [PEP 703](https://www.python.org/dev/peps/pep-0703)
   introduced variants of CPython that can be built without the Global
   Interpreter Lock (GIL).  Those variants are also known as free-threaded /
-  no-gil. This will enable building these wheels while they are experimental.
-  The build identifiers for those variants have a `t` suffix in their
-  `python_tag` (e.g. `cp313t-manylinux_x86_64`).
+  no-gil. This will enable building these wheels for 3.13, which was considered
+  experimental.  The build identifiers for those variants have a `t` suffix in
+  their `python_tag` (e.g. `cp313t-manylinux_x86_64`). Starting in 3.14,
+  free-threaded builds are no longer experimental, so this enable is not needed.
 - `pypy`: Enable PyPy.
 - `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
 - `cpython-experimental-riscv64`: Enable experimental riscv64 builds. Those builds
@@ -371,7 +372,7 @@ values are:
     that version of Python will become available without this flag.
 
 !!! note
-    Free threading is experimental: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)
+    Free threading was experimental in 3.13: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)
 
 Default: empty.
 
