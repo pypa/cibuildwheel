@@ -1318,8 +1318,8 @@ Shell command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
-To ensure the wheel is imported by your tests (instead of your source copy),
-**Tests are executed from a temporary directory**, outside of your source
+To ensure your tests import the wheel (instead of your source tree),
+**tests are executed from a temporary working directory**, outside of your source
 tree. To access your test code, you have a couple of options:
 
 - You can use the [`test-sources`](#test-sources) setting to copy specific
@@ -1462,12 +1462,12 @@ Platform-specific environment variables are also available:<br/>
 
 
 ### `test-sources` {: #test-sources env-var toml}
-> Files and folders from the source tree that are copied into an isolated tree before running the tests
+> Paths that are copied into the working directory of the tests
 
 A space-separated list of files and folders, relative to the root of the
 project, required for running the tests. If specified, these files and folders
-will be copied into a temporary folder, and that temporary folder will be used
-as the working directory for running the test suite.
+will be copied into the temporary folder which is used as the working directory
+for running the test suite. For more details, see [`test-command`](#test-command).
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_ANDROID` | `CIBW_TEST_SOURCES_IOS` | `CIBW_TEST_SOURCES_PYODIDE`
