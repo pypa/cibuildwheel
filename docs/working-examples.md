@@ -76,13 +76,13 @@ title: Working examples
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
-| [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
+| [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
 | [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
 | [abess][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions. |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
-| [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
 | [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
+| [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
 | [matrixprofile][]                 | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python 3 library making time series data mining tasks, utilizing matrix profile algorithms, accessible to everyone. |
 | [Tokenizer][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast and customizable text tokenization library with BPE and SentencePiece support |
 | [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
@@ -186,13 +186,13 @@ title: Working examples
 [KDEpy]: https://github.com/tommyod/KDEpy
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
 [tgcalls]: https://github.com/MarshalX/tgcalls
-[pybind11 python_example]: https://github.com/pybind/python_example
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
+[pybind11 python_example]: https://github.com/pybind/python_example
 [sourmash]: https://github.com/sourmash-bio/sourmash
 [abess]: https://github.com/abess-team/abess
 [python-snappy]: https://github.com/intake/python-snappy
-[jq.py]: https://github.com/mwilliamson/jq.py
 [cyvcf2]: https://github.com/brentp/cyvcf2
+[jq.py]: https://github.com/mwilliamson/jq.py
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
 [Tokenizer]: https://github.com/OpenNMT/Tokenizer
 [Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
