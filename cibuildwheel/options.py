@@ -109,7 +109,7 @@ class BuildOptions:
     test_groups: list[str]
     test_environment: ParsedEnvironment
     build_verbosity: int
-    build_frontend: BuildFrontendConfig | None
+    build_frontend: BuildFrontendConfig
     config_settings: str
     container_engine: OCIContainerEngineConfig
     pyodide_version: str | None
@@ -772,9 +772,8 @@ class Options:
                 env_plat=False,
                 option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
             )
-            build_frontend: BuildFrontendConfig | None
             if not build_frontend_str or build_frontend_str == "default":
-                build_frontend = None
+                build_frontend = BuildFrontendConfig("build")
             else:
                 try:
                     build_frontend = BuildFrontendConfig.from_config_string(build_frontend_str)

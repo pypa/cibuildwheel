@@ -23,6 +23,11 @@ jobs:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.11'
+    - task: JavaToolInstaller@0
+      inputs:
+        versionSpec: '17'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
     - bash: |
         docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
         python -m pip install -U pip

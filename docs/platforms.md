@@ -178,6 +178,79 @@ If there are pre-releases available for a newer Pyodide version, the `pyodide-pr
 
 Currently, it's recommended to run tests using a `python -m` entrypoint, rather than a command line entrypoint, or a shell script. This is because custom entrypoints have some issues in the Pyodide virtual environment. For example, `pytest` may not work as a command line entrypoint, but will work as a `python -m pytest` entrypoint.
 
+
+## Android {: android}
+
+### Prerequisites
+
+cibuildwheel can build Android wheels on any POSIX platform supported by the Android
+development tools, which currently means Linux x86_64, macOS ARM64 or macOS x86_64. Any
+of these platforms can be used to build wheels for any Android architecture supported by
+Python. However, *testing* wheels has additional requirements: see the section below.
+
+If you already have an Android SDK, export the `ANDROID_HOME` environment variable to
+point at its location. Otherwise, here's how to install it:
+
+* Download the "Command line tools" from <https://developer.android.com/studio>.
+* Create a directory `android-sdk/cmdline-tools`, and unzip the command line
+  tools package into it.
+* Rename `android-sdk/cmdline-tools/cmdline-tools` to
+  `android-sdk/cmdline-tools/latest`.
+* `export ANDROID_HOME=/path/to/android-sdk`
+
+cibuildwheel will automatically use the SDK's `sdkmanager` to install any packages it
+needs.
+
+It also requires the following commands to be on the `PATH`:
+
+* `curl`
+* `java` (or set the `JAVA_HOME` environment variable)
+* `patchelf` (if the wheel links against any external libraries)
+
+### Android version compatibility
+
+Android builds will honor the `ANDROID_API_LEVEL` environment variable to set the
+minimum supported [API level](https://developer.android.com/tools/releases/platforms)
+for generated wheels. This will default to the minimum API level of the selected Python
+version.
+
+### Build frontend support
+
+Android builds only support the `build` frontend. In principle, support for the
+`build[uv]` frontend should be possible, but `uv` [doesn't currently have support for
+cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have
+support for iOS or Android wheel tags](https://github.com/astral-sh/uv/issues/8029).
+
+### Tests
+
+Tests are executed on a Gradle-managed emulator matching the architecture of the build
+machine – for example, if you're building on an ARM64 machine, then you can test an
+ARM64 wheel. Wheels of other architectures can still be built, but testing will
+automatically be skipped.
+
+Running an emulator requires the build machine to either be bare-metal or support
+nested virtualization. CI platforms known to meet this requirement are:
+
+* GitHub Actions Linux x86_64
+
+On Linux, the emulator needs access to the KVM virtualization interface. This may
+require adding your user to a group, or [changing your udev
+rules](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
+If the emulator fails to start, try running `$ANDROID_HOME/emulator/emulator
+-accel-check`.
+
+The Android test environment can't support running shell scripts, so the
+[`test-command`](options.md#test-command) must be a Python command – see its
+documentation for details.
+
+If your package has dependencies which haven't been released on PyPI yet, you may want
+to use the [`environment`](options.md#environment) option to set `PIP_EXTRA_INDEX_URL`
+to one of the following URLs:
+
+* https://chaquo.com/pypi-13.1
+* https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+
+
 ## iOS {: #ios}
 
 ### System requirements
@@ -241,6 +314,6 @@ If your project requires additional tools to build (such as `cmake`, `ninja`, or
 
 If tests have been configured, the test suite will be executed on the simulator matching the architecture of the build machine - that is, if you're building on an ARM64 macOS machine, the ARM64 wheel will be tested on an ARM64 simulator. It is not possible to use cibuildwheel to test wheels on other simulators, or on physical devices.
 
-The iOS test environment can't support running shell scripts, so the [`test-command`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`. In addition, the project must use [`test-sources`](options.md#test-sources) to specify the minimum subset of files that should be copied to the test environment. This is because the test must be run "on device", and the simulator device will not have access to the local project directory.
+The iOS test environment can't support running shell scripts, so the [`test-command`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`.
 
 The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.

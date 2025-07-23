@@ -26,13 +26,16 @@ repos:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
     args: ["--python-version=3.11"]
+    exclude: ^cibuildwheel/resources/_cross_venv.py$  # Requires Python 3.13 or later
     additional_dependencies: &mypy-dependencies
       - bracex
+      - build
       - dependency-groups>=1.2
       - humanize
       - nox>=2025.2.9
       - orjson
       - packaging
+      - pyelftools
       - pygithub
       - pytest
       - rich
@@ -47,7 +50,6 @@ repos:
       - validate-pyproject
   - id: mypy
     name: mypy 3.13
-    exclude: ^cibuildwheel/resources/.*py$
     args: ["--python-version=3.13"]
     additional_dependencies: *mypy-dependencies
 

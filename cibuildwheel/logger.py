@@ -50,6 +50,8 @@ PLATFORM_IDENTIFIER_DESCRIPTIONS: Final[dict[str, str]] = {
     "macosx_universal2": "macOS Universal 2 - x86_64 and arm64",
     "macosx_arm64": "macOS arm64 - Apple Silicon",
     "pyodide_wasm32": "Pyodide",
+    "android_arm64_v8a": "Android arm64_v8a",
+    "android_x86_64": "Android x86_64",
     "ios_arm64_iphoneos": "iOS Device (ARM64)",
     "ios_arm64_iphonesimulator": "iOS Simulator (ARM64)",
     "ios_x86_64_iphonesimulator": "iOS Simulator (x86_64)",
