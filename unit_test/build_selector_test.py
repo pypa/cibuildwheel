@@ -15,6 +15,7 @@ def test_build():
     assert build_selector("cp311-manylinux_x86_64")
     assert build_selector("cp312-manylinux_x86_64")
     assert build_selector("cp313-manylinux_x86_64")
+    assert build_selector("cp314-manylinux_x86_64")
     assert build_selector("pp310-manylinux_x86_64")
     assert build_selector("pp311-manylinux_x86_64")
     assert build_selector("cp36-manylinux_i686")
@@ -36,6 +37,7 @@ def test_build():
     assert build_selector("cp311-win_amd64")
     assert build_selector("cp312-win_amd64")
     assert build_selector("cp313-win_amd64")
+    assert build_selector("cp314-win_amd64")
     assert not build_selector("pp310-win_amd64")
     assert not build_selector("pp311-win_amd64")
 

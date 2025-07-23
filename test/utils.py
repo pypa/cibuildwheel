@@ -272,6 +272,8 @@ def _expected_wheels(
             "cp311-cp311",
             "cp312-cp312",
             "cp313-cp313",
+            "cp314-cp314",
+            "cp314-cp314t",
         ]
 
         enable_groups = get_enable_groups()
@@ -279,8 +281,7 @@ def _expected_wheels(
             python_abi_tags.append("cp313-cp313t")
 
         if EnableGroup.CPythonPrerelease in enable_groups:
-            python_abi_tags.append("cp314-cp314")
-            python_abi_tags.append("cp314-cp314t")
+            ...  # Add cp315 here when available
 
         if EnableGroup.PyPyEoL in enable_groups:
             python_abi_tags += [
