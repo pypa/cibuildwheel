@@ -1016,7 +1016,7 @@ The available options are:
 | `manylinux-ppc64le-image`      | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_ppc64le) |
 | `manylinux-s390x-image`        | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_s390x)   |
 | `manylinux-armv7l-image`       | [`manylinux_2_31`](https://quay.io/pypa/manylinux_2_31_armv7l)  |
-| `manylinux-riscv64-image`      | No default                                                      |
+| `manylinux-riscv64-image`      | [`manylinux_2_39`](https://quay.io/pypa/manylinux_2_39_riscv64) |
 | `manylinux-pypy_aarch64-image` | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_aarch64) |
 | `manylinux-pypy_i686-image`    | [`manylinux_2_28`](https://quay.io/pypa/manylinux_2_28_i686)    |
 | `musllinux_x86_64-image`       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_x86_64)    |
@@ -1025,13 +1025,15 @@ The available options are:
 | `musllinux-ppc64le-image`      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_ppc64le)   |
 | `musllinux-s390x-image`        | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_s390x)     |
 | `musllinux-armv7l-image`       | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_armv7l)    |
-| `musllinux-riscv64-image`      | No default                                                      |
+| `musllinux-riscv64-image`      | [`musllinux_1_2`](https://quay.io/pypa/musllinux_1_2_riscv64)   |
 
 Set the Docker image to be used for building [manylinux / musllinux](https://github.com/pypa/manylinux) wheels.
 
-For `manylinux-*-image`, except `manylinux-armv7l-image`, the value of this option can either be set to `manylinux2014`, `manylinux_2_28` or `manylinux_2_34` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name.
+For `manylinux-*-image`, except `manylinux-armv7l-image` and `manylinux-riscv64-image`, the value of this option can either be set to `manylinux2014`, `manylinux_2_28` or `manylinux_2_34` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name.
 
 For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31` or a custom image. Support is experimental for now. The `manylinux_2_31` value is only available for `armv7`.
+
+For `manylinux-riscv64-image`, the value of this option can either be set to `manylinux_2_39` or a custom image. Support is experimental for now. The `manylinux_2_39` value is only available for `riscv64`.
 
 For `musllinux-*-image`, the value of this option can either be set to `musllinux_1_2` or a custom image.
 
