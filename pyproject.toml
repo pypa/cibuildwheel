@@ -39,12 +39,15 @@ classifiers = [
 dependencies = [
     "bashlex!=0.13",
     "bracex",
+    "build>=1.0.0",
     "certifi",
     "dependency-groups>=1.2",
     "filelock",
     "humanize",
     "packaging>=20.9",
-    "platformdirs"
+    "platformdirs",
+    "pyelftools>=0.29",
+    "wheel>=0.33.6",
 ]
 
 [project.optional-dependencies]

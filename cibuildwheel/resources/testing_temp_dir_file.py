@@ -8,11 +8,11 @@ from typing import NoReturn
 
 class TestStringMethods(unittest.TestCase):
     def test_fail(self) -> NoReturn:
-        if sys.platform == "ios":
+        if sys.platform in ["android", "ios"]:
             msg = (
                 "You tried to run tests from the testbed app's working "
                 "directory, without specifying `test-sources`. "
-                "On iOS, you must copy your test files to the testbed app by "
+                "On this platform, you must copy your test files to the testbed app by "
                 "setting the `test-sources` option in your cibuildwheel "
                 "configuration."
             )

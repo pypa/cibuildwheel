@@ -8,7 +8,7 @@
 
 > Override the auto-detected target platform
 
-Options: `auto` `linux` `macos` `windows` `ios` `pyodide`
+Options: `auto` `linux` `macos` `windows` `android` `ios` `pyodide`
 
 Default: `auto`
 
@@ -16,6 +16,7 @@ Default: `auto`
 
 - For `linux`, you need [Docker or Podman](#container-engine) running, on Linux, macOS, or Windows.
 - For `macos` and `windows`, you need to be running on the respective system, with a working compiler toolchain installed - Xcode Command Line tools for macOS, and MSVC for Windows.
+- For `android` you need to be running on Linux or macOS, with an Android SDK installed. See [here](platforms.md#android) for more details.
 - For `ios` you need to be running on macOS, with Xcode and the iOS simulator installed.
 - For `pyodide`, you need a Linux or macOS machine.
 
@@ -51,19 +52,19 @@ When both options are specified, both conditions are applied and only builds wit
 When setting the options, you can use shell-style globbing syntax, as per [fnmatch](https://docs.python.org/3/library/fnmatch.html) with the addition of curly bracket syntax `{option1,option2}`, provided by [bracex](https://pypi.org/project/bracex/). All the build identifiers supported by cibuildwheel are shown below:
 
 <div class="build-id-table-marker"></div>
-|               | macOS                                                                  | Windows                                             | Linux Intel                                                                                         | Linux Other                                                                                                                                                                                                                                                                   | iOS                                                                                               | pyodide (WASM)       |
-|---------------|------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|----------------------|
-| Python 3.8    | cp38-macosx_x86_64<br/>cp38-macosx_universal2<br/>cp38-macosx_arm64    | cp38-win_amd64<br/>cp38-win32                       | cp38-manylinux_x86_64<br/>cp38-manylinux_i686<br/>cp38-musllinux_x86_64<br/>cp38-musllinux_i686     | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x<br/>cp38-manylinux_armv7l<br/>cp38-manylinux_riscv64<br/>cp38-musllinux_aarch64<br/>cp38-musllinux_ppc64le<br/>cp38-musllinux_s390x<br/>cp38-musllinux_armv7l<br/>cp38-musllinux_riscv64           |                                                                                                   |                      |
-| Python 3.9    | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64    | cp39-win_amd64<br/>cp39-win32<br/>cp39-win_arm64    | cp39-manylinux_x86_64<br/>cp39-manylinux_i686<br/>cp39-musllinux_x86_64<br/>cp39-musllinux_i686     | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x<br/>cp39-manylinux_armv7l<br/>cp39-manylinux_riscv64<br/>cp39-musllinux_aarch64<br/>cp39-musllinux_ppc64le<br/>cp39-musllinux_s390x<br/>cp39-musllinux_armv7l<br/>cp39-musllinux_riscv64           |                                                                                                   |                      |
-| Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-manylinux_riscv64<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l<br/>cp310-musllinux_riscv64 |                                                                                                   |                      |
-| Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                                                                   |                      |
-| Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                                                                   | cp312-pyodide_wasm32 |
-| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
+|               | macOS                                                                  | Windows                                             | Linux Intel                                                                                         | Linux Other                                                                                                                                                                                                                                                                   | Android                                          | iOS                                                                                               | pyodide (WASM)       |
+|---------------|------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------|----------------------|
+| Python 3.8    | cp38-macosx_x86_64<br/>cp38-macosx_universal2<br/>cp38-macosx_arm64    | cp38-win_amd64<br/>cp38-win32                       | cp38-manylinux_x86_64<br/>cp38-manylinux_i686<br/>cp38-musllinux_x86_64<br/>cp38-musllinux_i686     | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x<br/>cp38-manylinux_armv7l<br/>cp38-manylinux_riscv64<br/>cp38-musllinux_aarch64<br/>cp38-musllinux_ppc64le<br/>cp38-musllinux_s390x<br/>cp38-musllinux_armv7l<br/>cp38-musllinux_riscv64           |                                                  |                                                                                                   |                      |
+| Python 3.9    | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64    | cp39-win_amd64<br/>cp39-win32<br/>cp39-win_arm64    | cp39-manylinux_x86_64<br/>cp39-manylinux_i686<br/>cp39-musllinux_x86_64<br/>cp39-musllinux_i686     | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x<br/>cp39-manylinux_armv7l<br/>cp39-manylinux_riscv64<br/>cp39-musllinux_aarch64<br/>cp39-musllinux_ppc64le<br/>cp39-musllinux_s390x<br/>cp39-musllinux_armv7l<br/>cp39-musllinux_riscv64           |                                                  |                                                                                                   |                      |
+| Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-manylinux_riscv64<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l<br/>cp310-musllinux_riscv64 |                                                  |                                                                                                   |                      |
+| Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                  |                                                                                                   |                      |
+| Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                  |                                                                                                   | cp312-pyodide_wasm32 |
+| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
 | Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
-| PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                                                                   |                      |
-| PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                                                                   |                      |
-| PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
-| PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
+| PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
+| PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
+| PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
+| PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
 | GraalPy 3.11 v24.2 | gp311_242-macosx_x86_64<br/>gp311_242-macosx_arm64                             | gp311_242-win_amd64                                     | gp311_242-manylinux_x86_64                                                                              | gp311_242-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
@@ -190,6 +191,7 @@ Options:
 - macOS: `x86_64` `arm64` `universal2`
 - Windows: `AMD64` `x86` `ARM64`
 - Pyodide: `wasm32`
+- Android: `arm64_v8a` `x86_64`
 - iOS: `arm64_iphoneos` `arm64_iphonesimulator` `x86_64_iphonesimulator`
 - `auto`: The recommended archs for your machine - see the table below.
 - `auto64`: The 64-bit arch(s) supported by your machine (includes device and simulator for iOS)
@@ -237,7 +239,7 @@ If not listed above, `auto` is the same as `native`.
 [binfmt]: https://hub.docker.com/r/tonistiigi/binfmt
 
 Platform-specific environment variables are also available:<br/>
- `CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX` | `CIBW_ARCHS_IOS`
+`CIBW_ARCHS_MACOS` | `CIBW_ARCHS_WINDOWS` | `CIBW_ARCHS_LINUX` | `CIBW_ARCHS_ANDROID` | `CIBW_ARCHS_IOS`
 
 This option can also be set using the [command-line option](#command-line)
 `--archs`. This option cannot be set in an `overrides` section in `pyproject.toml`.
@@ -472,11 +474,11 @@ possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
 pre-installing it, or installing cibuildwheel with the uv extra,
-`cibuildwheel[uv]`. You cannot use uv currently on Windows for ARM, for
-musllinux on s390x, or for iOS, as binaries are not provided by uv. Legacy dependencies like
+`cibuildwheel[uv]`. uv currently does not support Windows on ARM,
+musllinux on s390x, Android, or iOS. Legacy dependencies like
 setuptools on Python < 3.12 and pip are not installed if using uv.
 
-Pyodide ignores this setting, as only "build" is supported.
+On Android and Pyodide, only "build" is supported.
 
 You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
@@ -540,7 +542,7 @@ a table of items, including arrays.
     single values.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX` | `CIBW_CONFIG_SETTINGS_IOS` | `CIBW_CONFIG_SETTINGS_PYODIDE`
+`CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX` | `CIBW_CONFIG_SETTINGS_ANDROID` | `CIBW_CONFIG_SETTINGS_IOS` | `CIBW_CONFIG_SETTINGS_PYODIDE`
 
 
 #### Examples
@@ -573,7 +575,7 @@ You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to 
 To specify more than one environment variable, separate the assignments by spaces.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX` | `CIBW_ENVIRONMENT_IOS` | `CIBW_ENVIRONMENT_PYODIDE`
+`CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX` | `CIBW_ENVIRONMENT_ANDROID` | `CIBW_ENVIRONMENT_IOS` | `CIBW_ENVIRONMENT_PYODIDE`
 
 #### Examples
 
@@ -705,7 +707,7 @@ On linux, overriding it triggers a new container launch. It cannot be overridden
 on macOS and Windows.
 
 Platform-specific environment variables also available:<br/>
-`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX` | `CIBW_BEFORE_ALL_IOS` | `CIBW_BEFORE_ALL_PYODIDE`
+`CIBW_BEFORE_ALL_MACOS` | `CIBW_BEFORE_ALL_WINDOWS` | `CIBW_BEFORE_ALL_LINUX` | `CIBW_BEFORE_ALL_ANDROID` | `CIBW_BEFORE_ALL_IOS` | `CIBW_BEFORE_ALL_PYODIDE`
 
 !!! note
 
@@ -771,7 +773,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
- `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX` | `CIBW_BEFORE_BUILD_IOS` | `CIBW_BEFORE_BUILD_PYODIDE`
+ `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX` | `CIBW_BEFORE_BUILD_ANDROID` | `CIBW_BEFORE_BUILD_IOS` | `CIBW_BEFORE_BUILD_PYODIDE`
 
 #### Examples
 
@@ -889,9 +891,9 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Windows: `''`
-- on iOS: `''`
-- on Pyodide: `''`
+- on Android: There is no default command, but cibuildwheel will add `libc++` to the
+  wheel if anything links against it. Setting a command will replace this behavior.
+- on other platforms: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
 The command is run on each built wheel (except for pure Python ones) before testing it.
@@ -905,7 +907,7 @@ The following placeholders must be used inside the command and will be replaced 
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
+`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
 !!! tip
     cibuildwheel doesn't yet ship a default repair command for Windows.
@@ -1207,7 +1209,7 @@ specifiers inline with the `packages: SPECIFIER...` syntax.
     `./constraints.txt` if that's not found.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_IOS` | `CIBW_DEPENDENCY_VERSIONS_PYODIDE`
+`CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_ANDROID` | `CIBW_DEPENDENCY_VERSIONS_IOS` | `CIBW_DEPENDENCY_VERSIONS_PYODIDE`
 
 !!! note
     This option does not affect the tools used on the Linux build - those versions
@@ -1318,8 +1320,8 @@ Shell command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
-To ensure the wheel is imported by your tests (instead of your source copy),
-**Tests are executed from a temporary directory**, outside of your source
+To ensure your tests import the wheel (instead of your source tree),
+**tests are executed from a temporary working directory**, outside of your source
 tree. To access your test code, you have a couple of options:
 
 - You can use the [`test-sources`](#test-sources) setting to copy specific
@@ -1336,14 +1338,20 @@ tree. To access your test code, you have a couple of options:
     - `{project}` is an absolute path to the project root - the working
       directory where cibuildwheel was called.
 
-On all platforms other than iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+    These placeholders are not available on Android and iOS, because those
+    platforms run tests in a virtual machine that does not have access to
+    the build machine's filesystem.
 
-On iOS, the value of the `test-command` setting must follow the format `python
--m MODULE [ARGS...]` - where MODULE is a Python module name, followed by
-arguments that will be assigned to `sys.argv`. Other commands cannot be used.
+On all platforms other than Android and iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
+
+On Android and iOS, the command is parsed by `shlex.split`, and is required to
+be in one of the following forms:
+
+* `python -c command ...` (Android only)
+* `python -m module-name ...`
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
+`CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_ANDROID` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
 
 #### Examples
 
@@ -1401,7 +1409,7 @@ The active Python binary can be accessed using `python`, and pip with `pip`; cib
 The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
- `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX` | `CIBW_BEFORE_TEST_IOS` | `CIBW_BEFORE_TEST_PYODIDE`
+ `CIBW_BEFORE_TEST_MACOS` | `CIBW_BEFORE_TEST_WINDOWS` | `CIBW_BEFORE_TEST_LINUX` | `CIBW_BEFORE_TEST_ANDROID` | `CIBW_BEFORE_TEST_IOS` | `CIBW_BEFORE_TEST_PYODIDE`
 
 #### Examples
 
@@ -1456,20 +1464,15 @@ Platform-specific environment variables are also available:<br/>
 
 
 ### `test-sources` {: #test-sources env-var toml}
-> Files and folders from the source tree that are copied into an isolated tree before running the tests
+> Paths that are copied into the working directory of the tests
 
 A space-separated list of files and folders, relative to the root of the
 project, required for running the tests. If specified, these files and folders
-will be copied into a temporary folder, and that temporary folder will be used
-as the working directory for running the test suite.
-
-The use of `test-sources` is *required* for iOS builds. This is because the
-simulator does not have access to the project directory, as it is not stored on
-the simulator device. On iOS, the files will be copied into the test application,
-rather than a temporary folder.
+will be copied into the temporary folder which is used as the working directory
+for running the test suite. For more details, see [`test-command`](#test-command).
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_IOS` | `CIBW_TEST_SOURCES_PYODIDE`
+`CIBW_TEST_SOURCES_MACOS` | `CIBW_TEST_SOURCES_WINDOWS` | `CIBW_TEST_SOURCES_LINUX` | `CIBW_TEST_SOURCES_ANDROID` | `CIBW_TEST_SOURCES_IOS` | `CIBW_TEST_SOURCES_PYODIDE`
 
 #### Examples
 
@@ -1497,7 +1500,7 @@ Platform-specific environment variables are also available:<br/>
 Space-separated list of dependencies required for running the tests.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX` | `CIBW_TEST_REQUIRES_IOS` | `CIBW_TEST_REQUIRES_PYODIDE`
+`CIBW_TEST_REQUIRES_MACOS` | `CIBW_TEST_REQUIRES_WINDOWS` | `CIBW_TEST_REQUIRES_LINUX` | `CIBW_TEST_REQUIRES_ANDROID` | `CIBW_TEST_REQUIRES_IOS` | `CIBW_TEST_REQUIRES_PYODIDE`
 
 #### Examples
 
@@ -1538,7 +1541,7 @@ tests. This can be used to avoid having to redefine test dependencies in
 `setup.cfg` or `setup.py`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX` | `CIBW_TEST_EXTRAS_IOS` | `CIBW_TEST_EXTRAS_PYODIDE`
+`CIBW_TEST_EXTRAS_MACOS` | `CIBW_TEST_EXTRAS_WINDOWS` | `CIBW_TEST_EXTRAS_LINUX` | `CIBW_TEST_EXTRAS_ANDROID` | `CIBW_TEST_EXTRAS_IOS` | `CIBW_TEST_EXTRAS_PYODIDE`
 
 #### Examples
 
@@ -1639,7 +1642,7 @@ A space-separated list of environment variables to set in the test environment.
 The syntax is the same as for [`environment`](#environment).
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_ENVIRONMENT_MACOS` | `CIBW_TEST_ENVIRONMENT_WINDOWS` | `CIBW_TEST_ENVIRONMENT_LINUX` | `CIBW_TEST_ENVIRONMENT_IOS` | `CIBW_TEST_ENVIRONMENT_PYODIDE`
+`CIBW_TEST_ENVIRONMENT_MACOS` | `CIBW_TEST_ENVIRONMENT_WINDOWS` | `CIBW_TEST_ENVIRONMENT_LINUX` | `CIBW_TEST_ENVIRONMENT_ANDROID` |`CIBW_TEST_ENVIRONMENT_IOS` | `CIBW_TEST_ENVIRONMENT_PYODIDE`
 
 #### Examples
 
@@ -1722,7 +1725,7 @@ The default build frontend is `build`, which does show build backend output by
 default.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
+`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_ANDROID` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
 
 #### Examples
 

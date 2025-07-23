@@ -10,7 +10,7 @@ from typing import assert_never
 
 from .. import errors
 from ..architecture import Architecture
-from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from ..frontend import get_build_frontend_extra_flags
 from ..logger import log
 from ..oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from ..options import BuildOptions, Options
@@ -204,7 +204,7 @@ def build_in_container(
         log.build_start(config.identifier)
         local_identifier_tmp_dir = local_tmp_dir / config.identifier
         build_options = options.build_options(config.identifier)
-        build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+        build_frontend = build_options.build_frontend
         use_uv = build_frontend.name == "build[uv]"
         pip = ["uv", "pip"] if use_uv else ["pip"]
 
