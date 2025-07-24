@@ -25,7 +25,7 @@ def test_printout_wheels(capsys):
 
     assert "id1" in captured.out
     assert "id2" in captured.out
-    assert "wheels produced in" in captured.out
+    assert "1 wheel produced in" in captured.out
     assert "SHA256=" in captured.out
 
 
