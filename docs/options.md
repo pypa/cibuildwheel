@@ -71,7 +71,6 @@ The list of supported and currently selected build identifiers can also be retri
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
 
 Windows arm64 platform support is experimental.
-Linux riscv64 platform support is experimental and requires an explicit opt-in through [`enable`](#enable).
 
 See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for past end-of-life versions of Python.
 
@@ -200,8 +199,6 @@ Options:
 - `all` : expands to all the architectures supported on this OS. You may want
   to use [`build`](#build-skip) with this option to target specific
   architectures via build selectors.
-
-Linux riscv64 platform support is experimental and requires an explicit opt-in through [`enable`](#enable).
 
 Default: `auto`
 
@@ -356,9 +353,6 @@ values are:
   free-threaded builds are no longer experimental, so this enable is not needed.
 - `pypy`: Enable PyPy.
 - `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
-- `cpython-experimental-riscv64`: Enable experimental riscv64 builds. Those builds
-  are disabled by default as they can't be uploaded to PyPI and a PEP will most likely
-  be required before this can happen.
 - `graalpy`: Enable GraalPy.
 - `pyodide-prerelease`: Pyodide versions that haven't released yet, if one is
   available. Safe if you are shipping a site with an early build, not for

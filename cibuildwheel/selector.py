@@ -93,10 +93,6 @@ class BuildSelector:
             return False
         if EnableGroup.PyPyEoL not in self.enable and fnmatch(build_id, "pp3?-*"):
             return False
-        if EnableGroup.CPythonExperimentalRiscV64 not in self.enable and fnmatch(
-            build_id, "*_riscv64"
-        ):
-            return False
         if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
             return False
         # TODO: Re-enable this when we have Pyodide prereleases again (e.g., 0.29.0a1+)
