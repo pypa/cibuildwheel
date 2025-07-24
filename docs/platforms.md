@@ -265,7 +265,7 @@ iOS is effectively 2 platforms - physical devices, and simulators. While the API
 
 * `arm64_iphoneos` (for physical iOS devices);
 * `arm64_iphonesimulator` (for iOS simulators running on Apple Silicon macOS machines); and
-* `x64_64_iphonesimulator` (for iOS simulators running on Intel macOS machines).
+* `x86_64_iphonesimulator` (for iOS simulators running on Intel macOS machines).
 
 By default, cibuildwheel will build all wheels for the CPU architecture of the build machine. You can build all wheels for all architectures by specifying `--archs all`.
 
