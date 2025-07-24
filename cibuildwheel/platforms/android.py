@@ -6,6 +6,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from os.path import relpath
@@ -517,7 +518,7 @@ def repair_default(
                 f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
                 path,
             )
-        call("wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
+        call(sys.executable, "-m", "wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
 
 
 def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:
