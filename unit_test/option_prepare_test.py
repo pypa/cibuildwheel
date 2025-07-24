@@ -13,7 +13,7 @@ from cibuildwheel.__main__ import main
 from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
-DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313"}
+DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313", "cp314", "cp314t"}
 ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp311_242"}
 
 
@@ -155,6 +155,8 @@ before-all = "true"
             "cp312",
             "cp313",
             "cp313t",
+            "cp314",
+            "cp314t",
             "pp38",
             "pp39",
             "pp310",
@@ -177,6 +179,8 @@ before-all = "true"
             "cp312",
             "cp313",
             "cp313t",
+            "cp314",
+            "cp314t",
             "pp38",
             "pp39",
             "pp310",

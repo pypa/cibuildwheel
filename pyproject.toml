@@ -148,6 +148,7 @@ py-version = "3.11"
 jobs = "0"
 fail-on = ["E", "F"]
 fail-under = "9.8"
+max-positional-arguments = "7"
 reports.output-format = "colorized"
 messages_control.enable = [
   "useless-suppression",

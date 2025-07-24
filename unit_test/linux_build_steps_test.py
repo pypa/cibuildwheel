@@ -90,6 +90,8 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
         "cp311-manylinux_x86_64",
         "cp312-manylinux_x86_64",
         "cp313-manylinux_x86_64",
+        "cp314-manylinux_x86_64",
+        "cp314t-manylinux_x86_64",
     ]
-    assert before_alls(build_steps[3]) == [""] * 3
-    assert container_engines(build_steps[3]) == [default_container_engine] * 3
+    assert before_alls(build_steps[3]) == [""] * 5
+    assert container_engines(build_steps[3]) == [default_container_engine] * 5
