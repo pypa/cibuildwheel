@@ -22,7 +22,7 @@ from elftools.common.exceptions import ELFError
 from elftools.elf.elffile import ELFFile
 from filelock import FileLock
 
-from .. import errors, platforms
+from .. import errors, platforms  # pylint: disable=cyclic-import
 from ..architecture import Architecture, arch_synonym
 from ..frontend import get_build_frontend_extra_flags, parse_config_settings
 from ..logger import log
