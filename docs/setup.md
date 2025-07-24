@@ -23,7 +23,7 @@ cibuildwheel
 !!!tip
     You can pass the `--platform linux` option to cibuildwheel to build Linux wheels, even if you're not on Linux. On most machines, the easiest builds to try are the Linux builds. You don't need any software installed except a Docker daemon, such as [Docker Desktop](https://www.docker.com/get-started/). Each platform that cibuildwheel supports has its own system requirements and platform-specific behaviors. See the [platforms page](platforms.md) for details.
 
-    When building for MacOS/iOS or Windows, `cibuildwheel` will not recognize any non-official Python installations (such as from `uv`). If attempting to use `cibuildwheel` locally to quickly iterate, please install [Python](https://www.python.org/downloads/) directly. To ensure at least one platform builds successfully, consider adding the `--platform linux` or `--only cp314-manylinux_x86_64`.
+    When building for macOS/iOS or Windows, `cibuildwheel` will not recognize any non-official Python installations (such as from `uv`); to avoid changing global state on a non-CI machine, auto-installation is only done on CI. If attempting to use `cibuildwheel` locally to quickly iterate, please install the official [Python](https://www.python.org/downloads/) installers directly (NuGet works on Windows, too). To ensure at least one platform builds successfully, you can build for linux (which uses Docker or Podman) with `--platform linux` or a specific wheel like  `--only cp314-manylinux_x86_64`.
 
 You should see the builds taking place. You can experiment with [options](options.md) using pyproject.toml or environment variables.
 
