@@ -4,6 +4,25 @@ title: Changelog
 
 # Changelog
 
+### v3.1.0
+
+_23 July 2025_
+
+
+- 🌟 CPython 3.14 wheels are now built by default - without the `"cpython-prerelease"` `enable` set. It's time to build and upload these wheels to PyPI! This release includes CPython 3.14.0rc1, which is guaranteed to be ABI compatible with the final release. (#2507) Free-threading is no longer experimental in 3.14, so you have to skip it explicitly with `'cp31?t-*'` if you don't support it yet. (#2503)
+- 🌟 Adds the ability to [build wheels for Android](https://cibuildwheel.pypa.io/en/stable/platforms/#android)! Set the [`platform` option](https://cibuildwheel.pypa.io/en/stable/options/#platform) to `android` on Linux or macOS to try it out! (#2349)
+- 🌟 Adds Pyodide 0.28, which builds 3.13 wheels (#2487)
+- ✨ Support for 32-bit `manylinux_2_28` (now a consistent default) and `manylinux_2_34` added (#2500)
+- 🛠 Improved summary, will also use markdown summary output on GHA (#2469)
+- 🛠 The riscv64 images now have a working default (as they are now part of pypy/manylinux), but are still experimental (and behind an `enable`) since you can't push them to PyPI yet (#2506)
+- 🛠 Fixed a typo in the 3.9 MUSL riscv64 identifier (`cp39-musllinux_ricv64` -> `cp39-musllinux_riscv64`) (#2490)
+- 🛠 Mistyping `--only` now shows the correct possibilities, and even suggests near matches on Python 3.14+ (#2499)
+- 🛠 Only support one output from the repair step on linux like other platforms; auditwheel fixed this over four years ago! (#2478)
+- 🛠 We now use pattern matching extensively (#2434)
+- 📚 We now have platform maintainers for our special platforms and interpreters! (#2481)
+
+
+
 ### v3.0.1
 
 _5 July 2025_
