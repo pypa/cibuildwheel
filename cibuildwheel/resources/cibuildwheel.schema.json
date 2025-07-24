@@ -1103,6 +1103,12 @@
         "environment": {
           "$ref": "#/properties/environment"
         },
+        "xbuild-tools": {
+          "$ref": "#/properties/xbuild-tools"
+        },
+        "pyodide-version": {
+          "$ref": "#/properties/pyodide-version"
+        },
         "repair-wheel-command": {
           "$ref": "#/properties/repair-wheel-command"
         },
@@ -1120,6 +1126,9 @@
         },
         "test-requires": {
           "$ref": "#/properties/test-requires"
+        },
+        "test-environment": {
+          "$ref": "#/properties/test-environment"
         }
       }
     },

@@ -63,7 +63,7 @@ properties:
     type: string_array
   build-frontend:
     default: default
-    description: Set the tool to use to build, either "pip" (default for now), "build", or "build[uv]"
+    description: Set the tool to use to build, either "build" (default), "build[uv]", or "pip"
     oneOf:
       - enum: [pip, build, "build[uv]", default]
       - type: string
