@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.1.0
+        run: python -m pip install cibuildwheel==3.1.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -227,6 +227,13 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.1.1
+
+_24 July 2025_
+
+- 🐛 Fix a bug showing an incorrect wheel count at the end of execution, and misrepresenting test-only runs in the GitHub Action summary (#2512)
+- 📚 Docs fix (#2510)
+
 ### v3.1.0
 
 _23 July 2025_
@@ -297,14 +304,7 @@ _26 April 2025_
 
 - 🛠 Dependency updates, including Python 3.13.3 (#2371)
 
-### v2.23.2
-
-_24 March 2025_
-
-- 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
-- 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
-
-<!-- [[[end]]] (sum: HkLT9ZhhtV) -->
+<!-- [[[end]]] (sum: K97aJ+f0EX) -->
 
 ---
 

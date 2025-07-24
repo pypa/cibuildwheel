@@ -4,6 +4,13 @@ title: Changelog
 
 # Changelog
 
+### v3.1.1
+
+_24 July 2025_
+
+- 🐛 Fix a bug showing an incorrect wheel count at the end of execution, and misrepresenting test-only runs in the GitHub Action summary (#2512)
+- 📚 Docs fix (#2510)
+
 ### v3.1.0
 
 _23 July 2025_
