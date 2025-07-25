@@ -9,7 +9,7 @@ import tarfile
 import textwrap
 import traceback
 import typing
-from collections.abc import Iterable, Sequence
+from collections.abc import Generator, Iterable, Sequence
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, Literal, TextIO
@@ -369,37 +369,50 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
     print(f"Cache folder: {CIBW_CACHE_PATH}")
     print()
 
-    warnings = detect_warnings(options=options, identifiers=identifiers)
+    warnings = detect_warnings(options=options)
     for warning in warnings:
         log.warning(warning)
+
+    error_list = list(detect_errors(options=options, identifiers=identifiers))
+    if error_list:
+        for error in error_list:
+            log.error(error)
+        msg = "\n".join(error_list)
+        raise errors.ConfigurationError(msg)
 
     print("Here we go!\n")
 
 
-def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str]:
-    warnings = []
-
-    python_version_deprecation = ((3, 11), 3)
-    if sys.version_info[:2] < python_version_deprecation[0]:
-        python_version = ".".join(map(str, python_version_deprecation[0]))
-        msg = (
-            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
-            "please upgrade the Python version used to run cibuildwheel. "
-            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
+def detect_errors(*, options: Options, identifiers: Iterable[str]) -> Generator[str, None, None]:
+    # Check for deprecated CIBW_FREE_THREADED_SUPPORT environment variable
+    if "CIBW_FREE_THREADED_SUPPORT" in os.environ:
+        yield (
+            "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported. "
+            'Use tool.cibuildwheel.enable = ["cpython-freethreading"] in pyproject.toml '
+            "or set CIBW_ENABLE=cpython-freethreading instead."
         )
-        warnings.append(msg)
 
-    # warn about deprecated {python} and {pip}
+    # Deprecated {python} and {pip}
     for option_name in ["test_command", "before_build"]:
         option_values = [getattr(options.build_options(i), option_name) for i in identifiers]
 
         if any(o and ("{python}" in o or "{pip}" in o) for o in option_values):
             # Reminder: in an f-string, double braces means literal single brace
-            msg = (
+            yield (
                 f"{option_name}: '{{python}}' and '{{pip}}' are no longer supported "
                 "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
-            raise errors.ConfigurationError(msg)
+
+
+def detect_warnings(*, options: Options) -> Generator[str, None, None]:
+    python_version_deprecation = ((3, 11), 3)
+    if sys.version_info[:2] < python_version_deprecation[0]:
+        python_version = ".".join(map(str, python_version_deprecation[0]))
+        yield (
+            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
+            "please upgrade the Python version used to run cibuildwheel. "
+            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
+        )
 
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
@@ -417,26 +430,24 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
         identifier for identifier in all_valid_identifiers if enabled_selector(identifier)
     ]
 
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="build",
         selector_value=build_selector.build_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="skip",
         selector_value=build_selector.skip_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="test_skip",
         selector_value=test_selector.skip_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-
-    return warnings
 
 
 def check_for_invalid_selectors(
