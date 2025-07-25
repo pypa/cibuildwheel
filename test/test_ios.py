@@ -12,6 +12,12 @@ from cibuildwheel.ci import CIProvider, detect_ci_provider
 
 from . import test_projects, utils
 
+pytestmark = pytest.mark.ios
+
+CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "ios")
+if CIBW_PLATFORM != "ios":
+    pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
+
 basic_project_files = {
     "tests/test_platform.py": f"""
 import platform
