@@ -163,7 +163,7 @@ jobs:
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
-        only: cp312-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
+        only: cp313-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
 
     - name: Create custom configuration file
       shell: bash
@@ -172,7 +172,7 @@ jobs:
         [tool.cibuildwheel]
         # Only build on CPython 3.12 on native arch
         archs = ["native"]
-        build = "cp312-*"
+        build = "cp313-*"
         # Skip musllinux
         skip = "*-musllinux*"
         EOF
