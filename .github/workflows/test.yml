@@ -159,7 +159,7 @@ jobs:
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
-      if: matrix.platform == ''
+      if: matrix.platform == null || matrix.platform == ''
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
