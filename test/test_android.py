@@ -12,7 +12,7 @@ import pytest
 from .test_projects import new_c_project
 from .utils import cibuildwheel_run, expected_wheels
 
-pytestmark = pytest.mark.pyodide
+pytestmark = pytest.mark.android
 
 
 CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "android")
