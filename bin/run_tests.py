@@ -85,7 +85,7 @@ if __name__ == "__main__":
         case "native":
             pass
         case platform:
-            serial_integration_test_args += ["-m {platform}"]
+            serial_integration_test_args += [f"-m {platform}"]
 
     print(
         "\n\n=========================== SERIAL INTEGRATION TESTS ===========================",
