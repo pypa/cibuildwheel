@@ -47,19 +47,44 @@ jobs:
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
   test:
-    name: Test on ${{ matrix.os }} (${{ matrix.python_version }})
+    name: Test on ${{ matrix.os }} (${{ matrix.python_version }}) ${{ matrix.platform }}
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-15]
-        python_version: ['3.13']
         include:
+        # Min Python
         - os: ubuntu-latest
           python_version: '3.11'
+        # Max Python
         - os: ubuntu-latest
           python_version: '3.14'
+        - os: ubuntu-latest
+          python_version: '3.13'
+          platform: android
+        - os: ubuntu-24.04-arm
+          python_version: '3.13'
+        - os: windows-latest
+          python_version: '3.13'
+        - os: windows-11-arm
+          python_version: '3.13'
+        - os: macos-13
+          python_version: '3.13'
+        - os: macos-15
+          python_version: '3.13'
+        - os: macos-13
+          python_version: '3.13'
+          platform: ios
+        - os: macos-15
+          python_version: '3.13'
+          platform: ios
+        - os: macos-13
+          python_version: '3.13'
+          platform: android
+        - os: macos-15
+          python_version: '3.13'
+          platform: android
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v5
@@ -130,9 +155,11 @@ jobs:
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: 'build[uv]'
+        CIBW_PLATFORM: ${{ matrix.platform }}
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
+      if: matrix.platform == ''
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
@@ -152,6 +179,8 @@ jobs:
 
     - name: Run a sample build (GitHub Action, config-file)
       uses: ./
+      env:
+        CIBW_PLATFORM: ${{ matrix.platform }}
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_config_file
@@ -170,6 +199,8 @@ jobs:
         path: wheelhouse/*.whl
 
     - name: Test cibuildwheel
+      env:
+        CIBW_PLATFORM: ${{ matrix.platform }}
       run: |
         uv run --no-sync bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 

@@ -79,6 +79,14 @@ if __name__ == "__main__":
         "test",
         "-vv",
     ]
+    match os.environ.get("CIBW_PLATFORM", "native"):
+        case "":
+            serial_integration_test_args += ["-m not pyodide", "-m not android", "-m not ios"]
+        case "native":
+            pass
+        case platform:
+            serial_integration_test_args += ["-m {platform}"]
+
     print(
         "\n\n=========================== SERIAL INTEGRATION TESTS ===========================",
         flush=True,
