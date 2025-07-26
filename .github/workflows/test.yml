@@ -47,18 +47,44 @@ jobs:
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
   test:
-    name: Test on ${{ matrix.os }} (${{ matrix.python_version }})
+    name: Test on ${{ matrix.os }} (${{ matrix.python_version }}) ${{ matrix.platform }}
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-15]
-        python_version: ['3.13']
         include:
+        # Min Python
         - os: ubuntu-latest
           python_version: '3.11'
+        # Max Python
         - os: ubuntu-latest
           python_version: '3.14'
+        - os: ubuntu-latest
+          python_version: '3.13'
+          platform: android
+        - os: ubuntu-24.04-arm
+          python_version: '3.13'
+        - os: windows-latest
+          python_version: '3.13'
+        - os: windows-11-arm
+          python_version: '3.13'
+        - os: macos-13
+          python_version: '3.13'
+        - os: macos-15
+          python_version: '3.13'
+        - os: macos-13
+          python_version: '3.13'
+          platform: ios
+        - os: macos-15
+          python_version: '3.13'
+          platform: ios
+        - os: macos-13
+          python_version: '3.13'
+          platform: android
+        - os: macos-15
+          python_version: '3.13'
+          platform: android
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
@@ -97,6 +123,7 @@ jobs:
         uv sync --no-dev --group test
 
     - uses: joerick/pr-labels-action@v1.0.9
+
     - name: Set CIBW_ENABLE
       shell: bash
       run: |
@@ -127,14 +154,16 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-        CIBW_BUILD_FRONTEND: 'build[uv]'
+        CIBW_BUILD_FRONTEND: ${{ matrix.platform && 'build' || 'build[uv]' }}
+        CIBW_PLATFORM: ${{ matrix.platform }}
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
+      if: matrix.platform == ''
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
-        only: cp312-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
+        only: cp313-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
 
     - name: Create custom configuration file
       shell: bash
@@ -143,13 +172,15 @@ jobs:
         [tool.cibuildwheel]
         # Only build on CPython 3.12 on native arch
         archs = ["native"]
-        build = "cp312-*"
+        build = "cp313-*"
         # Skip musllinux
         skip = "*-musllinux*"
         EOF
 
     - name: Run a sample build (GitHub Action, config-file)
       uses: ./
+      env:
+        CIBW_PLATFORM: ${{ matrix.platform }}
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_config_file
@@ -159,8 +190,12 @@ jobs:
       shell: bash
       run: |
         test $(find wheelhouse -name '*.whl' | wc -l) -ge 1
-        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
         test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
+
+    - name: Check Action artifacts (native build only)
+      if: matrix.platform == ''
+      run: |
+        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
     - uses: actions/upload-artifact@v4
       with:
@@ -168,6 +203,8 @@ jobs:
         path: wheelhouse/*.whl
 
     - name: Test cibuildwheel
+      env:
+        CIBW_PLATFORM: ${{ matrix.platform }}
       run: |
         uv run --no-sync bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 

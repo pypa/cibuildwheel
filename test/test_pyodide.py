@@ -1,4 +1,5 @@
 import contextlib
+import os
 import subprocess
 import sys
 import textwrap
@@ -8,6 +9,12 @@ import pytest
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 from . import test_projects, utils
+
+pytestmark = pytest.mark.pyodide
+
+CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "pyodide")
+if CIBW_PLATFORM != "pyodide":
+    pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
 
 basic_project = test_projects.new_c_project()
 basic_project.files["check_node.py"] = r"""
