@@ -190,8 +190,12 @@ jobs:
       shell: bash
       run: |
         test $(find wheelhouse -name '*.whl' | wc -l) -ge 1
-        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
         test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
+
+    - name: Check Action artifacts (native build only)
+      if: matrix.platform == ''
+      run: |
+        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
     - uses: actions/upload-artifact@v4
       with:
