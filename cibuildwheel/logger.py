@@ -242,7 +242,7 @@ class Logger:
             github_summary = self._github_step_summary(duration=duration, options=options)
             Path(summary_path).write_text(filter_ansi_codes(github_summary), encoding="utf-8")
 
-        n_wheels = len([info for info in self.summary if not info.filename])
+        n_wheels = len([info for info in self.summary if info.filename])
         s = "s" if n_wheels > 1 else ""
         duration_str = humanize.naturaldelta(duration)
         print()
