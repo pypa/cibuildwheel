@@ -16,6 +16,18 @@ from cibuildwheel.util.packaging import DependencyConstraints
 # CIBW_PLATFORM is tested in main_platform_test.py
 
 
+def test_old_free_threaded(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_FREE_THREADED_SUPPORT", "ON")
+
+    with pytest.raises(SystemExit):
+        main()
+
+    assert (
+        "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported."
+        in capsys.readouterr().err
+    )
+
+
 @pytest.mark.usefixtures("platform")
 def test_output_dir(intercepted_build_args, monkeypatch):
     OUTPUT_DIR = Path("some_output_dir")
