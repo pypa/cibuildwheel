@@ -105,6 +105,32 @@ def test_invalid_skip_selector(monkeypatch, capsys, option_name, option_env_var)
     assert f"Invalid {option_name} selector" in err
 
 
+@pytest.mark.parametrize(
+    "selector", ["*-macosx_universal2:arm64", "*-macosx_universal2:x86_64", "*-macosx_arm64"]
+)
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_valid_test_skip_selector(monkeypatch, capsys, selector):
+    monkeypatch.setenv("CIBW_TEST_SKIP", selector)
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "Invalid test_skip selector" not in err
+
+
+@pytest.mark.parametrize("selector", ["*-macosx_universal2:invalid", "*-macosx_arm64:arm64"])
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_invalid_test_skip_selector(monkeypatch, capsys, selector):
+    monkeypatch.setenv("CIBW_TEST_SKIP", selector)
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "Invalid test_skip selector" in err
+
+
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
 def test_empty_selector(monkeypatch):
     monkeypatch.setenv("CIBW_SKIP", "*")
