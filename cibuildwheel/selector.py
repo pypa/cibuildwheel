@@ -89,9 +89,11 @@ class BuildSelector:
             return False
         if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp315*"):
             return False
-        if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp31*"):
+        if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp311*"):
             return False
-        if EnableGroup.PyPyEoL not in self.enable and fnmatch(build_id, "pp3?-*"):
+        if EnableGroup.PyPyEoL not in self.enable and (
+            fnmatch(build_id, "pp3?-*") or fnmatch(build_id, "pp310-*")
+        ):
             return False
         if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
             return False
