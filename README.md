@@ -339,6 +339,7 @@ Platform maintainers:
 - Hood Chatham [@hoodmane](https://github.com/hoodmane) (Pyodide)
 - Gyeongjae Choi [@ryanking13](https://github.com/ryanking13) (Pyodide)
 - Tim Felgentreff [@timfel](https://github.com/timfel) (GraalPy)
+- Malcolm Smith [@mhsmith](https://github.com/mhsmith) (Android)
 
 Credits
 -------
