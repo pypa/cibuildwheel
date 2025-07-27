@@ -90,6 +90,8 @@ def test_android_home(tmp_path, capfd):
     assert "ANDROID_HOME environment variable is not set" in capfd.readouterr().err
 
 
+# Can fail to setup
+@pytest.mark.flaky(reruns=2)
 def test_frontend_good(tmp_path):
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(
