@@ -194,6 +194,7 @@ jobs:
 
     - name: Check Action artifacts (native build only)
       if: matrix.platform == ''
+      shell: bash
       run: |
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
