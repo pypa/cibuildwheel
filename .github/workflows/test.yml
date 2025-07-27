@@ -143,7 +143,7 @@ jobs:
       run: |
         cat > sample_proj/cibw.toml <<EOF
         [tool.cibuildwheel]
-        # Only build on CPython 3.12 on native arch
+        # Only build on CPython 3.13 on native arch
         archs = ["native"]
         build = "cp313-*"
         # Skip musllinux
