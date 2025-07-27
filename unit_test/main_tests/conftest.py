@@ -8,7 +8,7 @@ import pytest
 
 from cibuildwheel import architecture
 from cibuildwheel.logger import Logger
-from cibuildwheel.platforms import linux, macos, pyodide, windows
+from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
 from cibuildwheel.util import file
 
 
@@ -87,10 +87,12 @@ def platform(request, monkeypatch):
 def intercepted_build_args(monkeypatch):
     intercepted = ArgsInterceptor()
 
+    monkeypatch.setattr(android, "build", intercepted)
+    monkeypatch.setattr(ios, "build", intercepted)
     monkeypatch.setattr(linux, "build", intercepted)
     monkeypatch.setattr(macos, "build", intercepted)
-    monkeypatch.setattr(windows, "build", intercepted)
     monkeypatch.setattr(pyodide, "build", intercepted)
+    monkeypatch.setattr(windows, "build", intercepted)
 
     yield intercepted
 
