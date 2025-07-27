@@ -27,6 +27,12 @@ if __name__ == "__main__":
         default=default_cpu_count,
         help="number of processes to use for testing",
     )
+    parser.add_argument(
+        "--platform",
+        choices={"all", "native", "android", "ios", "pyodide"},
+        default="all",
+        help="Either 'native' or 'android'/'ios'/'pyodide'",
+    )
     args = parser.parse_args()
 
     # move cwd to the project root
@@ -79,11 +85,11 @@ if __name__ == "__main__":
         "test",
         "-vv",
     ]
-    match os.environ.get("CIBW_PLATFORM", "native"):
-        case "":
-            serial_integration_test_args += ["-m not pyodide", "-m not android", "-m not ios"]
-        case "native":
+    match args.platform:
+        case "all":
             pass
+        case "native":
+            serial_integration_test_args += ["-m not pyodide", "-m not android", "-m not ios"]
         case platform:
             serial_integration_test_args += [f"-m {platform}"]
 
