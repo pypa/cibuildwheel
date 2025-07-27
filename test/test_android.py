@@ -12,6 +12,9 @@ import pytest
 from .test_projects import new_c_project
 from .utils import cibuildwheel_run, expected_wheels
 
+pytestmark = pytest.mark.android
+
+
 CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "android")
 if CIBW_PLATFORM != "android":
     pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
