@@ -460,17 +460,31 @@ def check_for_invalid_selectors(
     warnings = []
 
     for selector in selector_value.split():
-        if not any(selector_matches(selector, i) for i in all_enabled_identifiers):
+        selector_ = selector
+        if selector_name == "test_skip":
+            # macosx_universal2 uses an additional identifier for tests which ends with ":{arch}"
+            values = selector.split(":")
+            universal2_identifiers = filter(
+                lambda x: x.endswith("-macosx_universal2"), all_valid_identifiers
+            )
+            if len(values) == 2 and any(
+                selector_matches(selector_, f"{i}:{arch}")
+                for i in universal2_identifiers
+                for arch in ["arm64", "x86_64"]
+            ):
+                # just ignore the arch part in the rest of the check
+                selector_ = values[0]
+        if not any(selector_matches(selector_, i) for i in all_enabled_identifiers):
             msg = f"Invalid {selector_name} selector: {selector!r}. "
             error_type: type = errors.ConfigurationError
 
-            if any(selector_matches(selector, i) for i in all_valid_identifiers):
+            if any(selector_matches(selector_, i) for i in all_valid_identifiers):
                 msg += "This selector matches a group that wasn't enabled. Enable it using the `enable` option or remove this selector. "
 
-            if "p2" in selector or "p35" in selector:
+            if "p2" in selector_ or "p35" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
-            if "p36" in selector or "p37" in selector:
+            if "p36" in selector_ or "p37" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 
