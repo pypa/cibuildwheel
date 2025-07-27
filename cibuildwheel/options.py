@@ -665,7 +665,7 @@ class Options:
             build_config = args.only
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
-            enable = set(EnableGroup)
+            enable |= set(EnableGroup) - {EnableGroup.CPythonExperimentalRiscV64}
 
         build_selector = BuildSelector(
             build_config=build_config,

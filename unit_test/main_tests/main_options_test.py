@@ -1,3 +1,4 @@
+import os
 import sys
 import tomllib
 from fnmatch import fnmatch
@@ -139,6 +140,52 @@ def test_empty_selector(monkeypatch):
         main()
 
     assert e.value.code == 3
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_warning1(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-experimental-riscv64")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_warning2(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-experimental-riscv64")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_no_warning(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" not in err
 
 
 @pytest.mark.parametrize(
