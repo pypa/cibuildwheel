@@ -204,10 +204,8 @@ jobs:
         path: wheelhouse/*.whl
 
     - name: Test cibuildwheel
-      env:
-        CIBW_PLATFORM: ${{ matrix.platform }}
       run: |
-        uv run --no-sync bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
+        uv run --no-sync bin/run_tests.py --platform=${{ matrix.platform || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures
