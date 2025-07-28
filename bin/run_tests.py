@@ -71,13 +71,21 @@ if __name__ == "__main__":
     )
     subprocess.run(unit_test_args, check=True)
 
+    match args.platform:
+        case "all":
+            plat_args = []
+        case "native":
+            plat_args = ["-m not pyodide", "-m not android", "-m not ios"]
+        case platform:
+            plat_args = [f"-m {platform}"]
+
     # Run the serial integration tests without multiple processes
     serial_integration_test_args = [
         sys.executable,
         "-m",
         "pytest",
-        "-m",
-        "serial",
+        "-m serial",
+        *plat_args,
         "-x",
         "--durations",
         "0",
@@ -85,13 +93,6 @@ if __name__ == "__main__":
         "test",
         "-vv",
     ]
-    match args.platform:
-        case "all":
-            pass
-        case "native":
-            serial_integration_test_args += ["-m not pyodide", "-m not android", "-m not ios"]
-        case platform:
-            serial_integration_test_args += [f"-m {platform}"]
 
     print(
         "\n\n=========================== SERIAL INTEGRATION TESTS ===========================",
@@ -104,8 +105,8 @@ if __name__ == "__main__":
         sys.executable,
         "-m",
         "pytest",
-        "-m",
-        "not serial",
+        "-m not serial",
+        *plat_args,
         f"--numprocesses={args.num_processes}",
         "-x",
         "--durations",
