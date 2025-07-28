@@ -236,6 +236,7 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_SKIP": "*",
         },
     )
@@ -245,7 +246,7 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
         "spam",
         "0.1.0",
         platform="ios",
-        python_abi_tags=["cp313-cp313", "cp314-cp314"],
+        python_abi_tags=["cp313-cp313"],
     )
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -269,13 +270,14 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_SKIP": "*",
             "CIBW_XBUILD_TOOLS": "",
         },
     )
 
     expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313", "cp314-cp314"]
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
     )
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -305,6 +307,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_COMMAND": "pytest ./tests",
             "CIBW_TEST_SOURCES": "tests",
             "CIBW_TEST_REQUIRES": "pytest",
@@ -313,7 +316,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     )
 
     expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313", "cp314-cp314"]
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
     )
     assert set(actual_wheels) == set(expected_wheels)
 
