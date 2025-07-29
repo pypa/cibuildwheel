@@ -4,6 +4,20 @@ title: Changelog
 
 # Changelog
 
+### v3.1.2
+
+_29 July 2025_
+
+- ⚠️  Add an error if `CIBW_FREE_THREADING_SUPPORT` is set; you are likely missing 3.13t wheels, please use the `enable`/`CIBW_ENABLE` (#2520)
+- 🛠 `riscv64` now enabled if you target that architecture, it's now supported on PyPI (#2509)
+- 🛠 Add warning when using `cpython-experimental-riscv64` (no longer needed) (#2526, #2528)
+- 🛠 iOS versions bumped, fixing issues with 3.14 (now RC 1) (#2530)
+- 🐛 Fix bug in Android running wheel from our GitHub Action (#2517)
+- 🐛 Fix warning when using `test-skip` of `"*-macosx_universal2:arm64"` (#2522)
+- 🐛 Fix incorrect number of wheels reported in logs, again (#2517)
+- 📚 We welcome our Android platform maintainer (#2516)
+
+
 ### v3.1.1
 
 _24 July 2025_
