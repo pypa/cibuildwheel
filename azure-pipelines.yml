@@ -23,6 +23,25 @@ jobs:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.11'
+    - bash: |
+        docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
+        python -m pip install -U pip
+        python -m pip install -e. --group test
+        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
+          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
+          export CIBW_ENABLE=all
+        else
+          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
+        fi
+        python ./bin/run_tests.py --platform=native
+
+- job: android_313
+  timeoutInMinutes: 180
+  pool: {vmImage: 'ubuntu-latest'}
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.13'
     - task: JavaToolInstaller@0
       inputs:
         versionSpec: '17'
@@ -38,7 +57,7 @@ jobs:
         else
           echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
         fi
-        python ./bin/run_tests.py
+        python ./bin/run_tests.py --platform=android
 
 - job: macos_311
   pool: {vmImage: 'macOS-latest'}
@@ -56,7 +75,25 @@ jobs:
         else
           echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
         fi
-        python ./bin/run_tests.py
+        python ./bin/run_tests.py --platform=native
+
+- job: ios_313
+  pool: {vmImage: 'macOS-latest'}
+  timeoutInMinutes: 120
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.13'
+    - bash: |
+        python -m pip install -U pip
+        python -m pip install -e. --group test
+        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
+          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
+          export CIBW_ENABLE=all
+        else
+          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
+        fi
+        python ./bin/run_tests.py --platform ios && python ./bin/run_tests.py --platform android
 
 - job: windows_311
   pool: {vmImage: 'windows-latest'}
