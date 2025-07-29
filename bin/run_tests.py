@@ -73,18 +73,18 @@ if __name__ == "__main__":
 
     match args.platform:
         case "all":
-            plat_args = []
+            marks = []
         case "native":
-            plat_args = ["-m not pyodide", "-m not android", "-m not ios"]
+            marks = ["not pyodide", "not android", "not ios"]
         case platform:
-            plat_args = [f"-m {platform}"]
+            marks = [f"{platform}"]
 
     # Run the serial integration tests without multiple processes
     serial_integration_test_args = [
         sys.executable,
         "-m",
         "pytest",
-        "-m serial",
+        f"-m {' and '.join(['serial', *marks])}",
         *plat_args,
         "-x",
         "--durations",
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         sys.executable,
         "-m",
         "pytest",
-        "-m not serial",
+        f"-m {' and '.join(['not serial', *marks])}",
         *plat_args,
         f"--numprocesses={args.num_processes}",
         "-x",
