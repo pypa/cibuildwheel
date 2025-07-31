@@ -664,3 +664,10 @@
   os: [apple, linux, windows]
   pypi: streaming-form-data
   notes: Streaming parser for multipart/form-data written in Cython
+
+- name: falcon
+  gh: falconry/falcon
+  ci: [github]
+  os: [apple, linux, windows]
+  pypi: falcon
+  notes: Falcon is a no-magic ASGI/WSGI API and microservices framework; it uses cibuildwheel for (optional) Cython extensions.
