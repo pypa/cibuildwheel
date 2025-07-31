@@ -6,6 +6,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from os.path import relpath
@@ -21,7 +22,7 @@ from elftools.common.exceptions import ELFError
 from elftools.elf.elffile import ELFFile
 from filelock import FileLock
 
-from .. import errors, platforms
+from .. import errors, platforms  # pylint: disable=cyclic-import
 from ..architecture import Architecture, arch_synonym
 from ..frontend import get_build_frontend_extra_flags, parse_config_settings
 from ..logger import log
@@ -517,7 +518,7 @@ def repair_default(
                 f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
                 path,
             )
-        call("wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
+        call(sys.executable, "-m", "wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
 
 
 def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:

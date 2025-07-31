@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.1.0
+        run: python -m pip install cibuildwheel==3.1.2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -227,6 +227,27 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.1.2
+
+_29 July 2025_
+
+- ⚠️  Add an error if `CIBW_FREE_THREADING_SUPPORT` is set; you are likely missing 3.13t wheels, please use the `enable`/`CIBW_ENABLE` (#2520)
+- 🛠 `riscv64` now enabled if you target that architecture, it's now supported on PyPI (#2509)
+- 🛠 Add warning when using `cpython-experimental-riscv64` (no longer needed) (#2526, #2528)
+- 🛠 iOS versions bumped, fixing issues with 3.14 (now RC 1) (#2530)
+- 🐛 Fix bug in Android running wheel from our GitHub Action (#2517)
+- 🐛 Fix warning when using `test-skip` of `"*-macosx_universal2:arm64"` (#2522)
+- 🐛 Fix incorrect number of wheels reported in logs, again (#2517)
+- 📚 We welcome our Android platform maintainer (#2516)
+
+
+### v3.1.1
+
+_24 July 2025_
+
+- 🐛 Fix a bug showing an incorrect wheel count at the end of execution, and misrepresenting test-only runs in the GitHub Action summary (#2512)
+- 📚 Docs fix (#2510)
+
 ### v3.1.0
 
 _23 July 2025_
@@ -291,20 +312,7 @@ See @henryiii's [release post](https://iscinumpy.dev/post/cibuildwheel-3-0-0/) f
 - 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
 - 📚 README table now matches docs and auto-updates. (#2427, #2428)
 
-### v2.23.3
-
-_26 April 2025_
-
-- 🛠 Dependency updates, including Python 3.13.3 (#2371)
-
-### v2.23.2
-
-_24 March 2025_
-
-- 🐛 Workaround an issue with pyodide builds when running cibuildwheel with a Python that was installed via UV (#2328 via #2331)
-- 🛠 Dependency updates, including a manylinux update that fixes an ['undefined symbol' error](https://github.com/pypa/manylinux/issues/1760) in gcc-toolset (#2334)
-
-<!-- [[[end]]] (sum: HkLT9ZhhtV) -->
+<!-- [[[end]]] (sum: sVC5DNuhaF) -->
 
 ---
 
@@ -339,6 +347,7 @@ Platform maintainers:
 - Hood Chatham [@hoodmane](https://github.com/hoodmane) (Pyodide)
 - Gyeongjae Choi [@ryanking13](https://github.com/ryanking13) (Pyodide)
 - Tim Felgentreff [@timfel](https://github.com/timfel) (GraalPy)
+- Malcolm Smith [@mhsmith](https://github.com/mhsmith) (Android)
 
 Credits
 -------

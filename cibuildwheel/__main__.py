@@ -9,7 +9,7 @@ import tarfile
 import textwrap
 import traceback
 import typing
-from collections.abc import Iterable, Sequence
+from collections.abc import Generator, Iterable, Sequence
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, Literal, TextIO
@@ -369,40 +369,60 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
     print(f"Cache folder: {CIBW_CACHE_PATH}")
     print()
 
-    warnings = detect_warnings(options=options, identifiers=identifiers)
+    warnings = detect_warnings(options=options)
     for warning in warnings:
         log.warning(warning)
+
+    error_list = list(detect_errors(options=options, identifiers=identifiers))
+    if error_list:
+        for error in error_list:
+            log.error(error)
+        msg = "\n".join(error_list)
+        raise errors.ConfigurationError(msg)
 
     print("Here we go!\n")
 
 
-def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str]:
-    warnings = []
-
-    python_version_deprecation = ((3, 11), 3)
-    if sys.version_info[:2] < python_version_deprecation[0]:
-        python_version = ".".join(map(str, python_version_deprecation[0]))
-        msg = (
-            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
-            "please upgrade the Python version used to run cibuildwheel. "
-            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
+def detect_errors(*, options: Options, identifiers: Iterable[str]) -> Generator[str, None, None]:
+    # Check for deprecated CIBW_FREE_THREADED_SUPPORT environment variable
+    if "CIBW_FREE_THREADED_SUPPORT" in os.environ:
+        yield (
+            "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported. "
+            'Use tool.cibuildwheel.enable = ["cpython-freethreading"] in pyproject.toml '
+            "or set CIBW_ENABLE=cpython-freethreading instead."
         )
-        warnings.append(msg)
 
-    # warn about deprecated {python} and {pip}
+    # Deprecated {python} and {pip}
     for option_name in ["test_command", "before_build"]:
         option_values = [getattr(options.build_options(i), option_name) for i in identifiers]
 
         if any(o and ("{python}" in o or "{pip}" in o) for o in option_values):
             # Reminder: in an f-string, double braces means literal single brace
-            msg = (
+            yield (
                 f"{option_name}: '{{python}}' and '{{pip}}' are no longer supported "
                 "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
-            raise errors.ConfigurationError(msg)
+
+
+def detect_warnings(*, options: Options) -> Generator[str, None, None]:
+    python_version_deprecation = ((3, 11), 3)
+    if sys.version_info[:2] < python_version_deprecation[0]:
+        python_version = ".".join(map(str, python_version_deprecation[0]))
+        yield (
+            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
+            "please upgrade the Python version used to run cibuildwheel. "
+            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
+        )
 
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
+
+    if EnableGroup.CPythonExperimentalRiscV64 in build_selector.enable:
+        yield (
+            "'cpython-experimental-riscv64' enable is deprecated and will be removed in a future version. "
+            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
+            "or CIBW_ENABLE environment variable."
+        )
 
     all_valid_identifiers = [
         config.identifier
@@ -417,26 +437,24 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
         identifier for identifier in all_valid_identifiers if enabled_selector(identifier)
     ]
 
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="build",
         selector_value=build_selector.build_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="skip",
         selector_value=build_selector.skip_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="test_skip",
         selector_value=test_selector.skip_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-
-    return warnings
 
 
 def check_for_invalid_selectors(
@@ -449,17 +467,31 @@ def check_for_invalid_selectors(
     warnings = []
 
     for selector in selector_value.split():
-        if not any(selector_matches(selector, i) for i in all_enabled_identifiers):
+        selector_ = selector
+        if selector_name == "test_skip":
+            # macosx_universal2 uses an additional identifier for tests which ends with ":{arch}"
+            values = selector.split(":")
+            universal2_identifiers = filter(
+                lambda x: x.endswith("-macosx_universal2"), all_valid_identifiers
+            )
+            if len(values) == 2 and any(
+                selector_matches(selector_, f"{i}:{arch}")
+                for i in universal2_identifiers
+                for arch in ["arm64", "x86_64"]
+            ):
+                # just ignore the arch part in the rest of the check
+                selector_ = values[0]
+        if not any(selector_matches(selector_, i) for i in all_enabled_identifiers):
             msg = f"Invalid {selector_name} selector: {selector!r}. "
             error_type: type = errors.ConfigurationError
 
-            if any(selector_matches(selector, i) for i in all_valid_identifiers):
+            if any(selector_matches(selector_, i) for i in all_valid_identifiers):
                 msg += "This selector matches a group that wasn't enabled. Enable it using the `enable` option or remove this selector. "
 
-            if "p2" in selector or "p35" in selector:
+            if "p2" in selector_ or "p35" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
-            if "p36" in selector or "p37" in selector:
+            if "p36" in selector_ or "p37" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 

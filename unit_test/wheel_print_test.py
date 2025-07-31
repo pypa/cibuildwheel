@@ -15,9 +15,11 @@ def test_printout_wheels(capsys):
     log.colors_enabled = False
 
     with log.print_summary(options=OPTIONS_DEFAULTS):
+        # the number of BuildInfo with & without filename shall be different for this test
         log.summary = [
             BuildInfo(identifier="id1", filename=None, duration=3),
             BuildInfo(identifier="id2", filename=FILE, duration=2),
+            BuildInfo(identifier="id3", filename=FILE, duration=3),
         ]
 
     captured = capsys.readouterr()
@@ -25,7 +27,8 @@ def test_printout_wheels(capsys):
 
     assert "id1" in captured.out
     assert "id2" in captured.out
-    assert "wheels produced in" in captured.out
+    assert "id3" in captured.out
+    assert "2 wheels produced in" in captured.out
     assert "SHA256=" in captured.out
 
 

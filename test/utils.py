@@ -51,7 +51,7 @@ def get_platform() -> str:
         raise Exception(msg)
 
 
-DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease cpython-experimental-riscv64"
+DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease"
 
 
 def get_enable_groups() -> frozenset[EnableGroup]:

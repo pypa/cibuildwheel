@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.1.0"
+version = "3.1.2"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -109,6 +109,9 @@ filterwarnings = ["error"]
 log_cli_level = "INFO"
 markers = [
     "serial: tests that must *not* be run in parallel (deselect with '-m \"not serial\"')",
+    "ios: tests that run on iOS",
+    "android: tests that run on Android",
+    "pyodide: tests that run on Pyodide",
 ]
 
 [tool.mypy]

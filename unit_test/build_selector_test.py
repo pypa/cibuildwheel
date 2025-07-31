@@ -217,15 +217,6 @@ def test_build_free_threaded_python():
     assert build_selector("cp313t-manylinux_x86_64")
 
 
-def test_build_riscv64_enable():
-    build_selector = BuildSelector(build_config="*", skip_config="")
-    assert not build_selector("cp313-manylinux_riscv64")
-    build_selector = BuildSelector(
-        build_config="*", skip_config="", enable=frozenset([EnableGroup.CPythonExperimentalRiscV64])
-    )
-    assert build_selector("cp313-manylinux_riscv64")
-
-
 def test_testing_selector():
     # This is not a global import to keep pytest from collecting it as a test
     test_selector = cibuildwheel.selector.TestSelector(skip_config="cp36-*")

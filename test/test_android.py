@@ -12,6 +12,9 @@ import pytest
 from .test_projects import new_c_project
 from .utils import cibuildwheel_run, expected_wheels
 
+pytestmark = pytest.mark.android
+
+
 CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "android")
 if CIBW_PLATFORM != "android":
     pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
@@ -28,12 +31,10 @@ if (platform.system(), platform.machine()) not in [
     )
 
 # Detect CI services which have the Android SDK pre-installed.
-ci_supports_build = any(
-    key in os.environ
-    for key in [
-        "GITHUB_ACTIONS",
-        "TF_BUILD",  # Azure Pipelines
-    ]
+ci_supports_build = (
+    ("CIRRUS_CI" in os.environ and platform.system() == "Darwin")
+    or "GITHUB_ACTIONS" in os.environ
+    or "TF_BUILD" in os.environ  # Azure Pipelines
 )
 
 if "ANDROID_HOME" not in os.environ:

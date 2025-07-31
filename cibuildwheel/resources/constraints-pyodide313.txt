@@ -76,7 +76,7 @@ requests==2.32.4
     # via pyodide-build
 resolvelib==1.2.0
     # via pyodide-build
-rich==14.0.0
+rich==14.1.0
     # via
     #   pyodide-build
     #   pyodide-cli

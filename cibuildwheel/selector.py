@@ -39,7 +39,7 @@ class EnableGroup(StrEnum):
 
     @classmethod
     def all_groups(cls) -> frozenset["EnableGroup"]:
-        return frozenset(cls)
+        return frozenset(set(cls) - {cls.CPythonExperimentalRiscV64})
 
     @classmethod
     def parse_option_value(cls, value: str) -> frozenset["EnableGroup"]:
@@ -92,10 +92,6 @@ class BuildSelector:
         if EnableGroup.PyPy not in self.enable and fnmatch(build_id, "pp31*"):
             return False
         if EnableGroup.PyPyEoL not in self.enable and fnmatch(build_id, "pp3?-*"):
-            return False
-        if EnableGroup.CPythonExperimentalRiscV64 not in self.enable and fnmatch(
-            build_id, "*_riscv64"
-        ):
             return False
         if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
             return False

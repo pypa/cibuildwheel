@@ -1,3 +1,4 @@
+import os
 import sys
 import tomllib
 from fnmatch import fnmatch
@@ -14,6 +15,18 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
 # CIBW_PLATFORM is tested in main_platform_test.py
+
+
+def test_old_free_threaded(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_FREE_THREADED_SUPPORT", "ON")
+
+    with pytest.raises(SystemExit):
+        main()
+
+    assert (
+        "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported."
+        in capsys.readouterr().err
+    )
 
 
 @pytest.mark.usefixtures("platform")
@@ -93,6 +106,32 @@ def test_invalid_skip_selector(monkeypatch, capsys, option_name, option_env_var)
     assert f"Invalid {option_name} selector" in err
 
 
+@pytest.mark.parametrize(
+    "selector", ["*-macosx_universal2:arm64", "*-macosx_universal2:x86_64", "*-macosx_arm64"]
+)
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_valid_test_skip_selector(monkeypatch, capsys, selector):
+    monkeypatch.setenv("CIBW_TEST_SKIP", selector)
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "Invalid test_skip selector" not in err
+
+
+@pytest.mark.parametrize("selector", ["*-macosx_universal2:invalid", "*-macosx_arm64:arm64"])
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_invalid_test_skip_selector(monkeypatch, capsys, selector):
+    monkeypatch.setenv("CIBW_TEST_SKIP", selector)
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "Invalid test_skip selector" in err
+
+
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
 def test_empty_selector(monkeypatch):
     monkeypatch.setenv("CIBW_SKIP", "*")
@@ -101,6 +140,70 @@ def test_empty_selector(monkeypatch):
         main()
 
     assert e.value.code == 3
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_warning1(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-experimental-riscv64")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_warning2(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-experimental-riscv64")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_no_warning(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" not in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_no_warning2(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "all")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" not in err
 
 
 @pytest.mark.parametrize(

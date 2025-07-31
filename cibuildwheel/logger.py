@@ -242,11 +242,11 @@ class Logger:
             github_summary = self._github_step_summary(duration=duration, options=options)
             Path(summary_path).write_text(filter_ansi_codes(github_summary), encoding="utf-8")
 
-        n = len(self.summary)
-        s = "s" if n > 1 else ""
+        n_wheels = len([info for info in self.summary if info.filename])
+        s = "s" if n_wheels > 1 else ""
         duration_str = humanize.naturaldelta(duration)
         print()
-        self._start_fold_group(f"{n} wheel{s} produced in {duration_str}")
+        self._start_fold_group(f"{n_wheels} wheel{s} produced in {duration_str}")
         for build_info in self.summary:
             print(" ", build_info)
         self._end_fold_group()
@@ -320,7 +320,7 @@ class Logger:
         n_wheels = len([b for b in self.summary if b.filename])
         wheel_rows = "\n".join(
             "<tr>"
-            f"<td nowrap>{'<samp>' + b.filename.name + '</samp>' if b.filename else '*Build only*'}</td>"
+            f"<td nowrap>{'<samp>' + b.filename.name + '</samp>' if b.filename else '*Test only*'}</td>"
             f"<td nowrap>{b.size or 'N/A'}</td>"
             f"<td nowrap><samp>{b.identifier}</samp></td>"
             f"<td nowrap>{humanize.naturaldelta(b.duration)}</td>"
