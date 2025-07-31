@@ -143,6 +143,8 @@ def virtualenv(
     venv_env["VIRTUAL_ENV"] = str(venv_path)
     if not use_uv and pip_version == "embed":
         call(
+            "python",
+            "-m",
             "pip",
             "install",
             "--upgrade",
