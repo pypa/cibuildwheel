@@ -27,6 +27,12 @@ if __name__ == "__main__":
         default=default_cpu_count,
         help="number of processes to use for testing",
     )
+    parser.add_argument(
+        "--platform",
+        choices={"all", "native", "android", "ios", "pyodide"},
+        default="all",
+        help="Either 'native' or 'android'/'ios'/'pyodide'",
+    )
     args = parser.parse_args()
 
     # move cwd to the project root
@@ -48,13 +54,21 @@ if __name__ == "__main__":
     )
     subprocess.run(unit_test_args, check=True)
 
+    match args.platform:
+        case "all":
+            marks = []
+        case "native":
+            marks = ["not pyodide", "not android", "not ios"]
+        case platform:
+            marks = [f"{platform}"]
+
     # Run the serial integration tests without multiple processes
     serial_integration_test_args = [
         sys.executable,
         "-m",
         "pytest",
         "-m",
-        "serial",
+        f"{' and '.join(['serial', *marks])}",
         "-x",
         "--durations",
         "0",
@@ -62,6 +76,7 @@ if __name__ == "__main__":
         "test",
         "-vv",
     ]
+
     print(
         "\n\n=========================== SERIAL INTEGRATION TESTS ===========================",
         flush=True,
@@ -74,7 +89,7 @@ if __name__ == "__main__":
         "-m",
         "pytest",
         "-m",
-        "not serial",
+        f"{' and '.join(['not serial', *marks])}",
         f"--numprocesses={args.num_processes}",
         "-x",
         "--durations",
