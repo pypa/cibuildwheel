@@ -4,6 +4,16 @@ title: Changelog
 
 # Changelog
 
+### v3.1.3
+
+_1 August 2025_
+
+- 🐛 Fix bug where "latest" dependencies couldn't update to pip 25.2 on Windows (#2537)
+- 🛠 Use pytest-rerunfailures to improve some of our iOS/Android tests (#2527, #2539)
+- 🛠 Remove some GraalPy Windows workarounds in our tests (#2501)
+
+
+
 ### v3.1.2
 
 _29 July 2025_
