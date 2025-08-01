@@ -29,7 +29,6 @@ class EnableGroup(StrEnum):
     Groups of build selectors that are not enabled by default.
     """
 
-    CPythonExperimentalRiscV64 = "cpython-experimental-riscv64"
     CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     GraalPy = "graalpy"
