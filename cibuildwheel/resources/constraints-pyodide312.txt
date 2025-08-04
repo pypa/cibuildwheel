@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.7.14
+certifi==2025.8.3
     # via
     #   httpcore
     #   httpx
@@ -48,7 +48,7 @@ packaging==25.0
     #   build
     #   pyodide-build
     #   unearth
-pip==25.1.1
+pip==25.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.8
     # via
@@ -107,7 +107,7 @@ unearth==0.17.5
     # via pyodide-build
 urllib3==2.5.0
     # via requests
-virtualenv==20.32.0
+virtualenv==20.33.0
     # via
     #   build
     #   pyodide-build
