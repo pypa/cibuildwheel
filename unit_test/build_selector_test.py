@@ -16,7 +16,6 @@ def test_build():
     assert build_selector("cp312-manylinux_x86_64")
     assert build_selector("cp313-manylinux_x86_64")
     assert build_selector("cp314-manylinux_x86_64")
-    assert build_selector("pp310-manylinux_x86_64")
     assert build_selector("pp311-manylinux_x86_64")
     assert build_selector("cp36-manylinux_i686")
     assert build_selector("cp37-manylinux_i686")
@@ -62,8 +61,8 @@ def test_build_filter_pypy():
         skip_config="",
         enable=frozenset([EnableGroup.PyPy]),
     )
-    assert build_selector("pp310-manylinux_x86_64")
     assert build_selector("pp311-manylinux_x86_64")
+    assert not build_selector("pp310-manylinux_x86_64")
     assert not build_selector("pp38-manylinux_x86_64")
     assert not build_selector("pp39-manylinux_x86_64")
 
@@ -74,8 +73,8 @@ def test_build_filter_pypy_eol():
         skip_config="",
         enable=frozenset([EnableGroup.PyPyEoL]),
     )
-    assert not build_selector("pp310-manylinux_x86_64")
     assert not build_selector("pp311-manylinux_x86_64")
+    assert build_selector("pp310-manylinux_x86_64")
     assert build_selector("pp38-manylinux_x86_64")
     assert build_selector("pp39-manylinux_x86_64")
 
