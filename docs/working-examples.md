@@ -22,6 +22,7 @@ title: Working examples
 | [MemRay][]                        | ![github icon][] | ![linux icon][] | Memray is a memory profiler for Python |
 | [uvloop][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | Ultra fast asyncio event loop. |
 | [psutil][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Cross-platform lib for process and system monitoring in Python |
+| [falcon][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Falcon is a no-magic ASGI/WSGI API and microservices framework; it uses cibuildwheel for (optional) Cython extensions. |
 | [Google Benchmark][]              | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A microbenchmark support library |
 | [vaex][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Out-of-Core hybrid Apache Arrow/NumPy DataFrame for Python, ML, visualization and exploration of big tabular data at a billion rows per second 🚀 |
 | [Apache Beam][]                   | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Apache Beam is a unified programming model for Batch and Streaming data processing. |
@@ -64,8 +65,8 @@ title: Working examples
 | [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
 | [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
 | [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
-| [DeepForest][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | An Efficient, Scalable and Optimized Python Framework for Deep Forest (2021.2.1) |
 | [AutoPy][]                        | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes a Windows Travis build. |
+| [DeepForest][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | An Efficient, Scalable and Optimized Python Framework for Deep Forest (2021.2.1) |
 | [H3-py][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for H3, a hierarchical hexagonal geospatial indexing system |
 | [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
 | [mosec][]                         | ![github icon][] | ![linux icon][] ![apple icon][] | A machine learning model serving framework powered by Rust |
@@ -76,8 +77,8 @@ title: Working examples
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
-| [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
+| [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
 | [abess][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions. |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
@@ -94,8 +95,8 @@ title: Working examples
 | [iDynTree][]                      | ![github icon][] | ![linux icon][] | Uses manylinux_2_24 |
 | [streaming-form-data][]           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Streaming parser for multipart/form-data written in Cython |
 | [power-grid-model][]              | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python/C++ library for distribution power system analysis |
-| [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
+| [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
 | [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M92 |
@@ -132,6 +133,7 @@ title: Working examples
 [MemRay]: https://github.com/bloomberg/memray
 [uvloop]: https://github.com/MagicStack/uvloop
 [psutil]: https://github.com/giampaolo/psutil
+[falcon]: https://github.com/falconry/falcon
 [Google Benchmark]: https://github.com/google/benchmark
 [vaex]: https://github.com/vaexio/vaex
 [Apache Beam]: https://github.com/apache/beam
@@ -174,8 +176,8 @@ title: Working examples
 [PyTables]: https://github.com/PyTables/PyTables
 [google neuroglancer]: https://github.com/google/neuroglancer
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
-[DeepForest]: https://github.com/LAMDA-NJU/Deep-Forest
 [AutoPy]: https://github.com/autopilot-rs/autopy
+[DeepForest]: https://github.com/LAMDA-NJU/Deep-Forest
 [H3-py]: https://github.com/uber/h3-py
 [time-machine]: https://github.com/adamchainz/time-machine
 [mosec]: https://github.com/mosecorg/mosec
@@ -186,8 +188,8 @@ title: Working examples
 [KDEpy]: https://github.com/tommyod/KDEpy
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
 [tgcalls]: https://github.com/MarshalX/tgcalls
-[python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [pybind11 python_example]: https://github.com/pybind/python_example
+[python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [sourmash]: https://github.com/sourmash-bio/sourmash
 [abess]: https://github.com/abess-team/abess
 [python-snappy]: https://github.com/intake/python-snappy
@@ -204,8 +206,8 @@ title: Working examples
 [iDynTree]: https://github.com/robotology/idyntree
 [streaming-form-data]: https://github.com/siddhantgoel/streaming-form-data
 [power-grid-model]: https://github.com/PowerGridModel/power-grid-model
-[pybase64]: https://github.com/mayeut/pybase64
 [bx-python]: https://github.com/bxlab/bx-python
+[pybase64]: https://github.com/mayeut/pybase64
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
