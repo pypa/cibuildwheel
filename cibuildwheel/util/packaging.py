@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import Any, Literal, Self, TypeVar
 
+import packaging.requirements
 from packaging.utils import parse_wheel_filename
 
 from . import resources
@@ -80,8 +81,23 @@ class DependencyConstraints:
         self, *, version: str, variant: Literal["python", "pyodide"] = "python", tmp_dir: Path
     ) -> Path | None:
         if self.packages:
+            file_name = (
+                resources.PATH / f"pyodide{version}.in"
+                if variant == "pyodide"
+                else resources.CONSTRAINTS_IN
+            )
+            input_packages = (
+                s.strip() for s in file_name.joinpath(file_name).read_text().splitlines()
+            )
+            input_requirements = (
+                packaging.requirements.Requirement(s)
+                for s in input_packages
+                if s and not s.startswith("#")
+            )
+            packages = [*self.packages, *(str(r) for r in input_requirements if r.specifier)]
+
             constraint_file = tmp_dir / "constraints.txt"
-            constraint_file.write_text("\n".join(self.packages))
+            constraint_file.write_text("\n".join(packages))
             return constraint_file
 
         if self.base_file_path is not None:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
+import inspect
 import sys
-import textwrap
 from pathlib import Path
 
 import click
@@ -51,7 +51,7 @@ def generate_pyodide_constraints(pyodide_version: str, output_file: str | None =
 
     pyodide_build_specifier = ",".join(pyodide_build_specifier_parts)
 
-    constraints_txt = textwrap.dedent(f"""
+    constraints_txt = inspect.cleandoc(f"""
         pip
         build[virtualenv]
         pyodide-build{pyodide_build_specifier}
