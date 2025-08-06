@@ -82,7 +82,7 @@ class DependencyConstraints:
     ) -> Path | None:
         if self.packages:
             file_name = (
-                resources.PATH / f"pyodide{version}.in"
+                resources.PATH / f"constraints-pyodide{version}.in"
                 if variant == "pyodide"
                 else resources.CONSTRAINTS_IN
             )
