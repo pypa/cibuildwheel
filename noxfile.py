@@ -105,13 +105,13 @@ def update_constraints(session: nox.Session) -> None:
         python_version = ".".join(pyodide["version"].split(".")[:2])
         pyodide_version = pyodide["default_pyodide_version"]
 
-        tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
+        in_file = resources / f"constraints-pyodide{python_version.replace('.', '')}.in"
 
         session.run(
             "python",
             "bin/generate_pyodide_constraints.py",
             "--output-file",
-            tmp_file,
+            in_file,
             pyodide_version,
         )
 
@@ -122,7 +122,7 @@ def update_constraints(session: nox.Session) -> None:
             "compile",
             f"--python-version={python_version}",
             "--upgrade",
-            tmp_file,
+            in_file,
             f"--output-file={output_file}",
             env=env,
         )

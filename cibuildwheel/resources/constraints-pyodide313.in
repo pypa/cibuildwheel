@@ -1,0 +1,5 @@
+
+pip
+build[virtualenv]
+pyodide-build>=0.26.0
+click<8.2
