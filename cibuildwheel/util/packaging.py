@@ -86,9 +86,7 @@ class DependencyConstraints:
                 if variant == "pyodide"
                 else resources.CONSTRAINTS_IN
             )
-            input_packages = (
-                s.strip() for s in file_name.read_text().splitlines()
-            )
+            input_packages = (s.strip() for s in file_name.read_text().splitlines())
             input_requirements = (
                 packaging.requirements.Requirement(s)
                 for s in input_packages
