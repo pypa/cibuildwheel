@@ -87,7 +87,7 @@ class DependencyConstraints:
                 else resources.CONSTRAINTS_IN
             )
             input_packages = (
-                s.strip() for s in file_name.joinpath(file_name).read_text().splitlines()
+                s.strip() for s in file_name.read_text().splitlines()
             )
             input_requirements = (
                 packaging.requirements.Requirement(s)
