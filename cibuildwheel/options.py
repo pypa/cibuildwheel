@@ -657,7 +657,9 @@ class Options:
         )
         requires_python = None if requires_python_str is None else SpecifierSet(requires_python_str)
 
-        archs_config_str = args.archs or self.reader.get("archs", option_format=ListFormat(sep=" "))
+        archs_config_str = args.archs or self.reader.get(
+            "archs", option_format=ListFormat(sep=" "), ignore_empty=True
+        )
         architectures = Architecture.parse_config(archs_config_str, platform=self.platform)
 
         # Process `--only`

@@ -278,3 +278,12 @@ def test_pyodide_on_windows(monkeypatch, capsys):
 
     assert exit.value.code == 2
     assert "Building for pyodide is not supported on Windows" in err
+
+
+def test_empty_archs_platform(platform, intercepted_build_args, monkeypatch):
+    monkeypatch.setenv("CIBW_ARCHS", "")
+
+    main()
+
+    options = intercepted_build_args.args[0]
+    assert options.globals.architectures == Architecture.auto_archs(platform)
