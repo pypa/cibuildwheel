@@ -20,8 +20,8 @@ def format_safe(template: str, **kwargs: str | os.PathLike[str]) -> str:
     >>> format_safe('{a} {b[4]:3f}', a='123')
     '123 {b[4]:3f}'
 
-    To avoid variable expansion, precede with a single backslash e.g.
-    >>> format_safe('\\{a} {b}', a='123')
+    To avoid variable expansion, precede with a single hash e.g.
+    >>> format_safe('#{a} {b}', a='123')
     '{a} {b}'
     """
 

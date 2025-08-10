@@ -391,6 +391,7 @@ class OptionsReader:
     by the platform.
 
     Example:
+      >>> # xdoctest: +SKIP
       >>> options_reader = OptionsReader(config_file, platform='macos')
       >>> options_reader.get('cool-color')
 
