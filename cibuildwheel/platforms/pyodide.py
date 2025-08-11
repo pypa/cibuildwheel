@@ -284,9 +284,8 @@ def setup_python(
         "pip",
         "install",
         "--upgrade",
-        "auditwheel-emscripten",
-        "build[virtualenv]",
         "pyodide-build",
+        "build[virtualenv]",
         *constraint_flags(constraints_path),
         env=env,
     )
