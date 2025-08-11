@@ -178,7 +178,7 @@ class OCIContainer:
         >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
         >>> try:
         >>>     oci_platform = OCIPlatform.current()
-        >>> except EnvironmentError as ex:
+        >>> except OSError as ex:
         >>>     import pytest
         >>>     pytest.skip(str(ex))
         >>> # Test the default container
