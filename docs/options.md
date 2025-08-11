@@ -74,7 +74,7 @@ Windows arm64 platform support is experimental.
 
 See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for past end-of-life versions of Python.
 
-#### Examples
+#### Examples {: #build-skip-examples }
 
 !!! tab examples "pyproject.toml"
 
@@ -106,6 +106,12 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
     # Disable building PyPy wheels on all platforms
     skip = "pp*"
+
+    # Disable free-threading builds on all platforms
+    skip = "cp3??t-*"
+
+    # Disable free-threading builds on Windows
+    skip = "cp3??t-win*"
     ```
 
 !!! tab examples "Environment variables"
@@ -137,11 +143,15 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
     # Disable building PyPy wheels on all platforms
     CIBW_SKIP: pp*
+
+    # Disable free-threading builds on all platforms
+    CIBW_SKIP: "cp3??t-*"
+
+    # Disable free-threading builds on Windows
+    CIBW_SKIP: "cp3??t-win*"
     ```
 
     Separate multiple selectors with a space.
-
-
 
     It is generally recommended to set `CIBW_BUILD` as an environment variable, though `skip`
     tends to be useful in a config file; you can statically declare that you don't
@@ -344,13 +354,9 @@ values are:
 
 - `cpython-prerelease`: Enables beta versions of Pythons if any are available
   (May-July, approximately).
-- `cpython-freethreading`: [PEP 703](https://www.python.org/dev/peps/pep-0703)
-  introduced variants of CPython that can be built without the Global
-  Interpreter Lock (GIL).  Those variants are also known as free-threaded /
-  no-gil. This will enable building these wheels for 3.13, which was considered
-  experimental.  The build identifiers for those variants have a `t` suffix in
-  their `python_tag` (e.g. `cp313t-manylinux_x86_64`). Starting in 3.14,
-  free-threaded builds are no longer experimental, so this enable is not needed.
+- `cpython-freethreading`: Enable experimental free-threaded builds for CPython 3.13.
+  Free-threading wheels for 3.14+ are available without this flag, as it's [no
+  longer considered experimental](https://peps.python.org/pep-0779/).
 - `pypy`: Enable PyPy.
 - `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
 - `graalpy`: Enable GraalPy.
@@ -368,7 +374,11 @@ values are:
     that version of Python will become available without this flag.
 
 !!! note
-    Free threading was experimental in 3.13: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython)
+    [PEP 703](https://www.python.org/dev/peps/pep-0703) introduced variants of
+    CPython that can be built without the Global Interpreter Lock (GIL). Those
+    variants are also known as free-threaded / no-gil. The build identifiers for
+    those variants have a `t` suffix in their `python_tag` (e.g.
+    `cp313t-manylinux_x86_64`). Free threading was experimental in 3.13: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython). As noted above, free-threading doesn't require an enable flag for 3.14+.
 
 Default: empty.
 
@@ -392,12 +402,8 @@ without disabling your other enables.
 
     ```toml
     [tool.cibuildwheel]
-    # Enable free-threaded support
+    # Enable free-threaded support for CPython 3.13
     enable = ["cpython-freethreading"]
-
-    # Skip building free-threaded compatible wheels on Windows
-    enable = ["cpython-freethreading"]
-    skip = "*t-win*"
 
     # Include all PyPy versions
     enable = ["pypy", "pypy-eol"]
@@ -410,18 +416,14 @@ without disabling your other enables.
     # Include latest Python beta
     CIBW_ENABLE: cpython-prerelease
 
-    # Include free-threaded support
+    # Include free-threaded support for CPython 3.13
     CIBW_ENABLE: cpython-freethreading
 
     # Include both
     CIBW_ENABLE: cpython-prerelease cpython-freethreading
 
-    # Skip building free-threaded compatible wheels on Windows
-    CIBW_ENABLE: cpython-freethreading
-    CIBW_SKIP: *t-win*
-
     # Include all PyPy versions
-    CIBW_ENABLE = pypy pypy-eol
+    CIBW_ENABLE: pypy pypy-eol
     ```
 
 
