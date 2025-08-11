@@ -47,6 +47,7 @@ class OCIPlatform(Enum):
             "amd64": cls.AMD64,
             "armv7l": cls.ARMV7,
             "aarch64": cls.ARM64,
+            "arm64": cls.ARM64,
             "ppc64le": cls.PPC64LE,
             "riscv64": cls.RISCV64,
             "s390x": cls.S390X,
