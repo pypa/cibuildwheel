@@ -174,14 +174,17 @@ class OCIContainer:
     back to cibuildwheel.
 
     Example:
+        >>> # xdoctest: +REQUIRES(LINUX)
         >>> from cibuildwheel.oci_container import *  # NOQA
         >>> from cibuildwheel.options import _get_pinned_container_images
-        >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
+        >>> import pytest
         >>> try:
-        >>>     oci_platform = OCIPlatform.native()
-        >>> except OSError as ex:
-        >>>     import pytest
-        >>>     pytest.skip(str(ex))
+        ...     oci_platform = OCIPlatform.native()
+        ... except OSError as ex:
+        ...     pytest.skip(str(ex))
+        >>> if oci_platform != OCIPlatform.AMD64:
+        ...     pytest.skip('only runs on amd64')
+        >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
         >>> # Test the default container
         >>> with OCIContainer(image=image, oci_platform=oci_platform) as self:
         ...     self.call(["echo", "hello world"])

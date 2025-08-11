@@ -104,7 +104,7 @@ dev = [
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--xdoctest"]
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--xdoctest", "--ignore-glob=*venv*"]
 junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]
