@@ -32,6 +32,15 @@ if __name__ == "__main__":
     # move cwd to the project root
     os.chdir(Path(__file__).resolve().parents[1])
 
+    # doc tests
+    doc_test_args = [sys.executable, "-m", "pytest", "cibuildwheel"]
+
+    print(
+        "\n\n================================== DOC TESTS ==================================",
+        flush=True,
+    )
+    subprocess.run(doc_test_args, check=True)
+
     # unit tests
     unit_test_args = [sys.executable, "-m", "pytest", "unit_test"]
 
