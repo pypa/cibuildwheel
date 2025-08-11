@@ -37,7 +37,7 @@ jobs:
     name: Linters (mypy, ruff, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       id: python
       with:
@@ -62,7 +62,7 @@ jobs:
           python_version: '3.14'
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       name: Install Python ${{ matrix.python_version }}
       with:
@@ -180,7 +180,7 @@ jobs:
     outputs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
@@ -203,7 +203,7 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
@@ -223,7 +223,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       name: Install Python 3.12
       with:
