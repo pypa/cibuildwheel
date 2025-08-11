@@ -177,7 +177,7 @@ class OCIContainer:
         >>> from cibuildwheel.options import _get_pinned_container_images
         >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
         >>> try:
-        >>>     oci_platform = OCIPlatform.current()
+        >>>     oci_platform = OCIPlatform.native()
         >>> except OSError as ex:
         >>>     import pytest
         >>>     pytest.skip(str(ex))
