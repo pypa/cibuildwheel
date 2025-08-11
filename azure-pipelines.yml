@@ -53,7 +53,7 @@ jobs:
         versionSpec: $(pythonVersion)
 
     - task: JavaToolInstaller@0
-      condition: and(eq(variables['platformName'], 'android'), eq(variables['Agent.OS'], 'Linux'))
+      condition: eq(variables['platformName'], 'android')
       inputs:
         versionSpec: '17'
         jdkArchitectureOption: 'x64'
