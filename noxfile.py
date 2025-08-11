@@ -58,6 +58,7 @@ def tests(session: nox.Session) -> None:
         session.run("pytest", *session.posargs)
     else:
         unit_test_args = ["--run-docker"] if sys.platform.startswith("linux") else []
+        session.run("pytest", "cibuildwheel")  # run doctests
         session.run("pytest", "unit_test", *unit_test_args)
         session.run("pytest", "test", "-x", "--durations", "0", "--timeout=2400", "test")
 

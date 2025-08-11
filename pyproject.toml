@@ -93,6 +93,7 @@ test = [
     "setuptools",
     "tomli_w",
     "validate-pyproject",
+    "xdoctest",
 ]
 dev = [
     {include-group = "bin"},
@@ -103,7 +104,7 @@ dev = [
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--xdoctest"]
 junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]
