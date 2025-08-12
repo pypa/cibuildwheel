@@ -62,7 +62,11 @@ if __name__ == "__main__":
     )
     unit_test_args = [sys.executable, "-m", "pytest", "unit_test"]
 
-    if sys.platform.startswith("linux") and os.environ.get("CIBW_PLATFORM", "linux") == "linux":
+    if (
+        sys.platform.startswith("linux")
+        and os.environ.get("CIBW_PLATFORM", "linux") == "linux"
+        and args.test_select in ["all", "native"]
+    ):
         # run the docker unit tests only on Linux
         unit_test_args += ["--run-docker"]
 
