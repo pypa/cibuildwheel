@@ -22,27 +22,27 @@ jobs:
       linux_311:
         imageName: "ubuntu-latest"
         pythonVersion: "3.11"
-        platformName: "native"
+        testSelect: "native"
       android_311:
         imageName: "ubuntu-latest"
         pythonVersion: "3.11"
-        platformName: "android"
+        testSelect: "android"
       macos_311:
         imageName: "macos-latest"
         pythonVersion: "3.11"
-        platformName: "native"
+        testSelect: "native"
       ios_311:
         imageName: "macos-latest"
         pythonVersion: "3.11"
-        platformName: "ios"
+        testSelect: "ios"
       android_macos_311:
         imageName: "macos-latest"
         pythonVersion: "3.11"
-        platformName: "android"
+        testSelect: "android"
       windows_311:
         imageName: "windows-latest"
         pythonVersion: "3.11"
-        platformName: "native"
+        testSelect: "native"
   timeoutInMinutes: 180
   pool:
     vmImage: $(imageName)
@@ -53,14 +53,14 @@ jobs:
         versionSpec: $(pythonVersion)
 
     - task: JavaToolInstaller@0
-      condition: and(eq(variables['platformName'], 'android'), eq(variables['Agent.OS'], 'Linux'))
+      condition: and(eq(variables['testSelect'], 'android'), eq(variables['Agent.OS'], 'Linux'))
       inputs:
         versionSpec: '17'
         jdkArchitectureOption: 'x64'
         jdkSourceOption: 'PreInstalled'
 
     - bash: docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-      condition: and(eq(variables['imageName'], 'ubuntu-latest'), eq(variables['platformName'], 'native'))
+      condition: and(eq(variables['imageName'], 'ubuntu-latest'), eq(variables['testSelect'], 'native'))
       displayName: 'Install binfmt on Linux'
 
     - bash: python -m pip install -U pip && python -m pip install -e. --group test
@@ -72,5 +72,5 @@ jobs:
 
     - bash: |
         echo "CIBW_ENABLE = $CIBW_ENABLE"
-        python ./bin/run_tests.py --platform $(platformName)
+        python ./bin/run_tests.py --test-select $(testSelect)
       displayName: 'Run tests'
