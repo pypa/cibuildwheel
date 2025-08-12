@@ -29,7 +29,7 @@ GitHub actions has pipx in all the runners as a supported package manager, as we
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0  # Optional, use if you use setuptools_scm
         submodules: true  # Optional, use if you have submodules
@@ -54,7 +54,7 @@ Then, you need to publish the artifacts that the previous jobs have built. This 
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v5
       with:
         pattern: cibw-*
         path: dist
