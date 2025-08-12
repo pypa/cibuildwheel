@@ -36,6 +36,28 @@ class OCIPlatform(Enum):
     RISCV64 = "linux/riscv64"
     S390X = "linux/s390x"
 
+    @classmethod
+    def native(cls) -> "OCIPlatform":
+        """Return the current OCI platform, or raise ValueError if unknown."""
+        arch = platform.machine().lower()
+        mapping = {
+            "i386": cls.i386,
+            "i686": cls.i386,
+            "x86_64": cls.AMD64,
+            "amd64": cls.AMD64,
+            "armv7l": cls.ARMV7,
+            "aarch64": cls.ARM64,
+            "arm64": cls.ARM64,
+            "ppc64le": cls.PPC64LE,
+            "riscv64": cls.RISCV64,
+            "s390x": cls.S390X,
+        }
+        try:
+            return mapping[arch]
+        except KeyError as ex:
+            msg = f"Unsupported platform architecture: {arch}"
+            raise OSError(msg) from ex
+
 
 @dataclasses.dataclass(frozen=True)
 class OCIContainerEngineConfig:
@@ -152,11 +174,19 @@ class OCIContainer:
     back to cibuildwheel.
 
     Example:
+        >>> # xdoctest: +REQUIRES(LINUX)
         >>> from cibuildwheel.oci_container import *  # NOQA
         >>> from cibuildwheel.options import _get_pinned_container_images
+        >>> import pytest
+        >>> try:
+        ...     oci_platform = OCIPlatform.native()
+        ... except OSError as ex:
+        ...     pytest.skip(str(ex))
+        >>> if oci_platform != OCIPlatform.AMD64:
+        ...     pytest.skip('only runs on amd64')
         >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
         >>> # Test the default container
-        >>> with OCIContainer(image=image) as self:
+        >>> with OCIContainer(image=image, oci_platform=oci_platform) as self:
         ...     self.call(["echo", "hello world"])
         ...     self.call(["cat", "/proc/1/cgroup"])
         ...     print(self.get_environment())

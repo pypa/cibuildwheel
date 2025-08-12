@@ -32,6 +32,23 @@ if __name__ == "__main__":
     # move cwd to the project root
     os.chdir(Path(__file__).resolve().parents[1])
 
+    # doc tests
+    doc_test_args = [sys.executable, "-m", "pytest", "cibuildwheel"]
+
+    print(
+        "\n\n================================== DOC TESTS ==================================",
+        flush=True,
+    )
+    result = subprocess.run(doc_test_args, check=False)
+    if result.returncode not in (0, 5):
+        # Allow case where no doctests are collected (returncode 5) because
+        # circleci sets an explicit "-k" filter that disables doctests. There
+        # isn't a pattern that will only select doctests. This can be removed
+        # and have check=True if the circleci PYTEST_ADDOPTS is removed.
+        raise subprocess.CalledProcessError(
+            result.returncode, result.args, output=result.stdout, stderr=result.stderr
+        )
+
     # unit tests
     unit_test_args = [sys.executable, "-m", "pytest", "unit_test"]
 
