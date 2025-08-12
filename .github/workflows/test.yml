@@ -47,7 +47,7 @@ jobs:
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
   test:
-    name: Test on ${{ matrix.os }} (${{ matrix.python_version }}) ${{ matrix.platform }}
+    name: Test on ${{ matrix.os }} (${{ matrix.python_version }}) ${{ matrix.test_select }}
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
@@ -62,7 +62,7 @@ jobs:
           python_version: '3.14'
         - os: ubuntu-latest
           python_version: '3.13'
-          platform: android
+          test_select: android
         - os: ubuntu-24.04-arm
           python_version: '3.13'
         - os: windows-latest
@@ -75,16 +75,16 @@ jobs:
           python_version: '3.13'
         - os: macos-13
           python_version: '3.13'
-          platform: ios
+          test_select: ios
         - os: macos-15
           python_version: '3.13'
-          platform: ios
+          test_select: ios
         - os: macos-13
           python_version: '3.13'
-          platform: android
+          test_select: android
         - os: macos-15
           python_version: '3.13'
-          platform: android
+          test_select: android
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v5
@@ -154,12 +154,12 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-        CIBW_BUILD_FRONTEND: ${{ matrix.platform && 'build' || 'build[uv]' }}
-        CIBW_PLATFORM: ${{ matrix.platform }}
+        CIBW_BUILD_FRONTEND: ${{ matrix.test_select && 'build' || 'build[uv]' }}
+        CIBW_PLATFORM: ${{ matrix.test_select }}
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
-      if: matrix.platform == ''
+      if: matrix.test_select == ''
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
@@ -180,7 +180,7 @@ jobs:
     - name: Run a sample build (GitHub Action, config-file)
       uses: ./
       env:
-        CIBW_PLATFORM: ${{ matrix.platform }}
+        CIBW_PLATFORM: ${{ matrix.test_select }}
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_config_file
@@ -193,7 +193,7 @@ jobs:
         test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
 
     - name: Check Action artifacts (native build only)
-      if: matrix.platform == ''
+      if: matrix.test_select == ''
       shell: bash
       run: |
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
@@ -205,7 +205,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        uv run --no-sync bin/run_tests.py --platform=${{ matrix.platform || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
+        uv run --no-sync bin/run_tests.py --test-select=${{ matrix.test_select || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures
