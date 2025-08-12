@@ -378,7 +378,11 @@ values are:
     CPython that can be built without the Global Interpreter Lock (GIL). Those
     variants are also known as free-threaded / no-gil. The build identifiers for
     those variants have a `t` suffix in their `python_tag` (e.g.
-    `cp313t-manylinux_x86_64`). Free threading was experimental in 3.13: [What’s New In Python 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython). As noted above, free-threading doesn't require an enable flag for 3.14+.
+    `cp313t-manylinux_x86_64`).
+
+    Free threading was [experimental in 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython), so it required an explicit enable flag. But, as noted above, free-threading doesn't require an enable flag for 3.14+.
+
+    For more info on building for free-threading, see the [Python Free-Threading Guide](https://py-free-threading.github.io/).
 
 Default: empty.
 
