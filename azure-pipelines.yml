@@ -66,7 +66,7 @@ jobs:
     - bash: python -m pip install -U pip && python -m pip install -e. --group test
       displayName: 'Update pip and install cibuildwheel --group test'
 
-    - bash: echo "##vso[task.setvariable variable=CIBW_ENABLE;all]"
+    - bash: echo "##vso[task.setvariable variable=CIBW_ENABLE;]all"
       condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
       displayName: Set CIBW_ENABLE to all (main branch)
 
