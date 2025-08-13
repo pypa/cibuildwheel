@@ -6,17 +6,12 @@
 
 import argparse
 import copy
-import functools
 import json
-import sys
 from typing import Any
 
 import yaml
 
-make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
-if sys.version_info >= (3, 14):
-    make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
-parser = make_parser()
+parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
