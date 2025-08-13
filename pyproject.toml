@@ -45,6 +45,8 @@ dependencies = [
     "filelock",
     "humanize",
     "packaging>=20.9",
+    # patchelf is used for Android
+    "patchelf; (sys_platform == 'linux' or sys_platform == 'darwin') and (platform_machine == 'x86_64' or platform_machine == 'arm64' or platform_machine == 'aarch64')",
     "platformdirs",
     "pyelftools>=0.29",
     "wheel>=0.33.6",
