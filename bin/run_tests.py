@@ -27,6 +27,12 @@ if __name__ == "__main__":
         default=default_cpu_count,
         help="number of processes to use for testing",
     )
+    parser.add_argument(
+        "--test-select",
+        choices={"all", "native", "android", "ios", "pyodide"},
+        default="all",
+        help="Either 'native' or 'android'/'ios'/'pyodide'",
+    )
     args = parser.parse_args()
 
     # move cwd to the project root
@@ -50,20 +56,37 @@ if __name__ == "__main__":
         )
 
     # unit tests
+    print(
+        "\n\n================================== UNIT TESTS ==================================",
+        flush=True,
+    )
     unit_test_args = [sys.executable, "-m", "pytest", "unit_test"]
 
-    if sys.platform.startswith("linux") and os.environ.get("CIBW_PLATFORM", "linux") == "linux":
+    if (
+        sys.platform.startswith("linux")
+        and os.environ.get("CIBW_PLATFORM", "linux") == "linux"
+        and args.test_select in ["all", "native"]
+    ):
         # run the docker unit tests only on Linux
         unit_test_args += ["--run-docker"]
 
         if args.run_podman:
             unit_test_args += ["--run-podman"]
 
+    subprocess.run(unit_test_args, check=True)
+
     print(
-        "\n\n================================== UNIT TESTS ==================================",
+        "\n\n=========================== SERIAL INTEGRATION TESTS ===========================",
         flush=True,
     )
-    subprocess.run(unit_test_args, check=True)
+
+    match args.test_select:
+        case "all":
+            marks = []
+        case "native":
+            marks = ["not pyodide", "not android", "not ios"]
+        case mark:
+            marks = [f"{mark}"]
 
     # Run the serial integration tests without multiple processes
     serial_integration_test_args = [
@@ -71,7 +94,7 @@ if __name__ == "__main__":
         "-m",
         "pytest",
         "-m",
-        "serial",
+        f"{' and '.join(['serial', *marks])}",
         "-x",
         "--durations",
         "0",
@@ -79,19 +102,19 @@ if __name__ == "__main__":
         "test",
         "-vv",
     ]
-    print(
-        "\n\n=========================== SERIAL INTEGRATION TESTS ===========================",
-        flush=True,
-    )
+
     subprocess.run(serial_integration_test_args, check=True)
 
-    # Non-serial integration tests
+    print(
+        "\n\n========================= NON-SERIAL INTEGRATION TESTS =========================",
+        flush=True,
+    )
     integration_test_args = [
         sys.executable,
         "-m",
         "pytest",
         "-m",
-        "not serial",
+        f"{' and '.join(['not serial', *marks])}",
         f"--numprocesses={args.num_processes}",
         "-x",
         "--durations",
@@ -104,8 +127,4 @@ if __name__ == "__main__":
     if sys.platform.startswith("linux") and args.run_podman:
         integration_test_args += ["--run-podman"]
 
-    print(
-        "\n\n========================= NON-SERIAL INTEGRATION TESTS =========================",
-        flush=True,
-    )
     subprocess.run(integration_test_args, check=True)

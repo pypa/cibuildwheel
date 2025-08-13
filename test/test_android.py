@@ -90,8 +90,17 @@ def test_android_home(tmp_path, capfd):
     assert "ANDROID_HOME environment variable is not set" in capfd.readouterr().err
 
 
-# Can fail to setup
+# the first build can fail to setup - mark as flaky, and serial to make sure it runs first
+@pytest.mark.serial
 @pytest.mark.flaky(reruns=2)
+def test_expected_wheels(tmp_path):
+    new_c_project().generate(tmp_path)
+    wheels = cibuildwheel_run(tmp_path, add_env={"CIBW_PLATFORM": "android"})
+    assert wheels == expected_wheels(
+        "spam", "0.1.0", platform="android", machine_arch=native_arch.android_abi
+    )
+
+
 def test_frontend_good(tmp_path):
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(
@@ -110,14 +119,6 @@ def test_frontend_bad(frontend, tmp_path, capfd):
             add_env={**cp313_env, "CIBW_BUILD_FRONTEND": frontend},
         )
     assert "Android requires the build frontend to be 'build'" in capfd.readouterr().err
-
-
-def test_expected_wheels(tmp_path):
-    new_c_project().generate(tmp_path)
-    wheels = cibuildwheel_run(tmp_path, add_env={"CIBW_PLATFORM": "android"})
-    assert wheels == expected_wheels(
-        "spam", "0.1.0", platform="android", machine_arch=native_arch.android_abi
-    )
 
 
 @needs_emulator

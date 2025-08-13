@@ -16,62 +16,61 @@ pr:
       - noxfile.py
 
 jobs:
-- job: linux_311
+- job: tests
+  strategy:
+    matrix:
+      linux_311:
+        imageName: "ubuntu-latest"
+        pythonVersion: "3.11"
+        testSelect: "native"
+      android_311:
+        imageName: "ubuntu-latest"
+        pythonVersion: "3.11"
+        testSelect: "android"
+      macos_311:
+        imageName: "macos-latest"
+        pythonVersion: "3.11"
+        testSelect: "native"
+      ios_311:
+        imageName: "macos-latest"
+        pythonVersion: "3.11"
+        testSelect: "ios"
+      android_macos_311:
+        imageName: "macos-latest"
+        pythonVersion: "3.11"
+        testSelect: "android"
+      windows_311:
+        imageName: "windows-latest"
+        pythonVersion: "3.11"
+        testSelect: "native"
   timeoutInMinutes: 180
-  pool: {vmImage: 'ubuntu-latest'}
+  pool:
+    vmImage: $(imageName)
+
   steps:
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '3.11'
+        versionSpec: $(pythonVersion)
+
     - task: JavaToolInstaller@0
+      condition: and(eq(variables['testSelect'], 'android'), eq(variables['Agent.OS'], 'Linux'))
       inputs:
         versionSpec: '17'
         jdkArchitectureOption: 'x64'
         jdkSourceOption: 'PreInstalled'
-    - bash: |
-        docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
-        python -m pip install -U pip
-        python -m pip install -e. --group test
-        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
-          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
-          export CIBW_ENABLE=all
-        else
-          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
-        fi
-        python ./bin/run_tests.py
 
-- job: macos_311
-  pool: {vmImage: 'macOS-latest'}
-  timeoutInMinutes: 120
-  steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.11'
-    - bash: |
-        python -m pip install -U pip
-        python -m pip install -e. --group test
-        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
-          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
-          export CIBW_ENABLE=all
-        else
-          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
-        fi
-        python ./bin/run_tests.py
+    - bash: docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
+      condition: and(eq(variables['imageName'], 'ubuntu-latest'), eq(variables['testSelect'], 'native'))
+      displayName: 'Install binfmt on Linux'
 
-- job: windows_311
-  pool: {vmImage: 'windows-latest'}
-  timeoutInMinutes: 180
-  steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.11'
+    - bash: python -m pip install -U pip && python -m pip install -e. --group test
+      displayName: 'Update pip and install cibuildwheel --group test'
+
+    - bash: echo "##vso[task.setvariable variable=CIBW_ENABLE;]all"
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      displayName: Set CIBW_ENABLE to all (main branch)
+
     - bash: |
-        python -m pip install -U pip
-        python -m pip install -e. --group test
-        if [ "$(Build.SourceBranch)" = "refs/heads/main" ]; then
-          echo "INFO: Exporting CIBW_ENABLE=all for main branch test run."
-          export CIBW_ENABLE=all
-        else
-          echo "INFO: CIBW_ENABLE not set for this branch ($(Build.SourceBranch))."
-        fi
-        python ./bin/run_tests.py
+        echo "CIBW_ENABLE = $CIBW_ENABLE"
+        python ./bin/run_tests.py --test-select $(testSelect)
+      displayName: 'Run tests'
