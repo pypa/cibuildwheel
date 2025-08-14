@@ -4,16 +4,17 @@
 import dataclasses
 import difflib
 import logging
-import subprocess
 import tomllib
 from pathlib import Path
 from typing import Final
 
 import click
 import rich
-from packaging.version import InvalidVersion, Version
+from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
+
+from cibuildwheel.extra import github_api_request
 
 log = logging.getLogger("cibw")
 
@@ -30,32 +31,26 @@ GET_VIRTUALENV_URL_TEMPLATE: Final[str] = (
 
 @dataclasses.dataclass(frozen=True, order=True)
 class VersionTuple:
+    name: str
+    download_url: str
     version: Version
-    version_string: str
 
 
-def git_ls_remote_versions(url: str) -> list[VersionTuple]:
-    versions: list[VersionTuple] = []
-    tags = subprocess.run(
-        ["git", "ls-remote", "--tags", url], check=True, text=True, capture_output=True
-    ).stdout.splitlines()
-    for tag in tags:
-        _, ref = tag.split()
-        assert ref.startswith("refs/tags/")
-        version_string = ref[10:]
-        try:
-            version = Version(version_string)
-            if version.is_devrelease:
-                log.info("Ignoring development release %r", str(version))
-                continue
-            if version.is_prerelease:
-                log.info("Ignoring pre-release %r", str(version))
-                continue
-            versions.append(VersionTuple(version, version_string))
-        except InvalidVersion:
-            log.warning("Ignoring ref %r", ref)
-    versions.sort(reverse=True)
-    return versions
+def get_latest_virtualenv_release() -> VersionTuple:
+    response = github_api_request("repos/pypa/get-virtualenv/releases/latest")
+    tag_name = response["tag_name"]
+
+    asset = next(
+        (asset for asset in response["assets"] if asset["name"] == "virtualenv.pyz"),
+        None,
+    )
+    if not asset:
+        msg = "No asset named 'virtualenv.pyz' found in the latest release of get-virtualenv."
+        raise RuntimeError(msg)
+
+    return VersionTuple(
+        version=Version(tag_name), name=tag_name, download_url=asset["browser_download_url"]
+    )
 
 
 @click.command()
@@ -78,14 +73,20 @@ def update_virtualenv(force: bool, level: str) -> None:
     with toml_file_path.open("rb") as f:
         configurations = tomllib.load(f)
     default = configurations.pop("default")
-    version = str(default["version"])
-    versions = git_ls_remote_versions(GET_VIRTUALENV_GITHUB)
-    if versions[0].version > Version(version):
-        version = versions[0].version_string
+    local_version = str(default["version"])
+
+    latest_release = get_latest_virtualenv_release()
+
+    if latest_release.version > Version(local_version):
+        version = latest_release.name
+        url = latest_release.download_url
+    else:
+        version = local_version
+        url = default["url"]
 
     configurations["default"] = {
         "version": version,
-        "url": GET_VIRTUALENV_URL_TEMPLATE.format(version=version),
+        "url": url,
     }
     result_toml = "".join(
         f'{key} = {{ version = "{value["version"]}", url = "{value["url"]}" }}\n'
