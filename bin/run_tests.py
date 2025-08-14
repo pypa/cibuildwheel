@@ -2,7 +2,6 @@
 
 
 import argparse
-import functools
 import os
 import subprocess
 import sys
@@ -14,10 +13,7 @@ if __name__ == "__main__":
     else:
         default_cpu_count = os.process_cpu_count() or 2
 
-    make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
-    if sys.version_info >= (3, 14):
-        make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
-    parser = make_parser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument(
         "--run-podman", action="store_true", default=False, help="run podman tests (linux only)"
     )
