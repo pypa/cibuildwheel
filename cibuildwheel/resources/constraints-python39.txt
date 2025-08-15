@@ -8,7 +8,7 @@ delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.0
     # via virtualenv
-filelock==3.18.0
+filelock==3.19.1
     # via virtualenv
 importlib-metadata==8.7.0
     # via build
@@ -27,8 +27,10 @@ pyproject-hooks==1.2.0
 tomli==2.2.1
     # via build
 typing-extensions==4.14.1
-    # via delocate
-virtualenv==20.33.1
+    # via
+    #   delocate
+    #   virtualenv
+virtualenv==20.34.0
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.23.0
     # via importlib-metadata
