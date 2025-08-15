@@ -180,6 +180,12 @@ def main_inner(global_options: GlobalOptions) -> None:
     )
 
     parser.add_argument(
+        "--clean-cache",
+        action="store_true",
+        help="Clear the cibuildwheel cache and exit.",
+    )
+
+    parser.add_argument(
         "--allow-empty",
         action="store_true",
         help="Do not report an error code if the build does not match any wheels.",
@@ -195,6 +201,19 @@ def main_inner(global_options: GlobalOptions) -> None:
     args = CommandLineArguments(**vars(parser.parse_args()))
 
     global_options.print_traceback_on_error = args.debug_traceback
+
+    if args.clean_cache:
+        if CIBW_CACHE_PATH.exists():
+            print(f"Clearing cache directory: {CIBW_CACHE_PATH}")
+            try:
+                shutil.rmtree(CIBW_CACHE_PATH)
+                print("Cache cleared successfully.")
+            except OSError as e:
+                print(f"Error clearing cache: {e}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            print(f"Cache directory does not exist: {CIBW_CACHE_PATH}")
+        sys.exit(0)
 
     args.package_dir = args.package_dir.resolve()
 
