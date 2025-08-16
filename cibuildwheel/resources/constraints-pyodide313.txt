@@ -23,7 +23,7 @@ click==8.1.8
     #   typer
 distlib==0.4.0
     # via virtualenv
-filelock==3.18.0
+filelock==3.19.1
     # via virtualenv
 h11==0.16.0
     # via httpcore
@@ -62,7 +62,7 @@ pydantic-core==2.33.2
     # via pydantic
 pygments==2.19.2
     # via rich
-pyodide-build==0.30.5
+pyodide-build==0.30.6
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.3.0
     # via
@@ -106,7 +106,7 @@ unearth==0.17.5
     # via pyodide-build
 urllib3==2.5.0
     # via requests
-virtualenv==20.33.1
+virtualenv==20.34.0
     # via
     #   build
     #   pyodide-build
