@@ -79,7 +79,7 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
 You can configure cibuildwheel with a config file, such as `pyproject.toml`.
 Options have the same names as the environment variable overrides, but are
 placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
-common [TOML][https://toml.io] practice. Anything placed in subsections `linux`, `windows`,
+common [TOML](https://toml.io) practice. Anything placed in subsections `linux`, `windows`,
 `macos`, or `pyodide` will only affect those platforms. Lists can be used
 instead of strings for items that are naturally a list. Multiline strings also
 work just like in the environment variables. Environment variables will take
