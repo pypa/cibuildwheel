@@ -4,5 +4,5 @@ cibuildwheel/platforms/pyodide.py     @hoodmane @ryanking13 @agriyakhetarpal
 cibuildwheel/platforms/android.py     @mhsmith
 
 # Constraints files
-# cibuildwheel/resources/constraints @pypa/cibuildwheel-maintainers
+cibuildwheel/resources/constraints @pypa/cibuildwheel-maintainers
 cibuildwheel/resources/constraints-pyodide*.txt @hoodmane @ryanking13 @agriyakhetarpal
