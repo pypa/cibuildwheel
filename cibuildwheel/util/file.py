@@ -20,6 +20,20 @@ CIBW_CACHE_PATH: Final[Path] = Path(
 ).resolve()
 
 
+def ensure_cache_sentinel(cache_path: Path) -> None:
+    """Create a sentinel file to mark a cibuildwheel cache directory.
+
+    We help prevent accidental deletion of non-cache directories with this.
+
+    Args:
+        cache_path: The cache directory path where the sentinel should be created
+    """
+    if cache_path.exists():
+        sentinel_file = cache_path / ".cibuildwheel_cached"
+        if not sentinel_file.exists():
+            sentinel_file.write_text("# Created by cibuildwheel automatically\n")
+
+
 def download(url: str, dest: Path) -> None:
     print(f"+ Download {url} to {dest}")
     dest_dir = dest.parent

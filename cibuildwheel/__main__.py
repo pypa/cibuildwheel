@@ -25,7 +25,7 @@ from cibuildwheel.options import CommandLineArguments, Options, compute_options
 from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
 from cibuildwheel.selector import BuildSelector, EnableGroup, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
-from cibuildwheel.util.file import CIBW_CACHE_PATH
+from cibuildwheel.util.file import CIBW_CACHE_PATH, ensure_cache_sentinel
 from cibuildwheel.util.helpers import strtobool
 
 
@@ -205,6 +205,18 @@ def main_inner(global_options: GlobalOptions) -> None:
 
     if args.clean_cache:
         if CIBW_CACHE_PATH.exists():
+            sentinel_file = CIBW_CACHE_PATH / ".cibuildwheel_cached"
+            if not sentinel_file.exists():
+                print(
+                    f"Error: {CIBW_CACHE_PATH} does not appear to be a cibuildwheel cache directory.",
+                    file=sys.stderr,
+                )
+                print(
+                    "Only directories with a .cibuildwheel_cached sentinel file can be cleaned.",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+
             print(f"Clearing cache directory: {CIBW_CACHE_PATH}")
             try:
                 shutil.rmtree(CIBW_CACHE_PATH)
@@ -379,6 +391,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     # create the cache dir before it gets printed & builds performed
     CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
+    ensure_cache_sentinel(CIBW_CACHE_PATH)
 
     print_preamble(platform=platform, options=options, identifiers=identifiers)
 
