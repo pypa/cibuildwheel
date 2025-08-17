@@ -15,6 +15,9 @@ def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
     fake_cache_dir.mkdir(parents=True, exist_ok=True)
     assert fake_cache_dir.exists()
 
+    cibw_sentinel = fake_cache_dir / ".cibuildwheel_cached"
+    cibw_sentinel.write_text("# Created by cibuildwheel automatically", encoding="utf-8")
+
     dummy_file = fake_cache_dir / "dummy.txt"
     dummy_file.write_text("hello")
 
@@ -53,6 +56,9 @@ def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
     fake_cache_dir.mkdir(parents=True, exist_ok=True)
     assert fake_cache_dir.exists()
 
+    cibw_sentinel = fake_cache_dir / ".cibuildwheel_cached"
+    cibw_sentinel.write_text("# Created by cibuildwheel automatically\n")
+
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
 
     def fake_rmtree(path):  # noqa: ARG001
@@ -68,3 +74,21 @@ def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
     out, err = capfd.readouterr()
     assert f"Clearing cache directory: {fake_cache_dir}" in out
     assert "Error clearing cache:" in err
+
+
+def test_clean_cache_without_sentinel(tmp_path, monkeypatch, capfd):
+    fake_cache_dir = (tmp_path / "not_a_cache").resolve()
+    monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
+
+    fake_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
+
+    with pytest.raises(SystemExit) as e:
+        main()
+
+    assert e.value.code == 1
+
+    out, err = capfd.readouterr()
+    assert "does not appear to be a cibuildwheel cache directory" in err
+    assert fake_cache_dir.exists()
