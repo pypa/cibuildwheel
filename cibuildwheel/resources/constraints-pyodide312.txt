@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 annotated-types==0.7.0
     # via pydantic
-anyio==4.9.0
+anyio==4.10.0
     # via httpx
 auditwheel-emscripten==0.1.0
     # via pyodide-build
@@ -10,18 +10,18 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.6.15
+certifi==2025.8.3
     # via
     #   httpcore
     #   httpx
     #   requests
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via requests
 click==8.1.8
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   typer
-distlib==0.3.9
+distlib==0.4.0
     # via virtualenv
 filelock==3.18.0
     # via virtualenv
@@ -38,7 +38,7 @@ idna==3.10
     #   requests
 leb128==1.0.8
     # via auditwheel-emscripten
-markdown-it-py==3.0.0
+markdown-it-py==4.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
@@ -48,7 +48,7 @@ packaging==25.0
     #   build
     #   pyodide-build
     #   unearth
-pip==25.1.1
+pip==25.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.3.8
     # via
@@ -76,7 +76,7 @@ requests==2.32.4
     # via pyodide-build
 resolvelib==1.2.0
     # via pyodide-build
-rich==14.0.0
+rich==14.1.0
     # via
     #   pyodide-build
     #   pyodide-cli
@@ -94,7 +94,7 @@ typer==0.16.0
     #   auditwheel-emscripten
     #   pyodide-build
     #   pyodide-cli
-typing-extensions==4.14.0
+typing-extensions==4.14.1
     # via
     #   anyio
     #   pydantic
@@ -107,7 +107,7 @@ unearth==0.17.5
     # via pyodide-build
 urllib3==2.5.0
     # via requests
-virtualenv==20.31.2
+virtualenv==20.33.1
     # via
     #   build
     #   pyodide-build

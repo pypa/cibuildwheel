@@ -19,7 +19,7 @@ from .. import errors
 from ..architecture import Architecture
 from ..ci import detect_ci_provider
 from ..environment import ParsedEnvironment
-from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
+from ..frontend import BuildFrontendName, get_build_frontend_extra_flags
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
@@ -345,39 +345,40 @@ def setup_python(
             env.setdefault("SDKROOT", arm64_compatible_sdks[0])
 
     log.step("Installing build tools...")
-    if build_frontend == "pip":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "delocate",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
-    elif build_frontend == "build":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "delocate",
-            "build[virtualenv]",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
-    elif build_frontend == "build[uv]":
-        assert uv_path is not None
-        call(
-            uv_path,
-            "pip",
-            "install",
-            "--upgrade",
-            "delocate",
-            "build[virtualenv, uv]",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
-    else:
-        assert_never(build_frontend)
+    match build_frontend:
+        case "pip":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "delocate",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case "build":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "delocate",
+                "build[virtualenv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case "build[uv]":
+            assert uv_path is not None
+            call(
+                uv_path,
+                "pip",
+                "install",
+                "--upgrade",
+                "delocate",
+                "build[virtualenv, uv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case _:
+            assert_never(build_frontend)
 
     return base_python, env
 
@@ -407,7 +408,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+            build_frontend = build_options.build_frontend
             use_uv = build_frontend.name == "build[uv]"
             uv_path = find_uv()
             if use_uv and uv_path is None:
@@ -467,35 +468,40 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_env, constraints_path, identifier_tmp_dir if use_uv else None
                     )
 
-                if build_frontend.name == "pip":
-                    # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                    # see https://github.com/pypa/cibuildwheel/pull/369
-                    call(
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        build_options.package_dir.resolve(),
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                    if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                        extra_flags.append("--installer=uv")
-                    call(
-                        "python",
-                        "-m",
-                        "build",
-                        build_options.package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                else:
-                    assert_never(build_frontend)
+                match build_frontend.name:
+                    case "pip":
+                        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                        # see https://github.com/pypa/cibuildwheel/pull/369
+                        call(
+                            "python",
+                            "-m",
+                            "pip",
+                            "wheel",
+                            build_options.package_dir.resolve(),
+                            f"--wheel-dir={built_wheel_dir}",
+                            "--no-deps",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case "build" | "build[uv]":
+                        if (
+                            use_uv
+                            and "--no-isolation" not in extra_flags
+                            and "-n" not in extra_flags
+                        ):
+                            extra_flags.append("--installer=uv")
+                        call(
+                            "python",
+                            "-m",
+                            "build",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case _:
+                        assert_never(build_frontend)
 
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
@@ -726,6 +732,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     shell_with_arch(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (overwrite existing)
+            output_wheel = None
             if compatible_wheel is None:
                 output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
                 moved_wheel = move_file(repaired_wheel, output_wheel)
@@ -738,7 +745,7 @@ def build(options: Options, tmp_path: Path) -> None:
             # clean up
             shutil.rmtree(identifier_tmp_dir)
 
-            log.build_end()
+            log.build_end(output_wheel)
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
         raise errors.FatalError(msg) from error

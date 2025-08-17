@@ -15,6 +15,7 @@ def test_build():
     assert build_selector("cp311-manylinux_x86_64")
     assert build_selector("cp312-manylinux_x86_64")
     assert build_selector("cp313-manylinux_x86_64")
+    assert build_selector("cp314-manylinux_x86_64")
     assert build_selector("pp310-manylinux_x86_64")
     assert build_selector("pp311-manylinux_x86_64")
     assert build_selector("cp36-manylinux_i686")
@@ -36,6 +37,7 @@ def test_build():
     assert build_selector("cp311-win_amd64")
     assert build_selector("cp312-win_amd64")
     assert build_selector("cp313-win_amd64")
+    assert build_selector("cp314-win_amd64")
     assert not build_selector("pp310-win_amd64")
     assert not build_selector("pp311-win_amd64")
 
@@ -107,7 +109,7 @@ def test_build_filter_pyodide():
         enable=frozenset(),
     )
     assert build_selector("cp312-pyodide_wasm32")
-    assert not build_selector("cp313-pyodide_wasm32")
+    assert build_selector("cp313-pyodide_wasm32")
 
 
 def test_skip():
@@ -213,15 +215,6 @@ def test_build_free_threaded_python():
     build_selector = BuildSelector(build_config="*", skip_config="", enable=frozenset(EnableGroup))
 
     assert build_selector("cp313t-manylinux_x86_64")
-
-
-def test_build_riscv64_enable():
-    build_selector = BuildSelector(build_config="*", skip_config="")
-    assert not build_selector("cp313-manylinux_riscv64")
-    build_selector = BuildSelector(
-        build_config="*", skip_config="", enable=frozenset([EnableGroup.CPythonExperimentalRiscV64])
-    )
-    assert build_selector("cp313-manylinux_riscv64")
 
 
 def test_testing_selector():

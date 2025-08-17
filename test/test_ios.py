@@ -12,6 +12,12 @@ from cibuildwheel.ci import CIProvider, detect_ci_provider
 
 from . import test_projects, utils
 
+pytestmark = pytest.mark.ios
+
+CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "ios")
+if CIBW_PLATFORM != "ios":
+    pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
+
 basic_project_files = {
     "tests/test_platform.py": f"""
 import platform
@@ -43,7 +49,9 @@ def skip_if_ios_testing_not_supported() -> None:
 # it's easy to overload the CI machine if there are multiple test processes
 # running multithreaded processes. Therefore, they're put in the serial group,
 # which is guaranteed to run single-process.
+# This can also fail the first time sometimes.
 @pytest.mark.serial
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.parametrize(
     "build_config",
     [
@@ -163,6 +171,7 @@ def test_ios_testing_with_placeholder(tmp_path, capfd):
 
 
 @pytest.mark.serial
+@pytest.mark.flaky(reruns=2)
 def test_ios_test_command_short_circuit(tmp_path, capfd):
     skip_if_ios_testing_not_supported()
 
@@ -230,6 +239,7 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_SKIP": "*",
         },
     )
@@ -239,7 +249,7 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
         "spam",
         "0.1.0",
         platform="ios",
-        python_abi_tags=["cp313-cp313", "cp314-cp314"],
+        python_abi_tags=["cp313-cp313"],
     )
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -263,13 +273,14 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_SKIP": "*",
             "CIBW_XBUILD_TOOLS": "",
         },
     )
 
     expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313", "cp314-cp314"]
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
     )
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -299,6 +310,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
         project_dir,
         add_env={
             "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp313-*",
             "CIBW_TEST_COMMAND": "pytest ./tests",
             "CIBW_TEST_SOURCES": "tests",
             "CIBW_TEST_REQUIRES": "pytest",
@@ -307,7 +319,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     )
 
     expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313", "cp314-cp314"]
+        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313"]
     )
     assert set(actual_wheels) == set(expected_wheels)
 

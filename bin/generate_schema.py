@@ -6,17 +6,12 @@
 
 import argparse
 import copy
-import functools
 import json
-import sys
 from typing import Any
 
 import yaml
 
-make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
-if sys.version_info >= (3, 14):
-    make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
-parser = make_parser()
+parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
@@ -63,7 +58,7 @@ properties:
     type: string_array
   build-frontend:
     default: default
-    description: Set the tool to use to build, either "pip" (default for now), "build", or "build[uv]"
+    description: Set the tool to use to build, either "build" (default), "build[uv]", or "pip"
     oneOf:
       - enum: [pip, build, "build[uv]", default]
       - type: string
@@ -348,6 +343,7 @@ oses = {
     "windows": as_object(not_linux),
     "macos": as_object(not_linux),
     "pyodide": as_object(not_linux),
+    "android": as_object(not_linux),
     "ios": as_object(not_linux),
 }
 

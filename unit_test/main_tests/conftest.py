@@ -6,8 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel import __main__, architecture
-from cibuildwheel.platforms import linux, macos, pyodide, windows
+from cibuildwheel import architecture
+from cibuildwheel.logger import Logger
+from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
 from cibuildwheel.util import file
 
 
@@ -58,7 +59,7 @@ def disable_print_wheels(monkeypatch):
     def empty_cm(*args, **kwargs):
         yield
 
-    monkeypatch.setattr(__main__, "print_new_wheels", empty_cm)
+    monkeypatch.setattr(Logger, "print_summary", empty_cm)
 
 
 @pytest.fixture
@@ -86,10 +87,12 @@ def platform(request, monkeypatch):
 def intercepted_build_args(monkeypatch):
     intercepted = ArgsInterceptor()
 
+    monkeypatch.setattr(android, "build", intercepted)
+    monkeypatch.setattr(ios, "build", intercepted)
     monkeypatch.setattr(linux, "build", intercepted)
     monkeypatch.setattr(macos, "build", intercepted)
-    monkeypatch.setattr(windows, "build", intercepted)
     monkeypatch.setattr(pyodide, "build", intercepted)
+    monkeypatch.setattr(windows, "build", intercepted)
 
     yield intercepted
 

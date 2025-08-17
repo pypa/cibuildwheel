@@ -1,6 +1,5 @@
 import json
 import os
-import platform
 import random
 import shutil
 import subprocess
@@ -29,16 +28,7 @@ from cibuildwheel.oci_container import (
 # for these tests we use manylinux2014 images, because they're available on
 # multi architectures and include python3.8
 DEFAULT_IMAGE = "quay.io/pypa/manylinux2014:2025.03.08-1"
-pm = platform.machine()
-DEFAULT_OCI_PLATFORM = {
-    "AMD64": OCIPlatform.AMD64,
-    "x86_64": OCIPlatform.AMD64,
-    "ppc64le": OCIPlatform.PPC64LE,
-    "s390x": OCIPlatform.S390X,
-    "aarch64": OCIPlatform.ARM64,
-    "arm64": OCIPlatform.ARM64,
-    "ARM64": OCIPlatform.ARM64,
-}[pm]
+DEFAULT_OCI_PLATFORM = OCIPlatform.native()
 
 PODMAN = OCIContainerEngineConfig(name="podman")
 
@@ -494,7 +484,7 @@ def test_parse_engine_config(config, name, create_args, capsys):
         )
 
 
-@pytest.mark.skipif(pm != "x86_64", reason="Only runs on x86_64")
+@pytest.mark.skipif(DEFAULT_OCI_PLATFORM != OCIPlatform.AMD64, reason="Only runs on x86_64")
 def test_enforce_32_bit(container_engine):
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=OCIPlatform.i386
@@ -551,7 +541,7 @@ def test_local_image(
 ) -> None:
     if (
         detect_ci_provider() == CIProvider.travis_ci
-        and pm != "x86_64"
+        and DEFAULT_OCI_PLATFORM != OCIPlatform.AMD64
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
@@ -581,7 +571,7 @@ def test_local_image(
 def test_multiarch_image(container_engine, platform):
     if (
         detect_ci_provider() == CIProvider.travis_ci
-        and pm != "x86_64"
+        and DEFAULT_OCI_PLATFORM != OCIPlatform.AMD64
         and platform != DEFAULT_OCI_PLATFORM
     ):
         pytest.skip("Skipping test because docker on this platform does not support QEMU")

@@ -15,7 +15,7 @@ from filelock import FileLock
 from .. import errors
 from ..architecture import Architecture
 from ..environment import ParsedEnvironment
-from ..frontend import BuildFrontendConfig, BuildFrontendName, get_build_frontend_extra_flags
+from ..frontend import BuildFrontendName, get_build_frontend_extra_flags
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
@@ -305,26 +305,27 @@ def setup_python(
         call("pip", "--version", env=env)
 
     log.step("Installing build tools...")
-    if build_frontend == "build":
-        call(
-            "pip",
-            "install",
-            "--upgrade",
-            "build[virtualenv]",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
-    elif build_frontend == "build[uv]":
-        assert uv_path is not None
-        call(
-            uv_path,
-            "pip",
-            "install",
-            "--upgrade",
-            "build[virtualenv]",
-            *constraint_flags(dependency_constraint),
-            env=env,
-        )
+    match build_frontend:
+        case "build":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "build[virtualenv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case "build[uv]":
+            assert uv_path is not None
+            call(
+                uv_path,
+                "pip",
+                "install",
+                "--upgrade",
+                "build[virtualenv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
@@ -394,7 +395,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+            build_frontend = build_options.build_frontend
 
             use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
             log.build_start(config.identifier)
@@ -467,36 +468,41 @@ def build(options: Options, tmp_path: Path) -> None:
                 if constraints_path:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
-                if build_frontend.name == "pip":
-                    # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                    # see https://github.com/pypa/cibuildwheel/pull/369
-                    call(
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        options.globals.package_dir.resolve(),
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                    if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                        extra_flags.append("--installer=uv")
+                match build_frontend.name:
+                    case "pip":
+                        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                        # see https://github.com/pypa/cibuildwheel/pull/369
+                        call(
+                            "python",
+                            "-m",
+                            "pip",
+                            "wheel",
+                            options.globals.package_dir.resolve(),
+                            f"--wheel-dir={built_wheel_dir}",
+                            "--no-deps",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case "build" | "build[uv]":
+                        if (
+                            use_uv
+                            and "--no-isolation" not in extra_flags
+                            and "-n" not in extra_flags
+                        ):
+                            extra_flags.append("--installer=uv")
 
-                    call(
-                        "python",
-                        "-m",
-                        "build",
-                        build_options.package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        *extra_flags,
-                        env=build_env,
-                    )
-                else:
-                    assert_never(build_frontend)
+                        call(
+                            "python",
+                            "-m",
+                            "build",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case _:
+                        assert_never(build_frontend)
 
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
@@ -607,6 +613,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (remove if already exists)
+            output_wheel = None
             if compatible_wheel is None:
                 output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
                 moved_wheel = move_file(repaired_wheel, output_wheel)
@@ -621,7 +628,7 @@ def build(options: Options, tmp_path: Path) -> None:
             # don't want to abort a build because of that)
             shutil.rmtree(identifier_tmp_dir, ignore_errors=True)
 
-            log.build_end()
+            log.build_end(output_wheel)
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
         raise errors.FatalError(msg) from error

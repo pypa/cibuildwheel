@@ -51,7 +51,7 @@ def get_platform() -> str:
         raise Exception(msg)
 
 
-DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease cpython-experimental-riscv64"
+DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease"
 
 
 def get_enable_groups() -> frozenset[EnableGroup]:
@@ -151,7 +151,7 @@ def cibuildwheel_run(
             cwd=project_path,
             check=True,
         )
-        wheels = [p.name for p in (output_dir or Path(tmp_output_dir)).iterdir()]
+        wheels = sorted(p.name for p in (output_dir or Path(tmp_output_dir)).iterdir())
     return wheels
 
 
@@ -252,19 +252,17 @@ def _expected_wheels(
     if manylinux_versions is None:
         manylinux_versions = {
             "armv7l": ["manylinux2014", "manylinux_2_17", "manylinux_2_31"],
-            "i686": ["manylinux1", "manylinux2014", "manylinux_2_17", "manylinux_2_5"],
+            "i686": ["manylinux1", "manylinux_2_28", "manylinux_2_5"],
             "x86_64": ["manylinux1", "manylinux_2_28", "manylinux_2_5"],
-            "riscv64": ["manylinux_2_31", "manylinux_2_35"],
+            "riscv64": ["manylinux_2_31", "manylinux_2_39"],
         }.get(machine_arch, ["manylinux2014", "manylinux_2_17", "manylinux_2_28"])
 
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
     if platform == "pyodide" and python_abi_tags is None:
-        python_abi_tags = ["cp312-cp312"]
-        if EnableGroup.PyodidePrerelease in enable_groups:
-            python_abi_tags.append("cp313-cp313")
-    elif platform == "ios" and python_abi_tags is None:
+        python_abi_tags = ["cp312-cp312", "cp313-cp313"]
+    elif platform in {"android", "ios"} and python_abi_tags is None:
         python_abi_tags = ["cp313-cp313"]
     elif python_abi_tags is None:
         python_abi_tags = [
@@ -274,6 +272,8 @@ def _expected_wheels(
             "cp311-cp311",
             "cp312-cp312",
             "cp313-cp313",
+            "cp314-cp314",
+            "cp314-cp314t",
         ]
 
         enable_groups = get_enable_groups()
@@ -281,9 +281,7 @@ def _expected_wheels(
             python_abi_tags.append("cp313-cp313t")
 
         if EnableGroup.CPythonPrerelease in enable_groups:
-            python_abi_tags.append("cp314-cp314")
-            if EnableGroup.CPythonFreeThreading in enable_groups:
-                python_abi_tags.append("cp314-cp314t")
+            ...  # Add cp315 here when available
 
         if EnableGroup.PyPyEoL in enable_groups:
             python_abi_tags += [
@@ -369,6 +367,13 @@ def _expected_wheels(
 
             if include_universal2:
                 platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
+
+        elif platform == "android":
+            api_level = {
+                "cp313-cp313": 21,
+                "cp314-cp314": 24,
+            }[python_abi_tag]
+            platform_tags = [f"android_{api_level}_{machine_arch}"]
 
         elif platform == "ios":
             if machine_arch == "x86_64":

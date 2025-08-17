@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.0.1"
+version = "3.1.3"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -39,11 +39,17 @@ classifiers = [
 dependencies = [
     "bashlex!=0.13",
     "bracex",
+    "build>=1.0.0",
     "certifi",
     "dependency-groups>=1.2",
     "filelock",
+    "humanize",
     "packaging>=20.9",
-    "platformdirs"
+    # patchelf is used for Android
+    "patchelf; (sys_platform == 'linux' or sys_platform == 'darwin') and (platform_machine == 'x86_64' or platform_machine == 'arm64' or platform_machine == 'aarch64')",
+    "platformdirs",
+    "pyelftools>=0.29",
+    "wheel>=0.33.6",
 ]
 
 [project.optional-dependencies]
@@ -84,10 +90,12 @@ test = [
     "jinja2",
     "pytest-timeout",
     "pytest-xdist",
+    "pytest-rerunfailures",
     "pytest>=6",
     "setuptools",
     "tomli_w",
     "validate-pyproject",
+    "xdoctest",
 ]
 dev = [
     {include-group = "bin"},
@@ -98,13 +106,16 @@ dev = [
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--xdoctest", "--ignore-glob=*venv*"]
 junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]
 log_cli_level = "INFO"
 markers = [
     "serial: tests that must *not* be run in parallel (deselect with '-m \"not serial\"')",
+    "ios: tests that run on iOS",
+    "android: tests that run on Android",
+    "pyodide: tests that run on Pyodide",
 ]
 
 [tool.mypy]
@@ -144,6 +155,7 @@ py-version = "3.11"
 jobs = "0"
 fail-on = ["E", "F"]
 fail-under = "9.8"
+max-positional-arguments = "7"
 reports.output-format = "colorized"
 messages_control.enable = [
   "useless-suppression",

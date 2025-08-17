@@ -1,7 +1,7 @@
 repos:
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
   - id: check-case-conflict
   - id: check-merge-conflict
@@ -14,24 +14,28 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.12.1
+  rev: v0.12.8
   hooks:
   - id: ruff
     args: ["--fix", "--show-fixes"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.16.1
+  rev: v1.17.1
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
     args: ["--python-version=3.11"]
+    exclude: ^cibuildwheel/resources/_cross_venv.py$  # Requires Python 3.13 or later
     additional_dependencies: &mypy-dependencies
       - bracex
+      - build
       - dependency-groups>=1.2
+      - humanize
       - nox>=2025.2.9
       - orjson
       - packaging
+      - pyelftools
       - pygithub
       - pytest
       - rich
@@ -46,12 +50,11 @@ repos:
       - validate-pyproject
   - id: mypy
     name: mypy 3.13
-    exclude: ^cibuildwheel/resources/.*py$
     args: ["--python-version=3.13"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
-  rev: v0.10.0.1
+  rev: v0.11.0.1
   hooks:
   - id: shellcheck
 
@@ -80,7 +83,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.33.1
+  rev: 0.33.2
   hooks:
     - id: check-dependabot
     - id: check-github-actions

@@ -1,13 +1,11 @@
 import argparse
 import contextlib
 import dataclasses
-import functools
 import os
 import shutil
 import sys
 import tarfile
 import textwrap
-import time
 import traceback
 import typing
 from collections.abc import Generator, Iterable, Sequence
@@ -22,11 +20,12 @@ from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
-from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
+from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers, native_platform
 from cibuildwheel.selector import BuildSelector, EnableGroup, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util.file import CIBW_CACHE_PATH, ensure_cache_sentinel
 from cibuildwheel.util.helpers import strtobool
+from cibuildwheel.util.resources import read_all_configs
 
 
 @dataclasses.dataclass
@@ -80,28 +79,26 @@ def main_inner(global_options: GlobalOptions) -> None:
     rather than exiting directly.
     """
 
-    make_parser = functools.partial(argparse.ArgumentParser, allow_abbrev=False)
-    if sys.version_info >= (3, 14):
-        make_parser = functools.partial(make_parser, color=True, suggest_on_error=True)
-    parser = make_parser(
+    parser = argparse.ArgumentParser(
         description="Build wheels for all the platforms.",
         epilog="""
             Most options are supplied via environment variables or in
             --config-file (pyproject.toml usually). See
             https://github.com/pypa/cibuildwheel#options for info.
         """,
+        allow_abbrev=False,
     )
 
     parser.add_argument(
         "--platform",
-        choices=["auto", "linux", "macos", "windows", "pyodide", "ios"],
+        choices=["auto", "linux", "macos", "windows", "pyodide", "android", "ios"],
         default=None,
         help="""
             Platform to build for. Use this option to override the auto-detected
             platform. Specifying "macos" or "windows" only works on that
             operating system. "linux" works on any desktop OS, as long as
-            Docker/Podman is installed. "pyodide" only works on linux and macOS.
-            "ios" only work on macOS. Default: auto.
+            Docker/Podman is installed. "pyodide" and "android" only work on
+            Linux and macOS. "ios" only works on macOS. Default: auto.
         """,
     )
 
@@ -133,6 +130,8 @@ def main_inner(global_options: GlobalOptions) -> None:
     parser.add_argument(
         "--only",
         default=None,
+        choices=[v["identifier"] for vv in read_all_configs().values() for v in vv],
+        metavar="IDENTIFIER",
         help="""
             Force a single wheel build when given an identifier. Overrides
             CIBW_BUILD/CIBW_SKIP. --platform and --arch cannot be specified
@@ -273,26 +272,12 @@ def _compute_platform_only(only: str) -> PlatformName:
         return "windows"
     if "pyodide_" in only:
         return "pyodide"
+    if "android_" in only:
+        return "android"
     if "ios_" in only:
         return "ios"
     msg = f"Invalid --only='{only}', must be a build selector with a known platform"
     raise errors.ConfigurationError(msg)
-
-
-def _compute_platform_auto() -> PlatformName:
-    if sys.platform.startswith("linux"):
-        return "linux"
-    elif sys.platform == "darwin":
-        return "macos"
-    elif sys.platform == "win32":
-        return "windows"
-    else:
-        msg = (
-            'Unable to detect platform from "sys.platform". cibuildwheel doesn\'t '
-            "support building wheels for this platform. You might be able to build for a different "
-            "platform using the --platform argument. Check --help output for more information."
-        )
-        raise errors.ConfigurationError(msg)
 
 
 def _compute_platform(args: CommandLineArguments) -> PlatformName:
@@ -314,43 +299,7 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     elif platform_option_value != "auto":
         return typing.cast(PlatformName, platform_option_value)
 
-    return _compute_platform_auto()
-
-
-@contextlib.contextmanager
-def print_new_wheels(msg: str, output_dir: Path) -> Generator[None, None, None]:
-    """
-    Prints the new items in a directory upon exiting. The message to display
-    can include {n} for number of wheels, {s} for total number of seconds,
-    and/or {m} for total number of minutes. Does not print anything if this
-    exits via exception.
-    """
-
-    start_time = time.time()
-    existing_contents = set(output_dir.iterdir())
-    yield
-    final_contents = set(output_dir.iterdir())
-
-    new_contents = [
-        FileReport(wheel.name, f"{(wheel.stat().st_size + 1023) // 1024:,d}")
-        for wheel in final_contents - existing_contents
-    ]
-
-    if not new_contents:
-        return
-
-    max_name_len = max(len(f.name) for f in new_contents)
-    max_size_len = max(len(f.size) for f in new_contents)
-    n = len(new_contents)
-    s = time.time() - start_time
-    m = s / 60
-    print(
-        msg.format(n=n, s=s, m=m),
-        *sorted(
-            f"  {f.name:<{max_name_len}s}   {f.size:>{max_size_len}s} kB" for f in new_contents
-        ),
-        sep="\n",
-    )
+    return native_platform()
 
 
 def build_in_directory(args: CommandLineArguments) -> None:
@@ -414,7 +363,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
-        with print_new_wheels("\n{n} wheels produced in {m:.0f} minutes:", output_dir):
+        with log.print_summary(options=options):
             platform_module.build(options, tmp_path)
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
@@ -449,40 +398,60 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
     print(f"Cache folder: {CIBW_CACHE_PATH}")
     print()
 
-    warnings = detect_warnings(options=options, identifiers=identifiers)
+    warnings = detect_warnings(options=options)
     for warning in warnings:
         log.warning(warning)
+
+    error_list = list(detect_errors(options=options, identifiers=identifiers))
+    if error_list:
+        for error in error_list:
+            log.error(error)
+        msg = "\n".join(error_list)
+        raise errors.ConfigurationError(msg)
 
     print("Here we go!\n")
 
 
-def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str]:
-    warnings = []
-
-    python_version_deprecation = ((3, 11), 3)
-    if sys.version_info[:2] < python_version_deprecation[0]:
-        python_version = ".".join(map(str, python_version_deprecation[0]))
-        msg = (
-            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
-            "please upgrade the Python version used to run cibuildwheel. "
-            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
+def detect_errors(*, options: Options, identifiers: Iterable[str]) -> Generator[str, None, None]:
+    # Check for deprecated CIBW_FREE_THREADED_SUPPORT environment variable
+    if "CIBW_FREE_THREADED_SUPPORT" in os.environ:
+        yield (
+            "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported. "
+            'Use tool.cibuildwheel.enable = ["cpython-freethreading"] in pyproject.toml '
+            "or set CIBW_ENABLE=cpython-freethreading instead."
         )
-        warnings.append(msg)
 
-    # warn about deprecated {python} and {pip}
+    # Deprecated {python} and {pip}
     for option_name in ["test_command", "before_build"]:
         option_values = [getattr(options.build_options(i), option_name) for i in identifiers]
 
         if any(o and ("{python}" in o or "{pip}" in o) for o in option_values):
             # Reminder: in an f-string, double braces means literal single brace
-            msg = (
+            yield (
                 f"{option_name}: '{{python}}' and '{{pip}}' are no longer supported "
                 "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
-            raise errors.ConfigurationError(msg)
+
+
+def detect_warnings(*, options: Options) -> Generator[str, None, None]:
+    python_version_deprecation = ((3, 11), 3)
+    if sys.version_info[:2] < python_version_deprecation[0]:
+        python_version = ".".join(map(str, python_version_deprecation[0]))
+        yield (
+            f"cibuildwheel {python_version_deprecation[1]} will require Python {python_version}+, "
+            "please upgrade the Python version used to run cibuildwheel. "
+            "This does not affect the versions you can target when building wheels. See: https://cibuildwheel.pypa.io/en/stable/#what-does-it-do"
+        )
 
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
+
+    if EnableGroup.CPythonExperimentalRiscV64 in build_selector.enable:
+        yield (
+            "'cpython-experimental-riscv64' enable is deprecated and will be removed in a future version. "
+            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
+            "or CIBW_ENABLE environment variable."
+        )
 
     all_valid_identifiers = [
         config.identifier
@@ -497,26 +466,24 @@ def detect_warnings(*, options: Options, identifiers: Iterable[str]) -> list[str
         identifier for identifier in all_valid_identifiers if enabled_selector(identifier)
     ]
 
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="build",
         selector_value=build_selector.build_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="skip",
         selector_value=build_selector.skip_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-    warnings += check_for_invalid_selectors(
+    yield from check_for_invalid_selectors(
         selector_name="test_skip",
         selector_value=test_selector.skip_config,
         all_valid_identifiers=all_valid_identifiers,
         all_enabled_identifiers=all_enabled_identifiers,
     )
-
-    return warnings
 
 
 def check_for_invalid_selectors(
@@ -529,17 +496,31 @@ def check_for_invalid_selectors(
     warnings = []
 
     for selector in selector_value.split():
-        if not any(selector_matches(selector, i) for i in all_enabled_identifiers):
+        selector_ = selector
+        if selector_name == "test_skip":
+            # macosx_universal2 uses an additional identifier for tests which ends with ":{arch}"
+            values = selector.split(":")
+            universal2_identifiers = filter(
+                lambda x: x.endswith("-macosx_universal2"), all_valid_identifiers
+            )
+            if len(values) == 2 and any(
+                selector_matches(selector_, f"{i}:{arch}")
+                for i in universal2_identifiers
+                for arch in ["arm64", "x86_64"]
+            ):
+                # just ignore the arch part in the rest of the check
+                selector_ = values[0]
+        if not any(selector_matches(selector_, i) for i in all_enabled_identifiers):
             msg = f"Invalid {selector_name} selector: {selector!r}. "
             error_type: type = errors.ConfigurationError
 
-            if any(selector_matches(selector, i) for i in all_valid_identifiers):
+            if any(selector_matches(selector_, i) for i in all_valid_identifiers):
                 msg += "This selector matches a group that wasn't enabled. Enable it using the `enable` option or remove this selector. "
 
-            if "p2" in selector or "p35" in selector:
+            if "p2" in selector_ or "p35" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
-            if "p36" in selector or "p37" in selector:
+            if "p36" in selector_ or "p37" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 

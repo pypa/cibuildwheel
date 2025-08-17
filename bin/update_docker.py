@@ -43,16 +43,40 @@ images = [
     ),
     # manylinux_2_28 images
     PyPAImage(
-        "manylinux_2_28", ["x86_64", "aarch64", "ppc64le", "s390x", "pypy_x86_64", "pypy_aarch64"]
+        "manylinux_2_28",
+        [
+            "x86_64",
+            "i686",
+            "aarch64",
+            "ppc64le",
+            "s390x",
+            "pypy_x86_64",
+            "pypy_i686",
+            "pypy_aarch64",
+        ],
     ),
     # manylinux_2_31 images
     PyPAImage("manylinux_2_31", ["armv7l"]),
     # manylinux_2_34 images
     PyPAImage(
-        "manylinux_2_34", ["x86_64", "aarch64", "ppc64le", "s390x", "pypy_x86_64", "pypy_aarch64"]
+        "manylinux_2_34",
+        [
+            "x86_64",
+            "i686",
+            "aarch64",
+            "ppc64le",
+            "s390x",
+            "pypy_x86_64",
+            "pypy_i686",
+            "pypy_aarch64",
+        ],
     ),
+    # manylinux_2_39 images
+    PyPAImage("manylinux_2_39", ["riscv64"]),
     # musllinux_1_2 images
-    PyPAImage("musllinux_1_2", ["x86_64", "i686", "aarch64", "ppc64le", "s390x", "armv7l"]),
+    PyPAImage(
+        "musllinux_1_2", ["x86_64", "i686", "aarch64", "ppc64le", "s390x", "armv7l", "riscv64"]
+    ),
 ]
 
 config = configparser.ConfigParser()
@@ -115,9 +139,6 @@ for image in images:
         if image.use_platform_suffix:
             suffix = f"_{platform.removeprefix('pypy_')}"
         config[platform][image.manylinux_version] = f"{image.image_name}{suffix}:{tag_name}"
-
-if not config.has_section("riscv64"):
-    config["riscv64"] = {}
 
 with open(RESOURCES / "pinned_docker_images.cfg", "w") as f:
     config.write(f)

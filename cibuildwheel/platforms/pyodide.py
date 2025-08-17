@@ -17,7 +17,7 @@ from filelock import FileLock
 from .. import errors
 from ..architecture import Architecture
 from ..environment import ParsedEnvironment
-from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from ..frontend import get_build_frontend_extra_flags
 from ..logger import log
 from ..options import Options
 from ..selector import BuildSelector
@@ -284,9 +284,8 @@ def setup_python(
         "pip",
         "install",
         "--upgrade",
-        "auditwheel-emscripten",
-        "build[virtualenv]",
         "pyodide-build",
+        "build[virtualenv]",
         *constraint_flags(constraints_path),
         env=env,
     )
@@ -353,7 +352,7 @@ def build(options: Options, tmp_path: Path) -> None:
 
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+            build_frontend = build_options.build_frontend
 
             if build_frontend.name == "pip":
                 msg = "The pyodide platform doesn't support pip frontend"
@@ -540,6 +539,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
             # we're all done here; move it to output (overwrite existing)
+            output_wheel: Path | None = None
             if compatible_wheel is None:
                 output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
                 moved_wheel = move_file(repaired_wheel, output_wheel)
@@ -548,7 +548,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
-            log.build_end()
+            log.build_end(output_wheel)
 
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"

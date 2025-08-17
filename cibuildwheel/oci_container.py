@@ -36,6 +36,28 @@ class OCIPlatform(Enum):
     RISCV64 = "linux/riscv64"
     S390X = "linux/s390x"
 
+    @classmethod
+    def native(cls) -> "OCIPlatform":
+        """Return the current OCI platform, or raise ValueError if unknown."""
+        arch = platform.machine().lower()
+        mapping = {
+            "i386": cls.i386,
+            "i686": cls.i386,
+            "x86_64": cls.AMD64,
+            "amd64": cls.AMD64,
+            "armv7l": cls.ARMV7,
+            "aarch64": cls.ARM64,
+            "arm64": cls.ARM64,
+            "ppc64le": cls.PPC64LE,
+            "riscv64": cls.RISCV64,
+            "s390x": cls.S390X,
+        }
+        try:
+            return mapping[arch]
+        except KeyError as ex:
+            msg = f"Unsupported platform architecture: {arch}"
+            raise OSError(msg) from ex
+
 
 @dataclasses.dataclass(frozen=True)
 class OCIContainerEngineConfig:
@@ -95,43 +117,46 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
         version_info = json.loads(version_string.strip())
-        if engine.name == "docker":
-            client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
-            server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
-            # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
-            version = min(client_api_version, server_api_version)
-            minimum_version = FlexibleVersion("1.41")
-            minimum_version_str = "20.10.0"  # docker version
-            error_msg = textwrap.dedent(
-                f"""
-                Build failed because {engine.name} is too old.
+        match engine.name:
+            case "docker":
+                client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
+                server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
+                # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
+                version = min(client_api_version, server_api_version)
+                minimum_version = FlexibleVersion("1.41")
+                minimum_version_str = "20.10.0"  # docker version
+                error_msg = textwrap.dedent(
+                    f"""
+                    Build failed because {engine.name} is too old.
 
-                cibuildwheel requires {engine.name}>={minimum_version_str} running API version {minimum_version}.
-                The API version found by cibuildwheel is {version}.
-                """
-            )
-        elif engine.name == "podman":
-            # podman uses the same version string for "Version" & "ApiVersion"
-            client_version = FlexibleVersion(version_info["Client"]["Version"])
-            if "Server" in version_info:
-                server_version = FlexibleVersion(version_info["Server"]["Version"])
-            else:
-                server_version = client_version
-            # --platform support was introduced in v3
-            version = min(client_version, server_version)
-            minimum_version = FlexibleVersion("3")
-            error_msg = textwrap.dedent(
-                f"""
-                Build failed because {engine.name} is too old.
+                    cibuildwheel requires {engine.name}>={minimum_version_str} running API version {minimum_version}.
+                    The API version found by cibuildwheel is {version}.
+                    """
+                )
+            case "podman":
+                # podman uses the same version string for "Version" & "ApiVersion"
+                client_version = FlexibleVersion(version_info["Client"]["Version"])
+                if "Server" in version_info:
+                    server_version = FlexibleVersion(version_info["Server"]["Version"])
+                else:
+                    server_version = client_version
+                # --platform support was introduced in v3
+                version = min(client_version, server_version)
+                minimum_version = FlexibleVersion("3")
+                error_msg = textwrap.dedent(
+                    f"""
+                    Build failed because {engine.name} is too old.
 
-                cibuildwheel requires {engine.name}>={minimum_version}.
-                The version found by cibuildwheel is {version}.
-                """
-            )
-        else:
-            assert_never(engine.name)
+                    cibuildwheel requires {engine.name}>={minimum_version}.
+                    The version found by cibuildwheel is {version}.
+                    """
+                )
+            case _:
+                assert_never(engine.name)
+
         if version < minimum_version:
             raise OCIEngineTooOldError(error_msg) from None
+
     except (subprocess.CalledProcessError, KeyError, ValueError) as e:
         msg = f"Build failed because {engine.name} is too old or is not working properly."
         raise OCIEngineTooOldError(msg) from e
@@ -149,11 +174,19 @@ class OCIContainer:
     back to cibuildwheel.
 
     Example:
+        >>> # xdoctest: +REQUIRES(LINUX)
         >>> from cibuildwheel.oci_container import *  # NOQA
         >>> from cibuildwheel.options import _get_pinned_container_images
+        >>> import pytest
+        >>> try:
+        ...     oci_platform = OCIPlatform.native()
+        ... except OSError as ex:
+        ...     pytest.skip(str(ex))
+        >>> if oci_platform != OCIPlatform.AMD64:
+        ...     pytest.skip('only runs on amd64')
         >>> image = _get_pinned_container_images()['x86_64']['manylinux2014']
         >>> # Test the default container
-        >>> with OCIContainer(image=image) as self:
+        >>> with OCIContainer(image=image, oci_platform=oci_platform) as self:
         ...     self.call(["echo", "hello world"])
         ...     self.call(["cat", "/proc/1/cgroup"])
         ...     print(self.get_environment())

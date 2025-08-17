@@ -10,7 +10,7 @@ from typing import assert_never
 
 from .. import errors
 from ..architecture import Architecture
-from ..frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from ..frontend import get_build_frontend_extra_flags
 from ..logger import log
 from ..oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from ..options import BuildOptions, Options
@@ -204,7 +204,7 @@ def build_in_container(
         log.build_start(config.identifier)
         local_identifier_tmp_dir = local_tmp_dir / config.identifier
         build_options = options.build_options(config.identifier)
-        build_frontend = build_options.build_frontend or BuildFrontendConfig("build")
+        build_frontend = build_options.build_frontend
         use_uv = build_frontend.name == "build[uv]"
         pip = ["uv", "pip"] if use_uv else ["pip"]
 
@@ -253,7 +253,7 @@ def build_in_container(
             print(
                 f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
             )
-            repaired_wheels = [compatible_wheel]
+            repaired_wheel = compatible_wheel
         else:
             if build_options.before_build:
                 log.step("Running before_build...")
@@ -275,37 +275,38 @@ def build_in_container(
                 build_frontend, build_options.build_verbosity, build_options.config_settings
             )
 
-            if build_frontend.name == "pip":
-                container.call(
-                    [
-                        "python",
-                        "-m",
-                        "pip",
-                        "wheel",
-                        container_package_dir,
-                        f"--wheel-dir={built_wheel_dir}",
-                        "--no-deps",
-                        *extra_flags,
-                    ],
-                    env=env,
-                )
-            elif build_frontend.name == "build" or build_frontend.name == "build[uv]":
-                if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                    extra_flags += ["--installer=uv"]
-                container.call(
-                    [
-                        "python",
-                        "-m",
-                        "build",
-                        container_package_dir,
-                        "--wheel",
-                        f"--outdir={built_wheel_dir}",
-                        *extra_flags,
-                    ],
-                    env=env,
-                )
-            else:
-                assert_never(build_frontend)
+            match build_frontend.name:
+                case "pip":
+                    container.call(
+                        [
+                            "python",
+                            "-m",
+                            "pip",
+                            "wheel",
+                            container_package_dir,
+                            f"--wheel-dir={built_wheel_dir}",
+                            "--no-deps",
+                            *extra_flags,
+                        ],
+                        env=env,
+                    )
+                case "build" | "build[uv]":
+                    if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
+                        extra_flags += ["--installer=uv"]
+                    container.call(
+                        [
+                            "python",
+                            "-m",
+                            "build",
+                            container_package_dir,
+                            "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                        ],
+                        env=env,
+                    )
+                case _:
+                    assert_never(build_frontend)
 
             built_wheel = container.glob(built_wheel_dir, "*.whl")[0]
 
@@ -325,14 +326,16 @@ def build_in_container(
             else:
                 container.call(["mv", built_wheel, repaired_wheel_dir])
 
-            repaired_wheels = container.glob(repaired_wheel_dir, "*.whl")
+            match container.glob(repaired_wheel_dir, "*.whl"):
+                case []:
+                    raise errors.RepairStepProducedNoWheelError()
+                case [repaired_wheel]:
+                    pass
+                case too_many:
+                    raise errors.RepairStepProducedMultipleWheelsError([p.name for p in too_many])
 
-            if not repaired_wheels:
-                raise errors.RepairStepProducedNoWheelError()
-
-            for repaired_wheel in repaired_wheels:
-                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+            if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")
@@ -374,14 +377,8 @@ def build_in_container(
                 container.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
 
             # Install the wheel we just built
-            # Note: If auditwheel produced two wheels, it's because the earlier produced wheel
-            # conforms to multiple manylinux standards. These multiple versions of the wheel are
-            # functionally the same, differing only in name, wheel metadata, and possibly include
-            # different external shared libraries. so it doesn't matter which one we run the tests on.
-            # Let's just pick the first one.
-            wheel_to_test = repaired_wheels[0]
             container.call(
-                [*pip, "install", str(wheel_to_test) + build_options.test_extras],
+                [*pip, "install", str(repaired_wheel) + build_options.test_extras],
                 env=virtualenv_env,
             )
 
@@ -394,7 +391,7 @@ def build_in_container(
                 build_options.test_command,
                 project=container_project_path,
                 package=container_package_dir,
-                wheel=wheel_to_test,
+                wheel=repaired_wheel,
             )
 
             test_cwd = testing_temp_dir / "test_cwd"
@@ -417,15 +414,15 @@ def build_in_container(
             # clean up test environment
             container.call(["rm", "-rf", testing_temp_dir])
 
-        # move repaired wheels to output
+        # move repaired wheel to output
+        output_wheel: Path | None = None
         if compatible_wheel is None:
             container.call(["mkdir", "-p", container_output_dir])
-            container.call(["mv", *repaired_wheels, container_output_dir])
-            built_wheels.extend(
-                container_output_dir / repaired_wheel.name for repaired_wheel in repaired_wheels
-            )
+            container.call(["mv", repaired_wheel, container_output_dir])
+            built_wheels.append(container_output_dir / repaired_wheel.name)
+            output_wheel = options.globals.output_dir / repaired_wheel.name
 
-        log.build_end()
+        log.build_end(output_wheel)
 
     log.step("Copying wheels back to host...")
     # copy the output back into the host

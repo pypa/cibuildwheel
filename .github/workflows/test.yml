@@ -37,7 +37,7 @@ jobs:
     name: Linters (mypy, ruff, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       id: python
       with:
@@ -47,21 +47,47 @@ jobs:
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
   test:
-    name: Test on ${{ matrix.os }} (${{ matrix.python_version }})
+    name: Test on ${{ matrix.os }} (${{ matrix.python_version }}) ${{ matrix.test_select }}
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-15]
-        python_version: ['3.13']
         include:
+        # Min Python
         - os: ubuntu-latest
           python_version: '3.11'
+        # Max Python
         - os: ubuntu-latest
           python_version: '3.14'
+        - os: ubuntu-latest
+          python_version: '3.13'
+          test_select: android
+        - os: ubuntu-24.04-arm
+          python_version: '3.13'
+        - os: windows-latest
+          python_version: '3.13'
+        - os: windows-11-arm
+          python_version: '3.13'
+        - os: macos-13
+          python_version: '3.13'
+        - os: macos-15
+          python_version: '3.13'
+        - os: macos-13
+          python_version: '3.13'
+          test_select: ios
+        - os: macos-15
+          python_version: '3.13'
+          test_select: ios
+        - os: macos-13
+          python_version: '3.13'
+          test_select: android
+        - os: macos-15
+          python_version: '3.13'
+          test_select: android
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       name: Install Python ${{ matrix.python_version }}
       with:
@@ -70,12 +96,22 @@ jobs:
 
     - uses: astral-sh/setup-uv@v6
 
-    # free some space to prevent reaching GHA disk space limits
-    - name: Clean docker images
+    - name: Free up disk space
       if: runner.os == 'Linux'
       run: |
         docker system prune -a -f
+        sudo rm -rf $ANDROID_HOME/ndk/{26,28}.* /opt/hostedtoolcache/CodeQL \
+          /usr/local/lib/node_modules /usr/local/share/chromium \
+          /usr/local/share/powershell
         df -h
+
+    # https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/
+    - name: Enable KVM for Android emulator
+      if: runner.os == 'Linux' && runner.arch == 'X64'
+      run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
     # for oci_container unit tests
     - name: Set up QEMU
@@ -87,6 +123,7 @@ jobs:
         uv sync --no-dev --group test
 
     - uses: joerick/pr-labels-action@v1.0.9
+
     - name: Set CIBW_ENABLE
       shell: bash
       run: |
@@ -117,29 +154,33 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-        CIBW_BUILD_FRONTEND: 'build[uv]'
+        CIBW_BUILD_FRONTEND: ${{ matrix.test_select && 'build' || 'build[uv]' }}
+        CIBW_PLATFORM: ${{ matrix.test_select }}
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
+      if: matrix.test_select == ''
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_only
-        only: cp312-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
+        only: cp313-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
 
     - name: Create custom configuration file
       shell: bash
       run: |
         cat > sample_proj/cibw.toml <<EOF
         [tool.cibuildwheel]
-        # Only build on CPython 3.12 on native arch
+        # Only build on CPython 3.13 on native arch
         archs = ["native"]
-        build = "cp312-*"
+        build = "cp313-*"
         # Skip musllinux
         skip = "*-musllinux*"
         EOF
 
     - name: Run a sample build (GitHub Action, config-file)
       uses: ./
+      env:
+        CIBW_PLATFORM: ${{ matrix.test_select }}
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_config_file
@@ -149,8 +190,13 @@ jobs:
       shell: bash
       run: |
         test $(find wheelhouse -name '*.whl' | wc -l) -ge 1
-        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
         test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
+
+    - name: Check Action artifacts (native build only)
+      if: matrix.test_select == ''
+      shell: bash
+      run: |
+        test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
     - uses: actions/upload-artifact@v4
       with:
@@ -159,7 +205,7 @@ jobs:
 
     - name: Test cibuildwheel
       run: |
-        uv run --no-sync bin/run_tests.py ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
+        uv run --no-sync bin/run_tests.py --test-select=${{ matrix.test_select || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures
@@ -168,7 +214,7 @@ jobs:
     outputs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
@@ -191,7 +237,7 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       with:
         python-version: "3.x"
@@ -211,7 +257,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: actions/setup-python@v5
       name: Install Python 3.12
       with:
@@ -232,19 +278,6 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
-
-    - name: Run a sample build (GitHub Action) for an overridden Pyodide version
-      uses: ./
-      with:
-        package-dir: sample_proj
-        output-dir: wheelhouse
-        # In case this breaks at any point in time, switch to using the latest version
-        # available or any other version that is not the same as the default one set
-        # in cibuildwheel/resources/build-platforms.toml.
-      env:
-        CIBW_PLATFORM: pyodide
-        CIBW_BUILD: "cp312*"
-        CIBW_PYODIDE_VERSION: "0.27.6"
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: |

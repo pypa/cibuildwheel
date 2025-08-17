@@ -1,3 +1,4 @@
+import os
 import sys
 import tomllib
 from fnmatch import fnmatch
@@ -7,13 +8,25 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import _split_config_settings
+from cibuildwheel.frontend import _split_config_settings, parse_config_settings
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
 # CIBW_PLATFORM is tested in main_platform_test.py
+
+
+def test_old_free_threaded(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_FREE_THREADED_SUPPORT", "ON")
+
+    with pytest.raises(SystemExit):
+        main()
+
+    assert (
+        "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported."
+        in capsys.readouterr().err
+    )
 
 
 @pytest.mark.usefixtures("platform")
@@ -93,6 +106,32 @@ def test_invalid_skip_selector(monkeypatch, capsys, option_name, option_env_var)
     assert f"Invalid {option_name} selector" in err
 
 
+@pytest.mark.parametrize(
+    "selector", ["*-macosx_universal2:arm64", "*-macosx_universal2:x86_64", "*-macosx_arm64"]
+)
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_valid_test_skip_selector(monkeypatch, capsys, selector):
+    monkeypatch.setenv("CIBW_TEST_SKIP", selector)
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "Invalid test_skip selector" not in err
+
+
+@pytest.mark.parametrize("selector", ["*-macosx_universal2:invalid", "*-macosx_arm64:arm64"])
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_invalid_test_skip_selector(monkeypatch, capsys, selector):
+    monkeypatch.setenv("CIBW_TEST_SKIP", selector)
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "Invalid test_skip selector" in err
+
+
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
 def test_empty_selector(monkeypatch):
     monkeypatch.setenv("CIBW_SKIP", "*")
@@ -103,6 +142,70 @@ def test_empty_selector(monkeypatch):
     assert e.value.code == 3
 
 
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_warning1(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-experimental-riscv64")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_warning2(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-experimental-riscv64")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_no_warning(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" not in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_riscv64_no_warning2(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313-manylinux_riscv64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "all")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-experimental-riscv64' enable is deprecated" not in err
+
+
 @pytest.mark.parametrize(
     ("architecture", "image", "full_image"),
     [
@@ -111,8 +214,9 @@ def test_empty_selector(monkeypatch):
         ("x86_64", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("x86_64", "manylinux_2_34", "quay.io/pypa/manylinux_2_34_x86_64:*"),
         ("x86_64", "custom_image", "custom_image"),
-        ("i686", None, "quay.io/pypa/manylinux2014_i686:*"),
+        ("i686", None, "quay.io/pypa/manylinux_2_28_i686:*"),
         ("i686", "manylinux2014", "quay.io/pypa/manylinux2014_i686:*"),
+        ("i686", "manylinux_2_28", "quay.io/pypa/manylinux_2_28_i686:*"),
         ("i686", "custom_image", "custom_image"),
         ("pypy_x86_64", None, "quay.io/pypa/manylinux_2_28_x86_64:*"),
         ("pypy_x86_64", "manylinux2014", "quay.io/pypa/manylinux2014_x86_64:*"),
@@ -288,7 +392,9 @@ def test_build_verbosity(
 
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_config_settings(platform_specific, platform, intercepted_build_args, monkeypatch):
-    config_settings = 'setting=value setting=value2 other="something else"'
+    config_settings = (
+        'setting=value setting=value2 triplet=1 triplet=2 triplet=3 other="something else"'
+    )
     if platform_specific:
         monkeypatch.setenv("CIBW_CONFIG_SETTINGS_" + platform.upper(), config_settings)
         monkeypatch.setenv("CIBW_CONFIG_SETTINGS", "a=b")
@@ -303,8 +409,16 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     assert _split_config_settings(config_settings) == [
         "-Csetting=value",
         "-Csetting=value2",
+        "-Ctriplet=1",
+        "-Ctriplet=2",
+        "-Ctriplet=3",
         "-Cother=something else",
     ]
+    assert parse_config_settings(config_settings) == {
+        "setting": ["value", "value2"],
+        "triplet": ["1", "2", "3"],
+        "other": "something else",
+    }
 
 
 @pytest.mark.parametrize(
@@ -493,7 +607,8 @@ def test_defaults(platform, intercepted_build_args):
     if isinstance(repair_wheel_default, list):
         repair_wheel_default = " && ".join(repair_wheel_default)
     assert build_options.repair_command == repair_wheel_default
-    assert build_options.build_frontend is None
+    assert build_options.build_frontend.name == "build"
+    assert build_options.build_frontend.args == ()
 
     if platform == "linux":
         assert build_options.manylinux_images
