@@ -16,8 +16,11 @@ def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
     assert fake_cache_dir.exists()
 
     cibw_sentinel = fake_cache_dir / "CACHEDIR.TAG"
-    cibw_sentinel.write_text("Signature: 8a477f597d28d172789f06886806bc55\n"
-    "# This file is a cache directory tag created by cibuildwheel.\n", encoding="utf-8")
+    cibw_sentinel.write_text(
+        "Signature: 8a477f597d28d172789f06886806bc55\n"
+        "# This file is a cache directory tag created by cibuildwheel.\n",
+        encoding="utf-8",
+    )
 
     dummy_file = fake_cache_dir / "dummy.txt"
     dummy_file.write_text("hello")
@@ -58,8 +61,10 @@ def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
     assert fake_cache_dir.exists()
 
     cibw_sentinel = fake_cache_dir / "CACHEDIR.TAG"
-    cibw_sentinel.write_text("Signature: 8a477f597d28d172789f06886806bc55\n"
-    "# This file is a cache directory tag created by cibuildwheel.\n")
+    cibw_sentinel.write_text(
+        "Signature: 8a477f597d28d172789f06886806bc55\n"
+        "# This file is a cache directory tag created by cibuildwheel.\n"
+    )
 
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
 

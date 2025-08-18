@@ -31,8 +31,10 @@ def ensure_cache_sentinel(cache_path: Path) -> None:
     if cache_path.exists():
         sentinel_file = cache_path / "CACHEDIR.TAG"
         if not sentinel_file.exists():
-            sentinel_file.write_text("Signature: 8a477f597d28d172789f06886806bc55\n"
-            "# This file is a cache directory tag created by cibuildwheel.\n")
+            sentinel_file.write_text(
+                "Signature: 8a477f597d28d172789f06886806bc55\n"
+                "# This file is a cache directory tag created by cibuildwheel.\n"
+            )
 
 
 def download(url: str, dest: Path) -> None:
