@@ -204,7 +204,7 @@ def main_inner(global_options: GlobalOptions) -> None:
 
     if args.clean_cache:
         if CIBW_CACHE_PATH.exists():
-            sentinel_file = CIBW_CACHE_PATH / ".cibuildwheel_cached"
+            sentinel_file = CIBW_CACHE_PATH / "CACHEDIR.TAG"
             if not sentinel_file.exists():
                 print(
                     f"Error: {CIBW_CACHE_PATH} does not appear to be a cibuildwheel cache directory.",
