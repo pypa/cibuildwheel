@@ -214,6 +214,22 @@ def main_inner(global_options: GlobalOptions) -> None:
                 )
                 sys.exit(1)
 
+            # Verify signature to ensure it's a proper cache dir
+            # See https://bford.info/cachedir/ for more
+            try:
+                sentinel_content = sentinel_file.read_text(encoding="utf-8")
+                if not sentinel_content.startswith("Signature: 8a477f597d28d172789f06886806bc55"):
+                    print(
+                        f"Error: {sentinel_file} does not contain a valid cache directory signature.",
+                        "For safety, only properly tagged cache directories can be cleaned.",
+                        sep="\n",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+            except OSError as e:
+                print(f"Error reading cache directory tag: {e}", file=sys.stderr)
+                sys.exit(1)
+
             print(f"Clearing cache directory: {CIBW_CACHE_PATH}")
             try:
                 shutil.rmtree(CIBW_CACHE_PATH)
