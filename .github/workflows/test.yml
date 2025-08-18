@@ -76,7 +76,7 @@ jobs:
         - os: macos-13
           python_version: '3.13'
           test_select: ios
-        - os: macos-15
+        - os: macos-14  # 20250811 macos-15 update caused havoc with iOS simulators
           python_version: '3.13'
           test_select: ios
         - os: macos-13
