@@ -208,10 +208,8 @@ def main_inner(global_options: GlobalOptions) -> None:
             if not sentinel_file.exists():
                 print(
                     f"Error: {CIBW_CACHE_PATH} does not appear to be a cibuildwheel cache directory.",
-                    file=sys.stderr,
-                )
-                print(
-                    "Only directories with a .cibuildwheel_cached sentinel file can be cleaned.",
+                    "Only directories with a CACHEDIR.TAG sentinel file can be cleaned.",
+                    sep="\n",
                     file=sys.stderr,
                 )
                 sys.exit(1)
