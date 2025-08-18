@@ -4,7 +4,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.10.0
     # via httpx
-auditwheel-emscripten==0.1.0
+auditwheel-emscripten==0.2.0
     # via pyodide-build
 build==1.2.2.post1
     # via
@@ -62,13 +62,13 @@ pydantic-core==2.33.2
     # via pydantic
 pygments==2.19.2
     # via rich
-pyodide-build==0.30.6
+pyodide-build==0.30.7
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.3.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
-pyodide-lock==0.1.0a7
+pyodide-lock==0.1.0
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
