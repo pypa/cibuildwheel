@@ -76,7 +76,7 @@ jobs:
         - os: macos-13
           python_version: '3.13'
           test_select: ios
-        - os: macos-15
+        - os: macos-14  # 20250811 macos-15 update caused havoc with iOS simulators
           python_version: '3.13'
           test_select: ios
         - os: macos-13
@@ -104,11 +104,6 @@ jobs:
           /usr/local/lib/node_modules /usr/local/share/chromium \
           /usr/local/share/powershell
         df -h
-
-    - name: Set up Xcode
-      if: startsWith(matrix.os, 'macos-')
-      run: |
-        sudo xcode-select --switch /Applications/Xcode_${{ matrix.os == 'macos-13' && '15.2' || '16.4' }}.app
 
     # https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/
     - name: Enable KVM for Android emulator
