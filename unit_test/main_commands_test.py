@@ -99,3 +99,24 @@ def test_clean_cache_without_sentinel(tmp_path, monkeypatch, capfd):
     out, err = capfd.readouterr()
     assert "does not appear to be a cibuildwheel cache directory" in err
     assert fake_cache_dir.exists()
+
+
+def test_clean_cache_with_invalid_signature(tmp_path, monkeypatch, capfd):
+    fake_cache_dir = (tmp_path / "fake_cache").resolve()
+    monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
+
+    fake_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    cibw_sentinel = fake_cache_dir / "CACHEDIR.TAG"
+    cibw_sentinel.write_text("Invalid signature\n# This is not a real cache directory tag")
+
+    monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
+
+    with pytest.raises(SystemExit) as e:
+        main()
+
+    assert e.value.code == 1
+
+    out, err = capfd.readouterr()
+    assert "does not contain a valid cache directory signature" in err
+    assert fake_cache_dir.exists()
