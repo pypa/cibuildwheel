@@ -36,6 +36,7 @@ def ensure_cache_sentinel(cache_path: Path) -> None:
                 "# This file is a cache directory tag created by cibuildwheel.\n"
                 "# For information about cache directory tags, see:\n"
                 "# https://www.brynosaurus.com/cachedir/",
+                encoding="utf-8"
             )
 
 
