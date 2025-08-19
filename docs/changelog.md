@@ -4,14 +4,32 @@ title: Changelog
 
 # Changelog
 
+### v3.1.4
+
+_19 August 2025_
+
+- ✨ Add a `--clean-cache` command to clean up our cache (#2489)
+- 🛠 Update Python to 3.14rc2 and other patch version bumps (#2542, #2556)
+- 🛠 Update Pyodide to 0.28.2 (#2562, #2558)
+- 🐛 Fix resolution with `pyodide-build` when `dependency-versions` is set (#2548)
+- 🐛 Set `CMAKE_FIND_ROOT_PATH_MODE_PACKAGE` to `BOTH` on Android (#2547)
+- 🐛 Add `patchelf` dependency for platforms that can build Android wheels (#2552)
+- 🐛 Ignore empty values for `CIBW_ARCHS` like most other environment variables (#2541)
+- 💼 The `color` and `suggest_on_error` argparse options are now default in 3.14rc1+ (#2554)
+- 💼 Use the virtualenv release URL instead of blob URL (should be more robust) (#2555)
+- 🧪 For iOS, lowering to macos-14 is needed for now due to issues with GitHub's runner images (#2557)
+- 🧪 Split out platforms iOS and Android in our tests (#2519)
+- 🧪 Fix and enable doctests (#2546)
+- 📚 Improve our docs on free-threading (#2549)
+
+
 ### v3.1.3
 
 _1 August 2025_
 
 - 🐛 Fix bug where "latest" dependencies couldn't update to pip 25.2 on Windows (#2537)
-- 🛠 Use pytest-rerunfailures to improve some of our iOS/Android tests (#2527, #2539)
-- 🛠 Remove some GraalPy Windows workarounds in our tests (#2501)
-
+- 🧪 Use pytest-rerunfailures to improve some of our iOS/Android tests (#2527, #2539)
+- 🧪 Remove some GraalPy Windows workarounds in our tests (#2501)
 
 
 ### v3.1.2
@@ -49,7 +67,7 @@ _23 July 2025_
 - 🛠 Fixed a typo in the 3.9 MUSL riscv64 identifier (`cp39-musllinux_ricv64` -> `cp39-musllinux_riscv64`) (#2490)
 - 🛠 Mistyping `--only` now shows the correct possibilities, and even suggests near matches on Python 3.14+ (#2499)
 - 🛠 Only support one output from the repair step on linux like other platforms; auditwheel fixed this over four years ago! (#2478)
-- 🛠 We now use pattern matching extensively (#2434)
+- 💼 We now use pattern matching extensively (#2434)
 - 📚 We now have platform maintainers for our special platforms and interpreters! (#2481)
 
 
