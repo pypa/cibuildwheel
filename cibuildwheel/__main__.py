@@ -23,7 +23,7 @@ from cibuildwheel.options import CommandLineArguments, Options, compute_options
 from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers, native_platform
 from cibuildwheel.selector import BuildSelector, EnableGroup, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
-from cibuildwheel.util.file import CIBW_CACHE_PATH
+from cibuildwheel.util.file import CIBW_CACHE_PATH, ensure_cache_sentinel
 from cibuildwheel.util.helpers import strtobool
 from cibuildwheel.util.resources import read_all_configs
 
@@ -180,6 +180,12 @@ def main_inner(global_options: GlobalOptions) -> None:
     )
 
     parser.add_argument(
+        "--clean-cache",
+        action="store_true",
+        help="Clear the cibuildwheel cache and exit.",
+    )
+
+    parser.add_argument(
         "--allow-empty",
         action="store_true",
         help="Do not report an error code if the build does not match any wheels.",
@@ -195,6 +201,48 @@ def main_inner(global_options: GlobalOptions) -> None:
     args = CommandLineArguments(**vars(parser.parse_args()))
 
     global_options.print_traceback_on_error = args.debug_traceback
+
+    if args.clean_cache:
+        if not CIBW_CACHE_PATH.exists():
+            print(f"Cache directory does not exist: {CIBW_CACHE_PATH}")
+            sys.exit(0)
+
+        sentinel_file = CIBW_CACHE_PATH / "CACHEDIR.TAG"
+        if not sentinel_file.exists():
+            print(
+                f"Error: {CIBW_CACHE_PATH} does not appear to be a cibuildwheel cache directory.",
+                "Only directories with a CACHEDIR.TAG sentinel file can be cleaned.",
+                sep="\n",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        # Verify signature to ensure it's a proper cache dir
+        # See https://bford.info/cachedir/ for more
+        try:
+            sentinel_content = sentinel_file.read_text(encoding="utf-8")
+        except OSError as e:
+            print(f"Error reading cache directory tag: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if not sentinel_content.startswith("Signature: 8a477f597d28d172789f06886806bc55"):
+            print(
+                f"Error: {sentinel_file} does not contain a valid cache directory signature.",
+                "For safety, only properly signed cache directories can be cleaned.",
+                sep="\n",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        print(f"Clearing cache directory: {CIBW_CACHE_PATH}")
+        try:
+            shutil.rmtree(CIBW_CACHE_PATH)
+            print("Cache cleared successfully.")
+        except OSError as e:
+            print(f"Error clearing cache: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        sys.exit(0)
 
     args.package_dir = args.package_dir.resolve()
 
@@ -309,6 +357,7 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     # create the cache dir before it gets printed & builds performed
     CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
+    ensure_cache_sentinel(CIBW_CACHE_PATH)
 
     print_preamble(platform=platform, options=options, identifiers=identifiers)
 
