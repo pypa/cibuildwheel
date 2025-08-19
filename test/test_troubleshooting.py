@@ -7,11 +7,18 @@ from .test_projects import TestProject, new_c_project
 
 SO_FILE_WARNING = "NOTE: Shared object (.so) files found in this project."
 
+PYPROJECT_TOML = """
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta:__legacy__"
+"""
+
 
 @pytest.mark.parametrize("project_contains_so_files", [False, True])
 def test_failed_build_with_so_files(tmp_path, capfd, build_frontend_env, project_contains_so_files):
     project = TestProject()
     project.files["setup.py"] = "raise Exception('this build will fail')\n"
+    project.files["pyproject.toml"] = PYPROJECT_TOML
     if project_contains_so_files:
         project.files["libnothing.so"] = ""
 
