@@ -18,7 +18,9 @@ def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
     cibw_sentinel = fake_cache_dir / "CACHEDIR.TAG"
     cibw_sentinel.write_text(
         "Signature: 8a477f597d28d172789f06886806bc55\n"
-        "# This file is a cache directory tag created by cibuildwheel.\n",
+        "# This file is a cache directory tag created by cibuildwheel.\n"
+        "# For information about cache directory tags, see:\n"
+        "# https://www.brynosaurus.com/cachedir/",
         encoding="utf-8",
     )
 
@@ -64,6 +66,9 @@ def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
     cibw_sentinel.write_text(
         "Signature: 8a477f597d28d172789f06886806bc55\n"
         "# This file is a cache directory tag created by cibuildwheel.\n"
+        "# For information about cache directory tags, see:\n"
+        "# https://www.brynosaurus.com/cachedir/",
+        encoding="utf-8",
     )
 
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
