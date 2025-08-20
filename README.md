@@ -58,8 +58,8 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | Android | iOS |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|---------|-----|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅⁴      | ✅³  |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅⁴      | ✅³  |
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅⁴      | ✅³⁵ |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅⁴      | ✅³⁵ |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             | ✅⁴      |     |
 | CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅⁴      | ✅³  |
 | Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅⁴      | ✅³  |
@@ -67,8 +67,10 @@ Usage
 
 <sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
-<sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture.</sup><br>
+<sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture. </sup><br>
 <sup>⁴ Building for Android requires the runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Testing has [additional requirements](https://cibuildwheel.pypa.io/en/stable/platforms/#android).</sup><br>
+<sup>⁵ The `macos-15` and `macos-latest` images are [incompatible with cibuildwheel at this time](platforms/#ios-system-requirements)</sup><br>
+
 <!--intro-end-->
 
 Example setup
