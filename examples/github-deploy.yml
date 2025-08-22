@@ -39,6 +39,7 @@ jobs:
             # runner. So we build on a non-ARM runner, which will skip the tests.
             runs-on: ubuntu-latest
             platform: android
+            archs: arm64_v8a
           - os: ios
             runs-on: macos-latest
             platform: ios
@@ -53,6 +54,7 @@ jobs:
         uses: pypa/cibuildwheel@v3.1.4
         env:
           CIBW_PLATFORM: ${{ matrix.platform || 'auto' }}
+          CIBW_ARCHS: ${{ matrix.archs || 'auto' }}
         # Can also be configured directly, using `with:`
         # with:
         #   package-dir: .
