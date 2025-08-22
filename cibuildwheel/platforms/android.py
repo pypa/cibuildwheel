@@ -508,17 +508,21 @@ def repair_default(
         new_soname = soname_with_hash(src_path)
         dst_path = libs_dir / new_soname
         shutil.copyfile(src_path, dst_path)
-        call("patchelf", "--set-soname", new_soname, dst_path)
+
+        # If cibuildwheel was called without activating its environment, the `bin`
+        # directory will not be on the PATH.
+        cibw_bin = Path(sys.executable).parent
+        call(cibw_bin / "patchelf", "--set-soname", new_soname, dst_path)
 
         for path in paths_to_patch:
-            call("patchelf", "--replace-needed", old_soname, new_soname, path)
+            call(cibw_bin / "patchelf", "--replace-needed", old_soname, new_soname, path)
             call(
-                "patchelf",
+                cibw_bin / "patchelf",
                 "--set-rpath",
                 f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
                 path,
             )
-        call(sys.executable, "-m", "wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
+        call(cibw_bin / "wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
 
 
 def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:
