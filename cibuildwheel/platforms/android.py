@@ -6,7 +6,7 @@ import re
 import shlex
 import shutil
 import subprocess
-import sys
+import sysconfig
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from os.path import relpath
@@ -521,13 +521,13 @@ def repair_default(
         call(which("wheel"), "pack", unpacked_dir, "-d", repaired_wheel_dir)
 
 
-# If cibuildwheel was called without activating its environment, the `bin` directory
+# If cibuildwheel was called without activating its environment, its scripts directory
 # will not be on the PATH.
 def which(cmd: str) -> str:
-    cibw_bin = Path(sys.executable).parent
-    result = shutil.which(cmd, path=f"{cibw_bin}{os.pathsep}{os.environ['PATH']}")
+    scripts_dir = sysconfig.get_path("scripts")
+    result = shutil.which(cmd, path=scripts_dir + os.pathsep + os.environ["PATH"])
     if result is None:
-        msg = f"Couldn't find {cmd!r} in {cibw_bin} or on the PATH"
+        msg = f"Couldn't find {cmd!r} in {scripts_dir} or on the PATH"
         raise errors.FatalError(msg)
     return result
 
