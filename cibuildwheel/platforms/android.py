@@ -205,8 +205,8 @@ def setup_env(
     build_env = build_options.environment.as_dictionary(build_env)
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     for command in ["python", "pip"]:
-        which = call("which", command, env=build_env, capture_stdout=True).strip()
-        if which != f"{venv_dir}/bin/{command}":
+        command_path = call("which", command, env=build_env, capture_stdout=True).strip()
+        if command_path != f"{venv_dir}/bin/{command}":
             msg = (
                 f"{command} available on PATH doesn't match our installed instance. If you "
                 f"have modified PATH, ensure that you don't overwrite cibuildwheel's entry "
