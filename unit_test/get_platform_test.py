@@ -27,12 +27,8 @@ def patched_environment(
 
 
 def test_x86(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    arch = "32"
     environment: dict[str, str] = {}
-
-    configuration = PythonConfiguration(
-        version="irrelevant", arch=arch, identifier="irrelevant", url=None
-    )
+    configuration = PythonConfiguration(version="irrelevant", identifier="cp314-win32", url=None)
 
     setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)
     with patched_environment(monkeypatch, environment):
@@ -43,11 +39,9 @@ def test_x86(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_x64(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    arch = "64"
     environment: dict[str, str] = {}
-
     configuration = PythonConfiguration(
-        version="irrelevant", arch=arch, identifier="irrelevant", url=None
+        version="irrelevant", identifier="cp313-win_amd64", url=None
     )
 
     setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)
@@ -62,11 +56,9 @@ def test_x64(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     detect_ci_provider() == CIProvider.azure_pipelines, reason="arm64 not recognised on azure"
 )
 def test_arm(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    arch = "ARM64"
     environment: dict[str, str] = {}
-
     configuration = PythonConfiguration(
-        version="irrelevant", arch=arch, identifier="irrelevant", url=None
+        version="irrelevant", identifier="cp312-win_arm64", url=None
     )
 
     setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)
@@ -78,24 +70,16 @@ def test_arm(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_env_set(tmp_path: Path) -> None:
-    arch = "32"
     environment = {"VSCMD_ARG_TGT_ARCH": "x64"}
-
-    configuration = PythonConfiguration(
-        version="irrelevant", arch=arch, identifier="irrelevant", url=None
-    )
+    configuration = PythonConfiguration(version="irrelevant", identifier="cp313t-win32", url=None)
 
     with pytest.raises(FatalError, match="VSCMD_ARG_TGT_ARCH"):
         setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)
 
 
 def test_env_blank(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    arch = "32"
     environment = {"VSCMD_ARG_TGT_ARCH": ""}
-
-    configuration = PythonConfiguration(
-        version="irrelevant", arch=arch, identifier="irrelevant", url=None
-    )
+    configuration = PythonConfiguration(version="irrelevant", identifier="cp312-win32", url=None)
 
     setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)
     with patched_environment(monkeypatch, environment):

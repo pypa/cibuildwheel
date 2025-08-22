@@ -205,7 +205,6 @@ It also requires the following commands to be on the `PATH`:
 
 * `curl`
 * `java` (or set the `JAVA_HOME` environment variable)
-* `patchelf` (if the wheel links against any external libraries)
 
 ### Android version compatibility
 
@@ -213,6 +212,11 @@ Android builds will honor the `ANDROID_API_LEVEL` environment variable to set th
 minimum supported [API level](https://developer.android.com/tools/releases/platforms)
 for generated wheels. This will default to the minimum API level of the selected Python
 version.
+
+If the [`repair-wheel-command`](options.md#repair-wheel-command) adds any libraries to
+the wheel, then `ANDROID_API_LEVEL` must be at least 24. This is already the default
+when building for Python 3.14 and later, but you may need to set it when building for
+Python 3.13.
 
 ### Build frontend support
 
@@ -234,10 +238,9 @@ nested virtualization. CI platforms known to meet this requirement are:
 * GitHub Actions Linux x86_64
 
 On Linux, the emulator needs access to the KVM virtualization interface. This may
-require adding your user to a group, or [changing your udev
-rules](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
-If the emulator fails to start, try running `$ANDROID_HOME/emulator/emulator
--accel-check`.
+require adding your user to a group, or changing your udev rules. On GitHub
+Actions, cibuildwheel will do this automatically using the commands shown
+[here](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
 
 The Android test environment can't support running shell scripts, so the
 [`test-command`](options.md#test-command) must be a Python command – see its

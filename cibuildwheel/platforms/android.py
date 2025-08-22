@@ -6,7 +6,7 @@ import re
 import shlex
 import shutil
 import subprocess
-import sys
+import sysconfig
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from os.path import relpath
@@ -205,8 +205,8 @@ def setup_env(
     build_env = build_options.environment.as_dictionary(build_env)
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     for command in ["python", "pip"]:
-        which = call("which", command, env=build_env, capture_stdout=True).strip()
-        if which != f"{venv_dir}/bin/{command}":
+        command_path = call("which", command, env=build_env, capture_stdout=True).strip()
+        if command_path != f"{venv_dir}/bin/{command}":
             msg = (
                 f"{command} available on PATH doesn't match our installed instance. If you "
                 f"have modified PATH, ensure that you don't overwrite cibuildwheel's entry "
@@ -508,17 +508,28 @@ def repair_default(
         new_soname = soname_with_hash(src_path)
         dst_path = libs_dir / new_soname
         shutil.copyfile(src_path, dst_path)
-        call("patchelf", "--set-soname", new_soname, dst_path)
+        call(which("patchelf"), "--set-soname", new_soname, dst_path)
 
         for path in paths_to_patch:
-            call("patchelf", "--replace-needed", old_soname, new_soname, path)
+            call(which("patchelf"), "--replace-needed", old_soname, new_soname, path)
             call(
-                "patchelf",
+                which("patchelf"),
                 "--set-rpath",
                 f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
                 path,
             )
-        call(sys.executable, "-m", "wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
+        call(which("wheel"), "pack", unpacked_dir, "-d", repaired_wheel_dir)
+
+
+# If cibuildwheel was called without activating its environment, its scripts directory
+# will not be on the PATH.
+def which(cmd: str) -> str:
+    scripts_dir = sysconfig.get_path("scripts")
+    result = shutil.which(cmd, path=scripts_dir + os.pathsep + os.environ["PATH"])
+    if result is None:
+        msg = f"Couldn't find {cmd!r} in {scripts_dir} or on the PATH"
+        raise errors.FatalError(msg)
+    return result
 
 
 def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:

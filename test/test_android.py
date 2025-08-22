@@ -1,7 +1,9 @@
 import os
 import platform
 import re
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from shutil import rmtree
 from subprocess import CalledProcessError
 from textwrap import dedent
@@ -353,11 +355,21 @@ def test_libcxx(tmp_path, capfd):
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"
 
+    # cibuildwheel should be able to run `patchelf` and `wheel` even when its
+    # environment's `bin` directory is not on the PATH.
+    non_venv_path = ":".join(
+        item for item in os.environ["PATH"].split(":") if Path(item) != Path(sys.executable).parent
+    )
+
     # A C++ package should include libc++, and the extension module should be able to
     # find it using DT_RUNPATH.
     new_c_project(setup_py_extension_args_add="language='c++'").generate(project_dir)
     script = 'import spam; print(", ".join(f"{s}: {spam.filter(s)}" for s in ["ham", "spam"]))'
-    cp313_test_env = {**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"}
+    cp313_test_env = {
+        **cp313_env,
+        "CIBW_TEST_COMMAND": f"python -c '{script}'",
+        "PATH": non_venv_path,
+    }
 
     # Including external libraries requires API level 24.
     with pytest.raises(CalledProcessError):
