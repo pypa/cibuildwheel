@@ -234,10 +234,9 @@ nested virtualization. CI platforms known to meet this requirement are:
 * GitHub Actions Linux x86_64
 
 On Linux, the emulator needs access to the KVM virtualization interface. This may
-require adding your user to a group, or [changing your udev
-rules](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
-If the emulator fails to start, try running `$ANDROID_HOME/emulator/emulator
--accel-check`.
+require adding your user to a group, or changing your udev rules. On GitHub
+Actions, cibuildwheel will do this automatically using the commands shown
+[here](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
 
 The Android test environment can't support running shell scripts, so the
 [`test-command`](options.md#test-command) must be a Python command – see its
