@@ -317,6 +317,45 @@ def test_no_test_sources(tmp_path, capfd):
 
 
 @needs_emulator
+def test_environment_markers(tmp_path):
+    project = new_c_project()
+    test_filename = "test_environment_markers.py"
+    project.files[test_filename] = dedent(
+        """\
+        import pytest
+
+        def test_android():
+            import certifi
+
+        def test_not_android():
+            try:
+                import platformdirs
+            except ImportError:
+                pass
+            else:
+                pytest.fail("`platformdirs` should not have been installed")
+        """
+    )
+    project.generate(tmp_path)
+
+    cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_TEST_COMMAND": f"python -m pytest {test_filename}",
+            "CIBW_TEST_SOURCES": test_filename,
+            "CIBW_TEST_REQUIRES": " ".join(
+                [
+                    "pytest",
+                    "certifi;sys_platform=='android'",
+                    "platformdirs;sys_platform!='android'",
+                ]
+            ),
+        },
+    )
+
+
+@needs_emulator
 def test_api_level(tmp_path, capfd):
     project = new_c_project()
     project.files["pyproject.toml"] = dedent(
