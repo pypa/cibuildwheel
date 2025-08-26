@@ -1576,7 +1576,7 @@ tests. This can be used to avoid having to redefine test dependencies in
 `test-requires` if they are already defined in `pyproject.toml`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_GROUPS_MACOS` | `CIBW_TEST_GROUPS_WINDOWS` | `CIBW_TEST_GROUPS_LINUX` | `CIBW_TEST_GROUPS_PYODIDE`
+`CIBW_TEST_GROUPS_MACOS` | `CIBW_TEST_GROUPS_WINDOWS` | `CIBW_TEST_GROUPS_LINUX` | `CIBW_TEST_GROUPS_ANDROID` | `CIBW_TEST_GROUPS_IOS` | `CIBW_TEST_GROUPS_PYODIDE`
 
 #### Examples
 
