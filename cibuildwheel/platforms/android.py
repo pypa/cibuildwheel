@@ -630,6 +630,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         site_packages_dir,
         "--cwd",
         cwd_dir,
+        *(["-v"] if state.options.build_verbosity > 0 else []),
         *test_args,
         env=state.build_env,
     )

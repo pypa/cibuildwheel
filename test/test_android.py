@@ -356,6 +356,32 @@ def test_environment_markers(tmp_path):
 
 
 @needs_emulator
+def test_verbosity(tmp_path, capfd):
+    new_c_project().generate(tmp_path)
+    test_env = {
+        **cp313_env,
+        "CIBW_TEST_COMMAND": """python -c 'print("Hello world")'""",
+    }
+    verbose_lines = [
+        "> Task :app:packageDebug",  # Gradle
+        "I/TestRunner: run started: 1 tests",  # Logcat
+    ]
+
+    cibuildwheel_run(tmp_path, add_env=test_env)
+    stdout = capfd.readouterr().out
+    for line in verbose_lines:
+        assert line not in stdout
+
+    cibuildwheel_run(
+        tmp_path,
+        add_env={**test_env, "CIBW_BUILD_VERBOSITY": "1"},
+    )
+    stdout = capfd.readouterr().out
+    for line in verbose_lines:
+        assert line in stdout
+
+
+@needs_emulator
 def test_api_level(tmp_path, capfd):
     project = new_c_project()
     project.files["pyproject.toml"] = dedent(
