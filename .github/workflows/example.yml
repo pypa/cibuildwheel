@@ -1,0 +1,101 @@
+name: Build and upload to PyPI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+  release:
+    types:
+      - published
+
+jobs:
+  build_wheels:
+    name: Build wheels for ${{ matrix.os }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+          - os: linux-intel
+            runs-on: ubuntu-latest
+          - os: linux-arm
+            runs-on: ubuntu-24.04-arm
+          - os: windows-intel
+            runs-on: windows-latest
+          - os: windows-arm
+            runs-on: windows-11-arm
+          - os: macos-intel
+            # macos-13 was the last x86_64 runner
+            runs-on: macos-13
+          - os: macos-arm
+            # macos-14+ (including latest) are ARM64 runners
+            runs-on: macos-latest
+          - os: android-intel
+            runs-on: ubuntu-latest
+            platform: android
+          - os: android-arm
+            # GitHub Actions doesn’t currently support the Android emulator on any ARM
+            # runner. So we build on a non-ARM runner, which will skip the tests.
+            runs-on: ubuntu-latest
+            platform: android
+            archs: arm64_v8a
+          - os: ios
+            runs-on: macos-latest
+            platform: ios
+          - os: pyodide
+            runs-on: ubuntu-latest
+            platform: pyodide
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.1.4
+        env:
+          CIBW_PLATFORM: ${{ matrix.platform || 'auto' }}
+          CIBW_ARCHS: ${{ matrix.archs || 'auto' }}
+        # Can also be configured directly, using `with:`
+        # with:
+        #   package-dir: .
+        #   output-dir: wheelhouse
+        #   config-file: "{package}/pyproject.toml"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+
+  upload_pypi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    if: github.event_name == 'release' && github.event.action == 'published'
+    # or, alternatively, upload to PyPI on every tag starting with 'v' (remove on: release above to use this)
+    # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          # unpacks all CIBW artifacts into dist/
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        # To test uploads to TestPyPI, uncomment the following:
+        # with:
+        #   repository-url: https://test.pypi.org/legacy/
