@@ -38,7 +38,7 @@ class EnableGroup(StrEnum):
 
     @classmethod
     def all_groups(cls) -> frozenset["EnableGroup"]:
-        return frozenset(set(cls) - {cls.CPythonExperimentalRiscV64})
+        return frozenset(cls)
 
     @classmethod
     def parse_option_value(cls, value: str) -> frozenset["EnableGroup"]:
