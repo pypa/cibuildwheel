@@ -90,7 +90,7 @@ test = [
     "jinja2",
     "pytest-timeout",
     "pytest-xdist",
-    "pytest-rerunfailures",
+    "pytest-rerunfailures!=16.0",
     "pytest>=6",
     "setuptools",
     "tomli_w",
