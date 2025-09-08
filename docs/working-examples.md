@@ -97,8 +97,8 @@ title: Working examples
 | [streaming-form-data][]           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Streaming parser for multipart/form-data written in Cython |
 | [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
-| [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
+| [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M92 |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
@@ -208,8 +208,8 @@ title: Working examples
 [streaming-form-data]: https://github.com/siddhantgoel/streaming-form-data
 [pybase64]: https://github.com/mayeut/pybase64
 [bx-python]: https://github.com/bxlab/bx-python
-[boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
+[boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [fathon]: https://github.com/stfbnc/fathon
