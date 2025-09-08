@@ -1,5 +1,5 @@
 import shlex
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import Any, Literal, Self, TypeVar
@@ -178,30 +178,3 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             return wheel
 
     return None
-
-
-def combine_constraints(
-    env: MutableMapping[str, str], /, constraints_path: Path, tmp_dir: Path | None
-) -> None:
-    """
-    This will workaround a bug in pip<=21.1.1 or uv<=0.2.0 if a tmp_dir is given.
-    If set to None, this will use the modern URI method.
-    """
-
-    if tmp_dir:
-        if " " in str(constraints_path):
-            assert " " not in str(tmp_dir)
-            tmp_file = tmp_dir / "constraints.txt"
-            tmp_file.write_bytes(constraints_path.read_bytes())
-            constraints_path = tmp_file
-        our_constraints = str(constraints_path)
-    else:
-        our_constraints = (
-            constraints_path.as_uri() if " " in str(constraints_path) else str(constraints_path)
-        )
-
-    user_constraints = env.get("PIP_CONSTRAINT")
-
-    env["UV_CONSTRAINT"] = env["PIP_CONSTRAINT"] = " ".join(
-        c for c in [our_constraints, user_constraints] if c
-    )
