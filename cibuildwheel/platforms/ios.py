@@ -33,7 +33,6 @@ from ..util.file import (
 )
 from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
 from ..util.packaging import (
-    combine_constraints,
     find_compatible_wheel,
     get_pip_version,
 )
@@ -491,8 +490,6 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 build_env = env.copy()
                 build_env["VIRTUALENV_PIP"] = pip_version
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, None)
 
                 match build_frontend.name:
                     case "pip":

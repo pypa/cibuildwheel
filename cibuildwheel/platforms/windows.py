@@ -23,7 +23,7 @@ from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
 from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..util.packaging import find_compatible_wheel, get_pip_version
 from ..venv import constraint_flags, find_uv, virtualenv
 
 
@@ -464,9 +464,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_env = env.copy()
                 if pip_version is not None:
                     build_env["VIRTUALENV_PIP"] = pip_version
-
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
                 match build_frontend.name:
                     case "pip":
