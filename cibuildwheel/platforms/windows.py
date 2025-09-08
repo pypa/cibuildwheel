@@ -54,9 +54,16 @@ def get_nuget_args(
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:
     version: str
-    arch: str
     identifier: str
     url: str | None = None
+
+    @property
+    def arch(self) -> str:
+        return {
+            "win32": "32",
+            "win_amd64": "64",
+            "win_arm64": "ARM64",
+        }[self.identifier.split("-")[-1]]
 
 
 def all_python_configurations() -> list[PythonConfiguration]:
