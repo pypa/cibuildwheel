@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       id: python
       with:
         python-version: "3.x"
@@ -88,7 +88,7 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
@@ -207,7 +207,7 @@ jobs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
     - uses: astral-sh/setup-uv@v6
@@ -230,7 +230,7 @@ jobs:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
     - uses: astral-sh/setup-uv@v6
@@ -250,7 +250,7 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       name: Install Python 3.12
       with:
         python-version: '3.12'
