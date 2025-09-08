@@ -589,7 +589,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         site_packages_dir,
         f"{wheel}{state.options.test_extras}",
         *state.options.test_requires,
-        env=state.build_env,
+        env=state.android_env,
     )
 
     # Copy test-sources.
@@ -641,6 +641,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         site_packages_dir,
         "--cwd",
         cwd_dir,
+        *(["-v"] if state.options.build_verbosity > 0 else []),
         *test_args,
         env=state.build_env,
     )

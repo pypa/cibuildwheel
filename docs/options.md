@@ -1724,6 +1724,9 @@ Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by
 default.
 
+On Android and iOS, a positive verbosity level will also show more detailed logs from
+the test harness.
+
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_ANDROID` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
 
