@@ -37,7 +37,7 @@ from ..util.packaging import (
     find_compatible_wheel,
     get_pip_version,
 )
-from ..venv import constraint_flags, virtualenv
+from ..venv import constraint_flags, find_uv, virtualenv
 from .macos import install_cpython as install_build_cpython
 
 
@@ -151,6 +151,7 @@ def cross_virtualenv(
     venv_path: Path,
     dependency_constraint: Path | None,
     xbuild_tools: Sequence[str] | None,
+    build_frontend: str,
 ) -> dict[str, str]:
     """Create a cross-compilation virtual environment.
 
@@ -181,13 +182,15 @@ def cross_virtualenv(
     :param xbuild_tools: A list of executable names (without paths) that are
         on the path, but must be preserved in the cross environment.
     """
+    use_uv = build_frontend == "build[uv]"
+
     # Create an initial macOS virtual environment
     env = virtualenv(
         py_version,
         build_python,
         venv_path,
         dependency_constraint,
-        use_uv=False,
+        use_uv=use_uv,
     )
 
     # Convert the macOS virtual environment into an iOS virtual environment
@@ -282,9 +285,12 @@ def setup_python(
     build_frontend: BuildFrontendName,
     xbuild_tools: Sequence[str] | None,
 ) -> tuple[Path, dict[str, str]]:
-    if build_frontend == "build[uv]":
-        msg = "uv doesn't support iOS"
-        raise errors.FatalError(msg)
+    use_uv = build_frontend == "build[uv]"
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
 
     # An iOS environment requires 2 python installs - one for the build machine
     # (macOS), and one for the target (iOS). We'll only ever interact with the
@@ -334,6 +340,7 @@ def setup_python(
         venv_path=venv_path,
         dependency_constraint=dependency_constraint,
         xbuild_tools=xbuild_tools,
+        build_frontend=build_frontend,
     )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
@@ -343,16 +350,17 @@ def setup_python(
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip'
-    pip = ["python", "-m", "pip"]
-    call(
-        *pip,
-        "install",
-        "--upgrade",
-        "pip",
-        *constraint_flags(dependency_constraint),
-        env=env,
-        cwd=venv_path,
-    )
+    if not use_uv:
+        pip = ["python", "-m", "pip"]
+        call(
+            *pip,
+            "install",
+            "--upgrade",
+            "pip",
+            *constraint_flags(dependency_constraint),
+            env=env,
+            cwd=venv_path,
+        )
 
     # Apply our environment after pip is ready
     env = environment.as_dictionary(prev_environment=env)
@@ -370,17 +378,18 @@ def setup_python(
     call("python", "--version", env=env)
 
     # Check what pip version we're on
-    assert (venv_bin_path / "pip").exists()
-    which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
-    print(which_pip)
-    if which_pip != str(venv_bin_path / "pip"):
-        msg = (
-            "cibuildwheel: pip available on PATH doesn't match our installed instance. "
-            "If you have modified PATH, ensure that you don't overwrite cibuildwheel's "
-            "entry or insert pip above it."
-        )
-        raise errors.FatalError(msg)
-    call("pip", "--version", env=env)
+    if not use_uv:
+        assert (venv_bin_path / "pip").exists()
+        which_pip = call("which", "pip", env=env, capture_stdout=True).strip()
+        print(which_pip)
+        if which_pip != str(venv_bin_path / "pip"):
+            msg = (
+                "cibuildwheel: pip available on PATH doesn't match our installed instance. "
+                "If you have modified PATH, ensure that you don't overwrite cibuildwheel's "
+                "entry or insert pip above it."
+            )
+            raise errors.FatalError(msg)
+        call("pip", "--version", env=env)
 
     # Ensure that IPHONEOS_DEPLOYMENT_TARGET is set in the environment
     env.setdefault("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
@@ -392,10 +401,19 @@ def setup_python(
             pass
         case "build":
             call(
-                "pip",
+                *pip,
                 "install",
                 "--upgrade",
                 "build[virtualenv]",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case "build[uv]":
+            call(
+                *pip,
+                "install",
+                "--upgrade",
+                "build",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
@@ -438,10 +456,12 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
-            # uv doesn't support iOS
-            if build_frontend.name == "build[uv]":
-                msg = "uv doesn't support iOS"
-                raise errors.FatalError(msg)
+            use_uv = build_frontend.name == "build[uv]"
+            uv_path = find_uv()
+            if use_uv and uv_path is None:
+                msg = "uv not found"
+                raise AssertionError(msg)
+            pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
 
             log.build_start(config.identifier)
 
@@ -461,7 +481,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_frontend=build_frontend.name,
                 xbuild_tools=build_options.xbuild_tools,
             )
-            pip_version = get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -490,7 +509,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 build_env = env.copy()
-                build_env["VIRTUALENV_PIP"] = pip_version
+                if not use_uv:
+                    pip_version = get_pip_version(env)
+                    build_env["VIRTUALENV_PIP"] = pip_version
                 if constraints_path:
                     combine_constraints(build_env, constraints_path, None)
 
@@ -517,6 +538,18 @@ def build(options: Options, tmp_path: Path) -> None:
                             "build",
                             build_options.package_dir,
                             "--wheel",
+                            f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                            env=build_env,
+                        )
+                    case "build[uv]":
+                        call(
+                            "python",
+                            "-m",
+                            "build",
+                            build_options.package_dir,
+                            "--wheel",
+                            "--installer=uv",
                             f"--outdir={built_wheel_dir}",
                             *extra_flags,
                             env=build_env,
@@ -582,20 +615,35 @@ def build(options: Options, tmp_path: Path) -> None:
                     ios_version = test_env["IPHONEOS_DEPLOYMENT_TARGET"]
                     platform_tag = f"ios_{ios_version.replace('.', '_')}_{config.arch}_{config.sdk}"
 
-                    call(
-                        "python",
-                        "-m",
-                        "pip",
-                        "install",
-                        "--only-binary=:all:",
-                        "--platform",
-                        platform_tag,
-                        "--target",
-                        testbed_path / "iOSTestbed" / "app_packages",
-                        f"{test_wheel}{build_options.test_extras}",
-                        *build_options.test_requires,
-                        env=test_env,
-                    )
+                    if use_uv:
+                        call(
+                            *pip,
+                            "install",
+                            "--only-binary=:all:",
+                            "--platform",
+                            platform_tag,
+                            "--target",
+                            testbed_path / "iOSTestbed" / "app_packages",
+                            f"{test_wheel}{build_options.test_extras}",
+                            *build_options.test_requires,
+                            env=test_env,
+                        )
+
+                    else:
+                        call(
+                            "python",
+                            "-m",
+                            "pip",
+                            "install",
+                            "--only-binary=:all:",
+                            "--platform",
+                            platform_tag,
+                            "--target",
+                            testbed_path / "iOSTestbed" / "app_packages",
+                            f"{test_wheel}{build_options.test_extras}",
+                            *build_options.test_requires,
+                            env=test_env,
+                        )
 
                     log.step("Running test suite...")
 
