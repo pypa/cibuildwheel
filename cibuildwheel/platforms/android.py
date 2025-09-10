@@ -34,7 +34,7 @@ from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from ..util.helpers import prepare_command
 from ..util.packaging import find_compatible_wheel
 from ..util.python_build_standalone import create_python_build_standalone_environment
-from ..venv import constraint_flags, virtualenv
+from ..venv import constraint_flags, find_uv, virtualenv
 
 
 def android_triplet(identifier: str) -> str:
@@ -187,6 +187,13 @@ def setup_env(
     * android_env, which uses the environment while simulating running on Android.
     """
     log.step("Setting up build environment...")
+    build_frontend = build_options.build_frontend.name
+    use_uv = build_frontend == "build[uv]"
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
 
     # Create virtual environment
     python_exe = create_python_build_standalone_environment(
@@ -197,14 +204,14 @@ def setup_env(
         version=config.version, tmp_dir=build_path
     )
     build_env = virtualenv(
-        config.version, python_exe, venv_dir, dependency_constraint, use_uv=False
+        config.version, python_exe, venv_dir, dependency_constraint, use_uv=use_uv
     )
     create_cmake_toolchain(config, build_path, python_dir, build_env)
 
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-    for command in ["python", "pip"]:
+    for command in ["python"] if use_uv else ["python", "pip"]:
         command_path = call("which", command, env=build_env, capture_stdout=True).strip()
         if command_path != f"{venv_dir}/bin/{command}":
             msg = (
@@ -219,11 +226,10 @@ def setup_env(
     android_env = setup_android_env(config, python_dir, venv_dir, build_env)
 
     # Install build tools
-    build_frontend = build_options.build_frontend
-    if build_frontend.name != "build":
+    if build_frontend not in {"build", "build[uv]"}:
         msg = "Android requires the build frontend to be 'build'"
         raise errors.FatalError(msg)
-    call("pip", "install", "build", *constraint_flags(dependency_constraint), env=build_env)
+    call(*pip, "install", "build", *constraint_flags(dependency_constraint), env=build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -243,13 +249,13 @@ def setup_env(
 
     pb = ProjectBuilder.from_isolated_env(AndroidEnv(), build_options.package_dir)
     if pb.build_system_requires:
-        call("pip", "install", *pb.build_system_requires, env=build_env)
+        call(*pip, "install", *pb.build_system_requires, env=build_env)
 
     requires_for_build = pb.get_requires_for_build(
         "wheel", parse_config_settings(build_options.config_settings)
     )
     if requires_for_build:
-        call("pip", "install", *requires_for_build, env=build_env)
+        call(*pip, "install", *requires_for_build, env=build_env)
 
     return build_env, android_env
 
