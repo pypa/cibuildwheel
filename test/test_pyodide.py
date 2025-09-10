@@ -104,7 +104,7 @@ def test_pyodide_version_incompatible(tmp_path, capfd):
             },
         )
 
-    out, err = capfd.readouterr()
+    _, err = capfd.readouterr()
 
     assert "is not compatible with the pyodide-build version" in err
 
