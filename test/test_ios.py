@@ -321,7 +321,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     )
     assert set(actual_wheels) == set(expected_wheels)
 
-    out, err = capfd.readouterr()
+    _, err = capfd.readouterr()
 
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
 
@@ -345,5 +345,5 @@ def test_ios_test_command_invalid(tmp_path, capfd):
                 "CIBW_XBUILD_TOOLS": "",
             },
         )
-    out, err = capfd.readouterr()
+    _, err = capfd.readouterr()
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err

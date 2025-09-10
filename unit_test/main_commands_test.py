@@ -34,7 +34,7 @@ def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
 
     assert e.value.code == 0
 
-    out, err = capfd.readouterr()
+    out, _ = capfd.readouterr()
     assert f"Clearing cache directory: {fake_cache_dir}" in out
     assert "Cache cleared successfully." in out
     assert not fake_cache_dir.exists()
@@ -51,7 +51,7 @@ def test_clean_cache_when_cache_does_not_exist(tmp_path, monkeypatch, capfd):
 
     assert e.value.code == 0
 
-    out, err = capfd.readouterr()
+    out, _ = capfd.readouterr()
     assert f"Cache directory does not exist: {fake_cache_dir}" in out
 
 
@@ -101,7 +101,7 @@ def test_clean_cache_without_sentinel(tmp_path, monkeypatch, capfd):
 
     assert e.value.code == 1
 
-    out, err = capfd.readouterr()
+    _, err = capfd.readouterr()
     assert "does not appear to be a cibuildwheel cache directory" in err
     assert fake_cache_dir.exists()
 
@@ -122,6 +122,6 @@ def test_clean_cache_with_invalid_signature(tmp_path, monkeypatch, capfd):
 
     assert e.value.code == 1
 
-    out, err = capfd.readouterr()
+    _, err = capfd.readouterr()
     assert "does not contain a valid cache directory signature" in err
     assert fake_cache_dir.exists()
