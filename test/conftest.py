@@ -151,64 +151,29 @@ def docker_warmup_fixture(
     return None
 
 
-PLATFORM = get_platform()
-UV_PATH = find_uv()
-
-BUILD_FRONTEND_PARAMS = [
-    pytest.param(
-        "build[uv]",
-        marks=[
-            pytest.mark.skipif(
-                PLATFORM == "pyodide",
-                reason="Can't use uv with pyodide yet",
-            ),
-            pytest.mark.skipif(
-                UV_PATH is None,
-                reason="Can't find uv, so skipping uv tests",
-            ),
-        ],
-        id="build[uv]",
-    ),
-    pytest.param(
-        "build",
-        marks=pytest.mark.skipif(
-            UV_PATH is not None and PLATFORM not in {"android", "ios"},
-            reason="No need to check build when build[uv] is checked (faster)",
-        ),
-        id="build",
-    ),
-    pytest.param(
-        "pip",
-        marks=pytest.mark.skipif(
-            PLATFORM in {"pyodide", "ios", "android"},
-            reason=f"Can't use pip as build frontend for {PLATFORM}",
-        ),
-        id="pip",
-    ),
-]
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(
-            "pip",
-            marks=pytest.mark.skipif(
-                PLATFORM in {"pyodide", "ios", "android"},
-                reason=f"Can't use pip as build frontend for {PLATFORM}",
-            ),
-        ),
-        "build",
-    ]
-)
+@pytest.fixture(params=["pip", "build"])
 def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     frontend = request.param
+    if get_platform() == "pyodide" and frontend == "pip":
+        pytest.skip("Can't use pip as build frontend for pyodide platform")
+
     return {"CIBW_BUILD_FRONTEND": frontend}
 
 
-@pytest.fixture(params=BUILD_FRONTEND_PARAMS)
+@pytest.fixture(params=["pip", "build", "build[uv]"])
 def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
-    print(f"{PLATFORM=}")
     frontend = request.param
+    platform = get_platform()
+    if platform in {"pyodide", "ios", "android"} and frontend == "pip":
+        pytest.skip("Can't use pip as build frontend for pyodide/ios/android platform")
+    if platform == "pyodide" and frontend == "build[uv]":
+        pytest.skip("Can't use uv with pyodide yet")
+    uv_path = find_uv()
+    if uv_path is None and frontend == "build[uv]":
+        pytest.skip("Can't find uv, so skipping uv tests")
+    if uv_path is not None and frontend == "build" and platform not in {"android", "ios"}:
+        pytest.skip("No need to check build when uv is present")
+
     return {"CIBW_BUILD_FRONTEND": frontend}
 
 
