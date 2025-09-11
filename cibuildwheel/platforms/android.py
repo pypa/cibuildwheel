@@ -227,7 +227,7 @@ def setup_env(
 
     # Install build tools
     if build_frontend not in {"build", "build[uv]"}:
-        msg = "Android requires the build frontend to be 'build'"
+        msg = f"Android requires the build frontend to be 'build' or 'build[uv'], not {build_frontend!r}"
         raise errors.FatalError(msg)
     call(*pip, "install", "build", *constraint_flags(dependency_constraint), env=build_env)
 
