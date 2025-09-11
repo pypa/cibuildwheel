@@ -154,7 +154,10 @@ def docker_warmup_fixture(
 @pytest.fixture(params=["pip", "build"])
 def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     frontend = request.param
-    if get_platform() == "pyodide" and frontend == "pip":
+    marks = {m.name for m in request.node.iter_markers()}
+
+    platform = "pyodide" if "pyodide" in marks else get_platform()
+    if platform == "pyodide" and frontend == "pip":
         pytest.skip("Can't use pip as build frontend for pyodide platform")
 
     return {"CIBW_BUILD_FRONTEND": frontend}
@@ -163,9 +166,18 @@ def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
 @pytest.fixture(params=["pip", "build", "build[uv]"])
 def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
     frontend = request.param
-    platform = get_platform()
+    marks = {m.name for m in request.node.iter_markers()}
+    if "android" in marks:
+        platform = "android"
+    elif "ios" in marks:
+        platform = "ios"
+    elif "pyodide" in marks:
+        platform = "pyodide"
+    else:
+        platform = get_platform()
+
     if platform in {"pyodide", "ios", "android"} and frontend == "pip":
-        pytest.skip("Can't use pip as build frontend for pyodide/ios/android platform")
+        pytest.skip(f"Can't use pip as build frontend for {platform}")
     if platform == "pyodide" and frontend == "build[uv]":
         pytest.skip("Can't use uv with pyodide yet")
     uv_path = find_uv()
