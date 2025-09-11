@@ -43,7 +43,7 @@ def test(tmp_path, capfd):
         result = utils.cibuildwheel_run(
             project_dir,
             add_env={
-                "CIBW_REPAIR_WHEEL_COMMAND": "python repair.py {wheel} {dest_dir}",
+                "CIBW_REPAIR_WHEEL_COMMAND": "python {project}/repair.py {wheel} {dest_dir}",
             },
         )
 
