@@ -23,7 +23,7 @@ import textwrap
 import urllib.request
 import xml.dom.minidom
 from collections.abc import Iterable, Mapping, Sequence
-from datetime import datetime
+from datetime import UTC, datetime
 from io import StringIO
 from pathlib import Path
 from typing import Any, Self, TextIO
@@ -77,7 +77,7 @@ class Project:
                     self.notes = notes
         else:
             self.num_stars = 0
-            self.pushed_at = datetime.utcnow()
+            self.pushed_at = datetime.now(UTC)
 
         name_len = len(self.name) + 4
         self.__class__.NAME = max(self.__class__.NAME, name_len)
@@ -124,7 +124,7 @@ class Project:
         return f"[{self.name}]: {self.url}"
 
     def info(self) -> str:
-        days = (datetime.utcnow() - self.pushed_at).days
+        days = (datetime.now(UTC) - self.pushed_at).days
         return f"<!-- {self.name}: {self.num_stars}, last pushed {days} days ago -->"
 
 
