@@ -54,7 +54,7 @@ platformdirs==4.4.0
     # via
     #   pyodide-build
     #   virtualenv
-pydantic==2.11.7
+pydantic==2.11.9
     # via
     #   pyodide-build
     #   pyodide-lock
@@ -64,7 +64,7 @@ pygments==2.19.2
     # via rich
 pyodide-build==0.30.7
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-pyodide-cli==0.3.0
+pyodide-cli==0.4.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
