@@ -262,6 +262,11 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
             "Test command './test_spam.py' is not supported on Android. "
             "Supported commands are 'python -m' and 'python -c'.",
         ),
+        (
+            "python test_spam.py",
+            "Test command 'python test_spam.py' is not supported on Android. "
+            "Supported commands are 'python -m' and 'python -c'.",
+        ),
         # Build-time failure: unrecognized placeholder
         (
             "pytest {project}",
@@ -281,6 +286,29 @@ def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
     with pytest.raises(CalledProcessError):
         cibuildwheel_run(tmp_path, add_env={**spam_env, "CIBW_TEST_COMMAND": command})
     assert expected_output in capfd.readouterr().err
+
+
+@needs_emulator
+@pytest.mark.parametrize(
+    ("options", "expected"),
+    [
+        ("", 0),
+        ("-E", 1),
+    ],
+)
+def test_test_command_python_options(options, expected, tmp_path, capfd):
+    project = new_c_project()
+    project.generate(tmp_path)
+
+    command = 'import sys; print(f"{sys.flags.ignore_environment=}")'
+    cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_TEST_COMMAND": f"python {options} -c '{command}'",
+        },
+    )
+    assert f"sys.flags.ignore_environment={expected}" in capfd.readouterr().out
 
 
 @needs_emulator
