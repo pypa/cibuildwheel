@@ -112,7 +112,8 @@ The complete set of defaults for the current version of cibuildwheel are shown b
 
 One feature specific to the configuration files is the ability to override
 settings based on selectors. To use, add a ``tool.cibuildwheel.overrides``
-array, and specify a ``select`` string. Then any options you set will only
+array, and specify a ``select`` string. The ``select`` need to match [build identifier](options.md#build-skip), not wheel name.
+Then any options you set will only
 apply to items that match that selector. These are applied in order, with later
 matches overriding earlier ones if multiple selectors match. Environment
 variables always override static configuration.
@@ -120,9 +121,11 @@ variables always override static configuration.
 A few of the options below have special handling in overrides. A different
 `before-all` will trigger a new container to launch on Linux, and cannot be
 overridden on macOS or Windows.  Overriding the image on linux will also
-trigger new containers, one per image. Some commands are not supported;
-`output-dir`, build/skip/test_skip selectors, and architectures cannot be
-overridden.
+trigger new containers, one per image.
+
+!!! note "Some commands are not supported""
+
+    The ``output-dir``, ``build``, ``skip``, ``test_skip`` selectors, and architectures cannot be overridden.
 
 You can specify a table of overrides in `inherit={}`, any list or table in this
 list will inherit from previous overrides or the main configuration. The valid
