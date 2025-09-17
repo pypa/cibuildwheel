@@ -123,7 +123,7 @@ A few of the options below have special handling in overrides. A different
 overridden on macOS or Windows.  Overriding the image on linux will also
 trigger new containers, one per image.
 
-!!! note "Some commands are not supported""
+!!! note "Some commands are not supported"
 
     The ``output-dir``, ``build``, ``skip``, ``test_skip`` selectors, and architectures cannot be overridden.
 
