@@ -69,7 +69,7 @@ Usage
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
 <sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture. </sup><br>
 <sup>⁴ Building for Android requires the runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Testing has [additional requirements](https://cibuildwheel.pypa.io/en/stable/platforms/#android).</sup><br>
-<sup>⁵ The `macos-15` and `macos-latest` images are [incompatible with cibuildwheel at this time](platforms/#ios-system-requirements)</sup><br>
+<sup>⁵ The `macos-15` and `macos-latest` images are [incompatible with cibuildwheel at this time](platforms/#ios-system-requirements)</sup><br> when building iOS wheels.
 
 <!--intro-end-->
 
@@ -90,7 +90,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-15-intel, macos-latest]
 
     steps:
       - uses: actions/checkout@v5

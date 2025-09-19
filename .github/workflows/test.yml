@@ -69,17 +69,17 @@ jobs:
           python_version: '3.13'
         - os: windows-11-arm
           python_version: '3.13'
-        - os: macos-13
+        - os: macos-15-intel
           python_version: '3.13'
         - os: macos-15
           python_version: '3.13'
-        - os: macos-13
+        - os: macos-15-intel
           python_version: '3.13'
           test_select: ios
         - os: macos-14  # See https://github.com/actions/runner-images/issues/12777
           python_version: '3.13'
           test_select: ios
-        - os: macos-13
+        - os: macos-15-intel
           python_version: '3.13'
           test_select: android
         - os: macos-15
