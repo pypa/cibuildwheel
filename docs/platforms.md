@@ -121,7 +121,7 @@ See [GitHub issue 1333](https://github.com/pypa/cibuildwheel/issues/1333) for mo
 
 It's easiest to build `x86_64` wheels on `x86_64` runners, and `arm64` wheels on `arm64` runners.
 
-On GitHub Actions, `macos-14` runners are `arm64`, and `macos-13` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
+On GitHub Actions, `macos-14` runners are `arm64`, and `macos-15-intel` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
 
 #### Cross-compiling
 
