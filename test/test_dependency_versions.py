@@ -37,6 +37,9 @@ for name, expected_version in expected_versions.items():
 
 
 def test_check_versions_script(tmp_path, build_frontend_env_nouv, capfd):
+    if utils.get_platform() == "linux":
+        pytest.skip("we don't test dependency versions on linux, refer to other tests")
+
     # sanity check that the CHECK_VERSIONS_SCRIPT fails when it should
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
