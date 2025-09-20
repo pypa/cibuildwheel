@@ -112,7 +112,7 @@ The complete set of defaults for the current version of cibuildwheel are shown b
 
 One feature specific to the configuration files is the ability to override
 settings based on selectors. To use, add a ``tool.cibuildwheel.overrides``
-array, and specify a ``select`` string. The ``select`` need to match [build identifier](options.md#build-skip), not wheel name.
+array, and specify a ``select`` string, referencing the [build identifier](options.md#build-skip) (not wheel name!).
 Then any options you set will only
 apply to items that match that selector. These are applied in order, with later
 matches overriding earlier ones if multiple selectors match. Environment
