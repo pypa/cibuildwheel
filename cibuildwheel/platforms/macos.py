@@ -461,8 +461,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 build_env = env.copy()
-                if pip_version is not None:
-                    build_env["VIRTUALENV_PIP"] = pip_version
 
                 match build_frontend.name:
                     case "pip":

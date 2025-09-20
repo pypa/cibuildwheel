@@ -461,10 +461,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     shell("graalpy -m pip install setuptools wheel", env=env)
                     extra_flags = [*extra_flags, "-n"]
 
-                build_env = env.copy()
-                if pip_version is not None:
-                    build_env["VIRTUALENV_PIP"] = pip_version
-
                 match build_frontend.name:
                     case "pip":
                         # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
@@ -478,7 +474,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             f"--wheel-dir={built_wheel_dir}",
                             "--no-deps",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case "build" | "build[uv]":
                         if (
@@ -496,7 +492,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case _:
                         assert_never(build_frontend)

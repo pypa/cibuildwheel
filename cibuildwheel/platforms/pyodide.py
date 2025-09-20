@@ -419,15 +419,13 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
 
-                build_env = env.copy()
-                build_env["VIRTUALENV_PIP"] = pip_version
                 call(
                     "pyodide",
                     "build",
                     build_options.package_dir,
                     f"--outdir={built_wheel_dir}",
                     *extra_flags,
-                    env=build_env,
+                    env=env,
                 )
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
