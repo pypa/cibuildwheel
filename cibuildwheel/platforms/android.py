@@ -274,11 +274,15 @@ def create_cmake_toolchain(
                 set(CMAKE_SYSTEM_VERSION 1)
 
                 # Tell CMake where to look for headers and libraries.
-                list(INSERT CMAKE_FIND_ROOT_PATH 0 {python_dir}/prefix)
+                set(CMAKE_FIND_ROOT_PATH "{python_dir}/prefix")
                 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
                 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
                 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
                 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
+
+                # Allow CMake to run Python in the simulated Android environment when
+                # policy CMP0190 is active.
+                set(CMAKE_CROSSCOMPILING_EMULATOR /bin/sh -c [["$0" "$@"]])
                 """
             ),
             file=toolchain_file,
