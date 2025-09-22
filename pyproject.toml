@@ -83,6 +83,9 @@ docs = [
     "mkdocs==1.6.1",
     "pymdown-extensions",
     "rich",
+    # transitive dep of mkdocs-macros-plugin
+    # https://github.com/fralau/mkdocs-macros-plugin/issues/269
+    "requests",
 ]
 test = [
     "build",
