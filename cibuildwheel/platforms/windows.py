@@ -339,11 +339,11 @@ def setup_python(
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
-    if implementation_id.startswith("gp"):
-        # GraalPy fails to discover compilers, setup the relevant environment
+    if implementation_id.startswith("gp311"):
+        # GraalPy 24 fails to discover compilers, setup the relevant environment
         # variables. Adapted from
         # https://github.com/microsoft/vswhere/wiki/Start-Developer-Command-Prompt
-        # Remove when https://github.com/oracle/graalpython/issues/492 is fixed.
+        # Remove when GraalPy 24.x is dropped.
         vcpath = call(
             Path(os.environ["PROGRAMFILES(X86)"])
             / "Microsoft Visual Studio"
@@ -453,15 +453,15 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 if (
-                    config.identifier.startswith("gp")
+                    config.identifier.startswith("gp311")
                     and build_frontend.name == "build"
                     and "--no-isolation" not in extra_flags
                     and "-n" not in extra_flags
                 ):
-                    # GraalPy fails to discover its standard library when a venv is created
+                    # GraalPy 24 fails to discover its standard library when a venv is created
                     # from a virtualenv seeded executable. See
                     # https://github.com/oracle/graalpython/issues/491 and remove this once
-                    # fixed upstream.
+                    # GraalPy 24 is dropped.
                     log.notice(
                         "Disabling build isolation to workaround GraalPy bug. If the build fails, consider using pip or build[uv] as build frontend."
                     )

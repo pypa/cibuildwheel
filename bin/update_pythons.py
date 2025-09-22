@@ -127,7 +127,9 @@ class GraalPyVersions:
             raise RuntimeError(msg)
 
         gpspec_str = identifier.split("-")[0].split("_")[1]
-        gpspec = Specifier("==24.2.*") if gpspec_str == "242" else Specifier(f"=={gpspec_str}.*")
+        if "." not in gpspec_str and len(gpspec_str) == 3:
+            gpspec_str = gpspec_str[:2] + "." + gpspec_str[-1]
+        gpspec = Specifier(f"=={gpspec_str}.*")
 
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
         releases = [r for r in self.releases if gpspec.contains(r["graalpy_version"])]
