@@ -600,7 +600,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         *pip,
         "install",
         "--only-binary=:all:",
-        "--platform",
+        "--python-platform" if use_uv else "--platform",
         sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
         "--target",
         site_packages_dir,
