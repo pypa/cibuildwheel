@@ -122,7 +122,7 @@ def test_frontend_good(tmp_path, build_frontend_env):
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(
         tmp_path,
-        add_env={**cp313_env, **build_frontend_env},
+        add_env={**cp313_env, **build_frontend_env, "CIBW_TEST_COMMAND": "python -m site"},
     )
     assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{native_arch.android_abi}.whl"]
 

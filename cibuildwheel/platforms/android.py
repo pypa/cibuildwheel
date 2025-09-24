@@ -147,7 +147,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel = build_wheel(state)
                 repaired_wheel = repair_wheel(state, built_wheel)
 
-            test_wheel(state, repaired_wheel)
+            test_wheel(state, repaired_wheel, build_frontend=build_options.build_frontend.name)
 
             output_wheel: Path | None = None
             if compatible_wheel is None:
@@ -565,12 +565,19 @@ def soname_with_hash(src_path: Path) -> str:
         return src_name
 
 
-def test_wheel(state: BuildState, wheel: Path) -> None:
+def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
     test_command = state.options.test_command
     if not (test_command and state.options.test_selector(state.config.identifier)):
         return
 
     log.step("Testing wheel...")
+    use_uv = build_frontend == "build[uv]"
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+
     native_arch = arch_synonym(platform.machine(), platforms.native_platform(), "android")
     if state.config.arch != native_arch:
         log.warning(
@@ -590,7 +597,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
     site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
     call(
-        "pip",
+        *pip,
         "install",
         "--only-binary=:all:",
         "--platform",
