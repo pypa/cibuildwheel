@@ -593,6 +593,18 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
             env=state.build_env,
         )
 
+    platform_args = (
+        [
+            "--python-platforma",
+            "x86_64-linux-android" if state.config.arch == "x86_64" else "aarch64-linux-android",
+        ]
+        if use_uv
+        else [
+            "--platform",
+            sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
+        ]
+    )
+
     # Install the wheel and test-requires.
     site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
@@ -600,8 +612,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         *pip,
         "install",
         "--only-binary=:all:",
-        "--python-platform" if use_uv else "--platform",
-        sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
+        *platform_args,
         "--target",
         site_packages_dir,
         f"{wheel}{state.options.test_extras}",
