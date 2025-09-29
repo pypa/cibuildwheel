@@ -239,7 +239,7 @@ python_configurations = [
 
 [ios]
 python_configurations = [
-  { identifier = "cp313-ios_arm64_iphoneos", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b10/Python-3.13-iOS-support.b11.tar.gz" },
+  { identifier = "cp313-ios_arm64_iphoneos", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b11/Python-3.13-iOS-support.b11.tar.gz" },
   { identifier = "cp313-ios_x86_64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b11/Python-3.13-iOS-support.b11.tar.gz" },
   { identifier = "cp313-ios_arm64_iphonesimulator", version = "3.13", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.13-b11/Python-3.13-iOS-support.b11.tar.gz" },
   { identifier = "cp314-ios_arm64_iphoneos", version = "3.14", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.14-b7/Python-3.14-iOS-support.b7.tar.gz" },
