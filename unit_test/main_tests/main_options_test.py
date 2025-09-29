@@ -390,6 +390,22 @@ def test_build_verbosity(
     assert build_options.build_verbosity == expected_verbosity
 
 
+@pytest.mark.parametrize("build_verbosity", [0, 1, 2, -1])
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_build_verbosity_pyodide(build_verbosity, monkeypatch, capsys):
+    monkeypatch.setenv("PYODIDE", "1")
+    monkeypatch.setenv("CIBW_BUILD_VERBOSITY", str(build_verbosity))
+
+    main()
+
+    _, err = capsys.readouterr()
+    if build_verbosity != 0:
+        assert "build_verbosity" in err
+        assert "not supported for Pyodide builds" in err
+    else:
+        assert "not supported for Pyodide builds" not in err
+
+
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_config_settings(platform_specific, platform, intercepted_build_args, monkeypatch):
     config_settings = (
