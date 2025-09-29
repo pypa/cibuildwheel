@@ -110,6 +110,12 @@ jobs:
       if: runner.os == 'Linux'
       uses: docker/setup-qemu-action@v3
 
+    - name: Set up Xcode
+      if: ${{ startsWith(matrix.os, 'macos-15') }}
+      run: |
+        # GitHub recommends explicitly selecting the desired Xcode version:
+        sudo xcode-select --switch /Applications/Xcode_16.4.app
+
     - name: Install dependencies
       run: |
         uv sync --no-dev --group test
