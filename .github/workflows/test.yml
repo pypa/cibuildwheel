@@ -76,7 +76,7 @@ jobs:
         - os: macos-15-intel
           python_version: '3.13'
           test_select: ios
-        - os: macos-14  # See https://github.com/actions/runner-images/issues/12777
+        - os: macos-15
           python_version: '3.13'
           test_select: ios
         - os: macos-15-intel

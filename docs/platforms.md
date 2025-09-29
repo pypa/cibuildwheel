@@ -262,9 +262,6 @@ You must be building on a macOS machine, with Xcode installed. The Xcode install
 
 Building iOS wheels also requires a working macOS Python installation. See the notes on [macOS builds](#macos) for details about configuration of the macOS environment.
 
-!!! note
-    If you are running cibuildwheel on GitHub Actions or Azure runners, you should avoid the `macos-15` and `macos-latest` images. The [20250811 image update](https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20250811.2170) made some [significant changes](https://github.com/actions/runner-images/issues/12541) that are [incompatible with CPython's iOS test runner](https://github.com/actions/runner-images/issues/12777). At this time, Microsoft's advice is to use the `macos-14` image instead.
-
 ### Specifying an iOS build
 
 iOS is effectively 2 platforms - physical devices, and simulators. While the API for these two platforms are identical, the ABI is not compatible, even when dealing with a device and simulator with the same CPU architecture. For this reason, the architecture specification for iOS builds includes *both* the CPU architecture *and* the ABI that is being targeted. There are three possible values for architecture on iOS; the values match those used by `sys.implementation._multiarch` when running on iOS (with hyphens replaced with underscores, matching wheel filename normalization):
