@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import shlex
+import sys
 import typing
 from collections.abc import Sequence
 from typing import Literal, Self, get_args
@@ -44,6 +45,11 @@ def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
     if os.environ.get("PYODIDE") == "1":
         if level != 0:
             log.warning(f"build_verbosity {level} is not supported for Pyodide builds. Ignoring.")
+
+        # debug; if this code path is called correctly we should exit
+        sys.exit(
+            "Exiting due to PYODIDE=1 environment variable; verbosity flags are not supported."
+        )
         return []
 
     if level < 0:
