@@ -113,7 +113,7 @@ jobs:
     - name: Set up Xcode
       if: ${{ startsWith(matrix.os, 'macos-15') }}
       run: |
-        # GitHub recommends explicitly selecting the desired Xcode version:
+        # GitHub recommends explicitly selecting the desired Xcode version
         sudo xcode-select --switch /Applications/Xcode_16.4.app
 
     - name: Install dependencies
