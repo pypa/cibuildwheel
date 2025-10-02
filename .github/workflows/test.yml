@@ -76,7 +76,7 @@ jobs:
         - os: macos-15-intel
           python_version: '3.13'
           test_select: ios
-        - os: macos-14  # See https://github.com/actions/runner-images/issues/12777
+        - os: macos-15
           python_version: '3.13'
           test_select: ios
         - os: macos-15-intel
@@ -109,6 +109,12 @@ jobs:
     - name: Set up QEMU
       if: runner.os == 'Linux'
       uses: docker/setup-qemu-action@v3
+
+    - name: Set up Xcode
+      if: ${{ startsWith(matrix.os, 'macos-15') }}
+      run: |
+        # GitHub recommends explicitly selecting the desired Xcode version
+        sudo xcode-select --switch /Applications/Xcode_16.4.app
 
     - name: Install dependencies
       run: |
