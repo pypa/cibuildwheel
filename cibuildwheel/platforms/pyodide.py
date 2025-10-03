@@ -414,6 +414,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     shell(before_build_prepared, env=env)
 
                 log.step("Building wheel...")
+                env["PYODIDE"] = "1"
 
                 extra_flags = get_build_frontend_extra_flags(
                     build_frontend, build_options.build_verbosity, build_options.config_settings
@@ -423,6 +424,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 if constraints_path:
                     combine_constraints(build_env, constraints_path, identifier_tmp_dir)
                 build_env["VIRTUALENV_PIP"] = pip_version
+                build_env["PYODIDE"] = "1"
                 call(
                     "pyodide",
                     "build",
