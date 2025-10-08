@@ -45,7 +45,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 <sup>⁴ Experimental, not yet supported on PyPI, but can be used directly in web deployment. Use `--platform pyodide` to build.</sup><br>
 <sup>⁵ manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 
-- Builds manylinux, musllinux, macOS 10.9+ (10.13+ for Python 3.12-3.13, 10.15+ for Python 3.14+), and Windows wheels for CPython, PyPy, and GraalPy
+- Builds manylinux, musllinux, macOS, and Windows wheels for CPython, PyPy, and GraalPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, CircleCI, GitLab CI, and Cirrus CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
