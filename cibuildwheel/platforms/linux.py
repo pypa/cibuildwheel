@@ -323,6 +323,7 @@ def build_in_container(
                     build_options.repair_command,
                     wheel=built_wheel,
                     dest_dir=repaired_wheel_dir,
+                    package=container_package_dir,
                     project=container_project_path,
                 )
                 container.call(["sh", "-c", repair_command_prepared], env=env)
