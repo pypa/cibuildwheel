@@ -443,6 +443,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.repair_command,
                         wheel=built_wheel,
                         dest_dir=repaired_wheel_dir,
+                        package=build_options.package_dir,
                         project=".",
                     )
                     shell(repair_command_prepared, env=env)

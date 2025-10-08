@@ -442,6 +442,7 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
                 state.options.repair_command,
                 wheel=built_wheel,
                 dest_dir=repaired_wheel_dir,
+                package=state.options.package_dir,
                 project=".",
             ),
             env=state.build_env,

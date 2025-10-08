@@ -528,6 +528,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         wheel=built_wheel,
                         dest_dir=repaired_wheel_dir,
                         delocate_archs=delocate_archs,
+                        package=build_options.package_dir,
                         project=".",
                     )
                     shell(repair_command_prepared, env=env)
