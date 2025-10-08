@@ -595,7 +595,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
 
     platform_args = (
         [
-            "--python-platforma",
+            "--python-platform",
             "x86_64-linux-android" if state.config.arch == "x86_64" else "aarch64-linux-android",
         ]
         if use_uv
