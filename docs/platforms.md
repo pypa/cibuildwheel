@@ -63,7 +63,8 @@ macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to c
 | Arch  | Python version range | Minimum target |
 |-------|----------------------|----------------|
 | Intel | CPython 3.8-3.11     | 10.9           |
-| Intel | CPython 3.12+        | 10.13          |
+| Intel | CPython 3.12-3.13    | 10.13          |
+| Intel | CPython 3.14+        | 10.15          |
 | AS    | CPython or PyPy      | 11             |
 | Intel | PyPy 3.8             | 10.13          |
 | Intel | PyPy 3.9+            | 10.15          |

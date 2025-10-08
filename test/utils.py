@@ -366,8 +366,10 @@ def _expected_wheels(
             elif python_abi_tag.startswith("cp"):
                 if python_abi_tag.startswith(("cp38", "cp39", "cp310", "cp311")):
                     min_macosx = macosx_deployment_target
-                else:
+                elif python_abi_tag.startswith(("cp312", "cp313")):
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
+                else:
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
             elif python_abi_tag.startswith("graalpy"):
                 if python_abi_tag.startswith("graalpy311"):
                     min_macosx = macosx_deployment_target

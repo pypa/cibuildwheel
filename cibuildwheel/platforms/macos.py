@@ -289,8 +289,11 @@ def setup_python(
     # For arm64, the minimal deployment target is 11.0.
     # On x86_64 (or universal2), use 10.9 as a default.
     # CPython 3.12.6+ needs 10.13.
+    # CPython 3.14.0 needs 10.15.
     if config_is_arm64:
         default_target = "11.0"
+    elif Version(python_configuration.version) >= Version("3.14"):
+        default_target = "10.15"
     elif Version(python_configuration.version) >= Version("3.12"):
         default_target = "10.13"
     elif python_configuration.identifier.startswith("pp") and Version(
