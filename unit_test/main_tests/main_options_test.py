@@ -8,7 +8,11 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import _split_config_settings, parse_config_settings
+from cibuildwheel.frontend import (
+    _get_verbosity_flags,
+    _split_config_settings,
+    parse_config_settings,
+)
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
@@ -388,6 +392,21 @@ def test_build_verbosity(
 
     expected_verbosity = max(-3, min(3, int(build_verbosity or 0)))
     assert build_options.build_verbosity == expected_verbosity
+
+
+@pytest.mark.parametrize("verbosity", [0, 1, 2, -1, 3])
+def test_get_verbosity_flags_pyodide(monkeypatch, capsys, verbosity):
+    monkeypatch.setenv("PYODIDE", "1")
+
+    assert _get_verbosity_flags(verbosity, "build") == []
+
+    _, err = capsys.readouterr()
+
+    if verbosity != 0:
+        assert "build_verbosity" in err
+        assert "not supported for Pyodide builds" in err
+    else:
+        assert "not supported for Pyodide builds" not in err
 
 
 @pytest.mark.parametrize("platform_specific", [False, True])
