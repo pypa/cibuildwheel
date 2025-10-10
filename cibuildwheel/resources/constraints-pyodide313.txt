@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.8.3
+certifi==2025.10.5
     # via
     #   httpcore
     #   httpx
@@ -23,7 +23,7 @@ click==8.1.8
     #   typer
 distlib==0.4.0
     # via virtualenv
-filelock==3.19.1
+filelock==3.20.0
     # via virtualenv
 h11==0.16.0
     # via httpcore
@@ -50,15 +50,15 @@ packaging==25.0
     #   unearth
 pip==25.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.4.0
+platformdirs==4.5.0
     # via
     #   pyodide-build
     #   virtualenv
-pydantic==2.11.9
+pydantic==2.12.0
     # via
     #   pyodide-build
     #   pyodide-lock
-pydantic-core==2.33.2
+pydantic-core==2.41.1
     # via pydantic
 pygments==2.19.2
     # via rich
@@ -76,7 +76,7 @@ requests==2.32.5
     # via pyodide-build
 resolvelib==1.2.0
     # via pyodide-build
-rich==14.1.0
+rich==14.2.0
     # via
     #   pyodide-build
     #   pyodide-cli
@@ -100,13 +100,13 @@ typing-extensions==4.15.0
     #   pydantic-core
     #   typer
     #   typing-inspection
-typing-inspection==0.4.1
+typing-inspection==0.4.2
     # via pydantic
 unearth==0.17.5
     # via pyodide-build
 urllib3==2.5.0
     # via requests
-virtualenv==20.34.0
+virtualenv==20.35.2
     # via
     #   build
     #   pyodide-build
