@@ -615,7 +615,6 @@ Platform-specific environment variables are also available:<br/>
     # Alternate form with out-of-line table for setting a few values
     [tool.cibuildwheel.linux.environment]
     BUILD_TIME = "$(date)"
-    EMPTY = "$SAMPLE_TEXT"  # SAMPLE_TEXT is not defined yet
     SAMPLE_TEXT = "sample text"
     ```
 
