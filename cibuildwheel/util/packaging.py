@@ -202,6 +202,6 @@ def combine_constraints(
 
     user_constraints = env.get("PIP_CONSTRAINT")
 
-    env["UV_CONSTRAINT"] = env["PIP_CONSTRAINT"] = " ".join(
+    env["UV_BUILD_CONSTRAINT"] = env["UV_CONSTRAINT"] = env["PIP_CONSTRAINT"] = " ".join(
         c for c in [our_constraints, user_constraints] if c
     )
