@@ -100,7 +100,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.2.0
+        run: python -m pip install cibuildwheel==3.2.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -230,6 +230,14 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.2.1
+
+_12 October 2025_
+
+- 🛠 Update to CPython 3.14.0 final (#2614)
+- 🐛 Fix the default MACOSX_DEPLOYMENT_TARGET on Python 3.14 (#2613)
+- 📚 Docs improvements (#2617)
+
 ### v3.2.0
 
 _22 September 2025_
@@ -282,15 +290,7 @@ _29 July 2025_
 - 🐛 Fix incorrect number of wheels reported in logs, again (#2517)
 - 📚 We welcome our Android platform maintainer (#2516)
 
-
-### v3.1.1
-
-_24 July 2025_
-
-- 🐛 Fix a bug showing an incorrect wheel count at the end of execution, and misrepresenting test-only runs in the GitHub Action summary (#2512)
-- 📚 Docs fix (#2510)
-
-<!-- [[[end]]] (sum: pVWd47S8cA) -->
+<!-- [[[end]]] (sum: ZUsMYXdVXu) -->
 
 ---
 

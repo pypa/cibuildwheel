@@ -20,7 +20,7 @@ jobs:
         - ln -s /c/Python312/python.exe /c/Python312/python3.exe
 
 install:
-  - python3 -m pip install cibuildwheel==3.2.0
+  - python3 -m pip install cibuildwheel==3.2.1
 
 script:
   # build the wheels, put them into './dist'

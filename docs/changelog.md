@@ -4,6 +4,14 @@ title: Changelog
 
 # Changelog
 
+### v3.2.1
+
+_12 October 2025_
+
+- 🛠 Update to CPython 3.14.0 final (#2614)
+- 🐛 Fix the default MACOSX_DEPLOYMENT_TARGET on Python 3.14 (#2613)
+- 📚 Docs improvements (#2617)
+
 ### v3.2.0
 
 _22 September 2025_
