@@ -24,7 +24,7 @@ branding:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       id: python
       with:
         python-version: "3.11 - 3.13"

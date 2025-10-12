@@ -1,6 +1,8 @@
 import socket
 import textwrap
 
+import pytest
+
 from . import test_projects, utils
 
 project_with_ssl_tests = test_projects.new_c_project(
@@ -19,6 +21,7 @@ project_with_ssl_tests = test_projects.new_c_project(
 )
 
 
+@pytest.mark.flaky(reruns=2)
 def test(tmp_path):
     # this test checks that SSL is working in the build environment using
     # some checks in setup.py.

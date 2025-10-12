@@ -4,6 +4,25 @@ title: Changelog
 
 # Changelog
 
+### v3.2.1
+
+_12 October 2025_
+
+- 🛠 Update to CPython 3.14.0 final (#2614)
+- 🐛 Fix the default MACOSX_DEPLOYMENT_TARGET on Python 3.14 (#2613)
+- 📚 Docs improvements (#2617)
+
+### v3.2.0
+
+_22 September 2025_
+
+- ✨ Adds GraalPy v25 (Python 3.12) support (#2597)
+- 🛠 Update to CPython 3.14.0rc3 (#2602)
+- 🛠 Adds CPython 3.14.0 prerelease support for Android, and a number of improvements to Android builds (#2568, #2591)
+- 🛠 Improvements to testing on Android, passing environment markers when installing the venv, and providing more debug output when build-verbosity is set (#2575)
+- ⚠️ PyPy 3.10 was moved to `pypy-eol` in the `enable` option, as it is now end-of-life. (#2521)
+- 📚 Docs improvements (#2574, #2601, #2598)
+
 ### v3.1.4
 
 _19 August 2025_

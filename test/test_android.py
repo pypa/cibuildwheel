@@ -1,7 +1,9 @@
 import os
 import platform
 import re
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from shutil import rmtree
 from subprocess import CalledProcessError
 from textwrap import dedent
@@ -317,6 +319,71 @@ def test_no_test_sources(tmp_path, capfd):
 
 
 @needs_emulator
+def test_environment_markers(tmp_path):
+    project = new_c_project()
+    test_filename = "test_environment_markers.py"
+    project.files[test_filename] = dedent(
+        """\
+        import pytest
+
+        def test_android():
+            import certifi
+
+        def test_not_android():
+            try:
+                import platformdirs
+            except ImportError:
+                pass
+            else:
+                pytest.fail("`platformdirs` should not have been installed")
+        """
+    )
+    project.generate(tmp_path)
+
+    cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_TEST_COMMAND": f"python -m pytest {test_filename}",
+            "CIBW_TEST_SOURCES": test_filename,
+            "CIBW_TEST_REQUIRES": " ".join(
+                [
+                    "pytest",
+                    "certifi;sys_platform=='android'",
+                    "platformdirs;sys_platform!='android'",
+                ]
+            ),
+        },
+    )
+
+
+@needs_emulator
+def test_verbosity(tmp_path, capfd):
+    new_c_project().generate(tmp_path)
+    test_env = {
+        **cp313_env,
+        "CIBW_TEST_COMMAND": """python -c 'print("Hello world")'""",
+    }
+    verbose_lines = [
+        "> Task :app:packageDebug",  # Gradle
+        "I/TestRunner: run started: 1 tests",  # Logcat
+    ]
+
+    cibuildwheel_run(tmp_path, add_env=test_env)
+    stdout = capfd.readouterr().out
+    for line in verbose_lines:
+        assert line not in stdout
+
+    cibuildwheel_run(
+        tmp_path,
+        add_env={**test_env, "CIBW_BUILD_VERBOSITY": "1"},
+    )
+    stdout = capfd.readouterr().out
+    for line in verbose_lines:
+        assert line in stdout
+
+
+@needs_emulator
 def test_api_level(tmp_path, capfd):
     project = new_c_project()
     project.files["pyproject.toml"] = dedent(
@@ -353,11 +420,21 @@ def test_libcxx(tmp_path, capfd):
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"
 
+    # cibuildwheel should be able to run `patchelf` and `wheel` even when its
+    # environment's `bin` directory is not on the PATH.
+    non_venv_path = ":".join(
+        item for item in os.environ["PATH"].split(":") if Path(item) != Path(sys.executable).parent
+    )
+
     # A C++ package should include libc++, and the extension module should be able to
     # find it using DT_RUNPATH.
     new_c_project(setup_py_extension_args_add="language='c++'").generate(project_dir)
     script = 'import spam; print(", ".join(f"{s}: {spam.filter(s)}" for s in ["ham", "spam"]))'
-    cp313_test_env = {**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"}
+    cp313_test_env = {
+        **cp313_env,
+        "CIBW_TEST_COMMAND": f"python -c '{script}'",
+        "PATH": non_venv_path,
+    }
 
     # Including external libraries requires API level 24.
     with pytest.raises(CalledProcessError):

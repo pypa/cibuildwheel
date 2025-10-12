@@ -11,7 +11,7 @@ jobs:
       - run:
           name: Build the Linux wheels.
           command: |
-            python3 -m pip install --user cibuildwheel==3.1.4
+            python3 -m pip install --user cibuildwheel==3.2.1
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
-            python3 -m pip install --user cibuildwheel==3.1.4
+            python3 -m pip install --user cibuildwheel==3.2.1
             python3 -m cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
@@ -44,7 +44,7 @@ jobs:
           name: Build the OS X wheels.
           command: |
             sudo softwareupdate --install-rosetta --agree-to-license  # for python<=3.8 or x86_64/universal2 tests
-            pip3 install cibuildwheel==3.1.4
+            pip3 install cibuildwheel==3.2.1
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
