@@ -26,8 +26,8 @@ jobs:
           - os: windows-arm
             runs-on: windows-11-arm
           - os: macos-intel
-            # macos-13 was the last x86_64 runner
-            runs-on: macos-13
+            # macos-15-intel is the last x86_64 runner
+            runs-on: macos-15-intel
           - os: macos-arm
             # macos-14+ (including latest) are ARM64 runners
             runs-on: macos-latest
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_PLATFORM: ${{ matrix.platform || 'auto' }}
           CIBW_ARCHS: ${{ matrix.archs || 'auto' }}

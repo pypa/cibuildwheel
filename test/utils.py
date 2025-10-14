@@ -308,6 +308,7 @@ def _expected_wheels(
         if EnableGroup.GraalPy in enable_groups:
             python_abi_tags += [
                 "graalpy311-graalpy242_311_native",
+                "graalpy312-graalpy250_312_native",
             ]
 
     if machine_arch == "ARM64" and platform == "windows":
@@ -364,6 +365,13 @@ def _expected_wheels(
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
             elif python_abi_tag.startswith("cp"):
                 if python_abi_tag.startswith(("cp38", "cp39", "cp310", "cp311")):
+                    min_macosx = macosx_deployment_target
+                elif python_abi_tag.startswith(("cp312", "cp313")):
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
+                else:
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
+            elif python_abi_tag.startswith("graalpy"):
+                if python_abi_tag.startswith("graalpy311"):
                     min_macosx = macosx_deployment_target
                 else:
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
