@@ -572,6 +572,7 @@ A list of environment variables to set during the build and test phases. Bash sy
 You must use this variable to pass variables to Linux builds, since they execute in a container. It also works for the other platforms.
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
+Variables are evaluated in the order they appear. Any variable referenced before it is set will evaluate to an empty string.
 
 To specify more than one environment variable, separate the assignments by spaces.
 
