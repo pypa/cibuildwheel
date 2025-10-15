@@ -476,10 +476,10 @@ all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
 pre-installing it, or installing cibuildwheel with the uv extra,
 `cibuildwheel[uv]`. uv currently does not support Windows on ARM,
-musllinux on s390x, Android, or iOS. Legacy dependencies like
+musllinux on s390x, Pyodide, or iOS. Legacy dependencies like
 setuptools on Python < 3.12 and pip are not installed if using uv.
 
-On Android and Pyodide, only "build" is supported.
+On Android and Pyodide, the "pip" frontend is not supported.
 
 You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
