@@ -631,7 +631,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
     else:
         msg = (
             f"Test command {test_command!r} is not supported on Android. "
-            f"Supported commands are 'python -m' and 'python -c'."
+            f"Command must begin with 'python' and contain '-m' or '-c'."
         )
         raise errors.FatalError(msg)
 

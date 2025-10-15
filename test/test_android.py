@@ -32,22 +32,25 @@ if (platform.system(), platform.machine()) not in [
         allow_module_level=True,
     )
 
-# Detect CI services which have the Android SDK pre-installed.
-ci_supports_build = (
-    ("CIRRUS_CI" in os.environ and platform.system() == "Darwin")
-    or "GITHUB_ACTIONS" in os.environ
-    or "TF_BUILD" in os.environ  # Azure Pipelines
-)
+# Azure Pipelines does not set the CI variable.
+ci = any(key in os.environ for key in ["CI", "TF_BUILD"])
 
 if "ANDROID_HOME" not in os.environ:
     msg = "ANDROID_HOME environment variable is not set"
-    if ci_supports_build:
+
+    # Fail if we're on a CI service which is supposed to have the Android SDK
+    # pre-installed; otherwise skip the module.
+    if (
+        ("CIRRUS_CI" in os.environ and platform.system() == "Darwin")
+        or "GITHUB_ACTIONS" in os.environ
+        or "TF_BUILD" in os.environ
+    ):
         pytest.fail(msg)
     else:
         pytest.skip(msg, allow_module_level=True)
 
 # Many CI services don't support running the Android emulator: see platforms.md.
-ci_supports_emulator = "GITHUB_ACTIONS" in os.environ and platform.system() == "Linux"
+supports_emulator = (not ci) or ("GITHUB_ACTIONS" in os.environ and platform.system() == "Linux")
 
 
 def needs_emulator(test):
@@ -55,7 +58,7 @@ def needs_emulator(test):
     # application ID, so these tests must be run serially.
     test = pytest.mark.serial(test)
 
-    if ci_supports_build and not ci_supports_emulator:
+    if not supports_emulator:
         test = pytest.mark.skip("This CI platform doesn't support the emulator")(test)
     return test
 
@@ -92,12 +95,20 @@ def test_android_home(tmp_path, capfd):
     assert "ANDROID_HOME environment variable is not set" in capfd.readouterr().err
 
 
-# the first build can fail to setup - mark as flaky, and serial to make sure it runs first
+# android-env.sh may need to install the NDK, and it isn't safe to do that multiple
+# times in parallel. So make sure there's at least one test which gets as far as doing
+# a build, which is marked as serial so it will run before the parallel tests, but isn't
+# marked as needs_emulator so it will run on all CI platforms.
 @pytest.mark.serial
-@pytest.mark.flaky(reruns=2)
-def test_expected_wheels(tmp_path):
+def test_expected_wheels(tmp_path, spam_env):
     new_c_project().generate(tmp_path)
-    wheels = cibuildwheel_run(tmp_path, add_env={"CIBW_PLATFORM": "android"})
+
+    # Build wheels for all Python versions on the current architecture.
+    del spam_env["CIBW_BUILD"]
+    if not supports_emulator:
+        del spam_env["CIBW_TEST_COMMAND"]
+
+    wheels = cibuildwheel_run(tmp_path, add_env=spam_env)
     assert wheels == expected_wheels(
         "spam", "0.1.0", platform="android", machine_arch=native_arch.android_abi
     )
@@ -222,12 +233,20 @@ def spam_env(tmp_path):
             print("Spam test passed")
         """
     )
+    project.files["test_empty.py"] = dedent(
+        """\
+        def test_empty():
+            pass
+        """
+    )
+
     project.generate(tmp_path)
 
     return {
         **cp313_env,
-        "CIBW_TEST_SOURCES": "test_spam.py",
+        "CIBW_TEST_SOURCES": "test_spam.py test_empty.py",
         "CIBW_TEST_REQUIRES": "pytest==8.3.5",
+        "CIBW_TEST_COMMAND": "python -m pytest",
     }
 
 
@@ -236,6 +255,7 @@ def spam_env(tmp_path):
     ("command", "expected_output"),
     [
         ("python -c 'import test_spam; test_spam.test_spam()'", "Spam test passed"),
+        ("python -m pytest", "=== 2 passed in "),
         ("python -m pytest test_spam.py", "=== 1 passed in "),
         ("pytest test_spam.py", "=== 1 passed in "),
     ],
@@ -260,12 +280,12 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
         (
             "./test_spam.py",
             "Test command './test_spam.py' is not supported on Android. "
-            "Supported commands are 'python -m' and 'python -c'.",
+            "Command must begin with 'python' and contain '-m' or '-c'.",
         ),
         (
             "python test_spam.py",
             "Test command 'python test_spam.py' is not supported on Android. "
-            "Supported commands are 'python -m' and 'python -c'.",
+            "Command must begin with 'python' and contain '-m' or '-c'.",
         ),
         # Build-time failure: unrecognized placeholder
         (
@@ -319,17 +339,11 @@ def test_package_subdir(tmp_path, spam_env, capfd):
     for path in spam_paths:
         path.rename(package_dir / path.name)
 
-    test_filename = "package/" + spam_env["CIBW_TEST_SOURCES"]
-    cibuildwheel_run(
-        tmp_path,
-        package_dir,
-        add_env={
-            **spam_env,
-            "CIBW_TEST_SOURCES": test_filename,
-            "CIBW_TEST_COMMAND": f"python -m pytest {test_filename}",
-        },
+    spam_env["CIBW_TEST_SOURCES"] = " ".join(
+        f"package/{path}" for path in spam_env["CIBW_TEST_SOURCES"].split()
     )
-    assert "=== 1 passed in " in capfd.readouterr().out
+    cibuildwheel_run(tmp_path, package_dir, add_env=spam_env)
+    assert "=== 2 passed in " in capfd.readouterr().out
 
 
 @needs_emulator

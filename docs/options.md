@@ -1317,7 +1317,7 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 ### `test-command` {: #test-command env-var toml}
 > The command to test each built wheel
 
-Shell command to run tests after the build. The wheel will be installed
+Command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
@@ -1345,11 +1345,11 @@ tree. To access your test code, you have a couple of options:
 
 On all platforms other than Android and iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On Android and iOS, the command is parsed by `shlex.split`, and is required to
-be in one of the following forms:
+On Android and iOS, the command is parsed by `shlex.split`, and must be a Python
+command:
 
-* `python -c command ...` (Android only)
-* `python -m module-name ...`
+* On Android, the command must must begin with `python` and contain `-m` or `-c`.
+* On iOS, the command must begin with `python -m`.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_ANDROID` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
