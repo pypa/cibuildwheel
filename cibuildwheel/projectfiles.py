@@ -50,7 +50,7 @@ class Analyzer(ast.NodeVisitor):
         )
 
         match node:
-            case ast.keyword(arg="python_requires", value=ast.Constant(value=str(version))):
+            case ast.keyword(arg="python_requires", value=ast.Constant(value=str() as version)):
                 if unnested or name_main_unnested:
                     self.requires_python = version
 
