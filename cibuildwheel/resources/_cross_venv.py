@@ -68,15 +68,19 @@ def initialize() -> None:
 
     # sysconfig ###############################################################
     #
-    # We don't change the actual sys.base_prefix and base_exec_prefix, because that
-    # could have unpredictable effects. Instead, we change the internal variables
-    # used to generate sysconfig.get_path("include").
-    exec_prefix = sysconfig.get_config_var("exec_prefix")
-    sysconfig._BASE_PREFIX = sysconfig._BASE_EXEC_PREFIX = exec_prefix  # type: ignore[attr-defined]
-
-    # Reload the sysconfigdata file, generating its name from sys.abiflags,
+    # Load the sysconfigdata file, generating its name from sys.abiflags,
     # sys.platform, and sys.implementation._multiarch.
     sysconfig._init_config_vars()  # type: ignore[attr-defined]
+
+    # We don't change the actual sys.base_prefix and base_exec_prefix, because that
+    # could have unpredictable effects. Instead, we change the sysconfig variables
+    # used by sysconfig.get_paths().
+    vars = sysconfig.get_config_vars()
+    try:
+        host_prefix = vars["host_prefix"]  # This variable was added in Python 3.14.
+    except KeyError:
+        host_prefix = vars["exec_prefix"]
+    vars["installed_base"] = vars["installed_platbase"] = host_prefix
 
     # sysconfig.get_platform, which determines the wheel tag, is implemented in terms of
     # sys.platform, sysconfig.get_config_var("ANDROID_API_LEVEL") (see localized_vars in

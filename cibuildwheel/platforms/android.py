@@ -617,8 +617,8 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
 
     # Parse test-command.
     test_args = shlex.split(test_command)
-    if test_args[:2] in [["python", "-c"], ["python", "-m"]]:
-        test_args[:3] = [test_args[1], test_args[2], "--"]
+    if test_args[0] in ["python", "python3"] and any(arg in test_args for arg in ["-c", "-m"]):
+        del test_args[0]
     elif test_args[0] in ["pytest"]:
         # We transform some commands into the `python -m` form, but this is deprecated.
         msg = (
@@ -627,11 +627,11 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
             "If this works, all you need to do is add that to your test command."
         )
         log.warning(msg)
-        test_args[:1] = ["-m", test_args[0], "--"]
+        test_args[:1] = ["-m", test_args[0]]
     else:
         msg = (
             f"Test command {test_command!r} is not supported on Android. "
-            f"Supported commands are 'python -m' and 'python -c'."
+            f"Command must begin with 'python' or 'python3', and contain '-m' or '-c'."
         )
         raise errors.FatalError(msg)
 
@@ -646,6 +646,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         "--cwd",
         cwd_dir,
         *(["-v"] if state.options.build_verbosity > 0 else []),
+        "--",
         *test_args,
         env=state.build_env,
     )
