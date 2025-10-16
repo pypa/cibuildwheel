@@ -101,7 +101,11 @@ def test_android_home(tmp_path, capfd):
 # marked as needs_emulator so it will run on all CI platforms.
 @pytest.mark.serial
 def test_expected_wheels(tmp_path, spam_env):
-    new_c_project().generate(tmp_path)
+    # Since this test covers all Python versions, check the cross venv.
+    test_module = "_cross_venv_test_android"
+    project = new_c_project(setup_py_add=f"import {test_module}")
+    project.files[f"{test_module}.py"] = (Path(__file__).parent / f"{test_module}.py").read_text()
+    project.generate(tmp_path)
 
     # Build wheels for all Python versions on the current architecture.
     del spam_env["CIBW_BUILD"]
