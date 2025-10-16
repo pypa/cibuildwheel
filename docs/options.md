@@ -1348,7 +1348,8 @@ On all platforms other than Android and iOS, the command is run in a shell, so y
 On Android and iOS, the command is parsed by `shlex.split`, and must be a Python
 command:
 
-* On Android, the command must must begin with `python` and contain `-m` or `-c`.
+* On Android, the command must must begin with `python` or `python3`, and contain `-m`
+  or `-c`.
 * On iOS, the command must begin with `python -m`.
 
 Platform-specific environment variables are also available:<br/>

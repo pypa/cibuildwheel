@@ -258,7 +258,7 @@ def spam_env(tmp_path):
 @pytest.mark.parametrize(
     ("command", "expected_output"),
     [
-        ("python -c 'import test_spam; test_spam.test_spam()'", "Spam test passed"),
+        ("python3 -c 'import test_spam; test_spam.test_spam()'", "Spam test passed"),
         ("python -m pytest", "=== 2 passed in "),
         ("python -m pytest test_spam.py", "=== 1 passed in "),
         ("pytest test_spam.py", "=== 1 passed in "),
@@ -276,32 +276,25 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
         ) in stderr
 
 
+BAD_FORMAT_ERROR = (
+    "Test command '{}' is not supported on Android. "
+    "Command must begin with 'python' or 'python3', and contain '-m' or '-c'."
+)
+BAD_PLACEHOLDER_ERROR = (
+    "Test command '{}' with a '{{project}}' or '{{package}}' placeholder "
+    "is not supported on Android"
+)
+
+
 @needs_emulator
 @pytest.mark.parametrize(
     ("command", "expected_output"),
     [
-        # Build-time failure: unrecognized command
-        (
-            "./test_spam.py",
-            "Test command './test_spam.py' is not supported on Android. "
-            "Command must begin with 'python' and contain '-m' or '-c'.",
-        ),
-        (
-            "python test_spam.py",
-            "Test command 'python test_spam.py' is not supported on Android. "
-            "Command must begin with 'python' and contain '-m' or '-c'.",
-        ),
-        # Build-time failure: unrecognized placeholder
-        (
-            "pytest {project}",
-            "Test command 'pytest {project}' with a '{project}' or '{package}' "
-            "placeholder is not supported on Android",
-        ),
-        (
-            "pytest {package}",
-            "Test command 'pytest {package}' with a '{project}' or '{package}' "
-            "placeholder is not supported on Android",
-        ),
+        # Build-time failure
+        ("./test_spam.py", BAD_FORMAT_ERROR.format("./test_spam.py")),
+        ("python test_spam.py", BAD_FORMAT_ERROR.format("python test_spam.py")),
+        ("pytest {project}", BAD_PLACEHOLDER_ERROR.format("pytest {project}")),
+        ("pytest {package}", BAD_PLACEHOLDER_ERROR.format("pytest {package}")),
         # Runtime failure
         ("pytest test_ham.py", "not found: test_ham.py"),
     ],

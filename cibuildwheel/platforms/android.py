@@ -617,7 +617,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
 
     # Parse test-command.
     test_args = shlex.split(test_command)
-    if test_args[0] == "python" and any(arg in test_args for arg in ["-c", "-m"]):
+    if test_args[0] in ["python", "python3"] and any(arg in test_args for arg in ["-c", "-m"]):
         del test_args[0]
     elif test_args[0] in ["pytest"]:
         # We transform some commands into the `python -m` form, but this is deprecated.
@@ -631,7 +631,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
     else:
         msg = (
             f"Test command {test_command!r} is not supported on Android. "
-            f"Command must begin with 'python' and contain '-m' or '-c'."
+            f"Command must begin with 'python' or 'python3', and contain '-m' or '-c'."
         )
         raise errors.FatalError(msg)
 
