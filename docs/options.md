@@ -470,14 +470,16 @@ Default: `build`
 
 Choose which build frontend to use.
 
-You can use "build\[uv\]", which will use an external [uv][] everywhere
+You can use "build\[uv\]", which will use an external [UV][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
-Make sure you have an external uv on Windows and macOS, either by
-pre-installing it, or installing cibuildwheel with the uv extra,
-`cibuildwheel[uv]`. uv currently does not support Windows on ARM,
-musllinux on s390x, Android, or iOS. Legacy dependencies like
-setuptools on Python < 3.12 and pip are not installed if using uv.
+Make sure you have an external UV on Windows and macOS, either by
+pre-installing it, or installing cibuildwheel with the `uv` extra, which is
+possible by manually passing `cibuildwheel[uv]` to installers or by using the
+`extras` option in the [cibuildwheel action](ci-services.md#github-actions).
+UV currently does not support Android, iOS nor musllinux on s390x. Legacy
+dependencies like setuptools on Python < 3.12 and pip are not installed if
+using UV.
 
 On Android and Pyodide, only "build" is supported.
 
