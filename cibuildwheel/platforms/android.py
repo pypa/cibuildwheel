@@ -635,17 +635,28 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         )
         raise errors.FatalError(msg)
 
+    # By default, run on a testbed managed emulator running the newest supported
+    # Android version. However, if the user specifies a --managed or --connected
+    # test execution argument, that argument takes precedence.
+    if state.options.test_execution_args and (
+        "--managed" in state.options.test_execution_args
+        or "--connected" in state.options.test_execution_args
+    ):
+        simulator_args = []
+    else:
+        simulator_args = ["--managed", "maxVersion"]
+
     # Run the test app.
     call(
         state.python_dir / "android.py",
         "test",
-        "--managed",
-        "maxVersion",
         "--site-packages",
         site_packages_dir,
         "--cwd",
         cwd_dir,
+        *simulator_args,
         *(["-v"] if state.options.build_verbosity > 0 else []),
+        *(state.options.test_execution_args if state.options.test_execution_args else []),
         *test_args,
         env=state.build_env,
     )
