@@ -110,6 +110,7 @@ class BuildOptions:
     test_extras: str
     test_groups: list[str]
     test_environment: ParsedEnvironment
+    test_execution_args: list[str] | None
     build_verbosity: int
     build_frontend: BuildFrontendConfig
     config_settings: str
@@ -761,6 +762,12 @@ class Options:
                 msg = f"Malformed environment option {test_environment_config!r}"
                 raise errors.ConfigurationError(msg) from e
 
+            test_execution_args = shlex.split(
+                self.reader.get(
+                    "test-execution-args", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
+
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
@@ -868,6 +875,7 @@ class Options:
                 test_command=test_command,
                 test_sources=test_sources,
                 test_environment=test_environment,
+                test_execution_args=test_execution_args,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,

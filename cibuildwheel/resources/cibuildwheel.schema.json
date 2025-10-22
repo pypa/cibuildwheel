@@ -569,6 +569,21 @@
       ],
       "title": "CIBW_TEST_ENVIRONMENT"
     },
+    "test-execution-args": {
+      "description": "Additional arguments for the test runner to use when configuring the test environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_TEST_EXECUTION_ARGS"
+    },
     "overrides": {
       "type": "array",
       "description": "An overrides array",
@@ -637,6 +652,9 @@
                 "$ref": "#/$defs/inherit"
               },
               "test-environment": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-execution-args": {
                 "$ref": "#/$defs/inherit"
               }
             }
@@ -748,6 +766,9 @@
           },
           "test-environment": {
             "$ref": "#/properties/test-environment"
+          },
+          "test-execution-args": {
+            "$ref": "#/properties/test-execution-args"
           }
         }
       }
@@ -876,6 +897,9 @@
         },
         "test-environment": {
           "$ref": "#/properties/test-environment"
+        },
+        "test-execution-args": {
+          "$ref": "#/properties/test-execution-args"
         }
       }
     },
@@ -936,6 +960,9 @@
         },
         "test-environment": {
           "$ref": "#/properties/test-environment"
+        },
+        "test-execution-args": {
+          "$ref": "#/properties/test-execution-args"
         }
       }
     },
@@ -1009,6 +1036,9 @@
         },
         "test-environment": {
           "$ref": "#/properties/test-environment"
+        },
+        "test-execution-args": {
+          "$ref": "#/properties/test-execution-args"
         }
       }
     },
@@ -1069,6 +1099,9 @@
         },
         "test-environment": {
           "$ref": "#/properties/test-environment"
+        },
+        "test-execution-args": {
+          "$ref": "#/properties/test-execution-args"
         }
       }
     },
@@ -1129,6 +1162,9 @@
         },
         "test-environment": {
           "$ref": "#/properties/test-environment"
+        },
+        "test-execution-args": {
+          "$ref": "#/properties/test-execution-args"
         }
       }
     },
@@ -1189,6 +1225,9 @@
         },
         "test-environment": {
           "$ref": "#/properties/test-environment"
+        },
+        "test-execution-args": {
+          "$ref": "#/properties/test-execution-args"
         }
       }
     }

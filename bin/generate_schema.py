@@ -224,6 +224,9 @@ properties:
   test-environment:
     description: Set environment variables for the test environment
     type: string_table
+  test-execution-args:
+    description: Additional arguments for the test runner to use when configuring the test environment
+    type: string_array
 """
 
 schema = yaml.safe_load(starter)
@@ -304,6 +307,7 @@ items:
         test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
         test-environment: {"$ref": "#/$defs/inherit"}
+        test-execution-args: {"$ref": "#/$defs/inherit"}
 """
 )
 
