@@ -1669,6 +1669,41 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=1
     ```
 
+### `test-execution-args` {: #test-execution-args toml env-var }
+
+> Define additional arguments that will be passed to the command that runs the tests.
+
+A list of arguments that will be used by the test runner when running tests. This is used by environments where the execution environment can be customized. For example, mobile platforms will use these arguments to control the execution of the testbed application that is used to run tests.
+
+This option will be ignored on platforms that do not have a separate test runner.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_EXECUTION_ARGS_MACOS` | `CIBW_TEST_EXECUTION_ARGS_WINDOWS` | `CIBW_TEST_EXECUTION_ARGS_LINUX` | `CIBW_TEST_EXECUTION_ARGS_ANDROID` |`CIBW_TEST_EXECUTION_ARGS_IOS` | `CIBW_TEST_EXECUTION_ARGS_PYODIDE`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.ios]
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    test-execution-args = ["--simulator='iPhone 16e,OS=18.5'"]
+
+    [tool.cibuildwheel.android]
+    # Run the Android tests on the minimum supported Android version.
+    test-execution-args = ["--managed", "minVersion"]
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    CIBW_EXECUTION_ARGS_IOS: --simulator='iPhone 16e,OS=18.5'
+
+    # Run the Android tests on the minimum supported Android version.
+    CIBW_EXECUTION_ARGS_ANDROID: --managed minVersion
+    ```
+
 
 ## Debugging
 

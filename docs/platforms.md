@@ -233,6 +233,8 @@ machine – for example, if you're building on an ARM64 machine, then you can te
 ARM64 wheel. Wheels of other architectures can still be built, but testing will
 automatically be skipped.
 
+Any arguments specified using [`test-execution-args`](options.md#test-execution-args) will be passed as arguments to the Python script that starts the testbed project. The most common arguments to use will be `--managed minVersion` or `--managed maxVersion`, specifying the use of a managed Android emulator with the minimum or maximum supported Android version; or `--connected <emulator ID>`, specifying the use of an existing booted Android emulator or device.
+
 Running an emulator requires the build machine to either be bare-metal or support
 nested virtualization. CI platforms known to meet this requirement are:
 
@@ -321,3 +323,7 @@ If tests have been configured, the test suite will be executed on the simulator 
 The iOS test environment can't support running shell scripts, so the [`test-command`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`.
 
 The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.
+Any arguments specified using [`test-execution-args`](options.md#test-execution-args) will be passed as arguments to the Python script that starts the testbed project. The most common argument to use will be `--simulator`, which allows the specification of a specific device or iOS version for the test simulator. For example, `test_execution_args = ["--simulator", "iPhone 16e,OS=18.5"]` would specify the use of an iPhone 16e simulator running OS 18.5.
+
+!!! note
+    The `macos-15` image on GitHub Actions and Azure has a [known performance issue](https://github.com/actions/runner-images/issues/12777) that can lead to iOS simulators failing to start if they have not been pre-warmed. At this time, the workaround is to explicitly specify a simulator that is pre-warmed by default on the image; the iPhone 16e simulator running iOS 18.5 is one such image. This workaround is only needed on the `macos-15`; the `macos-14` image is not affected.
