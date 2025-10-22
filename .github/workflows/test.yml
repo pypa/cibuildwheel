@@ -79,9 +79,16 @@ jobs:
         - os: macos-15
           python_version: '3.13'
           test_select: ios
+          # Github Actions macOS-15 runner has disk performance issues; so it
+          # has problems using any simulator that isn't pre-warmed.
+          # Unfortunately, the simulator that it picks by default isn't
+          # pre-warmed. So - we need to explicitly select a simulator.
+          test_execution_args: '--simulator "iPhone 16e,OS=18.5"'
         - os: macos-15-intel
           python_version: '3.13'
           test_select: android
+          # Exercise Android on a non-default simulator
+          test_execution_args: '--managed minVersion'
         - os: macos-15
           python_version: '3.13'
           test_select: android
@@ -154,6 +161,7 @@ jobs:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: ${{ matrix.test_select && 'build' || 'build[uv]' }}
         CIBW_PLATFORM: ${{ matrix.test_select }}
+        CIBW_TEST_EXECUTION_ARGS: ${{ matrix.test_execution_args }}
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
@@ -179,6 +187,7 @@ jobs:
       uses: ./
       env:
         CIBW_PLATFORM: ${{ matrix.test_select }}
+        CIBW_TEST_EXECUTION_ARGS: ${{ matrix.test_execution_args }}
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_config_file
@@ -202,6 +211,8 @@ jobs:
         path: wheelhouse/*.whl
 
     - name: Test cibuildwheel
+      env:
+        CIBW_TEST_EXECUTION_ARGS: ${{ matrix.test_execution_args }}
       run: |
         uv run --no-sync bin/run_tests.py --test-select=${{ matrix.test_select || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
