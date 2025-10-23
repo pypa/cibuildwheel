@@ -642,9 +642,9 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         "--managed" in state.options.test_execution_args
         or "--connected" in state.options.test_execution_args
     ):
-        simulator_args = []
+        emulator_args = []
     else:
-        simulator_args = ["--managed", "maxVersion"]
+        emulator_args = ["--managed", "maxVersion"]
 
     # Run the test app.
     call(
@@ -654,7 +654,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         site_packages_dir,
         "--cwd",
         cwd_dir,
-        *simulator_args,
+        *emulator_args,
         *(["-v"] if state.options.build_verbosity > 0 else []),
         *(state.options.test_execution_args or []),
         *test_args,
