@@ -656,7 +656,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         cwd_dir,
         *simulator_args,
         *(["-v"] if state.options.build_verbosity > 0 else []),
-        *(state.options.test_execution_args if state.options.test_execution_args else []),
+        *(state.options.test_execution_args or []),
         *test_args,
         env=state.build_env,
     )

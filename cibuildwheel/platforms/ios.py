@@ -658,11 +658,7 @@ def build(options: Options, tmp_path: Path) -> None:
                                 testbed_path,
                                 "run",
                                 *(["--verbose"] if build_options.build_verbosity > 0 else []),
-                                *(
-                                    build_options.test_execution_args
-                                    if build_options.test_execution_args
-                                    else []
-                                ),
+                                *(build_options.test_execution_args or []),
                                 "--",
                                 *final_command,
                                 env=test_env,
