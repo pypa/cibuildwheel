@@ -42,7 +42,7 @@ title: Working examples
 | [Dependency Injector][]           | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Dependency injection framework for Python, uses Windows TravisCI |
 | [UltraJSON][]                     | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Ultra fast JSON decoder and encoder written in C with Python bindings |
 | [CTranslate2][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes libraries from the [Intel oneAPI toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html) and CUDA kernels compiled for multiple GPU architectures. |
-| [pyzmq][]                         | ![github icon][] ![circleci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython on CPython and CFFI on PyPy. ARM wheels for linux are built natively on CircleCI.  |
+| [pyzmq][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python bindings for zeromq, the networking library. Uses Cython on CPython and CFFI on PyPy. ARM wheels for linux are built natively on GitHub Actions.  |
 | [Implicit][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Includes GPU support for linux wheels |
 | [tinyobjloader][]                 | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Tiny but powerful single file wavefront obj loader |
 | [vispy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Main repository for Vispy |
@@ -97,8 +97,8 @@ title: Working examples
 | [streaming-form-data][]           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Streaming parser for multipart/form-data written in Cython |
 | [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Fast Base64 encoding/decoding in Python |
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
-| [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [Imagecodecs (fork)][]            | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] | Over 20 external dependencies in compiled libraries, custom docker image, `libomp`, `openblas` and `install_name_tool` for macOS. |
+| [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M92 |
 | [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | An example combining scikit-build and pybind11 |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
@@ -208,8 +208,8 @@ title: Working examples
 [streaming-form-data]: https://github.com/siddhantgoel/streaming-form-data
 [pybase64]: https://github.com/mayeut/pybase64
 [bx-python]: https://github.com/bxlab/bx-python
-[boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [Imagecodecs (fork)]: https://github.com/czaki/imagecodecs_build
+[boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
 [pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [fathon]: https://github.com/stfbnc/fathon
