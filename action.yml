@@ -17,6 +17,10 @@ inputs:
     description: 'Build a specific wheel only. No need for arch/platform if this is set'
     required: false
     default: ''
+  extras:
+    description: 'Comma-separated list of extras to install'
+    required: false
+    default: ''
 branding:
   icon: package
   color: yellow
@@ -42,6 +46,10 @@ runs:
         from pathlib import Path
         from subprocess import run
 
+        EXTRAS = set(e.strip() for e in "${{ inputs.extras }}".split(",") if e.strip())
+        if sys.platform == "linux":
+            EXTRAS.discard("uv")
+
 
         class EnvBuilder(venv.EnvBuilder):
             def __init__(self):
@@ -53,7 +61,10 @@ runs:
             def post_setup(self, context):
                 super().post_setup(context)
                 self.bin_path = Path(context.env_exe).parent
-                run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", r"${{ github.action_path }}"], check=True)
+                install_spec = r"${{ github.action_path }}"
+                if EXTRAS:
+                    install_spec += f"[{','.join(sorted(EXTRAS))}]"
+                run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", install_spec], check=True)
 
 
         print("::group::Install cibuildwheel")
@@ -62,30 +73,47 @@ runs:
             shutil.rmtree(venv_path)
         builder = EnvBuilder()
         builder.create(venv_path)
-        cibw_path = [path for path in builder.bin_path.glob("cibuildwheel*") if path.stem == "cibuildwheel"][0]
+        exposed_binaries = {"cibuildwheel"}
+        if "uv" in EXTRAS:
+            exposed_binaries.add("uv")
+        clean_bin_path = builder.bin_path.parent / f"{builder.bin_path.name}.clean"
+        clean_bin_path.mkdir()
+        for path in list(builder.bin_path.iterdir()):
+            if path.stem in exposed_binaries:
+                try:
+                    os.symlink(path, clean_bin_path / path.name)
+                except OSError:
+                    import shutil
+
+                    shutil.copy2(path, clean_bin_path / path.name)
+        full_path = f"{clean_bin_path}{os.pathsep}{os.environ['PATH']}"
         with open(os.environ["GITHUB_OUTPUT"], "at") as f:
-            f.write(f"cibw-path={cibw_path}\n")
+            f.write(f"updated-path={full_path}\n")
         print("::endgroup::")
         EOF
       shell: bash
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: >
-        "${{ steps.cibw.outputs.cibw-path }}"
+        cibuildwheel
         "${{ inputs.package-dir }}"
         ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
         ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
         ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
         2>&1
+      env:
+        PATH: "${{ steps.cibw.outputs.updated-path }}"
       shell: bash
       if: runner.os != 'Windows'
 
     # Windows needs powershell to interact nicely with Meson
     - run: >
-        & "${{ steps.cibw.outputs.cibw-path }}"
+        cibuildwheel
         "${{ inputs.package-dir }}"
         ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
         ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
         ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
+      env:
+        PATH: "${{ steps.cibw.outputs.updated-path }}"
       shell: pwsh
       if: runner.os == 'Windows'

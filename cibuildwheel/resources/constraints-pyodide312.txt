@@ -15,7 +15,7 @@ certifi==2025.10.5
     #   httpcore
     #   httpx
     #   requests
-charset-normalizer==3.4.3
+charset-normalizer==3.4.4
     # via requests
 click==8.1.8
     # via
@@ -54,11 +54,11 @@ platformdirs==4.5.0
     # via
     #   pyodide-build
     #   virtualenv
-pydantic==2.12.0
+pydantic==2.12.3
     # via
     #   pyodide-build
     #   pyodide-lock
-pydantic-core==2.41.1
+pydantic-core==2.41.4
     # via pydantic
 pygments==2.19.2
     # via rich
@@ -103,7 +103,7 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-unearth==0.18.0
+unearth==0.18.1
     # via pyodide-build
 urllib3==2.5.0
     # via requests
