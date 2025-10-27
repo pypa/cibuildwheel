@@ -183,8 +183,8 @@ python_configurations = [
   { identifier = "pp311-macosx_arm64", version = "3.11", url = "https://downloads.python.org/pypy/pypy3.11-v7.3.20-macos_arm64.tar.bz2" },
   { identifier = "gp311_242-macosx_x86_64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.2.2/graalpy-24.2.2-macos-amd64.tar.gz" },
   { identifier = "gp311_242-macosx_arm64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.2.2/graalpy-24.2.2-macos-aarch64.tar.gz" },
-  { identifier = "gp312_250-macosx_x86_64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.0/graalpy-25.0.0-macos-amd64.tar.gz" },
-  { identifier = "gp312_250-macosx_arm64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.0/graalpy-25.0.0-macos-aarch64.tar.gz" },
+  { identifier = "gp312_250-macosx_x86_64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.1/graalpy-25.0.1-macos-amd64.tar.gz" },
+  { identifier = "gp312_250-macosx_arm64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.1/graalpy-25.0.1-macos-aarch64.tar.gz" },
 ]
 
 [windows]
@@ -220,13 +220,13 @@ python_configurations = [
   { identifier = "pp310-win_amd64", version = "3.10", url = "https://downloads.python.org/pypy/pypy3.10-v7.3.19-win64.zip" },
   { identifier = "pp311-win_amd64", version = "3.11", url = "https://downloads.python.org/pypy/pypy3.11-v7.3.20-win64.zip" },
   { identifier = "gp311_242-win_amd64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.2.2/graalpy-24.2.2-windows-amd64.zip" },
-  { identifier = "gp312_250-win_amd64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.0/graalpy-25.0.0-windows-amd64.zip" },
+  { identifier = "gp312_250-win_amd64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.1/graalpy-25.0.1-windows-amd64.zip" },
 ]
 
 [pyodide]
 python_configurations = [
   { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.7", node_version = "v22" },
-  { identifier = "cp313-pyodide_wasm32", version = "3.13", default_pyodide_version = "0.28.3", node_version = "v22" },
+  { identifier = "cp313-pyodide_wasm32", version = "3.13", default_pyodide_version = "0.29.0", node_version = "v22" },
 ]
 
 [android]
