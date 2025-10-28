@@ -628,7 +628,7 @@ def test_get_build_frontend_extra_flags_warning(
 
 
 @pytest.mark.parametrize(
-    ("definition", "expected"),
+    ("definition", "expected_args"),
     [
         ("", ()),
         ("test-execution = {}", ()),
