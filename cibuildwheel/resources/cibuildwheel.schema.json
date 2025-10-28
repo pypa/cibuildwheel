@@ -569,20 +569,30 @@
       ],
       "title": "CIBW_TEST_ENVIRONMENT"
     },
-    "test-execution-args": {
-      "description": "Additional arguments for the test runner to use when configuring the test environment",
+    "test-execution": {
+      "description": "Additional configuration for the test runner",
       "oneOf": [
         {
-          "type": "string"
+          "type": "string",
+          "pattern": "args:"
         },
         {
-          "type": "array",
-          "items": {
-            "type": "string"
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "args"
+          ],
+          "properties": {
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         }
       ],
-      "title": "CIBW_TEST_EXECUTION_ARGS"
+      "title": "CIBW_TEST_EXECUTION"
     },
     "overrides": {
       "type": "array",
@@ -654,7 +664,7 @@
               "test-environment": {
                 "$ref": "#/$defs/inherit"
               },
-              "test-execution-args": {
+              "test-execution": {
                 "$ref": "#/$defs/inherit"
               }
             }
@@ -767,8 +777,8 @@
           "test-environment": {
             "$ref": "#/properties/test-environment"
           },
-          "test-execution-args": {
-            "$ref": "#/properties/test-execution-args"
+          "test-execution": {
+            "$ref": "#/properties/test-execution"
           }
         }
       }
@@ -898,8 +908,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution-args": {
-          "$ref": "#/properties/test-execution-args"
+        "test-execution": {
+          "$ref": "#/properties/test-execution"
         }
       }
     },
@@ -961,8 +971,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution-args": {
-          "$ref": "#/properties/test-execution-args"
+        "test-execution": {
+          "$ref": "#/properties/test-execution"
         }
       }
     },
@@ -1037,8 +1047,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution-args": {
-          "$ref": "#/properties/test-execution-args"
+        "test-execution": {
+          "$ref": "#/properties/test-execution"
         }
       }
     },
@@ -1100,8 +1110,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution-args": {
-          "$ref": "#/properties/test-execution-args"
+        "test-execution": {
+          "$ref": "#/properties/test-execution"
         }
       }
     },
@@ -1163,8 +1173,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution-args": {
-          "$ref": "#/properties/test-execution-args"
+        "test-execution": {
+          "$ref": "#/properties/test-execution"
         }
       }
     },
@@ -1226,8 +1236,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution-args": {
-          "$ref": "#/properties/test-execution-args"
+        "test-execution": {
+          "$ref": "#/properties/test-execution"
         }
       }
     }

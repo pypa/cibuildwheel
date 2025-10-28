@@ -159,13 +159,13 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`test-groups`](https://cibuildwheel.pypa.io/en/stable/options/#test-groups) | Specify test dependencies from your project's `dependency-groups` |
 |  | [`test-skip`](https://cibuildwheel.pypa.io/en/stable/options/#test-skip) | Skip running tests on some builds |
 |  | [`test-environment`](https://cibuildwheel.pypa.io/en/stable/options/#test-environment) | Set environment variables for the test environment |
-|  | [`test-execution-args`](https://cibuildwheel.pypa.io/en/stable/options/#test-execution-args) | Define additional arguments that will be passed to the command that runs the tests. |
+|  | [`test-execution`](https://cibuildwheel.pypa.io/en/stable/options/#test-execution) | Controls how the tests will be executed. |
 | **Debugging** | [`debug-keep-container`](https://cibuildwheel.pypa.io/en/stable/options/#debug-keep-container) | Keep the container after running for debugging. |
 |  | [`debug-traceback`](https://cibuildwheel.pypa.io/en/stable/options/#debug-traceback) | Print full traceback when errors occur. |
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (sum: gNUxwlNyTE) -->
+<!--[[[end]]] (sum: /aL2w4bcMB) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
