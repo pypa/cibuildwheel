@@ -2,6 +2,7 @@ import os
 import platform as platform_module
 import textwrap
 import unittest.mock
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -624,6 +625,38 @@ def test_get_build_frontend_extra_flags_warning(
     )
     assert args == ["-Ca", "-Cb", "-1"]
     mock_warning.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", ()),
+        ("test-execution = {}", ()),
+        ('test-execution = {args = ""}', []),
+        ('test-execution = "args: --simulator foo"', ["--simulator", "foo"]),
+        ('test-execution = {args = ["--simulator", "foo"]}', ["--simulator", "foo"]),
+    ],
+)
+def test_test_execution_handling(
+    tmp_path: Path, definition: str, expected_args: Sequence[str] | None
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+
+    local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
+    assert local.test_execution.args == expected_args
 
 
 @pytest.mark.parametrize(

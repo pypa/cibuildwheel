@@ -577,6 +577,14 @@
           "pattern": "args:"
         },
         {
+          "type": "string",
+          "pattern": "^$"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false
+        },
+        {
           "type": "object",
           "additionalProperties": false,
           "required": [

@@ -228,6 +228,10 @@ properties:
     description: Additional configuration for the test runner
     oneOf:
       - type: string
+        pattern: '^$'
+      - type: object
+        additionalProperties: false
+      - type: string
         pattern: 'args:'
       - type: object
         additionalProperties: false

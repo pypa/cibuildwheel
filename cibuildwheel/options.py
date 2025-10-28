@@ -98,7 +98,7 @@ class TestExecutionConfig:
 
     @classmethod
     def from_config_string(cls, config_string: str) -> Self:
-        config_dict = parse_key_value_string(config_string, ["args"])
+        config_dict = parse_key_value_string(config_string, [], ["args"])
         args = config_dict.get("args") or []
         return cls(args=args)
 
@@ -781,7 +781,7 @@ class Options:
                 env_plat=False,
                 option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
             )
-            if not test_execution_str or test_execution_str == "default":
+            if not test_execution_str:
                 test_execution = TestExecutionConfig()
             else:
                 try:
