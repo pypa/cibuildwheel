@@ -59,13 +59,14 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-manylinux_riscv64<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l<br/>cp310-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                  |                                                                                                   | cp312-pyodide_wasm32 |
-| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
-| Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
+| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64<br><br>cp313t-macosx_x86_64<br/>cp313t-macosx_universal2<br/>cp313t-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64<br><br>cp313t-win_amd64<br/>cp313t-win32<br/>cp313t-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686<br><br>cp313t-manylinux_x86_64<br/>cp313t-manylinux_i686<br/>cp313t-musllinux_x86_64<br/>cp313t-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64<br><br>cp313t-manylinux_aarch64<br/>cp313t-manylinux_ppc64le<br/>cp313t-manylinux_s390x<br/>cp313t-manylinux_armv7l<br/>cp313t-manylinux_riscv64<br/>cp313t-musllinux_aarch64<br/>cp313t-musllinux_ppc64le<br/>cp313t-musllinux_s390x<br/>cp313t-musllinux_armv7l<br/>cp313t-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
+| Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64<br><br>cp314t-macosx_x86_64<br/>cp314t-macosx_universal2<br/>cp314t-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64<br><br>cp314t-win_amd64<br/>cp314t-win32<br/>cp314t-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686<br><br>cp314t-manylinux_x86_64<br/>cp314t-manylinux_i686<br/>cp314t-musllinux_x86_64<br/>cp314t-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64<br><br>cp314t-manylinux_aarch64<br/>cp314t-manylinux_ppc64le<br/>cp314t-manylinux_s390x<br/>cp314t-manylinux_armv7l<br/>cp314t-manylinux_riscv64<br/>cp314t-musllinux_aarch64<br/>cp314t-musllinux_ppc64le<br/>cp314t-musllinux_s390x<br/>cp314t-musllinux_armv7l<br/>cp314t-musllinux_riscv64 | cp314-android_arm64_v8a<br/>cp314-android_x86_64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
 | PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
 | PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
 | GraalPy 3.11 v24.2 | gp311_242-macosx_x86_64<br/>gp311_242-macosx_arm64                             | gp311_242-win_amd64                                     | gp311_242-manylinux_x86_64                                                                              | gp311_242-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
+| GraalPy 3.12 v25.0 | gp312_250-macosx_x86_64<br/>gp312_250-macosx_arm64                             | gp312_250-win_amd64                                     | gp312_250-manylinux_x86_64                                                                              | gp312_250-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
 The format is `python_tag-platform_tag`, with tags similar to those in [PEP 425](https://www.python.org/dev/peps/pep-0425/#details).
@@ -469,14 +470,16 @@ Default: `build`
 
 Choose which build frontend to use.
 
-You can use "build\[uv\]", which will use an external [uv][] everywhere
+You can use "build\[uv\]", which will use an external [UV][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
-Make sure you have an external uv on Windows and macOS, either by
-pre-installing it, or installing cibuildwheel with the uv extra,
-`cibuildwheel[uv]`. uv currently does not support Windows on ARM,
-musllinux on s390x, Android, or iOS. Legacy dependencies like
-setuptools on Python < 3.12 and pip are not installed if using uv.
+Make sure you have an external UV on Windows and macOS, either by
+pre-installing it, or installing cibuildwheel with the `uv` extra, which is
+possible by manually passing `cibuildwheel[uv]` to installers or by using the
+`extras` option in the [cibuildwheel action](ci-services.md#github-actions).
+UV currently does not support Android, iOS nor musllinux on s390x. Legacy
+dependencies like setuptools on Python < 3.12 and pip are not installed if
+using UV.
 
 On Android and Pyodide, only "build" is supported.
 
@@ -571,6 +574,7 @@ A list of environment variables to set during the build and test phases. Bash sy
 You must use this variable to pass variables to Linux builds, since they execute in a container. It also works for the other platforms.
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
+Variables are evaluated in the order they appear. Any variable referenced before it is set will evaluate to an empty string.
 
 To specify more than one environment variable, separate the assignments by spaces.
 
@@ -1316,7 +1320,7 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 ### `test-command` {: #test-command env-var toml}
 > The command to test each built wheel
 
-Shell command to run tests after the build. The wheel will be installed
+Command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
@@ -1344,11 +1348,12 @@ tree. To access your test code, you have a couple of options:
 
 On all platforms other than Android and iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On Android and iOS, the command is parsed by `shlex.split`, and is required to
-be in one of the following forms:
+On Android and iOS, the command is parsed by `shlex.split`, and must be a Python
+command:
 
-* `python -c command ...` (Android only)
-* `python -m module-name ...`
+* On Android, the command must must begin with `python` or `python3`, and contain `-m`
+  or `-c`.
+* On iOS, the command must begin with `python -m`.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_ANDROID` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
@@ -1576,7 +1581,7 @@ tests. This can be used to avoid having to redefine test dependencies in
 `test-requires` if they are already defined in `pyproject.toml`.
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_TEST_GROUPS_MACOS` | `CIBW_TEST_GROUPS_WINDOWS` | `CIBW_TEST_GROUPS_LINUX` | `CIBW_TEST_GROUPS_PYODIDE`
+`CIBW_TEST_GROUPS_MACOS` | `CIBW_TEST_GROUPS_WINDOWS` | `CIBW_TEST_GROUPS_LINUX` | `CIBW_TEST_GROUPS_ANDROID` | `CIBW_TEST_GROUPS_IOS` | `CIBW_TEST_GROUPS_PYODIDE`
 
 #### Examples
 
@@ -1723,6 +1728,9 @@ downloading dependencies. The settings are:
 Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by
 default.
+
+On Android and iOS, a positive verbosity level will also show more detailed logs from
+the test harness.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_ANDROID` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`

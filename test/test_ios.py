@@ -100,9 +100,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     )
 
     # The expected wheels were produced.
-    expected_wheels = utils.expected_wheels(
-        "spam", "0.1.0", platform="ios", python_abi_tags=["cp313-cp313", "cp314-cp314"]
-    )
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", platform="ios")
     assert set(actual_wheels) == set(expected_wheels)
 
     # The user was notified that the cross-build tool was found.
@@ -323,7 +321,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     )
     assert set(actual_wheels) == set(expected_wheels)
 
-    out, err = capfd.readouterr()
+    _, err = capfd.readouterr()
 
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
 
@@ -347,5 +345,5 @@ def test_ios_test_command_invalid(tmp_path, capfd):
                 "CIBW_XBUILD_TOOLS": "",
             },
         )
-    out, err = capfd.readouterr()
+    _, err = capfd.readouterr()
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.1.4"
+version = "3.2.1"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -79,7 +79,7 @@ bin = [
 docs = [
     "jinja2>=3.1.2",
     "mkdocs-include-markdown-plugin==6.2.2",
-    "mkdocs-macros-plugin",
+    "mkdocs-macros-plugin>=1.4.1",
     "mkdocs==1.6.1",
     "pymdown-extensions",
     "rich",
@@ -90,7 +90,7 @@ test = [
     "jinja2",
     "pytest-timeout",
     "pytest-xdist",
-    "pytest-rerunfailures",
+    "pytest-rerunfailures!=16.0",
     "pytest>=6",
     "setuptools",
     "tomli_w",

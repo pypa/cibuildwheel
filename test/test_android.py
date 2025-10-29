@@ -1,7 +1,9 @@
 import os
 import platform
 import re
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from shutil import rmtree
 from subprocess import CalledProcessError
 from textwrap import dedent
@@ -30,22 +32,25 @@ if (platform.system(), platform.machine()) not in [
         allow_module_level=True,
     )
 
-# Detect CI services which have the Android SDK pre-installed.
-ci_supports_build = (
-    ("CIRRUS_CI" in os.environ and platform.system() == "Darwin")
-    or "GITHUB_ACTIONS" in os.environ
-    or "TF_BUILD" in os.environ  # Azure Pipelines
-)
+# Azure Pipelines does not set the CI variable.
+ci = any(key in os.environ for key in ["CI", "TF_BUILD"])
 
 if "ANDROID_HOME" not in os.environ:
     msg = "ANDROID_HOME environment variable is not set"
-    if ci_supports_build:
+
+    # Fail if we're on a CI service which is supposed to have the Android SDK
+    # pre-installed; otherwise skip the module.
+    if (
+        ("CIRRUS_CI" in os.environ and platform.system() == "Darwin")
+        or "GITHUB_ACTIONS" in os.environ
+        or "TF_BUILD" in os.environ
+    ):
         pytest.fail(msg)
     else:
         pytest.skip(msg, allow_module_level=True)
 
 # Many CI services don't support running the Android emulator: see platforms.md.
-ci_supports_emulator = "GITHUB_ACTIONS" in os.environ and platform.system() == "Linux"
+supports_emulator = (not ci) or ("GITHUB_ACTIONS" in os.environ and platform.system() == "Linux")
 
 
 def needs_emulator(test):
@@ -53,7 +58,7 @@ def needs_emulator(test):
     # application ID, so these tests must be run serially.
     test = pytest.mark.serial(test)
 
-    if ci_supports_build and not ci_supports_emulator:
+    if not supports_emulator:
         test = pytest.mark.skip("This CI platform doesn't support the emulator")(test)
     return test
 
@@ -90,12 +95,24 @@ def test_android_home(tmp_path, capfd):
     assert "ANDROID_HOME environment variable is not set" in capfd.readouterr().err
 
 
-# the first build can fail to setup - mark as flaky, and serial to make sure it runs first
+# android-env.sh may need to install the NDK, and it isn't safe to do that multiple
+# times in parallel. So make sure there's at least one test which gets as far as doing
+# a build, which is marked as serial so it will run before the parallel tests, but isn't
+# marked as needs_emulator so it will run on all CI platforms.
 @pytest.mark.serial
-@pytest.mark.flaky(reruns=2)
-def test_expected_wheels(tmp_path):
-    new_c_project().generate(tmp_path)
-    wheels = cibuildwheel_run(tmp_path, add_env={"CIBW_PLATFORM": "android"})
+def test_expected_wheels(tmp_path, spam_env):
+    # Since this test covers all Python versions, check the cross venv.
+    test_module = "_cross_venv_test_android"
+    project = new_c_project(setup_py_add=f"import {test_module}")
+    project.files[f"{test_module}.py"] = (Path(__file__).parent / f"{test_module}.py").read_text()
+    project.generate(tmp_path)
+
+    # Build wheels for all Python versions on the current architecture.
+    del spam_env["CIBW_BUILD"]
+    if not supports_emulator:
+        del spam_env["CIBW_TEST_COMMAND"]
+
+    wheels = cibuildwheel_run(tmp_path, add_env=spam_env)
     assert wheels == expected_wheels(
         "spam", "0.1.0", platform="android", machine_arch=native_arch.android_abi
     )
@@ -220,12 +237,20 @@ def spam_env(tmp_path):
             print("Spam test passed")
         """
     )
+    project.files["test_empty.py"] = dedent(
+        """\
+        def test_empty():
+            pass
+        """
+    )
+
     project.generate(tmp_path)
 
     return {
         **cp313_env,
-        "CIBW_TEST_SOURCES": "test_spam.py",
+        "CIBW_TEST_SOURCES": "test_spam.py test_empty.py",
         "CIBW_TEST_REQUIRES": "pytest==8.3.5",
+        "CIBW_TEST_COMMAND": "python -m pytest",
     }
 
 
@@ -233,7 +258,8 @@ def spam_env(tmp_path):
 @pytest.mark.parametrize(
     ("command", "expected_output"),
     [
-        ("python -c 'import test_spam; test_spam.test_spam()'", "Spam test passed"),
+        ("python3 -c 'import test_spam; test_spam.test_spam()'", "Spam test passed"),
+        ("python -m pytest", "=== 2 passed in "),
         ("python -m pytest test_spam.py", "=== 1 passed in "),
         ("pytest test_spam.py", "=== 1 passed in "),
     ],
@@ -250,27 +276,25 @@ def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
         ) in stderr
 
 
+BAD_FORMAT_ERROR = (
+    "Test command '{}' is not supported on Android. "
+    "Command must begin with 'python' or 'python3', and contain '-m' or '-c'."
+)
+BAD_PLACEHOLDER_ERROR = (
+    "Test command '{}' with a '{{project}}' or '{{package}}' placeholder "
+    "is not supported on Android"
+)
+
+
 @needs_emulator
 @pytest.mark.parametrize(
     ("command", "expected_output"),
     [
-        # Build-time failure: unrecognized command
-        (
-            "./test_spam.py",
-            "Test command './test_spam.py' is not supported on Android. "
-            "Supported commands are 'python -m' and 'python -c'.",
-        ),
-        # Build-time failure: unrecognized placeholder
-        (
-            "pytest {project}",
-            "Test command 'pytest {project}' with a '{project}' or '{package}' "
-            "placeholder is not supported on Android",
-        ),
-        (
-            "pytest {package}",
-            "Test command 'pytest {package}' with a '{project}' or '{package}' "
-            "placeholder is not supported on Android",
-        ),
+        # Build-time failure
+        ("./test_spam.py", BAD_FORMAT_ERROR.format("./test_spam.py")),
+        ("python test_spam.py", BAD_FORMAT_ERROR.format("python test_spam.py")),
+        ("pytest {project}", BAD_PLACEHOLDER_ERROR.format("pytest {project}")),
+        ("pytest {package}", BAD_PLACEHOLDER_ERROR.format("pytest {package}")),
         # Runtime failure
         ("pytest test_ham.py", "not found: test_ham.py"),
     ],
@@ -282,6 +306,29 @@ def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
 
 
 @needs_emulator
+@pytest.mark.parametrize(
+    ("options", "expected"),
+    [
+        ("", 0),
+        ("-E", 1),
+    ],
+)
+def test_test_command_python_options(options, expected, tmp_path, capfd):
+    project = new_c_project()
+    project.generate(tmp_path)
+
+    command = 'import sys; print(f"{sys.flags.ignore_environment=}")'
+    cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_TEST_COMMAND": f"python {options} -c '{command}'",
+        },
+    )
+    assert f"sys.flags.ignore_environment={expected}" in capfd.readouterr().out
+
+
+@needs_emulator
 def test_package_subdir(tmp_path, spam_env, capfd):
     spam_paths = list(tmp_path.iterdir())
     package_dir = tmp_path / "package"
@@ -289,17 +336,11 @@ def test_package_subdir(tmp_path, spam_env, capfd):
     for path in spam_paths:
         path.rename(package_dir / path.name)
 
-    test_filename = "package/" + spam_env["CIBW_TEST_SOURCES"]
-    cibuildwheel_run(
-        tmp_path,
-        package_dir,
-        add_env={
-            **spam_env,
-            "CIBW_TEST_SOURCES": test_filename,
-            "CIBW_TEST_COMMAND": f"python -m pytest {test_filename}",
-        },
+    spam_env["CIBW_TEST_SOURCES"] = " ".join(
+        f"package/{path}" for path in spam_env["CIBW_TEST_SOURCES"].split()
     )
-    assert "=== 1 passed in " in capfd.readouterr().out
+    cibuildwheel_run(tmp_path, package_dir, add_env=spam_env)
+    assert "=== 2 passed in " in capfd.readouterr().out
 
 
 @needs_emulator
@@ -314,6 +355,71 @@ def test_no_test_sources(tmp_path, capfd):
         "On this platform, you must copy your test files to the testbed app by "
         "setting the `test-sources` option"
     ) in capfd.readouterr().err
+
+
+@needs_emulator
+def test_environment_markers(tmp_path):
+    project = new_c_project()
+    test_filename = "test_environment_markers.py"
+    project.files[test_filename] = dedent(
+        """\
+        import pytest
+
+        def test_android():
+            import certifi
+
+        def test_not_android():
+            try:
+                import platformdirs
+            except ImportError:
+                pass
+            else:
+                pytest.fail("`platformdirs` should not have been installed")
+        """
+    )
+    project.generate(tmp_path)
+
+    cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_TEST_COMMAND": f"python -m pytest {test_filename}",
+            "CIBW_TEST_SOURCES": test_filename,
+            "CIBW_TEST_REQUIRES": " ".join(
+                [
+                    "pytest",
+                    "certifi;sys_platform=='android'",
+                    "platformdirs;sys_platform!='android'",
+                ]
+            ),
+        },
+    )
+
+
+@needs_emulator
+def test_verbosity(tmp_path, capfd):
+    new_c_project().generate(tmp_path)
+    test_env = {
+        **cp313_env,
+        "CIBW_TEST_COMMAND": """python -c 'print("Hello world")'""",
+    }
+    verbose_lines = [
+        "> Task :app:packageDebug",  # Gradle
+        "I/TestRunner: run started: 1 tests",  # Logcat
+    ]
+
+    cibuildwheel_run(tmp_path, add_env=test_env)
+    stdout = capfd.readouterr().out
+    for line in verbose_lines:
+        assert line not in stdout
+
+    cibuildwheel_run(
+        tmp_path,
+        add_env={**test_env, "CIBW_BUILD_VERBOSITY": "1"},
+    )
+    stdout = capfd.readouterr().out
+    for line in verbose_lines:
+        assert line in stdout
 
 
 @needs_emulator
@@ -353,11 +459,21 @@ def test_libcxx(tmp_path, capfd):
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"
 
+    # cibuildwheel should be able to run `patchelf` and `wheel` even when its
+    # environment's `bin` directory is not on the PATH.
+    non_venv_path = ":".join(
+        item for item in os.environ["PATH"].split(":") if Path(item) != Path(sys.executable).parent
+    )
+
     # A C++ package should include libc++, and the extension module should be able to
     # find it using DT_RUNPATH.
     new_c_project(setup_py_extension_args_add="language='c++'").generate(project_dir)
     script = 'import spam; print(", ".join(f"{s}: {spam.filter(s)}" for s in ["ham", "spam"]))'
-    cp313_test_env = {**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"}
+    cp313_test_env = {
+        **cp313_env,
+        "CIBW_TEST_COMMAND": f"python -c '{script}'",
+        "PATH": non_venv_path,
+    }
 
     # Including external libraries requires API level 24.
     with pytest.raises(CalledProcessError):

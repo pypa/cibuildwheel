@@ -29,14 +29,15 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 | CPython 3.9        | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅ | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
 | CPython 3.10       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
 | CPython 3.11       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | N/A |
-| CPython 3.12       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A | N/A | ✅⁴ |
-| CPython 3.13³      | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | ✅ | ✅ | N/A |
-| CPython 3.14       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵  | N/A | N/A | N/A |
+| CPython 3.12       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | N/A | N/A | ✅⁴ |
+| CPython 3.13³      | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | ✅  | ✅  | ✅⁴ |
+| CPython 3.14       | ✅ | ✅  | ✅  | ✅  | ✅² | ✅ | ✅  | ✅ | ✅  | ✅  | ✅⁵ | ✅  | ✅  | N/A |
 | PyPy 3.8 v7.3      | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
 | PyPy 3.9 v7.3      | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
 | PyPy 3.10 v7.3     | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
 | PyPy 3.11 v7.3     | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | ✅¹  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
 | GraalPy 3.11 v24.2 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | N/A  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
+| GraalPy 3.12 v25.0 | ✅ | ✅  | ✅  | N/A | N/A | ✅¹ | N/A  | ✅¹ | N/A | N/A | N/A | N/A | N/A | N/A |
 
 <sup>¹ PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
 <sup>² Windows arm64 support is experimental.</sup><br>
@@ -44,7 +45,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 <sup>⁴ Experimental, not yet supported on PyPI, but can be used directly in web deployment. Use `--platform pyodide` to build.</sup><br>
 <sup>⁵ manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 
-- Builds manylinux, musllinux, macOS 10.9+ (10.13+ for Python 3.12+), and Windows wheels for CPython, PyPy, and GraalPy
+- Builds manylinux, musllinux, macOS, and Windows wheels for CPython, PyPy, and GraalPy
 - Works on GitHub Actions, Azure Pipelines, Travis CI, CircleCI, GitLab CI, and Cirrus CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
@@ -69,7 +70,7 @@ Usage
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
 <sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture. </sup><br>
 <sup>⁴ Building for Android requires the runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Testing has [additional requirements](https://cibuildwheel.pypa.io/en/stable/platforms/#android).</sup><br>
-<sup>⁵ The `macos-15` and `macos-latest` images are [incompatible with cibuildwheel at this time](platforms/#ios-system-requirements)</sup><br>
+<sup>⁵ The `macos-15` and `macos-latest` images are [incompatible with cibuildwheel at this time](https://cibuildwheel.pypa.io/en/stable/platforms/#ios-system-requirements) when building iOS wheels.</sup><br>
 
 <!--intro-end-->
 
@@ -90,7 +91,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-13, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-15-intel, macos-latest]
 
     steps:
       - uses: actions/checkout@v5
@@ -99,7 +100,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.1.4
+        run: python -m pip install cibuildwheel==3.2.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -229,6 +230,25 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.2.1
+
+_12 October 2025_
+
+- 🛠 Update to CPython 3.14.0 final (#2614)
+- 🐛 Fix the default MACOSX_DEPLOYMENT_TARGET on Python 3.14 (#2613)
+- 📚 Docs improvements (#2617)
+
+### v3.2.0
+
+_22 September 2025_
+
+- ✨ Adds GraalPy v25 (Python 3.12) support (#2597)
+- 🛠 Update to CPython 3.14.0rc3 (#2602)
+- 🛠 Adds CPython 3.14.0 prerelease support for Android, and a number of improvements to Android builds (#2568, #2591)
+- 🛠 Improvements to testing on Android, passing environment markers when installing the venv, and providing more debug output when build-verbosity is set (#2575)
+- ⚠️ PyPy 3.10 was moved to `pypy-eol` in the `enable` option, as it is now end-of-life. (#2521)
+- 📚 Docs improvements (#2574, #2601, #2598)
+
 ### v3.1.4
 
 _19 August 2025_
@@ -270,32 +290,7 @@ _29 July 2025_
 - 🐛 Fix incorrect number of wheels reported in logs, again (#2517)
 - 📚 We welcome our Android platform maintainer (#2516)
 
-
-### v3.1.1
-
-_24 July 2025_
-
-- 🐛 Fix a bug showing an incorrect wheel count at the end of execution, and misrepresenting test-only runs in the GitHub Action summary (#2512)
-- 📚 Docs fix (#2510)
-
-### v3.1.0
-
-_23 July 2025_
-
-
-- 🌟 CPython 3.14 wheels are now built by default - without the `"cpython-prerelease"` `enable` set. It's time to build and upload these wheels to PyPI! This release includes CPython 3.14.0rc1, which is guaranteed to be ABI compatible with the final release. (#2507) Free-threading is no longer experimental in 3.14, so you have to skip it explicitly with `'cp31?t-*'` if you don't support it yet. (#2503)
-- 🌟 Adds the ability to [build wheels for Android](https://cibuildwheel.pypa.io/en/stable/platforms/#android)! Set the [`platform` option](https://cibuildwheel.pypa.io/en/stable/options/#platform) to `android` on Linux or macOS to try it out! (#2349)
-- 🌟 Adds Pyodide 0.28, which builds 3.13 wheels (#2487)
-- ✨ Support for 32-bit `manylinux_2_28` (now a consistent default) and `manylinux_2_34` added (#2500)
-- 🛠 Improved summary, will also use markdown summary output on GHA (#2469)
-- 🛠 The riscv64 images now have a working default (as they are now part of pypy/manylinux), but are still experimental (and behind an `enable`) since you can't push them to PyPI yet (#2506)
-- 🛠 Fixed a typo in the 3.9 MUSL riscv64 identifier (`cp39-musllinux_ricv64` -> `cp39-musllinux_riscv64`) (#2490)
-- 🛠 Mistyping `--only` now shows the correct possibilities, and even suggests near matches on Python 3.14+ (#2499)
-- 🛠 Only support one output from the repair step on linux like other platforms; auditwheel fixed this over four years ago! (#2478)
-- 💼 We now use pattern matching extensively (#2434)
-- 📚 We now have platform maintainers for our special platforms and interpreters! (#2481)
-
-<!-- [[[end]]] (sum: loynkRqdzf) -->
+<!-- [[[end]]] (sum: ZUsMYXdVXu) -->
 
 ---
 

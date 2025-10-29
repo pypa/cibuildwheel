@@ -6,7 +6,7 @@ import re
 import shlex
 import shutil
 import subprocess
-import sys
+import sysconfig
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from os.path import relpath
@@ -205,8 +205,8 @@ def setup_env(
     build_env = build_options.environment.as_dictionary(build_env)
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     for command in ["python", "pip"]:
-        which = call("which", command, env=build_env, capture_stdout=True).strip()
-        if which != f"{venv_dir}/bin/{command}":
+        command_path = call("which", command, env=build_env, capture_stdout=True).strip()
+        if command_path != f"{venv_dir}/bin/{command}":
             msg = (
                 f"{command} available on PATH doesn't match our installed instance. If you "
                 f"have modified PATH, ensure that you don't overwrite cibuildwheel's entry "
@@ -274,11 +274,15 @@ def create_cmake_toolchain(
                 set(CMAKE_SYSTEM_VERSION 1)
 
                 # Tell CMake where to look for headers and libraries.
-                list(INSERT CMAKE_FIND_ROOT_PATH 0 {python_dir}/prefix)
+                set(CMAKE_FIND_ROOT_PATH "{python_dir}/prefix")
                 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
                 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
                 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
                 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
+
+                # Allow CMake to run Python in the simulated Android environment when
+                # policy CMP0190 is active.
+                set(CMAKE_CROSSCOMPILING_EMULATOR /bin/sh -c [["$0" "$@"]])
                 """
             ),
             file=toolchain_file,
@@ -508,17 +512,28 @@ def repair_default(
         new_soname = soname_with_hash(src_path)
         dst_path = libs_dir / new_soname
         shutil.copyfile(src_path, dst_path)
-        call("patchelf", "--set-soname", new_soname, dst_path)
+        call(which("patchelf"), "--set-soname", new_soname, dst_path)
 
         for path in paths_to_patch:
-            call("patchelf", "--replace-needed", old_soname, new_soname, path)
+            call(which("patchelf"), "--replace-needed", old_soname, new_soname, path)
             call(
-                "patchelf",
+                which("patchelf"),
                 "--set-rpath",
                 f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
                 path,
             )
-        call(sys.executable, "-m", "wheel", "pack", unpacked_dir, "-d", repaired_wheel_dir)
+        call(which("wheel"), "pack", unpacked_dir, "-d", repaired_wheel_dir)
+
+
+# If cibuildwheel was called without activating its environment, its scripts directory
+# will not be on the PATH.
+def which(cmd: str) -> str:
+    scripts_dir = sysconfig.get_path("scripts")
+    result = shutil.which(cmd, path=scripts_dir + os.pathsep + os.environ["PATH"])
+    if result is None:
+        msg = f"Couldn't find {cmd!r} in {scripts_dir} or on the PATH"
+        raise errors.FatalError(msg)
+    return result
 
 
 def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:
@@ -578,7 +593,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         site_packages_dir,
         f"{wheel}{state.options.test_extras}",
         *state.options.test_requires,
-        env=state.build_env,
+        env=state.android_env,
     )
 
     # Copy test-sources.
@@ -602,8 +617,11 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
 
     # Parse test-command.
     test_args = shlex.split(test_command)
-    if test_args[:2] in [["python", "-c"], ["python", "-m"]]:
-        test_args[:3] = [test_args[1], test_args[2], "--"]
+    if test_args[0] in ["python", "python3"] and any(arg in test_args for arg in ["-c", "-m"]):
+        # Forward the args to the CPython testbed script. We require '-c' or '-m'
+        # to be in the command, because without those flags, the testbed script
+        # will prepend '-m test', which will run Python's own test suite.
+        del test_args[0]
     elif test_args[0] in ["pytest"]:
         # We transform some commands into the `python -m` form, but this is deprecated.
         msg = (
@@ -612,11 +630,11 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
             "If this works, all you need to do is add that to your test command."
         )
         log.warning(msg)
-        test_args[:1] = ["-m", test_args[0], "--"]
+        test_args.insert(0, "-m")
     else:
         msg = (
             f"Test command {test_command!r} is not supported on Android. "
-            f"Supported commands are 'python -m' and 'python -c'."
+            f"Command must begin with 'python' or 'python3', and contain '-m' or '-c'."
         )
         raise errors.FatalError(msg)
 
@@ -630,6 +648,8 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         site_packages_dir,
         "--cwd",
         cwd_dir,
+        *(["-v"] if state.options.build_verbosity > 0 else []),
+        "--",
         *test_args,
         env=state.build_env,
     )

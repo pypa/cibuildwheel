@@ -261,9 +261,20 @@ def _expected_wheels(
         musllinux_versions = ["musllinux_1_2"]
 
     if platform == "pyodide" and python_abi_tags is None:
-        python_abi_tags = ["cp312-cp312", "cp313-cp313"]
-    elif platform in {"android", "ios"} and python_abi_tags is None:
-        python_abi_tags = ["cp313-cp313"]
+        python_abi_tags = [
+            "cp312-cp312",
+            "cp313-cp313",
+        ]
+    elif platform == "android" and python_abi_tags is None:  # noqa: SIM114
+        python_abi_tags = [
+            "cp313-cp313",
+            "cp314-cp314",
+        ]
+    elif platform == "ios" and python_abi_tags is None:
+        python_abi_tags = [
+            "cp313-cp313",
+            "cp314-cp314",
+        ]
     elif python_abi_tags is None:
         python_abi_tags = [
             "cp38-cp38",
@@ -287,16 +298,17 @@ def _expected_wheels(
             python_abi_tags += [
                 "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
+                "pp310-pypy310_pp73",
             ]
         if EnableGroup.PyPy in enable_groups:
             python_abi_tags += [
-                "pp310-pypy310_pp73",
                 "pp311-pypy311_pp73",
             ]
 
         if EnableGroup.GraalPy in enable_groups:
             python_abi_tags += [
                 "graalpy311-graalpy242_311_native",
+                "graalpy312-graalpy250_312_native",
             ]
 
     if machine_arch == "ARM64" and platform == "windows":
@@ -353,6 +365,13 @@ def _expected_wheels(
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
             elif python_abi_tag.startswith("cp"):
                 if python_abi_tag.startswith(("cp38", "cp39", "cp310", "cp311")):
+                    min_macosx = macosx_deployment_target
+                elif python_abi_tag.startswith(("cp312", "cp313")):
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
+                else:
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
+            elif python_abi_tag.startswith("graalpy"):
+                if python_abi_tag.startswith("graalpy311"):
                     min_macosx = macosx_deployment_target
                 else:
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.13")

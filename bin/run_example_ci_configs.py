@@ -2,6 +2,7 @@
 
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,7 +14,7 @@ from urllib.parse import quote
 
 import click
 
-DIR = Path(__file__).parent.resolve()
+DIR = Path(__file__).parent.parent.resolve()
 
 
 def shell(cmd: str, *, check: bool, **kwargs: object) -> subprocess.CompletedProcess[str]:
@@ -38,6 +39,29 @@ class CIService(typing.NamedTuple):
     name: str
     dst_config_path: str
     badge_md: str
+    config_file_transform: typing.Callable[[str], str] = lambda x: x  # identity by default
+
+
+def github_config_file_transform(content: str) -> str:
+    # one of the the github configs only builds on main, so we need to remove that restriction
+    # so our example build will run on the test branch.
+    #
+    # replace:
+    # """
+    # push:
+    #   branches:
+    #     - main
+    # """
+    # with:
+    # """
+    # push:
+    # """"
+    content = re.sub(
+        r"push:\n\s+branches:\n\s+- main",
+        "push:",
+        content,
+    )
+    return content
 
 
 services = [
@@ -54,7 +78,8 @@ services = [
     CIService(
         name="github",
         dst_config_path=".github/workflows/example.yml",
-        badge_md="[![Build](https://github.com/pypa/cibuildwheel/workflows/Build/badge.svg?branch={branch})](https://github.com/pypa/cibuildwheel/actions)",
+        badge_md="[![Build](https://github.com/pypa/cibuildwheel/actions/workflows/example.yml/badge.svg?branch={branch})](https://github.com/pypa/cibuildwheel/actions?query=branch%3A{branch})",
+        config_file_transform=github_config_file_transform,
     ),
     CIService(
         name="travis-ci",
@@ -93,6 +118,8 @@ def run_example_ci_configs(config_files=None):
 
     if len(config_files) == 0:
         config_files = Path("examples").glob("*-minimal.yml")
+    else:
+        config_files = [Path(f) for f in config_files]
 
     # check each CI service has at most 1 config file
     configs_by_service = set()
@@ -125,12 +152,15 @@ def run_example_ci_configs(config_files=None):
             dst_config_file = example_project / service.dst_config_path
 
             dst_config_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(config_file, dst_config_file)
+
+            contents = config_file.read_text(encoding="utf8")
+            contents = service.config_file_transform(contents)
+            dst_config_file.write_text(contents, encoding="utf8")
 
         subprocess.run(["git", "add", example_project], check=True)
         message = textwrap.dedent(
             f"""\
-            Test example minimal configs
+            Test example CI configs
 
             Testing files: {[str(f) for f in config_files]}
             Generated from branch: {previous_branch}

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 
-import copy
 import difflib
 import logging
 import operator
@@ -34,45 +33,18 @@ RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
 ArchStr = Literal["32", "64", "ARM64"]
 
 
-class ConfigWinCP(TypedDict):
+class Config(TypedDict):
     identifier: str
     version: str
-    arch: str
 
 
-class ConfigWinPP(TypedDict):
-    identifier: str
-    version: str
-    arch: str
+class ConfigUrl(Config):
     url: str
 
 
-class ConfigWinGP(TypedDict):
-    identifier: str
-    version: str
-    url: str
-
-
-class ConfigApple(TypedDict):
-    identifier: str
-    version: str
-    url: str
-
-
-class ConfigAndroid(TypedDict):
-    identifier: str
-    version: str
-    url: str
-
-
-class ConfigPyodide(TypedDict):
-    identifier: str
-    version: str
+class ConfigPyodide(Config):
     default_pyodide_version: str
     node_version: str
-
-
-AnyConfig = ConfigWinCP | ConfigWinPP | ConfigWinGP | ConfigApple | ConfigAndroid | ConfigPyodide
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to
@@ -106,7 +78,7 @@ class WindowsVersions:
 
         self.version_dict = {Version(v): v for v in cp_info["versions"]}
 
-    def update_version_windows(self, spec: Specifier) -> ConfigWinCP | None:
+    def update_version_windows(self, spec: Specifier) -> Config | None:
         # Specifier.filter selects all non pre-releases that match the spec,
         # unless there are only pre-releases, then it selects pre-releases
         # instead (like pip)
@@ -121,10 +93,9 @@ class WindowsVersions:
         flags = "t" if self.free_threaded else ""
         version = versions[0]
         identifier = f"cp{version.major}{version.minor}{flags}-{self.arch}"
-        return ConfigWinCP(
+        return Config(
             identifier=identifier,
             version=self.version_dict[version],
-            arch=self.arch_str,
         )
 
 
@@ -146,7 +117,7 @@ class GraalPyVersions:
 
         self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
 
-    def update_version(self, identifier: str, spec: Specifier) -> AnyConfig:
+    def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl:
         if "x86_64" in identifier or "amd64" in identifier:
             arch = "x86_64"
         elif "arm64" in identifier or "aarch64" in identifier:
@@ -156,7 +127,9 @@ class GraalPyVersions:
             raise RuntimeError(msg)
 
         gpspec_str = identifier.split("-")[0].split("_")[1]
-        gpspec = Specifier("==24.2.*") if gpspec_str == "242" else Specifier(f"=={gpspec_str}.*")
+        if "." not in gpspec_str and len(gpspec_str) == 3:
+            gpspec_str = gpspec_str[:2] + "." + gpspec_str[-1]
+        gpspec = Specifier(f"=={gpspec_str}.*")
 
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
         releases = [r for r in self.releases if gpspec.contains(r["graalpy_version"])]
@@ -172,11 +145,9 @@ class GraalPyVersions:
 
         if "macosx" in identifier:
             arch = "x86_64" if "x86_64" in identifier else "arm64"
-            config = ConfigApple
             platform = "macos"
         elif "win" in identifier:
             arch = "aarch64" if "arm64" in identifier else "x86_64"
-            config = ConfigWinGP
             platform = "windows"
         else:
             msg = "GraalPy provides downloads for macOS and Windows and is included for manylinux"
@@ -191,7 +162,7 @@ class GraalPyVersions:
             and rf["name"].startswith(f"graalpy-{gpversion.major}")
         )
 
-        return config(
+        return ConfigUrl(
             identifier=identifier,
             version=f"{version.major}.{version.minor}",
             url=url,
@@ -223,7 +194,7 @@ class PyPyVersions:
         ]
         return urls[0] if urls else ""
 
-    def update_version_windows(self, spec: Specifier) -> ConfigWinCP:
+    def update_version_windows(self, spec: Specifier) -> ConfigUrl:
         releases = [r for r in self.releases if spec.contains(r["python_version"])]
         releases = sorted(releases, key=operator.itemgetter("pypy_version"))
         releases = [r for r in releases if self.get_arch_file(r)]
@@ -239,14 +210,13 @@ class PyPyVersions:
         identifier = f"pp{version.major}{version.minor}-{version_arch}"
         url = self.get_arch_file(release)
 
-        return ConfigWinPP(
+        return ConfigUrl(
             identifier=identifier,
             version=f"{version.major}.{version.minor}",
-            arch=self.arch,
             url=url,
         )
 
-    def update_version_macos(self, spec: Specifier) -> ConfigApple:
+    def update_version_macos(self, spec: Specifier) -> ConfigUrl:
         if self.arch not in {"64", "ARM64"}:
             msg = f"'{self.arch}' arch not supported yet on macOS"
             raise RuntimeError(msg)
@@ -270,7 +240,7 @@ class PyPyVersions:
             if "" in rf["platform"] == "darwin" and rf["arch"] == arch
         )
 
-        return ConfigApple(
+        return ConfigUrl(
             identifier=identifier,
             version=f"{version.major}.{version.minor}",
             url=url,
@@ -298,15 +268,10 @@ class CPythonVersions:
             uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
             self.versions_dict[version] = uri
 
-    def update_version_macos(
-        self, identifier: str, version: Version, spec: Specifier
-    ) -> ConfigApple | None:
+    def update_version(self, identifier: str, spec: Specifier, file_ident: str) -> ConfigUrl | None:
         # see note above on Specifier.filter
         unsorted_versions = spec.filter(self.versions_dict)
         sorted_versions = sorted(unsorted_versions, reverse=True)
-
-        macver = "x10.9" if version <= Version("3.8.9999") else "11"
-        file_ident = f"macos{macver}.pkg"
 
         for new_version in sorted_versions:
             # Find the first patch version that contains the requested file
@@ -319,7 +284,7 @@ class CPythonVersions:
 
             urls = [rf["url"] for rf in file_info if file_ident in rf["url"]]
             if urls:
-                return ConfigApple(
+                return ConfigUrl(
                     identifier=identifier,
                     version=f"{new_version.major}.{new_version.minor}",
                     url=urls[0],
@@ -327,9 +292,17 @@ class CPythonVersions:
 
         return None
 
+    def update_version_macos(
+        self, identifier: str, version: Version, spec: Specifier
+    ) -> ConfigUrl | None:
+        macver = "x10.9" if version <= Version("3.8.9999") else "11"
+        return self.update_version(identifier, spec, f"macos{macver}.pkg")
 
-class AndroidVersions:
-    # This should be replaced with official python.org downloads once they're available.
+    def update_version_android(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
+        return self.update_version(identifier, spec, android_triplet(identifier))
+
+
+class MavenVersions:
     MAVEN_URL = "https://repo.maven.apache.org/maven2/com/chaquo/python/python"
 
     def __init__(self) -> None:
@@ -343,18 +316,16 @@ class AndroidVersions:
             assert isinstance(version_str, str), version_str
             self.versions.append(Version(version_str))
 
-    def update_version_android(
-        self, identifier: str, version: Version, spec: Specifier
-    ) -> ConfigAndroid | None:
+    def update_version_android(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
         sorted_versions = sorted(spec.filter(self.versions), reverse=True)
 
         # Return a config using the highest version for the given specifier.
         if sorted_versions:
             max_version = sorted_versions[0]
             triplet = android_triplet(identifier)
-            return ConfigAndroid(
+            return ConfigUrl(
                 identifier=identifier,
-                version=str(version),
+                version=f"{max_version.major}.{max_version.minor}",
                 url=f"{self.MAVEN_URL}/{max_version}/python-{max_version}-{triplet}.tar.gz",
             )
         else:
@@ -390,11 +361,11 @@ class CPythonIOSVersions:
                 if filename.endswith("-iOS-support"):
                     self.versions_dict[version][int(build[1:])] = asset["browser_download_url"]
 
-    def update_version_ios(self, identifier: str, version: Version) -> ConfigApple | None:
+    def update_version_ios(self, identifier: str, version: Version) -> ConfigUrl | None:
         # Return a config using the highest build number for the given version.
         urls = [url for _, url in sorted(self.versions_dict.get(version, {}).items())]
         if urls:
-            return ConfigApple(
+            return ConfigUrl(
                 identifier=identifier,
                 version=str(version),
                 url=urls[-1],
@@ -450,11 +421,11 @@ class AllVersions:
         self.windows_t_arm64 = WindowsVersions("ARM64", True)
         self.windows_pypy_64 = PyPyVersions("64")
 
-        self.macos_cpython = CPythonVersions()
+        self.cpython = CPythonVersions()
         self.macos_pypy = PyPyVersions("64")
         self.macos_pypy_arm64 = PyPyVersions("ARM64")
 
-        self.android = AndroidVersions()
+        self.maven = MavenVersions()
         self.ios_cpython = CPythonIOSVersions()
 
         self.graalpy = GraalPyVersions()
@@ -466,13 +437,12 @@ class AllVersions:
         version = Version(config["version"])
         spec = Specifier(f"=={version.major}.{version.minor}.*")
         log.info("Reading in %r -> %s @ %s", str(identifier), spec, version)
-        orig_config = copy.copy(config)
-        config_update: AnyConfig | None = None
+        config_update: Config | None = None
 
         # We need to use ** in update due to MyPy (probably a bug)
         if "macosx" in identifier:
             if identifier.startswith("cp"):
-                config_update = self.macos_cpython.update_version_macos(identifier, version, spec)
+                config_update = self.cpython.update_version_macos(identifier, version, spec)
             elif identifier.startswith("pp"):
                 if "macosx_x86_64" in identifier:
                     config_update = self.macos_pypy.update_version_macos(spec)
@@ -498,7 +468,10 @@ class AllVersions:
         elif "win_arm64" in identifier and identifier.startswith("cp"):
             config_update = self.windows_arm64.update_version_windows(spec)
         elif "android" in identifier:
-            config_update = self.android.update_version_android(identifier, version, spec)
+            # Python 3.13 is released by Chaquopy on Maven Central.
+            # Python 3.14 and newer have official releases on python.org.
+            versions = self.maven if identifier.startswith("cp313") else self.cpython
+            config_update = versions.update_version_android(identifier, spec)
         elif "ios" in identifier:
             config_update = self.ios_cpython.update_version_ios(identifier, version)
         elif "pyodide" in identifier:
@@ -507,10 +480,10 @@ class AllVersions:
             )
 
         assert config_update is not None, f"{identifier} not found!"
-        config.update(**config_update)
-
-        if config != orig_config:
-            log.info("  Updated %s to %s", orig_config, config)
+        if config_update != config:
+            log.info("  Updated %s to %s", config, config_update)
+            config.clear()
+            config.update(**config_update)
 
 
 @click.command()

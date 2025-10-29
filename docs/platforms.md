@@ -63,7 +63,8 @@ macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to c
 | Arch  | Python version range | Minimum target |
 |-------|----------------------|----------------|
 | Intel | CPython 3.8-3.11     | 10.9           |
-| Intel | CPython 3.12+        | 10.13          |
+| Intel | CPython 3.12-3.13    | 10.13          |
+| Intel | CPython 3.14+        | 10.15          |
 | AS    | CPython or PyPy      | 11             |
 | Intel | PyPy 3.8             | 10.13          |
 | Intel | PyPy 3.9+            | 10.15          |
@@ -121,7 +122,7 @@ See [GitHub issue 1333](https://github.com/pypa/cibuildwheel/issues/1333) for mo
 
 It's easiest to build `x86_64` wheels on `x86_64` runners, and `arm64` wheels on `arm64` runners.
 
-On GitHub Actions, `macos-14` runners are `arm64`, and `macos-13` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
+On GitHub Actions, `macos-14` runners are `arm64`, and `macos-15-intel` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
 
 #### Cross-compiling
 
@@ -205,7 +206,6 @@ It also requires the following commands to be on the `PATH`:
 
 * `curl`
 * `java` (or set the `JAVA_HOME` environment variable)
-* `patchelf` (if the wheel links against any external libraries)
 
 ### Android version compatibility
 
@@ -213,6 +213,11 @@ Android builds will honor the `ANDROID_API_LEVEL` environment variable to set th
 minimum supported [API level](https://developer.android.com/tools/releases/platforms)
 for generated wheels. This will default to the minimum API level of the selected Python
 version.
+
+If the [`repair-wheel-command`](options.md#repair-wheel-command) adds any libraries to
+the wheel, then `ANDROID_API_LEVEL` must be at least 24. This is already the default
+when building for Python 3.14 and later, but you may need to set it when building for
+Python 3.13.
 
 ### Build frontend support
 
@@ -234,10 +239,9 @@ nested virtualization. CI platforms known to meet this requirement are:
 * GitHub Actions Linux x86_64
 
 On Linux, the emulator needs access to the KVM virtualization interface. This may
-require adding your user to a group, or [changing your udev
-rules](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
-If the emulator fails to start, try running `$ANDROID_HOME/emulator/emulator
--accel-check`.
+require adding your user to a group, or changing your udev rules. On GitHub
+Actions, cibuildwheel will do this automatically using the commands shown
+[here](https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/).
 
 The Android test environment can't support running shell scripts, so the
 [`test-command`](options.md#test-command) must be a Python command – see its
@@ -258,9 +262,6 @@ to one of the following URLs:
 You must be building on a macOS machine, with Xcode installed. The Xcode installation must have an iOS SDK available, with all license agreements agreed to by the user. To check if an iOS SDK is available, open the Xcode settings panel, and check the Platforms tab. This will also ensure that license agreements have been acknowledged.
 
 Building iOS wheels also requires a working macOS Python installation. See the notes on [macOS builds](#macos) for details about configuration of the macOS environment.
-
-!!! note
-    If you are running cibuildwheel on GitHub Actions or Azure runners, you should avoid the `macos-15` and `macos-latest` images. The [20250811 image update](https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20250811.2170) made some [significant changes](https://github.com/actions/runner-images/issues/12541) that are [incompatible with CPython's iOS test runner](https://github.com/actions/runner-images/issues/12777). At this time, Microsoft's advice is to use the `macos-14` image instead.
 
 ### Specifying an iOS build
 
