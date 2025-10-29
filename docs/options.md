@@ -1676,9 +1676,9 @@ Platform-specific environment variables are also available:<br/>
 
 > Controls how the tests will be executed.
 
-In simple desktop environments, the test suite will be executed using the command defined by [`test-command`][test-command]. However, on some platforms, the test is executed using a test runner; the `test-execution` setting is used to control that test execution environment. The value of the setting is a dictionary that can contain additional keys, depending on the platform being targeted.
+On desktop environments, the tests are executed on the same machine/container as the wheel was built. However on Android and iOS, the tests are run inside a virtual machine – a simulator or emulator – representing the target.
 
-On mobile platforms (iOS and Android), a testbed project is used to run the tests. The `test-execution` setting can define an `args` key that defines additional arguments that will be used when starting the testbed project.
+For these embedded platforms, a testbed project is used to run the tests. The `test-execution` setting can define an `args` key that defines additional arguments that will be used when starting the testbed project.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_EXECUTION_ANDROID` |`CIBW_TEST_EXECUTION_IOS`
