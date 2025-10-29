@@ -48,7 +48,7 @@ packaging==25.0
     #   build
     #   pyodide-build
     #   unearth
-pip==25.2
+pip==25.3
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.5.0
     # via
@@ -62,7 +62,7 @@ pydantic-core==2.41.4
     # via pydantic
 pygments==2.19.2
     # via rich
-pyodide-build==0.30.7
+pyodide-build==0.30.8
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.4.0
     # via
@@ -81,7 +81,7 @@ rich==14.2.0
     #   pyodide-build
     #   pyodide-cli
     #   typer
-ruamel-yaml==0.18.15
+ruamel-yaml==0.18.16
     # via pyodide-build
 ruamel-yaml-clib==0.2.14
     # via ruamel-yaml
@@ -89,7 +89,7 @@ shellingham==1.5.4
     # via typer
 sniffio==1.3.1
     # via anyio
-typer==0.19.2
+typer==0.20.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
