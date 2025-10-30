@@ -80,7 +80,7 @@ def test_repair_wheel_command_structure(tmp_path, repair_command):
         dest_dir = Path(sys.argv[2])
 
         dest_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(wheel, dest_dir / "spam-repaired.whl")
+        shutil.copy(wheel, dest_dir / "spamrepaired-0.0.1-py-none-any.whl")
     """)
 
     # Combined test for repair wheel command formats (plain, {package}, {project})
@@ -90,8 +90,9 @@ def test_repair_wheel_command_structure(tmp_path, repair_command):
         project_dir,
         add_env={
             "CIBW_REPAIR_WHEEL_COMMAND": repair_command,
+            "CIBW_ARCHS": "native",
         },
         single_python=True,
     )
 
-    assert result == ["spam-repaired.whl"]
+    assert result == ["spamrepaired-0.0.1-py-none-any.whl"]
