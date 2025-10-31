@@ -24,7 +24,7 @@ from .projectfiles import get_requires_python_str, resolve_dependency_groups
 from .selector import BuildSelector, EnableGroup, TestSelector, selector_matches
 from .typing import PLATFORMS, PlatformName
 from .util import resources
-from .util.helpers import format_safe, strtobool, unwrap
+from .util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
 from .util.packaging import DependencyConstraints
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
@@ -92,6 +92,20 @@ class GlobalOptions:
     allow_empty: bool
 
 
+@dataclasses.dataclass(frozen=True)
+class TestRuntimeConfig:
+    args: Sequence[str] = ()
+
+    @classmethod
+    def from_config_string(cls, config_string: str) -> Self:
+        config_dict = parse_key_value_string(config_string, [], ["args"])
+        args = config_dict.get("args") or []
+        return cls(args=args)
+
+    def options_summary(self) -> str | dict[str, str]:
+        return {"args": repr(self.args)}
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildOptions:
     globals: GlobalOptions
@@ -110,6 +124,7 @@ class BuildOptions:
     test_extras: str
     test_groups: list[str]
     test_environment: ParsedEnvironment
+    test_runtime: TestRuntimeConfig
     build_verbosity: int
     build_frontend: BuildFrontendConfig
     config_settings: str
@@ -761,6 +776,20 @@ class Options:
                 msg = f"Malformed environment option {test_environment_config!r}"
                 raise errors.ConfigurationError(msg) from e
 
+            test_runtime_str = self.reader.get(
+                "test-runtime",
+                env_plat=False,
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+            )
+            if not test_runtime_str:
+                test_runtime = TestRuntimeConfig()
+            else:
+                try:
+                    test_runtime = TestRuntimeConfig.from_config_string(test_runtime_str)
+                except ValueError as e:
+                    msg = f"Failed to parse test runtime config. {e}"
+                    raise errors.ConfigurationError(msg) from e
+
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
             ).split()
@@ -868,6 +897,7 @@ class Options:
                 test_command=test_command,
                 test_sources=test_sources,
                 test_environment=test_environment,
+                test_runtime=test_runtime,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,

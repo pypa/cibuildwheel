@@ -25,6 +25,7 @@ test-requires = []
 test-extras = []
 test-groups = []
 test-environment = {}
+test-runtime = {}
 
 container-engine = "docker"
 
