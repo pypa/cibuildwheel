@@ -654,7 +654,7 @@ def build(options: Options, tmp_path: Path) -> None:
                                     )
                                     raise errors.FatalError(msg)
 
-                            test_execution_args = build_options.test_execution.args
+                            test_runtime_args = build_options.test_runtime.args
 
                             # 2025-10: The GitHub Actions macos-15 runner has a known issue where
                             # the default simulator won't start due to a disk performance issue;
@@ -668,13 +668,13 @@ def build(options: Options, tmp_path: Path) -> None:
                                 and os_version.startswith("15.")
                                 and arch == "arm64"
                                 and not any(
-                                    arg.startswith("--simulator") for arg in test_execution_args
+                                    arg.startswith("--simulator") for arg in test_runtime_args
                                 )
                             ):
-                                test_execution_args = [
+                                test_runtime_args = [
                                     "--simulator",
                                     "iPhone 16e,OS=18.5",
-                                    *test_execution_args,
+                                    *test_runtime_args,
                                 ]
 
                             call(
@@ -682,7 +682,7 @@ def build(options: Options, tmp_path: Path) -> None:
                                 testbed_path,
                                 "run",
                                 *(["--verbose"] if build_options.build_verbosity > 0 else []),
-                                *test_execution_args,
+                                *test_runtime_args,
                                 "--",
                                 *final_command,
                                 env=test_env,

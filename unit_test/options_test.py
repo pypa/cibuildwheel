@@ -631,13 +631,14 @@ def test_get_build_frontend_extra_flags_warning(
     ("definition", "expected_args"),
     [
         ("", ()),
-        ("test-execution = {}", ()),
-        ('test-execution = {args = ""}', []),
-        ('test-execution = "args: --simulator foo"', ["--simulator", "foo"]),
-        ('test-execution = {args = ["--simulator", "foo"]}', ["--simulator", "foo"]),
+        ('test-runtime = ""', ()),
+        ("test-runtime = {}", ()),
+        ('test-runtime = {args = ""}', []),
+        ('test-runtime = "args: --simulator foo"', ["--simulator", "foo"]),
+        ('test-runtime = {args = ["--simulator", "foo"]}', ["--simulator", "foo"]),
     ],
 )
-def test_test_execution_handling(
+def test_test_runtime_handling(
     tmp_path: Path, definition: str, expected_args: Sequence[str] | None
 ) -> None:
     args = CommandLineArguments.defaults()
@@ -656,7 +657,7 @@ def test_test_execution_handling(
     options = Options(platform="ios", command_line_arguments=args, env={})
 
     local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
-    assert local.test_execution.args == expected_args
+    assert local.test_runtime.args == expected_args
 
 
 @pytest.mark.parametrize(

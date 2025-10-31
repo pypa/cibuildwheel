@@ -641,9 +641,9 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
     # By default, run on a testbed managed emulator running the newest supported
     # Android version. However, if the user specifies a --managed or --connected
     # test execution argument, that argument takes precedence.
-    test_execution_args = state.options.test_execution.args
+    test_runtime_args = state.options.test_runtime.args
 
-    if any(arg.startswith(("--managed", "--connected")) for arg in test_execution_args):
+    if any(arg.startswith(("--managed", "--connected")) for arg in test_runtime_args):
         emulator_args = []
     else:
         emulator_args = ["--managed", "maxVersion"]
@@ -658,7 +658,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         cwd_dir,
         *emulator_args,
         *(["-v"] if state.options.build_verbosity > 0 else []),
-        *test_execution_args,
+        *test_runtime_args,
         "--",
         *test_args,
         env=state.build_env,

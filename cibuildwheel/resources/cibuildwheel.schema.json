@@ -569,13 +569,9 @@
       ],
       "title": "CIBW_TEST_ENVIRONMENT"
     },
-    "test-execution": {
+    "test-runtime": {
       "description": "Additional configuration for the test runner",
       "oneOf": [
-        {
-          "type": "string",
-          "pattern": "args:"
-        },
         {
           "type": "string",
           "pattern": "^$"
@@ -583,6 +579,10 @@
         {
           "type": "object",
           "additionalProperties": false
+        },
+        {
+          "type": "string",
+          "pattern": "args:"
         },
         {
           "type": "object",
@@ -600,7 +600,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_EXECUTION"
+      "title": "CIBW_TEST_RUNTIME"
     },
     "overrides": {
       "type": "array",
@@ -672,7 +672,7 @@
               "test-environment": {
                 "$ref": "#/$defs/inherit"
               },
-              "test-execution": {
+              "test-runtime": {
                 "$ref": "#/$defs/inherit"
               }
             }
@@ -785,8 +785,8 @@
           "test-environment": {
             "$ref": "#/properties/test-environment"
           },
-          "test-execution": {
-            "$ref": "#/properties/test-execution"
+          "test-runtime": {
+            "$ref": "#/properties/test-runtime"
           }
         }
       }
@@ -916,8 +916,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution": {
-          "$ref": "#/properties/test-execution"
+        "test-runtime": {
+          "$ref": "#/properties/test-runtime"
         }
       }
     },
@@ -979,8 +979,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution": {
-          "$ref": "#/properties/test-execution"
+        "test-runtime": {
+          "$ref": "#/properties/test-runtime"
         }
       }
     },
@@ -1055,8 +1055,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution": {
-          "$ref": "#/properties/test-execution"
+        "test-runtime": {
+          "$ref": "#/properties/test-runtime"
         }
       }
     },
@@ -1118,8 +1118,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution": {
-          "$ref": "#/properties/test-execution"
+        "test-runtime": {
+          "$ref": "#/properties/test-runtime"
         }
       }
     },
@@ -1181,8 +1181,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution": {
-          "$ref": "#/properties/test-execution"
+        "test-runtime": {
+          "$ref": "#/properties/test-runtime"
         }
       }
     },
@@ -1244,8 +1244,8 @@
         "test-environment": {
           "$ref": "#/properties/test-environment"
         },
-        "test-execution": {
-          "$ref": "#/properties/test-execution"
+        "test-runtime": {
+          "$ref": "#/properties/test-runtime"
         }
       }
     }

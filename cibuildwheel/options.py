@@ -93,7 +93,7 @@ class GlobalOptions:
 
 
 @dataclasses.dataclass(frozen=True)
-class TestExecutionConfig:
+class TestRuntimeConfig:
     args: Sequence[str] = ()
 
     @classmethod
@@ -124,7 +124,7 @@ class BuildOptions:
     test_extras: str
     test_groups: list[str]
     test_environment: ParsedEnvironment
-    test_execution: TestExecutionConfig
+    test_runtime: TestRuntimeConfig
     build_verbosity: int
     build_frontend: BuildFrontendConfig
     config_settings: str
@@ -776,18 +776,18 @@ class Options:
                 msg = f"Malformed environment option {test_environment_config!r}"
                 raise errors.ConfigurationError(msg) from e
 
-            test_execution_str = self.reader.get(
-                "test-execution",
+            test_runtime_str = self.reader.get(
+                "test-runtime",
                 env_plat=False,
                 option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
             )
-            if not test_execution_str:
-                test_execution = TestExecutionConfig()
+            if not test_runtime_str:
+                test_runtime = TestRuntimeConfig()
             else:
                 try:
-                    test_execution = TestExecutionConfig.from_config_string(test_execution_str)
+                    test_runtime = TestRuntimeConfig.from_config_string(test_runtime_str)
                 except ValueError as e:
-                    msg = f"Failed to parse test execution config. {e}"
+                    msg = f"Failed to parse test runtime config. {e}"
                     raise errors.ConfigurationError(msg) from e
 
             test_requires = self.reader.get(
@@ -897,7 +897,7 @@ class Options:
                 test_command=test_command,
                 test_sources=test_sources,
                 test_environment=test_environment,
-                test_execution=test_execution,
+                test_runtime=test_runtime,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,

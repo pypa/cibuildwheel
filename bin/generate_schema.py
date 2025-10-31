@@ -224,7 +224,7 @@ properties:
   test-environment:
     description: Set environment variables for the test environment
     type: string_table
-  test-execution:
+  test-runtime:
     description: Additional configuration for the test runner
     oneOf:
       - type: string
@@ -322,7 +322,7 @@ items:
         test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
         test-environment: {"$ref": "#/$defs/inherit"}
-        test-execution: {"$ref": "#/$defs/inherit"}
+        test-runtime: {"$ref": "#/$defs/inherit"}
 """
 )
 
