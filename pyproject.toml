@@ -79,13 +79,10 @@ bin = [
 docs = [
     "jinja2>=3.1.2",
     "mkdocs-include-markdown-plugin==6.2.2",
-    "mkdocs-macros-plugin",
+    "mkdocs-macros-plugin>=1.4.1",
     "mkdocs==1.6.1",
     "pymdown-extensions",
     "rich",
-    # transitive dep of mkdocs-macros-plugin
-    # https://github.com/fralau/mkdocs-macros-plugin/issues/269
-    "requests",
 ]
 test = [
     "build",

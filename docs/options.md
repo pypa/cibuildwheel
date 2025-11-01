@@ -470,14 +470,16 @@ Default: `build`
 
 Choose which build frontend to use.
 
-You can use "build\[uv\]", which will use an external [uv][] everywhere
+You can use "build\[uv\]", which will use an external [UV][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
-Make sure you have an external uv on Windows and macOS, either by
-pre-installing it, or installing cibuildwheel with the uv extra,
-`cibuildwheel[uv]`. uv currently does not support Windows on ARM,
-musllinux on s390x, Android, or iOS. Legacy dependencies like
-setuptools on Python < 3.12 and pip are not installed if using uv.
+Make sure you have an external UV on Windows and macOS, either by
+pre-installing it, or installing cibuildwheel with the `uv` extra, which is
+possible by manually passing `cibuildwheel[uv]` to installers or by using the
+`extras` option in the [cibuildwheel action](ci-services.md#github-actions).
+UV currently does not support Android, iOS nor musllinux on s390x. Legacy
+dependencies like setuptools on Python < 3.12 and pip are not installed if
+using UV.
 
 On Android and Pyodide, only "build" is supported.
 
@@ -572,6 +574,7 @@ A list of environment variables to set during the build and test phases. Bash sy
 You must use this variable to pass variables to Linux builds, since they execute in a container. It also works for the other platforms.
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
+Variables are evaluated in the order they appear. Any variable referenced before it is set will evaluate to an empty string.
 
 To specify more than one environment variable, separate the assignments by spaces.
 
@@ -1317,7 +1320,7 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 ### `test-command` {: #test-command env-var toml}
 > The command to test each built wheel
 
-Shell command to run tests after the build. The wheel will be installed
+Command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
@@ -1345,11 +1348,12 @@ tree. To access your test code, you have a couple of options:
 
 On all platforms other than Android and iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On Android and iOS, the command is parsed by `shlex.split`, and is required to
-be in one of the following forms:
+On Android and iOS, the command is parsed by `shlex.split`, and must be a Python
+command:
 
-* `python -c command ...` (Android only)
-* `python -m module-name ...`
+* On Android, the command must must begin with `python` or `python3`, and contain `-m`
+  or `-c`.
+* On iOS, the command must begin with `python -m`.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_ANDROID` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`

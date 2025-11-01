@@ -18,7 +18,7 @@ packaging==25.0
     # via
     #   build
     #   delocate
-pip==25.2
+pip==25.3
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.4.0
     # via virtualenv
@@ -30,7 +30,7 @@ typing-extensions==4.15.0
     # via
     #   delocate
     #   virtualenv
-virtualenv==20.35.2
+virtualenv==20.35.3
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.23.0
     # via importlib-metadata
