@@ -7,7 +7,7 @@ import shlex
 import shutil
 import subprocess
 import sysconfig
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 from os.path import relpath
 from pathlib import Path
@@ -340,6 +340,8 @@ def localized_vars(
 def setup_android_env(
     config: PythonConfiguration, python_dir: Path, venv_dir: Path, build_env: dict[str, str]
 ) -> dict[str, str]:
+    setup_rust_cross_compile(config, build_env)
+
     site_packages = next(venv_dir.glob("lib/python*/site-packages"))
     for suffix in ["pth", "py"]:
         shutil.copy(resources.PATH / f"_cross_venv.{suffix}", site_packages)
@@ -388,6 +390,25 @@ def setup_android_env(
             print(f"export {key}={shlex.quote(value)}")
 
     return android_env
+
+
+def setup_rust_cross_compile(
+    python_configuration: PythonConfiguration,
+    env: MutableMapping[str, str],
+) -> None:
+    cargo_target = android_triplet(python_configuration.identifier)
+    call("rustup", "target", "add", cargo_target)
+
+    # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
+    if env.get("CARGO_BUILD_TARGET"):
+        if env["CARGO_BUILD_TARGET"] != cargo_target:
+            log.notice("Not overriding CARGO_BUILD_TARGET as it has already been set")
+        # No message if it was set to what we were planning to set it to
+    elif cargo_target:
+        log.notice(f"Setting CARGO_BUILD_TARGET={cargo_target} for cross-compilation")
+        env["CARGO_BUILD_TARGET"] = cargo_target
+    else:
+        log.warning(f"Unable to configure Rust cross-compilation for architecture {cargo_target}")
 
 
 def before_build(state: BuildState) -> None:
