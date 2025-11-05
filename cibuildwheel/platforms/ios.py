@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import os
+import platform
 import shlex
 import shutil
 import subprocess
@@ -653,11 +654,35 @@ def build(options: Options, tmp_path: Path) -> None:
                                     )
                                     raise errors.FatalError(msg)
 
+                            test_runtime_args = build_options.test_runtime.args
+
+                            # 2025-10: The GitHub Actions macos-15 runner has a known issue where
+                            # the default simulator won't start due to a disk performance issue;
+                            # see https://github.com/actions/runner-images/issues/12777 for details.
+                            # In the meantime, if it looks like we're running on a GitHub Actions
+                            # macos-15 runner, use a simulator that is known to work, unless the
+                            # user explicitly specifies a simulator.
+                            os_version, _, arch = platform.mac_ver()
+                            if (
+                                "GITHUB_ACTIONS" in os.environ
+                                and os_version.startswith("15.")
+                                and arch == "arm64"
+                                and not any(
+                                    arg.startswith("--simulator") for arg in test_runtime_args
+                                )
+                            ):
+                                test_runtime_args = [
+                                    "--simulator",
+                                    "iPhone 16e,OS=18.5",
+                                    *test_runtime_args,
+                                ]
+
                             call(
                                 "python",
                                 testbed_path,
                                 "run",
                                 *(["--verbose"] if build_options.build_verbosity > 0 else []),
+                                *test_runtime_args,
                                 "--",
                                 *final_command,
                                 env=test_env,
