@@ -54,11 +54,11 @@ platformdirs==4.5.0
     # via
     #   pyodide-build
     #   virtualenv
-pydantic==2.12.3
+pydantic==2.12.4
     # via
     #   pyodide-build
     #   pyodide-lock
-pydantic-core==2.41.4
+pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via rich
@@ -106,7 +106,7 @@ unearth==0.18.1
     # via pyodide-build
 urllib3==2.5.0
     # via requests
-virtualenv==20.35.3
+virtualenv==20.35.4
     # via
     #   build
     #   pyodide-build
