@@ -32,7 +32,7 @@ from ..util.file import (
     move_file,
 )
 from ..util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
-from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..util.packaging import find_compatible_wheel, get_pip_version
 from ..util.python_build_standalone import (
     PythonBuildStandaloneError,
     create_python_build_standalone_environment,
@@ -419,17 +419,13 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
 
-                build_env = env.copy()
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, identifier_tmp_dir)
-                build_env["VIRTUALENV_PIP"] = pip_version
                 call(
                     "pyodide",
                     "build",
                     build_options.package_dir,
                     f"--outdir={built_wheel_dir}",
                     *extra_flags,
-                    env=build_env,
+                    env=env,
                 )
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 

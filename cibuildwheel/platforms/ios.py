@@ -34,9 +34,7 @@ from ..util.file import (
 )
 from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
 from ..util.packaging import (
-    combine_constraints,
     find_compatible_wheel,
-    get_pip_version,
 )
 from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
@@ -462,7 +460,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_frontend=build_frontend.name,
                 xbuild_tools=build_options.xbuild_tools,
             )
-            pip_version = get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -490,11 +487,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
 
-                build_env = env.copy()
-                build_env["VIRTUALENV_PIP"] = pip_version
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, None)
-
                 match build_frontend.name:
                     case "pip":
                         # Path.resolve() is needed. Without it pip wheel may try to
@@ -509,7 +501,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             f"--wheel-dir={built_wheel_dir}",
                             "--no-deps",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case "build":
                         call(
@@ -520,7 +512,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case _:
                         assert_never(build_frontend)
@@ -538,9 +530,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 elif config.arch != os.uname().machine:
                     log.step("Skipping tests on non-native simulator architecture")
                 else:
-                    test_env = build_options.test_environment.as_dictionary(
-                        prev_environment=build_env
-                    )
+                    test_env = build_options.test_environment.as_dictionary(prev_environment=env)
 
                     if build_options.before_test:
                         before_test_prepared = prepare_command(
