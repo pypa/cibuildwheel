@@ -1672,6 +1672,41 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=1
     ```
 
+### `test-runtime` {: #test-runtime toml env-var }
+
+> Controls how the tests will be executed.
+
+On desktop environments, the tests are executed on the same machine/container as the wheel was built. However on Android and iOS, the tests are run inside a virtual machine – a simulator or emulator – representing the target.
+
+For these embedded platforms, a testbed project is used to run the tests. The `test-runtime` setting can define an `args` key that defines additional arguments that will be used when starting the testbed project.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_RUNTIME_ANDROID` |`CIBW_TEST_RUNTIME_IOS`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.ios]
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    test-runtime = { args = ["--simulator='iPhone 16e,OS=18.5'"] }
+
+    [tool.cibuildwheel.android]
+    # Run the Android tests on the minimum supported Android version.
+    test-runtime = { args = ["--managed", "minVersion"] }
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    CIBW_TEST_RUNTIME_IOS: "args: --simulator='iPhone 16e,OS=18.5'"
+
+    # Run the Android tests on the minimum supported Android version.
+    CIBW_TEST_RUNTIME_ANDROID: "args: --managed minVersion"
+    ```
+
 
 ## Debugging
 
