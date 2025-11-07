@@ -78,7 +78,7 @@ class OCIContainerEngineConfig:
             msg = f"unknown container engine {name}"
             raise ValueError(msg)
 
-        name = typing.cast(ContainerEngineName, name)
+        name = typing.cast("ContainerEngineName", name)
         # some flexibility in the option names to cope with TOML conventions
         create_args = config_dict.get("create_args") or config_dict.get("create-args") or []
         disable_host_mount_options = (
@@ -515,7 +515,7 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return typing.cast(dict[str, str], env)
+        return typing.cast("dict[str, str]", env)
 
     def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output

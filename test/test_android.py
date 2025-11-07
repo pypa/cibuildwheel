@@ -385,13 +385,7 @@ def test_environment_markers(tmp_path):
             **cp313_env,
             "CIBW_TEST_COMMAND": f"python -m pytest {test_filename}",
             "CIBW_TEST_SOURCES": test_filename,
-            "CIBW_TEST_REQUIRES": " ".join(
-                [
-                    "pytest",
-                    "certifi;sys_platform=='android'",
-                    "platformdirs;sys_platform!='android'",
-                ]
-            ),
+            "CIBW_TEST_REQUIRES": "pytest certifi;sys_platform=='android' platformdirs;sys_platform!='android'",
         },
     )
 

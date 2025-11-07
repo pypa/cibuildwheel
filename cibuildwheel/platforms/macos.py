@@ -60,7 +60,7 @@ def get_macos_version() -> tuple[int, int]:
             capture_stdout=True,
         )
         version = tuple(map(int, version_str.split(".")[:2]))
-    return typing.cast(tuple[int, int], version)
+    return typing.cast("tuple[int, int]", version)
 
 
 @functools.cache
