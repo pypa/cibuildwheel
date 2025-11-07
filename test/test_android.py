@@ -118,6 +118,7 @@ def test_expected_wheels(tmp_path, spam_env):
     )
 
 
+@needs_emulator
 def test_frontend_good(tmp_path, build_frontend_env):
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(
