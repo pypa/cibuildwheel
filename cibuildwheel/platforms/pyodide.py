@@ -130,7 +130,7 @@ def get_all_xbuildenv_version_info(env: dict[str, str]) -> list[PyodideXBuildEnv
         msg = f"Invalid xbuildenvs info, got {xbuildenvs_info}"
         raise ValueError(msg)
 
-    return typing.cast(list[PyodideXBuildEnvInfo], xbuildenvs_info["environments"])
+    return typing.cast("list[PyodideXBuildEnvInfo]", xbuildenvs_info["environments"])
 
 
 def get_xbuildenv_version_info(

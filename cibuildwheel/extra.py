@@ -41,7 +41,7 @@ def dump_python_configurations(
 
 def _json_request(request: urllib.request.Request, timeout: int = 30) -> dict[str, Any]:
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        return typing.cast(dict[str, Any], json.load(response))
+        return typing.cast("dict[str, Any]", json.load(response))
 
 
 def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
@@ -98,4 +98,4 @@ def get_pyodide_xbuildenv_info() -> PyodideXBuildEnvInfo:
         "https://pyodide.github.io/pyodide/api/pyodide-cross-build-environments.json"
     )
     with urllib.request.urlopen(xbuildenv_info_url) as response:
-        return typing.cast(PyodideXBuildEnvInfo, json.loads(response.read().decode("utf-8")))
+        return typing.cast("PyodideXBuildEnvInfo", json.loads(response.read().decode("utf-8")))

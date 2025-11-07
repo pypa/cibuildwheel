@@ -216,6 +216,15 @@ extend-select = [
   "EXE",         # flake8-executable
   "PYI",         # flake8-pyi
   "PERF101", "PERF102", "PERF401", "PERF402", "PERF403",  # A selection of perflint codes
+  "DTZ",         # flake8-datetimez
+  "FA",          # flake8-future-annotations
+  "FLY",         # flynt
+  "FURB",        # refurb
+  "LOG",         # flake8-logging
+  "Q",           # flake8-quotes
+  "SLOT",        # flake8-slots
+  "T10",         # flake8-debugger
+  "TC",          # flake8-type-checking
 ]
 ignore = [
   "PLR",     # Design related pylint codes

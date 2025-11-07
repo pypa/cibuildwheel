@@ -28,7 +28,7 @@ class PythonBuildStandaloneReleaseData(typing.TypedDict):
 @functools.cache
 def get_python_build_standalone_release_data() -> PythonBuildStandaloneReleaseData:
     with open(PYTHON_BUILD_STANDALONE_RELEASES, "rb") as f:
-        return typing.cast(PythonBuildStandaloneReleaseData, json.load(f))
+        return typing.cast("PythonBuildStandaloneReleaseData", json.load(f))
 
 
 class PythonBuildStandaloneError(Exception):
