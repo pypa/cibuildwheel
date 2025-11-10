@@ -71,6 +71,8 @@ images = [
             "pypy_aarch64",
         ],
     ),
+    # manylinux_2_35 images
+    PyPAImage("manylinux_2_35", ["armv7l"]),
     # manylinux_2_39 images
     PyPAImage("manylinux_2_39", ["riscv64"]),
     # musllinux_1_2 images

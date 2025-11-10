@@ -760,9 +760,9 @@ Platform-specific environment variables also available:<br/>
     here.](https://yaml-multiline.info).
 
 
-Note that `manylinux_2_31` builds occur inside a Debian derivative docker
+Note that `manylinux_2_31`/`manylinux_2_35` builds occur inside a Debian derivative docker
 container, where `manylinux2014` builds occur inside a CentOS one. So for
-`manylinux_2_31` the `before-all` command must use `apt-get -y`
+`manylinux_2_31`/`manylinux_2_35` the `before-all` command must use `apt-get -y`
 instead.
 
 ### `before-build` {: #before-build env-var toml}
@@ -1037,7 +1037,7 @@ Set the Docker image to be used for building [manylinux / musllinux](https://git
 
 For `manylinux-*-image`, except `manylinux-armv7l-image` and `manylinux-riscv64-image`, the value of this option can either be set to `manylinux2014`, `manylinux_2_28` or `manylinux_2_34` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name.
 
-For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31` or a custom image. Support is experimental for now. The `manylinux_2_31` value is only available for `armv7`.
+For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31`, `manylinux_2_35` or a custom image. Support is experimental for now. The `manylinux_2_31` and `manylinux_2_35` values are only available for `armv7`.
 
 For `manylinux-riscv64-image`, the value of this option can either be set to `manylinux_2_39` or a custom image. Support is experimental for now. The `manylinux_2_39` value is only available for `riscv64`.
 

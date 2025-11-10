@@ -84,7 +84,7 @@ def test(manylinux_image, tmp_path):
         "CIBW_MANYLINUX_PYPY_I686_IMAGE": manylinux_image,
     }
     if platform.machine() == "aarch64":
-        # We just have a manylinux_2_31 image for armv7l
+        # We just have a manylinux_2_31/manylinux_2_35 image for armv7l
         add_env["CIBW_ARCHS"] = "aarch64"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
@@ -100,7 +100,7 @@ def test(manylinux_image, tmp_path):
     )
 
     if platform.machine() == "aarch64":
-        # We just have a manylinux_2_31 image for armv7l
+        # We just have a manylinux_2_31/manylinux_2_35 image for armv7l
         expected_wheels = [w for w in expected_wheels if "armv7l" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
