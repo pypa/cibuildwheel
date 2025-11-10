@@ -340,8 +340,6 @@ def localized_vars(
 def setup_android_env(
     config: PythonConfiguration, python_dir: Path, venv_dir: Path, build_env: dict[str, str]
 ) -> dict[str, str]:
-    setup_rust_cross_compile(config, build_env)
-
     site_packages = next(venv_dir.glob("lib/python*/site-packages"))
     for suffix in ["pth", "py"]:
         shutil.copy(resources.PATH / f"_cross_venv.{suffix}", site_packages)
@@ -384,6 +382,9 @@ def setup_android_env(
     for key in ["CFLAGS", "CXXFLAGS"]:
         android_env[key] += " " + opt
 
+    # Cargo target linker need to be specified after CC is set
+    setup_rust_cross_compile(config, android_env)
+
     # Format the environment so it can be pasted into a shell when debugging.
     for key, value in sorted(android_env.items()):
         if os.environ.get(key) != value:
@@ -405,8 +406,15 @@ def setup_rust_cross_compile(
             log.notice("Not overriding CARGO_BUILD_TARGET as it has already been set")
         # No message if it was set to what we were planning to set it to
     elif cargo_target:
-        log.notice(f"Setting CARGO_BUILD_TARGET={cargo_target} for cross-compilation")
+        cargo_target_linker_env_name = (
+            f"CARGO_TARGET_{cargo_target.upper().replace('-', '_')}_LINKER"
+        )
+        log.notice(
+            f"Setting CARGO_BUILD_TARGET={cargo_target} and {cargo_target_linker_env_name} for cross-compilation"
+        )
         env["CARGO_BUILD_TARGET"] = cargo_target
+        # CC has already been set by calling android.py (it calls android-env.sh)
+        env[f"{cargo_target_linker_env_name}"] = env["CC"]
     else:
         log.warning(f"Unable to configure Rust cross-compilation for architecture {cargo_target}")
 
