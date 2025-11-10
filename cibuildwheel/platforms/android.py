@@ -385,6 +385,8 @@ def setup_android_env(
     # Cargo target linker need to be specified after CC is set
     setup_rust_cross_compile(config, android_env)
 
+    setup_PYO3_cross_compile(python_dir, android_env)
+
     # Format the environment so it can be pasted into a shell when debugging.
     for key, value in sorted(android_env.items()):
         if os.environ.get(key) != value:
@@ -417,6 +419,21 @@ def setup_rust_cross_compile(
         env[f"{cargo_target_linker_env_name}"] = env["CC"]
     else:
         log.warning(f"Unable to configure Rust cross-compilation for architecture {cargo_target}")
+
+
+def setup_PYO3_cross_compile(
+    python_dir: Path,
+    env: MutableMapping[str, str],
+) -> None:
+    # All Python extension modules must therefore be explicitly linked against libpython3.x.so when building for Android.
+    # See: https://peps.python.org/pep-0738/#linkage
+    # For projects using PyO3, this requires setting PYO3_CROSS_LIB_DIR to the directory containing libpython3.x.so.
+    # See: https://pyo3.rs/v0.27.1/building-and-distribution.html#cross-compiling
+    if env.get("PYO3_CROSS_LIB_DIR"):
+        log.notice("Not overriding PYO3_CROSS_LIB_DIR as it has already been set")
+    else:
+        env["PYO3_CROSS_LIB_DIR"] = str(python_dir / "prefix" / "lib")
+        log.notice("Setting PYO3_CROSS_LIB_DIR for PyO3 cross-compilation")
 
 
 def before_build(state: BuildState) -> None:
