@@ -36,12 +36,10 @@ from ..util.packaging import find_compatible_wheel
 from ..util.python_build_standalone import create_python_build_standalone_environment
 from ..venv import constraint_flags, find_uv, virtualenv
 
-
-def android_triplet(identifier: str) -> str:
-    return {
-        "arm64_v8a": "aarch64-linux-android",
-        "x86_64": "x86_64-linux-android",
-    }[parse_identifier(identifier)[1]]
+ANDROID_TRIPLET = {
+    "arm64_v8a": "aarch64-linux-android",
+    "x86_64": "x86_64-linux-android",
+}
 
 
 def parse_identifier(identifier: str) -> tuple[str, str]:
@@ -51,6 +49,10 @@ def parse_identifier(identifier: str) -> tuple[str, str]:
         raise ValueError(msg)
     major, minor, arch = match.groups()
     return (f"{major}.{minor}", arch)
+
+
+def android_triplet(identifier: str) -> str:
+    return ANDROID_TRIPLET[parse_identifier(identifier)[1]]
 
 
 @dataclass(frozen=True)
@@ -594,10 +596,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         )
 
     platform_args = (
-        [
-            "--python-platform",
-            "x86_64-linux-android" if state.config.arch == "x86_64" else "aarch64-linux-android",
-        ]
+        ["--python-platform", android_triplet(state.config.identifier)]
         if use_uv
         else [
             "--platform",
