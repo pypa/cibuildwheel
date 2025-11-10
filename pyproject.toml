@@ -110,7 +110,7 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--xdoc
 junit_family = "xunit2"
 xfail_strict = true
 filterwarnings = ["error"]
-log_cli_level = "INFO"
+log_level = "INFO"
 markers = [
     "serial: tests that must *not* be run in parallel (deselect with '-m \"not serial\"')",
     "ios: tests that run on iOS",
