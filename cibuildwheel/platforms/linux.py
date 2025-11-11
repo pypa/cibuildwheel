@@ -322,7 +322,11 @@ def build_in_container(
             if build_options.repair_command:
                 log.step("Repairing wheel...")
                 repair_command_prepared = prepare_command(
-                    build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                    build_options.repair_command,
+                    wheel=built_wheel,
+                    dest_dir=repaired_wheel_dir,
+                    package=container_package_dir,
+                    project=container_project_path,
                 )
                 container.call(["sh", "-c", repair_command_prepared], env=env)
             else:

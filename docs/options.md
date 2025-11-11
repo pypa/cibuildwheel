@@ -907,6 +907,8 @@ The following placeholders must be used inside the command and will be replaced 
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
 
+You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
+
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
