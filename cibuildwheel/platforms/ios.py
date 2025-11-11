@@ -72,6 +72,11 @@ class PythonConfiguration:
         "XCframeworks include binaries for multiple ABIs; which ABI section should be used?"
         return "ios-arm64_x86_64-simulator" if self.is_simulator else "ios-arm64"
 
+    @property
+    def python_platform(self) -> str:
+        sim = "-simulator" if self.is_simulator else ""
+        return f"{self.arch}-apple-ios{sim}"
+
 
 def all_python_configurations() -> list[PythonConfiguration]:
     # iOS builds are always cross builds; we need to install a macOS Python as
@@ -418,6 +423,8 @@ def setup_python(
                 *pip,
                 "install",
                 "--upgrade",
+                "--python-platform",
+                python_configuration.python_platform,
                 "build",
                 *constraint_flags(dependency_constraint),
                 env=env,
@@ -621,8 +628,8 @@ def build(options: Options, tmp_path: Path) -> None:
                             *pip,
                             "install",
                             "--only-binary=:all:",
-                            "--platform",
-                            platform_tag,
+                            "--python-platform",
+                            config.python_platform,
                             "--target",
                             testbed_path / "iOSTestbed" / "app_packages",
                             f"{test_wheel}{build_options.test_extras}",
