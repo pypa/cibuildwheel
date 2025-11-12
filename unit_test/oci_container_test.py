@@ -630,6 +630,11 @@ def test_multiarch_image(container_engine, platform):
         ),
         (
             "docker",
+            '{"Client":{"Version":"24.0.0","APIVersion":"1.43"},"Server":{"ApiVersion":"1.43"}}',
+            nullcontext(),
+        ),
+        (
+            "docker",
             '{"Client":{"ApiVersion":"1.43"},"Server":{"ApiVersion":"1.30"}}',
             pytest.raises(OCIEngineTooOldError),
         ),

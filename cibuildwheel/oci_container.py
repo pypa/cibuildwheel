@@ -113,14 +113,18 @@ class OCIContainerEngineConfig:
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 
 
+def lower_dict(inp: list[tuple[str, object]]) -> dict[str, object]:
+    return {k.lower(): v for k, v in inp}
+
+
 def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
-        version_info = json.loads(version_string.strip())
+        version_info = json.loads(version_string.strip(), object_pairs_hook=lower_dict)
         match engine.name:
             case "docker":
-                client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
-                server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
+                client_api_version = FlexibleVersion(version_info["client"]["apiversion"])
+                server_api_version = FlexibleVersion(version_info["server"]["apiversion"])
                 # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
                 version = min(client_api_version, server_api_version)
                 minimum_version = FlexibleVersion("1.41")
@@ -135,9 +139,9 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
                 )
             case "podman":
                 # podman uses the same version string for "Version" & "ApiVersion"
-                client_version = FlexibleVersion(version_info["Client"]["Version"])
-                if "Server" in version_info:
-                    server_version = FlexibleVersion(version_info["Server"]["Version"])
+                client_version = FlexibleVersion(version_info["client"]["version"])
+                if "server" in version_info:
+                    server_version = FlexibleVersion(version_info["server"]["version"])
                 else:
                     server_version = client_version
                 # --platform support was introduced in v3
