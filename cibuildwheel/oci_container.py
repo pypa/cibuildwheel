@@ -113,14 +113,13 @@ class OCIContainerEngineConfig:
 DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 
 
-def lower_dict(inp: list[tuple[str, object]]) -> dict[str, object]:
-    return {k.lower(): v for k, v in inp}
-
-
 def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
-        version_info = json.loads(version_string.strip(), object_pairs_hook=lower_dict)
+        # We are using lowercase keys for all dicts so we are not affected by casing of keys
+        version_info = json.loads(
+            version_string.strip(), object_pairs_hook=lambda inp: {k.lower(): v for k, v in inp}
+        )
         match engine.name:
             case "docker":
                 client_api_version = FlexibleVersion(version_info["client"]["apiversion"])
