@@ -128,14 +128,7 @@ jobs:
         python-version: ${{ matrix.python_version }}
         allow-prereleases: true
 
-    - run: |
-        gh repo clone astral-sh/uv
-        cd uv
-        cargo build --release
-      env:
-        GH_TOKEN: ${{ github.token }}
-
-    - run: echo "${{ github.workspace }}/uv/target/release" >> $GITHUB_PATH
+    - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
 
     - name: Free up disk space
       if: runner.os == 'Linux' && matrix.test_select != 'android'
