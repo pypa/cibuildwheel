@@ -6,7 +6,7 @@ import textwrap
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from pathlib import Path, PurePath, PurePosixPath
-from typing import assert_never
+from typing import TYPE_CHECKING, assert_never
 
 from .. import errors
 from ..architecture import Architecture
@@ -15,11 +15,13 @@ from ..logger import log
 from ..oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from ..options import BuildOptions, Options
 from ..selector import BuildSelector
-from ..typing import PathOrStr
 from ..util import resources
 from ..util.file import copy_test_sources
 from ..util.helpers import prepare_command, unwrap
 from ..util.packaging import find_compatible_wheel
+
+if TYPE_CHECKING:
+    from ..typing import PathOrStr
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
@@ -320,7 +322,11 @@ def build_in_container(
             if build_options.repair_command:
                 log.step("Repairing wheel...")
                 repair_command_prepared = prepare_command(
-                    build_options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                    build_options.repair_command,
+                    wheel=built_wheel,
+                    dest_dir=repaired_wheel_dir,
+                    package=container_package_dir,
+                    project=container_project_path,
                 )
                 container.call(["sh", "-c", repair_command_prepared], env=env)
             else:

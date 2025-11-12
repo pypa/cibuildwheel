@@ -23,7 +23,7 @@ The only side effect to your system will be docker images being pulled.
 
 Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 600](https://www.python.org/dev/peps/pep-0600/) / [PEP 656](https://www.python.org/dev/peps/pep-0656/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
 
--   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2014`, `apt-get` for `manylinux_2_31`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
+-   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2014`, `apt-get` for `manylinux_2_31` or `manylinux_2_35`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
 
     `cibuildwheel` supports this by providing the [`environment`](options.md#environment) and [`before-all`](options.md#before-all) options to setup the build environment inside the running container.
 
@@ -233,6 +233,8 @@ machine – for example, if you're building on an ARM64 machine, then you can te
 ARM64 wheel. Wheels of other architectures can still be built, but testing will
 automatically be skipped.
 
+Any arguments specified using [`test-runtime`](options.md#test-runtime) will be passed as arguments to the Python script that starts the [testbed project](https://github.com/python/cpython/blob/main/Android/README.md#testing). cibuildwheel will automatically start the testbed project with `--site-packages` and `--cwd` arguments matching your test environment, as well as enabling verbose output with `-v` if [`build-verbosity`](options.md#build-verbosity) is enabled. The most common additional arguments to use will be `--managed minVersion` or `--managed maxVersion`, specifying the use of a managed Android emulator with the minimum or maximum supported Android version; or `--connected <serial>`, specifying the use of an existing booted Android emulator or device. By default, the testbed project will run with `--managed maxVersion`.
+
 Running an emulator requires the build machine to either be bare-metal or support
 nested virtualization. CI platforms known to meet this requirement are:
 
@@ -320,4 +322,6 @@ If tests have been configured, the test suite will be executed on the simulator 
 
 The iOS test environment can't support running shell scripts, so the [`test-command`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`.
 
-The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.
+The test process uses the [same testbed used by CPython itself](https://github.com/python/cpython/tree/main/Apple/iOS#testing-python-on-ios) to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.
+
+Any arguments specified using [`test-runtime`](options.md#test-runtime) will be passed as arguments to the Python script that starts the testbed project. The testbed project will be started with `-v` enabling verbose output if [`build-verbosity`](options.md#build-verbosity) is enabled; the most common additional argument to use will be `--simulator`, which allows the specification of a specific device or iOS version for the test simulator. By default, the testbed project will attempt to find an "SE class" simulator (i.e., an iPhone SE, iPhone 16e, or similar), running the newest iOS version available.

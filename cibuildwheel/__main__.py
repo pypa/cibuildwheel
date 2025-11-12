@@ -314,7 +314,7 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     if args.only:
         return _compute_platform_only(args.only)
     elif platform_option_value != "auto":
-        return typing.cast(PlatformName, platform_option_value)
+        return typing.cast("PlatformName", platform_option_value)
 
     return native_platform()
 

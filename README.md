@@ -59,8 +59,8 @@ Usage
 
 |                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | Android | iOS |
 |-----------------|-------|-------|---------|-----------|-----------|-------------|---------|-----|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅⁴      | ✅³⁵ |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅⁴      | ✅³⁵ |
+| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅⁴      | ✅³  |
+| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅⁴      | ✅³  |
 | Travis CI       | ✅    |       | ✅      | ✅        |           |             | ✅⁴      |     |
 | CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅⁴      | ✅³  |
 | Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅⁴      | ✅³  |
@@ -70,7 +70,6 @@ Usage
 <sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
 <sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture. </sup><br>
 <sup>⁴ Building for Android requires the runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Testing has [additional requirements](https://cibuildwheel.pypa.io/en/stable/platforms/#android).</sup><br>
-<sup>⁵ The `macos-15` and `macos-latest` images are [incompatible with cibuildwheel at this time](https://cibuildwheel.pypa.io/en/stable/platforms/#ios-system-requirements) when building iOS wheels.</sup><br>
 
 <!--intro-end-->
 
@@ -100,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.2.1
+        run: python -m pip install cibuildwheel==3.3.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -160,12 +159,13 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`test-groups`](https://cibuildwheel.pypa.io/en/stable/options/#test-groups) | Specify test dependencies from your project's `dependency-groups` |
 |  | [`test-skip`](https://cibuildwheel.pypa.io/en/stable/options/#test-skip) | Skip running tests on some builds |
 |  | [`test-environment`](https://cibuildwheel.pypa.io/en/stable/options/#test-environment) | Set environment variables for the test environment |
+|  | [`test-runtime`](https://cibuildwheel.pypa.io/en/stable/options/#test-runtime) | Controls how the tests will be executed. |
 | **Debugging** | [`debug-keep-container`](https://cibuildwheel.pypa.io/en/stable/options/#debug-keep-container) | Keep the container after running for debugging. |
 |  | [`debug-traceback`](https://cibuildwheel.pypa.io/en/stable/options/#debug-traceback) | Print full traceback when errors occur. |
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (sum: FxE3nIgFiY) -->
+<!--[[[end]]] (sum: dbfwOkj/k/) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
@@ -230,6 +230,20 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.3.0
+
+_12 November 2025_
+
+- 🐛 Fix an incompatibility with Docker v29 (#2660)
+- ✨ Adds `test-runtime` option, to customise how tests on simulated/emulated environments are run (#2636)
+- ✨ Adds support for new `manylinux_2_35` images on 32-bit ARM `armv7l`, offering better C++20 compatibility (#2656)
+- ✨ `build[uv]` is now supported on Android (#2587)
+- ✨ You can now install extras (such as `uv`) with a simple option on the GitHub Action (#2630)
+- ✨ `{project}` and `{package}` placeholders are now supported in `repair-wheel-command` (#2589)
+- 🛠 The versions set with `dependency-versions` no longer constrain packages specified by your `build-system.requires`. Previously, on platforms other than Linux, the constraints in this option would remain in the environment during the build. This has been tidied up make behaviour more consistent between platforms, and to prevent version conflicts. (#2583)
+- 🛠 Improve the handling of `test-command` on Android, enabling more options to be passed (#2590)
+- 📚 Docs improvements (#2618)
+
 ### v3.2.1
 
 _12 October 2025_
@@ -276,21 +290,7 @@ _1 August 2025_
 - 🧪 Use pytest-rerunfailures to improve some of our iOS/Android tests (#2527, #2539)
 - 🧪 Remove some GraalPy Windows workarounds in our tests (#2501)
 
-
-### v3.1.2
-
-_29 July 2025_
-
-- ⚠️  Add an error if `CIBW_FREE_THREADING_SUPPORT` is set; you are likely missing 3.13t wheels, please use the `enable`/`CIBW_ENABLE` (#2520)
-- 🛠 `riscv64` now enabled if you target that architecture, it's now supported on PyPI (#2509)
-- 🛠 Add warning when using `cpython-experimental-riscv64` (no longer needed) (#2526, #2528)
-- 🛠 iOS versions bumped, fixing issues with 3.14 (now RC 1) (#2530)
-- 🐛 Fix bug in Android running wheel from our GitHub Action (#2517)
-- 🐛 Fix warning when using `test-skip` of `"*-macosx_universal2:arm64"` (#2522)
-- 🐛 Fix incorrect number of wheels reported in logs, again (#2517)
-- 📚 We welcome our Android platform maintainer (#2516)
-
-<!-- [[[end]]] (sum: ZUsMYXdVXu) -->
+<!-- [[[end]]] (sum: vS54piNR4b) -->
 
 ---
 

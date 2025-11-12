@@ -56,7 +56,7 @@ def test_build_default_launches(monkeypatch):
 
     main()
 
-    build_in_container = typing.cast(mock.Mock, platforms.linux.build_in_container)
+    build_in_container = typing.cast("mock.Mock", platforms.linux.build_in_container)
 
     assert build_in_container.call_count == 4
 
@@ -126,7 +126,7 @@ before-all = "true"
 
     main()
 
-    build_in_container = typing.cast(mock.Mock, platforms.linux.build_in_container)
+    build_in_container = typing.cast("mock.Mock", platforms.linux.build_in_container)
 
     assert build_in_container.call_count == 7
 

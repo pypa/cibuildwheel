@@ -24,7 +24,7 @@ class BuildFrontendConfig:
             msg = f"Unrecognised build frontend {name!r}, must be one of {names}"
             raise ValueError(msg)
 
-        name = typing.cast(BuildFrontendName, name)
+        name = typing.cast("BuildFrontendName", name)
 
         args = config_dict.get("args") or []
         return cls(name=name, args=args)

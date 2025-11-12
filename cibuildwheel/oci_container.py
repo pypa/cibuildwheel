@@ -78,7 +78,7 @@ class OCIContainerEngineConfig:
             msg = f"unknown container engine {name}"
             raise ValueError(msg)
 
-        name = typing.cast(ContainerEngineName, name)
+        name = typing.cast("ContainerEngineName", name)
         # some flexibility in the option names to cope with TOML conventions
         create_args = config_dict.get("create_args") or config_dict.get("create-args") or []
         disable_host_mount_options = (
@@ -116,11 +116,14 @@ DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
-        version_info = json.loads(version_string.strip())
+        # We are using lowercase keys for all dicts so we are not affected by casing of keys
+        version_info = json.loads(
+            version_string.strip(), object_pairs_hook=lambda inp: {k.lower(): v for k, v in inp}
+        )
         match engine.name:
             case "docker":
-                client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
-                server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
+                client_api_version = FlexibleVersion(version_info["client"]["apiversion"])
+                server_api_version = FlexibleVersion(version_info["server"]["apiversion"])
                 # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
                 version = min(client_api_version, server_api_version)
                 minimum_version = FlexibleVersion("1.41")
@@ -135,9 +138,9 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
                 )
             case "podman":
                 # podman uses the same version string for "Version" & "ApiVersion"
-                client_version = FlexibleVersion(version_info["Client"]["Version"])
-                if "Server" in version_info:
-                    server_version = FlexibleVersion(version_info["Server"]["Version"])
+                client_version = FlexibleVersion(version_info["client"]["version"])
+                if "server" in version_info:
+                    server_version = FlexibleVersion(version_info["server"]["version"])
                 else:
                     server_version = client_version
                 # --platform support was introduced in v3
@@ -515,7 +518,7 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return typing.cast(dict[str, str], env)
+        return typing.cast("dict[str, str]", env)
 
     def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output

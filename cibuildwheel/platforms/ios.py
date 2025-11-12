@@ -2,27 +2,23 @@ from __future__ import annotations
 
 import dataclasses
 import os
+import platform
 import shlex
 import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Sequence, Set
 from pathlib import Path
-from typing import assert_never
+from typing import TYPE_CHECKING, assert_never
 
 from filelock import FileLock
 
 from .. import errors
-from ..architecture import Architecture
-from ..environment import ParsedEnvironment
 from ..frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
 )
 from ..logger import log
-from ..options import Options
-from ..selector import BuildSelector
 from ..util import resources
 from ..util.cmd import call, shell, split_command
 from ..util.file import (
@@ -33,12 +29,18 @@ from ..util.file import (
 )
 from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
 from ..util.packaging import (
-    combine_constraints,
     find_compatible_wheel,
-    get_pip_version,
 )
 from ..venv import constraint_flags, virtualenv
 from .macos import install_cpython as install_build_cpython
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence, Set
+
+    from ..architecture import Architecture
+    from ..environment import ParsedEnvironment
+    from ..options import Options
+    from ..selector import BuildSelector
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -461,7 +463,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_frontend=build_frontend.name,
                 xbuild_tools=build_options.xbuild_tools,
             )
-            pip_version = get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -489,11 +490,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
 
-                build_env = env.copy()
-                build_env["VIRTUALENV_PIP"] = pip_version
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, None)
-
                 match build_frontend.name:
                     case "pip":
                         # Path.resolve() is needed. Without it pip wheel may try to
@@ -508,7 +504,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             f"--wheel-dir={built_wheel_dir}",
                             "--no-deps",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case "build":
                         call(
@@ -519,7 +515,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case _:
                         assert_never(build_frontend)
@@ -537,9 +533,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 elif config.arch != os.uname().machine:
                     log.step("Skipping tests on non-native simulator architecture")
                 else:
-                    test_env = build_options.test_environment.as_dictionary(
-                        prev_environment=build_env
-                    )
+                    test_env = build_options.test_environment.as_dictionary(prev_environment=env)
 
                     if build_options.before_test:
                         before_test_prepared = prepare_command(
@@ -653,11 +647,35 @@ def build(options: Options, tmp_path: Path) -> None:
                                     )
                                     raise errors.FatalError(msg)
 
+                            test_runtime_args = build_options.test_runtime.args
+
+                            # 2025-10: The GitHub Actions macos-15 runner has a known issue where
+                            # the default simulator won't start due to a disk performance issue;
+                            # see https://github.com/actions/runner-images/issues/12777 for details.
+                            # In the meantime, if it looks like we're running on a GitHub Actions
+                            # macos-15 runner, use a simulator that is known to work, unless the
+                            # user explicitly specifies a simulator.
+                            os_version, _, arch = platform.mac_ver()
+                            if (
+                                "GITHUB_ACTIONS" in os.environ
+                                and os_version.startswith("15.")
+                                and arch == "arm64"
+                                and not any(
+                                    arg.startswith("--simulator") for arg in test_runtime_args
+                                )
+                            ):
+                                test_runtime_args = [
+                                    "--simulator",
+                                    "iPhone 16e,OS=18.5",
+                                    *test_runtime_args,
+                                ]
+
                             call(
                                 "python",
                                 testbed_path,
                                 "run",
                                 *(["--verbose"] if build_options.build_verbosity > 0 else []),
+                                *test_runtime_args,
                                 "--",
                                 *final_command,
                                 env=test_env,

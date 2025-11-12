@@ -223,6 +223,24 @@ properties:
   test-environment:
     description: Set environment variables for the test environment
     type: string_table
+  test-runtime:
+    description: Additional configuration for the test runner
+    oneOf:
+      - type: string
+        pattern: '^$'
+      - type: object
+        additionalProperties: false
+      - type: string
+        pattern: 'args:'
+      - type: object
+        additionalProperties: false
+        required: [args]
+        properties:
+          args:
+            type: array
+            items:
+              type: string
+
 """
 
 schema = yaml.safe_load(starter)
@@ -303,6 +321,7 @@ items:
         test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
         test-environment: {"$ref": "#/$defs/inherit"}
+        test-runtime: {"$ref": "#/$defs/inherit"}
 """
 )
 
