@@ -121,7 +121,6 @@ jobs:
     - run: |
         gh repo clone astral-sh/uv
         cd uv
-        gh co 16686
         cargo build --release
       env:
         GH_TOKEN: ${{ github.token }}
