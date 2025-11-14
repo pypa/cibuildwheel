@@ -32,7 +32,7 @@ from ..util.file import (
     move_file,
 )
 from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..util.packaging import find_compatible_wheel, get_pip_version
 from ..venv import constraint_flags, find_uv, virtualenv
 
 
@@ -60,7 +60,7 @@ def get_macos_version() -> tuple[int, int]:
             capture_stdout=True,
         )
         version = tuple(map(int, version_str.split(".")[:2]))
-    return typing.cast(tuple[int, int], version)
+    return typing.cast("tuple[int, int]", version)
 
 
 @functools.cache
@@ -464,12 +464,6 @@ def build(options: Options, tmp_path: Path) -> None:
                 )
 
                 build_env = env.copy()
-                if pip_version is not None:
-                    build_env["VIRTUALENV_PIP"] = pip_version
-                if constraints_path:
-                    combine_constraints(
-                        build_env, constraints_path, identifier_tmp_dir if use_uv else None
-                    )
 
                 match build_frontend.name:
                     case "pip":
@@ -528,6 +522,8 @@ def build(options: Options, tmp_path: Path) -> None:
                         wheel=built_wheel,
                         dest_dir=repaired_wheel_dir,
                         delocate_archs=delocate_archs,
+                        package=build_options.package_dir,
+                        project=".",
                     )
                     shell(repair_command_prepared, env=env)
                 else:

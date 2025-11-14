@@ -1,5 +1,5 @@
 import shlex
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -12,6 +12,9 @@ from cibuildwheel.options import (
     ShlexTableFormat,
     _resolve_cascade,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]

@@ -32,7 +32,7 @@ from ..util.file import (
     move_file,
 )
 from ..util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
-from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
+from ..util.packaging import find_compatible_wheel, get_pip_version
 from ..util.python_build_standalone import (
     PythonBuildStandaloneError,
     create_python_build_standalone_environment,
@@ -130,7 +130,7 @@ def get_all_xbuildenv_version_info(env: dict[str, str]) -> list[PyodideXBuildEnv
         msg = f"Invalid xbuildenvs info, got {xbuildenvs_info}"
         raise ValueError(msg)
 
-    return typing.cast(list[PyodideXBuildEnvInfo], xbuildenvs_info["environments"])
+    return typing.cast("list[PyodideXBuildEnvInfo]", xbuildenvs_info["environments"])
 
 
 def get_xbuildenv_version_info(
@@ -419,17 +419,13 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_frontend, build_options.build_verbosity, build_options.config_settings
                 )
 
-                build_env = env.copy()
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, identifier_tmp_dir)
-                build_env["VIRTUALENV_PIP"] = pip_version
                 call(
                     "pyodide",
                     "build",
                     build_options.package_dir,
                     f"--outdir={built_wheel_dir}",
                     *extra_flags,
-                    env=build_env,
+                    env=env,
                 )
                 built_wheel = next(built_wheel_dir.glob("*.whl"))
 
@@ -443,6 +439,8 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.repair_command,
                         wheel=built_wheel,
                         dest_dir=repaired_wheel_dir,
+                        package=build_options.package_dir,
+                        project=".",
                     )
                     shell(repair_command_prepared, env=env)
                     log.step_end()

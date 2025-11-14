@@ -34,14 +34,12 @@ from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from ..util.helpers import prepare_command
 from ..util.packaging import find_compatible_wheel
 from ..util.python_build_standalone import create_python_build_standalone_environment
-from ..venv import constraint_flags, virtualenv
+from ..venv import constraint_flags, find_uv, virtualenv
 
-
-def android_triplet(identifier: str) -> str:
-    return {
-        "arm64_v8a": "aarch64-linux-android",
-        "x86_64": "x86_64-linux-android",
-    }[parse_identifier(identifier)[1]]
+ANDROID_TRIPLET = {
+    "arm64_v8a": "aarch64-linux-android",
+    "x86_64": "x86_64-linux-android",
+}
 
 
 def parse_identifier(identifier: str) -> tuple[str, str]:
@@ -51,6 +49,10 @@ def parse_identifier(identifier: str) -> tuple[str, str]:
         raise ValueError(msg)
     major, minor, arch = match.groups()
     return (f"{major}.{minor}", arch)
+
+
+def android_triplet(identifier: str) -> str:
+    return ANDROID_TRIPLET[parse_identifier(identifier)[1]]
 
 
 @dataclass(frozen=True)
@@ -147,7 +149,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel = build_wheel(state)
                 repaired_wheel = repair_wheel(state, built_wheel)
 
-            test_wheel(state, repaired_wheel)
+            test_wheel(state, repaired_wheel, build_frontend=build_options.build_frontend.name)
 
             output_wheel: Path | None = None
             if compatible_wheel is None:
@@ -187,6 +189,13 @@ def setup_env(
     * android_env, which uses the environment while simulating running on Android.
     """
     log.step("Setting up build environment...")
+    build_frontend = build_options.build_frontend.name
+    use_uv = build_frontend == "build[uv]"
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
 
     # Create virtual environment
     python_exe = create_python_build_standalone_environment(
@@ -197,14 +206,14 @@ def setup_env(
         version=config.version, tmp_dir=build_path
     )
     build_env = virtualenv(
-        config.version, python_exe, venv_dir, dependency_constraint, use_uv=False
+        config.version, python_exe, venv_dir, dependency_constraint, use_uv=use_uv
     )
     create_cmake_toolchain(config, build_path, python_dir, build_env)
 
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-    for command in ["python", "pip"]:
+    for command in ["python"] if use_uv else ["python", "pip"]:
         command_path = call("which", command, env=build_env, capture_stdout=True).strip()
         if command_path != f"{venv_dir}/bin/{command}":
             msg = (
@@ -219,11 +228,10 @@ def setup_env(
     android_env = setup_android_env(config, python_dir, venv_dir, build_env)
 
     # Install build tools
-    build_frontend = build_options.build_frontend
-    if build_frontend.name != "build":
+    if build_frontend not in {"build", "build[uv]"}:
         msg = "Android requires the build frontend to be 'build'"
         raise errors.FatalError(msg)
-    call("pip", "install", "build", *constraint_flags(dependency_constraint), env=build_env)
+    call(*pip, "install", "build", *constraint_flags(dependency_constraint), env=build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -243,13 +251,13 @@ def setup_env(
 
     pb = ProjectBuilder.from_isolated_env(AndroidEnv(), build_options.package_dir)
     if pb.build_system_requires:
-        call("pip", "install", *pb.build_system_requires, env=build_env)
+        call(*pip, "install", *pb.build_system_requires, env=build_env)
 
     requires_for_build = pb.get_requires_for_build(
         "wheel", parse_config_settings(build_options.config_settings)
     )
     if requires_for_build:
-        call("pip", "install", *requires_for_build, env=build_env)
+        call(*pip, "install", *requires_for_build, env=build_env)
 
     return build_env, android_env
 
@@ -485,7 +493,11 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     if state.options.repair_command:
         shell(
             prepare_command(
-                state.options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                state.options.repair_command,
+                wheel=built_wheel,
+                dest_dir=repaired_wheel_dir,
+                package=state.options.package_dir,
+                project=".",
             ),
             env=state.build_env,
         )
@@ -605,12 +617,19 @@ def soname_with_hash(src_path: Path) -> str:
         return src_name
 
 
-def test_wheel(state: BuildState, wheel: Path) -> None:
+def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
     test_command = state.options.test_command
     if not (test_command and state.options.test_selector(state.config.identifier)):
         return
 
     log.step("Testing wheel...")
+    use_uv = build_frontend == "build[uv]"
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+
     native_arch = arch_synonym(platform.machine(), platforms.native_platform(), "android")
     if state.config.arch != native_arch:
         log.warning(
@@ -626,15 +645,23 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
             env=state.build_env,
         )
 
+    platform_args = (
+        ["--python-platform", android_triplet(state.config.identifier)]
+        if use_uv
+        else [
+            "--platform",
+            sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
+        ]
+    )
+
     # Install the wheel and test-requires.
     site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
     call(
-        "pip",
+        *pip,
         "install",
         "--only-binary=:all:",
-        "--platform",
-        sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
+        *platform_args,
         "--target",
         site_packages_dir,
         f"{wheel}{state.options.test_extras}",
@@ -684,17 +711,27 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         )
         raise errors.FatalError(msg)
 
+    # By default, run on a testbed managed emulator running the newest supported
+    # Android version. However, if the user specifies a --managed or --connected
+    # test execution argument, that argument takes precedence.
+    test_runtime_args = state.options.test_runtime.args
+
+    if any(arg.startswith(("--managed", "--connected")) for arg in test_runtime_args):
+        emulator_args = []
+    else:
+        emulator_args = ["--managed", "maxVersion"]
+
     # Run the test app.
     call(
         state.python_dir / "android.py",
         "test",
-        "--managed",
-        "maxVersion",
         "--site-packages",
         site_packages_dir,
         "--cwd",
         cwd_dir,
+        *emulator_args,
         *(["-v"] if state.options.build_verbosity > 0 else []),
+        *test_runtime_args,
         "--",
         *test_args,
         env=state.build_env,

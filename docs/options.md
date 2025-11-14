@@ -470,18 +470,17 @@ Default: `build`
 
 Choose which build frontend to use.
 
-You can use "build\[uv\]", which will use an external [UV][] everywhere
+You can use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
-Make sure you have an external UV on Windows and macOS, either by
+Make sure you have an external uv on Windows and macOS, either by
 pre-installing it, or installing cibuildwheel with the `uv` extra, which is
 possible by manually passing `cibuildwheel[uv]` to installers or by using the
 `extras` option in the [cibuildwheel action](ci-services.md#github-actions).
-UV currently does not support Android, iOS nor musllinux on s390x. Legacy
-dependencies like setuptools on Python < 3.12 and pip are not installed if
-using UV.
+uv currently does not support iOS or musllinux on s390x. Legacy dependencies
+like setuptools on Python < 3.12 and pip are not installed if using uv.
 
-On Android and Pyodide, only "build" is supported.
+On Android and Pyodide, the "pip" frontend is not supported.
 
 You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
@@ -760,9 +759,9 @@ Platform-specific environment variables also available:<br/>
     here.](https://yaml-multiline.info).
 
 
-Note that `manylinux_2_31` builds occur inside a Debian derivative docker
+Note that `manylinux_2_31`/`manylinux_2_35` builds occur inside a Debian derivative docker
 container, where `manylinux2014` builds occur inside a CentOS one. So for
-`manylinux_2_31` the `before-all` command must use `apt-get -y`
+`manylinux_2_31`/`manylinux_2_35` the `before-all` command must use `apt-get -y`
 instead.
 
 ### `before-build` {: #before-build env-var toml}
@@ -908,6 +907,8 @@ The following placeholders must be used inside the command and will be replaced 
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
 
+You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
+
 The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
@@ -1037,7 +1038,7 @@ Set the Docker image to be used for building [manylinux / musllinux](https://git
 
 For `manylinux-*-image`, except `manylinux-armv7l-image` and `manylinux-riscv64-image`, the value of this option can either be set to `manylinux2014`, `manylinux_2_28` or `manylinux_2_34` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name.
 
-For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31` or a custom image. Support is experimental for now. The `manylinux_2_31` value is only available for `armv7`.
+For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31`, `manylinux_2_35` or a custom image. Support is experimental for now. The `manylinux_2_31` and `manylinux_2_35` values are only available for `armv7`.
 
 For `manylinux-riscv64-image`, the value of this option can either be set to `manylinux_2_39` or a custom image. Support is experimental for now. The `manylinux_2_39` value is only available for `riscv64`.
 
@@ -1670,6 +1671,41 @@ Platform-specific environment variables are also available:<br/>
 
     # Set PYTHONSAFEPATH in the test environment
     CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=1
+    ```
+
+### `test-runtime` {: #test-runtime toml env-var }
+
+> Controls how the tests will be executed.
+
+On desktop environments, the tests are executed on the same machine/container as the wheel was built. However on Android and iOS, the tests are run inside a virtual machine – a simulator or emulator – representing the target.
+
+For these embedded platforms, a testbed project is used to run the tests. The `test-runtime` setting can define an `args` key that defines additional arguments that will be used when starting the testbed project.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_RUNTIME_ANDROID` |`CIBW_TEST_RUNTIME_IOS`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.ios]
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    test-runtime = { args = ["--simulator='iPhone 16e,OS=18.5'"] }
+
+    [tool.cibuildwheel.android]
+    # Run the Android tests on the minimum supported Android version.
+    test-runtime = { args = ["--managed", "minVersion"] }
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    CIBW_TEST_RUNTIME_IOS: "args: --simulator='iPhone 16e,OS=18.5'"
+
+    # Run the Android tests on the minimum supported Android version.
+    CIBW_TEST_RUNTIME_ANDROID: "args: --managed minVersion"
     ```
 
 

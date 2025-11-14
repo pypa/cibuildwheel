@@ -72,7 +72,7 @@ def call(
     if not capture_stdout:
         return None
     sys.stderr.write(result.stderr)
-    return typing.cast(str, result.stdout)
+    return typing.cast("str", result.stdout)
 
 
 def shell(
