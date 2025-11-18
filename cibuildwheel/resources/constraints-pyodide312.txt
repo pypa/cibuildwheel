@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.10.5
+certifi==2025.11.12
     # via
     #   httpcore
     #   httpx
@@ -62,7 +62,7 @@ pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via rich
-pyodide-build==0.30.8
+pyodide-build==0.30.9
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.4.0
     # via
@@ -83,7 +83,7 @@ rich==14.2.0
     #   typer
 ruamel-yaml==0.18.16
     # via pyodide-build
-ruamel-yaml-clib==0.2.14
+ruamel-yaml-clib==0.2.15
     # via ruamel-yaml
 shellingham==1.5.4
     # via typer
