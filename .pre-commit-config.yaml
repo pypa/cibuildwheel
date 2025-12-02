@@ -49,8 +49,8 @@ repos:
       - uv
       - validate-pyproject
   - id: mypy
-    name: mypy 3.13
-    args: ["--python-version=3.13"]
+    name: mypy 3.14
+    args: ["--python-version=3.14"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py

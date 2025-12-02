@@ -11,7 +11,7 @@ import rich.text
 def define_env(env: Any) -> None:
     "Hook function for mkdocs-macros"
 
-    @env.macro  # type: ignore[misc]
+    @env.macro  # type: ignore[untyped-decorator]
     def subprocess_run(*args: str) -> str:
         "Run a subprocess and return the stdout"
         env = os.environ.copy()
