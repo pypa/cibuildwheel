@@ -14,14 +14,14 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.14.6
+  rev: v0.14.7
   hooks:
   - id: ruff-check
     args: ["--fix", "--show-fixes"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.18.2
+  rev: v1.19.0
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
@@ -49,8 +49,8 @@ repos:
       - uv
       - validate-pyproject
   - id: mypy
-    name: mypy 3.13
-    args: ["--python-version=3.13"]
+    name: mypy 3.14
+    args: ["--python-version=3.14"]
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
