@@ -67,9 +67,7 @@ def test_sample_build(tmp_path, capfd):
             logger.step_end()
 
 
-@pytest.mark.parametrize(
-    "enable_setting", ["", "cpython-prerelease", "pypy", "cpython-freethreading"]
-)
+@pytest.mark.parametrize("enable_setting", ["", "cpython-prerelease", "pypy"])
 def test_build_identifiers(tmp_path, enable_setting, monkeypatch):
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)

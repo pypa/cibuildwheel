@@ -14,7 +14,7 @@ from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
 DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313", "cp314", "cp314t"}
-ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp311_242", "gp312_250"}
+ALL_IDS = DEFAULT_IDS | {"pp38", "pp39", "pp310", "pp311", "gp311_242", "gp312_250"}
 
 
 @pytest.fixture
@@ -105,7 +105,7 @@ def test_build_with_override_launches(monkeypatch, tmp_path):
 [tool.cibuildwheel]
 manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
-enable = ["pypy", "pypy-eol", "graalpy", "cpython-freethreading"]
+enable = ["pypy", "pypy-eol", "graalpy"]
 archs = ["auto64", "auto32"]
 
 # Before Python 3.10, use manylinux2014
@@ -154,7 +154,6 @@ before-all = "true"
             "cp311",
             "cp312",
             "cp313",
-            "cp313t",
             "cp314",
             "cp314t",
             "pp38",
@@ -179,7 +178,6 @@ before-all = "true"
             "cp311",
             "cp312",
             "cp313",
-            "cp313t",
             "cp314",
             "cp314t",
             "pp38",
