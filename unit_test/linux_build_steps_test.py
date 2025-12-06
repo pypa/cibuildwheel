@@ -28,16 +28,16 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
                 archs = "x86_64 i686"
 
                 [[tool.cibuildwheel.overrides]]
-                select = "cp{38,39,310}-*"
+                select = "cp{39,310,311}-*"
                 manylinux-x86_64-image = "other_container_image"
                 manylinux-i686-image = "other_container_image"
 
                 [[tool.cibuildwheel.overrides]]
-                select = "cp39-*"
-                before-all = "echo 'a cp39-only command'"
+                select = "cp310-*"
+                before-all = "echo 'a cp310-only command'"
 
                 [[tool.cibuildwheel.overrides]]
-                select = "cp310-*"
+                select = "cp311-*"
                 container-engine = "docker; create_args: --privileged"
             """
         )
@@ -69,17 +69,17 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     default_container_engine = OCIContainerEngineConfig(name="docker")
 
     assert build_steps[0].container_image == "other_container_image"
-    assert identifiers(build_steps[0]) == ["cp38-manylinux_x86_64"]
+    assert identifiers(build_steps[0]) == ["cp39-manylinux_x86_64"]
     assert before_alls(build_steps[0]) == [""]
     assert container_engines(build_steps[0]) == [default_container_engine]
 
     assert build_steps[1].container_image == "other_container_image"
-    assert identifiers(build_steps[1]) == ["cp39-manylinux_x86_64"]
-    assert before_alls(build_steps[1]) == ["echo 'a cp39-only command'"]
+    assert identifiers(build_steps[1]) == ["cp310-manylinux_x86_64"]
+    assert before_alls(build_steps[1]) == ["echo 'a cp310-only command'"]
     assert container_engines(build_steps[1]) == [default_container_engine]
 
     assert build_steps[2].container_image == "other_container_image"
-    assert identifiers(build_steps[2]) == ["cp310-manylinux_x86_64"]
+    assert identifiers(build_steps[2]) == ["cp311-manylinux_x86_64"]
     assert before_alls(build_steps[2]) == [""]
     assert container_engines(build_steps[2]) == [
         OCIContainerEngineConfig(name="docker", create_args=("--privileged",))
@@ -87,11 +87,10 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
     assert build_steps[3].container_image == "normal_container_image"
     assert identifiers(build_steps[3]) == [
-        "cp311-manylinux_x86_64",
         "cp312-manylinux_x86_64",
         "cp313-manylinux_x86_64",
         "cp314-manylinux_x86_64",
         "cp314t-manylinux_x86_64",
     ]
-    assert before_alls(build_steps[3]) == [""] * 5
-    assert container_engines(build_steps[3]) == [default_container_engine] * 5
+    assert before_alls(build_steps[3]) == [""] * 4
+    assert container_engines(build_steps[3]) == [default_container_engine] * 4

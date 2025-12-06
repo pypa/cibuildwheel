@@ -365,18 +365,20 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     ],
 )
 @pytest.mark.parametrize(
-    "pattern",
+    ("pattern", "series"),
     [
-        "cp27-*",
-        "cp35-*",
-        "?p36-*",
-        "?p27*",
-        "?p2*",
-        "?p35*",
+        ("cp27-*", 1),
+        ("cp35-*", 1),
+        ("?p36-*", 2),
+        ("?p37-*", 2),
+        ("?p38-*", 3),
+        ("?p27*", 1),
+        ("?p2*", 1),
+        ("?p35*", 1),
     ],
 )
 @pytest.mark.usefixtures("platform", "intercepted_build_args", "allow_empty")
-def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys):
+def test_build_selector_deprecated_error(monkeypatch, selector, pattern, series, capsys):
     monkeypatch.setenv(selector, pattern)
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
@@ -389,8 +391,7 @@ def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys)
         main()
 
     stderr = capsys.readouterr().err
-    series = "2" if "6" in pattern else "1"
-    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update"
+    msg = f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the {series}.x series or update"
     assert msg in stderr
 
 

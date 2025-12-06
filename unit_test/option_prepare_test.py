@@ -13,8 +13,8 @@ from cibuildwheel.__main__ import main
 from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
-DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313", "cp314", "cp314t"}
-ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp311_242", "gp312_250"}
+DEFAULT_IDS = {"cp39", "cp310", "cp311", "cp312", "cp313", "cp314", "cp314t"}
+ALL_IDS = DEFAULT_IDS | {"cp313t", "pp39", "pp310", "pp311", "gp311_242", "gp312_250"}
 
 
 @pytest.fixture
@@ -110,12 +110,12 @@ archs = ["auto64", "auto32"]
 
 # Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]
-select = "cp3?-*"
+select = "cp3?-* cp310-*"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp38-manylinux_x86_64"
+select = "cp39-manylinux_x86_64"
 before-all = "true"
 """
     )
@@ -136,8 +136,8 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {"cp38-manylinux_x86_64"}
-    assert kwargs["options"].build_options("cp38-manylinux_x86_64").before_all == "true"
+    assert identifiers == {"cp39-manylinux_x86_64"}
+    assert kwargs["options"].build_options("cp39-manylinux_x86_64").before_all == "true"
 
     kwargs = build_in_container.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
@@ -149,15 +149,13 @@ before-all = "true"
         f"{x}-manylinux_x86_64"
         for x in ALL_IDS
         - {
-            "cp38",
-            "cp310",
+            "cp39",
             "cp311",
             "cp312",
             "cp313",
             "cp313t",
             "cp314",
             "cp314t",
-            "pp38",
             "pp39",
             "pp310",
             "pp311",
@@ -165,7 +163,7 @@ before-all = "true"
             "gp312_250",
         }
     }
-    assert kwargs["options"].build_options("cp39-manylinux_x86_64").before_all == ""
+    assert kwargs["options"].build_options("cp310-manylinux_x86_64").before_all == ""
 
     kwargs = build_in_container.call_args_list[2][1]
     assert "quay.io/pypa/manylinux_2_28_x86_64" in kwargs["container"]["image"]
@@ -175,14 +173,12 @@ before-all = "true"
     assert identifiers == {
         f"{x}-manylinux_x86_64"
         for x in [
-            "cp310",
             "cp311",
             "cp312",
             "cp313",
             "cp313t",
             "cp314",
             "cp314t",
-            "pp38",
             "pp39",
             "pp310",
             "pp311",
@@ -196,7 +192,7 @@ before-all = "true"
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {"cp38-manylinux_i686", "cp39-manylinux_i686"}
+    assert identifiers == {"cp39-manylinux_i686", "cp310-manylinux_i686"}
 
     kwargs = build_in_container.call_args_list[4][1]
     assert "quay.io/pypa/manylinux_2_28_i686" in kwargs["container"]["image"]
@@ -204,7 +200,7 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-manylinux_i686" for x in ALL_IDS - {"cp38", "cp39"} if "gp" not in x
+        f"{x}-manylinux_i686" for x in ALL_IDS - {"cp39", "cp310"} if "gp" not in x
     }
 
     kwargs = build_in_container.call_args_list[5][1]
