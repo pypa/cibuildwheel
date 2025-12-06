@@ -542,6 +542,9 @@ def check_for_invalid_selectors(
             if "p36" in selector_ or "p37" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
+            if "cp313t" in selector_:
+                msg += f"cibuildwheel 3.x no longer supports Python 3.13 free-threading. Please use the an older 3.x version or update `{selector_name}`. "
+                error_type = errors.DeprecationError
 
             if selector_name == "build":
                 raise error_type(msg)
