@@ -19,7 +19,6 @@ keywords = [
     "macos",
     "packaging",
     "pypi",
-    "travis",
     "wheel",
     "windows",
 ]
