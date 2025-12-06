@@ -82,7 +82,7 @@ A few notes-
 
 - Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
 
-- The ['enable groups'](options.md#enable) run by default are just 'cpython-prerelease' and 'cpython-freethreading'. You can add other groups like pypy or graalpy by passing the `--enable` argument to pytest, i.e. `nox -s tests -- test --enable pypy`. On GitHub PRs, you can add a label to the PR to enable these groups.
+- The ['enable groups'](options.md#enable) run by default is just 'cpython-prerelease'. You can add other groups like pypy or graalpy by passing the `--enable` argument to pytest, i.e. `nox -s tests -- test --enable pypy`. On GitHub PRs, you can add a label to the PR to enable these groups.
 
 #### Running pytest directly
 
