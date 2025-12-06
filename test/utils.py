@@ -51,7 +51,7 @@ def get_platform() -> str:
         raise Exception(msg)
 
 
-DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease"
+DEFAULT_CIBW_ENABLE = "cpython-prerelease"
 
 
 def get_enable_groups() -> frozenset[EnableGroup]:
@@ -288,8 +288,6 @@ def _expected_wheels(
         ]
 
         enable_groups = get_enable_groups()
-        if EnableGroup.CPythonFreeThreading in enable_groups:
-            python_abi_tags.append("cp313-cp313t")
 
         if EnableGroup.CPythonPrerelease in enable_groups:
             ...  # Add cp315 here when available
