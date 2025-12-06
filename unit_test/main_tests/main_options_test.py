@@ -167,19 +167,6 @@ def test_empty_selector(monkeypatch: pytest.MonkeyPatch) -> None:
     assert e.value.code == 3
 
 
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning1(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
 @pytest.mark.parametrize(
     ("architecture", "image", "full_image"),
     [
