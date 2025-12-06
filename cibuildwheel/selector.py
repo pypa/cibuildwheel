@@ -29,7 +29,6 @@ class EnableGroup(StrEnum):
     Groups of build selectors that are not enabled by default.
     """
 
-    CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     GraalPy = "graalpy"
     PyPy = "pypy"
@@ -38,7 +37,7 @@ class EnableGroup(StrEnum):
 
     @classmethod
     def all_groups(cls) -> frozenset["EnableGroup"]:
-        return frozenset(set(cls) - {cls.CPythonFreeThreading})
+        return frozenset(set(cls))
 
     @classmethod
     def parse_option_value(cls, value: str) -> frozenset["EnableGroup"]:
