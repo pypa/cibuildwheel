@@ -432,11 +432,7 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
 def detect_errors(*, options: Options, identifiers: Iterable[str]) -> Generator[str, None, None]:
     # Check for deprecated CIBW_FREE_THREADED_SUPPORT environment variable
     if "CIBW_FREE_THREADED_SUPPORT" in os.environ:
-        yield (
-            "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported. "
-            'Use tool.cibuildwheel.enable = ["cpython-freethreading"] in pyproject.toml '
-            "or set CIBW_ENABLE=cpython-freethreading instead."
-        )
+        yield "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported."
 
     # Deprecated {python} and {pip}
     for option_name in ["test_command", "before_build"]:
@@ -462,13 +458,6 @@ def detect_warnings(*, options: Options) -> Generator[str, None, None]:
 
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
-
-    if EnableGroup.CPythonExperimentalRiscV64 in build_selector.enable:
-        yield (
-            "'cpython-experimental-riscv64' enable is deprecated and will be removed in a future version. "
-            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
-            "or CIBW_ENABLE environment variable."
-        )
 
     all_valid_identifiers = [
         config.identifier
@@ -539,6 +528,9 @@ def check_for_invalid_selectors(
                 error_type = errors.DeprecationError
             if "p36" in selector_ or "p37" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
+                error_type = errors.DeprecationError
+            if "cp313t" in selector_:
+                msg += f"cibuildwheel 3.x no longer supports Python 3.13 free-threading. Please use the an older 3.x version or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 
             if selector_name == "build":
