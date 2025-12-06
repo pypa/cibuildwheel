@@ -59,7 +59,7 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-manylinux_riscv64<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l<br/>cp310-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                  |                                                                                                   | cp312-pyodide_wasm32 |
-| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64<br><br>cp313t-macosx_x86_64<br/>cp313t-macosx_universal2<br/>cp313t-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64<br><br>cp313t-win_amd64<br/>cp313t-win32<br/>cp313t-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686<br><br>cp313t-manylinux_x86_64<br/>cp313t-manylinux_i686<br/>cp313t-musllinux_x86_64<br/>cp313t-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64<br><br>cp313t-manylinux_aarch64<br/>cp313t-manylinux_ppc64le<br/>cp313t-manylinux_s390x<br/>cp313t-manylinux_armv7l<br/>cp313t-manylinux_riscv64<br/>cp313t-musllinux_aarch64<br/>cp313t-musllinux_ppc64le<br/>cp313t-musllinux_s390x<br/>cp313t-musllinux_armv7l<br/>cp313t-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
+| Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
 | Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64<br><br>cp314t-macosx_x86_64<br/>cp314t-macosx_universal2<br/>cp314t-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64<br><br>cp314t-win_amd64<br/>cp314t-win32<br/>cp314t-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686<br><br>cp314t-manylinux_x86_64<br/>cp314t-manylinux_i686<br/>cp314t-musllinux_x86_64<br/>cp314t-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64<br><br>cp314t-manylinux_aarch64<br/>cp314t-manylinux_ppc64le<br/>cp314t-manylinux_s390x<br/>cp314t-manylinux_armv7l<br/>cp314t-manylinux_riscv64<br/>cp314t-musllinux_aarch64<br/>cp314t-musllinux_ppc64le<br/>cp314t-musllinux_s390x<br/>cp314t-musllinux_armv7l<br/>cp314t-musllinux_riscv64 | cp314-android_arm64_v8a<br/>cp314-android_x86_64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
 | PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
@@ -355,9 +355,6 @@ values are:
 
 - `cpython-prerelease`: Enables beta versions of Pythons if any are available
   (May-July, approximately).
-- `cpython-freethreading`: Enable experimental free-threaded builds for CPython 3.13.
-  Free-threading wheels for 3.14+ are available without this flag, as it's [no
-  longer considered experimental](https://peps.python.org/pep-0779/).
 - `pypy`: Enable PyPy.
 - `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
 - `graalpy`: Enable GraalPy.
@@ -379,9 +376,7 @@ values are:
     CPython that can be built without the Global Interpreter Lock (GIL). Those
     variants are also known as free-threaded / no-gil. The build identifiers for
     those variants have a `t` suffix in their `python_tag` (e.g.
-    `cp313t-manylinux_x86_64`).
-
-    Free threading was [experimental in 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython), so it required an explicit enable flag. But, as noted above, free-threading doesn't require an enable flag for 3.14+.
+    `cp314t-manylinux_x86_64`).
 
     For more info on building for free-threading, see the [Python Free-Threading Guide](https://py-free-threading.github.io/).
 
@@ -407,9 +402,6 @@ without disabling your other enables.
 
     ```toml
     [tool.cibuildwheel]
-    # Enable free-threaded support for CPython 3.13
-    enable = ["cpython-freethreading"]
-
     # Include all PyPy versions
     enable = ["pypy", "pypy-eol"]
     ```
@@ -421,14 +413,11 @@ without disabling your other enables.
     # Include latest Python beta
     CIBW_ENABLE: cpython-prerelease
 
-    # Include free-threaded support for CPython 3.13
-    CIBW_ENABLE: cpython-freethreading
-
-    # Include both
-    CIBW_ENABLE: cpython-prerelease cpython-freethreading
-
     # Include all PyPy versions
     CIBW_ENABLE: pypy pypy-eol
+
+    # Include both
+    CIBW_ENABLE: cpython-prerelease pypy pypy-eol
     ```
 
 
