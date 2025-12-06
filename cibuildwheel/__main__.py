@@ -465,13 +465,6 @@ def detect_warnings(*, options: Options) -> Generator[str, None, None]:
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
 
-    if EnableGroup.CPythonFreeThreading in build_selector.enable:
-        yield (
-            "'cpython-freethreading' enable is deprecated and will be removed in a future version. "
-            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
-            "or CIBW_ENABLE environment variable."
-        )
-
     all_valid_identifiers = [
         config.identifier
         for module in ALL_PLATFORM_MODULES.values()
