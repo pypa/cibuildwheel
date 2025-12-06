@@ -38,7 +38,8 @@ class EnableGroup(StrEnum):
 
     @classmethod
     def all_groups(cls) -> frozenset[Self]:
-        return frozenset(cls)
+        # see https://github.com/python/mypy/issues/20434 for the reason to type: ignore[arg-type]
+        return frozenset(set(cls) - {cls.CPythonFreeThreading})  # type: ignore[arg-type]
 
     @classmethod
     def parse_option_value(cls, value: str) -> frozenset[Self]:
