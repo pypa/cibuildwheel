@@ -291,7 +291,6 @@ def build_in_container(
                     project=container_project_path,
                     package=container_package_dir,
                 ),
-                py38=config.identifier[1:].startswith("p38"),
             )
 
             match build_frontend.name:

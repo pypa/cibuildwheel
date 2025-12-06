@@ -433,20 +433,26 @@ def test_config_settings(
     ],
 )
 @pytest.mark.parametrize(
-    "pattern",
+    ("pattern", "series"),
     [
-        "cp27-*",
-        "cp35-*",
-        "?p36-*",
-        "?p27*",
-        "?p2*",
-        "?p35*",
-        "cp313t*",
+        ("cp27-*", 1),
+        ("cp35-*", 1),
+        ("?p36-*", 2),
+        ("?p37-*", 2),
+        ("?p38-*", 3),
+        ("?p27*", 1),
+        ("?p2*", 1),
+        ("?p35*", 1),
+        ("cp313t*", None),
     ],
 )
 @pytest.mark.usefixtures("platform", "intercepted_build_args", "allow_empty")
 def test_build_selector_deprecated_error(
-    monkeypatch: pytest.MonkeyPatch, selector: str, pattern: str, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    selector: str,
+    pattern: str,
+    series: int,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setenv(selector, pattern)
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
@@ -463,8 +469,7 @@ def test_build_selector_deprecated_error(
     if pattern == "cp313t*":
         msg = "cibuildwheel 4.x no longer supports Python 3.13 free-threading. Please use the 3.x series or update"
     else:
-        series = "2" if "6" in pattern else "1"
-        msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update"
+        msg = f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the {series}.x series or update"
     assert msg in stderr
 
 
