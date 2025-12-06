@@ -277,7 +277,6 @@ def build_in_container(
                 build_frontend,
                 build_options.build_verbosity,
                 build_options.config_settings,
-                py38=config.identifier[1:].startswith("p38"),
             )
 
             match build_frontend.name:
