@@ -534,10 +534,13 @@ def check_for_invalid_selectors(
                 msg += "This selector matches a group that wasn't enabled. Enable it using the `enable` option or remove this selector. "
 
             if "p2" in selector_ or "p35" in selector_:
-                msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update `{selector_name}`. "
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 1.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
             if "p36" in selector_ or "p37" in selector_:
-                msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 2.x series or update `{selector_name}`. "
+                error_type = errors.DeprecationError
+            if "p38" in selector_:
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 3.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 
             if selector_name == "build":
