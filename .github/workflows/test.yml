@@ -100,6 +100,14 @@ jobs:
 
     - uses: astral-sh/setup-uv@v7
 
+    - name: Free up disk space
+      if: runner.os == 'Linux' && matrix.test_select != 'android'
+      run: |
+        sudo rm -rf $ANDROID_HOME/ndk /opt/hostedtoolcache/CodeQL \
+          /usr/local/lib/node_modules /usr/local/share/chromium \
+          /usr/local/share/powershell
+        df -m
+
     # for oci_container unit tests
     - name: Set up QEMU
       if: runner.os == 'Linux'
