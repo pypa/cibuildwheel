@@ -50,7 +50,7 @@ packaging==25.0
     #   unearth
 pip==25.3
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.5.0
+platformdirs==4.5.1
     # via
     #   pyodide-build
     #   virtualenv
@@ -102,7 +102,7 @@ typing-inspection==0.4.2
     # via pydantic
 unearth==0.18.1
     # via pyodide-build
-urllib3==2.5.0
+urllib3==2.6.0
     # via requests
 virtualenv==20.35.4
     # via
