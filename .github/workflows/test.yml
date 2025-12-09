@@ -42,7 +42,7 @@ jobs:
       id: python
       with:
         python-version: "3.x"
-    - uses: pre-commit/action@v3.0.1
+    - uses: j178/prek-action@v1
     - name: PyLint checks
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 

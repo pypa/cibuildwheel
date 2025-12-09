@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # /// script
-# dependencies = ["click", "packaging"]
+# dependencies = ["click", "packaging", "prek"]
 # ///
 
 
@@ -139,7 +139,7 @@ def bump_version() -> None:
     # run pre-commit to update the README changelog
     subprocess.run(
         [
-            "pre-commit",
+            "prek",
             "run",
             "--files=docs/changelog.md",
         ],
@@ -149,7 +149,7 @@ def bump_version() -> None:
     # run pre-commit to check that no errors occurred on the second run
     subprocess.run(
         [
-            "pre-commit",
+            "prek",
             "run",
             "--files=docs/changelog.md",
         ],
