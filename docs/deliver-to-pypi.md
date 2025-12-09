@@ -71,12 +71,6 @@ for an example configuration that automatically uploads wheels to PyPI. Also see
 [scikit-hep.org/developer/gha_wheels](https://scikit-hep.org/developer/gha_wheels)
 for a complete guide.
 
-### TravisCI
-
-See
-[`examples/travis-ci-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/travis-ci-deploy.yml)
-for an example configuration.
-
 ## Manual method
 
 On your development machine, install [pipx](https://pipx.pypa.io/) and do the following:
