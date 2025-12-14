@@ -108,7 +108,11 @@ def virtualenv(
     assert python.exists()
 
     if use_uv:
-        call("uv", "venv", venv_path, "--python", python)
+        uv_path = find_uv()
+        if uv_path is None:
+            msg = "Could not find 'uv' executable."
+            raise FileNotFoundError(msg)
+        call(uv_path, "venv", venv_path, "--python", python)
     else:
         virtualenv_app, virtualenv_version = _ensure_virtualenv(version)
         if pip_version is None:

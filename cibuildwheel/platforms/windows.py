@@ -329,7 +329,7 @@ def setup_python(
                 "pip",
                 "install",
                 "--upgrade",
-                "build[virtualenv]",
+                "build[virtualenv, uv]",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
@@ -575,7 +575,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
-                pip = ["uv", "pip"] if use_uv else ["pip"]
+                if use_uv:
+                    uv_path = find_uv()
+                    assert uv_path is not None
+                    pip = [str(uv_path), "pip"]
+                else:
+                    pip = ["pip"]
 
                 # install the wheel
                 call(
