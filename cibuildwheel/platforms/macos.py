@@ -33,7 +33,7 @@ from ..util.file import (
 )
 from ..util.helpers import prepare_command, unwrap
 from ..util.packaging import find_compatible_wheel, get_pip_version
-from ..venv import constraint_flags, find_uv, virtualenv
+from ..venv import constraint_flags, virtualenv
 
 
 @functools.cache
@@ -217,7 +217,6 @@ def setup_python(
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
 ) -> tuple[Path, dict[str, str]]:
-    uv_path = find_uv()
     use_uv = build_frontend == "build[uv]"
 
     tmp.mkdir()
@@ -370,14 +369,13 @@ def setup_python(
                 env=env,
             )
         case "build[uv]":
-            assert uv_path is not None
             call(
-                uv_path,
+                "uv",
                 "pip",
                 "install",
                 "--upgrade",
                 "delocate",
-                "build[virtualenv, uv]",
+                "build",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
@@ -414,11 +412,7 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
             use_uv = build_frontend.name == "build[uv]"
-            uv_path = find_uv()
-            if use_uv and uv_path is None:
-                msg = "uv not found"
-                raise AssertionError(msg)
-            pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+            pip = ["pip"] if not use_uv else ["uv", "pip"]
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier

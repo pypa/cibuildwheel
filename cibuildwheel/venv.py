@@ -1,8 +1,10 @@
+import atexit
 import contextlib
 import functools
 import os
 import shutil
 import sys
+import tempfile
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
@@ -107,8 +109,15 @@ def virtualenv(
 
     assert python.exists()
 
+    paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
+
     if use_uv:
-        call("uv", "venv", venv_path, "--python", python)
+        uv_path = find_uv()
+        if uv_path is None:
+            msg = "Could not find 'uv' executable."
+            raise FileNotFoundError(msg)
+        call(uv_path, "venv", venv_path, "--python", python)
+        paths.insert(0, str(uv_path.parent.resolve(strict=True)))
     else:
         virtualenv_app, virtualenv_version = _ensure_virtualenv(version)
         if pip_version is None:
@@ -137,7 +146,7 @@ def virtualenv(
             python,
             venv_path,
         )
-    paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
+
     venv_env = os.environ.copy() if env is None else env.copy()
     venv_env["PATH"] = os.pathsep.join([*paths, venv_env["PATH"]])
     venv_env["VIRTUAL_ENV"] = str(venv_path)
@@ -156,7 +165,7 @@ def virtualenv(
     return venv_env
 
 
-def find_uv() -> Path | None:
+def _find_uv() -> Path | None:
     # Prefer uv in our environment
     with contextlib.suppress(ImportError, FileNotFoundError):
         from uv import find_uv_bin  # noqa: PLC0415
@@ -165,3 +174,24 @@ def find_uv() -> Path | None:
 
     uv_on_path = shutil.which("uv")
     return Path(uv_on_path) if uv_on_path else None
+
+
+@functools.cache
+def find_uv() -> Path | None:
+    uv_path = _find_uv()
+    if uv_path is None:
+        return None
+
+    # we create a symlink or copy in a folder we can expose in PATH
+    # in order to never install build's `uv` extra
+    _tmp_uv_dir = Path(tempfile.mkdtemp(suffix="-uv"))
+    atexit.register(shutil.rmtree, _tmp_uv_dir, ignore_errors=True)
+    uv_dest = _tmp_uv_dir / uv_path.name
+    try:
+        uv_dest.symlink_to(uv_path)
+    except OSError:
+        if not _IS_WIN:
+            raise
+        shutil.copy(uv_path, uv_dest)
+
+    return uv_dest
