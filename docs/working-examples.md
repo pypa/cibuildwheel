@@ -12,8 +12,8 @@ title: Working examples
 | [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an analytical in-process SQL database management system |
 | [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NumPy][]                         | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The fundamental package for scientific computing with Python. |
-| [Tornado][]                       | ![github icon][] | ![linux icon][] ![apple icon][] ![windows icon][] | Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension. |
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
+| [Tornado][]                       | ![github icon][] | ![linux icon][] ![apple icon][] ![windows icon][] | Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension. |
 | [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
@@ -77,8 +77,8 @@ title: Working examples
 | [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
-| [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
+| [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Example pybind11 module built with a Python-based build system |
 | [abess][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions. |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
@@ -123,8 +123,8 @@ title: Working examples
 [duckdb]: https://github.com/duckdb/duckdb
 [pytorch-fairseq]: https://github.com/facebookresearch/fairseq
 [NumPy]: https://github.com/numpy/numpy
-[Tornado]: https://github.com/tornadoweb/tornado
 [NCNN]: https://github.com/Tencent/ncnn
+[Tornado]: https://github.com/tornadoweb/tornado
 [Matplotlib]: https://github.com/matplotlib/matplotlib
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
 [Prophet]: https://github.com/facebook/prophet
@@ -188,8 +188,8 @@ title: Working examples
 [KDEpy]: https://github.com/tommyod/KDEpy
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
 [tgcalls]: https://github.com/MarshalX/tgcalls
-[python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [sourmash]: https://github.com/sourmash-bio/sourmash
+[python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [pybind11 python_example]: https://github.com/pybind/python_example
 [abess]: https://github.com/abess-team/abess
 [python-snappy]: https://github.com/intake/python-snappy
