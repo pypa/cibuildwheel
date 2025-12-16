@@ -11,7 +11,9 @@ distlib==0.4.0
 filelock==3.19.1
     # via virtualenv
 importlib-metadata==8.7.0
-    # via build
+    # via
+    #   build
+    #   pkgconf
 macholib==1.16.4
     # via delocate
 packaging==25.0
@@ -21,6 +23,8 @@ packaging==25.0
 patchelf==0.17.2.4
     # via -r cibuildwheel/resources/constraints.in
 pip==25.3
+    # via -r cibuildwheel/resources/constraints.in
+pkgconf==2.4.3.post2
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.4.0
     # via virtualenv

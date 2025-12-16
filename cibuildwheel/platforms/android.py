@@ -169,6 +169,12 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_dir = build_path / "python"
     python_dir.mkdir()
     shutil.unpack_archive(python_tgz, python_dir)
+
+    # Work around https://github.com/python/cpython/issues/138800. This can be removed
+    # once we've updated to Python versions that include the fix.
+    pc_path = python_dir / f"prefix/lib/pkgconfig/python-{config.version}.pc"
+    pc_path.write_text(pc_path.read_text().replace("$(BLDLIBRARY)", f"-lpython{config.version}"))
+
     return python_dir
 
 
@@ -227,6 +233,7 @@ def setup_env(
     tools = [
         "auditwheel @ git+https://github.com/mhsmith/auditwheel@android",
         "patchelf",
+        "pkgconf",
     ]
     if build_frontend in {"build", "build[uv]"}:
         tools.append("build")
@@ -408,7 +415,7 @@ def before_build(state: BuildState) -> None:
         shell_prepared(
             state.options.before_build,
             build_options=state.options,
-            env=state.build_env,
+            env=state.android_env,
         )
 
 
@@ -511,7 +518,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         shell_prepared(
             state.options.before_test,
             build_options=state.options,
-            env=state.build_env,
+            env=state.android_env,
         )
 
     platform_args = (
