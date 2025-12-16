@@ -893,8 +893,7 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Android: There is no default command, but cibuildwheel will add `libc++` to the
-  wheel if anything links against it. Setting a command will replace this behavior.
+- on Android: `'auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}'`
 - on other platforms: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
@@ -905,6 +904,7 @@ The following placeholders must be used inside the command and will be replaced 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
+- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries.
 
 You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
 

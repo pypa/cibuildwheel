@@ -1,4 +1,5 @@
 pip
 build
+patchelf
 delocate
 virtualenv

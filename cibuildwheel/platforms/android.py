@@ -1,15 +1,10 @@
-import csv
-import hashlib
 import os
 import platform
 import re
 import shlex
 import shutil
 import subprocess
-import sysconfig
-from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from os.path import relpath
 from pathlib import Path
 from pprint import pprint
 from runpy import run_path
@@ -18,8 +13,6 @@ from typing import Any
 
 from build import ProjectBuilder
 from build.env import IsolatedEnv
-from elftools.common.exceptions import ELFError
-from elftools.elf.elffile import ELFFile
 from filelock import FileLock
 
 from .. import errors, platforms  # pylint: disable=cyclic-import
@@ -228,10 +221,19 @@ def setup_env(
     android_env = setup_android_env(config, python_dir, venv_dir, build_env)
 
     # Install build tools
-    if build_frontend not in {"build", "build[uv]"}:
+    # TODO: use an official auditwheel version once
+    # https://github.com/pypa/auditwheel/pull/643 has been released, and add it to the
+    # constraints files.
+    tools = [
+        "auditwheel @ git+https://github.com/mhsmith/auditwheel@android",
+        "patchelf",
+    ]
+    if build_frontend in {"build", "build[uv]"}:
+        tools.append("build")
+    else:
         msg = "Android requires the build frontend to be 'build'"
         raise errors.FatalError(msg)
-    call(*pip, "install", "build", *constraint_flags(dependency_constraint), env=build_env)
+    call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -321,6 +323,8 @@ def localized_vars(
         if isinstance(final, str):
             final = final.replace(orig_prefix, str(prefix))
 
+        # By default we build against the same API level as Python itself, but this can
+        # be overridden with an environment variable.
         if key == "ANDROID_API_LEVEL":
             if api_level := build_env.get(key):
                 final = int(api_level)
@@ -445,9 +449,20 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     repaired_wheel_dir.mkdir()
 
     if state.options.repair_command:
+        toolchain = Path(state.android_env["CC"]).parent.parent
+        ldpaths = ":".join(
+            # In the future, we may use this to implement PEP 725 by installing
+            # libraries in {state.python_dir}/prefix/lib or elsewhere, and adding that
+            # location to ldpaths.
+            [
+                # For libc++_shared.
+                f"{toolchain}/sysroot/usr/lib/{state.android_env['CIBW_HOST_TRIPLET']}",
+            ]
+        )
         shell(
             prepare_command(
                 state.options.repair_command,
+                ldpaths=ldpaths,
                 wheel=built_wheel,
                 dest_dir=repaired_wheel_dir,
                 package=state.options.package_dir,
@@ -456,7 +471,7 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
             env=state.build_env,
         )
     else:
-        repair_default(state.android_env, built_wheel, repaired_wheel_dir)
+        shutil.move(built_wheel, repaired_wheel_dir)
 
     repaired_wheels = list(repaired_wheel_dir.glob("*.whl"))
     if len(repaired_wheels) == 0:
@@ -469,106 +484,6 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     if repaired_wheel.name.endswith("none-any.whl"):
         raise errors.NonPlatformWheelError()
     return repaired_wheel
-
-
-def repair_default(
-    android_env: dict[str, str], built_wheel: Path, repaired_wheel_dir: Path
-) -> None:
-    """
-    Adds libc++ to the wheel if anything links against it. In the future this should be
-    moved to auditwheel and generalized to support more libraries.
-    """
-    if (match := re.search(r"^(.+?)-", built_wheel.name)) is None:
-        msg = f"Failed to parse wheel filename: {built_wheel.name}"
-        raise errors.FatalError(msg)
-    wheel_name = match[1]
-
-    unpacked_dir = repaired_wheel_dir / "unpacked"
-    unpacked_dir.mkdir()
-    shutil.unpack_archive(built_wheel, unpacked_dir, format="zip")
-
-    # Some build systems are inconsistent about name normalization, so don't assume the
-    # dist-info name is identical to the wheel name.
-    record_paths = list(unpacked_dir.glob("*.dist-info/RECORD"))
-    if len(record_paths) != 1:
-        msg = f"{built_wheel.name} contains {len(record_paths)} dist-info/RECORD files; expected 1"
-        raise errors.FatalError(msg)
-
-    old_soname = "libc++_shared.so"
-    paths_to_patch = []
-    for path, elffile in elf_file_filter(
-        unpacked_dir / filename
-        for filename, *_ in csv.reader(record_paths[0].read_text().splitlines())
-    ):
-        if (dynamic := elffile.get_section_by_name(".dynamic")) and any(  # type: ignore[no-untyped-call]
-            tag.entry.d_tag == "DT_NEEDED" and tag.needed == old_soname
-            for tag in dynamic.iter_tags()
-        ):
-            paths_to_patch.append(path)
-
-    if not paths_to_patch:
-        shutil.copyfile(built_wheel, repaired_wheel_dir / built_wheel.name)
-    else:
-        # Android doesn't support DT_RPATH, but supports DT_RUNPATH since API level 24
-        # (https://github.com/aosp-mirror/platform_bionic/blob/master/android-changes-for-ndk-developers.md).
-        if int(sysconfig_print('get_config_vars()["ANDROID_API_LEVEL"]', android_env)) < 24:
-            msg = f"Adding {old_soname} requires ANDROID_API_LEVEL to be at least 24"
-            raise errors.FatalError(msg)
-
-        toolchain = Path(android_env["CC"]).parent.parent
-        src_path = toolchain / f"sysroot/usr/lib/{android_env['CIBW_HOST_TRIPLET']}/{old_soname}"
-
-        # Use the same library location as auditwheel would.
-        libs_dir = unpacked_dir / (wheel_name + ".libs")
-        libs_dir.mkdir()
-        new_soname = soname_with_hash(src_path)
-        dst_path = libs_dir / new_soname
-        shutil.copyfile(src_path, dst_path)
-        call(which("patchelf"), "--set-soname", new_soname, dst_path)
-
-        for path in paths_to_patch:
-            call(which("patchelf"), "--replace-needed", old_soname, new_soname, path)
-            call(
-                which("patchelf"),
-                "--set-rpath",
-                f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
-                path,
-            )
-        call(which("wheel"), "pack", unpacked_dir, "-d", repaired_wheel_dir)
-
-
-# If cibuildwheel was called without activating its environment, its scripts directory
-# will not be on the PATH.
-def which(cmd: str) -> str:
-    scripts_dir = sysconfig.get_path("scripts")
-    result = shutil.which(cmd, path=scripts_dir + os.pathsep + os.environ["PATH"])
-    if result is None:
-        msg = f"Couldn't find {cmd!r} in {scripts_dir} or on the PATH"
-        raise errors.FatalError(msg)
-    return result
-
-
-def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:
-    """Filter through an iterator of filenames and load up only ELF files"""
-    for path in paths:
-        if not path.name.endswith(".py"):
-            try:
-                with open(path, "rb") as f:
-                    candidate = ELFFile(f)  # type: ignore[no-untyped-call]
-                    yield path, candidate
-            except ELFError:
-                pass  # Not an ELF file
-
-
-def soname_with_hash(src_path: Path) -> str:
-    """Return the same library filename as auditwheel would"""
-    shorthash = hashlib.sha256(src_path.read_bytes()).hexdigest()[:8]
-    src_name = src_path.name
-    base, ext = src_name.split(".", 1)
-    if not base.endswith(f"-{shorthash}"):
-        return f"{base}-{shorthash}.{ext}"
-    else:
-        return src_name
 
 
 def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
@@ -600,12 +515,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         )
 
     platform_args = (
-        ["--python-platform", android_triplet(state.config.identifier)]
-        if use_uv
-        else [
-            "--platform",
-            sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
-        ]
+        ["--python-platform", android_triplet(state.config.identifier)] if use_uv else []
     )
 
     # Install the wheel and test-requires.
@@ -689,14 +599,4 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         "--",
         *test_args,
         env=state.build_env,
-    )
-
-
-def sysconfig_print(method_call: str, env: dict[str, str]) -> str:
-    return call(
-        "python",
-        "-c",
-        f'import sysconfig; print(sysconfig.{method_call}, end="")',
-        env=env,
-        capture_stdout=True,
     )
