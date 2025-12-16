@@ -15,6 +15,8 @@ parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
+# The defaults in the schema are only used for documentation and IDE support. They
+# should match the values in defaults.toml, which are used by cibuildwheel itself.
 starter = """
 $schema: http://json-schema.org/draft-07/schema#
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
