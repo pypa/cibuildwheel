@@ -14,6 +14,9 @@ def initialize() -> None:
     if not (host_triplet := os.environ.get("CIBW_HOST_TRIPLET")):
         return
 
+    # Pre-import any modules which would fail to import after the monkey-patching.
+    import ctypes  # noqa: F401, PLC0415 - uses get_config_var("LDLIBRARY")
+
     # os ######################################################################
     def cross_os_uname() -> os.uname_result:
         return os.uname_result(
