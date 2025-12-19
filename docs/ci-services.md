@@ -25,7 +25,7 @@ To build Linux, macOS, and Windows wheels using GitHub Actions, create a `.githu
     `package-dir: .`, `output-dir: wheelhouse` and `config-file: ''`
     locations (those values are the defaults). You can also pass a
     comma-separated list of extras to install additional packages.
-    For example, `extras: "uv"` to install UV into the virtual environment.
+    For example, `extras: "uv"` to make uv available for cibuildwheel to use.
 
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in

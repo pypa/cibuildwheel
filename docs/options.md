@@ -470,13 +470,19 @@ Default: `build`
 
 Choose which build frontend to use.
 
-You can use "build\[uv\]", which will use an external [uv][] everywhere
-possible, both through `--installer=uv` passed to build, as well as when making
-all build and test environments. This will generally speed up cibuildwheel.
-Make sure you have an external uv on Windows and macOS, either by
-pre-installing it, or installing cibuildwheel with the `uv` extra, which is
-possible by manually passing `cibuildwheel[uv]` to installers or by using the
-`extras` option in the [cibuildwheel action](ci-services.md#github-actions).
+You can use "build\[uv\]", which will use [uv][] everywhere possible, both
+through `--installer=uv` passed to build, as well as when making all build and
+test environments. This will generally speed up cibuildwheel.
+
+When using `build[uv]`, ensure uv is available on PATH. You can do this by:
+
+- Pre-installing uv (e.g., via `pip install uv` or using `astral-sh/setup-uv`
+  in GitHub Actions)
+- Installing cibuildwheel with the `uv` extra by manually passing
+  `cibuildwheel[uv]` to installers
+- Using the `extras: "uv"` option in the [cibuildwheel action](ci-services.md#github-actions),
+  which installs uv in an isolated environment
+
 uv currently does not support iOS or musllinux on s390x, ppc64le and riscv64.
 
 On Android and Pyodide, the "pip" frontend is not supported.
