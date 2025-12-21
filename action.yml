@@ -75,32 +75,37 @@ runs:
 
         with open(os.environ["GITHUB_OUTPUT"], "at") as f:
             f.write(f"cibw-bin={cibw_bin}\n")
-            f.write(f"bin-path={builder.bin_path}\n")
+            f.write(f"prepend-path={builder.bin_path if 'uv' in EXTRAS else ''}\n")
+
         print("::endgroup::")
         EOF
       shell: bash
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
-    - run: >
-        "${{ steps.cibw.outputs.cibw-bin }}"
-        "${{ inputs.package-dir }}"
-        ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
-        ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
-        ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
-        2>&1
-      env:
-        PATH: ${{ contains(inputs.extras, 'uv') && format('{0}:{1}', steps.cibw.outputs.bin-path, env.PATH) || env.PATH }}
+    - run: |
+        prepend_path="${{ steps.cibw.outputs.prepend-path }}"
+        if [ -n "$prepend_path" ]; then
+            export PATH="$prepend_path:$PATH"
+        fi
+        "${{ steps.cibw.outputs.cibw-bin }}" \
+          "${{ inputs.package-dir }}" \
+          ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}} \
+          ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}} \
+          ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}} \
+          2>&1
       shell: bash
       if: runner.os != 'Windows'
 
     # Windows needs powershell to interact nicely with Meson
-    - run: >
-        & "${{ steps.cibw.outputs.cibw-bin }}"
-        "${{ inputs.package-dir }}"
-        ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
-        ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
-        ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
-      env:
-        PATH: ${{ contains(inputs.extras, 'uv') && format('{0};{1}', steps.cibw.outputs.bin-path, env.PATH) || env.PATH }}
+    - run: |
+        $PrependPath = "${{ steps.cibw.outputs.prepend-path }}"
+        if ($PrependPath) {
+            $env:PATH = "$PrependPath;$env:PATH"
+        }
+        & "${{ steps.cibw.outputs.cibw-bin }}" `
+          "${{ inputs.package-dir }}" `
+          ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}} `
+          ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}} `
+          ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
       shell: pwsh
       if: runner.os == 'Windows'
