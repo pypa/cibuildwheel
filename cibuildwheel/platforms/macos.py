@@ -141,7 +141,8 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
                 # let the user know & provide a link to the installer
                 msg = inspect.cleandoc(
                     f"""
-                        Error: CPython {version} is not installed.
+                        Framework CPython {version} not detected as installed in:
+                            {installation_path}
                         cibuildwheel will not perform system-wide installs when running outside of CI.
                         To build locally, install CPython {version} on this machine, or, disable this
                         version of Python using CIBW_SKIP=cp{version.replace(".", "")}-macosx_*

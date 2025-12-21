@@ -477,8 +477,7 @@ Make sure you have an external uv on Windows and macOS, either by
 pre-installing it, or installing cibuildwheel with the `uv` extra, which is
 possible by manually passing `cibuildwheel[uv]` to installers or by using the
 `extras` option in the [cibuildwheel action](ci-services.md#github-actions).
-uv currently does not support iOS or musllinux on s390x. Legacy dependencies
-like setuptools on Python < 3.12 and pip are not installed if using uv.
+uv currently does not support iOS or musllinux on s390x, ppc64le and riscv64.
 
 On Android and Pyodide, the "pip" frontend is not supported.
 
