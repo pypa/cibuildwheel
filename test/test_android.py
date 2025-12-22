@@ -4,7 +4,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from shutil import rmtree
+from shutil import rmtree, which
 from subprocess import CalledProcessError
 from textwrap import dedent
 from zipfile import ZipFile
@@ -496,3 +496,88 @@ def test_libcxx(tmp_path, capfd):
     assert len(wheels) == 1
     for name in ZipFile(output_dir / wheels[0]).namelist():
         assert ".libs" not in name
+
+
+@needs_emulator
+def test_setuptools_rust(tmp_path, capfd):
+   """
+   Test Android cross-compilation using the setuptools-rust toolchain.
+   """
+   if not which("rustup") or not which("cargo"):
+       pytest.skip("rustup and cargo are required for this test")
+
+   # Initialize a basic project and override files for setuptools-rust
+   project = new_c_project()
+   project.files["pyproject.toml"] = dedent(
+       """\
+       [build-system]
+       requires = ["setuptools", "wheel", "setuptools-rust"]
+       """
+   )
+   project.files["setup.py"] = dedent(
+       """\
+       from setuptools import setup
+       from setuptools_rust import Binding, RustExtension
+
+       setup(
+           name="spam",
+           version="0.1.0",
+           rust_extensions=[RustExtension("spam.rust_ext", binding=Binding.PyO3)],
+           zip_safe=False,
+       )
+       """
+   )
+   project.files["Cargo.toml"] = dedent(
+       """\
+       [package]
+       name = "rust_ext"
+       version = "0.1.0"
+       edition = "2021"
+
+       [lib]
+       name = "rust_ext"
+       crate-type = ["cdylib"]
+
+       [dependencies]
+       pyo3 = { version = "0.23.3", features = ["extension-module"] }
+       """
+   )
+
+   # Create the Rust source directory and file
+   (tmp_path / "src").mkdir()
+   project.files["src/lib.rs"] = dedent(
+       """\
+       use pyo3.prelude::*;
+
+       #[pyfunction]
+       fn hello() -> PyResult<String> {
+           Ok("Hello from Rust via setuptools-rust!".to_string())
+       }
+
+       #[pymodule]
+       fn rust_ext(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+           m.add_function(wrap_pyfunction!(hello, m)?)?;
+           Ok(())
+       }
+       """
+   )
+
+   project.generate(tmp_path)
+
+   # Command to verify the built extension on the Android emulator
+   test_command = "python -c 'import spam.rust_ext; print(spam.rust_ext.hello())'"
+
+   # Run cibuildwheel to build and test the wheel
+   wheels = cibuildwheel_run(
+       tmp_path,
+       add_env={
+           **cp313_env,
+           "CIBW_TEST_COMMAND": test_command,
+           "CIBW_BUILD_VERBOSITY": "1",
+       },
+   )
+
+   # Verification
+   assert len(wheels) == 1
+   stdout = capfd.readouterr().out
+   assert "Hello from Rust via setuptools-rust!" in stdout
