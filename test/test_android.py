@@ -500,22 +500,22 @@ def test_libcxx(tmp_path, capfd):
 
 @needs_emulator
 def test_setuptools_rust(tmp_path, capfd):
-   """
-   Test Android cross-compilation using the setuptools-rust toolchain.
-   """
-   if not which("rustup") or not which("cargo"):
-       pytest.skip("rustup and cargo are required for this test")
+    """
+    Test Android cross-compilation using the setuptools-rust toolchain.
+    """
+    if not which("rustup") or not which("cargo"):
+        pytest.skip("rustup and cargo are required for this test")
 
-   # Initialize a basic project and override files for setuptools-rust
-   project = new_c_project()
-   project.files["pyproject.toml"] = dedent(
-       """\
+    # Initialize a basic project and override files for setuptools-rust
+    project = new_c_project()
+    project.files["pyproject.toml"] = dedent(
+        """\
        [build-system]
        requires = ["setuptools", "wheel", "setuptools-rust"]
        """
-   )
-   project.files["setup.py"] = dedent(
-       """\
+    )
+    project.files["setup.py"] = dedent(
+        """\
        from setuptools import setup
        from setuptools_rust import Binding, RustExtension
 
@@ -526,9 +526,9 @@ def test_setuptools_rust(tmp_path, capfd):
            zip_safe=False,
        )
        """
-   )
-   project.files["Cargo.toml"] = dedent(
-       """\
+    )
+    project.files["Cargo.toml"] = dedent(
+        """\
        [package]
        name = "rust_ext"
        version = "0.1.0"
@@ -541,12 +541,12 @@ def test_setuptools_rust(tmp_path, capfd):
        [dependencies]
        pyo3 = { version = "0.23.3", features = ["extension-module"] }
        """
-   )
+    )
 
-   # Create the Rust source directory and file
-   (tmp_path / "src").mkdir()
-   project.files["src/lib.rs"] = dedent(
-       """\
+    # Create the Rust source directory and file
+    (tmp_path / "src").mkdir()
+    project.files["src/lib.rs"] = dedent(
+        """\
        use pyo3.prelude::*;
 
        #[pyfunction]
@@ -560,24 +560,24 @@ def test_setuptools_rust(tmp_path, capfd):
            Ok(())
        }
        """
-   )
+    )
 
-   project.generate(tmp_path)
+    project.generate(tmp_path)
 
-   # Command to verify the built extension on the Android emulator
-   test_command = "python -c 'import spam.rust_ext; print(spam.rust_ext.hello())'"
+    # Command to verify the built extension on the Android emulator
+    test_command = "python -c 'import spam.rust_ext; print(spam.rust_ext.hello())'"
 
-   # Run cibuildwheel to build and test the wheel
-   wheels = cibuildwheel_run(
-       tmp_path,
-       add_env={
-           **cp313_env,
-           "CIBW_TEST_COMMAND": test_command,
-           "CIBW_BUILD_VERBOSITY": "1",
-       },
-   )
+    # Run cibuildwheel to build and test the wheel
+    wheels = cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_TEST_COMMAND": test_command,
+            "CIBW_BUILD_VERBOSITY": "1",
+        },
+    )
 
-   # Verification
-   assert len(wheels) == 1
-   stdout = capfd.readouterr().out
-   assert "Hello from Rust via setuptools-rust!" in stdout
+    # Verification
+    assert len(wheels) == 1
+    stdout = capfd.readouterr().out
+    assert "Hello from Rust via setuptools-rust!" in stdout

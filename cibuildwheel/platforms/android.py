@@ -419,9 +419,7 @@ def setup_rust(
     env["CARGO_BUILD_TARGET"] = cargo_target
 
     # The linker needs to be specified after CC is set by android-env.sh
-    cargo_target_linker_env_name = (
-        f"CARGO_TARGET_{cargo_target.upper().replace('-', '_')}_LINKER"
-    )
+    cargo_target_linker_env_name = f"CARGO_TARGET_{cargo_target.upper().replace('-', '_')}_LINKER"
     # CC has already been set by calling android.py (it calls android-env.sh)
     env[cargo_target_linker_env_name] = env["CC"]
 
@@ -432,9 +430,7 @@ def setup_rust(
     env["PYO3_CROSS_LIB_DIR"] = str(python_dir / "prefix" / "lib")
 
 
-def create_rust_shims(
-    env: MutableMapping[str, str], cargo_target: str, rustup_path: str
-) -> None:
+def create_rust_shims(env: MutableMapping[str, str], cargo_target: str, rustup_path: str) -> None:
     venv_bin = Path(env["VIRTUAL_ENV"]) / "bin"
 
     shim_script = dedent(f"""\
@@ -444,8 +440,8 @@ def create_rust_shims(
            import subprocess
            import shutil
 
-           TARGET = {repr(cargo_target)}
-           REAL_RUSTUP = {repr(rustup_path)}
+           TARGET = {cargo_target!r}
+           REAL_RUSTUP = {rustup_path!r}
 
            def install_target_if_needed():
                # We call REAL_RUSTUP via absolute path, so it won't hit this shim again.
