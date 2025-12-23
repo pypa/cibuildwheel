@@ -23,7 +23,7 @@ click==8.1.8
     #   typer
 distlib==0.4.0
     # via virtualenv
-filelock==3.20.0
+filelock==3.20.1
     # via virtualenv
 h11==0.16.0
     # via httpcore
@@ -81,13 +81,13 @@ rich==14.2.0
     #   pyodide-build
     #   pyodide-cli
     #   typer
-ruamel-yaml==0.18.16
+ruamel-yaml==0.18.17
     # via pyodide-build
 ruamel-yaml-clib==0.2.15
     # via ruamel-yaml
 shellingham==1.5.4
     # via typer
-typer==0.20.0
+typer==0.20.1
     # via
     #   auditwheel-emscripten
     #   pyodide-build
