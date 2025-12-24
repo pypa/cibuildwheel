@@ -46,9 +46,29 @@ jobs:
     - name: PyLint checks
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
+  sample:
+    name: Generate a sample project
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-python@v6
+      name: Install Python
+      with:
+        python-version: "3.x"
+    - uses: astral-sh/setup-uv@v7
+    - name: Install dependencies
+      run: uv sync --no-dev --group test
+    - name: Generate a sample project
+      run: uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
+    - uses: actions/upload-artifact@v6
+      with:
+        name: sample_proj
+        path: sample_proj
+
   test:
     name: Test on ${{ matrix.os }} (${{ matrix.python_version }}) ${{ matrix.test_select }}
-    needs: lint
+    needs: sample
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -120,8 +140,7 @@ jobs:
         sudo xcode-select --switch /Applications/Xcode_16.4.app
 
     - name: Install dependencies
-      run: |
-        uv sync --no-dev --group test
+      run: uv sync --no-dev --group test
 
     - uses: joerick/pr-labels-action@v1.0.9
 
@@ -144,9 +163,11 @@ jobs:
         fi
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
-    - name: Generate a sample project
-      run: |
-        uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
+    - name: Download a sample project
+      uses: actions/download-artifact@v5
+      with:
+        name: sample_proj
+        path: sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -209,8 +230,7 @@ jobs:
     - name: Test cibuildwheel
       env:
         CIBW_TEST_RUNTIME: ${{ matrix.test_runtime }}
-      run: |
-        uv run --no-sync bin/run_tests.py --test-select=${{ matrix.test_select || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
+      run: uv run --no-sync bin/run_tests.py --test-select=${{ matrix.test_select || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures
@@ -258,7 +278,7 @@ jobs:
 
   test-pyodide:
     name: Test pyodide
-    needs: lint
+    needs: sample
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
@@ -272,9 +292,11 @@ jobs:
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
-    - name: Generate a sample project
-      run: |
-        uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
+    - name: Download a sample project
+      uses: actions/download-artifact@v5
+      with:
+        name: sample_proj
+        path: sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -285,7 +307,43 @@ jobs:
         CIBW_PLATFORM: pyodide
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
-      run: |
-        uv run --no-sync ./bin/run_tests.py
+      run: uv run --no-sync ./bin/run_tests.py
       env:
         CIBW_PLATFORM: pyodide
+
+  test-uv-extras:
+    name: Test uv extra on ${{ matrix.os }} ${{ matrix.test_select }}
+    needs: sample
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-latest
+          test_select: android
+        - os: windows-latest
+        - os: windows-11-arm
+        - os: macos-15-intel
+        - os: macos-15
+        - os: macos-15-intel
+          test_select: android
+        - os: macos-15
+          test_select: android
+    steps:
+    - uses: actions/checkout@v6
+    - name: Download a sample project
+      uses: actions/download-artifact@v5
+      with:
+        name: sample_proj
+        path: sample_proj
+    - name: Run a sample build (GitHub Action)
+      uses: ./
+      with:
+        extras: uv
+        package-dir: sample_proj
+        output-dir: wheelhouse
+      env:
+        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+        CIBW_BUILD: cp314-*
+        CIBW_BUILD_FRONTEND: 'build[uv]'
+        CIBW_PLATFORM: ${{ matrix.test_select }}
