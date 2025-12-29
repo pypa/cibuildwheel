@@ -87,7 +87,7 @@ ruamel-yaml-clib==0.2.15
     # via ruamel-yaml
 shellingham==1.5.4
     # via typer
-typer==0.20.1
+typer==0.21.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
@@ -100,7 +100,7 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-unearth==0.18.1
+unearth==0.18.2
     # via pyodide-build
 urllib3==2.6.2
     # via requests
