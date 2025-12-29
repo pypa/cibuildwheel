@@ -30,17 +30,6 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
       CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
-!!! tab "Travis CI"
-
-    > .travis.yml ([docs](https://docs.travis-ci.com/user/environment-variables/))
-
-    ```yaml
-    env:
-      global:
-        - CIBW_TEST_REQUIRES=pytest
-        - CIBW_TEST_COMMAND="pytest {project}/tests"
-    ```
-
 !!! tab "CircleCI"
 
     > .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
