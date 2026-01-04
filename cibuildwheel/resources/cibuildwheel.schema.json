@@ -13,7 +13,6 @@
     },
     "enable": {
       "enum": [
-        "cpython-experimental-riscv64",
         "cpython-freethreading",
         "cpython-prerelease",
         "graalpy",
