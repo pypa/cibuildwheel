@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v3.3.1
+
+_5 January 2026_
+
+- 🛠 Update dependencies and container pins, including updating to CPython 3.14.2. (#2708)
+
 ### v3.3.0
 
 _12 November 2025_

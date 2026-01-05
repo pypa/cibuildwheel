@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.3.0
+        run: python -m pip install cibuildwheel==3.3.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -230,6 +230,12 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.3.1
+
+_5 January 2026_
+
+- 🛠 Update dependencies and container pins, including updating to CPython 3.14.2. (#2708)
+
 ### v3.3.0
 
 _12 November 2025_
@@ -281,16 +287,7 @@ _19 August 2025_
 - 🧪 Fix and enable doctests (#2546)
 - 📚 Improve our docs on free-threading (#2549)
 
-
-### v3.1.3
-
-_1 August 2025_
-
-- 🐛 Fix bug where "latest" dependencies couldn't update to pip 25.2 on Windows (#2537)
-- 🧪 Use pytest-rerunfailures to improve some of our iOS/Android tests (#2527, #2539)
-- 🧪 Remove some GraalPy Windows workarounds in our tests (#2501)
-
-<!-- [[[end]]] (sum: vS54piNR4b) -->
+<!-- [[[end]]] (sum: PDe+dJWkRl) -->
 
 ---
 
