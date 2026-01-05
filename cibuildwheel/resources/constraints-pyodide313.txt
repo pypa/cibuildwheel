@@ -10,7 +10,7 @@ build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.11.12
+certifi==2026.1.4
     # via
     #   httpcore
     #   httpx
@@ -23,7 +23,7 @@ click==8.1.8
     #   typer
 distlib==0.4.0
     # via virtualenv
-filelock==3.20.1
+filelock==3.20.2
     # via virtualenv
 h11==0.16.0
     # via httpcore
@@ -62,13 +62,13 @@ pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via rich
-pyodide-build==0.30.9
+pyodide-build==0.31.0
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.4.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
-pyodide-lock==0.1.0
+pyodide-lock==0.1.1
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
@@ -81,10 +81,8 @@ rich==14.2.0
     #   pyodide-build
     #   pyodide-cli
     #   typer
-ruamel-yaml==0.18.17
+ruamel-yaml==0.19.1
     # via pyodide-build
-ruamel-yaml-clib==0.2.15
-    # via ruamel-yaml
 shellingham==1.5.4
     # via typer
 typer==0.21.0
