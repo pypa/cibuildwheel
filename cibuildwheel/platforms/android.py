@@ -367,7 +367,7 @@ def setup_android_env(
 ) -> dict[str, str]:
     site_packages = next(venv_dir.glob("lib/python*/site-packages"))
     for suffix in ["pth", "py"]:
-        shutil.copy(resources.PATH / f"_cross_venv.{suffix}", site_packages)
+        shutil.copy(resources.PATH / f"android/_cross_venv.{suffix}", site_packages)
 
     sysconfigdata_path = Path(
         shutil.copy(
@@ -407,12 +407,21 @@ def setup_android_env(
     for key in ["CFLAGS", "CXXFLAGS"]:
         android_env[key] += " " + opt
 
+    # Create shims which install additional build tools on first use.
+    setup_fortran(android_env)
+
     # Format the environment so it can be pasted into a shell when debugging.
     for key, value in sorted(android_env.items()):
         if os.environ.get(key) != value:
             print(f"export {key}={shlex.quote(value)}")
 
     return android_env
+
+
+def setup_fortran(env: dict[str, str]) -> None:
+    Path(f"{env['VIRTUAL_ENV']}/bin/gfortran").symlink_to(
+        resources.PATH / "android/fortran-shim.sh",
+    )
 
 
 def before_build(state: BuildState) -> None:
