@@ -95,6 +95,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       # Used to host cibuildwheel
       - uses: actions/setup-python@v6
