@@ -242,6 +242,12 @@ def setup_env(
         raise errors.FatalError(msg)
     call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
 
+    # android-env.sh sets PKG_CONFIG="pkg-config --define-prefix", but some build
+    # systems can't handle arguments in that variable. Since we have a known version
+    # of pkgconf, it's safe to use PKG_CONFIG_RELOCATE_PATHS instead.
+    build_env["PKG_CONFIG"] = call("which", "pkgconf", env=build_env, capture_stdout=True).strip()
+    build_env["PKG_CONFIG_RELOCATE_PATHS"] = "1"
+
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
     # affected by the target platform. However, the requirements must be installed
