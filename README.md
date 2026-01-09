@@ -71,6 +71,9 @@ Usage
 
 <!--intro-end-->
 
+> [!WARNING]
+> Building and testing wheels executes arbitrary code from your project and its dependencies. To maintain security standards: keep the job that builds distributions separate from the job that uploads them to PyPI, handle secrets and credentials with care and rotate them regularly, and follow the principle of least privilege when granting permissions. Do not store sensitive data on CI runners. It is a good idea to follow [the Python Packaging Authority's guides](https://packaging.python.org/en/latest/guides/).
+
 Example setup
 -------------
 
