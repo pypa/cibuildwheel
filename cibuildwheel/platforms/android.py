@@ -4,6 +4,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from pprint import pprint
@@ -419,9 +420,16 @@ def setup_android_env(
 
 
 def setup_fortran(env: dict[str, str]) -> None:
-    Path(f"{env['VIRTUAL_ENV']}/bin/gfortran").symlink_to(
-        resources.PATH / "android/fortran-shim.sh",
-    )
+    # "flang-new" is the standard executable name for our current version of Flang. In
+    # future versions this will change to "flang"
+    # (https://blog.llvm.org/posts/2025-03-11-flang-new/).
+    shim_in = resources.PATH / "android/fortran_shim.py"
+    shim_out = Path(env["VIRTUAL_ENV"]) / "bin/flang-new"
+
+    # The hashbang line runs the shim in cibuildwheel's own virtual environment, so it
+    # has access to utility functions for downloading and caching files.
+    shim_out.write_text(f"#!{sys.executable}\n\n" + shim_in.read_text())
+    shim_out.chmod(0o755)
 
 
 def before_build(state: BuildState) -> None:
