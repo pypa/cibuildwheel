@@ -47,8 +47,6 @@ runs:
         from subprocess import run
 
         EXTRAS = set(e.strip() for e in "${{ inputs.extras }}".split(",") if e.strip())
-        if sys.platform == "linux":
-            EXTRAS.discard("uv")
 
 
         class EnvBuilder(venv.EnvBuilder):
