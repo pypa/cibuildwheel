@@ -420,9 +420,8 @@ def setup_android_env(
 
 
 def setup_fortran(env: dict[str, str]) -> None:
-    # "flang-new" is the standard executable name for our current version of Flang. In
-    # future versions this will change to "flang"
-    # (https://blog.llvm.org/posts/2025-03-11-flang-new/).
+    # In case there's any autodetection based on the executable name, use the same name
+    # as the real executable (see fortran_shim.run_flang)
     shim_in = resources.PATH / "android/fortran_shim.py"
     shim_out = Path(env["VIRTUAL_ENV"]) / "bin/flang-new"
 
@@ -430,6 +429,7 @@ def setup_fortran(env: dict[str, str]) -> None:
     # has access to utility functions for downloading and caching files.
     shim_out.write_text(f"#!{sys.executable}\n\n" + shim_in.read_text())
     shim_out.chmod(0o755)
+    env["FC"] = str(shim_out)
 
 
 def before_build(state: BuildState) -> None:
