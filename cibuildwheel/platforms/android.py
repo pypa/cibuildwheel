@@ -224,9 +224,6 @@ def setup_env(
             raise errors.FatalError(msg)
         call(command, "--version", env=build_env)
 
-    # Construct an altered environment which simulates running on Android.
-    android_env = setup_android_env(config, python_dir, venv_dir, build_env)
-
     # Install build tools
     # TODO: use an official auditwheel version once
     # https://github.com/pypa/auditwheel/pull/643 has been released, and add it to the
@@ -243,11 +240,8 @@ def setup_env(
         raise errors.FatalError(msg)
     call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
 
-    # android-env.sh sets PKG_CONFIG="pkg-config --define-prefix", but some build
-    # systems can't handle arguments in that variable. Since we have a known version
-    # of pkgconf, it's safe to use PKG_CONFIG_RELOCATE_PATHS instead.
-    build_env["PKG_CONFIG"] = call("which", "pkgconf", env=build_env, capture_stdout=True).strip()
-    build_env["PKG_CONFIG_RELOCATE_PATHS"] = "1"
+    # Construct an altered environment which simulates running on Android.
+    android_env = setup_android_env(config, python_dir, venv_dir, build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -410,6 +404,12 @@ def setup_android_env(
 
     # Create shims which install additional build tools on first use.
     setup_fortran(android_env)
+
+    # `android.py env` returns PKG_CONFIG="pkg-config --define-prefix", but some build
+    # systems can't handle arguments in that variable. Since we have a known version
+    # of pkgconf, it's safe to use PKG_CONFIG_RELOCATE_PATHS instead.
+    android_env["PKG_CONFIG"] = call("which", "pkgconf", env=build_env, capture_stdout=True).strip()
+    android_env["PKG_CONFIG_RELOCATE_PATHS"] = "1"
 
     # Format the environment so it can be pasted into a shell when debugging.
     for key, value in sorted(android_env.items()):
