@@ -22,6 +22,7 @@ from ..frontend import get_build_frontend_extra_flags, parse_config_settings
 from ..logger import log
 from ..options import BuildOptions, Options
 from ..selector import BuildSelector
+from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
@@ -33,6 +34,15 @@ from ..venv import constraint_flags, find_uv, virtualenv
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",
     "x86_64": "x86_64-linux-android",
+}
+
+CROSS_BUILD_FILES = {
+    "numpy": [
+        "numpy/_core/include/numpy/numpyconfig.h",
+        "numpy/_core/include/numpy/_numpyconfig.h",
+        "numpy/_core/lib/libnpymath.a",
+        "numpy/random/lib/libnpyrandom.a",
+    ]
 }
 
 
@@ -130,6 +140,7 @@ def build(options: Options, tmp_path: Path) -> None:
             state = BuildState(
                 config, build_options, build_path, python_dir, build_env, android_env
             )
+            setup_cross_build_files(state)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -143,7 +154,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel = build_wheel(state)
                 repaired_wheel = repair_wheel(state, built_wheel)
 
-            test_wheel(state, repaired_wheel, build_frontend=build_options.build_frontend.name)
+            test_wheel(state, repaired_wheel)
 
             output_wheel: Path | None = None
             if compatible_wheel is None:
@@ -189,13 +200,7 @@ def setup_env(
     * android_env, which uses the environment while simulating running on Android.
     """
     log.step("Setting up build environment...")
-    build_frontend = build_options.build_frontend.name
-    use_uv = build_frontend == "build[uv]"
-    uv_path = find_uv()
-    if use_uv and uv_path is None:
-        msg = "uv not found"
-        raise AssertionError(msg)
-    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+    use_uv, pip = find_pip(build_options)
 
     # Create virtual environment
     python_exe = create_python_build_standalone_environment(
@@ -233,7 +238,7 @@ def setup_env(
         "patchelf",
         "pkgconf",
     ]
-    if build_frontend in {"build", "build[uv]"}:
+    if build_options.build_frontend.name in {"build", "build[uv]"}:
         tools.append("build")
     else:
         msg = "Android requires the build frontend to be 'build'"
@@ -241,7 +246,7 @@ def setup_env(
     call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
 
     # Construct an altered environment which simulates running on Android.
-    android_env = setup_android_env(config, python_dir, venv_dir, build_env)
+    android_env = setup_android_env(config, python_dir, build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -358,9 +363,9 @@ def localized_vars(
 
 
 def setup_android_env(
-    config: PythonConfiguration, python_dir: Path, venv_dir: Path, build_env: dict[str, str]
+    config: PythonConfiguration, python_dir: Path, build_env: dict[str, str]
 ) -> dict[str, str]:
-    site_packages = next(venv_dir.glob("lib/python*/site-packages"))
+    site_packages = find_site_packages(build_env)
     for suffix in ["pth", "py"]:
         shutil.copy(resources.PATH / f"android/_cross_venv.{suffix}", site_packages)
 
@@ -430,6 +435,59 @@ def setup_fortran(env: dict[str, str]) -> None:
     shim_out.write_text(f"#!{sys.executable}\n\n" + shim_in.read_text())
     shim_out.chmod(0o755)
     env["FC"] = str(shim_out)
+
+
+# Although the build environment must be installed for the build platform, some packages
+# contain platform-specific files which should be replaced with their Android
+# equivalents. We do this using a similar technique to Pyodide:
+#   * https://github.com/pyodide/pyodide-build/blob/v0.30.2/pyodide_build/recipe/builder.py#L638
+#   * https://github.com/pyodide/pyodide-recipes/blob/20250606/packages/numpy/meta.yaml#L28
+def setup_cross_build_files(state: BuildState) -> None:
+    _, pip = find_pip(state.options)
+    cbf_dir = state.build_path / "cross_build_files"
+    cbf_dir.mkdir()
+
+    for requirement in call(*pip, "freeze", env=state.build_env, capture_stdout=True).splitlines():
+        name, _, _ = requirement.strip().partition("==")
+        cross_build_files = CROSS_BUILD_FILES.get(name.lower(), [])
+        if cross_build_files:
+            pip_install_android(state, cbf_dir, "--no-deps", requirement)
+            for cbf in cross_build_files:
+                if (cbf_dir / cbf).exists():
+                    shutil.copy(
+                        cbf_dir / cbf,
+                        find_site_packages(state.build_env) / cbf,
+                    )
+                else:
+                    log.warning(f"{cbf_dir / cbf} does not exist")
+
+
+def pip_install_android(state: BuildState, target: Path, *args: PathOrStr) -> None:
+    use_uv, pip = find_pip(state.options)
+    call(
+        *pip,
+        "install",
+        "--only-binary=:all:",
+        *(["--python-platform", android_triplet(state.config.identifier)] if use_uv else []),
+        "--target",
+        target,
+        *args,
+        env=state.android_env,
+    )
+
+
+def find_site_packages(env: dict[str, str]) -> Path:
+    return next(Path(env["VIRTUAL_ENV"]).glob("lib/python*/site-packages"))
+
+
+def find_pip(build_options: BuildOptions) -> tuple[bool, list[str]]:
+    use_uv = build_options.build_frontend.name == "build[uv]"
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+    return use_uv, pip
 
 
 def before_build(state: BuildState) -> None:
@@ -516,19 +574,12 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     return repaired_wheel
 
 
-def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
+def test_wheel(state: BuildState, wheel: Path) -> None:
     test_command = state.options.test_command
     if not (test_command and state.options.test_selector(state.config.identifier)):
         return
 
     log.step("Testing wheel...")
-    use_uv = build_frontend == "build[uv]"
-    uv_path = find_uv()
-    if use_uv and uv_path is None:
-        msg = "uv not found"
-        raise AssertionError(msg)
-    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
-
     native_arch = arch_synonym(platform.machine(), platforms.native_platform(), "android")
     if state.config.arch != native_arch:
         log.warning(
@@ -544,23 +595,14 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
             env=state.android_env,
         )
 
-    platform_args = (
-        ["--python-platform", android_triplet(state.config.identifier)] if use_uv else []
-    )
-
     # Install the wheel and test-requires.
     site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
-    call(
-        *pip,
-        "install",
-        "--only-binary=:all:",
-        *platform_args,
-        "--target",
+    pip_install_android(
+        state,
         site_packages_dir,
         f"{wheel}{state.options.test_extras}",
         *state.options.test_requires,
-        env=state.android_env,
     )
 
     # Copy test-sources.
