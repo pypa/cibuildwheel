@@ -538,13 +538,17 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
 
     if state.options.repair_command:
         toolchain = Path(state.android_env["CC"]).parent.parent
+        triplet = android_triplet(state.config.identifier)
         ldpaths = ":".join(
-            # In the future, we may use this to implement PEP 725 by installing
-            # libraries in {state.python_dir}/prefix/lib or elsewhere, and adding that
-            # location to ldpaths.
-            [
-                # For libc++_shared.
-                f"{toolchain}/sysroot/usr/lib/{state.android_env['CIBW_HOST_TRIPLET']}",
+            # Pass ldpaths to help auditwheel find compiler libraries. If we implement
+            # PEP 725 in the future to provide non-Python libraries, we'll need to add
+            # their location here.
+            str(next(Path(toolchain).glob(path)))
+            for path in [
+                # libc++_shared
+                f"sysroot/usr/lib/{triplet}",
+                # libomp
+                f"lib/clang/*/lib/linux/{triplet.split('-')[0]}",
             ]
         )
         shell(
