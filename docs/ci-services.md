@@ -72,22 +72,6 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-### Travis CI [linux/windows] {: #travis-ci}
-
-To build Linux and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
-
-> .travis.yml
-
-```yaml
-{% include "../examples/travis-ci-minimal.yml" %}
-```
-
-Commit this file, enable building of your repo on Travis CI, and push.
-
-Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).
-
-[`examples/travis-ci-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/travis-ci-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
-
 ### CircleCI [linux/mac] {: #circleci}
 
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,

@@ -4,7 +4,6 @@ cibuildwheel
 [![PyPI](https://img.shields.io/pypi/v/cibuildwheel.svg)](https://pypi.python.org/pypi/cibuildwheel)
 [![Documentation Status](https://readthedocs.org/projects/cibuildwheel/badge/?version=stable)](https://cibuildwheel.pypa.io/en/stable/?badge=stable)
 [![Actions Status](https://github.com/pypa/cibuildwheel/workflows/Test/badge.svg)](https://github.com/pypa/cibuildwheel/actions)
-[![Travis Status](https://img.shields.io/travis/com/pypa/cibuildwheel/main?logo=travis)](https://travis-ci.com/github/pypa/cibuildwheel)
 [![CircleCI Status](https://img.shields.io/circleci/build/gh/pypa/cibuildwheel/main?logo=circleci)](https://circleci.com/gh/pypa/cibuildwheel)
 [![Azure Status](https://dev.azure.com/joerick0429/cibuildwheel/_apis/build/status/pypa.cibuildwheel?branchName=main)](https://dev.azure.com/joerick0429/cibuildwheel/_build/latest?definitionId=4&branchName=main)
 
@@ -15,7 +14,7 @@ cibuildwheel
 
 Python wheels are great. Building them across **Mac, Linux, Windows**, on **multiple versions of Python**, is not.
 
-`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, Travis CI, CircleCI, and GitLab CI - and it builds and tests your wheels across all of your platforms.
+`cibuildwheel` is here to help. `cibuildwheel` runs on your CI server - currently it supports GitHub Actions, Azure Pipelines, CircleCI, and GitLab CI - and it builds and tests your wheels across all of your platforms.
 
 
 What does it do?
@@ -46,7 +45,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 <sup>⁵ manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 
 - Builds manylinux, musllinux, macOS, and Windows wheels for CPython, PyPy, and GraalPy
-- Works on GitHub Actions, Azure Pipelines, Travis CI, CircleCI, GitLab CI, and Cirrus CI
+- Works on GitHub Actions, Azure Pipelines, CircleCI, GitLab CI, and Cirrus CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
 
@@ -61,7 +60,6 @@ Usage
 |-----------------|-------|-------|---------|-----------|-----------|-------------|---------|-----|
 | GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅⁴      | ✅³  |
 | Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅⁴      | ✅³  |
-| Travis CI       | ✅    |       | ✅      | ✅        |           |             | ✅⁴      |     |
 | CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅⁴      | ✅³  |
 | Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅⁴      | ✅³  |
 | Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅⁴      |      |
@@ -99,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.3.0
+        run: python -m pip install cibuildwheel==3.3.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -230,6 +228,12 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.3.1
+
+_5 January 2026_
+
+- 🛠 Update dependencies and container pins, including updating to CPython 3.14.2. (#2708)
+
 ### v3.3.0
 
 _12 November 2025_
@@ -281,16 +285,7 @@ _19 August 2025_
 - 🧪 Fix and enable doctests (#2546)
 - 📚 Improve our docs on free-threading (#2549)
 
-
-### v3.1.3
-
-_1 August 2025_
-
-- 🐛 Fix bug where "latest" dependencies couldn't update to pip 25.2 on Windows (#2537)
-- 🧪 Use pytest-rerunfailures to improve some of our iOS/Android tests (#2527, #2539)
-- 🧪 Remove some GraalPy Windows workarounds in our tests (#2501)
-
-<!-- [[[end]]] (sum: vS54piNR4b) -->
+<!-- [[[end]]] (sum: PDe+dJWkRl) -->
 
 ---
 

@@ -31,8 +31,8 @@ title: Working examples
 | [cmake][]                         | ![github icon][] ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Multitagged binary builds for all supported platforms, using cibw 2 config configuration. |
 | [pyinstrument][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Python profiler with a C extension. No external dependencies. |
 | [scikit-image][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Image processing library. Uses cibuildwheel to build and test a project that uses Cython with platform-native code.  |
-| [PyOxidizer][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A modern Python application packaging and distribution tool |
 | [cvxpy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A Python-embedded modeling language for convex optimization problems. |
+| [PyOxidizer][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A modern Python application packaging and distribution tool |
 | [twisted-iocpsupport][]           | ![github icon][] | ![windows icon][] | A submodule of Twisted that hooks into native C APIs using Cython. |
 | [pedalboard][]                    | ![github icon][] | ![windows icon][] ![linux icon][] ![apple icon][] | A Python library for working with audio data and audio plugins by wrapping the [JUCE](https://github.com/juce-framework/JUCE/) C++ framework. Uses cibuildwheel to deploy on as many operating systems and Python versions as possible with only one dependency (any NumPy).  |
 | [River][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | 🌊 Online machine learning in Python |
@@ -47,8 +47,8 @@ title: Working examples
 | [tinyobjloader][]                 | ![azurepipelines icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Tiny but powerful single file wavefront obj loader |
 | [vispy][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Main repository for Vispy |
 | [coverage.py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The coverage tool for Python |
-| [PyCryptodome][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A self-contained cryptographic library for Python |
 | [Line Profiler][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Line-by-line profiling for Python |
+| [PyCryptodome][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A self-contained cryptographic library for Python |
 | [PyAV][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Pythonic bindings for FFmpeg's libraries. |
 | [PyYAML][]                        | ![github icon][] | ![apple icon][] | Canonical source repository for PyYAML |
 | [pikepdf][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python library for reading and writing PDF, powered by QPDF |
@@ -109,10 +109,10 @@ title: Working examples
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
 | [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
-| [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
-| [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
-| [ril][]                           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels. |
 | [aalink][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Async Python interface for Ableton Link. |
+| [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
+| [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
+| [ril][]                           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels. |
 | [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
 | [werpy][]                         | ![github icon][] | ![windows icon][] ![linux icon][] ![apple icon][] | An ultra-fast python package using optimized dynamic programming to compute the Word Error Rate (WER). |
 | [CorrectionLib][]                 | ![github icon][] | ![apple icon][] ![linux icon][] | Structured JSON powered correction library for HEP, designed for the CMS experiment at CERN. |
@@ -142,8 +142,8 @@ title: Working examples
 [cmake]: https://github.com/scikit-build/cmake-python-distributions
 [pyinstrument]: https://github.com/joerick/pyinstrument
 [scikit-image]: https://github.com/scikit-image/scikit-image
-[PyOxidizer]: https://github.com/indygreg/PyOxidizer
 [cvxpy]: https://github.com/cvxpy/cvxpy
+[PyOxidizer]: https://github.com/indygreg/PyOxidizer
 [twisted-iocpsupport]: https://github.com/twisted/twisted-iocpsupport
 [pedalboard]: https://github.com/spotify/pedalboard
 [River]: https://github.com/online-ml/river
@@ -158,8 +158,8 @@ title: Working examples
 [tinyobjloader]: https://github.com/tinyobjloader/tinyobjloader
 [vispy]: https://github.com/vispy/vispy
 [coverage.py]: https://github.com/nedbat/coveragepy
-[PyCryptodome]: https://github.com/Legrandin/pycryptodome
 [Line Profiler]: https://github.com/pyutils/line_profiler
+[PyCryptodome]: https://github.com/Legrandin/pycryptodome
 [PyAV]: https://github.com/PyAV-Org/PyAV
 [PyYAML]: https://github.com/yaml/pyyaml
 [pikepdf]: https://github.com/pikepdf/pikepdf
@@ -220,10 +220,10 @@ title: Working examples
 [etebase-py]: https://github.com/etesync/etebase-py
 [cf-units]: https://github.com/SciTools/cf-units
 [numpythia]: https://github.com/scikit-hep/numpythia
-[pyjet]: https://github.com/scikit-hep/pyjet
-[SiPM]: https://github.com/EdoPro98/SimSiPM
-[ril]: https://github.com/Cryptex-github/ril-py
 [aalink]: https://github.com/artfwo/aalink
+[SiPM]: https://github.com/EdoPro98/SimSiPM
+[pyjet]: https://github.com/scikit-hep/pyjet
+[ril]: https://github.com/Cryptex-github/ril-py
 [GSD]: https://github.com/glotzerlab/gsd
 [werpy]: https://github.com/analyticsinmotion/werpy
 [CorrectionLib]: https://github.com/cms-nanoAOD/correctionlib
