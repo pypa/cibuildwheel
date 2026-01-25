@@ -2,8 +2,7 @@ import subprocess
 
 import pytest
 
-from . import utils
-from .test_projects.c import new_c_project
+from . import test_projects, utils
 
 
 @pytest.mark.parametrize(
@@ -14,7 +13,7 @@ from .test_projects.c import new_c_project
     ],
 )
 def test_build_frontend_args(tmp_path, capfd, frontend_name):
-    project = new_c_project()
+    project = test_projects.new_c_project()
     project_dir = tmp_path / "project"
     project.generate(project_dir)
 

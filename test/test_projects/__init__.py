@@ -1,4 +1,5 @@
 from .base import TestProject
-from .c import new_c_project
+from .meson import new_meson_project
+from .setuptools import new_c_project
 
-__all__ = ("TestProject", "new_c_project")
+__all__ = ("TestProject", "new_c_project", "new_meson_project")
