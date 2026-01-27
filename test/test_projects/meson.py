@@ -14,7 +14,7 @@ version = "0.1.0"
 """
 
 MESON_BUILD_TEMPLATE = r"""
-project('spam', 'c',
+project('spam', 'c', 'cython',
   version: '0.1.0',
   default_options: ['warning_level=2'],
 )
