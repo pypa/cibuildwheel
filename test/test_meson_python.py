@@ -12,7 +12,12 @@ def test_meson_python_basic(tmp_path, build_frontend_env):
 
     # build the wheels
     actual_wheels = utils.cibuildwheel_run(
-        project_dir, add_env=build_frontend_env, single_python=True
+        project_dir,
+        add_env={
+            **build_frontend_env,
+            "CIBW_CONFIG_SETTINGS_WINDOWS": 'setup-args="--vsenv"',
+        },
+        single_python=True,
     )
 
     # check that the expected wheels are produced
