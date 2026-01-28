@@ -1,6 +1,7 @@
 import argparse
 import contextlib
 import dataclasses
+import functools
 import os
 import shutil
 import sys
@@ -78,8 +79,13 @@ def main_inner(global_options: GlobalOptions) -> None:
     `main_inner` is the same as `main`, but it raises FatalError exceptions
     rather than exiting directly.
     """
+    # Default in 3.15+, only needed on 3.14
+    if sys.version_info >= (3, 14):
+        arg_parser = functools.partial(argparse.ArgumentParser, suggest_on_error=True)
+    else:
+        arg_parser = argparse.ArgumentParser
 
-    parser = argparse.ArgumentParser(
+    parser = arg_parser(
         description="Build wheels for all the platforms.",
         epilog="""
             Most options are supplied via environment variables or in
@@ -130,7 +136,7 @@ def main_inner(global_options: GlobalOptions) -> None:
     parser.add_argument(
         "--only",
         default=None,
-        choices=[v["identifier"] for vv in read_all_configs().values() for v in vv],
+        choices=sorted(v["identifier"] for vv in read_all_configs().values() for v in vv),
         metavar="IDENTIFIER",
         help="""
             Force a single wheel build when given an identifier. Overrides
