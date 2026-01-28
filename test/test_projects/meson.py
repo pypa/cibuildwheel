@@ -13,6 +13,10 @@ name = "spam"
 version = "0.1.0"
 
 [tool.cibuildwheel.windows]
+config-settings = { "setup-args" = "--vsenv" }
+# building win32 wheels on a 64-bit CI machine with meson-python
+# requires a few extra steps outside cibuildwheel. See
+# https://github.com/pypa/cibuildwheel/pull/2718
 archs = ["auto64"]
 """
 
