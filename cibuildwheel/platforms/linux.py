@@ -522,6 +522,7 @@ def _matches_prepared_command(error_cmd: Sequence[str], command_template: str) -
 def troubleshoot(options: Options, error: Exception) -> None:
     if isinstance(error, subprocess.CalledProcessError) and (
         error.cmd[0:4] == ["python", "-m", "pip", "wheel"]
+        or error.cmd[0:2] == ["uv", "build"]
         or error.cmd[0:3] == ["python", "-m", "build"]
         or _matches_prepared_command(
             error.cmd, options.build_options(None).repair_command
