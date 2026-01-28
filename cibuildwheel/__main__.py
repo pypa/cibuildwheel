@@ -136,7 +136,7 @@ def main_inner(global_options: GlobalOptions) -> None:
     parser.add_argument(
         "--only",
         default=None,
-        choices=sorted(v["identifier"] for vv in read_all_configs().values() for v in vv),
+        choices=[v["identifier"] for vv in read_all_configs().values() for v in vv],
         metavar="IDENTIFIER",
         help="""
             Force a single wheel build when given an identifier. Overrides
