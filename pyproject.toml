@@ -1,0 +1,11 @@
+
+[build-system]
+requires = ["meson-python"]
+build-backend = "mesonpy"
+
+[project]
+name = "spam"
+version = "0.1.0"
+
+[tool.cibuildwheel.windows]
+archs = ["auto64"]
