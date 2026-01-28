@@ -11,6 +11,9 @@ build-backend = "mesonpy"
 [project]
 name = "spam"
 version = "0.1.0"
+
+[tool.cibuildwheel.windows]
+archs = ["auto64"]
 """
 
 MESON_BUILD_TEMPLATE = r"""
