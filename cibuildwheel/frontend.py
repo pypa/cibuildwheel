@@ -7,7 +7,7 @@ from typing import Literal, Self, get_args
 from .logger import log
 from .util.helpers import parse_key_value_string
 
-BuildFrontendName = Literal["pip", "build", "build[uv]"]
+BuildFrontendName = Literal["pip", "build", "build[uv]", "uv"]
 
 
 @dataclasses.dataclass(frozen=True)
