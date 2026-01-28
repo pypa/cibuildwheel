@@ -119,6 +119,8 @@ jobs:
         allow-prereleases: true
 
     - uses: astral-sh/setup-uv@v7
+      with:
+        version: "0.9.9"
 
     - name: Free up disk space
       if: runner.os == 'Linux' && matrix.test_select != 'android'
