@@ -2,15 +2,15 @@
 #    nox -s update_constraints
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.0
+anyio==4.12.1
     # via httpx
-auditwheel-emscripten==0.2.0
+auditwheel-emscripten==0.2.1
     # via pyodide-build
 build==1.2.2.post1
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2025.11.12
+certifi==2026.1.4
     # via
     #   httpcore
     #   httpx
@@ -23,7 +23,7 @@ click==8.1.8
     #   typer
 distlib==0.4.0
     # via virtualenv
-filelock==3.20.0
+filelock==3.20.3
     # via virtualenv
 h11==0.16.0
     # via httpcore
@@ -36,18 +36,19 @@ idna==3.11
     #   anyio
     #   httpx
     #   requests
-leb128==1.0.8
+leb128==1.0.9
     # via auditwheel-emscripten
 markdown-it-py==4.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-packaging==25.0
+packaging==26.0
     # via
     #   auditwheel-emscripten
     #   build
     #   pyodide-build
     #   unearth
+    #   wheel
 pip==25.3
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.5.1
@@ -62,13 +63,13 @@ pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via rich
-pyodide-build==0.30.9
+pyodide-build==0.31.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-pyodide-cli==0.4.0
+pyodide-cli==0.4.2
     # via
     #   auditwheel-emscripten
     #   pyodide-build
-pyodide-lock==0.1.0
+pyodide-lock==0.1.1
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
@@ -76,18 +77,16 @@ requests==2.32.5
     # via pyodide-build
 resolvelib==1.2.1
     # via pyodide-build
-rich==14.2.0
+rich==14.3.1
     # via
     #   pyodide-build
     #   pyodide-cli
     #   typer
-ruamel-yaml==0.18.16
+ruamel-yaml==0.19.1
     # via pyodide-build
-ruamel-yaml-clib==0.2.15
-    # via ruamel-yaml
 shellingham==1.5.4
     # via typer
-typer==0.20.0
+typer==0.21.1
     # via
     #   auditwheel-emscripten
     #   pyodide-build
@@ -101,15 +100,15 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-unearth==0.18.1
+unearth==0.18.2
     # via pyodide-build
-urllib3==2.6.0
+urllib3==2.6.3
     # via requests
-virtualenv==20.35.4
+virtualenv==20.36.1
     # via
     #   build
     #   pyodide-build
-wheel==0.45.1
+wheel==0.46.3
     # via
     #   auditwheel-emscripten
     #   pyodide-build

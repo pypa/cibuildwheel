@@ -99,7 +99,7 @@ def test_pyodide_version_incompatible(tmp_path, capfd):
             tmp_path,
             add_args=["--platform", "pyodide"],
             add_env={
-                "CIBW_DEPENDENCY_VERSIONS": "packages: pyodide-build==0.29.3",
+                "CIBW_DEPENDENCY_VERSIONS": "packages: pyodide-build==0.31.2",
                 "CIBW_PYODIDE_VERSION": "0.26.0a6",
             },
         )

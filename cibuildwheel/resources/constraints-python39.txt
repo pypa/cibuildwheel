@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 altgraph==0.17.5
     # via macholib
-build==1.3.0
+build==1.4.0
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
@@ -10,13 +10,13 @@ distlib==0.4.0
     # via virtualenv
 filelock==3.19.1
     # via virtualenv
-importlib-metadata==8.7.0
+importlib-metadata==8.7.1
     # via
     #   build
     #   pkgconf
 macholib==1.16.4
     # via delocate
-packaging==25.0
+packaging==26.0
     # via
     #   build
     #   delocate
@@ -30,13 +30,13 @@ platformdirs==4.4.0
     # via virtualenv
 pyproject-hooks==1.2.0
     # via build
-tomli==2.3.0
+tomli==2.4.0
     # via build
 typing-extensions==4.15.0
     # via
     #   delocate
     #   virtualenv
-virtualenv==20.35.4
+virtualenv==20.36.1
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.23.0
     # via importlib-metadata
