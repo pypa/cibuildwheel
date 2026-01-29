@@ -510,8 +510,9 @@ def build(options: Options, tmp_path: Path) -> None:
                             env=build_env,
                         )
                     case "uv":
+                        assert uv_path is not None
                         call(
-                            "uv",
+                            uv_path,
                             "build",
                             "--python=python",
                             build_options.package_dir,

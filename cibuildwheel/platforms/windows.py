@@ -268,7 +268,7 @@ def setup_python(
         raise ValueError(msg)
     assert base_python.exists()
 
-    if build_frontend in {"build[uv]", "uv"} and not can_use_uv(python_configuration):
+    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
         build_frontend = "build"
 
     use_uv = build_frontend in {"build[uv]", "uv"}
@@ -386,6 +386,8 @@ def build(options: Options, tmp_path: Path) -> None:
     if not python_configurations:
         return
 
+    uv_path = find_uv()
+
     try:
         before_all_options_identifier = python_configurations[0].identifier
         before_all_options = options.build_options(before_all_options_identifier)
@@ -501,8 +503,9 @@ def build(options: Options, tmp_path: Path) -> None:
                             env=env,
                         )
                     case "uv":
+                        assert uv_path is not None
                         call(
-                            "uv",
+                            uv_path,
                             "build",
                             "--python=python",
                             build_options.package_dir,
