@@ -26,12 +26,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
     parser.addoption("--run-podman", action="store_true", default=False, help="run podman tests")
     parser.addoption(
-        "--run-cp38-universal2",
-        action="store_true",
-        default=False,
-        help="macOS cp38 uses the universal2 installer",
-    )
-    parser.addoption(
         "--enable",
         action="store",
         default=None,

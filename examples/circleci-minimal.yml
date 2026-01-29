@@ -43,7 +43,7 @@ jobs:
       - run:
           name: Build the OS X wheels.
           command: |
-            sudo softwareupdate --install-rosetta --agree-to-license  # for python<=3.8 or x86_64/universal2 tests
+            sudo softwareupdate --install-rosetta --agree-to-license  # for x86_64/universal2 tests
             pip3 install cibuildwheel==3.3.1
             cibuildwheel --output-dir wheelhouse
       - store_artifacts:
