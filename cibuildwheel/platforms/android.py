@@ -34,7 +34,7 @@ from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from ..util.helpers import prepare_command
 from ..util.packaging import find_compatible_wheel
 from ..util.python_build_standalone import create_python_build_standalone_environment
-from ..venv import constraint_flags, find_uv, virtualenv
+from ..venv import constraint_flags, ensure_uv, virtualenv
 
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",
@@ -191,11 +191,9 @@ def setup_env(
     log.step("Setting up build environment...")
     build_frontend = build_options.build_frontend.name
     use_uv = build_frontend == "build[uv]"
-    uv_path = find_uv()
-    if use_uv and uv_path is None:
-        msg = "uv not found"
-        raise AssertionError(msg)
-    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+    if use_uv:
+        ensure_uv()
+    pip = ["pip"] if not use_uv else ["uv", "pip"]
 
     # Create virtual environment
     python_exe = create_python_build_standalone_environment(
@@ -609,11 +607,9 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
 
     log.step("Testing wheel...")
     use_uv = build_frontend == "build[uv]"
-    uv_path = find_uv()
-    if use_uv and uv_path is None:
-        msg = "uv not found"
-        raise AssertionError(msg)
-    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+    if use_uv:
+        ensure_uv()
+    pip = ["pip"] if not use_uv else ["uv", "pip"]
 
     native_arch = arch_synonym(platform.machine(), platforms.native_platform(), "android")
     if state.config.arch != native_arch:

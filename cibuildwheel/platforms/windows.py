@@ -24,7 +24,7 @@ from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
 from ..util.helpers import prepare_command, unwrap
 from ..util.packaging import find_compatible_wheel, get_pip_version
-from ..venv import constraint_flags, find_uv, virtualenv
+from ..venv import constraint_flags, ensure_uv, virtualenv
 
 
 def get_nuget_args(
@@ -272,7 +272,8 @@ def setup_python(
         build_frontend = "build"
 
     use_uv = build_frontend == "build[uv]"
-    uv_path = find_uv()
+    if use_uv:
+        ensure_uv()
 
     log.step("Setting up build environment...")
     venv_path = tmp / "venv"
@@ -323,13 +324,12 @@ def setup_python(
                 env=env,
             )
         case "build[uv]":
-            assert uv_path is not None
             call(
-                uv_path,
+                "uv",
                 "pip",
                 "install",
                 "--upgrade",
-                "build[virtualenv]",
+                "build",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
