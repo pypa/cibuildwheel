@@ -5,7 +5,6 @@ import shlex
 import shutil
 import subprocess
 import sys
-from collections.abc import MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
 from pprint import pprint
@@ -428,11 +427,7 @@ def setup_android_env(
     return android_env
 
 
-def setup_rust(
-    config: PythonConfiguration,
-    python_dir: Path,
-    env: MutableMapping[str, str],
-) -> None:
+def setup_rust(config: PythonConfiguration, python_dir: Path, env: dict[str, str]) -> None:
     cargo_target = android_triplet(config.identifier)
 
     # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
@@ -452,7 +447,7 @@ def setup_rust(
     venv_bin = Path(env["VIRTUAL_ENV"]) / "bin"
     for tool in ["cargo", "rustup"]:
         shim_path = venv_bin / tool
-        shutil.copy(resources.PATH / "_rust_shim.py", shim_path)
+        shutil.copy(resources.PATH / "android/rust_shim.py", shim_path)
         shim_path.chmod(0o755)
 
 

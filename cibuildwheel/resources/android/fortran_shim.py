@@ -1,3 +1,6 @@
+# This file intentionally has no hashbang line in the source: cibuildwheel will add it
+# above this comment when the file is deployed.
+
 import os
 import re
 import shutil
