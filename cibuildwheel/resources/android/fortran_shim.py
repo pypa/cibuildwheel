@@ -91,7 +91,7 @@ def run_flang(cache_dir: Path) -> None:
         pass
     elif sys.platform == "darwin":
         args = [
-            *["docker", "run", "--platform", "linux/amd64"],
+            *["docker", "run", "--rm", "--platform", "linux/amd64"],
             *chain.from_iterable(
                 # Docker on macOS only allows certain directories to be mounted as volumes
                 # by default, but they include all the locations we're likely to need.
