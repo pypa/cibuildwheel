@@ -10,8 +10,6 @@ SO_FILE_WARNING = "NOTE: Shared object (.so) files found in this project."
 
 @pytest.mark.parametrize("project_contains_so_files", [False, True])
 def test_failed_build_with_so_files(tmp_path, capfd, build_frontend_env, project_contains_so_files):
-    if build_frontend_env == "uv" and project_contains_so_files:
-        pytest.skip("UV doesn't show this output for some reason")
     project = TestProject()
     project.files["setup.py"] = "raise Exception('this build will fail')\n"
     if project_contains_so_files:
