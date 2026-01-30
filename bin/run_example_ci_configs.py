@@ -16,6 +16,8 @@ import click
 
 DIR = Path(__file__).parent.parent.resolve()
 
+BuildBackend = typing.Literal["setuptools", "meson"]
+
 
 def shell(cmd: str, *, check: bool, **kwargs: object) -> subprocess.CompletedProcess[str]:
     return subprocess.run([cmd], shell=True, check=check, **kwargs)  # type: ignore[call-overload, no-any-return]
@@ -27,11 +29,14 @@ def git_repo_has_changes() -> bool:
     return unstaged_changes or staged_changes
 
 
-def generate_basic_project(path: Path) -> None:
+def generate_project(path: Path, build_backend: BuildBackend) -> None:
     sys.path.insert(0, "")
-    from test.test_projects.c import new_c_project  # noqa: PLC0415
+    if build_backend == "meson":
+        from test.test_projects.meson import new_meson_project as new_project  # noqa: PLC0415
+    else:
+        from test.test_projects.setuptools import new_c_project as new_project  # noqa: PLC0415
 
-    project = new_c_project()
+    project = new_project()
     project.generate(path)
 
 
@@ -39,10 +44,10 @@ class CIService(typing.NamedTuple):
     name: str
     dst_config_path: str
     badge_md: str
-    config_file_transform: typing.Callable[[str], str] = lambda x: x  # identity by default
+    config_file_transform: typing.Callable[[str, str], str] = lambda x, _: x  # identity by default
 
 
-def github_config_file_transform(content: str) -> str:
+def github_config_file_transform(content: str, git_ref: str) -> str:
     # one of the the github configs only builds on main, so we need to remove that restriction
     # so our example build will run on the test branch.
     #
@@ -59,6 +64,22 @@ def github_config_file_transform(content: str) -> str:
     content = re.sub(
         r"push:\n\s+branches:\n\s+- main",
         "push:",
+        content,
+    )
+
+    # use the version of cibuildwheel from the current commit, not the latest
+    # release
+    # replace:
+    # """
+    # uses: pypa/cibuildwheel@v3.3.1
+    # """
+    # with:
+    # """
+    # uses: pypa/cibuildwheel@<latest commit hash>
+    # """
+    content = re.sub(
+        r"uses: pypa/cibuildwheel@v.*",
+        f"uses: pypa/cibuildwheel@{git_ref}",
         content,
     )
     return content
@@ -110,20 +131,23 @@ def ci_service_for_config_file(config_file: Path) -> CIService:
 
 @click.command()
 @click.argument("config_files", nargs=-1, type=click.Path())
-def run_example_ci_configs(config_files=None):
+@click.option("--build-backend", type=click.Choice(["setuptools", "meson"]), default="setuptools")
+def run_example_ci_configs(
+    config_files: list[str], build_backend: BuildBackend = "setuptools"
+) -> None:
     """
     Test the example configs. If no files are specified, will test
     examples/*-minimal.yml
     """
 
     if len(config_files) == 0:
-        config_files = Path("examples").glob("*-minimal.yml")
+        config_file_paths = list(Path("examples").glob("*-minimal.yml"))
     else:
-        config_files = [Path(f) for f in config_files]
+        config_file_paths = [Path(f) for f in config_files]
 
     # check each CI service has at most 1 config file
     configs_by_service = set()
-    for config_file in config_files:
+    for config_file in config_file_paths:
         service = ci_service_for_config_file(config_file)
         if service.name in configs_by_service:
             msg = "You cannot specify more than one config per CI service"
@@ -137,6 +161,9 @@ def run_example_ci_configs(config_files=None):
     previous_branch = shell(
         "git rev-parse --abbrev-ref HEAD", check=True, capture_output=True, encoding="utf8"
     ).stdout.strip()
+    git_ref = shell(
+        "git rev-parse HEAD", check=True, capture_output=True, encoding="utf8"
+    ).stdout.strip()
 
     timestamp = time.strftime("%Y-%m-%dT%H-%M-%S", time.gmtime())
     branch_name = f"example-config-test---{previous_branch}-{timestamp}"
@@ -145,16 +172,16 @@ def run_example_ci_configs(config_files=None):
         shell(f"git checkout --orphan {branch_name}", check=True)
 
         example_project = Path("example_root")
-        generate_basic_project(example_project)
+        generate_project(example_project, build_backend=build_backend)
 
-        for config_file in config_files:
+        for config_file in config_file_paths:
             service = ci_service_for_config_file(config_file)
             dst_config_file = example_project / service.dst_config_path
 
             dst_config_file.parent.mkdir(parents=True, exist_ok=True)
 
             contents = config_file.read_text(encoding="utf8")
-            contents = service.config_file_transform(contents)
+            contents = service.config_file_transform(contents, git_ref)
             dst_config_file.write_text(contents, encoding="utf8")
 
         subprocess.run(["git", "add", example_project], check=True)
@@ -178,14 +205,14 @@ def run_example_ci_configs(config_files=None):
         print("> ")
         print("> | Service | Config | Status |")
         print("> |---|---|---|")
-        for config_file in config_files:
+        for config_file in config_file_paths:
             service = ci_service_for_config_file(config_file)
             badge = service.badge_md.format(
                 branch=branch_name, branch_escaped=quote(branch_name, safe="")
             )
             print(f"> | {service.name} | `{config_file}` | {badge} |")
         print("> ")
-        print("> Generated by `bin/run_example_ci_config.py`")
+        print(f"> Generated by `{' '.join(sys.argv)}`")
         print()
         print("---")
     finally:
