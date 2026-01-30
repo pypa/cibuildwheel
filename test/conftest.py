@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 from collections.abc import Generator
 
@@ -11,7 +12,6 @@ from cibuildwheel.ci import detect_ci_provider
 from cibuildwheel.options import CommandLineArguments, Options
 from cibuildwheel.selector import EnableGroup
 from cibuildwheel.typing import PLATFORMS
-from cibuildwheel.venv import find_uv
 
 from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
 
@@ -180,10 +180,10 @@ def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
         pytest.skip(f"Can't use pip as build frontend for {platform}")
     if platform == "pyodide" and frontend == "build[uv]":
         pytest.skip("Can't use uv with pyodide yet")
-    uv_path = find_uv()
-    if uv_path is None and frontend == "build[uv]":
+    uv_available = shutil.which("uv") is not None
+    if not uv_available and frontend == "build[uv]":
         pytest.skip("Can't find uv, so skipping uv tests")
-    if uv_path is not None and frontend == "build" and platform not in {"android", "ios"}:
+    if uv_available and frontend == "build" and platform not in {"android", "ios"}:
         pytest.skip("No need to check build when uv is present")
 
     return {"CIBW_BUILD_FRONTEND": frontend}

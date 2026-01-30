@@ -1,4 +1,3 @@
-import contextlib
 import functools
 import os
 import shutil
@@ -108,6 +107,7 @@ def virtualenv(
     assert python.exists()
 
     if use_uv:
+        ensure_uv()
         call("uv", "venv", venv_path, "--python", python)
     else:
         virtualenv_app, virtualenv_version = _ensure_virtualenv(version)
@@ -156,12 +156,17 @@ def virtualenv(
     return venv_env
 
 
-def find_uv() -> Path | None:
-    # Prefer uv in our environment
-    with contextlib.suppress(ImportError, FileNotFoundError):
-        from uv import find_uv_bin  # noqa: PLC0415
+def ensure_uv() -> None:
+    """
+    Ensures uv is available on PATH. Raises an error with a helpful message if not found.
 
-        return Path(find_uv_bin())
-
-    uv_on_path = shutil.which("uv")
-    return Path(uv_on_path) if uv_on_path else None
+    When using build-frontend=build[uv], callers must ensure uv is available
+    on PATH before invoking cibuildwheel.
+    """
+    if shutil.which("uv") is None:
+        msg = (
+            "uv not found on PATH. When using build-frontend=build[uv], "
+            "ensure uv is installed and available on PATH. "
+            "You can install it with 'pip install uv' or see https://docs.astral.sh/uv/getting-started/installation/"
+        )
+        raise FileNotFoundError(msg)
