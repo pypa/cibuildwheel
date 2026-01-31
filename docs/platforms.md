@@ -214,11 +214,6 @@ minimum supported [API level](https://developer.android.com/tools/releases/platf
 for generated wheels. This will default to the minimum API level of the selected Python
 version.
 
-If the [`repair-wheel-command`](options.md#repair-wheel-command) adds any libraries to
-the wheel, then `ANDROID_API_LEVEL` must be at least 24. This is already the default
-when building for Python 3.14 and later, but you may need to set it when building for
-Python 3.13.
-
 ### Build frontend support
 
 Android builds only support the `build` frontend. In principle, support for the

@@ -1,15 +1,11 @@
-import csv
-import hashlib
 import os
 import platform
 import re
 import shlex
 import shutil
 import subprocess
-import sysconfig
-from collections.abc import Iterable, Iterator, MutableMapping
+import sys
 from dataclasses import dataclass
-from os.path import relpath
 from pathlib import Path
 from pprint import pprint
 from runpy import run_path
@@ -18,8 +14,6 @@ from typing import Any
 
 from build import ProjectBuilder
 from build.env import IsolatedEnv
-from elftools.common.exceptions import ELFError
-from elftools.elf.elffile import ELFFile
 from filelock import FileLock
 
 from .. import errors, platforms  # pylint: disable=cyclic-import
@@ -28,6 +22,7 @@ from ..frontend import get_build_frontend_extra_flags, parse_config_settings
 from ..logger import log
 from ..options import BuildOptions, Options
 from ..selector import BuildSelector
+from ..typing import PathOrStr
 from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
@@ -39,6 +34,15 @@ from ..venv import constraint_flags, find_uv, virtualenv
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",
     "x86_64": "x86_64-linux-android",
+}
+
+CROSS_BUILD_FILES = {
+    "numpy": [
+        "numpy/_core/include/numpy/numpyconfig.h",
+        "numpy/_core/include/numpy/_numpyconfig.h",
+        "numpy/_core/lib/libnpymath.a",
+        "numpy/random/lib/libnpyrandom.a",
+    ]
 }
 
 
@@ -136,6 +140,7 @@ def build(options: Options, tmp_path: Path) -> None:
             state = BuildState(
                 config, build_options, build_path, python_dir, build_env, android_env
             )
+            setup_cross_build_files(state)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -149,7 +154,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel = build_wheel(state)
                 repaired_wheel = repair_wheel(state, built_wheel)
 
-            test_wheel(state, repaired_wheel, build_frontend=build_options.build_frontend.name)
+            test_wheel(state, repaired_wheel)
 
             output_wheel: Path | None = None
             if compatible_wheel is None:
@@ -176,6 +181,12 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_dir = build_path / "python"
     python_dir.mkdir()
     shutil.unpack_archive(python_tgz, python_dir)
+
+    # Work around https://github.com/python/cpython/issues/138800. This can be removed
+    # once we've updated to Python versions that include the fix.
+    pc_path = python_dir / f"prefix/lib/pkgconfig/python-{config.version}.pc"
+    pc_path.write_text(pc_path.read_text().replace("$(BLDLIBRARY)", f"-lpython{config.version}"))
+
     return python_dir
 
 
@@ -189,13 +200,7 @@ def setup_env(
     * android_env, which uses the environment while simulating running on Android.
     """
     log.step("Setting up build environment...")
-    build_frontend = build_options.build_frontend.name
-    use_uv = build_frontend == "build[uv]"
-    uv_path = find_uv()
-    if use_uv and uv_path is None:
-        msg = "uv not found"
-        raise AssertionError(msg)
-    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+    use_uv, pip = find_pip(build_options)
 
     # Create virtual environment
     python_exe = create_python_build_standalone_environment(
@@ -224,14 +229,24 @@ def setup_env(
             raise errors.FatalError(msg)
         call(command, "--version", env=build_env)
 
-    # Construct an altered environment which simulates running on Android.
-    android_env = setup_android_env(config, python_dir, venv_dir, build_env)
-
     # Install build tools
-    if build_frontend not in {"build", "build[uv]"}:
+    # TODO: use an official auditwheel version once
+    # https://github.com/pypa/auditwheel/pull/643 has been released, and add it to the
+    # constraints files.
+    tools = [
+        "auditwheel @ git+https://github.com/mhsmith/auditwheel@android",
+        "patchelf",
+        "pkgconf",
+    ]
+    if build_options.build_frontend.name in {"build", "build[uv]"}:
+        tools.append("build")
+    else:
         msg = "Android requires the build frontend to be 'build'"
         raise errors.FatalError(msg)
-    call(*pip, "install", "build", *constraint_flags(dependency_constraint), env=build_env)
+    call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
+
+    # Construct an altered environment which simulates running on Android.
+    android_env = setup_android_env(config, python_dir, build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -321,6 +336,8 @@ def localized_vars(
         if isinstance(final, str):
             final = final.replace(orig_prefix, str(prefix))
 
+        # By default we build against the same API level as Python itself, but this can
+        # be overridden with an environment variable.
         if key == "ANDROID_API_LEVEL":
             if api_level := build_env.get(key):
                 final = int(api_level)
@@ -346,11 +363,11 @@ def localized_vars(
 
 
 def setup_android_env(
-    config: PythonConfiguration, python_dir: Path, venv_dir: Path, build_env: dict[str, str]
+    config: PythonConfiguration, python_dir: Path, build_env: dict[str, str]
 ) -> dict[str, str]:
-    site_packages = next(venv_dir.glob("lib/python*/site-packages"))
+    site_packages = find_site_packages(build_env)
     for suffix in ["pth", "py"]:
-        shutil.copy(resources.PATH / f"_cross_venv.{suffix}", site_packages)
+        shutil.copy(resources.PATH / f"android/_cross_venv.{suffix}", site_packages)
 
     sysconfigdata_path = Path(
         shutil.copy(
@@ -393,6 +410,15 @@ def setup_android_env(
     # Cargo target linker needs to be specified after CC is set
     setup_rust(config, python_dir, android_env)
 
+    # Create shims which install additional build tools on first use.
+    setup_fortran(android_env)
+
+    # `android.py env` returns PKG_CONFIG="pkg-config --define-prefix", but some build
+    # systems can't handle arguments in that variable. Since we have a known version
+    # of pkgconf, it's safe to use PKG_CONFIG_RELOCATE_PATHS instead.
+    android_env["PKG_CONFIG"] = call("which", "pkgconf", env=build_env, capture_stdout=True).strip()
+    android_env["PKG_CONFIG_RELOCATE_PATHS"] = "1"
+
     # Format the environment so it can be pasted into a shell when debugging.
     for key, value in sorted(android_env.items()):
         if os.environ.get(key) != value:
@@ -401,11 +427,7 @@ def setup_android_env(
     return android_env
 
 
-def setup_rust(
-    config: PythonConfiguration,
-    python_dir: Path,
-    env: MutableMapping[str, str],
-) -> None:
+def setup_rust(config: PythonConfiguration, python_dir: Path, env: dict[str, str]) -> None:
     cargo_target = android_triplet(config.identifier)
 
     # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
@@ -425,8 +447,74 @@ def setup_rust(
     venv_bin = Path(env["VIRTUAL_ENV"]) / "bin"
     for tool in ["cargo", "rustup"]:
         shim_path = venv_bin / tool
-        shutil.copy(resources.PATH / "_rust_shim.py", shim_path)
+        shutil.copy(resources.PATH / "android/rust_shim.py", shim_path)
         shim_path.chmod(0o755)
+
+
+def setup_fortran(env: dict[str, str]) -> None:
+    # In case there's any autodetection based on the executable name, use the same name
+    # as the real executable (see fortran_shim.run_flang)
+    shim_in = resources.PATH / "android/fortran_shim.py"
+    shim_out = Path(env["VIRTUAL_ENV"]) / "bin/flang-new"
+
+    # The hashbang line runs the shim in cibuildwheel's own virtual environment, so it
+    # has access to utility functions for downloading and caching files.
+    shim_out.write_text(f"#!{sys.executable}\n\n" + shim_in.read_text())
+    shim_out.chmod(0o755)
+    env["FC"] = str(shim_out)
+
+
+# Although the build environment must be installed for the build platform, some packages
+# contain platform-specific files which should be replaced with their Android
+# equivalents. We do this using a similar technique to Pyodide:
+#   * https://github.com/pyodide/pyodide-build/blob/v0.30.2/pyodide_build/recipe/builder.py#L638
+#   * https://github.com/pyodide/pyodide-recipes/blob/20250606/packages/numpy/meta.yaml#L28
+def setup_cross_build_files(state: BuildState) -> None:
+    _, pip = find_pip(state.options)
+    cbf_dir = state.build_path / "cross_build_files"
+    cbf_dir.mkdir()
+
+    for requirement in call(*pip, "freeze", env=state.build_env, capture_stdout=True).splitlines():
+        name, _, _ = requirement.strip().partition("==")
+        cross_build_files = CROSS_BUILD_FILES.get(name.lower(), [])
+        if cross_build_files:
+            pip_install_android(state, cbf_dir, "--no-deps", requirement)
+            for cbf in cross_build_files:
+                if (cbf_dir / cbf).exists():
+                    shutil.copy(
+                        cbf_dir / cbf,
+                        find_site_packages(state.build_env) / cbf,
+                    )
+                else:
+                    log.warning(f"{cbf_dir / cbf} does not exist")
+
+
+def pip_install_android(state: BuildState, target: Path, *args: PathOrStr) -> None:
+    use_uv, pip = find_pip(state.options)
+    call(
+        *pip,
+        "install",
+        "--only-binary=:all:",
+        *(["--python-platform", android_triplet(state.config.identifier)] if use_uv else []),
+        "--target",
+        target,
+        *args,
+        env=state.android_env,
+    )
+
+
+def find_site_packages(env: dict[str, str]) -> Path:
+    return next(Path(env["VIRTUAL_ENV"]).glob("lib/python*/site-packages"))
+
+
+def find_pip(build_options: BuildOptions) -> tuple[bool, list[str]]:
+    use_uv = build_options.build_frontend.name == "build[uv]"
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+    return use_uv, pip
 
 
 def before_build(state: BuildState) -> None:
@@ -435,7 +523,7 @@ def before_build(state: BuildState) -> None:
         shell_prepared(
             state.options.before_build,
             build_options=state.options,
-            env=state.build_env,
+            env=state.android_env,
         )
 
 
@@ -476,9 +564,24 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     repaired_wheel_dir.mkdir()
 
     if state.options.repair_command:
+        toolchain = Path(state.android_env["CC"]).parent.parent
+        triplet = android_triplet(state.config.identifier)
+        ldpaths = ":".join(
+            # Pass ldpaths to help auditwheel find compiler libraries. If we implement
+            # PEP 725 in the future to provide non-Python libraries, we'll need to add
+            # their location here.
+            str(next(Path(toolchain).glob(path)))
+            for path in [
+                # libc++_shared
+                f"sysroot/usr/lib/{triplet}",
+                # libomp
+                f"lib/clang/*/lib/linux/{triplet.split('-')[0]}",
+            ]
+        )
         shell(
             prepare_command(
                 state.options.repair_command,
+                ldpaths=ldpaths,
                 wheel=built_wheel,
                 dest_dir=repaired_wheel_dir,
                 package=state.options.package_dir,
@@ -487,7 +590,7 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
             env=state.build_env,
         )
     else:
-        repair_default(state.android_env, built_wheel, repaired_wheel_dir)
+        shutil.move(built_wheel, repaired_wheel_dir)
 
     repaired_wheels = list(repaired_wheel_dir.glob("*.whl"))
     if len(repaired_wheels) == 0:
@@ -502,119 +605,12 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     return repaired_wheel
 
 
-def repair_default(
-    android_env: dict[str, str], built_wheel: Path, repaired_wheel_dir: Path
-) -> None:
-    """
-    Adds libc++ to the wheel if anything links against it. In the future this should be
-    moved to auditwheel and generalized to support more libraries.
-    """
-    if (match := re.search(r"^(.+?)-", built_wheel.name)) is None:
-        msg = f"Failed to parse wheel filename: {built_wheel.name}"
-        raise errors.FatalError(msg)
-    wheel_name = match[1]
-
-    unpacked_dir = repaired_wheel_dir / "unpacked"
-    unpacked_dir.mkdir()
-    shutil.unpack_archive(built_wheel, unpacked_dir, format="zip")
-
-    # Some build systems are inconsistent about name normalization, so don't assume the
-    # dist-info name is identical to the wheel name.
-    record_paths = list(unpacked_dir.glob("*.dist-info/RECORD"))
-    if len(record_paths) != 1:
-        msg = f"{built_wheel.name} contains {len(record_paths)} dist-info/RECORD files; expected 1"
-        raise errors.FatalError(msg)
-
-    old_soname = "libc++_shared.so"
-    paths_to_patch = []
-    for path, elffile in elf_file_filter(
-        unpacked_dir / filename
-        for filename, *_ in csv.reader(record_paths[0].read_text().splitlines())
-    ):
-        if (dynamic := elffile.get_section_by_name(".dynamic")) and any(  # type: ignore[no-untyped-call]
-            tag.entry.d_tag == "DT_NEEDED" and tag.needed == old_soname
-            for tag in dynamic.iter_tags()
-        ):
-            paths_to_patch.append(path)
-
-    if not paths_to_patch:
-        shutil.copyfile(built_wheel, repaired_wheel_dir / built_wheel.name)
-    else:
-        # Android doesn't support DT_RPATH, but supports DT_RUNPATH since API level 24
-        # (https://github.com/aosp-mirror/platform_bionic/blob/master/android-changes-for-ndk-developers.md).
-        if int(sysconfig_print('get_config_vars()["ANDROID_API_LEVEL"]', android_env)) < 24:
-            msg = f"Adding {old_soname} requires ANDROID_API_LEVEL to be at least 24"
-            raise errors.FatalError(msg)
-
-        toolchain = Path(android_env["CC"]).parent.parent
-        src_path = toolchain / f"sysroot/usr/lib/{android_env['CIBW_HOST_TRIPLET']}/{old_soname}"
-
-        # Use the same library location as auditwheel would.
-        libs_dir = unpacked_dir / (wheel_name + ".libs")
-        libs_dir.mkdir()
-        new_soname = soname_with_hash(src_path)
-        dst_path = libs_dir / new_soname
-        shutil.copyfile(src_path, dst_path)
-        call(which("patchelf"), "--set-soname", new_soname, dst_path)
-
-        for path in paths_to_patch:
-            call(which("patchelf"), "--replace-needed", old_soname, new_soname, path)
-            call(
-                which("patchelf"),
-                "--set-rpath",
-                f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
-                path,
-            )
-        call(which("wheel"), "pack", unpacked_dir, "-d", repaired_wheel_dir)
-
-
-# If cibuildwheel was called without activating its environment, its scripts directory
-# will not be on the PATH.
-def which(cmd: str) -> str:
-    scripts_dir = sysconfig.get_path("scripts")
-    result = shutil.which(cmd, path=scripts_dir + os.pathsep + os.environ["PATH"])
-    if result is None:
-        msg = f"Couldn't find {cmd!r} in {scripts_dir} or on the PATH"
-        raise errors.FatalError(msg)
-    return result
-
-
-def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:
-    """Filter through an iterator of filenames and load up only ELF files"""
-    for path in paths:
-        if not path.name.endswith(".py"):
-            try:
-                with open(path, "rb") as f:
-                    candidate = ELFFile(f)  # type: ignore[no-untyped-call]
-                    yield path, candidate
-            except ELFError:
-                pass  # Not an ELF file
-
-
-def soname_with_hash(src_path: Path) -> str:
-    """Return the same library filename as auditwheel would"""
-    shorthash = hashlib.sha256(src_path.read_bytes()).hexdigest()[:8]
-    src_name = src_path.name
-    base, ext = src_name.split(".", 1)
-    if not base.endswith(f"-{shorthash}"):
-        return f"{base}-{shorthash}.{ext}"
-    else:
-        return src_name
-
-
-def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
+def test_wheel(state: BuildState, wheel: Path) -> None:
     test_command = state.options.test_command
     if not (test_command and state.options.test_selector(state.config.identifier)):
         return
 
     log.step("Testing wheel...")
-    use_uv = build_frontend == "build[uv]"
-    uv_path = find_uv()
-    if use_uv and uv_path is None:
-        msg = "uv not found"
-        raise AssertionError(msg)
-    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
-
     native_arch = arch_synonym(platform.machine(), platforms.native_platform(), "android")
     if state.config.arch != native_arch:
         log.warning(
@@ -627,31 +623,17 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         shell_prepared(
             state.options.before_test,
             build_options=state.options,
-            env=state.build_env,
+            env=state.android_env,
         )
-
-    platform_args = (
-        ["--python-platform", android_triplet(state.config.identifier)]
-        if use_uv
-        else [
-            "--platform",
-            sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
-        ]
-    )
 
     # Install the wheel and test-requires.
     site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
-    call(
-        *pip,
-        "install",
-        "--only-binary=:all:",
-        *platform_args,
-        "--target",
+    pip_install_android(
+        state,
         site_packages_dir,
         f"{wheel}{state.options.test_extras}",
         *state.options.test_requires,
-        env=state.android_env,
     )
 
     # Copy test-sources.
@@ -720,14 +702,4 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         "--",
         *test_args,
         env=state.build_env,
-    )
-
-
-def sysconfig_print(method_call: str, env: dict[str, str]) -> str:
-    return call(
-        "python",
-        "-c",
-        f'import sysconfig; print(sysconfig.{method_call}, end="")',
-        env=env,
-        capture_stdout=True,
     )
