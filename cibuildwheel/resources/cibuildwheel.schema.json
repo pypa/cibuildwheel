@@ -27,6 +27,21 @@
   "description": "cibuildwheel's settings.",
   "type": "object",
   "properties": {
+    "audit": {
+      "description": "Execute a shell command to audit each wheel after all builds complete. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_AUDIT"
+    },
     "archs": {
       "description": "Change the architectures built on your machine by default.",
       "oneOf": [
