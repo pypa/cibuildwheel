@@ -69,49 +69,53 @@ runs:
         venv_path = Path(r"${{ runner.temp }}") / "cibw"
         if venv_path.exists():
             shutil.rmtree(venv_path)
+
         builder = EnvBuilder()
         builder.create(venv_path)
         exposed_binaries = {"cibuildwheel"}
+
         if "uv" in EXTRAS:
             exposed_binaries.add("uv")
         clean_bin_path = builder.bin_path.parent / f"{builder.bin_path.name}.clean"
         clean_bin_path.mkdir()
+
         for path in list(builder.bin_path.iterdir()):
             if path.stem in exposed_binaries:
                 try:
                     os.symlink(path, clean_bin_path / path.name)
                 except OSError:
-                    import shutil
-
                     shutil.copy2(path, clean_bin_path / path.name)
-        full_path = f"{clean_bin_path}{os.pathsep}{os.environ['PATH']}"
+
+        cibw_bin = [p for p in builder.bin_path.glob("cibuildwheel*") if p.stem == "cibuildwheel"][0]
+
         with open(os.environ["GITHUB_OUTPUT"], "at") as f:
-            f.write(f"updated-path={full_path}\n")
+            f.write(f"cibw-bin={cibw_bin}\n")
+            f.write(f"prepend-path={clean_bin_path}\n")
+
         print("::endgroup::")
         EOF
       shell: bash
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
-    - run: >
-        cibuildwheel
-        "${{ inputs.package-dir }}"
-        ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
-        ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
-        ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
-        2>&1
-      env:
-        PATH: "${{ steps.cibw.outputs.updated-path }}"
+    - run: |
+        export PATH="${{ steps.cibw.outputs.prepend-path }}:$PATH"
+
+        "${{ steps.cibw.outputs.cibw-bin }}" \
+          "${{ inputs.package-dir }}" \
+          ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}} \
+          ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}} \
+          ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}} \
+          2>&1
       shell: bash
       if: runner.os != 'Windows'
 
     # Windows needs powershell to interact nicely with Meson
-    - run: >
-        cibuildwheel
-        "${{ inputs.package-dir }}"
-        ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}}
-        ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}}
-        ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
-      env:
-        PATH: "${{ steps.cibw.outputs.updated-path }}"
+    - run: |
+        $env:PATH = "${{ steps.cibw.outputs.prepend-path }};$env:PATH"
+        & "${{ steps.cibw.outputs.cibw-bin }}" `
+          "${{ inputs.package-dir }}" `
+          ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}} `
+          ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}} `
+          ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
       shell: pwsh
       if: runner.os == 'Windows'
