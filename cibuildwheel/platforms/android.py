@@ -7,7 +7,7 @@ import shlex
 import shutil
 import subprocess
 import sysconfig
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 from os.path import relpath
 from pathlib import Path
@@ -390,12 +390,43 @@ def setup_android_env(
     for key in ["CFLAGS", "CXXFLAGS"]:
         android_env[key] += " " + opt
 
+    # Cargo target linker needs to be specified after CC is set
+    setup_rust(config, python_dir, android_env)
+
     # Format the environment so it can be pasted into a shell when debugging.
     for key, value in sorted(android_env.items()):
         if os.environ.get(key) != value:
             print(f"export {key}={shlex.quote(value)}")
 
     return android_env
+
+
+def setup_rust(
+    config: PythonConfiguration,
+    python_dir: Path,
+    env: MutableMapping[str, str],
+) -> None:
+    cargo_target = android_triplet(config.identifier)
+
+    # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
+    env["CARGO_BUILD_TARGET"] = cargo_target
+
+    # The linker needs to be specified after CC is set by android-env.sh
+    cargo_target_linker_env_name = f"CARGO_TARGET_{cargo_target.upper().replace('-', '_')}_LINKER"
+    # CC has already been set by calling android.py (it calls android-env.sh)
+    env[cargo_target_linker_env_name] = env["CC"]
+
+    # All Python extension modules must be explicitly linked against libpython3.x.so when building for Android.
+    # See: https://peps.python.org/pep-0738/#linkage
+    # For projects using PyO3, this requires setting PYO3_CROSS_LIB_DIR to the directory containing libpython3.x.so.
+    # See: https://pyo3.rs/v0.27.1/building-and-distribution.html#cross-compiling
+    env["PYO3_CROSS_LIB_DIR"] = str(python_dir / "prefix" / "lib")
+
+    venv_bin = Path(env["VIRTUAL_ENV"]) / "bin"
+    for tool in ["cargo", "rustup"]:
+        shim_path = venv_bin / tool
+        shutil.copy(resources.PATH / "_rust_shim.py", shim_path)
+        shim_path.chmod(0o755)
 
 
 def before_build(state: BuildState) -> None:
