@@ -117,7 +117,7 @@ class GraalPyVersions:
 
         self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
 
-    def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl:
+    def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
         if "x86_64" in identifier or "amd64" in identifier:
             arch = "x86_64"
         elif "arm64" in identifier or "aarch64" in identifier:
@@ -133,7 +133,6 @@ class GraalPyVersions:
 
         releases_tmp = (r for r in self.releases if spec.contains(r["python_version"]))
         releases_tmp = (r for r in releases_tmp if gpspec.contains(r["graalpy_version"]))
-        releases_tmp = (r for r in releases_tmp if str(r["graalpy_version"]) != "25.0.2")
         releases = sorted(releases_tmp, key=lambda r: r["graalpy_version"])
 
         if not releases:
@@ -156,18 +155,20 @@ class GraalPyVersions:
 
         arch = "amd64" if arch == "x86_64" else "aarch64"
         ext = "zip" if "win" in identifier else "tar.gz"
-        (url,) = (
+        urls = [
             rf["browser_download_url"]
             for rf in release["assets"]
             if rf["name"].endswith(f"{platform}-{arch}.{ext}")
             and rf["name"].startswith(f"graalpy-{gpversion.major}")
-        )
-
-        return ConfigUrl(
-            identifier=identifier,
-            version=f"{version.major}.{version.minor}",
-            url=url,
-        )
+        ]
+        if urls:
+            (url,) = urls
+            return ConfigUrl(
+                identifier=identifier,
+                version=f"{version.major}.{version.minor}",
+                url=url,
+            )
+        return None
 
 
 class PyPyVersions:
@@ -450,6 +451,8 @@ class AllVersions:
                 elif "macosx_arm64" in identifier:
                     config_update = self.macos_pypy_arm64.update_version_macos(spec)
             elif identifier.startswith("gp"):
+                if "macosx_x86_64" in identifier:
+                    return
                 config_update = self.graalpy.update_version(identifier, spec)
         elif "t-win32" in identifier and identifier.startswith("cp"):
             config_update = self.windows_t_32.update_version_windows(spec)
