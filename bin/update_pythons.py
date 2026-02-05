@@ -131,9 +131,10 @@ class GraalPyVersions:
             gpspec_str = gpspec_str[:2] + "." + gpspec_str[-1]
         gpspec = Specifier(f"=={gpspec_str}.*")
 
-        releases = [r for r in self.releases if spec.contains(r["python_version"])]
-        releases = [r for r in self.releases if gpspec.contains(r["graalpy_version"])]
-        releases = sorted(releases, key=lambda r: r["graalpy_version"])
+        releases_tmp = (r for r in self.releases if spec.contains(r["python_version"]))
+        releases_tmp = (r for r in releases_tmp if gpspec.contains(r["graalpy_version"]))
+        releases_tmp = (r for r in releases_tmp if str(r["graalpy_version"]) != "25.0.2")
+        releases = sorted(releases_tmp, key=lambda r: r["graalpy_version"])
 
         if not releases:
             msg = f"GraalPy {arch} not found for {spec}!"
