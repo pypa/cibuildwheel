@@ -178,8 +178,6 @@ def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
 
     if platform in {"pyodide", "ios", "android"} and frontend == "pip":
         pytest.skip(f"Can't use pip as build frontend for {platform}")
-    if platform == "android" and frontend == "uv":
-        pytest.skip(f"Can't use uv as build frontend for {platform}")
     if platform == "pyodide" and frontend in {"build[uv]", "uv"}:
         pytest.skip("Can't use uv with pyodide yet")
     uv_path = find_uv()

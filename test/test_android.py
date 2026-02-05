@@ -128,7 +128,7 @@ def test_frontend_good(tmp_path, build_frontend_env):
     assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{native_arch.android_abi}.whl"]
 
 
-@pytest.mark.parametrize("frontend", ["pip", "uv"])
+@pytest.mark.parametrize("frontend", ["pip"])
 def test_frontend_bad(frontend, tmp_path, capfd):
     new_c_project().generate(tmp_path)
     with pytest.raises(CalledProcessError):
