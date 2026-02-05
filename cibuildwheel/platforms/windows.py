@@ -5,7 +5,7 @@ import platform as platform_module
 import shutil
 import subprocess
 import textwrap
-from collections.abc import MutableMapping, Set
+from collections.abc import MutableMapping, Sequence, Set
 from functools import cache
 from pathlib import Path
 from typing import assert_never
@@ -588,7 +588,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
-                pip = ["uv", "pip"] if use_uv else ["pip"]
+                pip: Sequence[Path | str]
+                if use_uv:
+                    assert uv_path is not None
+                    pip = [uv_path, "pip"]
+                else:
+                    pip = ["pip"]
 
                 # install the wheel
                 call(
