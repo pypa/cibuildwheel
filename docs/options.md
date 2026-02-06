@@ -465,6 +465,7 @@ Options:
 - `build[;args: ...]`
 - `build[uv][;args: ...]`
 - `pip[;args: ...]`
+- `uv[;args: ...]`
 
 Default: `build`
 
@@ -478,6 +479,8 @@ pre-installing it, or installing cibuildwheel with the `uv` extra, which is
 possible by manually passing `cibuildwheel[uv]` to installers or by using the
 `extras` option in the [cibuildwheel action](ci-services.md#github-actions).
 uv currently does not support iOS or musllinux on s390x, ppc64le and riscv64.
+You can also use the `uv` backend directly; though currently multiple output
+files (from workspaces) are not supported.
 
 On Android and Pyodide, the "pip" frontend is not supported.
 
@@ -511,6 +514,9 @@ optional `args` option.
 
     # Use uv and build with an argument
     build-frontend = { name = "build[uv]", args = ["--no-isolation"] }
+
+    # Use uv directly
+    build-frontend = "uv"
     ```
 
 !!! tab examples "Environment variables"
@@ -527,6 +533,9 @@ optional `args` option.
 
     # Use uv and build with an argument
     CIBW_BUILD_FRONTEND: "build[uv]; args: --no-isolation"
+
+    # Use uv directly
+    CIBW_BUILD_FRONTEND: "uv"
     ```
 
 
