@@ -92,6 +92,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       # Used to host cibuildwheel
       - uses: actions/setup-python@v6
@@ -123,6 +125,11 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 ![](docs/data/how-it-works.png)
 
 <sup>Explore an interactive version of this diagram [in the docs](https://cibuildwheel.pypa.io/en/stable/#how-it-works).</sup>
+
+> [!WARNING]
+> Building and testing wheels executes arbitrary code from your project and its dependencies. Although cibuildwheel uses OCI containers and Pyodide for some builds, these provide no security guarantees - the code you're building and testing has full access to the environment that's invoking cibuildwheel.
+>
+> If you cannot trust all the code that's pulled in, maintain good security hygiene: keep the job that builds distributions separate from the job that uploads them to PyPI, handle secrets and credentials with care and rotate them regularly, and follow the principle of least privilege when granting permissions. Do not store sensitive data on CI runners.
 
 
 <!--[[[cog from readme_options_table import get_table; print(get_table()) ]]]-->
