@@ -31,10 +31,13 @@ def git_repo_has_changes() -> bool:
 
 def generate_project(path: Path, build_backend: BuildBackend) -> None:
     sys.path.insert(0, "")
-    if build_backend == "meson":
-        from test.test_projects.meson import new_meson_project as new_project  # noqa: PLC0415
-    else:
-        from test.test_projects.setuptools import new_c_project as new_project  # noqa: PLC0415
+    match build_backend:
+        case "meson":
+            from test.test_projects.meson import new_meson_project as new_project  # noqa: PLC0415
+        case "setuptools":
+            from test.test_projects.setuptools import new_c_project as new_project  # noqa: PLC0415
+        case _:
+            typing.assert_never(build_backend)
 
     project = new_project()
     project.generate(path)
