@@ -594,11 +594,15 @@ def test_deprecated_image(
         ("pip", 3, ["-Ca", "-Cb", "-1", "-vvv"]),
         ("pip", 2, ["-Ca", "-Cb", "-1", "-vv"]),
         ("pip", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("uv", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("build", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("build[uv]", -1, ["-Ca", "-Cb", "-1", "-q"]),
         ("build", 0, ["-Ca", "-Cb", "-1"]),
         ("build", 1, ["-Ca", "-Cb", "-1"]),
         ("build", 2, ["-Ca", "-Cb", "-1", "-v"]),
         ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
@@ -616,20 +620,6 @@ def test_get_build_frontend_extra_flags(
 
     assert args == result
     mock_warning.assert_not_called()
-
-
-@pytest.mark.parametrize("frontend", ["build", "build[uv]"])
-def test_get_build_frontend_extra_flags_warning(
-    frontend: Literal["build", "build[uv]"], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    mock_warning = unittest.mock.MagicMock()
-    monkeypatch.setattr(Logger, "warning", mock_warning)
-    build_frontend = BuildFrontendConfig(frontend, ["-1"])
-    args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=-1, config_settings="a b"
-    )
-    assert args == ["-Ca", "-Cb", "-1"]
-    mock_warning.assert_called_once()
 
 
 @pytest.mark.parametrize(

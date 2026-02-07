@@ -38,11 +38,7 @@ class BuildFrontendConfig:
 
 def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
     if level < 0:
-        if frontend == "pip":
-            return ["-" + -level * "q"]
-
-        msg = f"build_verbosity {level} is not supported for {frontend} frontend. Ignoring."
-        log.warning(msg)
+        return ["-" + -level * "q"]
 
     if level > 0:
         if frontend == "pip":
