@@ -190,7 +190,7 @@ def setup_env(
     """
     log.step("Setting up build environment...")
     build_frontend = build_options.build_frontend.name
-    use_uv = build_frontend == "build[uv]"
+    use_uv = build_frontend in {"build[uv]", "uv"}
     uv_path = find_uv()
     if use_uv and uv_path is None:
         msg = "uv not found"
@@ -228,8 +228,8 @@ def setup_env(
     android_env = setup_android_env(config, python_dir, venv_dir, build_env)
 
     # Install build tools
-    if build_frontend not in {"build", "build[uv]"}:
-        msg = "Android requires the build frontend to be 'build'"
+    if build_frontend not in {"build", "build[uv]", "uv"}:
+        msg = "Android requires the build frontend to be 'build' or 'uv'"
         raise errors.FatalError(msg)
     call(*pip, "install", "build", *constraint_flags(dependency_constraint), env=build_env)
 
@@ -442,22 +442,44 @@ def before_build(state: BuildState) -> None:
 def build_wheel(state: BuildState) -> Path:
     log.step("Building wheel...")
     built_wheel_dir = state.build_path / "built_wheel"
-    call(
-        "python",
-        "-m",
-        "build",
-        state.options.package_dir,
-        "--wheel",
-        "--no-isolation",
-        "--skip-dependency-check",
-        f"--outdir={built_wheel_dir}",
-        *get_build_frontend_extra_flags(
-            state.options.build_frontend,
-            state.options.build_verbosity,
-            state.options.config_settings,
-        ),
-        env=state.android_env,
-    )
+    match state.options.build_frontend.name:
+        case "build" | "build[uv]":
+            call(
+                "python",
+                "-m",
+                "build",
+                state.options.package_dir,
+                "--wheel",
+                "--no-isolation",
+                "--skip-dependency-check",
+                f"--outdir={built_wheel_dir}",
+                *get_build_frontend_extra_flags(
+                    state.options.build_frontend,
+                    state.options.build_verbosity,
+                    state.options.config_settings,
+                ),
+                env=state.android_env,
+            )
+        case "uv":
+            uv_path = find_uv()
+            assert uv_path is not None
+            call(
+                uv_path,
+                "build",
+                state.options.package_dir,
+                "--wheel",
+                "--no-build-isolation",
+                f"--out-dir={built_wheel_dir}",
+                *get_build_frontend_extra_flags(
+                    state.options.build_frontend,
+                    state.options.build_verbosity,
+                    state.options.config_settings,
+                ),
+                env=state.android_env,
+            )
+        case x:
+            msg = f"Invalid build backend {x!r}"
+            raise AssertionError(msg)
 
     built_wheels = list(built_wheel_dir.glob("*.whl"))
     if len(built_wheels) != 1:
