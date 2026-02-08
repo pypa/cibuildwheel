@@ -185,7 +185,7 @@ Currently, it's recommended to run tests using a `python -m` entrypoint, rather 
 ### Prerequisites
 
 cibuildwheel can build Android wheels on any POSIX platform supported by the Android
-development tools, which currently means Linux x86_64, macOS ARM64 or macOS x86_64. Any
+development tools, which currently means Linux `x86_64`, macOS `ARM64` or macOS `x86_64`. Any
 of these platforms can be used to build wheels for any Android architecture supported by
 Python. However, *testing* wheels has additional requirements: see the section below.
 
@@ -221,10 +221,8 @@ Python 3.13.
 
 ### Build frontend support
 
-Android builds only support the `build` frontend. In principle, support for the
-`build[uv]` frontend should be possible, but `uv` [doesn't currently have support for
-cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have
-support for iOS or Android wheel tags](https://github.com/astral-sh/uv/issues/8029).
+Android builds do not support the `pip` frontend. The `build`, `build[uv]`, and
+`uv` frontends work.
 
 ### Tests
 
@@ -238,7 +236,7 @@ Any arguments specified using [`test-runtime`](options.md#test-runtime) will be 
 Running an emulator requires the build machine to either be bare-metal or support
 nested virtualization. CI platforms known to meet this requirement are:
 
-* GitHub Actions Linux x86_64
+* GitHub Actions Linux `x86_64`
 
 On Linux, the emulator needs access to the KVM virtualization interface. This may
 require adding your user to a group, or changing your udev rules. On GitHub
@@ -308,7 +306,7 @@ iOS builds are *cross platform builds*, as it not possible to run compilers and 
 
 ### Build frontend support
 
-iOS builds support both the `pip` and `build` build frontends. In principle, support for `uv` with the `build[uv]` frontend should be possible, but `uv` [doesn't currently have support for cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have support for iOS (or Android) tags](https://github.com/astral-sh/uv/issues/8029).
+iOS builds support both the `pip` and `build` build frontends. In principle, support for `uv` and `build[uv]` frontends should be possible, but `uv` [doesn't support iOS fully yet](https://github.com/astral-sh/uv/issues/16724).
 
 ### Build environment
 
