@@ -16,6 +16,8 @@ import click
 
 DIR = Path(__file__).parent.parent.resolve()
 
+BuildBackend = typing.Literal["setuptools", "meson"]
+
 
 def shell(cmd: str, *, check: bool, **kwargs: object) -> subprocess.CompletedProcess[str]:
     return subprocess.run([cmd], shell=True, check=check, **kwargs)  # type: ignore[call-overload, no-any-return]
@@ -27,11 +29,17 @@ def git_repo_has_changes() -> bool:
     return unstaged_changes or staged_changes
 
 
-def generate_basic_project(path: Path) -> None:
+def generate_project(path: Path, build_backend: BuildBackend) -> None:
     sys.path.insert(0, "")
-    from test.test_projects.c import new_c_project  # noqa: PLC0415
+    match build_backend:
+        case "meson":
+            from test.test_projects.meson import new_meson_project as new_project  # noqa: PLC0415
+        case "setuptools":
+            from test.test_projects.setuptools import new_c_project as new_project  # noqa: PLC0415
+        case _:
+            typing.assert_never(build_backend)
 
-    project = new_c_project()
+    project = new_project()
     project.generate(path)
 
 
@@ -126,8 +134,9 @@ def ci_service_for_config_file(config_file: Path) -> CIService:
 
 @click.command()
 @click.argument("config_files", nargs=-1, type=click.Path())
+@click.option("--build-backend", type=click.Choice(["setuptools", "meson"]), default="setuptools")
 def run_example_ci_configs(
-    config_files: list[str],
+    config_files: list[str], build_backend: BuildBackend = "setuptools"
 ) -> None:
     """
     Test the example configs. If no files are specified, will test
@@ -166,7 +175,7 @@ def run_example_ci_configs(
         shell(f"git checkout --orphan {branch_name}", check=True)
 
         example_project = Path("example_root")
-        generate_basic_project(example_project)
+        generate_project(example_project, build_backend=build_backend)
 
         for config_file in config_file_paths:
             service = ci_service_for_config_file(config_file)
