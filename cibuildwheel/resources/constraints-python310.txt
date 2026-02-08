@@ -18,7 +18,11 @@ packaging==26.0
     # via
     #   build
     #   delocate
+patchelf==0.17.2.4
+    # via -r cibuildwheel/resources/constraints.in
 pip==25.3
+    # via -r cibuildwheel/resources/constraints.in
+pkgconf==2.5.1.post0
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.5.1
     # via virtualenv

@@ -1160,7 +1160,20 @@
           "$ref": "#/properties/pyodide-version"
         },
         "repair-wheel-command": {
-          "$ref": "#/properties/repair-wheel-command"
+          "description": "Execute a shell command to repair each built wheel.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "title": "CIBW_REPAIR_WHEEL_COMMAND",
+          "default": "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}"
         },
         "test-command": {
           "$ref": "#/properties/test-command"

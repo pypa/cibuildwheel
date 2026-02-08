@@ -15,6 +15,8 @@ parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
+# The defaults in the schema are only used for documentation and IDE support. They
+# should match the values in defaults.toml, which are used by cibuildwheel itself.
 starter = """
 $schema: http://json-schema.org/draft-07/schema#
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
@@ -367,14 +369,15 @@ oses = {
     "ios": as_object(not_linux),
 }
 
-oses["linux"]["properties"]["repair-wheel-command"] = {
-    **schema["properties"]["repair-wheel-command"],
-    "default": "auditwheel repair -w {dest_dir} {wheel}",
-}
-oses["macos"]["properties"]["repair-wheel-command"] = {
-    **schema["properties"]["repair-wheel-command"],
-    "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
-}
+for os_name, command in [
+    ("linux", "auditwheel repair -w {dest_dir} {wheel}"),
+    ("macos", "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"),
+    ("android", "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}"),
+]:
+    oses[os_name]["properties"]["repair-wheel-command"] = {
+        **schema["properties"]["repair-wheel-command"],
+        "default": command,
+    }
 
 del oses["linux"]["properties"]["dependency-versions"]
 

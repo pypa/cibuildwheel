@@ -26,7 +26,7 @@ repos:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
     args: ["--python-version=3.11"]
-    exclude: ^cibuildwheel/resources/_cross_venv.py$  # Requires Python 3.13 or later
+    exclude: ^cibuildwheel/resources/android/_cross_venv.py$  # Requires Python 3.13 or later
     additional_dependencies: &mypy-dependencies
       - bracex
       - build
