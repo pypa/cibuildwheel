@@ -4,7 +4,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.12.1
     # via httpx
-auditwheel-emscripten==0.2.1
+auditwheel-emscripten==0.2.3
     # via pyodide-build
 build==1.2.2.post1
     # via
@@ -20,7 +20,8 @@ charset-normalizer==3.4.4
 click==8.1.8
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
-    #   typer
+    #   pyodide-build
+    #   pyodide-cli
 distlib==0.4.0
     # via virtualenv
 filelock==3.20.3
@@ -49,7 +50,7 @@ packaging==26.0
     #   pyodide-build
     #   unearth
     #   wheel
-pip==25.3
+pip==26.0.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.5.1
     # via
@@ -63,9 +64,9 @@ pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via rich
-pyodide-build==0.31.2
+pyodide-build==0.32.0
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-pyodide-cli==0.4.2
+pyodide-cli==0.5.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
@@ -77,25 +78,16 @@ requests==2.32.5
     # via pyodide-build
 resolvelib==1.2.1
     # via pyodide-build
-rich==14.3.1
+rich==14.3.2
     # via
     #   pyodide-build
     #   pyodide-cli
-    #   typer
 ruamel-yaml==0.19.1
     # via pyodide-build
-shellingham==1.5.4
-    # via typer
-typer==0.21.1
-    # via
-    #   auditwheel-emscripten
-    #   pyodide-build
-    #   pyodide-cli
 typing-extensions==4.15.0
     # via
     #   pydantic
     #   pydantic-core
-    #   typer
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
