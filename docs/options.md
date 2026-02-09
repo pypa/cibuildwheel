@@ -1762,12 +1762,14 @@ downloading dependencies. The settings are:
 
 |             | build | pip    | uv    | desc                             |
 |-------------|-------|--------|-------|----------------------------------|
-| -2          | `-qq` | `-qq`  | `-qq` | even more quiet, where supported |
-| -1          | `-q`  | `-q`   | `-q`  | quiet mode, where supported      |
+| -2          | `-qq`[^1] | `-qq`  | `-qq` | even more quiet, where supported |
+| -1          | `-q`[^1]  | `-q`   | `-q`  | quiet mode, where supported      |
 | 0 (default) |       |        |       | default for build tool           |
 | 1           |       | `-v`   |       | print backend output             |
 | 2           | `-v`  | `-vv`  | `-v`  | print log messages e.g. resolving info |
 | 3           | `-vv` | `-vvv` | `-vv` | print even more debug info       |
+
+[^1]: Not supported on Python 3.8, will be ignored with a warning.
 
 Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by

@@ -416,7 +416,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 log.step("Building wheel...")
 
                 extra_flags = get_build_frontend_extra_flags(
-                    build_frontend, build_options.build_verbosity, build_options.config_settings
+                    build_frontend,
+                    build_options.build_verbosity,
+                    build_options.config_settings,
+                    py38=False,
                 )
 
                 call(

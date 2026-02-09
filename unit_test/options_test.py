@@ -615,11 +615,25 @@ def test_get_build_frontend_extra_flags(
     monkeypatch.setattr(Logger, "warning", mock_warning)
     build_frontend = BuildFrontendConfig(frontend, ["-1"])
     args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b"
+        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b", py38=False
     )
 
     assert args == result
     mock_warning.assert_not_called()
+
+
+@pytest.mark.parametrize("frontend", ["build", "build[uv]"])
+def test_get_build_frontend_extra_flags_warning(
+    frontend: Literal["build", "build[uv]"], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mock_warning = unittest.mock.MagicMock()
+    monkeypatch.setattr(Logger, "warning", mock_warning)
+    build_frontend = BuildFrontendConfig(frontend, ["-1"])
+    args = get_build_frontend_extra_flags(
+        build_frontend=build_frontend, verbosity_level=-1, config_settings="a b", py38=True
+    )
+    assert args == ["-Ca", "-Cb", "-1"]
+    mock_warning.assert_called_once()
 
 
 @pytest.mark.parametrize(

@@ -4,6 +4,7 @@ import typing
 from collections.abc import Sequence
 from typing import Literal, Self, get_args
 
+from .logger import log
 from .util.helpers import parse_key_value_string
 
 BuildFrontendName = Literal["pip", "build", "build[uv]", "uv"]
@@ -35,8 +36,12 @@ class BuildFrontendConfig:
             return {"name": self.name, "args": repr(self.args)}
 
 
-def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
+def _get_verbosity_flags(level: int, frontend: BuildFrontendName, *, py38: bool) -> list[str]:
     if level < 0:
+        if frontend.startswith("build") and py38:
+            msg = f"build_verbosity {level} is not supported for {frontend} frontend. Ignoring."
+            log.warning(msg)
+            return []
         return ["-" + -level * "q"]
 
     if level > 0:
@@ -70,10 +75,10 @@ def parse_config_settings(config_settings_str: str) -> dict[str, str | list[str]
 
 
 def get_build_frontend_extra_flags(
-    build_frontend: BuildFrontendConfig, verbosity_level: int, config_settings: str
+    build_frontend: BuildFrontendConfig, verbosity_level: int, config_settings: str, *, py38: bool
 ) -> list[str]:
     return [
         *_split_config_settings(config_settings),
         *build_frontend.args,
-        *_get_verbosity_flags(verbosity_level, build_frontend.name),
+        *_get_verbosity_flags(verbosity_level, build_frontend.name, py38=py38),
     ]
