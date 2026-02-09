@@ -164,7 +164,7 @@ jobs:
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
     - name: Download a sample project
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
@@ -293,7 +293,7 @@ jobs:
       run: uv sync --no-dev --group test
 
     - name: Download a sample project
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
@@ -332,7 +332,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Download a sample project
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
