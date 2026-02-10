@@ -697,7 +697,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
 
     # Parse test-command.
     test_args = shlex.split(test_command)
-    if test_args[0] in {"python", "python3"} and any(arg in test_args for arg in {"-c", "-m"]}:
+    if test_args[0] in {"python", "python3"} and any(arg in test_args for arg in {"-c", "-m"}):
         # Forward the args to the CPython testbed script. We require '-c' or '-m'
         # to be in the command, because without those flags, the testbed script
         # will prepend '-m test', which will run Python's own test suite.
