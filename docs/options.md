@@ -627,7 +627,9 @@ Platform-specific environment variables are also available:<br/>
     SAMPLE_TEXT = "sample text"
     ```
 
-    In configuration files, you can use a [TOML][] table instead of a raw string as shown above.
+    In configuration files, you can use a [TOML] table instead of a raw string as shown above.
+
+[TOML]: https://toml.io/en/
 
 !!! tab examples "Environment variables"
 
@@ -688,7 +690,7 @@ To specify more than one environment variable, separate the variable names by sp
     environment-pass = ["BUILD_TIME", "SAMPLE_TEXT"]
     ```
 
-    In configuration files, you can use a [TOML][] list instead of a raw string as shown above.
+    In configuration files, you can use a [TOML] list instead of a raw string as shown above.
 
 !!! tab examples "Environment variables"
 
