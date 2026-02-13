@@ -629,6 +629,8 @@ Platform-specific environment variables are also available:<br/>
 
     In configuration files, you can use a [TOML][] table instead of a raw string as shown above.
 
+[TOML]: https://toml.io/en/
+
 !!! tab examples "Environment variables"
 
     ```yaml
