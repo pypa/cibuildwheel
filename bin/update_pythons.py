@@ -126,7 +126,7 @@ class GraalPyVersions:
             msg = f"{identifier} not supported yet on GraalPy"
             raise RuntimeError(msg)
 
-        gpspec_str = identifier.split("-")[0].split("_")[1]
+        gpspec_str = identifier.split("-", maxsplit=1)[0].split("_")[1]
         if "." not in gpspec_str and len(gpspec_str) == 3:
             gpspec_str = gpspec_str[:2] + "." + gpspec_str[-1]
         gpspec = Specifier(f"=={gpspec_str}.*")

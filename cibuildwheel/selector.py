@@ -75,7 +75,7 @@ class BuildSelector:
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
-            py_ver_str = build_id.split("-")[0].split("_")[0]
+            py_ver_str = build_id.split("-", maxsplit=1)[0].split("_")[0]
             py_ver_str = py_ver_str.removesuffix("t")
             major = int(py_ver_str[2])
             minor = int(py_ver_str[3:])

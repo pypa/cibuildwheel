@@ -151,7 +151,7 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
                     """
                 )
                 raise errors.FatalError(msg)
-            python_filename = url.split("/")[-1]
+            python_filename = url.rsplit("/", maxsplit=1)[-1]
             pkg_path = CIBW_CACHE_PATH / "cpython-installer" / python_filename
             if not pkg_path.exists():
                 download(url, pkg_path)
