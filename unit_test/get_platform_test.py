@@ -71,7 +71,7 @@ def test_arm(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_env_set(tmp_path: Path) -> None:
     environment = {"VSCMD_ARG_TGT_ARCH": "x64"}
-    configuration = PythonConfiguration(version="irrelevant", identifier="cp313t-win32", url=None)
+    configuration = PythonConfiguration(version="irrelevant", identifier="cp314t-win32", url=None)
 
     with pytest.raises(FatalError, match="VSCMD_ARG_TGT_ARCH"):
         setup_setuptools_cross_compile(tmp_path, configuration, tmp_path, environment)

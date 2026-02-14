@@ -13,7 +13,6 @@
     },
     "enable": {
       "enum": [
-        "cpython-freethreading",
         "cpython-prerelease",
         "graalpy",
         "pyodide-prerelease",
