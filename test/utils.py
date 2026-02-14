@@ -277,7 +277,6 @@ def _expected_wheels(
         ]
     elif python_abi_tags is None:
         python_abi_tags = [
-            "cp38-cp38",
             "cp39-cp39",
             "cp310-cp310",
             "cp311-cp311",
@@ -296,7 +295,6 @@ def _expected_wheels(
 
         if EnableGroup.PyPyEoL in enable_groups:
             python_abi_tags += [
-                "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
             ]
@@ -310,10 +308,6 @@ def _expected_wheels(
                 "graalpy311-graalpy242_311_native",
                 "graalpy312-graalpy250_312_native",
             ]
-
-    if machine_arch == "ARM64" and platform == "windows":
-        # no CPython 3.8 on Windows ARM64
-        python_abi_tags = [t for t in python_abi_tags if not t.startswith("cp38")]
 
     if machine_arch not in PYPY_ARCHS:
         python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("pp")]
@@ -359,12 +353,9 @@ def _expected_wheels(
 
         elif platform == "macos":
             if python_abi_tag.startswith("pp"):
-                if python_abi_tag.startswith("pp38"):
-                    min_macosx = macosx_deployment_target
-                else:
-                    min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
+                min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
             elif python_abi_tag.startswith("cp"):
-                if python_abi_tag.startswith(("cp38", "cp39", "cp310", "cp311")):
+                if python_abi_tag.startswith(("cp39", "cp310", "cp311")):
                     min_macosx = macosx_deployment_target
                 elif python_abi_tag.startswith(("cp312", "cp313")):
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.13")

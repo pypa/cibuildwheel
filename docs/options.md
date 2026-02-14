@@ -45,7 +45,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
 > Choose the Python versions to build
 
-List of builds to build and skip. Each build has an identifier like `cp38-manylinux_x86_64` or `cp37-macosx_x86_64` - you can list specific ones to build and cibuildwheel will only build those, and/or list ones to skip and cibuildwheel won't try to build them.
+List of builds to build and skip. Each build has an identifier like `cp314-manylinux_x86_64` or `cp313-macosx_x86_64` - you can list specific ones to build and cibuildwheel will only build those, and/or list ones to skip and cibuildwheel won't try to build them.
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `build` and does not match `skip` will be built.
 
@@ -54,14 +54,12 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 <div class="build-id-table-marker"></div>
 |               | macOS                                                                  | Windows                                             | Linux Intel                                                                                         | Linux Other                                                                                                                                                                                                                                                                   | Android                                          | iOS                                                                                               | pyodide (WASM)       |
 |---------------|------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------|----------------------|
-| Python 3.8    | cp38-macosx_x86_64<br/>cp38-macosx_universal2<br/>cp38-macosx_arm64    | cp38-win_amd64<br/>cp38-win32                       | cp38-manylinux_x86_64<br/>cp38-manylinux_i686<br/>cp38-musllinux_x86_64<br/>cp38-musllinux_i686     | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x<br/>cp38-manylinux_armv7l<br/>cp38-manylinux_riscv64<br/>cp38-musllinux_aarch64<br/>cp38-musllinux_ppc64le<br/>cp38-musllinux_s390x<br/>cp38-musllinux_armv7l<br/>cp38-musllinux_riscv64           |                                                  |                                                                                                   |                      |
 | Python 3.9    | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64    | cp39-win_amd64<br/>cp39-win32<br/>cp39-win_arm64    | cp39-manylinux_x86_64<br/>cp39-manylinux_i686<br/>cp39-musllinux_x86_64<br/>cp39-musllinux_i686     | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x<br/>cp39-manylinux_armv7l<br/>cp39-manylinux_riscv64<br/>cp39-musllinux_aarch64<br/>cp39-musllinux_ppc64le<br/>cp39-musllinux_s390x<br/>cp39-musllinux_armv7l<br/>cp39-musllinux_riscv64           |                                                  |                                                                                                   |                      |
 | Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-manylinux_riscv64<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l<br/>cp310-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                  |                                                                                                   | cp312-pyodide_wasm32 |
 | Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64<br><br>cp313t-macosx_x86_64<br/>cp313t-macosx_universal2<br/>cp313t-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64<br><br>cp313t-win_amd64<br/>cp313t-win32<br/>cp313t-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686<br><br>cp313t-manylinux_x86_64<br/>cp313t-manylinux_i686<br/>cp313t-musllinux_x86_64<br/>cp313t-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64<br><br>cp313t-manylinux_aarch64<br/>cp313t-manylinux_ppc64le<br/>cp313t-manylinux_s390x<br/>cp313t-manylinux_armv7l<br/>cp313t-manylinux_riscv64<br/>cp313t-musllinux_aarch64<br/>cp313t-musllinux_ppc64le<br/>cp313t-musllinux_s390x<br/>cp313t-musllinux_armv7l<br/>cp313t-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
 | Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64<br><br>cp314t-macosx_x86_64<br/>cp314t-macosx_universal2<br/>cp314t-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64<br><br>cp314t-win_amd64<br/>cp314t-win32<br/>cp314t-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686<br><br>cp314t-manylinux_x86_64<br/>cp314t-manylinux_i686<br/>cp314t-musllinux_x86_64<br/>cp314t-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64<br><br>cp314t-manylinux_aarch64<br/>cp314t-manylinux_ppc64le<br/>cp314t-manylinux_s390x<br/>cp314t-manylinux_armv7l<br/>cp314t-manylinux_riscv64<br/>cp314t-musllinux_aarch64<br/>cp314t-musllinux_ppc64le<br/>cp314t-musllinux_s390x<br/>cp314t-musllinux_armv7l<br/>cp314t-musllinux_riscv64 | cp314-android_arm64_v8a<br/>cp314-android_x86_64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
-| PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
 | PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
@@ -81,29 +79,29 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
     ```toml
     [tool.cibuildwheel]
-    # Only build on CPython 3.8
-    build = "cp38-*"
+    # Only build on CPython 3.14
+    build = "cp314-*"
 
-    # Skip building on CPython 3.8 on the Mac
-    skip = "cp38-macosx_x86_64"
+    # Skip building on CPython 3.9 on the Mac
+    skip = "cp39-macosx_x86_64"
 
-    # Skip building on CPython 3.8 on all platforms
-    skip = "cp38-*"
+    # Skip building on CPython 3.9 on all platforms
+    skip = "cp39-*"
 
-    # Skip CPython 3.8 on Windows
-    skip = "cp38-win*"
+    # Skip CPython 3.9 on Windows
+    skip = "cp39-win*"
 
-    # Skip CPython 3.8 on 32-bit Windows
-    skip = "cp38-win32"
+    # Skip CPython 3.9 on 32-bit Windows
+    skip = "cp39-win32"
 
-    # Skip CPython 3.8 and CPython 3.9
-    skip = ["cp38-*", "cp39-*"]
+    # Skip CPython 3.9 and CPython 3.10
+    skip = ["cp39-*", "cp310-*"]
 
-    # Skip Python 3.8 on Linux
-    skip = "cp38-manylinux*"
+    # Skip Python 3.9 on Linux
+    skip = "cp39-*linux*"
 
     # Skip 32-bit builds
-    skip = ["*-win32", "*-manylinux_i686"]
+    skip = ["*-win32", "*-*linux_i686"]
 
     # Disable building PyPy wheels on all platforms
     skip = "pp*"
@@ -118,29 +116,29 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Only build on CPython 3.8
-    CIBW_BUILD: cp38-*
+    # Only build on CPython 3.14
+    CIBW_BUILD: cp314-*
 
-    # Skip building on CPython 3.8 on the Mac
-    CIBW_SKIP: cp38-macosx_x86_64
+    # Skip building on CPython 3.9 on the Mac
+    CIBW_SKIP: cp39-macosx_x86_64
 
-    # Skip building on CPython 3.8 on all platforms
-    CIBW_SKIP: cp38-*
+    # Skip building on CPython 3.9 on all platforms
+    CIBW_SKIP: cp39-*
 
-    # Skip CPython 3.8 on Windows
-    CIBW_SKIP: cp38-win*
+    # Skip CPython 3.9 on Windows
+    CIBW_SKIP: cp39-win*
 
-    # Skip CPython 3.8 on 32-bit Windows
-    CIBW_SKIP: cp38-win32
+    # Skip CPython 3.9 on 32-bit Windows
+    CIBW_SKIP: cp39-win32
 
-    # Skip CPython 3.8 and CPython 3.9
-    CIBW_SKIP: cp38-* cp39-*
+    # Skip CPython 3.9 and CPython 3.10
+    CIBW_SKIP: cp39-* cp310-*
 
-    # Skip Python 3.8 on Linux
-    CIBW_SKIP: cp38-manylinux*
+    # Skip Python 3.9 on Linux
+    CIBW_SKIP: cp39-*linux*
 
     # Skip 32-bit builds
-    CIBW_SKIP: "*-win32 *-manylinux_i686"
+    CIBW_SKIP: "*-win32 *-*linux_i686"
 
     # Disable building PyPy wheels on all platforms
     CIBW_SKIP: pp*
@@ -304,7 +302,7 @@ simple keyword assignment in a top level function call. If you need to override
 this behaviour for some reason, you can use this option.
 
 When setting this option, the syntax is the same as `project.requires-python`,
-using 'version specifiers' like `>=3.8`, according to
+using 'version specifiers' like `>=3.12`, according to
 [PEP440](https://www.python.org/dev/peps/pep-0440/#version-specifiers).
 
 Default: reads your package's Python compatibility from `pyproject.toml`
@@ -325,7 +323,7 @@ the package is compatible with all versions of Python that it can build.
         ```toml
         [project]
         ...
-        requires-python = ">=3.8"
+        requires-python = ">=3.12"
         ```
 
         Note that not all build backends fully support using a `[project]` table yet;
@@ -341,7 +339,7 @@ the package is compatible with all versions of Python that it can build.
 !!! tab examples "Environment variables"
 
     ```yaml
-    CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
+    CIBW_PROJECT_REQUIRES_PYTHON: ">=3.12"
     ```
 
 ### `enable` {: #enable toml env-var}
@@ -1220,7 +1218,7 @@ specifiers inline with the `packages: SPECIFIER...` syntax.
     If you need different dependencies for each python version, provide them
     in the same folder with a `-pythonXY` suffix. e.g. if your
     `dependency-versions="./constraints.txt"`, cibuildwheel will use
-    `./constraints-python38.txt` on Python 3.8, or fallback to
+    `./constraints-python314.txt` on Python 3.14, or fallback to
     `./constraints.txt` if that's not found.
 
 Platform-specific environment variables are also available:<br/>
@@ -1762,16 +1760,14 @@ will not produce more logging about the build itself. Other levels only affect
 the build frontend output, which is usually things like resolving and
 downloading dependencies. The settings are:
 
-|             | build | pip    | uv    | desc                             |
-|-------------|-------|--------|-------|----------------------------------|
-| -2          | `-qq`[^1] | `-qq`  | `-qq` | even more quiet, where supported |
-| -1          | `-q`[^1]  | `-q`   | `-q`  | quiet mode, where supported      |
-| 0 (default) |       |        |       | default for build tool           |
-| 1           |       | `-v`   |       | print backend output             |
+|             | build | pip    | uv    | desc                                   |
+|-------------|-------|--------|-------|----------------------------------------|
+| -2          | `-qq` | `-qq`  | `-qq` | even more quiet, where supported       |
+| -1          | `-q`  | `-q`   | `-q`  | quiet mode, where supported            |
+| 0 (default) |       |        |       | default for build tool                 |
+| 1           |       | `-v`   |       | print backend output                   |
 | 2           | `-v`  | `-vv`  | `-v`  | print log messages e.g. resolving info |
-| 3           | `-vv` | `-vvv` | `-vv` | print even more debug info       |
-
-[^1]: Not supported on Python 3.8, will be ignored with a warning.
+| 3           | `-vv` | `-vvv` | `-vv` | print even more debug info             |
 
 Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by

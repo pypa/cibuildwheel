@@ -161,32 +161,6 @@ bin/run_example_ci_configs.py examples/github-with-qemu.yml
 
 The script then outputs a Markdown table that can be copy/pasted into a PR to monitor and record the test.
 
-### Preparing environments
-
-This has been moved to using docker, so you only need the following instructions if you add `--no-docker` to avoid using docker.
-
-The dependency update script in the next section requires multiple python versions installed. One way to do this is to use `pyenv`:
-
-```bash
-pyenv install 3.7.8
-# Optionally add 3.8 and make it the local version;
-# otherwise assuming 3.8+ already is your current python version
-```
-
-Then, you need to make the required virtual environments:
-
-```bash
-$(pyenv prefix 3.7.8)/bin/python -m venv env37
-```
-
-<!-- Note for fish users: use zsh/bash for these lines for now, there's not a nice one-line fish replacement -->
-
-And, you need to install the requirements into each environment:
-
-```bash
-for f in env*/bin/pip; do $f install pip-tools; done
-```
-
 ### Making a release
 
 Before making a release, ensure pinned dependencies are up-to-date. Autoupdates are run weekly, with a PR being raised with any changes as required, so just make sure the latest one is merged before continuing.

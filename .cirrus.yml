@@ -73,19 +73,3 @@ macos_arm64_task:
     - brew install python@3.12
     - python3.12 -m venv ${VENV_ROOT}
   <<: *RUN_TESTS
-
-macos_arm64_cp38_task:
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-runner:sequoia
-  env:
-    VENV_ROOT: ${HOME}/venv-cibuildwheel
-    PATH: ${VENV_ROOT}/bin:${PATH}
-    PYTEST_ADDOPTS: --run-cp38-universal2 -k 'test_cp38_arm64_testing_universal2_installer or test_arch_auto or test_dummy_serial'
-  install_pre_requirements_script:
-    - brew install python@3.12
-    - python3.12 -m venv ${VENV_ROOT}
-    - curl -fsSLO https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
-    - sudo installer -pkg python-3.8.10-macos11.pkg -target /
-    - rm python-3.8.10-macos11.pkg
-    - sh "/Applications/Python 3.8/Install Certificates.command"
-  <<: *RUN_TESTS
