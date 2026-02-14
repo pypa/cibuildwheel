@@ -594,11 +594,15 @@ def test_deprecated_image(
         ("pip", 3, ["-Ca", "-Cb", "-1", "-vvv"]),
         ("pip", 2, ["-Ca", "-Cb", "-1", "-vv"]),
         ("pip", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("uv", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("build", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("build[uv]", -1, ["-Ca", "-Cb", "-1", "-q"]),
         ("build", 0, ["-Ca", "-Cb", "-1"]),
         ("build", 1, ["-Ca", "-Cb", "-1"]),
         ("build", 2, ["-Ca", "-Cb", "-1", "-v"]),
         ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
@@ -611,7 +615,7 @@ def test_get_build_frontend_extra_flags(
     monkeypatch.setattr(Logger, "warning", mock_warning)
     build_frontend = BuildFrontendConfig(frontend, ["-1"])
     args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b"
+        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b", py38=False
     )
 
     assert args == result
@@ -626,7 +630,7 @@ def test_get_build_frontend_extra_flags_warning(
     monkeypatch.setattr(Logger, "warning", mock_warning)
     build_frontend = BuildFrontendConfig(frontend, ["-1"])
     args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=-1, config_settings="a b"
+        build_frontend=build_frontend, verbosity_level=-1, config_settings="a b", py38=True
     )
     assert args == ["-Ca", "-Cb", "-1"]
     mock_warning.assert_called_once()
