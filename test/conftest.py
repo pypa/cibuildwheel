@@ -13,6 +13,7 @@ from cibuildwheel.selector import EnableGroup
 from cibuildwheel.typing import PLATFORMS
 from cibuildwheel.venv import find_uv
 
+from . import utils
 from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
 
 
@@ -164,7 +165,7 @@ def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
 
 
 @pytest.fixture(params=["pip", "build", "build[uv]", "uv"])
-def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
+def build_frontend_env(request: pytest.FixtureRequest) -> Generator[dict[str, str], None, None]:
     frontend = request.param
     marks = {m.name for m in request.node.iter_markers()}
     if "android" in marks:
@@ -186,7 +187,17 @@ def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
     if uv_path is not None and frontend == "build" and platform not in {"android", "ios"}:
         pytest.skip("No need to check build when uv is present")
 
-    return {"CIBW_BUILD_FRONTEND": frontend}
+    # temporary workaround: uv doesn't work with graalpy311 yet
+    uses_uv = "uv" in frontend
+    env: dict[str, str] = {"CIBW_BUILD_FRONTEND": frontend}
+    if uses_uv:
+        utils.include_gp311_in_expected_wheels = False
+        env["CIBW_SKIP"] = "gp311*"
+    try:
+        yield env
+    finally:
+        if uses_uv:
+            utils.include_gp311_in_expected_wheels = True
 
 
 @pytest.fixture

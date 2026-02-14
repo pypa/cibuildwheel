@@ -28,6 +28,10 @@ GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
 
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
+# temporary workaround: set by build_frontend_env fixture to skip graalpy311
+# when uv is the build frontend
+include_gp311_in_expected_wheels: bool = True
+
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
     None: Architecture.armv7l.value not in EMULATED_ARCHS,
     CIProvider.travis_ci: False,
@@ -306,8 +310,11 @@ def _expected_wheels(
             ]
 
         if EnableGroup.GraalPy in enable_groups:
+            if include_gp311_in_expected_wheels:
+                python_abi_tags += [
+                    "graalpy311-graalpy242_311_native",
+                ]
             python_abi_tags += [
-                "graalpy311-graalpy242_311_native",
                 "graalpy312-graalpy250_312_native",
             ]
 
