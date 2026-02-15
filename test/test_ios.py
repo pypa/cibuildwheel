@@ -55,10 +55,12 @@ def skip_if_ios_testing_not_supported() -> None:
 @pytest.mark.parametrize(
     "build_config",
     [
-        # Default to the pip build frontend
+        # Check the default build frontend
         {"CIBW_PLATFORM": "ios"},
-        # Also check the build frontend
-        {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
+        # Check the build[uv] frontend
+        {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build[uv]"},
+        # Check the pip frontend
+        {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "pip"},
     ],
 )
 def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
