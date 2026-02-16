@@ -21,10 +21,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Update the ${{ env.TAG_NAME }} tag
         id: update-major-minor-tag
-        uses: joerick/update-vX.Y-tag-action@v1.0
+        uses: joerick/update-vX.Y-tag-action@c4cefb60c33b82e4aa73a469e4acf30ee48d5812 # v1.0.2
         with:
           source-tag: ${{ env.TAG_NAME }}
