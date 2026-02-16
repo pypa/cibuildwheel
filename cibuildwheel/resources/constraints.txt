@@ -8,7 +8,7 @@ delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.0
     # via virtualenv
-filelock==3.20.3
+filelock==3.24.2
     # via virtualenv
 macholib==1.16.4
     # via delocate
@@ -16,13 +16,13 @@ packaging==26.0
     # via
     #   build
     #   delocate
-pip==25.3
+pip==26.0.1
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.5.1
+platformdirs==4.9.2
     # via virtualenv
 pyproject-hooks==1.2.0
     # via build
 typing-extensions==4.15.0
     # via delocate
-virtualenv==20.36.1
+virtualenv==20.37.0
     # via -r cibuildwheel/resources/constraints.in
