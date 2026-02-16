@@ -362,7 +362,7 @@ def build_in_container(
 
             if is_abi3_wheel(repaired_wheel.name):
                 local_abi3audit_dir = local_identifier_tmp_dir / "abi3audit"
-                local_abi3audit_dir.mkdir(exist_ok=True)
+                local_abi3audit_dir.mkdir(parents=True, exist_ok=True)
                 container.copy_out(repaired_wheel_dir, local_abi3audit_dir)
                 local_wheel = local_abi3audit_dir / repaired_wheel.name
                 run_abi3audit(local_wheel)
