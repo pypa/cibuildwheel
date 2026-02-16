@@ -32,7 +32,7 @@ jobs:
 
     - uses: actions/checkout@v6
 
-    - uses: wntrblm/nox@2026.02.09
+    - uses: wntrblm/nox@5a277b752f6094150e25237d47c34168e2b7526e  # 2026.02.09
 
     - name: "Run update: dependencies"
       run: nox --force-color -s update_constraints
