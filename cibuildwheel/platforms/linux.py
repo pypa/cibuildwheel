@@ -1,5 +1,6 @@
 import contextlib
 import dataclasses
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -18,7 +19,7 @@ from ..selector import BuildSelector
 from ..util import resources
 from ..util.file import copy_test_sources
 from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import find_compatible_wheel
+from ..util.packaging import find_compatible_wheel, is_abi3_wheel, run_abi3audit
 
 if TYPE_CHECKING:
     from ..typing import PathOrStr
@@ -358,6 +359,14 @@ def build_in_container(
 
             if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                 raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+            if is_abi3_wheel(repaired_wheel.name):
+                local_abi3audit_dir = local_identifier_tmp_dir / "abi3audit"
+                local_abi3audit_dir.mkdir(exist_ok=True)
+                container.copy_out(repaired_wheel_dir, local_abi3audit_dir)
+                local_wheel = local_abi3audit_dir / repaired_wheel.name
+                run_abi3audit(local_wheel)
+                shutil.rmtree(local_abi3audit_dir)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")
