@@ -70,6 +70,7 @@ violating_abi3_project = test_projects.new_c_project(
 violating_abi3_project.files["pyproject.toml"] = pyproject_toml
 
 
+@utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
 def test_abi3audit_runs_on_abi3_wheel(tmp_path, capfd):
     """Test that abi3audit runs automatically on abi3 wheels."""
     project_dir = tmp_path / "project"
@@ -90,6 +91,7 @@ def test_abi3audit_runs_on_abi3_wheel(tmp_path, capfd):
     assert "Running abi3audit" in captured.out
 
 
+@utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
 def test_abi3audit_skipped_for_non_abi3_wheel(tmp_path, capfd):
     """Test that abi3audit does not run for non-abi3 wheels."""
     project_dir = tmp_path / "project"
@@ -110,6 +112,7 @@ def test_abi3audit_skipped_for_non_abi3_wheel(tmp_path, capfd):
     assert "Running abi3audit" not in captured.out
 
 
+@utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
 def test_abi3audit_detects_violation(tmp_path, capfd):
     """Test that abi3audit catches stable ABI violations and fails the build.
 
