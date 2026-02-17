@@ -31,8 +31,10 @@ jobs:
         private-key: ${{ secrets.CIBUILDWHEEL_BOT_APP_PRIVATE_KEY }}
 
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
-    - uses: wntrblm/nox@2025.11.12
+    - uses: wntrblm/nox@5a277b752f6094150e25237d47c34168e2b7526e # 2026.02.09
 
     - name: "Run update: dependencies"
       run: nox --force-color -s update_constraints
@@ -43,7 +45,7 @@ jobs:
 
     - name: Create Pull Request
       if: github.ref == 'refs/heads/main' && github.repository == 'pypa/cibuildwheel'
-      uses: peter-evans/create-pull-request@v8
+      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
       with:
         commit-message: Update dependencies
         title: '[Bot] Update dependencies'

@@ -1,7 +1,7 @@
 repos:
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v6.0.0
+  rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
   hooks:
   - id: check-case-conflict
   - id: check-merge-conflict
@@ -14,14 +14,14 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.0
+  rev: fa93bc3224c614a0e9786d3e2d3d48edcca246eb  # frozen: v0.15.1
   hooks:
   - id: ruff-check
     args: ["--fix", "--show-fixes"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.19.1
+  rev: a66e98df7b4aeeb3724184b332785976d062b92e  # frozen: v1.19.1
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
@@ -54,7 +54,7 @@ repos:
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
-  rev: v0.11.0.1
+  rev: 745eface02aef23e168a8afb6b5737818efbea95  # frozen: v0.11.0.1
   hooks:
   - id: shellcheck
 
@@ -75,7 +75,7 @@ repos:
     additional_dependencies: [cogapp>=3.5]
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.4.1
+  rev: 63c8f8312b7559622c0d82815639671ae42132ac  # frozen: v2.4.1
   hooks:
   - id: codespell
     args: ["-w"]
@@ -83,7 +83,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.36.1
+  rev: f761d025eb06bcd6a45bf152ba3593c9b8ad9a9b  # frozen: 0.36.2
   hooks:
     - id: check-dependabot
     - id: check-github-actions

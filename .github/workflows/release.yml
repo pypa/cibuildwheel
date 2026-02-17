@@ -11,9 +11,11 @@ jobs:
   dist:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
 
-    - uses: hynek/build-and-inspect-python-package@v2
+    - uses: hynek/build-and-inspect-python-package@efb823f52190ad02594531168b7a2d5790e66516 # v2.14.0
 
   publish:
     needs: [dist]
@@ -27,7 +29,7 @@ jobs:
       attestations: write
 
     steps:
-    - uses: actions/download-artifact@v7
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: Packages
         path: dist
@@ -37,6 +39,6 @@ jobs:
       with:
         subject-path: "dist/cibuildwheel-*"
 
-    - uses: pypa/gh-action-pypi-publish@release/v1
+    - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
       with:
         attestations: true
