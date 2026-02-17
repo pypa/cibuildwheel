@@ -37,10 +37,10 @@ jobs:
     name: Linters (mypy, ruff, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@v6
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@v6
       id: python
       with:
         python-version: "3.x"
@@ -55,10 +55,10 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@v6
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@v6
       name: Install Python
       with:
         python-version: "3.x"
@@ -67,7 +67,7 @@ jobs:
       run: uv sync --no-dev --group test
     - name: Generate a sample project
       run: uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
-    - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    - uses: actions/upload-artifact@v6
       with:
         name: sample_proj
         path: sample_proj
@@ -117,10 +117,10 @@ jobs:
           test_select: android
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@v6
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@v6
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
@@ -172,7 +172,7 @@ jobs:
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
     - name: Download a sample project
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      uses: actions/download-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
@@ -230,7 +230,7 @@ jobs:
       run: |
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
-    - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    - uses: actions/upload-artifact@v6
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
         path: wheelhouse/*.whl
@@ -247,10 +247,10 @@ jobs:
     outputs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@v6
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
     - uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7.3.0
@@ -272,10 +272,10 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@v6
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
     - uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7.3.0
@@ -296,10 +296,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@v6
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@v6
       name: Install Python 3.12
       with:
         python-version: '3.12'
@@ -309,7 +309,7 @@ jobs:
       run: uv sync --no-dev --group test
 
     - name: Download a sample project
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      uses: actions/download-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
@@ -346,11 +346,11 @@ jobs:
         - os: macos-15
           test_select: android
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@v6
       with:
         persist-credentials: false
     - name: Download a sample project
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      uses: actions/download-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
