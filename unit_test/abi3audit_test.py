@@ -33,7 +33,7 @@ class TestIsAbi3Wheel:
 class TestRunAbi3audit:
     def test_skips_non_abi3_wheel(self):
         wheel = Path("/tmp/foo-1.0-cp310-cp310-manylinux_2_28_x86_64.whl")
-        with patch("subprocess.run") as mock_run:
+        with patch("cibuildwheel.util.packaging.subprocess.run") as mock_run:
             run_abi3audit(wheel)
             mock_run.assert_not_called()
 
