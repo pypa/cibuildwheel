@@ -964,23 +964,10 @@ Platform-specific environment variables are also available:<br/>
       'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
     ]
 
-    # Use abi3audit to catch issues with Limited API wheels
-    [tool.cibuildwheel.linux]
-    repair-wheel-command = [
-      "auditwheel repair -w {dest_dir} {wheel}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
-    [tool.cibuildwheel.macos]
-    repair-wheel-command = [
-      "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
-    [tool.cibuildwheel.windows]
-    repair-wheel-command = [
-      "copy {wheel} {dest_dir}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
     ```
+
+    !!! note
+        cibuildwheel automatically runs [abi3audit](https://github.com/trailofbits/abi3audit) on abi3 wheels after the repair step. You no longer need to add it to your repair command manually.
 
     In configuration files, you can use an inline array, and the items will be joined with `&&`.
 
@@ -1003,16 +990,6 @@ Platform-specific environment variables are also available:<br/>
       python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
       python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
 
-    # Use abi3audit to catch issues with Limited API wheels
-    CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-      auditwheel repair -w {dest_dir} {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-      delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-      copy {wheel} {dest_dir} &&
-      pipx run abi3audit --strict --report {wheel}
     ```
 
 

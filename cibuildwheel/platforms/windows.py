@@ -23,7 +23,7 @@ from ..util import resources
 from ..util.cmd import call, shell
 from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
 from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import find_compatible_wheel, get_pip_version
+from ..util.packaging import find_compatible_wheel, get_pip_version, run_abi3audit
 from ..venv import constraint_flags, find_uv, virtualenv
 
 
@@ -548,6 +548,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+                run_abi3audit(repaired_wheel)
 
             test_selected = options.globals.test_selector(config.identifier)
             if test_selected and config.arch == "ARM64" != platform_module.machine():
