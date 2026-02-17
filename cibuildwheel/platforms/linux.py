@@ -366,7 +366,10 @@ def build_in_container(
                 container.copy_out(repaired_wheel_dir, local_abi3audit_dir)
                 local_wheel = local_abi3audit_dir / repaired_wheel.name
                 run_abi3audit(local_wheel)
-                shutil.rmtree(local_abi3audit_dir)
+                try:
+                    run_abi3audit(local_wheel)
+                finally:
+                    shutil.rmtree(local_abi3audit_dir, ignore_errors=True)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")
