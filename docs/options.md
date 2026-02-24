@@ -482,6 +482,11 @@ uv currently does not support iOS or musllinux on s390x, ppc64le and riscv64.
 You can also use the `uv` backend directly; though currently multiple output
 files (from workspaces) are not supported.
 
+!!! note
+    GraalPy 3.11 on Windows is not compatible with `build[uv]` or `uv` as the
+    build frontend. Use `build` or `pip` instead when building for GraalPy 3.11
+    on Windows.
+
 On Android and Pyodide, the "pip" frontend is not supported.
 
 You can specify extra arguments to pass to the build frontend using the
