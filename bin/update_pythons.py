@@ -266,9 +266,11 @@ class CPythonVersions:
 
             # Removing the prefix
             version = Version(release["name"].removeprefix("Python "))
+            self.versions_dict[version] = release["resource_uri"]
 
-            uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
-            self.versions_dict[version] = uri
+        files_response = requests.get("https://www.python.org/api/v2/downloads/release_file/")
+        files_response.raise_for_status()
+        self.files_info = files_response.json()
 
     def update_version(self, identifier: str, spec: Specifier, file_ident: str) -> ConfigUrl | None:
         # see note above on Specifier.filter
@@ -278,13 +280,9 @@ class CPythonVersions:
         for new_version in sorted_versions:
             # Find the first patch version that contains the requested file
             uri = self.versions_dict[new_version]
-            response = requests.get(
-                f"https://www.python.org/api/v2/downloads/release_file/?release={uri}"
-            )
-            response.raise_for_status()
-            file_info = response.json()
+            files = [rf for rf in self.files_info if rf["release"] == uri]
 
-            urls = [rf["url"] for rf in file_info if file_ident in rf["url"]]
+            urls = [rf["url"] for rf in files if file_ident in rf["url"]]
             if urls:
                 return ConfigUrl(
                     identifier=identifier,
