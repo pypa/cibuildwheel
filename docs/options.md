@@ -1257,7 +1257,7 @@ Platform-specific environment variables are also available:<br/>
 
     [tool.cibuildwheel.pyodide]
     # Choose a specific pyodide-build version
-    dependency-versions = { packages = ["pyodide-build==0.29.1"] }
+    dependency-versions = { packages = ["pyodide-build==0.31.2"] }
     ```
 
 !!! tab examples "Environment variables"
@@ -1276,7 +1276,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_DEPENDENCY_VERSIONS: "packages: auditwheel==6.2.0"
 
     # Choose a specific pyodide-build version
-    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.29.1"
+    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.31.2"
 
     # Use shell-style quoting around spaces package specifiers
     CIBW_DEPENDENCY_VERSIONS: "packages: 'pip >=16.0.0, !=17'"
