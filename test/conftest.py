@@ -187,17 +187,17 @@ def build_frontend_env(request: pytest.FixtureRequest) -> Generator[dict[str, st
     if uv_path is not None and frontend == "build" and platform not in {"android", "ios"}:
         pytest.skip("No need to check build when uv is present")
 
-    # temporary workaround: uv doesn't work with graalpy311 yet
+    # temporary workaround: uv doesn't work with graalpy yet
     uses_uv = "uv" in frontend
     env: dict[str, str] = {"CIBW_BUILD_FRONTEND": frontend}
     if uses_uv:
-        utils.include_gp311_in_expected_wheels = False
-        env["CIBW_SKIP"] = "gp311*"
+        utils.include_graalpy_in_expected_wheels = False
+        env["CIBW_SKIP"] = "gp*"  # skip graalpy when using uv, until uv supports it
     try:
         yield env
     finally:
         if uses_uv:
-            utils.include_gp311_in_expected_wheels = True
+            utils.include_graalpy_in_expected_wheels = True
 
 
 @pytest.fixture
