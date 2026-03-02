@@ -28,8 +28,8 @@ GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
 
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
 
-# temporary workaround: set by build_frontend_env fixture to skip graalpy311
-# when uv is the build frontend
+# temporary workaround: set by build_frontend_env fixture to skip graalpy
+# when uv is the build frontend (compatibility issue between graalpy and uv)
 include_graalpy_in_expected_wheels: bool = True
 
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {

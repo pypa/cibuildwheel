@@ -483,9 +483,9 @@ You can also use the `uv` backend directly; though currently multiple output
 files (from workspaces) are not supported.
 
 !!! note
-    GraalPy 3.11 on Windows is not compatible with `build[uv]` or `uv` as the
-    build frontend. Use `build` or `pip` instead when building for GraalPy 3.11
-    on Windows.
+    There is currently a compatibility issue between GraalPy and uv. If you
+    are building GraalPy wheels, use `build` or `pip` as the build frontend
+    instead of `build[uv]` or `uv`.
 
 On Android and Pyodide, the "pip" frontend is not supported.
 
