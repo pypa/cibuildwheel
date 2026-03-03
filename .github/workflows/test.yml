@@ -61,7 +61,7 @@ jobs:
       run: uv sync --no-dev --group test
     - name: Generate a sample project
       run: uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
@@ -164,7 +164,7 @@ jobs:
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
     - name: Download a sample project
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: sample_proj
         path: sample_proj
@@ -222,7 +222,7 @@ jobs:
       run: |
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
         path: wheelhouse/*.whl
@@ -293,7 +293,7 @@ jobs:
       run: uv sync --no-dev --group test
 
     - name: Download a sample project
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: sample_proj
         path: sample_proj
@@ -332,7 +332,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Download a sample project
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: sample_proj
         path: sample_proj

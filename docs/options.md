@@ -482,6 +482,11 @@ uv currently does not support iOS or musllinux on s390x, ppc64le and riscv64.
 You can also use the `uv` backend directly; though currently multiple output
 files (from workspaces) are not supported.
 
+!!! note
+    There is currently a compatibility issue between GraalPy and uv. If you
+    are building GraalPy wheels, use `build` or `pip` as the build frontend
+    instead of `build[uv]` or `uv`.
+
 On Android and Pyodide, the "pip" frontend is not supported.
 
 You can specify extra arguments to pass to the build frontend using the
@@ -1250,7 +1255,7 @@ Platform-specific environment variables are also available:<br/>
 
     [tool.cibuildwheel.pyodide]
     # Choose a specific pyodide-build version
-    dependency-versions = { packages = ["pyodide-build==0.29.1"] }
+    dependency-versions = { packages = ["pyodide-build==0.31.2"] }
     ```
 
 !!! tab examples "Environment variables"
@@ -1269,7 +1274,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_DEPENDENCY_VERSIONS: "packages: auditwheel==6.2.0"
 
     # Choose a specific pyodide-build version
-    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.29.1"
+    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.31.2"
 
     # Use shell-style quoting around spaces package specifiers
     CIBW_DEPENDENCY_VERSIONS: "packages: 'pip >=16.0.0, !=17'"
