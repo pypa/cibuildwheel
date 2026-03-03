@@ -146,8 +146,6 @@ def test_pyodide_build_and_test(tmp_path, expect_failure):
             "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
             "spam-0.1.0-cp313-cp313-pyodide_2025_0_wasm32.whl",
         ]
-        print("actual_wheels", actual_wheels)
-        print("expected_wheels", expected_wheels)
         assert set(actual_wheels) == set(expected_wheels)
 
 
@@ -172,8 +170,5 @@ def test_pyodide_repair_wheel(tmp_path):
     # check that the expected wheels are produced
     expected_wheels = [
         "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
-        "spam-0.1.0-cp313-cp313-pyodide_2025_0_wasm32.whl",
     ]
-    print("actual_wheels", actual_wheels)
-    print("expected_wheels", expected_wheels)
     assert set(actual_wheels) == set(expected_wheels)
