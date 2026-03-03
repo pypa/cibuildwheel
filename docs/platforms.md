@@ -179,6 +179,17 @@ If there are pre-releases available for a newer Pyodide version, the `pyodide-pr
 
 Currently, it's recommended to run tests using a `python -m` entrypoint, rather than a command line entrypoint, or a shell script. This is because custom entrypoints have some issues in the Pyodide virtual environment. For example, `pytest` may not work as a command line entrypoint, but will work as a `python -m pytest` entrypoint.
 
+### Repairing wheels
+
+Unlike other platforms, cibuildwheel does not set a default [`repair-wheel-command`](options.md#repair-wheel-command) for Pyodide. If your package links shared libraries, you need to explicitly configure the repair command using [`pyodide auditwheel`](https://github.com/pyodide/auditwheel-emscripten):
+
+```toml
+[tool.cibuildwheel.pyodide]
+repair-wheel-command = "pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}"
+```
+
+The `--libdir` option specifies the directory containing cross-compiled shared libraries for WASM. You should not use the system library directories (e.g. `/usr/lib`), as those libraries are not built for WebAssembly.
+
 
 ## Android {: android}
 

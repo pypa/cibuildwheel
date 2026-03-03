@@ -911,6 +911,10 @@ Default:
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
 - on Android: There is no default command, but cibuildwheel will add `libc++` to the
   wheel if anything links against it. Setting a command will replace this behavior.
+- on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
+  Unlike other platforms, this command is not set by default as you need to explicitly
+  specify the library directory. You might not want to use the libraries in the system
+  directory, as they are not built for WASM and will not work.
 - on other platforms: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
@@ -937,12 +941,6 @@ Platform-specific environment variables are also available:<br/>
     Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
 
     [Delvewheel]: https://github.com/adang1345/delvewheel
-
-!!! tip
-    When using `--platform pyodide`, `pyodide build` is used to do the build,
-    which already uses `auditwheel-emscripten` to repair the wheel, so the default
-    repair command is empty. If there is a way to do this in two steps in the future,
-    this could change.
 
 #### Examples
 
