@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.3.1
+        run: python -m pip install cibuildwheel==3.4.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -235,6 +235,17 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.4.0
+
+_5 March 2026_
+
+- 🌟 You can now build wheels using `uv` as a build frontend. This should improve performance, especially if your project has lots of build dependencies. To use, set [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) to `uv`. (#2322)
+- ⚠️ We no longer support running on Travis CI. It may continue working but we don't run tests there anymore so we can't be sure. (#2682)
+- ✨ Improvements to building rust wheels on Android (#2650)
+- 🐛 Fix bug with the GitHub Action on Windows, where PATH was getting unnecessarily changed, causing issues with meson builds. (#2723)
+- ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting.
+- 📚 Docs updates, including guidance on using Meson on Windows (#2718)
+
 ### v3.3.1
 
 _5 January 2026_
@@ -274,25 +285,7 @@ _22 September 2025_
 - ⚠️ PyPy 3.10 was moved to `pypy-eol` in the `enable` option, as it is now end-of-life. (#2521)
 - 📚 Docs improvements (#2574, #2601, #2598)
 
-### v3.1.4
-
-_19 August 2025_
-
-- ✨ Add a `--clean-cache` command to clean up our cache (#2489)
-- 🛠 Update Python to 3.14rc2 and other patch version bumps (#2542, #2556)
-- 🛠 Update Pyodide to 0.28.2 (#2562, #2558)
-- 🐛 Fix resolution with `pyodide-build` when `dependency-versions` is set (#2548)
-- 🐛 Set `CMAKE_FIND_ROOT_PATH_MODE_PACKAGE` to `BOTH` on Android (#2547)
-- 🐛 Add `patchelf` dependency for platforms that can build Android wheels (#2552)
-- 🐛 Ignore empty values for `CIBW_ARCHS` like most other environment variables (#2541)
-- 💼 The `color` and `suggest_on_error` argparse options are now default in 3.14rc1+ (#2554)
-- 💼 Use the virtualenv release URL instead of blob URL (should be more robust) (#2555)
-- 🧪 For iOS, lowering to macos-14 is needed for now due to issues with GitHub's runner images (#2557)
-- 🧪 Split out platforms iOS and Android in our tests (#2519)
-- 🧪 Fix and enable doctests (#2546)
-- 📚 Improve our docs on free-threading (#2549)
-
-<!-- [[[end]]] (sum: PDe+dJWkRl) -->
+<!-- [[[end]]] (sum: rvgewG/d2N) -->
 
 ---
 
