@@ -341,34 +341,6 @@ To work around this, use a different environment variable such as `REPAIR_LIBRAR
 
 See [#816](https://github.com/pypa/cibuildwheel/issues/816), thanks to @phoerious for reporting.
 
-### macOS: Building CPython 3.8 wheels on arm64
-
-If you're building on an arm64 runner, you might notice something strange about CPython 3.8 - unlike Python 3.9+, it's cross-compiled to arm64 from an x86_64 version of Python running under Rosetta emulation. This is because (despite the prevalence of arm64 versions of Python 3.8 from Apple and Homebrew) there is no officially supported Python.org installer of Python 3.8 for arm64.
-
-This is fine for simple C extensions, but for more complicated builds on arm64 it becomes an issue.
-
-So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`) on Python 3.8, before invoking cibuildwheel, you should install a native arm64 Python 3.8 interpreter on the runner:
-
-
-!!! tab "GitHub Actions"
-
-    ```yaml
-    - uses: actions/setup-python@v5
-      with:
-        python-version: 3.8
-      if: runner.os == 'macOS' && runner.arch == 'ARM64'
-    ```
-
-!!! tab "Generic"
-
-    ```bash
-    curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
-    sudo installer -pkg /tmp/Python38.pkg -target /
-    sh "/Applications/Python 3.8/Install Certificates.command"
-    ```
-
-Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
-
 ### macOS: Library dependencies do not satisfy target MacOS
 
 Since delocate 0.11.0 there is added verification that the library binary dependencies match the target macOS version. This is to prevent the situation where a wheel platform tag is lower than the actual minimum macOS version required by the library. To resolve this error you need to build the library to the same macOS version as the target wheel (for example using `MACOSX_DEPLOYMENT_TARGET` environment variable).

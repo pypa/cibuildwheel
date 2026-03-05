@@ -419,7 +419,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_frontend,
                     build_options.build_verbosity,
                     build_options.config_settings,
-                    py38=False,
                 )
 
                 call(
