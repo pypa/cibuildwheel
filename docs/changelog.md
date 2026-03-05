@@ -12,7 +12,7 @@ _5 March 2026_
 - ⚠️ We no longer support running on Travis CI. It may continue working but we don't run tests there anymore so we can't be sure. (#2682)
 - ✨ Improvements to building rust wheels on Android (#2650)
 - 🐛 Fix bug with the GitHub Action on Windows, where PATH was getting unnecessarily changed, causing issues with meson builds. (#2723)
-- ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting.
+- ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting. (#2737)
 - 📚 Docs updates, including guidance on using Meson on Windows (#2718)
 
 ### v3.3.1
