@@ -347,3 +347,37 @@ def test_ios_test_command_invalid(tmp_path, capfd):
         )
     _, err = capfd.readouterr()
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
+
+
+def test_repair_step(tmp_path):
+    """Build will succeed & the custom repair step is called."""
+    skip_if_ios_testing_not_supported()
+
+    project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
+    basic_project.generate(project_dir)
+
+    # Build, but don't test the wheels; we're only checking that the right
+    # warning was raised.
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp314-*",
+            "CIBW_TEST_SKIP": "*",
+            "CIBW_REPAIR_WHEEL_COMMAND": "touch .ios-repair-step && mv {wheel} {dest_dir}",
+        },
+    )
+
+    # The expected wheels were produced.
+    expected_wheels = utils.expected_wheels(
+        "spam",
+        "0.1.0",
+        platform="ios",
+        python_abi_tags=["cp314-cp314"],
+    )
+    assert set(actual_wheels) == set(expected_wheels)
+
+    # The custom repair step is called.
+    assert project_dir.joinpath(".ios-repair-step").is_file()
