@@ -10,7 +10,7 @@ build==1.2.2.post1
     #   pyodide-build
 certifi==2026.2.25
     # via requests
-charset-normalizer==3.4.4
+charset-normalizer==3.4.5
     # via requests
 click==8.1.8
     # via
@@ -39,7 +39,7 @@ packaging==26.0
     #   wheel
 pip==26.0.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.9.2
+platformdirs==4.9.4
     # via
     #   pyodide-build
     #   python-discovery
@@ -62,7 +62,7 @@ pyodide-lock==0.1.2
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.1.0
+python-discovery==1.1.1
     # via virtualenv
 requests==2.32.5
     # via pyodide-build
