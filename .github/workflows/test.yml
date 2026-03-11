@@ -37,12 +37,12 @@ jobs:
     name: Linters (mypy, ruff, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       id: python
       with:
         python-version: "3.x"
-    - uses: j178/prek-action@v1
+    - uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037 # v1.1.1
     - name: PyLint checks
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
@@ -51,17 +51,17 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       name: Install Python
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v7
+    - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
     - name: Install dependencies
       run: uv sync --no-dev --group test
     - name: Generate a sample project
       run: uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
-    - uses: actions/upload-artifact@v7
+    - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: sample_proj
         path: sample_proj
@@ -111,14 +111,14 @@ jobs:
           test_select: android
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
         allow-prereleases: true
 
-    - uses: astral-sh/setup-uv@v7
+    - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
 
     - name: Free up disk space
       if: runner.os == 'Linux' && matrix.test_select != 'android'
@@ -131,7 +131,7 @@ jobs:
     # for oci_container unit tests
     - name: Set up QEMU
       if: runner.os == 'Linux'
-      uses: docker/setup-qemu-action@v4
+      uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
 
     - name: Set up Xcode
       if: ${{ startsWith(matrix.os, 'macos-15') }}
@@ -142,7 +142,7 @@ jobs:
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
-    - uses: joerick/pr-labels-action@v1.0.9
+    - uses: joerick/pr-labels-action@0543b277721e852d821c6738d449f2f4dea03d5f # v1.0.9
 
     - name: Set CIBW_ENABLE
       shell: bash
@@ -164,7 +164,7 @@ jobs:
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
     - name: Download a sample project
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: sample_proj
         path: sample_proj
@@ -222,7 +222,7 @@ jobs:
       run: |
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
-    - uses: actions/upload-artifact@v7
+    - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
         path: wheelhouse/*.whl
@@ -239,11 +239,11 @@ jobs:
     outputs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v7
+    - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
     - name: Install dependencies
       run: uv sync --no-dev --group test
     - name: Get qemu emulated architectures
@@ -262,16 +262,16 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v7
+    - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v4
+      uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
 
     - name: Run the emulation tests
       run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
@@ -282,18 +282,18 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       name: Install Python 3.12
       with:
         python-version: '3.12'
-    - uses: astral-sh/setup-uv@v7
+    - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
 
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
     - name: Download a sample project
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: sample_proj
         path: sample_proj
@@ -330,9 +330,9 @@ jobs:
         - os: macos-15
           test_select: android
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Download a sample project
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: sample_proj
         path: sample_proj
