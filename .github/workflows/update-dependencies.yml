@@ -31,6 +31,8 @@ jobs:
         private-key: ${{ secrets.CIBUILDWHEEL_BOT_APP_PRIVATE_KEY }}
 
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - uses: wntrblm/nox@2026.02.09
 

@@ -22,6 +22,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Update the ${{ env.TAG_NAME }} tag
         id: update-major-minor-tag
