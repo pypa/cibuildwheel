@@ -38,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       id: python
       with:
@@ -52,6 +54,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       name: Install Python
       with:
@@ -112,6 +116,8 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       name: Install Python ${{ matrix.python_version }}
       with:
@@ -240,6 +246,8 @@ jobs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
@@ -263,6 +271,8 @@ jobs:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
@@ -283,6 +293,8 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       name: Install Python 3.12
       with:
@@ -331,6 +343,8 @@ jobs:
           test_select: android
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - name: Download a sample project
       uses: actions/download-artifact@v8
       with:
