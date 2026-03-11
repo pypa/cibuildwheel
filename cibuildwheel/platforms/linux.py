@@ -315,7 +315,7 @@ def build_in_container(
                         [
                             "uv",
                             "build",
-                            "--python=python",
+                            f"--python={python_bin}",
                             container_package_dir,
                             "--wheel",
                             f"--out-dir={built_wheel_dir}",
