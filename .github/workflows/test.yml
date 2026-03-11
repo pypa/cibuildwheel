@@ -28,6 +28,8 @@ on:
   workflow_dispatch:
     # allow manual runs on branches without a PR
 
+permissions: {}
+
 concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
