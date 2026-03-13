@@ -34,7 +34,7 @@ windows:
     - saas-windows-medium-amd64
 
 macos:
-  image: macos-14-xcode-15
+  image: macos-latest-xcode-15
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   script:

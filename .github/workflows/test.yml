@@ -40,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-latest]
         python_version: ['3.13']
         include:
         - os: ubuntu-latest
@@ -182,7 +182,7 @@ jobs:
   test-pyodide:
     name: Test cibuildwheel building Pyodide wheels
     needs: lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v6

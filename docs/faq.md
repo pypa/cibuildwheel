@@ -72,7 +72,7 @@ See [GitHub issue 1333](https://github.com/pypa/cibuildwheel/issues/1333) for mo
 
 It's easiest to build `x86_64` wheels on `x86_64` runners, and `arm64` wheels on `arm64` runners.
 
-On GitHub Actions, `macos-14` runners are `arm64`, and `macos-13` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
+On GitHub Actions, `macos-latest` runners are `arm64`, and `macos-15-intel` runners are `x86_64`. So all you need to do is ensure both are in your build matrix.
 
 #### Cross-compiling
 
@@ -363,7 +363,7 @@ If you're building on an arm64 runner, you might notice something strange about 
 
 This is fine for simple C extensions, but for more complicated builds on arm64 it becomes an issue.
 
-So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`) on Python 3.8, before invoking cibuildwheel, you should install a native arm64 Python 3.8 interpreter on the runner:
+So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-latest`) on Python 3.8, before invoking cibuildwheel, you should install a native arm64 Python 3.8 interpreter on the runner:
 
 
 !!! tab "GitHub Actions"
