@@ -12,6 +12,8 @@ on:
   workflow_dispatch:
     # allow manual runs on branches without a PR
 
+permissions: {}
+
 concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
@@ -21,14 +23,14 @@ jobs:
     name: Linters (mypy, flake8, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@v6
       id: python
       with:
         python-version: "3.x"
-    - uses: pre-commit/action@v3.0.1
-    - name: Check manifest
-      run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s check_manifest
+    - uses: j178/prek-action@v1
     - name: PyLint checks
       run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
 
@@ -38,21 +40,23 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-latest]
         python_version: ['3.13']
         include:
         - os: ubuntu-latest
           python_version: '3.8'
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@v6
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
         allow-prereleases: true
 
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v7
 
     # free some space to prevent reaching GHA disk space limits
     - name: Clean docker images
@@ -64,7 +68,7 @@ jobs:
     # for oci_container unit tests
     - name: Set up QEMU
       if: runner.os == 'Linux'
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     - name: Install dependencies
       run: |
@@ -118,7 +122,7 @@ jobs:
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
         test $(find wheelhouse_config_file -name '*.whl' | wc -l) -eq 1
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
         path: wheelhouse/*.whl
@@ -134,17 +138,19 @@ jobs:
     outputs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v7
     - name: Install dependencies
       run: uv sync --no-dev --group test
     - name: Get qemu emulated architectures
       id: archs
       run: |
-        OUTPUT=$(uv run python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
+        OUTPUT=$(uv run --no-sync python -c "from json import dumps; from test.utils import EMULATED_ARCHS; print(dumps(EMULATED_ARCHS))")
         echo "${OUTPUT}"
         echo "archs=${OUTPUT}" >> "$GITHUB_OUTPUT"
 
@@ -157,32 +163,36 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v7
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     - name: Run the emulation tests
-      run: uv run pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
+      run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
 
   test-pyodide:
     name: Test cibuildwheel building Pyodide wheels
     needs: lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@v6
       name: Install Python 3.12
       with:
         python-version: '3.12'
-    - uses: astral-sh/setup-uv@v3
+    - uses: astral-sh/setup-uv@v7
 
     - name: Install dependencies
       run: uv sync --no-dev --group test
@@ -200,7 +210,6 @@ jobs:
         CIBW_PLATFORM: pyodide
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
-      run: |
-        uv run ./bin/run_tests.py
+      run: uv run --no-sync ./bin/run_tests.py
       env:
         CIBW_PLATFORM: pyodide

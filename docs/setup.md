@@ -154,8 +154,8 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            # macos-13 is an intel runner, macos-14 is apple silicon
-            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+            # macos-15-intel is an intel runner, macos-latest is apple silicon
+            os: [ubuntu-latest, windows-latest, macos-15-intel, macos-latest]
 
         steps:
           - uses: actions/checkout@v4
@@ -188,8 +188,8 @@ To build Linux, Mac, and Windows wheels using GitHub Actions, create a `.github/
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            # macos-13 is an intel runner, macos-14 is apple silicon
-            os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+            # macos-15-intel is an intel runner, macos-latest is apple silicon
+            os: [ubuntu-latest, windows-latest, macos-15-intel, macos-latest]
 
         steps:
           - uses: actions/checkout@v4
