@@ -7,7 +7,7 @@ pr:
 jobs:
 - job: linux_38
   timeoutInMinutes: 120
-  pool: {vmImage: 'Ubuntu-20.04'}
+  pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -19,7 +19,7 @@ jobs:
         python ./bin/run_tests.py
 
 - job: macos_38
-  pool: {vmImage: 'macOS-13'}
+  pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -30,7 +30,7 @@ jobs:
         python ./bin/run_tests.py --num-processes 2
 
 - job: windows_38
-  pool: {vmImage: 'windows-2019'}
+  pool: {vmImage: 'windows-latest'}
   timeoutInMinutes: 180
   steps:
     - task: UsePythonVersion@0
