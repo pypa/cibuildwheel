@@ -34,7 +34,7 @@ repos:
       - orjson
       - packaging
       - pygithub
-      - pytest
+      - pytest<9
       - rich
       - tomli
       - tomli_w

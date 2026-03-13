@@ -15,7 +15,7 @@ nox.options.default_venv_backend = "uv|virtualenv"
 DIR = Path(__file__).parent.resolve()
 
 
-def install_and_run(session: nox.Session, script: str, *args: str, **kwargs: Any) -> str | None:
+def install_and_run(session: nox.Session, script: str, *args: str, **kwargs: Any) -> Any:
     deps = nox.project.load_toml(script)["dependencies"]
     session.install(*deps)
     return session.run("python", script, *args, **kwargs)
