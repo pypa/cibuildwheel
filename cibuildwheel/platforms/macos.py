@@ -32,7 +32,7 @@ from ..util.file import (
     move_file,
 )
 from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import find_compatible_wheel, get_pip_version
+from ..util.packaging import find_compatible_wheel, get_pip_version, run_abi3audit
 from ..venv import constraint_flags, find_uv, virtualenv
 
 
@@ -563,6 +563,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+                run_abi3audit(repaired_wheel)
 
                 log.step_end()
 

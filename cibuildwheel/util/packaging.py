@@ -1,4 +1,6 @@
 import shlex
+import subprocess
+import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
@@ -6,6 +8,7 @@ from typing import Any, Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
+from ..logger import log
 from . import resources
 from .cmd import call
 from .helpers import parse_key_value_string, unwrap
@@ -178,3 +181,24 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             return wheel
 
     return None
+
+
+def is_abi3_wheel(wheel_name: str) -> bool:
+    """Check if a wheel uses the abi3 stable ABI based on its filename."""
+    _, _, _, tags = parse_wheel_filename(wheel_name)
+    return any(tag.abi == "abi3" for tag in tags)
+
+
+def run_abi3audit(wheel_path: Path) -> None:
+    """Run abi3audit on the given wheel if it is an abi3 wheel.
+
+    Raises subprocess.CalledProcessError if abi3audit reports violations.
+    """
+    if not is_abi3_wheel(wheel_path.name):
+        return
+
+    log.step("Running abi3audit...")
+    subprocess.run(
+        [sys.executable, "-m", "abi3audit", "--strict", "--report", str(wheel_path)],
+        check=True,
+    )
