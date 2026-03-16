@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.3.1"
+version = "3.4.0"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -90,7 +90,7 @@ test = [
     "pytest-timeout",
     "pytest-xdist",
     "pytest-rerunfailures!=16.0",
-    "pytest>=6",
+    "pytest>=9",
     "setuptools",
     "tomli_w",
     "validate-pyproject",
@@ -103,11 +103,11 @@ dev = [
 ]
 
 
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--xdoctest", "--ignore-glob=*venv*"]
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "--showlocals", "--xdoctest", "--ignore-glob=*venv*"]
+strict = true
 junit_family = "xunit2"
-xfail_strict = true
 filterwarnings = ["error"]
 log_level = "INFO"
 markers = [
@@ -116,6 +116,7 @@ markers = [
     "android: tests that run on Android",
     "pyodide: tests that run on Pyodide",
 ]
+required_plugins = ["pytest-rerunfailures"]
 
 [tool.mypy]
 python_version = "3.11"

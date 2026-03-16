@@ -9,7 +9,9 @@ delocate==0.13.0
 distlib==0.4.0
     # via virtualenv
 filelock==3.19.1
-    # via virtualenv
+    # via
+    #   python-discovery
+    #   virtualenv
 importlib-metadata==8.7.1
     # via build
 macholib==1.16.4
@@ -18,19 +20,23 @@ packaging==26.0
     # via
     #   build
     #   delocate
-pip==25.3
+pip==26.0.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.4.0
-    # via virtualenv
+    # via
+    #   python-discovery
+    #   virtualenv
 pyproject-hooks==1.2.0
     # via build
+python-discovery==1.1.1
+    # via virtualenv
 tomli==2.4.0
     # via build
 typing-extensions==4.15.0
     # via
     #   delocate
     #   virtualenv
-virtualenv==20.36.1
+virtualenv==21.1.0
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.23.0
     # via importlib-metadata

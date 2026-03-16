@@ -450,6 +450,7 @@ def build(options: Options, tmp_path: Path) -> None:
             identifier_tmp_dir = tmp_path / config.identifier
             identifier_tmp_dir.mkdir()
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
+            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
 
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version, tmp_dir=identifier_tmp_dir
@@ -523,10 +524,35 @@ def build(options: Options, tmp_path: Path) -> None:
                     case _:
                         assert_never(build_frontend)
 
-                test_wheel = built_wheel = next(built_wheel_dir.glob("*.whl"))
+                built_wheel = next(built_wheel_dir.glob("*.whl"))
 
                 if built_wheel.name.endswith("none-any.whl"):
                     raise errors.NonPlatformWheelError()
+
+                repaired_wheel_dir.mkdir()
+                if build_options.repair_command:
+                    log.step("Repairing wheel...")
+
+                    repair_command_prepared = prepare_command(
+                        build_options.repair_command,
+                        wheel=built_wheel,
+                        dest_dir=repaired_wheel_dir,
+                        package=build_options.package_dir,
+                        project=".",
+                    )
+                    shell(repair_command_prepared, env=env)
+                else:
+                    shutil.move(str(built_wheel), repaired_wheel_dir)
+
+                try:
+                    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.RepairStepProducedNoWheelError() from None
+
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+                test_wheel = repaired_wheel
 
                 log.step_end()
 
@@ -695,11 +721,11 @@ def build(options: Options, tmp_path: Path) -> None:
             # We're all done here; move it to output (overwrite existing)
             output_wheel: Path | None = None
             if compatible_wheel is None:
-                output_wheel = build_options.output_dir.joinpath(built_wheel.name)
-                moved_wheel = move_file(built_wheel, output_wheel)
+                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                moved_wheel = move_file(repaired_wheel, output_wheel)
                 if moved_wheel != output_wheel.resolve():
                     log.warning(
-                        f"{built_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
 

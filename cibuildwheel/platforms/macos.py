@@ -517,7 +517,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         call(
                             uv_path,
                             "build",
-                            "--python=python",
+                            f"--python={base_python}",
                             build_options.package_dir,
                             "--wheel",
                             f"--out-dir={built_wheel_dir}",
