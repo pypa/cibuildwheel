@@ -101,11 +101,19 @@ runs:
         if only := os.environ.get("INPUT_ONLY"):
             cmd_args += ["--only", only]
 
-        cmd_line = shlex.join(cmd_args)
+        cmd_bash = shlex.join(cmd_args)
+
+        def pwsh_quote(text):
+            # Wrap in single quotes and double-up any existing single quotes
+            return "'" + str(text).replace("'", "''") + "'"
+
+        # Prepend '& ' so PowerShell executes the quoted binary path
+        cmd_pwsh = "& " + " ".join(pwsh_quote(arg) for arg in cmd_args)
 
         with open(os.environ["GITHUB_OUTPUT"], "at") as f:
             f.write(f"prepend-path={clean_bin_path}\n")
-            f.write(f"cmd={cmd_line}\n")
+            f.write(f"cmd-bash={cmd_bash}\n")
+            f.write(f"cmd-pwsh={cmd_pwsh}\n")
 
         print("::endgroup::")
         EOF
@@ -123,19 +131,19 @@ runs:
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: |
         export PATH="$CIBW_PREPEND_PATH:$PATH"
-        eval "$CIBW_CMD" 2>&1
+        eval "$CIBW_CMD_BASH" 2>&1
       shell: bash
       if: runner.os != 'Windows'
       env:
         CIBW_PREPEND_PATH: ${{ steps.cibw.outputs.prepend-path }}
-        CIBW_CMD: ${{ steps.cibw.outputs.cmd }}
+        CIBW_CMD_BASH: ${{ steps.cibw.outputs.cmd-bash }}
 
     # Windows needs powershell to interact nicely with Meson
     - run: |
         $env:PATH = "$env:CIBW_PREPEND_PATH;$env:PATH"
-        Invoke-Expression $env:CIBW_CMD
+        Invoke-Expression $env:CIBW_CMD_PWSH
       shell: pwsh
       if: runner.os == 'Windows'
       env:
         CIBW_PREPEND_PATH: ${{ steps.cibw.outputs.prepend-path }}
-        CIBW_CMD: ${{ steps.cibw.outputs.cmd }}
+        CIBW_CMD_PWSH: ${{ steps.cibw.outputs.cmd-pwsh }}
