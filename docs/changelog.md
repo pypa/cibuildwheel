@@ -167,6 +167,12 @@ See @henryiii's [release post](https://iscinumpy.dev/post/cibuildwheel-3-0-0/) f
 - 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
 - 📚 README table now matches docs and auto-updates. (#2427, #2428)
 
+### v2.23.4
+
+_16 March 2026_
+
+- 🐛 Fix HTTP 429 errors while downloading virtualenv from GitHub blob URLs – uses a https://bootstrap.pypa.io/ URL instead. (#2775)
+
 ### v2.23.3
 
 _26 April 2025_
