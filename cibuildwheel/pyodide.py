@@ -165,7 +165,6 @@ def setup_python(
         "install",
         "--upgrade",
         "auditwheel-emscripten",
-        "build[virtualenv]",
         "pyodide-build",
         *dependency_constraint_flags,
         env=env,
