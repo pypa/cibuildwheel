@@ -285,7 +285,6 @@ def setup_python(
         "install",
         "--upgrade",
         "pyodide-build",
-        "build[virtualenv]",
         *constraint_flags(constraints_path),
         env=env,
     )
