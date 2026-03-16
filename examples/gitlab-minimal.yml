@@ -33,7 +33,7 @@ windows:
     - saas-windows-medium-amd64
 
 macos:
-  image: macos-14-xcode-15
+  image: macos-latest-xcode-15
   before_script:
     - python3 -m pip install cibuildwheel==2.23.3
   script:
