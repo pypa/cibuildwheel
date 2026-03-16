@@ -4,6 +4,12 @@ title: Changelog
 
 # Changelog
 
+### v2.23.4
+
+_16 March 2026_
+
+- 🐛 Fix HTTP 429 errors while downloading virtualenv from GitHub blob URLs – uses a https://bootstrap.pypa.io/ URL instead. (#2775)
+
 ### v2.23.3
 
 _26 April 2025_
