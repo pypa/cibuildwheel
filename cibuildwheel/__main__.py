@@ -432,6 +432,10 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
         msg = "\n".join(error_list)
         raise errors.ConfigurationError(msg)
 
+    n = len(identifiers)
+    print(f"{n} build{'s' if n != 1 else ''} selected:")
+    print(", ".join(identifiers))
+    print()
     print("Here we go!\n")
 
 
