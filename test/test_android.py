@@ -136,7 +136,10 @@ def test_frontend_bad(frontend, tmp_path, capfd):
             tmp_path,
             add_env={**cp313_env, "CIBW_BUILD_FRONTEND": frontend},
         )
-    assert "Android requires the build frontend to be 'build'" in capfd.readouterr().err
+    assert (
+        f"Android requires the build frontend to be 'build' or 'uv', not '{frontend}'"
+        in capfd.readouterr().err
+    )
 
 
 @needs_emulator

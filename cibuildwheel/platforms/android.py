@@ -229,6 +229,9 @@ def setup_env(
             raise errors.FatalError(msg)
         call(command, "--version", env=build_env)
 
+    # Construct an altered environment which simulates running on Android.
+    android_env = setup_android_env(config, python_dir, build_env)
+
     # Install build tools
     # TODO: use an official auditwheel version once
     # https://github.com/pypa/auditwheel/pull/643 has been released, and add it to the
@@ -240,13 +243,7 @@ def setup_env(
     ]
     if build_options.build_frontend.name in {"build", "build[uv]"}:
         tools.append("build")
-    else:
-        msg = "Android requires the build frontend to be 'build'"
-        raise errors.FatalError(msg)
     call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
-
-    # Construct an altered environment which simulates running on Android.
-    android_env = setup_android_env(config, python_dir, build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -336,8 +333,7 @@ def localized_vars(
         if isinstance(final, str):
             final = final.replace(orig_prefix, str(prefix))
 
-        # By default we build against API level 24, for the reasons explained in platforms.md,
-        # but this can be overridden with an environment variable.
+        # See platforms.md for the reason why we use this default API level.
         if key == "ANDROID_API_LEVEL":
             final = int(build_env.get(key, "24"))
 
@@ -567,8 +563,8 @@ def build_wheel(state: BuildState) -> Path:
                 env=state.android_env,
             )
         case x:
-            msg = f"Invalid build backend {x!r}"
-            raise AssertionError(msg)
+            msg = f"Android requires the build frontend to be 'build' or 'uv', not {x!r}"
+            raise errors.FatalError(msg)
 
     built_wheels = list(built_wheel_dir.glob("*.whl"))
     if len(built_wheels) != 1:
