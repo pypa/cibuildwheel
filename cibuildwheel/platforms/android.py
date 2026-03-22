@@ -229,9 +229,6 @@ def setup_env(
             raise errors.FatalError(msg)
         call(command, "--version", env=build_env)
 
-    # Construct an altered environment which simulates running on Android.
-    android_env = setup_android_env(config, python_dir, build_env)
-
     # Install build tools
     # TODO: use an official auditwheel version once
     # https://github.com/pypa/auditwheel/pull/643 has been released, and add it to the
@@ -244,6 +241,9 @@ def setup_env(
     if build_options.build_frontend.name in {"build", "build[uv]"}:
         tools.append("build")
     call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
+
+    # Construct an altered environment which simulates running on Android.
+    android_env = setup_android_env(config, python_dir, build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
