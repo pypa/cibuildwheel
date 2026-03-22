@@ -1,5 +1,5 @@
 # These are the defaults used by cibuildwheel itself. They should match the values in
-# generate_schema.py, which are used for documentation and IDE support.
+# generate_schema.py, which are used by external tools for validation and IDE support.
 
 [tool.cibuildwheel]
 build = "*"
