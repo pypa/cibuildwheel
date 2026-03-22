@@ -125,7 +125,7 @@ def test_frontend_good(tmp_path, build_frontend_env):
         tmp_path,
         add_env={**cp313_env, **build_frontend_env, "CIBW_TEST_COMMAND": "python -m site"},
     )
-    assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{native_arch.android_abi}.whl"]
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{native_arch.android_abi}.whl"]
 
 
 @pytest.mark.parametrize("frontend", ["pip"])
@@ -162,7 +162,7 @@ def test_archs(tmp_path, capfd):
             ),
         },
     )
-    assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{arch.android_abi}.whl" for arch in archs]
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{arch.android_abi}.whl" for arch in archs]
 
     stdout, stderr = capfd.readouterr()
     lines = (line for line in stdout.splitlines() if line.startswith("Hello from"))
@@ -470,16 +470,18 @@ def test_libcxx(tmp_path, capfd):
         "PATH": non_venv_path,
     }
 
-    # Including external libraries requires API level 24.
+    # Including external libraries requires API level 24. This is enforced by auditwheel.
     with pytest.raises(CalledProcessError):
-        cibuildwheel_run(project_dir, add_env=cp313_test_env, output_dir=output_dir)
-    assert "libc++_shared.so requires ANDROID_API_LEVEL to be at least 24" in capfd.readouterr().err
-
-    wheels = cibuildwheel_run(
-        project_dir,
-        add_env={**cp313_test_env, "ANDROID_API_LEVEL": "24"},
-        output_dir=output_dir,
+        cibuildwheel_run(
+            project_dir,
+            add_env={**cp313_test_env, "ANDROID_API_LEVEL": "21"},
+            output_dir=output_dir,
+        )
+    assert (
+        "Grafting libraries with RUNPATH requires API level 24 or higher" in capfd.readouterr().err
     )
+
+    wheels = cibuildwheel_run(project_dir, add_env=cp313_test_env, output_dir=output_dir)
     assert len(wheels) == 1
     names = ZipFile(output_dir / wheels[0]).namelist()
     libcxx_names = [

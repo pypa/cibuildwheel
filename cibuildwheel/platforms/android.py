@@ -336,11 +336,10 @@ def localized_vars(
         if isinstance(final, str):
             final = final.replace(orig_prefix, str(prefix))
 
-        # By default we build against the same API level as Python itself, but this can
-        # be overridden with an environment variable.
+        # By default we build against API level 24, for the reasons explained in platforms.md,
+        # but this can be overridden with an environment variable.
         if key == "ANDROID_API_LEVEL":
-            if api_level := build_env.get(key):
-                final = int(api_level)
+            final = int(build_env.get(key, "24"))
 
         # Build systems vary in whether FLAGS variables are read from sysconfig, and if so,
         # whether they're replaced by environment variables or combined with them. Even
