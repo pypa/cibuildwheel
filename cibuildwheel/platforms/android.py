@@ -507,7 +507,7 @@ def find_site_packages(env: dict[str, str]) -> Path:
 
 
 def find_pip(build_options: BuildOptions) -> tuple[bool, list[str]]:
-    use_uv = build_options.build_frontend.name == "build[uv]"
+    use_uv = build_options.build_frontend.name in {"build[uv]", "uv"}
     uv_path = find_uv()
     if use_uv and uv_path is None:
         msg = "uv not found"
@@ -529,22 +529,46 @@ def before_build(state: BuildState) -> None:
 def build_wheel(state: BuildState) -> Path:
     log.step("Building wheel...")
     built_wheel_dir = state.build_path / "built_wheel"
-    call(
-        "python",
-        "-m",
-        "build",
-        state.options.package_dir,
-        "--wheel",
-        "--no-isolation",
-        "--skip-dependency-check",
-        f"--outdir={built_wheel_dir}",
-        *get_build_frontend_extra_flags(
-            state.options.build_frontend,
-            state.options.build_verbosity,
-            state.options.config_settings,
-        ),
-        env=state.android_env,
-    )
+    match state.options.build_frontend.name:
+        case "build" | "build[uv]":
+            call(
+                "python",
+                "-m",
+                "build",
+                state.options.package_dir,
+                "--wheel",
+                "--no-isolation",
+                "--skip-dependency-check",
+                f"--outdir={built_wheel_dir}",
+                *get_build_frontend_extra_flags(
+                    state.options.build_frontend,
+                    state.options.build_verbosity,
+                    state.options.config_settings,
+                    py38=False,
+                ),
+                env=state.android_env,
+            )
+        case "uv":
+            uv_path = find_uv()
+            assert uv_path is not None
+            call(
+                uv_path,
+                "build",
+                state.options.package_dir,
+                "--wheel",
+                "--no-build-isolation",
+                f"--out-dir={built_wheel_dir}",
+                *get_build_frontend_extra_flags(
+                    state.options.build_frontend,
+                    state.options.build_verbosity,
+                    state.options.config_settings,
+                    py38=False,
+                ),
+                env=state.android_env,
+            )
+        case x:
+            msg = f"Invalid build backend {x!r}"
+            raise AssertionError(msg)
 
     built_wheels = list(built_wheel_dir.glob("*.whl"))
     if len(built_wheels) != 1:
@@ -646,7 +670,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         )
 
     # Android doesn't support placeholders in the test command.
-    if any(("{" + placeholder + "}") in test_command for placeholder in ["project", "package"]):
+    if any(("{" + placeholder + "}") in test_command for placeholder in ("project", "package")):
         msg = (
             f"Test command {test_command!r} with a "
             "'{project}' or '{package}' placeholder is not supported on Android, "
@@ -656,12 +680,12 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
 
     # Parse test-command.
     test_args = shlex.split(test_command)
-    if test_args[0] in ["python", "python3"] and any(arg in test_args for arg in ["-c", "-m"]):
+    if test_args[0] in {"python", "python3"} and any(arg in test_args for arg in ("-c", "-m")):
         # Forward the args to the CPython testbed script. We require '-c' or '-m'
         # to be in the command, because without those flags, the testbed script
         # will prepend '-m test', which will run Python's own test suite.
         del test_args[0]
-    elif test_args[0] in ["pytest"]:
+    elif test_args[0] == "pytest":
         # We transform some commands into the `python -m` form, but this is deprecated.
         msg = (
             f"Test command {test_command!r} is not supported on Android. "

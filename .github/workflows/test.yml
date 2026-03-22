@@ -28,6 +28,8 @@ on:
   workflow_dispatch:
     # allow manual runs on branches without a PR
 
+permissions: {}
+
 concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
@@ -38,6 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       id: python
       with:
@@ -52,6 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       name: Install Python
       with:
@@ -61,7 +67,7 @@ jobs:
       run: uv sync --no-dev --group test
     - name: Generate a sample project
       run: uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: sample_proj
         path: sample_proj
@@ -112,6 +118,8 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       name: Install Python ${{ matrix.python_version }}
       with:
@@ -131,7 +139,7 @@ jobs:
     # for oci_container unit tests
     - name: Set up QEMU
       if: runner.os == 'Linux'
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     - name: Set up Xcode
       if: ${{ startsWith(matrix.os, 'macos-15') }}
@@ -164,7 +172,7 @@ jobs:
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
     - name: Download a sample project
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: sample_proj
         path: sample_proj
@@ -222,7 +230,7 @@ jobs:
       run: |
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
         path: wheelhouse/*.whl
@@ -240,6 +248,8 @@ jobs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
@@ -263,6 +273,8 @@ jobs:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       with:
         python-version: "3.x"
@@ -271,7 +283,7 @@ jobs:
       run: uv sync --no-dev --group test
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     - name: Run the emulation tests
       run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
@@ -283,6 +295,8 @@ jobs:
     timeout-minutes: 180
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - uses: actions/setup-python@v6
       name: Install Python 3.12
       with:
@@ -293,7 +307,7 @@ jobs:
       run: uv sync --no-dev --group test
 
     - name: Download a sample project
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: sample_proj
         path: sample_proj
@@ -331,8 +345,10 @@ jobs:
           test_select: android
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - name: Download a sample project
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: sample_proj
         path: sample_proj

@@ -5,7 +5,7 @@ import platform as platform_module
 import shutil
 import subprocess
 import textwrap
-from collections.abc import MutableMapping, Set
+from collections.abc import MutableMapping, Sequence, Set
 from functools import cache
 from pathlib import Path
 from typing import assert_never
@@ -271,7 +271,7 @@ def setup_python(
     if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
         build_frontend = "build"
 
-    use_uv = build_frontend == "build[uv]"
+    use_uv = build_frontend in {"build[uv]", "uv"}
     uv_path = find_uv()
 
     log.step("Setting up build environment...")
@@ -386,6 +386,8 @@ def build(options: Options, tmp_path: Path) -> None:
     if not python_configurations:
         return
 
+    uv_path = find_uv()
+
     try:
         before_all_options_identifier = python_configurations[0].identifier
         before_all_options = options.build_options(before_all_options_identifier)
@@ -403,8 +405,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
-
-            use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
+            use_uv = build_frontend.name in {"build[uv]", "uv"} and can_use_uv(config)
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -449,7 +450,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel_dir.mkdir()
 
                 extra_flags = get_build_frontend_extra_flags(
-                    build_frontend, build_options.build_verbosity, build_options.config_settings
+                    build_frontend,
+                    build_options.build_verbosity,
+                    build_options.config_settings,
+                    py38=config.identifier[1:].startswith("p38"),
                 )
 
                 if (
@@ -498,6 +502,18 @@ def build(options: Options, tmp_path: Path) -> None:
                             build_options.package_dir,
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
+                            *extra_flags,
+                            env=env,
+                        )
+                    case "uv":
+                        assert uv_path is not None
+                        call(
+                            uv_path,
+                            "build",
+                            f"--python={base_python}",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--out-dir={built_wheel_dir}",
                             *extra_flags,
                             env=env,
                         )
@@ -575,7 +591,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
-                pip = ["uv", "pip"] if use_uv else ["pip"]
+                pip: Sequence[Path | str]
+                if use_uv:
+                    assert uv_path is not None
+                    pip = [uv_path, "pip"]
+                else:
+                    pip = ["pip"]
 
                 # install the wheel
                 call(

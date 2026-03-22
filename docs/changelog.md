@@ -4,6 +4,17 @@ title: Changelog
 
 # Changelog
 
+### v3.4.0
+
+_5 March 2026_
+
+- 🌟 You can now build wheels using `uv` as a build frontend. This should improve performance, especially if your project has lots of build dependencies. To use, set [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) to `uv`. (#2322)
+- ⚠️ We no longer support running on Travis CI. It may continue working but we don't run tests there anymore so we can't be sure. (#2682)
+- ✨ Improvements to building rust wheels on Android (#2650)
+- 🐛 Fix bug with the GitHub Action on Windows, where PATH was getting unnecessarily changed, causing issues with meson builds. (#2723)
+- ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting. (#2737)
+- 📚 Docs updates, including guidance on using Meson on Windows (#2718)
+
 ### v3.3.1
 
 _5 January 2026_
@@ -155,6 +166,12 @@ See @henryiii's [release post](https://iscinumpy.dev/post/cibuildwheel-3-0-0/) f
 - 📚 Use Python 3.14 color output in docs CLI output. (#2407)
 - 📚 Docs now primarily use the pyproject.toml name of options, rather than the environment variable name. (#2389)
 - 📚 README table now matches docs and auto-updates. (#2427, #2428)
+
+### v2.23.4
+
+_16 March 2026_
+
+- 🐛 Fix HTTP 429 errors while downloading virtualenv from GitHub blob URLs – uses a https://bootstrap.pypa.io/ URL instead. (#2775)
 
 ### v2.23.3
 

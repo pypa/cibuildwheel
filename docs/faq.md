@@ -99,6 +99,21 @@ Second, there might be platforms you want to ship for that NumPy (or some other 
 
 (Note the `*_ONLY_BINARY` variable also supports `":all:"`, and you don't need both that and `*_PREFER_BINARY`, you can use either one, depending on if you want a missing wheel to be a failure or an attempt to build in CI.)
 
+### Building with Meson-Python on Windows
+
+Meson generally works well with cibuildwheel, but there are a few things to be aware of:
+
+-   On GitHub Actions, the compiler that's chosen by default on Windows is often the MinGW compiler, rather than the MSVC toolchain that Python was compiled with.
+
+    The simplest fix for this is to configure cibuildwheel to pass the `--vsenv` flag to meson, like this:
+
+    ```toml
+    [tool.cibuildwheel.windows]
+    config-settings = { "setup-args" = "--vsenv" }
+    ```
+
+-   If you need to build 32-bit Windows wheels, you need to activate a 32-bit compiler toolchain before starting cibuildwheel. Many users use [ilammy/msvc-dev-cmd](https://github.com/ilammy/msvc-dev-cmd) for this purpose.
+
 ### Automatic updates using Dependabot {: #automatic-updates}
 
 Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worst-case scenario, it could occur during a release.
@@ -110,7 +125,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v3.3.1
+uses: pypa/cibuildwheel@v3.4.0
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -132,7 +147,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==3.3.1
+cibuildwheel==3.4.0
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -297,7 +312,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==3.3.1 --output-dir wheelhouse
+pipx run cibuildwheel==3.4.0 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 

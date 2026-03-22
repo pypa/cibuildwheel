@@ -13,6 +13,7 @@ from cibuildwheel.selector import EnableGroup
 from cibuildwheel.typing import PLATFORMS
 from cibuildwheel.venv import find_uv
 
+from . import utils
 from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
 
 
@@ -163,8 +164,8 @@ def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     return {"CIBW_BUILD_FRONTEND": frontend}
 
 
-@pytest.fixture(params=["pip", "build", "build[uv]"])
-def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
+@pytest.fixture(params=["pip", "build", "build[uv]", "uv"])
+def build_frontend_env(request: pytest.FixtureRequest) -> Generator[dict[str, str], None, None]:
     frontend = request.param
     marks = {m.name for m in request.node.iter_markers()}
     if "android" in marks:
@@ -178,15 +179,25 @@ def build_frontend_env(request: pytest.FixtureRequest) -> dict[str, str]:
 
     if platform in {"pyodide", "ios", "android"} and frontend == "pip":
         pytest.skip(f"Can't use pip as build frontend for {platform}")
-    if platform == "pyodide" and frontend == "build[uv]":
+    if platform == "pyodide" and frontend in {"build[uv]", "uv"}:
         pytest.skip("Can't use uv with pyodide yet")
     uv_path = find_uv()
-    if uv_path is None and frontend == "build[uv]":
+    if uv_path is None and frontend in {"build[uv]", "uv"}:
         pytest.skip("Can't find uv, so skipping uv tests")
     if uv_path is not None and frontend == "build" and platform not in {"android", "ios"}:
         pytest.skip("No need to check build when uv is present")
 
-    return {"CIBW_BUILD_FRONTEND": frontend}
+    # temporary workaround: uv doesn't work with graalpy yet
+    uses_uv = "uv" in frontend
+    env: dict[str, str] = {"CIBW_BUILD_FRONTEND": frontend}
+    if uses_uv:
+        utils.include_graalpy_in_expected_wheels = False
+        env["CIBW_SKIP"] = "gp*"  # skip graalpy when using uv, until uv supports it
+    try:
+        yield env
+    finally:
+        if uses_uv:
+            utils.include_graalpy_in_expected_wheels = True
 
 
 @pytest.fixture

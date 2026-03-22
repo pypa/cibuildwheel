@@ -91,13 +91,15 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-15-intel, macos-latest]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       # Used to host cibuildwheel
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.3.1
+        run: python -m pip install cibuildwheel==3.4.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -106,7 +108,7 @@ jobs:
         #   CIBW_SOME_OPTION: value
         #   ...
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
@@ -123,6 +125,11 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 ![](docs/data/how-it-works.png)
 
 <sup>Explore an interactive version of this diagram [in the docs](https://cibuildwheel.pypa.io/en/stable/#how-it-works).</sup>
+
+> [!WARNING]
+> Building and testing wheels executes arbitrary code from your project and its dependencies. Although cibuildwheel uses OCI containers and Pyodide for some builds, these provide no security guarantees - the code you're building and testing has full access to the environment that's invoking cibuildwheel.
+>
+> If you cannot trust all the code that's pulled in, maintain good security hygiene: keep the job that builds distributions separate from the job that uploads them to PyPI, handle secrets and credentials with care and rotate them regularly, and follow the principle of least privilege when granting permissions. Do not store sensitive data on CI runners.
 
 
 <!--[[[cog from readme_options_table import get_table; print(get_table()) ]]]-->
@@ -183,8 +190,8 @@ Here are some repos that use cibuildwheel.
 | [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NumPy][]                         | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The fundamental package for scientific computing with Python. |
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
-| [Tornado][]                       | ![github icon][] | ![linux icon][] ![apple icon][] ![windows icon][] | Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension. |
 | [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The venerable Matplotlib, a Python library with C++ portions |
+| [Tornado][]                       | ![github icon][] | ![linux icon][] ![apple icon][] ![windows icon][] | Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension. |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
 | [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
@@ -194,8 +201,8 @@ Here are some repos that use cibuildwheel.
 [pytorch-fairseq]: https://github.com/facebookresearch/fairseq
 [NumPy]: https://github.com/numpy/numpy
 [NCNN]: https://github.com/Tencent/ncnn
-[Tornado]: https://github.com/tornadoweb/tornado
 [Matplotlib]: https://github.com/matplotlib/matplotlib
+[Tornado]: https://github.com/tornadoweb/tornado
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
 [Prophet]: https://github.com/facebook/prophet
 [Kivy]: https://github.com/kivy/kivy
@@ -227,6 +234,17 @@ Changelog
 =========
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
+
+### v3.4.0
+
+_5 March 2026_
+
+- 🌟 You can now build wheels using `uv` as a build frontend. This should improve performance, especially if your project has lots of build dependencies. To use, set [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) to `uv`. (#2322)
+- ⚠️ We no longer support running on Travis CI. It may continue working but we don't run tests there anymore so we can't be sure. (#2682)
+- ✨ Improvements to building rust wheels on Android (#2650)
+- 🐛 Fix bug with the GitHub Action on Windows, where PATH was getting unnecessarily changed, causing issues with meson builds. (#2723)
+- ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting. (#2737)
+- 📚 Docs updates, including guidance on using Meson on Windows (#2718)
 
 ### v3.3.1
 
@@ -267,25 +285,7 @@ _22 September 2025_
 - ⚠️ PyPy 3.10 was moved to `pypy-eol` in the `enable` option, as it is now end-of-life. (#2521)
 - 📚 Docs improvements (#2574, #2601, #2598)
 
-### v3.1.4
-
-_19 August 2025_
-
-- ✨ Add a `--clean-cache` command to clean up our cache (#2489)
-- 🛠 Update Python to 3.14rc2 and other patch version bumps (#2542, #2556)
-- 🛠 Update Pyodide to 0.28.2 (#2562, #2558)
-- 🐛 Fix resolution with `pyodide-build` when `dependency-versions` is set (#2548)
-- 🐛 Set `CMAKE_FIND_ROOT_PATH_MODE_PACKAGE` to `BOTH` on Android (#2547)
-- 🐛 Add `patchelf` dependency for platforms that can build Android wheels (#2552)
-- 🐛 Ignore empty values for `CIBW_ARCHS` like most other environment variables (#2541)
-- 💼 The `color` and `suggest_on_error` argparse options are now default in 3.14rc1+ (#2554)
-- 💼 Use the virtualenv release URL instead of blob URL (should be more robust) (#2555)
-- 🧪 For iOS, lowering to macos-14 is needed for now due to issues with GitHub's runner images (#2557)
-- 🧪 Split out platforms iOS and Android in our tests (#2519)
-- 🧪 Fix and enable doctests (#2546)
-- 📚 Improve our docs on free-threading (#2549)
-
-<!-- [[[end]]] (sum: PDe+dJWkRl) -->
+<!-- [[[end]]] (sum: aO1wNWSgKa) -->
 
 ---
 

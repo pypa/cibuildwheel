@@ -179,13 +179,24 @@ If there are pre-releases available for a newer Pyodide version, the `pyodide-pr
 
 Currently, it's recommended to run tests using a `python -m` entrypoint, rather than a command line entrypoint, or a shell script. This is because custom entrypoints have some issues in the Pyodide virtual environment. For example, `pytest` may not work as a command line entrypoint, but will work as a `python -m pytest` entrypoint.
 
+### Repairing wheels
+
+Unlike other platforms, cibuildwheel does not set a default [`repair-wheel-command`](options.md#repair-wheel-command) for Pyodide. If your package links shared libraries, you need to explicitly configure the repair command using [`pyodide auditwheel`](https://github.com/pyodide/auditwheel-emscripten):
+
+```toml
+[tool.cibuildwheel.pyodide]
+repair-wheel-command = "pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}"
+```
+
+The `--libdir` option specifies the directory containing cross-compiled shared libraries for WASM. You should not use the system library directories (e.g. `/usr/lib`), as those libraries are not built for WebAssembly.
+
 
 ## Android {: android}
 
 ### Prerequisites
 
 cibuildwheel can build Android wheels on any POSIX platform supported by the Android
-development tools, which currently means Linux x86_64, macOS ARM64 or macOS x86_64. Any
+development tools, which currently means Linux `x86_64`, macOS `ARM64` or macOS `x86_64`. Any
 of these platforms can be used to build wheels for any Android architecture supported by
 Python. However, *testing* wheels has additional requirements: see the section below.
 
@@ -217,10 +228,8 @@ version to support RUNPATH, which auditwheel needs in order to graft external li
 
 ### Build frontend support
 
-Android builds only support the `build` frontend. In principle, support for the
-`build[uv]` frontend should be possible, but `uv` [doesn't currently have support for
-cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have
-support for iOS or Android wheel tags](https://github.com/astral-sh/uv/issues/8029).
+Android builds do not support the `pip` frontend. The `build`, `build[uv]`, and
+`uv` frontends work.
 
 ### Tests
 
@@ -234,7 +243,7 @@ Any arguments specified using [`test-runtime`](options.md#test-runtime) will be 
 Running an emulator requires the build machine to either be bare-metal or support
 nested virtualization. CI platforms known to meet this requirement are:
 
-* GitHub Actions Linux x86_64
+* GitHub Actions Linux `x86_64`
 
 On Linux, the emulator needs access to the KVM virtualization interface. This may
 require adding your user to a group, or changing your udev rules. On GitHub
@@ -304,7 +313,7 @@ iOS builds are *cross platform builds*, as it not possible to run compilers and 
 
 ### Build frontend support
 
-iOS builds support both the `pip` and `build` build frontends. In principle, support for `uv` with the `build[uv]` frontend should be possible, but `uv` [doesn't currently have support for cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have support for iOS (or Android) tags](https://github.com/astral-sh/uv/issues/8029).
+iOS builds support both the `pip` and `build` build frontends. In principle, support for `uv` and `build[uv]` frontends should be possible, but `uv` [doesn't support iOS fully yet](https://github.com/astral-sh/uv/issues/16724).
 
 ### Build environment
 

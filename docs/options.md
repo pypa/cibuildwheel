@@ -465,6 +465,7 @@ Options:
 - `build[;args: ...]`
 - `build[uv][;args: ...]`
 - `pip[;args: ...]`
+- `uv[;args: ...]`
 
 Default: `build`
 
@@ -478,6 +479,13 @@ pre-installing it, or installing cibuildwheel with the `uv` extra, which is
 possible by manually passing `cibuildwheel[uv]` to installers or by using the
 `extras` option in the [cibuildwheel action](ci-services.md#github-actions).
 uv currently does not support iOS or musllinux on s390x, ppc64le and riscv64.
+You can also use the `uv` backend directly; though currently multiple output
+files (from workspaces) are not supported.
+
+!!! note
+    There is currently a compatibility issue between GraalPy and uv. If you
+    are building GraalPy wheels, use `build` or `pip` as the build frontend
+    instead of `build[uv]` or `uv`.
 
 On Android and Pyodide, the "pip" frontend is not supported.
 
@@ -511,6 +519,9 @@ optional `args` option.
 
     # Use uv and build with an argument
     build-frontend = { name = "build[uv]", args = ["--no-isolation"] }
+
+    # Use uv directly
+    build-frontend = "uv"
     ```
 
 !!! tab examples "Environment variables"
@@ -527,6 +538,9 @@ optional `args` option.
 
     # Use uv and build with an argument
     CIBW_BUILD_FRONTEND: "build[uv]; args: --no-isolation"
+
+    # Use uv directly
+    CIBW_BUILD_FRONTEND: "uv"
     ```
 
 
@@ -619,6 +633,8 @@ Platform-specific environment variables are also available:<br/>
     ```
 
     In configuration files, you can use a [TOML][] table instead of a raw string as shown above.
+
+[TOML]: https://toml.io/en/
 
 !!! tab examples "Environment variables"
 
@@ -894,6 +910,10 @@ Default:
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
 - on Android: `'auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}'`
+- on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
+  Unlike other platforms, this command is not set by default as you need to explicitly
+  specify the library directory. You might not want to use the libraries in the system
+  directory, as they are not built for WASM and will not work.
 - on other platforms: `''`
 
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
@@ -921,12 +941,6 @@ Platform-specific environment variables are also available:<br/>
     Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
 
     [Delvewheel]: https://github.com/adang1345/delvewheel
-
-!!! tip
-    When using `--platform pyodide`, `pyodide build` is used to do the build,
-    which already uses `auditwheel-emscripten` to repair the wheel, so the default
-    repair command is empty. If there is a way to do this in two steps in the future,
-    this could change.
 
 #### Examples
 
@@ -1241,7 +1255,7 @@ Platform-specific environment variables are also available:<br/>
 
     [tool.cibuildwheel.pyodide]
     # Choose a specific pyodide-build version
-    dependency-versions = { packages = ["pyodide-build==0.29.1"] }
+    dependency-versions = { packages = ["pyodide-build==0.31.2"] }
     ```
 
 !!! tab examples "Environment variables"
@@ -1260,7 +1274,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_DEPENDENCY_VERSIONS: "packages: auditwheel==6.2.0"
 
     # Choose a specific pyodide-build version
-    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.29.1"
+    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.31.2"
 
     # Use shell-style quoting around spaces package specifiers
     CIBW_DEPENDENCY_VERSIONS: "packages: 'pip >=16.0.0, !=17'"
@@ -1751,14 +1765,16 @@ will not produce more logging about the build itself. Other levels only affect
 the build frontend output, which is usually things like resolving and
 downloading dependencies. The settings are:
 
-|             | build | pip    | desc                             |
-|-------------|-------|--------|----------------------------------|
-| -2          | N/A   | `-qq`  | even more quiet, where supported |
-| -1          | N/A   | `-q`   | quiet mode, where supported      |
-| 0 (default) |       |        | default for build tool           |
-| 1           |       | `-v`   | print backend output             |
-| 2           | `-v`  | `-vv`  | print log messages e.g. resolving info |
-| 3           | `-vv` | `-vvv` | print even more debug info       |
+|             | build | pip    | uv    | desc                             |
+|-------------|-------|--------|-------|----------------------------------|
+| -2          | `-qq`[^1] | `-qq`  | `-qq` | even more quiet, where supported |
+| -1          | `-q`[^1]  | `-q`   | `-q`  | quiet mode, where supported      |
+| 0 (default) |       |        |       | default for build tool           |
+| 1           |       | `-v`   |       | print backend output             |
+| 2           | `-v`  | `-vv`  | `-v`  | print log messages e.g. resolving info |
+| 3           | `-vv` | `-vvv` | `-vv` | print even more debug info       |
+
+[^1]: Not supported on Python 3.8, will be ignored with a warning.
 
 Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by

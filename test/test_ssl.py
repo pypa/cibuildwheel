@@ -1,4 +1,3 @@
-import socket
 import textwrap
 
 import pytest
@@ -8,14 +7,25 @@ from . import test_projects, utils
 project_with_ssl_tests = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         r"""
-        import ssl
+            import ssl, time, urllib.request, urllib.error
 
-        from urllib.request import urlopen
+            def check_https(context=None):
+                # google hosts this endpoint that returns a 204 No Content, it's used for
+                # connectivity checks in Android & Chrome
+                url = "https://google.com/generate_204"
 
-        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-        # badssl.com is a HTTPS test server that can be used to test SSL connections
-        data = urlopen("https://tls-v1-2.badssl.com", context=context)
-        data = urlopen("https://tls-v1-2.badssl.com")
+                for i in range(5):
+                    try:
+                        urllib.request.urlopen(url, context=context, timeout=5)
+                        return
+                    except (OSError, urllib.error.URLError) as e:
+                        print(f"Attempt {i+1}: Could not connect to {url}: {e}")
+                        time.sleep(2 ** i)  # Backoff: 1s, 2s, 4s, 8s...
+
+                raise ConnectionError(f"Could not connect to {url} after retries.")
+
+            check_https()
+            check_https(context=ssl.SSLContext(ssl.PROTOCOL_TLSv1_2))
         """
     )
 )
@@ -27,9 +37,6 @@ def test(tmp_path):
     # some checks in setup.py.
     project_dir = tmp_path / "project"
     project_with_ssl_tests.generate(project_dir)
-
-    # warm up connection
-    socket.getaddrinfo("tls-v1-2.badssl.com", 443)
 
     actual_wheels = utils.cibuildwheel_run(project_dir)
 
