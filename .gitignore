@@ -112,3 +112,10 @@ site/
 
 # PyCharm
 .idea/
+
+# Lockfiles
+*.lock
+*.pylock
+
+# OS files
+.DS_Store

@@ -15,7 +15,6 @@ from tempfile import mkdtemp
 from typing import Any, Literal, TextIO
 
 import cibuildwheel
-import cibuildwheel.util
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
